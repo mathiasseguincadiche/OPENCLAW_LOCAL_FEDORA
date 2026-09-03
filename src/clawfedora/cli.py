@@ -86,7 +86,10 @@ def _agents_validate(root: Path, as_json: bool) -> int:
     else:
         for failure in failures:
             print(f"FAIL {failure}")
-        print("AGENTS_RESULT=PASS" if not failures else f"AGENTS_RESULT=FAIL failures={len(failures)}")
+        if failures:
+            print(f"AGENTS_RESULT=FAIL failures={len(failures)}")
+        else:
+            print("AGENTS_RESULT=PASS")
     return 0 if not failures else 2
 
 
