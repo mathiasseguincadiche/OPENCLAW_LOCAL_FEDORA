@@ -31,26 +31,6 @@ backends:
       context_tokens: 16384
       parallel: 1
 
-  llama-cpp-sycl:
-    provider: llama_cpp_http
-    mode: candidate
-    linux_native: true
-    endpoint: http://127.0.0.1:8080/v1
-    api: openai-compatible
-    accelerator: sycl
-    device_api: level_zero
-    device: SYCL0
-    activation: managed-candidate
-    qualification_required: true
-    support_posture: benchmark-before-promotion
-    router:
-      models_max: 1
-      autoload: true
-      offline: true
-      gpu_layers: auto
-      context_tokens: 16384
-      parallel: 1
-
 selection:
   initial_baseline: ollama-vulkan
   production_backend: null
