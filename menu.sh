@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 LINUX="$REPO_ROOT/scripts/linux"
-# Runtime path is anchored under the repository root resolved above.
+# shellcheck source=scripts/linux/lib/runtime.sh
 # shellcheck disable=SC1091
 source "$LINUX/lib/runtime.sh"
 
@@ -22,7 +22,7 @@ Actions:
   bootstrap     Prépare Fedora; dry-run par défaut, --apply pour modifier
   audit         Audit Fedora/B580 non bloquant
   audit-strict  Gate matériel Fedora/B580 strict
-  gpu           Gate B580/Vulkan/Level Zero strict
+  gpu           Gate B580/xe/Mesa/Vulkan strict
 EOF
 }
 
@@ -53,10 +53,11 @@ run_cli() {
 printf '%s\n' '==============================================================================='
 printf '%s\n' ' OPENCLAW_LOCAL_FEDORA — FEDORA 44 / GNOME 50 / INTEL ARC B580'
 printf '%s\n' '=============================================================================='
-printf '%s\n' ' Baseline kernel : Fedora officiel'
+printf '%s\n' ' Kernel baseline : Fedora officiel'
 printf '%s\n' ' Kernel 7.2.3    : candidat uniquement, jamais promotion automatique'
-printf '%s\n' ' GPU baseline    : Vulkan/Mesa'
-printf '%s\n' ' GPU candidat    : llama.cpp SYCL/Level Zero'
+printf '%s\n' ' GPU stack       : xe + Mesa/Vulkan'
+printf '%s\n' ' Runtime baseline: Ollama Vulkan'
+printf '%s\n' ' Runtime candidat: llama.cpp Vulkan'
 printf '%s\n' ' Cloud           : explicite uniquement, jamais fallback silencieux'
 
 case "$ACTION" in
