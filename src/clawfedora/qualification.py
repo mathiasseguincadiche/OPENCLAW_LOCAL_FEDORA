@@ -179,8 +179,13 @@ def build_plan(
     full = dict(policy["full_gate"])
     if len(planned) != int(full["total_cases"]):
         raise ValueError(f"qualification: {len(planned)} cas, attendu {full['total_cases']}")
-    context_counts = {context: sum(case.context == context for case in planned) for context in required_contexts}
-    expected_contexts = {int(key): int(value) for key, value in dict(full["contexts"]).items()}
+    context_counts = {
+        context: sum(case.context == context for case in planned)
+        for context in required_contexts
+    }
+    expected_contexts = {
+        int(key): int(value) for key, value in dict(full["contexts"]).items()
+    }
     if context_counts != expected_contexts:
         raise ValueError(f"qualification: distribution contextes invalide {context_counts}")
     if covered_8k != set(scenarios):
@@ -411,6 +416,10 @@ def evaluate_cases(policy: dict[str, Any], cases: list[dict[str, Any]]) -> dict[
         failures.append("error_rate")
     if check_rate < float(thresholds["min_check_pass_rate"]):
         failures.append("check_pass_rate")
+    if len(token_rates) != total:
+        failures.append("missing_tokens_per_second")
+    if len(first_tokens) != total:
+        failures.append("missing_first_token_ms")
     if median_tps < float(thresholds["min_median_tokens_per_second"]):
         failures.append("median_tokens_per_second")
     if p95_first > float(thresholds["max_p95_first_token_ms"]):
@@ -490,7 +499,10 @@ def _performance_profile() -> dict[str, Any]:
     }
 
 
-def _model_inventory(tags: dict[str, Any], required: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _model_inventory(
+    tags: dict[str, Any],
+    required: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
     raw_models = tags.get("models", [])
     if not isinstance(raw_models, list):
         raise ValueError("Ollama /api/tags: models invalide")
@@ -542,7 +554,12 @@ def _write_evidence(runtime_root: Path, payload: dict[str, Any]) -> Path:
     return path
 
 
-def _case_evidence(case: PlannedCase, result: dict[str, Any], passed: bool, details: list[str]) -> dict[str, Any]:
+def _case_evidence(
+    case: PlannedCase,
+    result: dict[str, Any],
+    passed: bool,
+    details: list[str],
+) -> dict[str, Any]:
     output = str(result.pop("output"))
     first_token = (
         result["first_generation_ms"]
@@ -553,6 +570,15 @@ def _case_evidence(case: PlannedCase, result: dict[str, Any], passed: bool, deta
     if not native_ok:
         passed = False
         details.append("native_thinking:fail")
+    metrics_ok = (
+        isinstance(first_token, (int, float))
+        and isinstance(result.get("tokens_per_second"), (int, float))
+        and float(result["tokens_per_second"]) > 0
+    )
+    if not metrics_ok:
+        passed = False
+        details.append("performance_metrics:fail")
+    case_error = bool(result["output_truncated"]) or not metrics_ok
     return {
         "model_alias": case.model_alias,
         "runtime_id": case.runtime_id,
@@ -561,8 +587,8 @@ def _case_evidence(case: PlannedCase, result: dict[str, Any], passed: bool, deta
         "category": case.scenario.get("category"),
         "max_output_tokens": case.max_output_tokens,
         "thinking_mode": case.thinking_mode,
-        "status": "error" if result["output_truncated"] else "ok",
-        "check_passed": passed and not result["output_truncated"],
+        "status": "error" if case_error else "ok",
+        "check_passed": passed and not case_error,
         "check_details": details,
         "first_token_ms": first_token,
         "output_sha256": hashlib.sha256(output.encode("utf-8")).hexdigest(),
@@ -648,7 +674,10 @@ def run_qualification(
 
     try:
         remaining = max(1.0, total_deadline - time.perf_counter() - reserve)
-        tags = _request_json(f"{endpoint.rstrip('/')}/api/tags", timeout=min(10.0, remaining))
+        tags = _request_json(
+            f"{endpoint.rstrip('/')}/api/tags",
+            timeout=min(10.0, remaining),
+        )
         version = _request_json(
             f"{endpoint.rstrip('/')}/api/version",
             timeout=min(10.0, remaining),
@@ -704,6 +733,9 @@ def run_qualification(
             if case_payload["output_truncated"]:
                 fail_fast_error = "sortie tronquée"
                 break
+            if case_payload["status"] == "error":
+                fail_fast_error = "métriques de performance incomplètes"
+                break
         except (
             OSError,
             urllib.error.URLError,
@@ -728,12 +760,16 @@ def run_qualification(
 
     if time.perf_counter() >= total_deadline:
         fail_fast_error = fail_fast_error or "HARD_TIMEOUT qualification"
-    evaluation = evaluate_cases(policy, cases) if len(cases) == len(plan.cases) else {
-        "verdict": "FAIL",
-        "failures": [fail_fast_error or "matrice incomplète"],
-        "metrics": {},
-        "thresholds": dict(dict(policy["automated_gates"])["thresholds"]),
-    }
+    evaluation = (
+        evaluate_cases(policy, cases)
+        if len(cases) == len(plan.cases)
+        else {
+            "verdict": "FAIL",
+            "failures": [fail_fast_error or "matrice incomplète"],
+            "metrics": {},
+            "thresholds": dict(dict(policy["automated_gates"])["thresholds"]),
+        }
+    )
     if fail_fast_error and fail_fast_error not in evaluation["failures"]:
         evaluation["failures"].append(fail_fast_error)
         evaluation["verdict"] = "FAIL"
