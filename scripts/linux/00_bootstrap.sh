@@ -77,9 +77,7 @@ PACKAGES=(
   git curl wget rsync jq tar unzip pciutils usbutils lm_sensors
   python3 python3-pip python3-virtualenv
   gcc gcc-c++ make cmake ninja-build pkgconf-pkg-config
-  vulkan-tools mesa-vulkan-drivers
-  intel-compute-runtime intel-level-zero intel-opencl clinfo
-  igt-gpu-tools
+  vulkan-tools mesa-vulkan-drivers igt-gpu-tools
   podman
   qemu-kvm libvirt virt-install virt-manager edk2-ovmf
   shellcheck
@@ -90,6 +88,7 @@ printf 'BOOTSTRAP_PLAN Fedora=%s runtime=%s user=%s group=%s\n' \
 printf '  packages: %s\n' "${PACKAGES[*]}"
 printf '  groups: render video libvirt\n'
 printf '  managed venv: %s/runtime/venv\n' "$RUNTIME_ROOT"
+printf '  GPU stack: xe + Mesa/Vulkan\n'
 printf '  SELinux: must remain Enforcing\n'
 printf '  kernel: Fedora package stays baseline; 7.2.3 is NOT installed here\n'
 
