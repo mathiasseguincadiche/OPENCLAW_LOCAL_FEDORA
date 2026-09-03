@@ -1,0 +1,52 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+
+full_gate:
+  name: HARD-40M
+  max_wall_seconds: 2400
+  evaluation_reserve_seconds: 60
+  total_cases: 30
+  contexts:
+    8192: 24
+    16384: 6
+  qwen_native_reasoning_probes: 3
+  qwen_native_max_output_tokens: 768
+  case_timeout_seconds: 210
+
+required_models:
+  - qwen-max
+  - gemma-deep
+  - devstral-devops
+
+safety:
+  cloud_calls_allowed: false
+  implicit_model_downloads_allowed: false
+  fail_fast_on_api_error: true
+  fail_fast_on_case_timeout: true
+  fail_on_output_truncation: true
+  suspend_allowed: false
+
+identity:
+  exact_model_digest_required: true
+  exact_quantization_required: true
+  exact_runtime_versions_recorded: true
+  exact_kernel_recorded: true
+  exact_mesa_recorded: true
+  exact_level_zero_recorded: true
+
+migration_performance_target:
+  source_baseline: OPENCLAW_LOCAL/windows11-b580
+  aggregate_improvement_target_pct: 10.0
+  maximum_single_model_regression_pct: 5.0
+  functional_regression_allowed: false
+  security_regression_allowed: false
+  compare_same_models: true
+  compare_same_quantization: true
+  compare_same_prompts: true
+  compare_same_contexts: true
+
+promotion:
+  automatic_backend_promotion: false
+  automatic_kernel_promotion: false
+  automatic_v1_release: false
+  final_human_approval_required: true
