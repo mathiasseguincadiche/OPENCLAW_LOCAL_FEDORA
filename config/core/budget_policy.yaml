@@ -1,0 +1,17 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+currency: EUR
+cloud_enabled_by_default: false
+limits:
+  daily_eur: 1.0
+  monthly_eur: 5.0
+  per_project_eur: 2.0
+behavior:
+  on_limit: deny
+  require_reason: true
+  default_reservation_eur: 0.25
+  allow_manual_override: false
+ledger:
+  relative_path: state/finops/cloud-costs.jsonl
+  append_only_events: true
+  commit_to_git: false

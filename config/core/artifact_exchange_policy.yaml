@@ -1,0 +1,20 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+enabled: true
+root: context/exchange
+principles:
+  central_project_is_source_of_truth: true
+  never_overwrite_previous_runs: true
+  publish_self_history_for_every_attempt: true
+  publish_to_dependents_only_on_pass: true
+  preserve_provenance: true
+  hash_every_exchanged_file: true
+  consumer_must_not_modify_exchange_in_place: true
+propagation:
+  direct_dependents: true
+  transitive_dependents: true
+  include_output_kinds: [work, deliverables, evidence, diagrams]
+validation:
+  manifest_required: true
+  aggregate_sha256_required: true
+  dependency_relation_must_be_provable: true

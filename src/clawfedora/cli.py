@@ -11,6 +11,7 @@ from clawfedora.contracts import validate_repository
 from clawfedora.core_config import resolve_runtime_root
 from clawfedora.core_contracts import validate_core_contracts
 from clawfedora.openclaw_config import build_openclaw_patch, write_openclaw_patch
+from clawfedora.project_cli import add_project_parser, run_project_command
 
 
 def _root_from_args(value: str | None) -> Path:
@@ -116,7 +117,10 @@ def _agents_deploy(root: Path, runtime_value: str | None, as_json: bool) -> int:
             )
         )
     else:
-        print(f"AGENTS_DEPLOY_RESULT=PASS count={len(deployed)} root={runtime_root / 'workspaces'}")
+        print(
+            f"AGENTS_DEPLOY_RESULT=PASS count={len(deployed)} "
+            f"root={runtime_root / 'workspaces'}"
+        )
     return 0
 
 
@@ -178,6 +182,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     render.add_argument("--output")
     render.add_argument("--json", action="store_true")
+
+    add_project_parser(subparsers)
     return parser
 
 
@@ -202,6 +208,8 @@ def main(argv: list[str] | None = None) -> int:
             args.output,
             bool(args.json),
         )
+    if args.command == "project":
+        return run_project_command(root, args)
     parser.error(f"commande non supportée: {args.command}")
     return 2
 
