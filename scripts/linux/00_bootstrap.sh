@@ -4,6 +4,7 @@ set -Eeuo pipefail
 APPLY=0
 ENABLE_LINGER=0
 RUNTIME_ROOT="/srv/openclaw-local"
+RUNTIME_MARKER=".openclaw-fedora-runtime"
 
 usage() {
   cat <<'EOF'
@@ -89,6 +90,7 @@ printf '  packages: %s\n' "${PACKAGES[*]}"
 printf '  groups: render video libvirt\n'
 printf '  managed venv: %s/runtime/venv\n' "$RUNTIME_ROOT"
 printf '  runtime dirs: models workspaces projects proofs benchmarks state backups\n'
+printf '  managed marker: %s/%s\n' "$RUNTIME_ROOT" "$RUNTIME_MARKER"
 printf '  GPU stack: xe + Mesa/Vulkan\n'
 printf '  SELinux: must remain Enforcing\n'
 printf '  kernel: Fedora package stays baseline; 7.2.3 is NOT installed here\n'
@@ -121,6 +123,8 @@ as_target install -d -m 0750 \
   "$RUNTIME_ROOT/benchmarks" \
   "$RUNTIME_ROOT/state" \
   "$RUNTIME_ROOT/backups"
+as_target touch "$RUNTIME_ROOT/$RUNTIME_MARKER"
+as_target chmod 0600 "$RUNTIME_ROOT/$RUNTIME_MARKER"
 
 VENV="$RUNTIME_ROOT/runtime/venv"
 if [[ ! -x "$VENV/bin/python" ]]; then
