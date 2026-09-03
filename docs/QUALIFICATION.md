@@ -2,7 +2,7 @@
 
 ## Principe
 
-La qualification Fedora reprend le contrat HARD-40M du projet Windows afin de conserver une comparaison utile :
+La qualification HARD-40M est un gate natif Fedora :
 
 - 3 modèles obligatoires ;
 - 30 cas ;
@@ -14,8 +14,6 @@ La qualification Fedora reprend le contrat HARD-40M du projet Windows afin de co
 - 2400 s max pour le gate complet ;
 - aucun appel cloud ;
 - aucun téléchargement implicite de modèle.
-
-Cette matrice sera importée avec le cœur benchmark lorsque M1 sera terminé.
 
 ## Avant HARD-40M
 
@@ -31,36 +29,39 @@ Puis doivent être enregistrés :
 
 - commit du dépôt ;
 - `uname -r` ;
-- paquets Mesa/Intel ;
+- version Mesa ;
 - version OpenClaw ;
 - version Ollama ;
 - commit llama.cpp ;
 - digest/quantification des trois modèles ;
 - état ReBAR ;
 - RAM/VRAM ;
-- backend exact.
+- runtime exact.
 
 ## Ordre des campagnes
 
-1. Fedora kernel officiel + Ollama Vulkan ;
-2. Fedora kernel officiel + llama.cpp Vulkan ;
-3. Fedora kernel officiel + llama.cpp SYCL ;
-4. kernel 7.2.3 + meilleur(s) backend(s) ;
-5. confirmation par 3 runs du candidat gagnant.
+1. kernel Fedora officiel + Ollama Vulkan ;
+2. kernel Fedora officiel + llama.cpp Vulkan ;
+3. kernel 7.2.3 + runtime Vulkan gagnant ;
+4. confirmation par 3 runs du candidat gagnant.
 
-## Critère Fedora vs Windows
+Une seule variable change à la fois.
 
-Objectif de migration :
+## Critère d'optimisation Linux
 
-- ≥ 10 % de gain agrégé cible ;
+Baseline : **kernel Fedora officiel + Ollama Vulkan**.
+
+Objectif :
+
+- ≥ 10 % de gain agrégé cible pour une configuration optimisée ;
 - aucune régression fonctionnelle ou sécurité ;
 - aucune régression > 5 % sur un modèle ;
 - E2E OpenClaw et tool calling PASS ;
 - Golden Projects PASS ;
 - projet représentatif PASS.
 
-Un gain inférieur à 10 % ne rend pas automatiquement Fedora mauvais : les bénéfices d'exploitation (systemd, KVM, Podman, Linux natif) peuvent être évalués séparément. En revanche, le dépôt ne revendiquera pas l'objectif « performance supérieure » sans preuve chiffrée.
+Un gain inférieur à 10 % n'est pas maquillé en succès. Le projet conserve alors la configuration la plus stable et documente les résultats réels.
 
 ## Promotion
 
-Aucune promotion automatique de backend, kernel ou V1. Les fichiers de résultat proposent un candidat ; l'opérateur décide après lecture des preuves.
+Aucune promotion automatique de runtime, kernel ou V1. Les fichiers de résultat proposent un candidat ; l'opérateur décide après lecture des preuves.
