@@ -1,0 +1,126 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+gate: L6
+
+pins:
+  ollama:
+    version: "0.32.14"
+    tag: "v0.32.14"
+    commit: "d67ad83426633195089509347ffd4fe795120198"
+  llama_cpp:
+    tag: "b10516"
+    commit: "b95502ba9aa0eb73a2f4fc8878d7fbe6a847a0b9"
+  kernel_candidate:
+    version: "7.2.3"
+    source_url: "https://www.kernel.org/pub/linux/kernel/v7.x/linux-7.2.3.tar.xz"
+    sha256: "8ba259e8e7b13ec6ef0941c8a39ad90b24bd4a4d6c0010ba6bafb794550ecd03"
+
+paths:
+  llama_source: runtime/src/llama.cpp
+  llama_vulkan_build: runtime/llama.cpp/vulkan
+  llama_sycl_build: runtime/llama.cpp/sycl
+  llama_models: models/llama-router
+  evidence: proofs/l6
+  comparisons: benchmarks/l6
+
+artifact_staging:
+  source: ollama-local-blobs
+  explicit_only: true
+  network_downloads_allowed: false
+  symlinks_preferred: true
+  require_sha256: true
+  require_all_three_models: true
+  projector_optional_but_recorded: true
+
+services:
+  manager: systemd-user
+  host: 127.0.0.1
+  vulkan:
+    unit: openclaw-llama-vulkan.service
+    port: 8081
+    models_max: 1
+    models_autoload: true
+    context_tokens: 8192
+    gpu_layers: 999
+  sycl:
+    unit: openclaw-llama-sycl.service
+    port: 8080
+    models_max: 1
+    models_autoload: true
+    context_tokens: 8192
+    gpu_layers: 999
+    device_api: level_zero
+    optional: true
+
+runtime_comparison:
+  baseline: ollama-vulkan
+  candidates: [llama-cpp-vulkan, llama-cpp-sycl]
+  minimum_repeated_runs: 3
+  aggregate_improvement_target_pct: 10.0
+  maximum_single_model_regression_pct: 5.0
+  require_same_model_digest: true
+  require_same_quantization: true
+  require_same_contexts: true
+  require_same_prompt_hashes: true
+  require_functional_pass: true
+  require_security_pass: true
+  automatic_promotion: false
+  optional_candidate_failure_blocks_baseline: false
+
+kernel_comparison:
+  baseline: fedora-official
+  candidate: upstream-7.2.3
+  minimum_repeated_runs: 3
+  minimum_aggregate_improvement_pct: 3.0
+  maximum_single_model_regression_pct: 2.0
+  require_same_backend: true
+  require_same_model_digest: true
+  require_same_quantization: true
+  require_same_contexts: true
+  require_same_prompt_hashes: true
+  require_l2_l5_pass: true
+  automatic_promotion: false
+  keep_minimum_bootable_kernels: 2
+  baseline_must_remain_bootable: true
+
+model_challenger:
+  slot: gemma-deep
+  incumbent: gemma3:12b-it-q4_K_M
+  challenger: ministral-3:14b-instruct-2512-q4_K_M
+  minimum_repeated_runs: 3
+  require_vision_pass: true
+  require_document_quality_pass: true
+  require_tool_calling_pass: true
+  require_security_pass: true
+  maximum_performance_regression_pct: 5.0
+  tie_policy: keep-incumbent
+  automatic_promotion: false
+
+comparison_evidence:
+  schema_version: "1.0.0"
+  required_fields:
+    - run_id
+    - kind
+    - candidate_id
+    - kernel
+    - backend
+    - models
+    - contexts
+    - prompt_hashes
+    - functional_pass
+    - security_pass
+    - metrics
+  model_metrics_required:
+    - median_tokens_per_second
+    - p95_first_token_ms
+    - vram_mib
+    - ram_mib
+    - error_rate
+  raw_outputs_persisted: false
+  cloud_calls_allowed: false
+
+promotion:
+  output_verdicts: [KEEP_BASELINE, ELIGIBLE_FOR_HUMAN_PROMOTION]
+  human_approval_required: true
+  write_decision_record: true
+  no_automatic_config_mutation: true
