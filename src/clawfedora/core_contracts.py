@@ -26,11 +26,14 @@ def _mapping(value: Any) -> dict[str, Any]:
 
 
 def _loopback(endpoint: str) -> bool:
-    return endpoint.startswith("http://127.0.0.1:") or endpoint.startswith("http://localhost:")
+    return endpoint.startswith("http://127.0.0.1:") or endpoint.startswith(
+        "http://localhost:"
+    )
 
 
 def _validate_project_contracts(
-    contracts: dict[str, dict[str, Any]], failures: list[str]
+    contracts: dict[str, dict[str, Any]],
+    failures: list[str],
 ) -> None:
     intake = contracts["intake_policy.yaml"]
     intake_security = _mapping(intake.get("security"))
@@ -41,7 +44,12 @@ def _validate_project_contracts(
         failures.append("core/intake: scan de secrets requis")
     if intake_security.get("execute_received_files") is not False:
         failures.append("core/intake: exécution des entrées interdite")
-    for key in ("sha256_required", "aggregate_digest_required", "intake_files_read_only"):
+    for key in (
+        "sha256_required",
+        "aggregate_digest_required",
+        "intake_files_read_only",
+        "revalidate_before_phase_changes",
+    ):
         if intake_integrity.get(key) is not True:
             failures.append(f"core/intake: {key}=true requis")
 
@@ -51,12 +59,15 @@ def _validate_project_contracts(
     gate = _mapping(ingestion.get("analysis_gate"))
     if gate.get("require_complete_source_coverage") is not True:
         failures.append("core/ingestion: couverture complète requise")
+    if gate.get("tool_required_must_be_actually_read") is not True:
+        failures.append("core/ingestion: lecture réelle des médias requise")
     formats = _mapping(ingestion.get("formats"))
     if _mapping(formats.get("pdf")).get("method") != "pdf":
         failures.append("core/ingestion: PDF doit utiliser l'outil pdf")
     if _mapping(formats.get("image")).get("method") != "view_image":
         failures.append("core/ingestion: image doit utiliser view_image")
-    if _mapping(formats.get("archive")).get("method") != "local_safe_archive_extract":
+    archive = _mapping(formats.get("archive"))
+    if archive.get("method") != "local_safe_archive_extract":
         failures.append("core/ingestion: ZIP doit utiliser l'extraction sûre locale")
 
     orchestration = contracts["orchestration_policy.yaml"]
@@ -111,12 +122,21 @@ def _validate_project_contracts(
     if telemetry.get("local_only") is not True:
         failures.append("core/telemetry: stockage local requis")
     forbidden = set(telemetry.get("forbidden_content", []))
-    required_forbidden = {"prompt", "response", "document_content", "secret", "api_key", "token"}
+    required_forbidden = {
+        "prompt",
+        "response",
+        "document_content",
+        "secret",
+        "api_key",
+        "token",
+    }
     if not required_forbidden <= forbidden:
         failures.append("core/telemetry: contenu sensible insuffisamment interdit")
 
 
-def validate_core_contracts(repo_root: Path) -> tuple[tuple[str, ...], tuple[str, ...]]:
+def validate_core_contracts(
+    repo_root: Path,
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
     failures: list[str] = []
     warnings: list[str] = []
     version = (repo_root / "VERSION").read_text(encoding="utf-8").strip()
@@ -157,9 +177,14 @@ def validate_core_contracts(repo_root: Path) -> tuple[tuple[str, ...], tuple[str
         model = str(entry.get("model", ""))
         fallback = str(entry.get("fallback", ""))
         if model not in model_aliases or fallback not in model_aliases:
-            failures.append(f"core/agents: modèle ou fallback invalide pour {agent_id}")
+            failures.append(
+                f"core/agents: modèle ou fallback invalide pour {agent_id}"
+            )
         route = _mapping(routing.get(agent_id))
-        if route.get("local_primary") != model or route.get("local_fallback") != fallback:
+        if (
+            route.get("local_primary") != model
+            or route.get("local_fallback") != fallback
+        ):
             failures.append(f"core/routing: divergence de routage pour {agent_id}")
 
     defaults = _mapping(contracts["tool_policy.yaml"].get("security_defaults"))
@@ -181,7 +206,10 @@ def validate_core_contracts(repo_root: Path) -> tuple[tuple[str, ...], tuple[str
         failures.append("core/openclaw: Gateway local loopback requis")
     if security.get("providers_loopback_only") is not True:
         failures.append("core/openclaw: providers loopback-only requis")
-    if security.get("exec_mode") != "ask" or security.get("elevated_enabled") is not False:
+    if (
+        security.get("exec_mode") != "ask"
+        or security.get("elevated_enabled") is not False
+    ):
         failures.append("core/openclaw: exec=ask et elevated=false requis")
 
     backends = root_contract(repo_root, "runtime_backends.yaml")
