@@ -66,7 +66,7 @@ def test_telemetry_path_is_confined_to_runtime(tmp_path: Path) -> None:
     payload = yaml.safe_load(path.read_text(encoding="utf-8"))
     payload["retention"]["relative_path"] = "../escape.jsonl"
     path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
-    with pytest.raises(ValueError, match="chemin relatif interdit"):
+    with pytest.raises(ValueError, match="relative_path interdit"):
         emit_event(root, tmp_path / "runtime", "x", status="PASS")
 
 
@@ -149,7 +149,7 @@ def test_finops_path_is_confined_to_runtime(tmp_path: Path) -> None:
     payload = yaml.safe_load(path.read_text(encoding="utf-8"))
     payload["ledger"]["relative_path"] = "/tmp/escape.jsonl"
     path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
-    with pytest.raises(ValueError, match="chemin relatif interdit"):
+    with pytest.raises(ValueError, match="relative_path interdit"):
         append_cost_event(
             root,
             tmp_path / "runtime",
