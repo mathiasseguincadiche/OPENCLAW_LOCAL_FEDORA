@@ -90,8 +90,7 @@ def collect_audit(strict: bool = False) -> AuditReport:
         )
     )
 
-    kernel = platform.release()
-    checks.append(Check("kernel", "PASS", kernel))
+    checks.append(Check("kernel", "PASS", platform.release()))
 
     session = os.environ.get("XDG_SESSION_TYPE", "unknown").lower()
     checks.append(
@@ -162,6 +161,16 @@ def collect_audit(strict: bool = False) -> AuditReport:
         )
     )
 
+    rc, mesa = _run(["rpm", "-q", "mesa-vulkan-drivers"])
+    mesa_ok = rc == 0
+    checks.append(
+        Check(
+            "mesa-vulkan-package",
+            "PASS" if mesa_ok else ("FAIL" if strict else "WARN"),
+            mesa or "mesa-vulkan-drivers absent",
+        )
+    )
+
     rc, vulkan = _run(["vulkaninfo", "--summary"], timeout=20)
     vulkan_ok = rc == 0 and ("B580" in vulkan or "Intel" in vulkan)
     vulkan_detail = (
@@ -174,41 +183,6 @@ def collect_audit(strict: bool = False) -> AuditReport:
             "vulkan",
             "PASS" if vulkan_ok else ("FAIL" if strict else "WARN"),
             vulkan_detail,
-        )
-    )
-
-    rc, level_zero = _run(["rpm", "-q", "intel-level-zero"])
-    l0_ok = rc == 0
-    checks.append(
-        Check(
-            "level-zero-runtime",
-            "PASS" if l0_ok else ("FAIL" if strict else "WARN"),
-            level_zero,
-        )
-    )
-
-    rc, compute_runtime = _run(["rpm", "-q", "intel-compute-runtime"])
-    compute_ok = rc == 0
-    checks.append(
-        Check(
-            "intel-compute-runtime",
-            "PASS" if compute_ok else ("FAIL" if strict else "WARN"),
-            compute_runtime,
-        )
-    )
-
-    rc, sycl = _run(["sycl-ls"], timeout=20)
-    sycl_ok = rc == 0 and "level_zero" in sycl.lower() and "gpu" in sycl.lower()
-    sycl_detail = (
-        "SYCL/Level Zero disponible"
-        if sycl_ok
-        else "optionnel avant qualification: " + sycl[-500:]
-    )
-    checks.append(
-        Check(
-            "sycl-candidate",
-            "PASS" if sycl_ok else "WARN",
-            sycl_detail,
         )
     )
 
