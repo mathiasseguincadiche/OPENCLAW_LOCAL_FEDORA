@@ -46,6 +46,32 @@ def test_qualification_contracts_pass_on_repository() -> None:
     assert warnings
 
 
+def test_contract_rejects_model_fleet_drift(tmp_path: Path) -> None:
+    _copy_contracts(tmp_path)
+    catalog_path = tmp_path / "config" / "model_catalog.yaml"
+    payload = _load(catalog_path)
+    payload["models"]["qwen-max"]["runtime_id"] = "qwen3.5:27b"
+    payload["models"]["devstral-devops"]["family"] = "qwen"
+    payload["models"]["gemma-deep"]["nominal_context_tokens"] = 16384
+    _save(catalog_path, payload)
+    failures, _ = validate_qualification_contracts(tmp_path)
+    joined = "\n".join(failures)
+    assert "runtime nominal inattendu pour qwen-max" in joined
+    assert "spécialiste DevOps" in joined
+    assert "contexte nominal 8K requis pour gemma-deep" in joined
+
+
+def test_contract_rejects_challenger_auto_promotion(tmp_path: Path) -> None:
+    _copy_contracts(tmp_path)
+    catalog_path = tmp_path / "config" / "model_catalog.yaml"
+    payload = _load(catalog_path)
+    challenger = payload["challengers"]["gemma-deep"]["ministral-3-14b"]
+    challenger["automatic_promotion"] = True
+    _save(catalog_path, payload)
+    failures, _ = validate_qualification_contracts(tmp_path)
+    assert any("promotion automatique challenger" in item for item in failures)
+
+
 def test_contract_rejects_weakened_hard40_threshold(tmp_path: Path) -> None:
     policy_path, _ = _copy_contracts(tmp_path)
     payload = _load(policy_path)
