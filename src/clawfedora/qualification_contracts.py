@@ -139,6 +139,7 @@ def validate_qualification_contracts(repo_root: Path) -> tuple[tuple[str, ...], 
 
     if not failures:
         warnings.append(
-            "L5 est logiciellement prêt; aucun PASS matériel/performance n'est revendiqué avant run Fedora"
+            "L5 est logiciellement prêt; aucun PASS matériel/performance n'est "
+            "revendiqué avant run Fedora"
         )
     return tuple(failures), tuple(warnings)
