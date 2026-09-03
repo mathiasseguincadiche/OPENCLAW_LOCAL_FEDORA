@@ -15,6 +15,21 @@ def test_validate_lifecycle_command(capsys: pytest.CaptureFixture[str]) -> None:
     assert "LIFECYCLE_CONTRACT_RESULT=PASS" in capsys.readouterr().out
 
 
+def test_root_uses_repository_environment_override(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("OPENCLAW_LOCAL_FEDORA_REPO", str(ROOT))
+    assert ops_cli._root(None) == ROOT.resolve()
+
+
+def test_explicit_root_wins_over_environment(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setenv("OPENCLAW_LOCAL_FEDORA_REPO", str(tmp_path / "wrong"))
+    assert ops_cli._root(str(ROOT)) == ROOT.resolve()
+
+
 def test_models_dry_run_lists_three_models(capsys: pytest.CaptureFixture[str]) -> None:
     code = ops_cli.main(["--root", str(ROOT), "models"])
     assert code == 0
