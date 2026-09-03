@@ -4,9 +4,9 @@ Décrire le problème réel et le résultat attendu.
 
 ## Type de changement
 
-- [ ] cœur portable
+- [ ] cœur multi-agents Linux-native
 - [ ] Fedora / Bash / systemd
-- [ ] GPU / Vulkan / SYCL
+- [ ] GPU / Mesa / Vulkan
 - [ ] kernel
 - [ ] qualification / benchmark
 - [ ] documentation / gouvernance
@@ -18,7 +18,7 @@ Décrire le problème réel et le résultat attendu.
 - [ ] kernel Fedora rollback conservé
 - [ ] aucune promotion automatique kernel/backend
 - [ ] aucun seuil abaissé pour forcer un PASS
-- [ ] aucune hypothèse Windows ajoutée au chemin nominal
+- [ ] la pile nominale reste Fedora + xe + Mesa/Vulkan
 
 ## Preuves
 
