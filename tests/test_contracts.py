@@ -24,14 +24,12 @@ def test_repository_contracts_pass() -> None:
     assert report.warnings
 
 
-def test_windows_native_marker_is_rejected(tmp_path: Path) -> None:
+def test_non_linux_entrypoint_is_rejected(tmp_path: Path) -> None:
     root = _sandbox(tmp_path)
-    path = root / "config" / "platform.yaml"
-    content = path.read_text(encoding="utf-8") + "\nlegacy: windows-native\n"
-    path.write_text(content, encoding="utf-8")
+    (root / "legacy.ps1").write_text("Write-Host test\n", encoding="utf-8")
     report = validate_repository(root)
     assert not report.ok
-    assert any("Windows" in failure for failure in report.failures)
+    assert any("entrypoints non Linux" in failure for failure in report.failures)
 
 
 def test_kernel_automatic_promotion_is_rejected(tmp_path: Path) -> None:
@@ -65,3 +63,25 @@ def test_hard_40m_budget_cannot_be_silently_extended(tmp_path: Path) -> None:
     report = validate_repository(root)
     assert not report.ok
     assert any("2400" in failure for failure in report.failures)
+
+
+def test_non_vulkan_runtime_is_rejected(tmp_path: Path) -> None:
+    root = _sandbox(tmp_path)
+    path = root / "config" / "runtime_backends.yaml"
+    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+    payload["backends"]["llama-cpp-vulkan"]["accelerator"] = "cpu"
+    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+    report = validate_repository(root)
+    assert not report.ok
+    assert any("Vulkan" in failure for failure in report.failures)
+
+
+def test_roadmap_must_remain_l0_to_l8(tmp_path: Path) -> None:
+    root = _sandbox(tmp_path)
+    path = root / "config" / "roadmap_policy.yaml"
+    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+    del payload["roadmap_gates"]["L8"]
+    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+    report = validate_repository(root)
+    assert not report.ok
+    assert any("L0..L8" in failure for failure in report.failures)
