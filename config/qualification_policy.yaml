@@ -1,10 +1,14 @@
-schema_version: "1.0.0"
+schema_version: "1.1.0"
 platform_version: "0.1.0"
+suite: linux-devops-v1
+required_contexts: [8192, 16384]
+optional_contexts: [32768]
 
 full_gate:
   name: HARD-40M
   max_wall_seconds: 2400
   evaluation_reserve_seconds: 60
+  benchmark_default_max_wall_seconds: 2100
   total_cases: 30
   contexts:
     8192: 24
@@ -18,6 +22,60 @@ required_models:
   - gemma-deep
   - devstral-devops
 
+automated_gates:
+  scenario_matrix:
+    qwen-max:
+      "8192":
+        - project-intake-analysis
+        - systemd-service-debug
+        - kubernetes-root-cause
+        - selinux-security-review
+        - web-freshness-discipline
+        - tool-intent-json
+        - tool-feedback-repair-json
+        - long-context-discipline
+      "16384":
+        - project-intake-analysis
+        - long-context-discipline
+    gemma-deep:
+      "8192":
+        - project-intake-analysis
+        - terraform-multifile-change
+        - ansible-idempotence
+        - selinux-security-review
+        - rollback-runbook
+        - architecture-diagram-d2
+        - web-freshness-discipline
+        - long-context-discipline
+      "16384":
+        - project-intake-analysis
+        - long-context-discipline
+    devstral-devops:
+      "8192":
+        - systemd-service-debug
+        - kubernetes-root-cause
+        - terraform-multifile-change
+        - ansible-idempotence
+        - selinux-security-review
+        - tool-intent-json
+        - tool-feedback-repair-json
+        - long-context-discipline
+      "16384":
+        - kubernetes-root-cause
+        - long-context-discipline
+  qwen_native_cases:
+    - "8192:project-intake-analysis"
+    - "8192:kubernetes-root-cause"
+    - "16384:long-context-discipline"
+  thresholds:
+    max_error_rate: 0.0
+    min_check_pass_rate: 0.875
+    min_median_tokens_per_second: 6.0
+    max_p95_first_token_ms: 12000
+    per_context_min_check_pass_rate:
+      "8192": 0.875
+      "16384": 0.75
+
 safety:
   cloud_calls_allowed: false
   implicit_model_downloads_allowed: false
@@ -25,6 +83,9 @@ safety:
   fail_fast_on_case_timeout: true
   fail_on_output_truncation: true
   suspend_allowed: false
+  endpoint_loopback_only: true
+  persist_raw_outputs_in_git: false
+  redact_secrets_before_manual_review: true
 
 identity:
   exact_model_digest_required: true
@@ -32,6 +93,14 @@ identity:
   exact_runtime_versions_recorded: true
   exact_kernel_recorded: true
   exact_mesa_recorded: true
+
+preflight:
+  l2_fedora_hardware_gate_required: true
+  l3_b580_vulkan_gate_required: true
+  l4_openclaw_e2e_required_for_v1: true
+  qualification_backend: ollama-vulkan
+  cpu_governor_observed: true
+  no_suspend_required: true
 
 linux_performance_target:
   baseline: fedora-stock-kernel-plus-ollama-vulkan
@@ -49,3 +118,20 @@ promotion:
   automatic_kernel_promotion: false
   automatic_v1_release: false
   final_human_approval_required: true
+  ready_verdict: READY_FOR_MANUAL_QUALIFICATION
+  requires:
+    - l2_fedora_hardware_gate_pass
+    - l3_b580_vulkan_gate_pass
+    - hard_40m_qualification_pass
+    - l4_openclaw_e2e_pass
+    - tool_calling_e2e_pass
+    - tool_feedback_repair_pass
+    - stability_three_runs
+    - golden_projects_pass
+    - human_review
+
+runtime_comparison:
+  required_for_backend_promotion: true
+  candidates: [ollama-vulkan, llama-cpp-vulkan, llama-cpp-sycl]
+  automatic_winner_promotion: false
+  optional_candidates_must_not_block_baseline: true
