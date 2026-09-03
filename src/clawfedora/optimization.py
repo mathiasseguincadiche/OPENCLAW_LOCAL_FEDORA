@@ -5,11 +5,12 @@ import json
 import os
 import shlex
 import subprocess
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from statistics import median
-from typing import Any, Iterable
+from typing import Any
 
 from clawfedora.core_config import root_contract
 
@@ -290,7 +291,10 @@ def _comparison_changes(
 
 
 def _all_gates_pass(runs: list[dict[str, Any]]) -> bool:
-    return all(run.get("functional_pass") is True and run.get("security_pass") is True for run in runs)
+    return all(
+        run.get("functional_pass") is True and run.get("security_pass") is True
+        for run in runs
+    )
 
 
 def compare_runtime(
