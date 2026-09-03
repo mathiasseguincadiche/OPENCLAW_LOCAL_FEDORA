@@ -1,0 +1,46 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+
+baseline:
+  source: fedora-official
+  track: fedora-44-stable
+  package_managed: true
+  removable: false
+
+candidate:
+  source: kernel.org
+  version: "7.2.3"
+  role: performance-candidate
+  automatic_promotion: false
+  automatic_baseline_removal: false
+
+boot_policy:
+  keep_minimum_bootable_kernels: 2
+  baseline_must_remain_bootable: true
+  rollback_entry_required: true
+
+promotion_requires:
+  - boot_pass
+  - gnome_50_wayland_pass
+  - intel_arc_b580_xe_pass
+  - vulkan_pass
+  - level_zero_pass
+  - openclaw_gateway_pass
+  - model_runtime_pass
+  - hard_40m_qualification_pass
+  - e2e_pass
+  - stability_pass
+  - no_security_regression
+  - no_functional_regression
+  - performance_non_regression
+
+performance_policy:
+  minimum_aggregate_improvement_pct: 3.0
+  maximum_single_model_regression_pct: 2.0
+  compare_same_models_and_quantization: true
+  compare_same_contexts_and_prompts: true
+  minimum_repeated_runs: 3
+
+rejection:
+  on_any_required_gate_failure: keep-fedora-baseline
+  never_force_newer_kernel_because_newer: true
