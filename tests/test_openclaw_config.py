@@ -43,12 +43,27 @@ def test_ollama_patch_has_eight_agents_and_strict_tools(tmp_path: Path) -> None:
     }
     assert "ollama-local" not in json.dumps(patch)
 
+    provider_models = ollama["models"]
+    assert isinstance(provider_models, list)
+    by_id = {
+        str(entry["id"]): entry
+        for entry in provider_models
+        if isinstance(entry, dict) and "id" in entry
+    }
+    assert set(by_id) == {
+        "qwen3.5:9b-q4_K_M",
+        "gemma3:12b-it-q4_K_M",
+        "qwen2.5-coder:14b-instruct-q4_K_M",
+    }
+    assert all(entry["contextTokens"] == 8192 for entry in by_id.values())
+    assert by_id["qwen2.5-coder:14b-instruct-q4_K_M"]["input"] == ["text"]
+
     agents = _agents_by_id(patch)
     assert len(agents) == 8
     assert agents["chef-operations"]["default"] is True
     assert agents["ingenieur-devops"]["model"] == {
-        "primary": "ollama/devstral-small-2:24b",
-        "fallbacks": ["ollama/qwen3.8:27b"],
+        "primary": "ollama/qwen2.5-coder:14b-instruct-q4_K_M",
+        "fallbacks": ["ollama/qwen3.5:9b-q4_K_M"],
     }
     research_tools = agents["expert-recherche"]["tools"]
     assert isinstance(research_tools, dict)
@@ -83,17 +98,26 @@ def test_vulkan_candidate_keeps_multimodal_on_ollama(tmp_path: Path) -> None:
         "id": "INTEL_VULKAN_API_KEY",
     }
     assert "intel-vulkan-local" not in json.dumps(patch)
+    vulkan_models = vulkan["models"]
+    assert isinstance(vulkan_models, list)
+    assert all(
+        isinstance(entry, dict) and entry["contextTokens"] == 8192
+        for entry in vulkan_models
+    )
     agents = _agents_by_id(patch)
     devops_model = agents["ingenieur-devops"]["model"]
     assert isinstance(devops_model, dict)
-    assert devops_model["primary"] == "intel-vulkan/devstral-small-2:24B"
+    assert devops_model["primary"] == (
+        "intel-vulkan/qwen2.5-coder:14b-instruct-q4_K_M"
+    )
     defaults = patch["agents"]
     assert isinstance(defaults, dict)
     agent_defaults = defaults["defaults"]
     assert isinstance(agent_defaults, dict)
     image_model = agent_defaults["imageModel"]
     assert isinstance(image_model, dict)
-    assert str(image_model["primary"]).startswith("ollama/")
+    assert image_model["primary"] == "ollama/qwen3.5:9b-q4_K_M"
+    assert image_model["fallbacks"] == ["ollama/gemma3:12b-it-q4_K_M"]
 
 
 def test_sycl_candidate_is_explicit_and_local(tmp_path: Path) -> None:

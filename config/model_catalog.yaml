@@ -1,41 +1,72 @@
-schema_version: "1.1.0"
+schema_version: "1.2.0"
 platform_version: "0.1.0"
 
 models:
   qwen-max:
     provider: ollama
     role: local-max
-    runtime_id: qwen3.8:27b
-    vulkan_runtime_id: qwen3.8:27B
-    sycl_runtime_id: qwen3.8:27B
+    runtime_id: qwen3.5:9b-q4_K_M
+    vulkan_runtime_id: qwen3.5:9b-q4_K_M
+    sycl_runtime_id: qwen3.5:9b-q4_K_M
     family: qwen
     input: [text, image]
+    capabilities: [vision, tools, thinking]
+    approximate_weight_gib: 6.6
+    nominal_context_tokens: 8192
+    qualification_contexts: [8192, 16384]
     required: true
     qualification_required: true
   gemma-deep:
     provider: ollama
     role: local-deep
-    runtime_id: gemma4:26b
-    vulkan_runtime_id: gemma4:26B
-    sycl_runtime_id: gemma4:26B
+    runtime_id: gemma3:12b-it-q4_K_M
+    vulkan_runtime_id: gemma3:12b-it-q4_K_M
+    sycl_runtime_id: gemma3:12b-it-q4_K_M
     family: gemma
     input: [text, image]
+    capabilities: [vision]
+    approximate_weight_gib: 8.1
+    nominal_context_tokens: 8192
+    qualification_contexts: [8192, 16384]
     required: true
     qualification_required: true
   devstral-devops:
     provider: ollama
     role: local-specialist
-    runtime_id: devstral-small-2:24b
-    vulkan_runtime_id: devstral-small-2:24B
-    sycl_runtime_id: devstral-small-2:24B
-    family: mistral
-    input: [text, image]
+    runtime_id: qwen2.5-coder:14b-instruct-q4_K_M
+    vulkan_runtime_id: qwen2.5-coder:14b-instruct-q4_K_M
+    sycl_runtime_id: qwen2.5-coder:14b-instruct-q4_K_M
+    family: qwen-coder
+    architecture_family: qwen2
+    input: [text]
+    capabilities: [tools, code, code-reasoning, code-repair]
+    approximate_weight_gib: 9.0
+    nominal_context_tokens: 8192
+    qualification_contexts: [8192, 16384]
     required: true
     qualification_required: true
 
+challengers:
+  gemma-deep:
+    ministral-3-14b:
+      provider: ollama
+      runtime_id: ministral-3:14b-instruct-2512-q4_K_M
+      family: mistral
+      input: [text, image]
+      capabilities: [vision, tools, function-calling, json]
+      approximate_weight_gib: 9.1
+      nominal_context_tokens: 8192
+      qualification_contexts: [8192, 16384]
+      promotion: benchmark-only
+      automatic_promotion: false
+
 fleet_policy:
   exact_required_model_count: 3
+  nominal_context_tokens: 8192
+  maximum_qualified_context_tokens: 16384
+  target_gpu_vram_gib: 12
   implicit_model_download_during_benchmark: false
   cloud_model_as_local_fallback: false
   identity_digest_required_for_promotion: true
+  challenger_counts_toward_required_fleet: false
   only_supported_aliases: [qwen-max, gemma-deep, devstral-devops]

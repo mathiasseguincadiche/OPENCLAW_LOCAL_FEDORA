@@ -6,9 +6,66 @@ from typing import Any
 from clawfedora.core_config import load_yaml, root_contract
 from clawfedora.qualification import build_plan
 
+EXPECTED_RUNTIME_IDS = {
+    "qwen-max": "qwen3.5:9b-q4_K_M",
+    "gemma-deep": "gemma3:12b-it-q4_K_M",
+    "devstral-devops": "qwen2.5-coder:14b-instruct-q4_K_M",
+}
+EXPECTED_INPUTS = {
+    "qwen-max": ["text", "image"],
+    "gemma-deep": ["text", "image"],
+    "devstral-devops": ["text"],
+}
+
 
 def _mapping(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
+
+
+def _validate_model_fleet(catalog: dict[str, Any], failures: list[str]) -> None:
+    models = _mapping(catalog.get("models"))
+    if set(models) != set(EXPECTED_RUNTIME_IDS):
+        failures.append("qualification: flotte nominale doit garder les trois alias exacts")
+        return
+    for alias, expected_runtime in EXPECTED_RUNTIME_IDS.items():
+        model = _mapping(models.get(alias))
+        if model.get("runtime_id") != expected_runtime:
+            failures.append(f"qualification: runtime nominal inattendu pour {alias}")
+        if model.get("vulkan_runtime_id") != expected_runtime:
+            failures.append(f"qualification: runtime Vulkan inattendu pour {alias}")
+        if model.get("sycl_runtime_id") != expected_runtime:
+            failures.append(f"qualification: runtime SYCL inattendu pour {alias}")
+        if model.get("input") != EXPECTED_INPUTS[alias]:
+            failures.append(f"qualification: modalités d'entrée invalides pour {alias}")
+        if int(model.get("nominal_context_tokens", 0)) != 8192:
+            failures.append(f"qualification: contexte nominal 8K requis pour {alias}")
+        if model.get("qualification_contexts") != [8192, 16384]:
+            failures.append(f"qualification: contextes 8K/16K requis pour {alias}")
+
+    qwen = _mapping(models.get("qwen-max"))
+    if qwen.get("family") != "qwen" or "thinking" not in qwen.get("capabilities", []):
+        failures.append("qualification: qwen-max doit rester le seul Qwen thinking nominal")
+    coder = _mapping(models.get("devstral-devops"))
+    if coder.get("family") != "qwen-coder" or coder.get("architecture_family") != "qwen2":
+        failures.append("qualification: spécialiste DevOps doit rester isolé en qwen-coder")
+
+    fleet = _mapping(catalog.get("fleet_policy"))
+    if int(fleet.get("nominal_context_tokens", 0)) != 8192:
+        failures.append("qualification: contexte nominal flotte doit rester 8192")
+    if int(fleet.get("maximum_qualified_context_tokens", 0)) != 16384:
+        failures.append("qualification: contexte qualifié max doit rester 16384")
+    if int(fleet.get("target_gpu_vram_gib", 0)) != 12:
+        failures.append("qualification: cible VRAM flotte doit rester B580 12 Gio")
+    if fleet.get("challenger_counts_toward_required_fleet") is not False:
+        failures.append("qualification: challenger ne doit pas compter dans la flotte requise")
+
+    challengers = _mapping(catalog.get("challengers"))
+    gemma_challengers = _mapping(challengers.get("gemma-deep"))
+    ministral = _mapping(gemma_challengers.get("ministral-3-14b"))
+    if ministral.get("runtime_id") != "ministral-3:14b-instruct-2512-q4_K_M":
+        failures.append("qualification: challenger Ministral 3 14B attendu")
+    if ministral.get("automatic_promotion") is not False:
+        failures.append("qualification: promotion automatique challenger interdite")
 
 
 def validate_qualification_contracts(repo_root: Path) -> tuple[tuple[str, ...], tuple[str, ...]]:
@@ -21,6 +78,8 @@ def validate_qualification_contracts(repo_root: Path) -> tuple[tuple[str, ...], 
         suite = load_yaml(suite_path)
     except (FileNotFoundError, ValueError) as exc:
         return (f"qualification: {exc}",), ()
+
+    _validate_model_fleet(catalog, failures)
 
     if policy.get("suite") != "linux-devops-v1" or suite.get("id") != "linux-devops-v1":
         failures.append("qualification: suite linux-devops-v1 requise")
@@ -136,6 +195,11 @@ def validate_qualification_contracts(repo_root: Path) -> tuple[tuple[str, ...], 
             failures.append("qualification: plan matérialisé incohérent")
         if len(plan.qwen_native_cases) != 3:
             failures.append("qualification: probes Qwen matérialisés incohérents")
+        native_aliases = {
+            case.model_alias for case in plan.cases if case.thinking_mode == "native"
+        }
+        if native_aliases != {"qwen-max"}:
+            failures.append("qualification: thinking natif réservé à qwen-max")
 
     if not failures:
         warnings.append(

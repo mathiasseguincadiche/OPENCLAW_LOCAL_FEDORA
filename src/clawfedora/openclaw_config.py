@@ -40,6 +40,13 @@ def _runtime_id(model: dict[str, Any], backend_id: str, *, alias: str) -> str:
     return value
 
 
+def _nominal_context_tokens(model: dict[str, Any], *, alias: str) -> int:
+    value = int(model.get("nominal_context_tokens", 0) or 0)
+    if value <= 0:
+        raise ValueError(f"nominal_context_tokens absent pour le modèle {alias}")
+    return value
+
+
 def _backend_ref(alias: str, catalog: dict[str, Any], backend_id: str) -> str:
     models = _mapping(catalog.get("models"))
     if alias not in models:
@@ -77,7 +84,9 @@ def _ollama_provider(catalog: dict[str, Any]) -> dict[str, Any]:
         model = _mapping(raw)
         if model.get("provider") != "ollama" or model.get("required") is not True:
             continue
-        runtime_id = _runtime_id(model, "ollama-vulkan", alias=str(alias))
+        alias_text = str(alias)
+        runtime_id = _runtime_id(model, "ollama-vulkan", alias=alias_text)
+        context_tokens = _nominal_context_tokens(model, alias=alias_text)
         model_input = model.get("input", ["text"])
         inputs = list(model_input) if isinstance(model_input, list) else ["text"]
         models.append(
@@ -85,8 +94,8 @@ def _ollama_provider(catalog: dict[str, Any]) -> dict[str, Any]:
                 "id": runtime_id,
                 "name": runtime_id,
                 "input": inputs,
-                "contextTokens": 16384,
-                "params": {"num_ctx": 16384, "keep_alive": "15m"},
+                "contextTokens": context_tokens,
+                "params": {"num_ctx": context_tokens, "keep_alive": "15m"},
             }
         )
     return {
@@ -103,7 +112,7 @@ def _llamacpp_provider(
 ) -> dict[str, Any]:
     provider_id = PROVIDER_IDS[backend_id]
     router = _mapping(backend.get("router"))
-    context_tokens = int(router.get("context_tokens", 16384))
+    context_tokens = int(router.get("context_tokens", 8192))
     models: list[dict[str, Any]] = []
     for alias, raw in _mapping(catalog.get("models")).items():
         model = _mapping(raw)
