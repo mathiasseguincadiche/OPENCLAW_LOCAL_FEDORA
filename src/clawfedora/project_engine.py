@@ -80,7 +80,9 @@ def _validate_ingestion_index(project: Path) -> list[dict[str, Any]]:
         document_id = str(raw.get("document_id", ""))
         relative = str(raw.get("path", ""))
         if not document_id or document_id in seen_ids:
-            raise ValueError(f"index ingestion: document_id invalide/dupliqué: {document_id}")
+            raise ValueError(
+                f"index ingestion: document_id invalide/dupliqué: {document_id}"
+            )
         if relative in seen_paths:
             raise ValueError(f"index ingestion: chemin dupliqué: {relative}")
         seen_ids.add(document_id)
@@ -123,7 +125,7 @@ def _coverage_gate(repo_root: Path, project: Path, payload: dict[str, Any]) -> N
     if any(not isinstance(item, dict) for item in coverage):
         raise ValueError("source_coverage doit contenir des objets")
     by_id = {str(item.get("document_id")): item for item in coverage}
-    if len(by_id) != len(coverage):
+    if len(by_id) != len(coverage) or "" in by_id:
         raise ValueError("source_coverage: document_id vide ou dupliqué")
     expected = {str(item["document_id"]): item for item in documents}
     if set(by_id) != set(expected):
@@ -432,6 +434,19 @@ def _outputs_are_namespaced(task_id: str, outputs: list[str]) -> None:
             raise ValueError(f"{task_id}: sortie non namespacée: {relative}")
 
 
+def _load_result_history(project: Path) -> tuple[Path, dict[str, Any], list[Any]]:
+    history_path = project / "evidence" / "task_results.json"
+    history = (
+        read_json(history_path)
+        if history_path.is_file()
+        else {"schema_version": "1.0.0", "results": []}
+    )
+    results = history.get("results", [])
+    if not isinstance(results, list):
+        raise ValueError("task_results: results invalide")
+    return history_path, history, results
+
+
 def record_task_result(
     repo_root: Path,
     project: Path,
@@ -481,6 +496,20 @@ def record_task_result(
     _outputs_are_namespaced(normalized_task_id, outputs)
     for output in outputs:
         safe_output(project, output)
+
+    # Prévalider l'historique avant toute création de bundle afin qu'un JSON
+    # corrompu ne puisse pas laisser la tâche partiellement promue.
+    history_path, history, results = _load_result_history(project)
+    result = {
+        "at": now(),
+        "task_id": normalized_task_id,
+        "agent": agent,
+        "attempt": attempt,
+        "status": normalized,
+        "summary": summary.strip(),
+        "outputs": outputs,
+        "bundles": [],
+    }
     bundles = publish_task_outputs(
         repo_root,
         project,
@@ -490,28 +519,10 @@ def record_task_result(
         status=normalized,
         outputs=outputs,
     )
+    result["bundles"] = bundles
     task.update({"status": normalized, "attempts": attempt, "updated_at": now()})
-    write_json(assignments_path, assignments)
-    history_path = project / "evidence" / "task_results.json"
-    history = (
-        read_json(history_path)
-        if history_path.is_file()
-        else {"schema_version": "1.0.0", "results": []}
-    )
-    results = history.setdefault("results", [])
-    if not isinstance(results, list):
-        raise ValueError("task_results: results invalide")
-    result = {
-        "at": now(),
-        "task_id": normalized_task_id,
-        "agent": agent,
-        "attempt": attempt,
-        "status": normalized,
-        "summary": summary.strip(),
-        "outputs": outputs,
-        "bundles": bundles,
-    }
     results.append(result)
+    write_json(assignments_path, assignments)
     write_json(history_path, history)
     return result
 
@@ -600,7 +611,9 @@ def validate_package(repo_root: Path, project: Path) -> list[str]:
     else:
         observed_paths = {str(item["path"]) for item in observed}
         missing = sorted(
-            str(value) for value in expected_deliverables if str(value) not in observed_paths
+            str(value)
+            for value in expected_deliverables
+            if str(value) not in observed_paths
         )
         if missing:
             failures.append(f"package_manifest: livrables attendus absents: {missing}")
@@ -730,7 +743,9 @@ def package_project(
         raise ValueError("project.json: expected_deliverables invalide")
     observed_paths = {str(item["path"]) for item in records}
     missing = sorted(
-        str(value) for value in expected_deliverables if str(value) not in observed_paths
+        str(value)
+        for value in expected_deliverables
+        if str(value) not in observed_paths
     )
     if missing:
         raise ValueError(f"livrables attendus absents: {missing}")
