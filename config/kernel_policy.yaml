@@ -23,8 +23,7 @@ promotion_requires:
   - boot_pass
   - gnome_50_wayland_pass
   - intel_arc_b580_xe_pass
-  - vulkan_pass
-  - level_zero_pass
+  - mesa_vulkan_pass
   - openclaw_gateway_pass
   - model_runtime_pass
   - hard_40m_qualification_pass
