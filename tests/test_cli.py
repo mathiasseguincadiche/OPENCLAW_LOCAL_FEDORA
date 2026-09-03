@@ -16,6 +16,27 @@ def test_audit_non_strict_is_portable() -> None:
     assert main(["--root", str(ROOT), "audit", "--json"]) == 0
 
 
+def test_qualification_dry_run_cli_passes() -> None:
+    assert main(["--root", str(ROOT), "qualification", "--dry-run", "--json"]) == 0
+
+
+def test_l4_dry_run_cli_passes() -> None:
+    assert (
+        main(
+            [
+                "--root",
+                str(ROOT),
+                "e2e",
+                "--backend",
+                "ollama-vulkan",
+                "--dry-run",
+                "--json",
+            ]
+        )
+        == 0
+    )
+
+
 def test_agents_validate_cli_passes() -> None:
     assert main(["--root", str(ROOT), "agents", "validate", "--json"]) == 0
 
