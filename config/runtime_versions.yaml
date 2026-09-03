@@ -1,0 +1,38 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+
+parity_baseline:
+  openclaw: "2026.7.1-2"
+  reason: same-version comparison with OPENCLAW_LOCAL Windows baseline
+
+node:
+  minimum_supported:
+    - "22.22.3"
+    - "24.15.0"
+    - "25.9.0"
+  preferred_major: 26
+  installer_managed_runtime_allowed: true
+
+fedora_gpu_stack:
+  mesa_vulkan_reference: "26.1.8"
+  intel_compute_runtime_reference: "26.22.38646.6"
+  intel_level_zero_reference: "26.22.38646.6"
+  exact_versions_must_be_recorded_at_qualification: true
+
+llama_cpp:
+  source: upstream
+  commit: null
+  policy: pin-exact-commit-before-first-performance-qualification
+
+ollama:
+  version: null
+  policy: pin-observed-version-before-first-performance-qualification
+
+kernel:
+  fedora_baseline: observed-at-install
+  upstream_candidate: "7.2.3"
+
+upgrade_policy:
+  parity_before_runtime_upgrade: true
+  one_variable_at_a_time: true
+  require_requalification_after_runtime_change: true
