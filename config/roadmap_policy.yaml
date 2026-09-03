@@ -1,0 +1,49 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+
+project:
+  identity: linux-native
+  target_os: Fedora Linux 44
+  desktop: GNOME 50
+  display_server: Wayland
+  runtime_root: /srv/openclaw-local
+
+capabilities:
+  required:
+    - eight_agent_roles
+    - local_first_security
+    - no_silent_cloud_fallback
+    - model_fleet_contract
+    - project_orchestrator
+    - project_intake
+    - artifact_exchange
+    - golden_projects
+    - telemetry
+    - finops
+    - qualification_hard_40m
+    - model_identity_lock
+    - release_readiness
+
+linux_stack:
+  service_manager: systemd-user
+  containers: podman
+  virtualization: kvm-libvirt
+  gpu_kernel_driver: xe
+  gpu_api: vulkan
+  gpu_userspace: mesa
+
+roadmap_gates:
+  L0: foundation_contracts_and_ci_pass
+  L1: multi_agent_core_linux_native
+  L2: fedora_stock_kernel_hardware_pass
+  L3: b580_vulkan_pass
+  L4: openclaw_eight_agents_e2e_pass
+  L5: hard_40m_qualification_pass
+  L6: linux_backend_and_kernel_optimization_pass
+  L7: golden_projects_and_representative_project_pass
+  L8: human_approval_for_v1
+
+rollback:
+  fedora_kernel_baseline_remains_bootable: true
+  runtime_state_outside_git: true
+  never_destroy_qualification_evidence: true
