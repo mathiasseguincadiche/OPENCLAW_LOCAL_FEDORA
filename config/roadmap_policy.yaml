@@ -29,8 +29,11 @@ linux_stack:
   containers: podman
   virtualization: kvm-libvirt
   gpu_kernel_driver: xe
-  gpu_api: vulkan
-  gpu_userspace: mesa
+  nominal_gpu_api: vulkan
+  nominal_gpu_userspace: mesa
+  performance_candidates:
+    - llama-cpp-vulkan
+    - llama-cpp-sycl-level-zero
 
 roadmap_gates:
   L0: foundation_contracts_and_ci_pass
