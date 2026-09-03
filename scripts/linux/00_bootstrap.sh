@@ -88,6 +88,7 @@ printf 'BOOTSTRAP_PLAN Fedora=%s runtime=%s user=%s group=%s\n' \
 printf '  packages: %s\n' "${PACKAGES[*]}"
 printf '  groups: render video libvirt\n'
 printf '  managed venv: %s/runtime/venv\n' "$RUNTIME_ROOT"
+printf '  runtime dirs: models workspaces projects proofs benchmarks state backups\n'
 printf '  GPU stack: xe + Mesa/Vulkan\n'
 printf '  SELinux: must remain Enforcing\n'
 printf '  kernel: Fedora package stays baseline; 7.2.3 is NOT installed here\n'
@@ -117,7 +118,9 @@ as_target install -d -m 0750 \
   "$RUNTIME_ROOT/workspaces" \
   "$RUNTIME_ROOT/projects" \
   "$RUNTIME_ROOT/proofs" \
-  "$RUNTIME_ROOT/benchmarks"
+  "$RUNTIME_ROOT/benchmarks" \
+  "$RUNTIME_ROOT/state" \
+  "$RUNTIME_ROOT/backups"
 
 VENV="$RUNTIME_ROOT/runtime/venv"
 if [[ ! -x "$VENV/bin/python" ]]; then
