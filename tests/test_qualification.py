@@ -22,7 +22,7 @@ def _tag(name: str, digest: str, quantization: str = "Q4_K_M") -> dict[str, Any]
         "details": {
             "format": "gguf",
             "family": "test",
-            "parameter_size": "27B",
+            "parameter_size": "test",
             "quantization_level": quantization,
         },
     }
@@ -31,9 +31,9 @@ def _tag(name: str, digest: str, quantization: str = "Q4_K_M") -> dict[str, Any]
 def _tags() -> dict[str, Any]:
     return {
         "models": [
-            _tag("qwen3.8:27b", "a" * 64),
-            _tag("gemma4:26b", "b" * 64),
-            _tag("devstral-small-2:24b", "c" * 64),
+            _tag("qwen3.5:9b-q4_K_M", "a" * 64),
+            _tag("gemma3:12b-it-q4_K_M", "b" * 64),
+            _tag("qwen2.5-coder:14b-instruct-q4_K_M", "c" * 64),
         ]
     }
 
@@ -114,6 +114,11 @@ def test_plan_has_ten_cases_per_model_and_exact_native_probes() -> None:
     assert len(native) == 3
     assert all(case.model_alias == "qwen-max" for case in native)
     assert all(case.max_output_tokens == 768 for case in native)
+    coder_cases = [case for case in plan.cases if case.model_alias == "devstral-devops"]
+    assert len(coder_cases) == 10
+    assert all(case.family == "qwen-coder" for case in coder_cases)
+    assert all(case.thinking_mode == "not_applicable" for case in coder_cases)
+    assert all(case.think is None for case in coder_cases)
 
 
 def test_scenario_output_limit_rejects_above_768() -> None:
@@ -125,7 +130,7 @@ def test_scenario_output_limit_rejects_above_768() -> None:
 def test_real_ollama_stream_parser_records_metrics(monkeypatch: pytest.MonkeyPatch) -> None:
     case = qualification.PlannedCase(
         model_alias="qwen-max",
-        runtime_id="qwen3.8:27b",
+        runtime_id="qwen3.5:9b-q4_K_M",
         family="qwen",
         context=8192,
         scenario={
@@ -180,7 +185,7 @@ def test_real_ollama_stream_parser_records_metrics(monkeypatch: pytest.MonkeyPat
 def test_generation_refuses_expired_case_budget() -> None:
     case = qualification.PlannedCase(
         model_alias="qwen-max",
-        runtime_id="qwen3.8:27b",
+        runtime_id="qwen3.5:9b-q4_K_M",
         family="qwen",
         context=8192,
         scenario={"id": "synthetic", "prompt": "x"},
