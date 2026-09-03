@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Repository contracts
+        run: clawfedora validate
+      - name: Ruff
+        run: ruff check src tests
+      - name: Mypy
+        run: mypy src
+      - name: Tests with coverage
+        run: pytest -q --cov=clawfedora --cov-report=term-missing --cov-fail-under=80
+
+  python:
+    name: python-${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Contracts and tests
+        run: |
+          clawfedora validate
+          pytest -q
+
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Bash syntax
+        run: |
+          bash -n menu.sh
+          for file in scripts/linux/*.sh scripts/linux/lib/*.sh; do bash -n "$file"; done
+      - name: ShellCheck
+        run: shellcheck menu.sh scripts/linux/*.sh scripts/linux/lib/*.sh
+
+  fedora-44-contract:
+    name: fedora-44-contract
+    runs-on: ubuntu-latest
+    container: fedora:44
+    timeout-minutes: 15
+    steps:
+      - name: Install bootstrap tooling
+        run: dnf install -y git python3 python3-pip python3-virtualenv
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Assert Fedora 44 image
+        shell: bash
+        run: |
+          source /etc/os-release
+          test "$ID" = fedora
+          test "$VERSION_ID" = 44
+      - name: Create isolated venv
+        run: |
+          python3 -m venv /tmp/clawfedora-venv
+          /tmp/clawfedora-venv/bin/python -m pip install -e ".[dev]"
+      - name: Fedora repository contracts
+        run: |
+          /tmp/clawfedora-venv/bin/clawfedora validate
+          /tmp/clawfedora-venv/bin/pytest -q

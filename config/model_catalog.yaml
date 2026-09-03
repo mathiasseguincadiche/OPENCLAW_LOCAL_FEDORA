@@ -1,0 +1,25 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+
+models:
+  qwen-max:
+    role: local-max
+    runtime_id: qwen3.8:27b
+    required: true
+    qualification_required: true
+  gemma-deep:
+    role: local-deep
+    runtime_id: gemma4:26b
+    required: true
+    qualification_required: true
+  devstral-devops:
+    role: local-specialist
+    runtime_id: devstral-small-2:24b
+    required: true
+    qualification_required: true
+
+fleet_policy:
+  exact_required_model_count: 3
+  implicit_model_download_during_benchmark: false
+  cloud_model_as_local_fallback: false
+  identity_digest_required_for_promotion: true

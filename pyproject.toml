@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=80", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openclaw-local-fedora"
+version = "0.1.0"
+description = "Fedora-native local-first OpenClaw multi-agent platform for Intel Arc B580"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [{name = "mathiasseguincadiche"}]
+dependencies = [
+  "PyYAML>=6.0.2,<7",
+]
+
+[project.scripts]
+clawfedora = "clawfedora.cli:main"
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.17,<3",
+  "pytest>=8,<10",
+  "pytest-cov>=6,<8",
+  "ruff>=0.12,<1",
+  "types-PyYAML>=6.0.12,<7",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["clawfedora"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

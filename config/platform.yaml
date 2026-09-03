@@ -1,0 +1,48 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+deployment_mode: fedora-native
+
+os:
+  distribution: Fedora Linux
+  release: 44
+  edition: Workstation
+  desktop: GNOME
+  desktop_major: 50
+  display_server: wayland
+
+runtime:
+  preferred_root: /srv/openclaw-local
+  fallback_root: ~/.local/share/openclaw-local
+  state_root: ~/.local/state/openclaw-local
+  config_root: ~/.config/openclaw-local
+  service_manager: systemd-user
+  shell: bash
+  python: managed-venv
+
+openclaw:
+  gateway_lifecycle: systemd-user
+  loopback_only: true
+  default_port: 18789
+  restart_prevent_exit_status: 78
+
+containers:
+  nominal: podman
+  docker_compatibility: true
+
+virtualization:
+  stack: kvm-libvirt
+  manager: virt-manager
+  firmware: ovmf
+
+security:
+  selinux_required: enforcing
+  firewalld_required: true
+  local_model_loopback_only: true
+  cloud_enabled_by_default: false
+  cloud_escalation_explicit_only: true
+
+state_policy:
+  git_contains_expected_state_only: true
+  runtime_state_outside_git: true
+  models_outside_git: true
+  proofs_outside_git: true
