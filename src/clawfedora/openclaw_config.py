@@ -11,13 +11,22 @@ PROVIDER_IDS = {
     "llama-cpp-vulkan": "intel-vulkan",
     "llama-cpp-sycl": "intel-sycl",
 }
+PROVIDER_ENV_KEYS = {
+    "ollama": "OLLAMA_API_KEY",
+    "intel-vulkan": "INTEL_VULKAN_API_KEY",
+    "intel-sycl": "INTEL_SYCL_API_KEY",
+}
 
 
 def _mapping(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
-def _runtime_id(model: dict[str, Any], backend_id: str) -> str:
+def _env_secret_ref(env_name: str) -> dict[str, str]:
+    return {"source": "env", "provider": "default", "id": env_name}
+
+
+def _runtime_id(model: dict[str, Any], backend_id: str, *, alias: str) -> str:
     field = {
         "ollama-vulkan": "runtime_id",
         "llama-cpp-vulkan": "vulkan_runtime_id",
@@ -27,19 +36,21 @@ def _runtime_id(model: dict[str, Any], backend_id: str) -> str:
         raise ValueError(f"backend OpenClaw non supporté: {backend_id}")
     value = str(model.get(field, ""))
     if not value:
-        raise ValueError(f"{field} absent pour un modèle requis")
+        raise ValueError(f"{field} absent pour le modèle {alias}")
     return value
 
 
 def _backend_ref(alias: str, catalog: dict[str, Any], backend_id: str) -> str:
     models = _mapping(catalog.get("models"))
-    model = _mapping(models.get(alias))
+    if alias not in models:
+        raise ValueError(f"alias modèle absent du catalogue: {alias}")
+    model = _mapping(models[alias])
     if backend_id == "ollama-vulkan":
-        return f"ollama/{_runtime_id(model, backend_id)}"
+        return f"ollama/{_runtime_id(model, backend_id, alias=alias)}"
     provider = PROVIDER_IDS.get(backend_id)
     if provider is None:
         raise ValueError(f"backend OpenClaw non supporté: {backend_id}")
-    return f"{provider}/{_runtime_id(model, backend_id)}"
+    return f"{provider}/{_runtime_id(model, backend_id, alias=alias)}"
 
 
 def _agent_tools(agent_id: str, policy: dict[str, Any]) -> dict[str, Any]:
@@ -62,11 +73,11 @@ def _agent_tools(agent_id: str, policy: dict[str, Any]) -> dict[str, Any]:
 
 def _ollama_provider(catalog: dict[str, Any]) -> dict[str, Any]:
     models: list[dict[str, Any]] = []
-    for raw in _mapping(catalog.get("models")).values():
+    for alias, raw in _mapping(catalog.get("models")).items():
         model = _mapping(raw)
         if model.get("provider") != "ollama" or model.get("required") is not True:
             continue
-        runtime_id = _runtime_id(model, "ollama-vulkan")
+        runtime_id = _runtime_id(model, "ollama-vulkan", alias=str(alias))
         model_input = model.get("input", ["text"])
         inputs = list(model_input) if isinstance(model_input, list) else ["text"]
         models.append(
@@ -80,7 +91,7 @@ def _ollama_provider(catalog: dict[str, Any]) -> dict[str, Any]:
         )
     return {
         "baseUrl": "http://127.0.0.1:11434",
-        "apiKey": "ollama-local",
+        "apiKey": _env_secret_ref(PROVIDER_ENV_KEYS["ollama"]),
         "api": "ollama",
         "timeoutSeconds": 300,
         "models": models,
@@ -94,11 +105,11 @@ def _llamacpp_provider(
     router = _mapping(backend.get("router"))
     context_tokens = int(router.get("context_tokens", 16384))
     models: list[dict[str, Any]] = []
-    for raw in _mapping(catalog.get("models")).values():
+    for alias, raw in _mapping(catalog.get("models")).items():
         model = _mapping(raw)
         if model.get("required") is not True:
             continue
-        runtime_id = _runtime_id(model, backend_id)
+        runtime_id = _runtime_id(model, backend_id, alias=str(alias))
         models.append(
             {
                 "id": runtime_id,
@@ -113,7 +124,7 @@ def _llamacpp_provider(
         )
     return {
         "baseUrl": str(backend["endpoint"]),
-        "apiKey": f"{provider_id}-local",
+        "apiKey": _env_secret_ref(PROVIDER_ENV_KEYS[provider_id]),
         "api": "openai-completions",
         "timeoutSeconds": 300,
         "models": models,
