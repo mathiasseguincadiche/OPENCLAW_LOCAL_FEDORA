@@ -222,6 +222,22 @@ def _safe_member(name: str) -> Path:
     return value
 
 
+def _manifest_from_archive(tar: tarfile.TarFile) -> dict[str, Any]:
+    try:
+        member = tar.getmember("BACKUP_MANIFEST.json")
+    except KeyError as exc:
+        raise ValueError("restore: manifest absent") from exc
+    if not member.isfile():
+        raise ValueError("restore: manifest invalide")
+    stream = tar.extractfile(member)
+    if stream is None:
+        raise ValueError("restore: manifest illisible")
+    value = json.loads(stream.read().decode("utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError("restore: manifest invalide")
+    return value
+
+
 def restore_backup(archive: Path, destination: Path) -> Path:
     target = destination.resolve()
     if target.exists() and any(target.iterdir()):
@@ -233,14 +249,19 @@ def restore_backup(archive: Path, destination: Path) -> Path:
             _safe_member(member.name)
             if member.issym() or member.islnk() or member.isdev():
                 raise ValueError(f"restore: type archive interdit: {member.name}")
+        manifest = _manifest_from_archive(tar)
+        files = manifest.get("files", {})
+        if not isinstance(files, dict):
+            raise ValueError("restore: manifest invalide")
+        expected_files = {str(name) for name in files} | {"BACKUP_MANIFEST.json"}
+        archive_files = {member.name for member in members if member.isfile()}
+        if archive_files != expected_files:
+            extras = sorted(archive_files - expected_files)
+            missing = sorted(expected_files - archive_files)
+            raise ValueError(
+                f"restore: contenu archive non déclaré extras={extras} missing={missing}"
+            )
         tar.extractall(target, members=members, filter="data")
-    manifest_path = target / "BACKUP_MANIFEST.json"
-    if not manifest_path.is_file():
-        raise ValueError("restore: manifest absent")
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    files = manifest.get("files", {})
-    if not isinstance(files, dict):
-        raise ValueError("restore: manifest invalide")
     for relative, expected in files.items():
         path = target / _safe_member(str(relative))
         if not path.is_file() or _sha256(path) != str(expected):
