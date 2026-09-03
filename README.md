@@ -2,7 +2,7 @@
 
 Plateforme **Linux-native, local-first et fail-closed** destinée à faire fonctionner une équipe multi-agents OpenClaw sur Fedora 44 avec une Intel Arc B580.
 
-> **État : 0.1.0 — qualification candidate.** Aucun gain matériel ni verdict V1 n'est revendiqué avant mesures réelles sur la machine cible.
+> **État : 0.1.0 — code produit en cours de complétion avant qualification matérielle.** Aucun gain matériel ni verdict V1 n'est revendiqué avant mesures réelles sur la machine cible.
 
 ## Cible matérielle
 
@@ -61,6 +61,67 @@ Le contexte opérationnel nominal est **8192 tokens pour les trois modèles**. L
 
 Aucun petit modèle de secours nominal et aucun fallback cloud silencieux.
 
+## Cycle de vie du produit
+
+Le dépôt doit pouvoir être installé et maintenu avant toute qualification matérielle.
+
+### Installation complète
+
+Dry-run :
+
+```bash
+./menu.sh --action install
+```
+
+Application :
+
+```bash
+./menu.sh --action install --apply
+```
+
+Le chemin complet prépare Fedora, crée la racine runtime gérée, installe/démarre Ollama si nécessaire, impose OpenClaw `2026.7.1-2`, provisionne explicitement les trois modèles, déploie les huit agents, applique la configuration locale et installe le Gateway comme service utilisateur systemd.
+
+### Modèles
+
+Le téléchargement des modèles est une opération volontaire, distincte de la qualification :
+
+```bash
+./menu.sh --action models
+./menu.sh --action models --apply
+```
+
+Aucun benchmark ne télécharge implicitement un modèle absent.
+
+### Santé, sauvegarde et réparation
+
+```bash
+./menu.sh --action health
+./menu.sh --action backup
+./menu.sh --action repair
+./menu.sh --action repair --apply
+```
+
+Le health-check contrôle contrats, runtime géré, OpenClaw, Gateway, Ollama, inventaire des trois modèles et huit workspaces. La réparation crée un backup avant toute reconfiguration.
+
+Les backups contiennent `state/`, `projects/`, `proofs/` et `workspaces/`, avec manifeste SHA-256. Les modèles et le virtualenv sont exclus car reproductibles.
+
+### Désinstallation
+
+```bash
+./menu.sh --action uninstall
+./menu.sh --action uninstall --apply
+```
+
+La désinstallation normale préserve projets, modèles et preuves. Une purge exige explicitement :
+
+```bash
+./menu.sh --action uninstall --apply --purge-data
+```
+
+Toute suppression destructive exige le marqueur `.openclaw-fedora-runtime` créé par le bootstrap et `/` est toujours refusé comme racine runtime.
+
+Voir `docs/LIFECYCLE.md` pour le détail du cycle de vie, de la restauration, de la télémétrie et du FinOps.
+
 ## HARD-40M
 
 Le contrat de qualification est :
@@ -84,30 +145,6 @@ La qualification prend comme baseline **Fedora avec son kernel officiel et Ollam
 
 Le seuil HARD-40M reste volontairement à 6 tok/s tant que la B580 n'a pas fourni une nouvelle baseline réelle. L'objectif opérationnel de la flotte redimensionnée est de dépasser 10 tok/s de manière stable ; ce seuil ne sera relevé qu'après mesures reproductibles.
 
-## Démarrage du socle
-
-Le bootstrap est dry-run par défaut :
-
-```bash
-./menu.sh --action bootstrap
-```
-
-Pour appliquer sur Fedora 44 :
-
-```bash
-./menu.sh --action bootstrap --apply
-```
-
-Le script refuse une distribution autre que Fedora 44 et refuse de continuer si SELinux n'est pas Enforcing.
-
-Après reconnexion de session pour appliquer les groupes GPU/libvirt :
-
-```bash
-./menu.sh --action validate
-./menu.sh --action hardware-l2
-./menu.sh --action hardware-l3
-```
-
 ## Gates L2 à L5
 
 ### Vérification sans modèle
@@ -119,8 +156,6 @@ Après reconnexion de session pour appliquer les groupes GPU/libvirt :
 ```
 
 ### Profil de benchmark
-
-Activation explicite du profil performance :
 
 ```bash
 ./menu.sh --action performance --apply
@@ -153,6 +188,7 @@ Les gates locaux couvrent :
 
 - contrats YAML ;
 - contrats HARD-40M ;
+- contrats de cycle de vie ;
 - Ruff ;
 - mypy strict ;
 - pytest ;
@@ -175,12 +211,15 @@ Racine préférée sur le second NVMe :
 
 ```text
 /srv/openclaw-local/
+├── .openclaw-fedora-runtime
 ├── runtime/
 ├── models/
 ├── workspaces/
 ├── projects/
 ├── proofs/
-└── benchmarks/
+├── benchmarks/
+├── state/
+└── backups/
 ```
 
 Fallback utilisateur : `~/.local/share/openclaw-local`.
@@ -199,6 +238,8 @@ Le projet avance par gates :
 - `L7` — Golden Projects + projet représentatif ;
 - `L8` — approbation humaine V1.
 
+Le cycle de vie installation/maintenance est transversal : il doit être complet avant les validations L2-L8.
+
 Voir :
 
 - `docs/ROADMAP.md`
@@ -207,6 +248,7 @@ Voir :
 - `docs/KERNEL_POLICY.md`
 - `docs/QUALIFICATION.md`
 - `docs/OPENCLAW_SYSTEMD.md`
+- `docs/LIFECYCLE.md`
 - `STATUS.md`
 
 ## Objectif de performance
@@ -229,6 +271,10 @@ Le projet ne revendique aucun gain sans preuve reproductible.
 - firewalld conservé ;
 - secrets hors Git ;
 - cloud désactivé par défaut ;
+- télémétrie locale sans prompts/réponses/documents/secrets ;
+- FinOps avec limites journalière, mensuelle et par projet ;
+- backup avant repair ;
+- purge destructive explicitement opt-in ;
 - aucune promotion automatique kernel/backend/modèle/V1.
 
 ## Licence

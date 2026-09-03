@@ -1,0 +1,84 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+
+installation:
+  dry_run_by_default: true
+  fedora_release: 44
+  require_selinux_enforcing: true
+  require_user_systemd: true
+  install_gateway_with_openclaw_cli: true
+  enable_linger: true
+  explicit_model_provisioning: true
+  implicit_model_downloads: false
+  runtime_directories:
+    - runtime
+    - models
+    - workspaces
+    - projects
+    - proofs
+    - benchmarks
+    - state
+    - backups
+
+service:
+  manager: systemd-user
+  gateway_install_command: [openclaw, gateway, install]
+  gateway_status_command: [openclaw, gateway, status, --json]
+  gateway_restart_command: [openclaw, gateway, restart, --preserve-definition]
+  doctor_command: [openclaw, doctor]
+  restart_prevent_exit_status: 78
+  bind: loopback
+
+models:
+  provider: ollama
+  explicit_pull_only: true
+  remove_on_uninstall: false
+  remove_only_with_purge_data: true
+
+health:
+  required_components:
+    - repository-contracts
+    - runtime-root
+    - openclaw-cli
+    - openclaw-gateway
+    - ollama
+    - model-inventory
+    - agent-workspaces
+  degraded_is_nonzero: true
+
+backup:
+  relative_path: backups
+  include:
+    - state
+    - projects
+    - proofs
+    - workspaces
+  exclude:
+    - models
+    - runtime/venv
+  manifest_sha256: true
+  restore_requires_empty_destination: true
+  restore_overwrite_allowed: false
+
+uninstall:
+  stop_gateway_first: true
+  remove_managed_workspaces: true
+  remove_managed_venv: true
+  preserve_projects: true
+  preserve_models: true
+  preserve_proofs: true
+  purge_data_requires_explicit_flag: true
+  never_delete_outside_runtime_root: true
+
+telemetry:
+  local_only: true
+  event_file: state/telemetry/events.jsonl
+  max_events: 10000
+  fsync_each_event: false
+
+finops:
+  local_only: true
+  ledger_file: state/finops/cloud-costs.jsonl
+  explicit_cloud_only: true
+  default_reservation_eur: 0.25
+  manual_override: false

@@ -2,19 +2,41 @@
 
 Dernière mise à jour : 2026-09-03.
 
-Le dépôt est une **plateforme Fedora native en construction**, pas encore une plateforme matériellement qualifiée. Aucun gain de performance n'est revendiqué avant mesures reproductibles sur la machine cible.
+Le dépôt est une **plateforme Fedora native dont le code source est en cours de complétion avant validation matérielle**. Les états « implémenté logiciellement » et « qualifié sur la machine cible » sont volontairement séparés.
 
-| Gate | Objet | État |
+## Complétude du code source
+
+| Domaine | État logiciel |
+|---|---|
+| Fondation / contrats / CI | PASS |
+| 8 agents + routage + workspaces | PASS |
+| Moteur projet / Intake / Artifact Exchange | PASS |
+| Installation complète Fedora | IMPLÉMENTÉ — validation CI en cours |
+| Provisionnement explicite des modèles | IMPLÉMENTÉ — validation CI en cours |
+| Service OpenClaw systemd user | IMPLÉMENTÉ — validation CI en cours |
+| Health / repair / backup / restore / uninstall | IMPLÉMENTÉ — validation CI en cours |
+| Télémétrie locale | IMPLÉMENTÉ — validation CI en cours |
+| FinOps + limites | IMPLÉMENTÉ — validation CI en cours |
+| L2/L3 gates matériels | IMPLÉMENTÉS — preuves réelles à produire |
+| L4 E2E OpenClaw | IMPLÉMENTÉ — preuve réelle à produire |
+| L5 HARD-40M | IMPLÉMENTÉ — preuve réelle à produire |
+| L6 comparaison runtimes/kernel/challenger | À IMPLÉMENTER |
+| L7 Golden Projects + projet représentatif | À IMPLÉMENTER |
+| L8 release readiness / V1 | À IMPLÉMENTER |
+
+## Gates de qualification
+
+| Gate | Objet | État des preuves |
 |---|---|---|
 | L0 | Fondation, contrats et CI | PASS |
-| L1 | Cœur multi-agents Linux-native | PASS logiciel — agents/runtime + moteur projet validés par CI Fedora 44 |
-| L2 | Fedora 44 / hardware gate | PRÉPARÉ logiciel — preuve réelle requise sur la machine Fedora |
-| L3 | B580 `xe` + Mesa/Vulkan | PRÉPARÉ logiciel — preuve réelle requise sur la B580 |
-| L4 | OpenClaw + 8 agents + E2E | PRÉPARÉ logiciel — 8 smokes, outils, réparation et stabilité à exécuter réellement |
-| L5 | Qualification HARD-40M | PRÉPARÉ logiciel — nouvelle flotte 9B/12B/14B à mesurer réellement |
-| L6 | Optimisation runtimes Linux + kernel 7.2.3 | À FAIRE après baseline L5 PASS |
-| L7 | Golden Projects + projet représentatif | À FAIRE |
-| L8 | Approbation humaine V1 | À FAIRE |
+| L1 | Cœur multi-agents Linux-native | PASS logiciel |
+| L2 | Fedora 44 / hardware gate | PENDING — machine Fedora réelle requise |
+| L3 | B580 `xe` + Mesa/Vulkan | PENDING — B580 réelle requise |
+| L4 | OpenClaw + 8 agents + E2E | PENDING — E2E réel requis |
+| L5 | Qualification HARD-40M | PENDING — flotte 9B/12B/14B à mesurer |
+| L6 | Optimisation runtimes Linux + kernel 7.2.3 | PENDING — code framework à finir puis mesures |
+| L7 | Golden Projects + projet représentatif | PENDING — code à finir puis exécution réelle |
+| L8 | Approbation humaine V1 | BLOQUÉ jusqu'aux preuves requises |
 
 ## Flotte nominale
 
@@ -46,6 +68,12 @@ Le contexte nominal est 8K. Le 16K reste un contexte de qualification, pas un r�
 - Les entrées projet sont non fiables, inventoriées, hashées et revérifiées avant les changements de phase.
 - Les bundles d'échange sont versionnés, immuables et revérifiés avant validation.
 - Le package final est re-hashé avant `COMPLETE`.
+- La racine runtime gérée possède `.openclaw-fedora-runtime` ; les suppressions destructives refusent une racine non marquée et `/`.
+- L'installation et le provisionnement modèles restent dry-run/explicites.
+- Les backups contiennent un manifeste SHA-256 et la restauration refuse l'écrasement.
+- La désinstallation normale préserve projets, modèles et preuves.
+- Télémétrie et FinOps sont locaux et hors Git.
+- Les limites FinOps journalière, mensuelle et par projet sont appliquées sans override manuel.
 - L2 exige Fedora/GNOME/Wayland, UEFI, ReBAR, SELinux et le hardware cible.
 - L3 exige B580 + `xe` + render node + Mesa/Vulkan.
 - L4 exige Gateway réel, 8 agents, tool-calling, réparation et stabilité 3/3.
@@ -54,4 +82,4 @@ Le contexte nominal est 8K. Le 16K reste un contexte de qualification, pas un r�
 - Les preuves runtime restent hors Git et les sorties brutes des modèles ne sont pas persistées par L5.
 - Aucun fallback cloud silencieux.
 - SELinux reste Enforcing.
-- Une V1 ne pourra être déclarée qu'après preuves matérielles et approbation humaine.
+- Une V1 ne pourra être déclarée qu'après code complet, preuves matérielles et approbation humaine.
