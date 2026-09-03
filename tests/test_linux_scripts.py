@@ -17,6 +17,10 @@ def test_shell_entrypoints_are_strict() -> None:
         "scripts/linux/02_verify_gpu.sh",
         "scripts/linux/03_deploy_agents.sh",
         "scripts/linux/04_configure_openclaw.sh",
+        "scripts/linux/05_hardware_gates.sh",
+        "scripts/linux/06_openclaw_e2e.sh",
+        "scripts/linux/07_run_qualification.sh",
+        "scripts/linux/08_power_profile.sh",
         "scripts/linux/lib/runtime.sh",
     ):
         text = _read(path)
@@ -90,7 +94,35 @@ def test_openclaw_agent_inventory_accepts_supported_json_shapes() -> None:
     assert '[[ "$AGENT_COUNT" -eq 8 ]]' in text
 
 
-def test_menu_exposes_only_implemented_actions() -> None:
+def test_long_gates_block_suspend_with_systemd_inhibit() -> None:
+    for path in (
+        "scripts/linux/06_openclaw_e2e.sh",
+        "scripts/linux/07_run_qualification.sh",
+    ):
+        text = _read(path)
+        assert "systemd-inhibit" in text
+        assert "--what=sleep" in text
+        assert "--mode=block" in text
+        assert "OPENCLAW_LOCAL_FEDORA_SLEEP_INHIBITED=1" in text
+
+
+def test_qualification_launcher_is_local_only_and_has_dry_run() -> None:
+    text = _read("scripts/linux/07_run_qualification.sh")
+    assert "--dry-run" in text
+    assert 'ENDPOINT="http://127.0.0.1:11434"' in text
+    assert "OPENCLAW_LOCAL_CLOUD_ENABLED=false" in text
+    assert "QUALIFICATION_CLOUD=false" in text
+
+
+def test_power_profile_requires_explicit_apply() -> None:
+    text = _read("scripts/linux/08_power_profile.sh")
+    assert "APPLY=0" in text
+    assert "DRY_RUN=PASS" in text
+    assert "powerprofilesctl set" in text
+    assert "--apply" in text
+
+
+def test_menu_exposes_implemented_linux_gates() -> None:
     text = _read("menu.sh")
     for action in (
         "status",
@@ -98,10 +130,17 @@ def test_menu_exposes_only_implemented_actions() -> None:
         "bootstrap",
         "audit",
         "audit-strict",
+        "hardware-l2",
+        "hardware-l3",
         "gpu",
+        "performance",
         "agents",
         "configure-openclaw",
+        "project-selftest",
+        "e2e-dry-run",
+        "e2e",
+        "qualification-dry-run",
+        "qualification",
     ):
         assert action in text
-    assert "qualification)" not in text
     assert "golden)" not in text

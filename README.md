@@ -2,7 +2,7 @@
 
 Plateforme **Linux-native, local-first et fail-closed** destinée à faire fonctionner une équipe multi-agents OpenClaw sur Fedora 44 avec une Intel Arc B580.
 
-> **État : 0.1.0 — foundation candidate.** Aucun gain matériel ni verdict V1 n'est revendiqué avant mesures réelles sur la machine cible.
+> **État : 0.1.0 — qualification candidate.** Aucun gain matériel ni verdict V1 n'est revendiqué avant mesures réelles sur la machine cible.
 
 ## Cible matérielle
 
@@ -61,12 +61,17 @@ Le contrat de qualification est :
 
 - 30 cas ;
 - 24 cas 8K + 6 cas 16K ;
+- 12 scénarios couverts collectivement à 8K ;
+- 10 cas par modèle ;
 - 3 modèles obligatoires ;
 - Qwen reasoning natif sur 3 probes dédiés ;
 - 768 tokens max sur ces probes ;
 - 210 s max par cas ;
 - **2400 s / 40 min max pour le gate complet** ;
-- aucun appel cloud pendant le benchmark.
+- aucun appel cloud pendant le benchmark ;
+- aucun téléchargement implicite de modèle ;
+- endpoint Ollama loopback uniquement ;
+- digest et quantification exacts enregistrés.
 
 La qualification prend comme baseline **Fedora avec son kernel officiel et Ollama Vulkan**. Les candidats Linux sont comparés uniquement à cette baseline, à modèle, quantification, prompt et contexte identiques.
 
@@ -90,9 +95,43 @@ Après reconnexion de session pour appliquer les groupes GPU/libvirt :
 
 ```bash
 ./menu.sh --action validate
-./menu.sh --action audit-strict
-./menu.sh --action gpu
+./menu.sh --action hardware-l2
+./menu.sh --action hardware-l3
 ```
+
+## Gates L2 à L5
+
+### Vérification sans modèle
+
+```bash
+./menu.sh --action qualification-dry-run
+./menu.sh --action e2e-dry-run --backend ollama-vulkan
+./menu.sh --action performance
+```
+
+### Profil de benchmark
+
+Activation explicite du profil performance :
+
+```bash
+./menu.sh --action performance --apply
+```
+
+### OpenClaw E2E
+
+```bash
+./menu.sh --action e2e --backend ollama-vulkan
+```
+
+Le gate L4 vérifie les 8 agents, le Gateway, le provider local, le tool-calling, la réparation après erreur outil et 3 runs de stabilité.
+
+### Qualification réelle
+
+```bash
+./menu.sh --action qualification
+```
+
+Les runs L4/L5 sont exécutés sous `systemd-inhibit` pour bloquer la suspension pendant la preuve. Le chrono HARD-40M démarre avant les préflights L2/L3 ; le benchmark reçoit uniquement le budget restant avant la réserve d'évaluation.
 
 ## Développement
 
@@ -104,6 +143,7 @@ make ci
 Les gates locaux couvrent :
 
 - contrats YAML ;
+- contrats HARD-40M ;
 - Ruff ;
 - mypy strict ;
 - pytest ;

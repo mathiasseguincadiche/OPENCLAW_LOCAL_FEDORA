@@ -18,20 +18,27 @@ OPENCLAW_LOCAL_FEDORA — centre de contrôle
 Usage: ./menu.sh --action ACTION [--apply] [--backend BACKEND]
 
 Actions:
-  status              Valide les contrats puis effectue un audit non bloquant
-  validate            Valide tous les contrats du dépôt
-  bootstrap           Prépare Fedora; dry-run par défaut, --apply pour modifier
-  audit               Audit Fedora/B580 non bloquant
-  audit-strict        Gate matériel Fedora/B580 strict
-  gpu                 Gate B580/xe/Mesa/Vulkan strict
-  agents              Déploie les 8 workspaces agents gérés
-  configure-openclaw  Configure OpenClaw; dry-run par défaut, --apply pour appliquer
-  project-selftest    Exécute le cycle projet synthétique complet hors matériel
+  status                 Valide les contrats puis effectue un audit non bloquant
+  validate               Valide tous les contrats du dépôt
+  bootstrap              Prépare Fedora; dry-run par défaut, --apply pour modifier
+  audit                  Audit Fedora/B580 non bloquant
+  audit-strict           Audit historique strict
+  hardware-l2            Gate L2 Fedora/GNOME/hardware strict + preuve JSON
+  hardware-l3            Gate L3 B580/xe/Mesa/Vulkan strict + preuve JSON
+  gpu                    Alias historique du gate B580/xe/Mesa/Vulkan
+  performance            Profil performance; dry-run, --apply pour l'activer
+  agents                 Déploie les 8 workspaces agents gérés
+  configure-openclaw     Configure OpenClaw; dry-run, --apply pour appliquer
+  project-selftest       Cycle projet synthétique complet hors matériel
+  e2e-dry-run            Plan du gate L4 OpenClaw sans appel modèle
+  e2e                    Gate L4 réel: 8 agents + outils + réparation + stabilité
+  qualification-dry-run  Valide le plan HARD-40M sans matériel/réseau
+  qualification          Gate L5 réel HARD-40M sous systemd-inhibit
 
 Backends OpenClaw:
-  ollama-vulkan       baseline
-  llama-cpp-vulkan    candidat Linux
-  llama-cpp-sycl      candidat Linux optionnel
+  ollama-vulkan          baseline
+  llama-cpp-vulkan       candidat Linux
+  llama-cpp-sycl         candidat Linux optionnel
 EOF
 }
 
@@ -72,15 +79,27 @@ printf '%s\n' ' Kernel 7.2.3    : candidat uniquement, jamais promotion automati
 printf '%s\n' ' GPU nominal     : xe + Mesa/Vulkan'
 printf '%s\n' ' Runtime baseline: Ollama Vulkan'
 printf '%s\n' ' Runtime candidats: llama.cpp Vulkan + SYCL/Level Zero optionnel'
+printf '%s\n' ' Qualification  : HARD-40M / 30 cas / suspension inhibée'
 printf '%s\n' ' Cloud           : explicite uniquement, jamais fallback silencieux'
 
 case "$ACTION" in
   validate) run_cli validate ;;
   audit) "$LINUX/01_audit_host.sh" ;;
   audit-strict) "$LINUX/01_audit_host.sh" --strict ;;
+  hardware-l2) "$LINUX/05_hardware_gates.sh" l2 ;;
+  hardware-l3) "$LINUX/05_hardware_gates.sh" l3 ;;
   gpu) "$LINUX/02_verify_gpu.sh" ;;
+  performance)
+    args=(--profile performance)
+    ((APPLY == 1)) && args+=(--apply)
+    "$LINUX/08_power_profile.sh" "${args[@]}"
+    ;;
   agents) "$LINUX/03_deploy_agents.sh" ;;
   project-selftest) run_cli project selftest ;;
+  e2e-dry-run) "$LINUX/06_openclaw_e2e.sh" --backend "$BACKEND" --dry-run ;;
+  e2e) "$LINUX/06_openclaw_e2e.sh" --backend "$BACKEND" ;;
+  qualification-dry-run) "$LINUX/07_run_qualification.sh" --dry-run ;;
+  qualification) "$LINUX/07_run_qualification.sh" ;;
   configure-openclaw)
     args=(--backend "$BACKEND")
     ((APPLY == 1)) && args+=(--apply)

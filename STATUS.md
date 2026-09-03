@@ -8,11 +8,11 @@ Le dépôt est une **plateforme Fedora native en construction**, pas encore une 
 |---|---|---|
 | L0 | Fondation, contrats et CI | PASS |
 | L1 | Cœur multi-agents Linux-native | PASS logiciel — agents/runtime + moteur projet validés par CI Fedora 44 |
-| L2 | Fedora 44 kernel officiel : hardware gate | BLOQUÉ jusqu'à installation Fedora |
-| L3 | B580 `xe` + Mesa/Vulkan | BLOQUÉ jusqu'à installation Fedora |
-| L4 | OpenClaw + 8 agents + E2E | PRÉPARÉ — configuration réelle à prouver sur Fedora |
-| L5 | Qualification HARD-40M | À FAIRE |
-| L6 | Optimisation runtimes Linux + kernel 7.2.3 | À FAIRE |
+| L2 | Fedora 44 / hardware gate | PRÉPARÉ logiciel — preuve réelle requise sur la machine Fedora |
+| L3 | B580 `xe` + Mesa/Vulkan | PRÉPARÉ logiciel — preuve réelle requise sur la B580 |
+| L4 | OpenClaw + 8 agents + E2E | PRÉPARÉ logiciel — 8 smokes, outils, réparation et stabilité à exécuter réellement |
+| L5 | Qualification HARD-40M | PRÉPARÉ logiciel — 30 cas et hard cap 2400 s à exécuter réellement |
+| L6 | Optimisation runtimes Linux + kernel 7.2.3 | À FAIRE après baseline L5 PASS |
 | L7 | Golden Projects + projet représentatif | À FAIRE |
 | L8 | Approbation humaine V1 | À FAIRE |
 
@@ -34,7 +34,12 @@ Le dépôt est une **plateforme Fedora native en construction**, pas encore une 
 - Les entrées projet sont non fiables, inventoriées, hashées et revérifiées avant les changements de phase.
 - Les bundles d'échange sont versionnés, immuables et revérifiés avant validation.
 - Le package final est re-hashé avant `COMPLETE`.
-- HARD-40M reste limité à 2400 secondes et 30 cas.
+- L2 exige Fedora/GNOME/Wayland, UEFI, ReBAR, SELinux et le hardware cible.
+- L3 exige B580 + `xe` + render node + Mesa/Vulkan.
+- L4 exige Gateway réel, 8 agents, tool-calling, réparation et stabilité 3/3.
+- HARD-40M reste limité à 2400 secondes et 30 cas, préflight et évaluation inclus.
+- Les runs longs utilisent `systemd-inhibit` pour bloquer la suspension.
+- Les preuves runtime restent hors Git et les sorties brutes des modèles ne sont pas persistées par L5.
 - Aucun fallback cloud silencieux.
 - SELinux reste Enforcing.
 - Une V1 ne pourra être déclarée qu'après preuves matérielles et approbation humaine.

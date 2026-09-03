@@ -1,0 +1,152 @@
+schema_version: "1.0.0"
+id: linux-devops-v1
+description: >-
+  Qualification locale Fedora orientée projets DevOps, exploitation Linux, sécurité,
+  documentation, raisonnement et discipline agentique. Aucun scénario ne nécessite le réseau.
+default_temperature: 0.1
+default_max_output_tokens: 256
+scenarios:
+  - id: project-intake-analysis
+    category: project
+    max_output_tokens: 320
+    prompt: >-
+      Un projet impose un service local, des conteneurs, un déploiement Kubernetes et des
+      livrables README, runbook et preuves. Retourne uniquement un JSON avec les clés objectives,
+      constraints, deliverables, risks et first_actions. N'invente aucun livrable.
+    checks:
+      - type: json_keys
+        keys: [objectives, constraints, deliverables, risks, first_actions]
+
+  - id: systemd-service-debug
+    category: linux-operations
+    max_output_tokens: 256
+    prompt: >-
+      Un service systemd utilisateur ne démarre plus après une modification de configuration.
+      Donne une procédure ordonnée qui commence par observer son état et ses logs, vérifie l'unité,
+      l'environnement et la configuration, puis propose un rollback. Ne prétends pas connaître la cause.
+    checks:
+      - type: contains_all
+        values: [systemctl, journalctl, rollback]
+      - type: not_contains_any
+        values: ["la cause est forcément", "certainement causé par"]
+
+  - id: kubernetes-root-cause
+    category: troubleshooting
+    max_output_tokens: 320
+    prompt: >-
+      Un Deployment reste à 0/2 Ready et aucun diagnostic n'a encore été fait. Donne une procédure
+      ordonnée qui commence par observer l'état, inspecte events, describe et logs, puis distingue
+      image pull, probes, ressources et configuration. Ne prétends pas connaître la cause.
+    checks:
+      - type: contains_all
+        values: [kubectl, describe, logs]
+      - type: not_contains_any
+        values: ["la cause est forcément", "certainement causé par"]
+
+  - id: terraform-multifile-change
+    category: iac
+    max_output_tokens: 256
+    prompt: >-
+      Un module Terraform possède main.tf, variables.tf et outputs.tf. Il faut rendre le nombre
+      d'instances configurable et exposer leurs identifiants. Décris précisément les changements
+      attendus fichier par fichier, sans inventer de provider ni de ressource absente.
+    checks:
+      - type: contains_all
+        values: [main.tf, variables.tf, outputs.tf]
+
+  - id: ansible-idempotence
+    category: automation
+    max_output_tokens: 256
+    prompt: >-
+      Donne cinq contrôles concrets pour vérifier qu'un rôle Ansible d'installation de service est
+      idempotent. Inclue check mode, handlers et second passage sans changement.
+    checks:
+      - type: contains_all
+        values: [check, handler]
+      - type: contains_any
+        values: [idempotent, idempotence, changed=0]
+
+  - id: selinux-security-review
+    category: security
+    max_output_tokens: 320
+    prompt: >-
+      Un service local échoue avec SELinux Enforcing. Donne cinq contrôles prioritaires permettant
+      de diagnostiquer proprement le refus sans désactiver SELinux. Sépare observation, analyse des
+      AVC, correction de contexte/politique et validation finale.
+    checks:
+      - type: contains_all
+        values: [SELinux, AVC]
+      - type: contains_any
+        values: [ausearch, audit2why, restorecon, semanage]
+      - type: not_contains_any
+        values: ["setenforce 0", "désactiver SELinux"]
+
+  - id: rollback-runbook
+    category: documentation
+    max_output_tokens: 320
+    prompt: >-
+      Rédige un mini-runbook opérationnel contenant exactement les sections Préconditions,
+      Déploiement, Vérification et Rollback. Ajoute des critères observables, sans inventer de
+      métriques de production.
+    checks:
+      - type: contains_all
+        values: [Préconditions, Déploiement, Vérification, Rollback]
+
+  - id: architecture-diagram-d2
+    category: diagram
+    max_output_tokens: 96
+    prompt: >-
+      Retourne uniquement une source D2 minimale représentant Utilisateur -> OpenClaw -> Routeur,
+      puis Routeur -> Ollama et Routeur -> llama.cpp. Aucun bloc Markdown ni explication.
+    checks:
+      - type: contains_all
+        values: [Utilisateur, OpenClaw, Routeur, Ollama, llama.cpp]
+
+  - id: web-freshness-discipline
+    category: research
+    max_output_tokens: 96
+    prompt: >-
+      On te demande la dernière version stable d'un logiciel mais aucun accès web ni source récente
+      n'est fourni. Explique en deux phrases maximum ce que tu dois vérifier avant de répondre et
+      refuse d'inventer une version.
+    checks:
+      - type: contains_any
+        values: [web, source, officiel, récente, récent]
+      - type: not_contains_any
+        values: ["je confirme que la dernière version est"]
+
+  - id: tool-intent-json
+    category: agentic-structure
+    max_output_tokens: 128
+    prompt: >-
+      Tu dois inspecter README.md avant de répondre. Retourne uniquement un JSON avec les clés tool,
+      arguments et reason. tool doit valoir read_file et arguments doit cibler README.md. N'exécute
+      rien réellement.
+    checks:
+      - type: json_keys
+        keys: [tool, arguments, reason]
+      - type: contains_all
+        values: [read_file, README.md]
+
+  - id: tool-feedback-repair-json
+    category: agentic-repair
+    max_output_tokens: 128
+    prompt: >-
+      Un outil répond ERROR file_not_found pour config/prod.yaml. Retourne uniquement un JSON avec
+      diagnosis et next_action. Ne prétends pas que le fichier existe et ne fabrique aucun contenu.
+    checks:
+      - type: json_keys
+        keys: [diagnosis, next_action]
+      - type: not_contains_any
+        values: ["contenu de config/prod.yaml"]
+
+  - id: long-context-discipline
+    category: long-context
+    synthetic_context_chars: 24000
+    max_output_tokens: 192
+    prompt: >-
+      À partir de l'inventaire synthétique fourni avant cette consigne, retourne uniquement trois
+      risques généraux de dérive de configuration. N'invente aucun hôte absent et ne transforme pas
+      les exemples en faits de production.
+    checks:
+      - type: nonempty
