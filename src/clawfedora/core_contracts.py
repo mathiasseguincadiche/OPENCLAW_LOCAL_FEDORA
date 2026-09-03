@@ -100,5 +100,7 @@ def validate_core_contracts(repo_root: Path) -> tuple[tuple[str, ...], tuple[str
 
     failures.extend(validate_agent_assets(repo_root))
     if not failures:
-        warnings.append("L1 runtime: configuration générée à valider contre le schéma OpenClaw vivant")
+        warnings.append(
+            "L1 runtime: configuration générée à valider contre le schéma OpenClaw vivant"
+        )
     return tuple(failures), tuple(warnings)
