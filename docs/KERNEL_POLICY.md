@@ -13,7 +13,7 @@ Au 2026-09-03 :
 
 - ne jamais supprimer le dernier kernel Fedora bootable ;
 - ne jamais installer le candidat depuis le bootstrap de base ;
-- ne jamais changer simultanément kernel + modèle + quantification + backend lors d'une comparaison ;
+- ne jamais changer simultanément kernel + modèle + quantification + runtime lors d'une comparaison ;
 - ne jamais promouvoir automatiquement 7.2.3.
 
 ## Protocole
@@ -23,12 +23,11 @@ Au 2026-09-03 :
 1. boot ;
 2. GNOME 50/Wayland ;
 3. B580/xe ;
-4. Vulkan ;
-5. Level Zero ;
-6. OpenClaw ;
-7. E2E ;
-8. HARD-40M ;
-9. 3 runs de stabilité.
+4. Mesa/Vulkan ;
+5. OpenClaw ;
+6. E2E ;
+7. HARD-40M ;
+8. 3 runs de stabilité.
 
 ### K1 — Linux 7.2.3
 
