@@ -5,9 +5,9 @@ import os
 import platform
 import shutil
 import subprocess
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Sequence
 
 
 @dataclass(frozen=True)
@@ -164,11 +164,16 @@ def collect_audit(strict: bool = False) -> AuditReport:
 
     rc, vulkan = _run(["vulkaninfo", "--summary"], timeout=20)
     vulkan_ok = rc == 0 and ("B580" in vulkan or "Intel" in vulkan)
+    vulkan_detail = (
+        "Vulkan Intel opérationnel"
+        if vulkan_ok
+        else vulkan[-800:] or "vulkaninfo indisponible"
+    )
     checks.append(
         Check(
             "vulkan",
             "PASS" if vulkan_ok else ("FAIL" if strict else "WARN"),
-            "Vulkan Intel opérationnel" if vulkan_ok else vulkan[-800:] or "vulkaninfo indisponible",
+            vulkan_detail,
         )
     )
 
@@ -194,11 +199,16 @@ def collect_audit(strict: bool = False) -> AuditReport:
 
     rc, sycl = _run(["sycl-ls"], timeout=20)
     sycl_ok = rc == 0 and "level_zero" in sycl.lower() and "gpu" in sycl.lower()
+    sycl_detail = (
+        "SYCL/Level Zero disponible"
+        if sycl_ok
+        else "optionnel avant qualification: " + sycl[-500:]
+    )
     checks.append(
         Check(
             "sycl-candidate",
             "PASS" if sycl_ok else "WARN",
-            "SYCL/Level Zero disponible" if sycl_ok else "optionnel avant qualification: " + sycl[-500:],
+            sycl_detail,
         )
     )
 
