@@ -24,21 +24,24 @@ Fedora 44 / GNOME 50 / Wayland
         │
         └── Intel Arc B580 / xe
                 │
-           Mesa / Vulkan
-                │
-        ┌───────┴────────┐
-        │                │
-   Ollama Vulkan   llama.cpp Vulkan
+        ┌───────┴──────────────┐
+        │                      │
+   Mesa / Vulkan      Level Zero / SYCL
+        │                      │
+  ┌─────┴─────┐          llama.cpp SYCL
+  │           │
+Ollama   llama.cpp Vulkan
 ```
 
-## Baseline et optimisation
+## Baseline et candidats
 
-| Élément | Baseline | Candidat |
+| Élément | Baseline | Candidat(s) |
 |---|---|---|
 | Kernel | Fedora officiel | Linux 7.2.3 upstream |
-| GPU | `xe` + Mesa/Vulkan | même pile, réglages qualifiés uniquement |
-| Runtime LLM | Ollama Vulkan | llama.cpp Vulkan |
+| GPU/runtime | Ollama Vulkan | llama.cpp Vulkan, llama.cpp SYCL/Level Zero |
 | Promotion | manuelle | après preuves uniquement |
+
+Le chemin nominal reste **Fedora + `xe` + Mesa/Vulkan + Ollama**. SYCL/Level Zero est un candidat Linux de performance : il est autorisé, mesuré séparément et ne doit jamais bloquer l'installation ou la qualification de la baseline.
 
 Le kernel 7.2.3 n'est jamais installé par le bootstrap initial. Le kernel Fedora reste un rollback bootable obligatoire.
 
@@ -65,7 +68,7 @@ Le contrat de qualification est :
 - **2400 s / 40 min max pour le gate complet** ;
 - aucun appel cloud pendant le benchmark.
 
-La qualification prend comme baseline **Fedora avec son kernel officiel et Ollama Vulkan**. Les optimisations sont comparées uniquement à cette baseline Linux, à modèle, quantification, prompt et contexte identiques.
+La qualification prend comme baseline **Fedora avec son kernel officiel et Ollama Vulkan**. Les candidats Linux sont comparés uniquement à cette baseline, à modèle, quantification, prompt et contexte identiques.
 
 ## Démarrage du socle
 
@@ -143,7 +146,7 @@ Le projet avance par gates :
 - `L3` — B580 `xe` + Mesa/Vulkan ;
 - `L4` — OpenClaw + 8 agents + E2E ;
 - `L5` — qualification HARD-40M ;
-- `L6` — optimisation backend/kernel Linux ;
+- `L6` — optimisation Linux : llama.cpp Vulkan, SYCL/Level Zero et kernel 7.2.3 ;
 - `L7` — Golden Projects + projet représentatif ;
 - `L8` — approbation humaine V1.
 
