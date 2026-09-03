@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from clawfedora.core_config import root_contract
+from clawfedora.core_config import core_contract, root_contract
 
 
 def _mapping(value: Any) -> dict[str, Any]:
@@ -15,6 +15,8 @@ def validate_lifecycle_contracts(repo_root: Path) -> tuple[tuple[str, ...], tupl
     warnings: list[str] = []
     try:
         policy = root_contract(repo_root, "lifecycle_policy.yaml")
+        telemetry_policy = core_contract(repo_root, "telemetry_policy.yaml")
+        budget_policy = core_contract(repo_root, "budget_policy.yaml")
     except (FileNotFoundError, ValueError) as exc:
         return (f"lifecycle: {exc}",), ()
 
@@ -60,11 +62,27 @@ def validate_lifecycle_contracts(repo_root: Path) -> tuple[tuple[str, ...], tupl
     telemetry = _mapping(policy.get("telemetry"))
     if telemetry.get("local_only") is not True:
         failures.append("lifecycle: télémétrie locale uniquement")
+    retention = _mapping(telemetry_policy.get("retention"))
+    if telemetry.get("event_file") != retention.get("relative_path"):
+        failures.append("lifecycle: drift telemetry.event_file/retention.relative_path")
+    if telemetry_policy.get("local_only") is not True:
+        failures.append("lifecycle: telemetry_policy.local_only=true requis")
+
     finops = _mapping(policy.get("finops"))
     if finops.get("local_only") is not True or finops.get("explicit_cloud_only") is not True:
         failures.append("lifecycle: FinOps local et cloud explicite requis")
     if finops.get("manual_override") is not False:
         failures.append("lifecycle: override FinOps manuel interdit")
+    ledger = _mapping(budget_policy.get("ledger"))
+    behavior = _mapping(budget_policy.get("behavior"))
+    if finops.get("ledger_file") != ledger.get("relative_path"):
+        failures.append("lifecycle: drift finops.ledger_file/ledger.relative_path")
+    if finops.get("default_reservation_eur") != behavior.get("default_reservation_eur"):
+        failures.append("lifecycle: drift FinOps default_reservation_eur")
+    if budget_policy.get("cloud_enabled_by_default") is not False:
+        failures.append("lifecycle: budget cloud désactivé par défaut requis")
+    if behavior.get("allow_manual_override") is not False:
+        failures.append("lifecycle: budget override manuel interdit")
 
     if not failures:
         warnings.append("cycle de vie logiciel prêt; aucune validation matérielle implicite")
