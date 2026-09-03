@@ -28,7 +28,13 @@ def test_bootstrap_is_dry_run_by_default_and_does_not_weaken_security() -> None:
     assert "APPLY=0" in text
     assert "--apply" in text
     assert "getenforce" in text
-    forbidden = ("setenforce 0", "selinux=0", "--nogpgcheck", "chmod 777", "firewall-cmd --permanent --disable")
+    forbidden = (
+        "setenforce 0",
+        "selinux=0",
+        "--nogpgcheck",
+        "chmod 777",
+        "firewall-cmd --permanent --disable",
+    )
     for marker in forbidden:
         assert marker not in text.lower()
 
