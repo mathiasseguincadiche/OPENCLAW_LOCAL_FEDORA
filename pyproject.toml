@@ -16,6 +16,7 @@ dependencies = [
 
 [project.scripts]
 clawfedora = "clawfedora.cli:main"
+clawfedora-ops = "clawfedora.ops_cli:main"
 
 [project.optional-dependencies]
 dev = [
