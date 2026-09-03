@@ -114,6 +114,12 @@ def test_plan_has_ten_cases_per_model_and_exact_native_probes() -> None:
     assert all(case.max_output_tokens == 768 for case in native)
 
 
+def test_scenario_output_limit_rejects_above_768() -> None:
+    assert qualification._scenario_output_limit({"max_output_tokens": 768}, {}) == 768
+    with pytest.raises(ValueError, match="limite de sortie scénario invalide"):
+        qualification._scenario_output_limit({"max_output_tokens": 769}, {})
+
+
 def test_checks_cover_structured_positive_and_negative_rules() -> None:
     ok, details = qualification.run_checks(
         '{"a": 1, "b": 2}',
