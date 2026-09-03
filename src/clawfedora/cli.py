@@ -202,7 +202,7 @@ def main(argv: list[str] | None = None) -> int:
             args.output,
             bool(args.json),
         )
-    parser.error("commande non supportée")
+    parser.error(f"commande non supportée: {args.command}")
     return 2
 
 
