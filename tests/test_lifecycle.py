@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import json
 import tarfile
 from pathlib import Path
 from types import SimpleNamespace
@@ -74,6 +75,21 @@ def test_restore_rejects_archive_traversal(tmp_path: Path) -> None:
         tar.addfile(info, io.BytesIO(data))
     with pytest.raises(ValueError, match="chemin archive interdit"):
         lifecycle.restore_backup(archive, tmp_path / "restore")
+
+
+def test_restore_rejects_unmanifested_extra_file(tmp_path: Path) -> None:
+    archive = tmp_path / "extra.tar.gz"
+    manifest = json.dumps({"schema_version": "1.0.0", "files": {}}).encode()
+    extra = b"unexpected"
+    with tarfile.open(archive, "w:gz") as tar:
+        manifest_info = tarfile.TarInfo("BACKUP_MANIFEST.json")
+        manifest_info.size = len(manifest)
+        tar.addfile(manifest_info, io.BytesIO(manifest))
+        extra_info = tarfile.TarInfo("state/extra.txt")
+        extra_info.size = len(extra)
+        tar.addfile(extra_info, io.BytesIO(extra))
+    with pytest.raises(ValueError, match="fichiers supplémentaires"):
+        lifecycle.restore_backup(archive, tmp_path / "restore-extra")
 
 
 def test_cleanup_only_removes_managed_by_default(tmp_path: Path) -> None:
