@@ -1,9 +1,9 @@
 schema_version: "1.0.0"
 platform_version: "0.1.0"
 
-parity_baseline:
-  openclaw: "2026.7.1-2"
-  reason: same-version comparison with OPENCLAW_LOCAL Windows baseline
+openclaw:
+  initial_qualification_pin: "2026.7.1-2"
+  policy: pin-exact-version-before-first-hardware-qualification
 
 node:
   minimum_supported:
@@ -15,8 +15,6 @@ node:
 
 fedora_gpu_stack:
   mesa_vulkan_reference: "26.1.8"
-  intel_compute_runtime_reference: "26.22.38646.6"
-  intel_level_zero_reference: "26.22.38646.6"
   exact_versions_must_be_recorded_at_qualification: true
 
 llama_cpp:
@@ -33,6 +31,6 @@ kernel:
   upstream_candidate: "7.2.3"
 
 upgrade_policy:
-  parity_before_runtime_upgrade: true
   one_variable_at_a_time: true
   require_requalification_after_runtime_change: true
+  never_upgrade_during_active_qualification: true
