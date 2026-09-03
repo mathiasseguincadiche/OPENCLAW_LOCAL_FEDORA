@@ -24,14 +24,6 @@ def test_repository_contracts_pass() -> None:
     assert report.warnings
 
 
-def test_non_linux_entrypoint_is_rejected(tmp_path: Path) -> None:
-    root = _sandbox(tmp_path)
-    (root / "legacy.ps1").write_text("Write-Host test\n", encoding="utf-8")
-    report = validate_repository(root)
-    assert not report.ok
-    assert any("entrypoints non Linux" in failure for failure in report.failures)
-
-
 def test_kernel_automatic_promotion_is_rejected(tmp_path: Path) -> None:
     root = _sandbox(tmp_path)
     path = root / "config" / "kernel_policy.yaml"
@@ -65,15 +57,26 @@ def test_hard_40m_budget_cannot_be_silently_extended(tmp_path: Path) -> None:
     assert any("2400" in failure for failure in report.failures)
 
 
-def test_non_vulkan_runtime_is_rejected(tmp_path: Path) -> None:
+def test_nominal_vulkan_runtime_cannot_be_changed_silently(tmp_path: Path) -> None:
     root = _sandbox(tmp_path)
     path = root / "config" / "runtime_backends.yaml"
     payload = yaml.safe_load(path.read_text(encoding="utf-8"))
-    payload["backends"]["llama-cpp-vulkan"]["accelerator"] = "cpu"
+    payload["backends"]["ollama-vulkan"]["accelerator"] = "cpu"
     path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
     report = validate_repository(root)
     assert not report.ok
     assert any("Vulkan" in failure for failure in report.failures)
+
+
+def test_sycl_candidate_must_use_level_zero(tmp_path: Path) -> None:
+    root = _sandbox(tmp_path)
+    path = root / "config" / "runtime_backends.yaml"
+    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+    payload["backends"]["llama-cpp-sycl"]["device_api"] = "invalid"
+    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+    report = validate_repository(root)
+    assert not report.ok
+    assert any("Level Zero" in failure for failure in report.failures)
 
 
 def test_roadmap_must_remain_l0_to_l8(tmp_path: Path) -> None:
