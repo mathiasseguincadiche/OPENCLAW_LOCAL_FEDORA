@@ -31,7 +31,9 @@ def _load_object(path: str) -> dict[str, Any]:
     return payload
 
 
-def add_project_parser(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
+def add_project_parser(
+    subparsers: argparse._SubParsersAction[argparse.ArgumentParser],
+) -> None:
     project = subparsers.add_parser("project", help="moteur de projets multi-agents")
     commands = project.add_subparsers(dest="project_command", required=True)
 
@@ -106,7 +108,10 @@ def add_project_parser(subparsers: argparse._SubParsersAction[argparse.ArgumentP
     package.add_argument("--project-id", required=True)
     package.add_argument("--actor", default="ingenieur-release-forges")
 
-    commands.add_parser("selftest", help="cycle projet synthétique complet, local et sans réseau")
+    commands.add_parser(
+        "selftest",
+        help="cycle projet synthétique complet, local et sans réseau",
+    )
 
 
 def _runtime(args: argparse.Namespace) -> Path:
@@ -122,7 +127,10 @@ def _selftest(repo_root: Path) -> dict[str, Any]:
         base = Path(temporary)
         runtime = base / "runtime"
         source = base / "request.md"
-        source.write_text("# Demande\nProduire un livrable texte validé.\n", encoding="utf-8")
+        source.write_text(
+            "# Demande\nProduire un livrable texte validé.\n",
+            encoding="utf-8",
+        )
         project = create_project(
             repo_root,
             runtime,
@@ -159,7 +167,13 @@ def _selftest(repo_root: Path) -> dict[str, Any]:
             },
         )
         create_clarifications(repo_root, project)
-        transition_project(repo_root, project, "ANALYZED", actor="chef-operations", reason="analysis_ready")
+        transition_project(
+            repo_root,
+            project,
+            "ANALYZED",
+            actor="chef-operations",
+            reason="analysis_ready",
+        )
         store_plan(
             repo_root,
             project,
@@ -178,10 +192,28 @@ def _selftest(repo_root: Path) -> dict[str, Any]:
                 ],
             },
         )
-        transition_project(repo_root, project, "PLANNED", actor="chef-operations", reason="plan_ready")
+        transition_project(
+            repo_root,
+            project,
+            "PLANNED",
+            actor="chef-operations",
+            reason="plan_ready",
+        )
         create_assignments(repo_root, project)
-        transition_project(repo_root, project, "ASSIGNED", actor="chef-operations", reason="tasks_assigned")
-        transition_project(repo_root, project, "IN_PROGRESS", actor="chef-operations", reason="execution_start")
+        transition_project(
+            repo_root,
+            project,
+            "ASSIGNED",
+            actor="chef-operations",
+            reason="tasks_assigned",
+        )
+        transition_project(
+            repo_root,
+            project,
+            "IN_PROGRESS",
+            actor="chef-operations",
+            reason="execution_start",
+        )
         output = project / "deliverables" / "write-report" / "final.md"
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text("# Livrable\nSelf-test PASS.\n", encoding="utf-8")
@@ -194,10 +226,36 @@ def _selftest(repo_root: Path) -> dict[str, Any]:
             outputs=["deliverables/write-report/final.md"],
             summary="livrable créé",
         )
-        transition_project(repo_root, project, "VALIDATING", actor="auditeur-qualite", reason="tasks_pass")
-        store_verdict(repo_root, project, "validation", "PASS", [], reviewer="auditeur-qualite")
-        transition_project(repo_root, project, "REVIEW", actor="auditeur-qualite", reason="validation_pass")
-        store_verdict(repo_root, project, "review", "PASS", [], reviewer="auditeur-qualite")
+        transition_project(
+            repo_root,
+            project,
+            "VALIDATING",
+            actor="auditeur-qualite",
+            reason="tasks_pass",
+        )
+        store_verdict(
+            repo_root,
+            project,
+            "validation",
+            "PASS",
+            [],
+            reviewer="auditeur-qualite",
+        )
+        transition_project(
+            repo_root,
+            project,
+            "REVIEW",
+            actor="auditeur-qualite",
+            reason="validation_pass",
+        )
+        store_verdict(
+            repo_root,
+            project,
+            "review",
+            "PASS",
+            [],
+            reviewer="auditeur-qualite",
+        )
         package_project(repo_root, project, actor="ingenieur-release-forges")
         transition_project(
             repo_root,
@@ -207,7 +265,11 @@ def _selftest(repo_root: Path) -> dict[str, Any]:
             reason="synthetic_selftest_approval",
             human_approved=True,
         )
-        return {"verdict": "PASS", "project_id": "selftest-project", "status": current_status(project)}
+        return {
+            "verdict": "PASS",
+            "project_id": "selftest-project",
+            "status": current_status(project),
+        }
 
 
 def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
@@ -225,21 +287,40 @@ def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
             )
             print(f"PROJECT_CREATE_RESULT=PASS path={project}")
         elif command == "status":
-            print(json.dumps(manifest := read_json(_project(args) / "project.json"), indent=2, ensure_ascii=False))
-            assert manifest
+            project_manifest = read_json(_project(args) / "project.json")
+            print(json.dumps(project_manifest, indent=2, ensure_ascii=False))
         elif command == "analysis":
-            print(f"PROJECT_ANALYSIS={store_analysis(repo_root, _project(args), _load_object(args.file))}")
+            path = store_analysis(
+                repo_root,
+                _project(args),
+                _load_object(args.file),
+            )
+            print(f"PROJECT_ANALYSIS={path}")
         elif command == "clarifications":
-            print(f"PROJECT_CLARIFICATIONS={create_clarifications(repo_root, _project(args))}")
+            path = create_clarifications(repo_root, _project(args))
+            print(f"PROJECT_CLARIFICATIONS={path}")
         elif command == "resolve":
-            item = resolve_clarification(repo_root, _project(args), args.id, args.answer, actor=args.actor)
+            item = resolve_clarification(
+                repo_root,
+                _project(args),
+                args.id,
+                args.answer,
+                actor=args.actor,
+            )
             print(json.dumps(item, ensure_ascii=False))
         elif command == "plan":
-            print(f"PROJECT_PLAN={store_plan(repo_root, _project(args), _load_object(args.file))}")
+            path = store_plan(
+                repo_root,
+                _project(args),
+                _load_object(args.file),
+            )
+            print(f"PROJECT_PLAN={path}")
         elif command == "assign":
-            print(f"PROJECT_ASSIGNMENTS={create_assignments(repo_root, _project(args))}")
+            path = create_assignments(repo_root, _project(args))
+            print(f"PROJECT_ASSIGNMENTS={path}")
         elif command == "ready":
-            print(json.dumps(ready_tasks(repo_root, _project(args)), indent=2, ensure_ascii=False))
+            ready = ready_tasks(repo_root, _project(args))
+            print(json.dumps(ready, indent=2, ensure_ascii=False))
         elif command == "result":
             result = record_task_result(
                 repo_root,
@@ -264,21 +345,44 @@ def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
         elif command == "verdict":
             findings: list[dict[str, Any]] = []
             if args.findings_file:
-                raw = json.loads(Path(args.findings_file).read_text(encoding="utf-8"))
-                if not isinstance(raw, list) or any(not isinstance(item, dict) for item in raw):
-                    raise ValueError("findings-file doit contenir une liste JSON d'objets")
+                raw = json.loads(
+                    Path(args.findings_file).read_text(encoding="utf-8")
+                )
+                if not isinstance(raw, list) or any(
+                    not isinstance(item, dict) for item in raw
+                ):
+                    raise ValueError(
+                        "findings-file doit contenir une liste JSON d'objets"
+                    )
                 findings = raw
-            print(
-                f"PROJECT_VERDICT={store_verdict(repo_root, _project(args), args.kind, args.verdict, findings, reviewer=args.reviewer)}"
+            path = store_verdict(
+                repo_root,
+                _project(args),
+                args.kind,
+                args.verdict,
+                findings,
+                reviewer=args.reviewer,
             )
+            print(f"PROJECT_VERDICT={path}")
         elif command == "package":
-            package, report = package_project(repo_root, _project(args), actor=args.actor)
+            package, report = package_project(
+                repo_root,
+                _project(args),
+                actor=args.actor,
+            )
             print(f"PROJECT_PACKAGE=PASS manifest={package} report={report}")
         elif command == "selftest":
             print(json.dumps(_selftest(repo_root), ensure_ascii=False))
         else:
             raise ValueError(f"commande project inconnue: {command}")
-    except (FileNotFoundError, FileExistsError, KeyError, OSError, PermissionError, ValueError) as exc:
+    except (
+        FileNotFoundError,
+        FileExistsError,
+        KeyError,
+        OSError,
+        PermissionError,
+        ValueError,
+    ) as exc:
         print(f"PROJECT_RESULT=FAIL error={exc}")
         return 2
     return 0
