@@ -28,7 +28,7 @@ backends:
       autoload: true
       offline: true
       gpu_layers: auto
-      context_tokens: 16384
+      context_tokens: 8192
       parallel: 1
 
   llama-cpp-sycl:
@@ -47,7 +47,7 @@ backends:
       autoload: true
       offline: true
       gpu_layers: auto
-      context_tokens: 16384
+      context_tokens: 8192
       parallel: 1
 
 selection:
