@@ -14,6 +14,7 @@ from clawfedora.optimization import (
     write_decision,
 )
 from clawfedora.optimization_contracts import validate_optimization_contracts
+from clawfedora.runtime_candidate import SUPPORTED_BACKENDS, prepare_runtime_files
 
 
 def _root(value: str | None) -> Path:
@@ -47,6 +48,11 @@ def build_parser() -> argparse.ArgumentParser:
     stage = sub.add_parser("stage-models")
     stage.add_argument("--apply", action="store_true")
     stage.add_argument("--json", action="store_true")
+
+    runtime_files = sub.add_parser("runtime-files")
+    runtime_files.add_argument("--backend", choices=tuple(SUPPORTED_BACKENDS), required=True)
+    runtime_files.add_argument("--unit-dir", required=True)
+    runtime_files.add_argument("--json", action="store_true")
 
     runtime = sub.add_parser("compare-runtime")
     _add_compare_args(runtime)
@@ -97,6 +103,32 @@ def main(argv: list[str] | None = None) -> int:
         if args.json or not args.apply:
             print(json.dumps(payload, indent=2, ensure_ascii=False))
         print(f"L6_STAGE_RESULT=PASS apply={str(bool(args.apply)).lower()}")
+        return 0
+
+    if args.command == "runtime-files":
+        try:
+            files = prepare_runtime_files(
+                repo_root,
+                runtime_root,
+                str(args.backend),
+                unit_dir=Path(args.unit_dir).expanduser().resolve(),
+            )
+        except (FileNotFoundError, KeyError, OSError, ValueError) as exc:
+            print(f"L6_RUNTIME_FILES_RESULT=FAIL error={exc}")
+            return 2
+        payload = {
+            "backend": files.backend,
+            "server": str(files.server),
+            "preset": str(files.preset),
+            "launcher": str(files.launcher),
+            "unit_name": files.unit_name,
+            "unit_path": str(files.unit_path),
+            "endpoint": files.endpoint,
+        }
+        if args.json:
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+        else:
+            print(f"L6_RUNTIME_FILES_RESULT=PASS unit={files.unit_name} endpoint={files.endpoint}")
         return 0
 
     baseline = _paths(args.baseline)
