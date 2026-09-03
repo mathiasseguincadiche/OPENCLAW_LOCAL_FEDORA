@@ -7,6 +7,7 @@ source "$SCRIPT_DIR/lib/runtime.sh"
 
 APPLY=0
 BACKEND="ollama-vulkan"
+OPENCLAW_PIN="2026.7.1-2"
 
 usage() {
   cat <<'EOF'
@@ -44,11 +45,49 @@ SYSTEM_WORKSPACE="$RUNTIME_ROOT/workspaces/system"
 PATCH_PATH="$GENERATED_ROOT/openclaw.$BACKEND.patch.json"
 SCHEMA_PATH="$GENERATED_ROOT/openclaw.schema.json"
 
+contains_model() {
+  local needle="${1,,}"
+  shift
+  local model
+  for model in "$@"; do
+    [[ "${model,,}" == "$needle" ]] && return 0
+  done
+  return 1
+}
+
+require_backend_models() {
+  local provider="$1"
+  local inventory_json="$2"
+  local inventory_kind="$3"
+  local -a expected actual
+  mapfile -t expected < <(
+    jq -r --arg provider "$provider" '.models.providers[$provider].models[]?.id' "$PATCH_PATH"
+  )
+  if [[ "$inventory_kind" == "ollama" ]]; then
+    mapfile -t actual < <(jq -r '.models[]? | (.model // .name // empty)' <<<"$inventory_json")
+  else
+    mapfile -t actual < <(jq -r '.data[]?.id' <<<"$inventory_json")
+  fi
+
+  [[ "${#expected[@]}" -eq 3 ]] || {
+    echo "ERREUR: le patch n'expose pas exactement 3 modèles pour $provider." >&2
+    return 2
+  }
+  local expected_model
+  for expected_model in "${expected[@]}"; do
+    contains_model "$expected_model" "${actual[@]}" || {
+      echo "ERREUR: modèle requis absent de $provider: $expected_model" >&2
+      return 2
+    }
+  done
+}
+
 printf 'OPENCLAW_CONFIG_PLAN backend=%s runtime=%s state=%s\n' "$BACKEND" "$RUNTIME_ROOT" "$STATE_ROOT"
+printf '  openclaw pin: %s\n' "$OPENCLAW_PIN"
 printf '  workspaces: %s\n' "$RUNTIME_ROOT/workspaces"
 printf '  patch: %s\n' "$PATCH_PATH"
 printf '  schema: %s\n' "$SCHEMA_PATH"
-printf '  sequence: schema -> agents -> render -> patch-dry-run -> apply -> validate -> agents-list\n'
+printf '  sequence: version -> schema -> agents -> render -> backend-models -> patch-dry-run -> apply -> validate -> agents-list\n'
 
 if ((APPLY == 0)); then
   echo "DRY_RUN=PASS -- aucune configuration OpenClaw modifiée."
@@ -59,6 +98,12 @@ OPENCLAW="$(command -v openclaw || true)"
 [[ -n "$OPENCLAW" ]] || { echo "ERREUR: openclaw absent du PATH." >&2; exit 127; }
 command -v jq >/dev/null 2>&1 || { echo "ERREUR: jq requis." >&2; exit 127; }
 command -v curl >/dev/null 2>&1 || { echo "ERREUR: curl requis." >&2; exit 127; }
+
+OPENCLAW_VERSION="$($OPENCLAW --version 2>/dev/null | head -n1)"
+[[ "$OPENCLAW_VERSION" == *"$OPENCLAW_PIN"* ]] || {
+  echo "ERREUR: OpenClaw $OPENCLAW_PIN requis; détecté: ${OPENCLAW_VERSION:-inconnu}" >&2
+  exit 2
+}
 
 mkdir -p "$STATE_ROOT" "$GENERATED_ROOT" "$SYSTEM_WORKSPACE"
 export OPENCLAW_STATE_DIR="$STATE_ROOT"
@@ -87,12 +132,14 @@ fi
   --runtime-root "$RUNTIME_ROOT" --backend "$BACKEND" --output "$PATCH_PATH"
 
 if [[ "$BACKEND" == "ollama-vulkan" ]]; then
-  curl -fsS --max-time 5 'http://127.0.0.1:11434/api/tags' >/dev/null
+  OLLAMA_JSON="$(curl -fsS --max-time 5 'http://127.0.0.1:11434/api/tags')"
+  require_backend_models "ollama" "$OLLAMA_JSON" "ollama"
 else
   PROVIDER="intel-vulkan"
   [[ "$BACKEND" == "llama-cpp-sycl" ]] && PROVIDER="intel-sycl"
   BASE_URL="$(jq -r --arg provider "$PROVIDER" '.models.providers[$provider].baseUrl' "$PATCH_PATH")"
-  curl -fsS --max-time 10 "$BASE_URL/models?reload=1" | jq -e . >/dev/null
+  LLAMA_JSON="$(curl -fsS --max-time 10 "${BASE_URL%/}/models?reload=1")"
+  require_backend_models "$PROVIDER" "$LLAMA_JSON" "llamacpp"
 fi
 
 "$OPENCLAW" config patch --file "$PATCH_PATH" --dry-run
