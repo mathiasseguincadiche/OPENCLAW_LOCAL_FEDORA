@@ -36,16 +36,18 @@ Puis doivent être enregistrés :
 - digest/quantification des trois modèles ;
 - état ReBAR ;
 - RAM/VRAM ;
-- runtime exact.
+- runtime exact ;
+- versions de la pile accélérateur optionnelle lorsqu'elle est activée.
 
 ## Ordre des campagnes
 
 1. kernel Fedora officiel + Ollama Vulkan ;
 2. kernel Fedora officiel + llama.cpp Vulkan ;
-3. kernel 7.2.3 + runtime Vulkan gagnant ;
-4. confirmation par 3 runs du candidat gagnant.
+3. kernel Fedora officiel + llama.cpp SYCL/Level Zero, si le candidat est installé ;
+4. kernel 7.2.3 + runtime gagnant ;
+5. confirmation par 3 runs du candidat gagnant.
 
-Une seule variable change à la fois.
+Une seule variable change à la fois. Un candidat optionnel absent ne rend jamais la baseline invalide.
 
 ## Critère d'optimisation Linux
 
