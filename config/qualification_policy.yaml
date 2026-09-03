@@ -99,6 +99,7 @@ preflight:
   l3_b580_vulkan_gate_required: true
   l4_openclaw_e2e_required_for_v1: true
   qualification_backend: ollama-vulkan
+  performance_profile_required: true
   cpu_governor_observed: true
   no_suspend_required: true
 
