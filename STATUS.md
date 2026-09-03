@@ -2,28 +2,29 @@
 
 Dernière mise à jour du socle : 2026-09-03.
 
-Le dépôt est un **candidat de migration Fedora**, pas encore une plateforme qualifiée. Aucun gain de performance n'est revendiqué tant que la comparaison reproductible avec OPENCLAW_LOCAL/Windows n'est pas terminée.
+Le dépôt est une **plateforme Fedora native en construction**, pas encore une plateforme matériellement qualifiée. Aucun gain de performance n'est revendiqué avant mesures reproductibles sur la machine cible.
 
 | Gate | Objet | État |
 |---|---|---|
-| M0 | Baseline Windows complète et archivée | EN COURS hors de ce dépôt |
-| M1 | Cœur portable + contrats Fedora | EN COURS |
-| M2 | CI Linux/Fedora complète | EN COURS |
-| M3 | Fedora 44 kernel officiel : hardware gate | BLOQUÉ jusqu'à installation Fedora |
-| M4 | B580 Vulkan + Level Zero | BLOQUÉ jusqu'à installation Fedora |
-| M5 | OpenClaw + 8 agents + E2E | À FAIRE |
-| M6 | Comparaison backends + kernel 7.2.3 | À FAIRE |
-| M7 | Golden Projects + projet représentatif | À FAIRE |
-| M8 | Approbation humaine / Fedora nominal | À FAIRE |
+| L0 | Fondation, contrats et CI | EN COURS |
+| L1 | Cœur multi-agents Linux-native | À FAIRE |
+| L2 | Fedora 44 kernel officiel : hardware gate | BLOQUÉ jusqu'à installation Fedora |
+| L3 | B580 `xe` + Mesa/Vulkan | BLOQUÉ jusqu'à installation Fedora |
+| L4 | OpenClaw + 8 agents + E2E | À FAIRE |
+| L5 | Qualification HARD-40M | À FAIRE |
+| L6 | Optimisation backend + kernel 7.2.3 | À FAIRE |
+| L7 | Golden Projects + projet représentatif | À FAIRE |
+| L8 | Approbation humaine V1 | À FAIRE |
 
-## Invariants déjà décidés
+## Invariants
 
 - Fedora 44 + GNOME 50 + Wayland est la cible.
 - Le kernel Fedora officiel reste toujours un rollback bootable.
 - Linux 7.2.3 est un candidat de performance, jamais une promotion automatique.
 - Intel Arc B580 utilise le driver kernel `xe`.
-- Vulkan/Mesa est la baseline GPU Linux.
-- llama.cpp SYCL/Level Zero est un candidat de performance.
+- Mesa/Vulkan est l'unique pile GPU de runtime du projet.
+- Ollama Vulkan est la baseline runtime.
+- llama.cpp Vulkan est le candidat runtime de performance.
 - Les trois modèles Qwen/Gemma/Devstral restent obligatoires.
 - HARD-40M reste limité à 2400 secondes et 30 cas.
 - Aucun fallback cloud silencieux.
