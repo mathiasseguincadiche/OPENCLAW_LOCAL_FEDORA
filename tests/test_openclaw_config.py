@@ -5,7 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from clawfedora.openclaw_config import build_openclaw_patch, write_openclaw_patch
+from clawfedora.openclaw_config import (
+    _backend_ref,
+    build_openclaw_patch,
+    write_openclaw_patch,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -30,6 +34,14 @@ def test_ollama_patch_has_eight_agents_and_strict_tools(tmp_path: Path) -> None:
     providers = models["providers"]
     assert isinstance(providers, dict)
     assert set(providers) == {"ollama"}
+    ollama = providers["ollama"]
+    assert isinstance(ollama, dict)
+    assert ollama["apiKey"] == {
+        "source": "env",
+        "provider": "default",
+        "id": "OLLAMA_API_KEY",
+    }
+    assert "ollama-local" not in json.dumps(patch)
 
     agents = _agents_by_id(patch)
     assert len(agents) == 8
@@ -63,6 +75,14 @@ def test_vulkan_candidate_keeps_multimodal_on_ollama(tmp_path: Path) -> None:
     providers = models["providers"]
     assert isinstance(providers, dict)
     assert set(providers) == {"ollama", "intel-vulkan"}
+    vulkan = providers["intel-vulkan"]
+    assert isinstance(vulkan, dict)
+    assert vulkan["apiKey"] == {
+        "source": "env",
+        "provider": "default",
+        "id": "INTEL_VULKAN_API_KEY",
+    }
+    assert "intel-vulkan-local" not in json.dumps(patch)
     agents = _agents_by_id(patch)
     devops_model = agents["ingenieur-devops"]["model"]
     assert isinstance(devops_model, dict)
@@ -86,11 +106,22 @@ def test_sycl_candidate_is_explicit_and_local(tmp_path: Path) -> None:
     assert isinstance(sycl, dict)
     assert sycl["baseUrl"] == "http://127.0.0.1:8080/v1"
     assert sycl["api"] == "openai-completions"
+    assert sycl["apiKey"] == {
+        "source": "env",
+        "provider": "default",
+        "id": "INTEL_SYCL_API_KEY",
+    }
+    assert "intel-sycl-local" not in json.dumps(patch)
 
 
 def test_unknown_backend_is_rejected(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="backend absent"):
         build_openclaw_patch(ROOT, tmp_path, "unknown")
+
+
+def test_unknown_model_alias_is_contextualized() -> None:
+    with pytest.raises(ValueError, match="missing-alias"):
+        _backend_ref("missing-alias", {"models": {}}, "ollama-vulkan")
 
 
 def test_patch_writer_is_atomic_json(tmp_path: Path) -> None:
