@@ -46,7 +46,7 @@ def validate_repository(root: Path) -> ContractReport:
         "models": root / "config" / "model_catalog.yaml",
         "backends": root / "config" / "runtime_backends.yaml",
         "qualification": root / "config" / "qualification_policy.yaml",
-        "migration": root / "config" / "migration_policy.yaml",
+        "roadmap": root / "config" / "roadmap_policy.yaml",
     }
     missing = [str(path.relative_to(root)) for path in required.values() if not path.is_file()]
     if missing:
@@ -117,9 +117,7 @@ def validate_repository(root: Path) -> ContractReport:
     if required_models != expected_models:
         failures.append("models: flotte requise doit rester exactement qwen/gemma/devstral")
     runtime_ids = [str(value.get("runtime_id", "")) for value in model_map.values()]
-    runtime_ids_invalid = any(not runtime_id for runtime_id in runtime_ids)
-    runtime_ids_duplicated = len(runtime_ids) != len(set(runtime_ids))
-    if runtime_ids_invalid or runtime_ids_duplicated:
+    if any(not runtime_id for runtime_id in runtime_ids) or len(runtime_ids) != len(set(runtime_ids)):
         failures.append("models: runtime_id absents ou dupliqués")
     fleet_policy = models.get("fleet_policy", {})
     if int(fleet_policy.get("exact_required_model_count", 0)) != 3:
@@ -129,12 +127,14 @@ def validate_repository(root: Path) -> ContractReport:
 
     backends = contracts["backends"]
     backend_map = backends.get("backends", {})
-    expected_backends = {"ollama-vulkan", "llama-cpp-vulkan", "llama-cpp-sycl"}
+    expected_backends = {"ollama-vulkan", "llama-cpp-vulkan"}
     if set(backend_map) != expected_backends:
-        failures.append("backends: matrice attendue Ollama Vulkan + llama.cpp Vulkan + SYCL")
+        failures.append("backends: seuls Ollama Vulkan et llama.cpp Vulkan sont autorisés")
     for backend_id, backend in backend_map.items():
         if backend.get("linux_native") is not True:
             failures.append(f"backends: {backend_id} doit être Linux natif")
+        if backend.get("accelerator") != "vulkan":
+            failures.append(f"backends: {backend_id} doit utiliser Vulkan")
         endpoint = str(backend.get("endpoint", ""))
         if endpoint and not _loopback(endpoint):
             failures.append(f"backends: {backend_id} endpoint non loopback")
@@ -161,38 +161,45 @@ def validate_repository(root: Path) -> ContractReport:
     safety = qualification.get("safety", {})
     if safety.get("cloud_calls_allowed") is not False:
         failures.append("qualification: aucun appel cloud autorisé")
+    target = qualification.get("linux_performance_target", {})
+    if target.get("baseline") != "fedora-stock-kernel-plus-ollama-vulkan":
+        failures.append("qualification: baseline Linux Fedora stock attendue")
     promotion = qualification.get("promotion", {})
-    automatic_promotion_keys = (
+    promotion_keys = (
         "automatic_backend_promotion",
         "automatic_kernel_promotion",
         "automatic_v1_release",
     )
-    if any(promotion.get(key) is not False for key in automatic_promotion_keys):
+    if any(promotion.get(key) is not False for key in promotion_keys):
         failures.append("qualification: aucune promotion automatique autorisée")
     if promotion.get("final_human_approval_required") is not True:
         failures.append("qualification: approbation humaine finale requise")
 
-    migration = contracts["migration"]
-    source = migration.get("source", {})
-    if source.get("repository") != "mathiasseguincadiche/OPENCLAW_LOCAL":
-        failures.append("migration: dépôt Windows source inattendu")
-    never_copy = {str(item) for item in source.get("never_copy", [])}
-    if "scripts/windows" not in never_copy or "START_MENU.cmd" not in never_copy:
-        failures.append("migration: dettes Windows doivent être explicitement exclues")
-    gates = migration.get("migration_gates", {})
-    if list(gates) != [f"M{i}" for i in range(9)]:
-        failures.append("migration: gates M0..M8 incomplets ou désordonnés")
+    roadmap = contracts["roadmap"]
+    project = roadmap.get("project", {})
+    if project.get("identity") != "linux-native":
+        failures.append("roadmap: identité Linux native requise")
+    linux_stack = roadmap.get("linux_stack", {})
+    if linux_stack.get("gpu_kernel_driver") != "xe":
+        failures.append("roadmap: driver GPU xe requis")
+    if linux_stack.get("gpu_api") != "vulkan" or linux_stack.get("gpu_userspace") != "mesa":
+        failures.append("roadmap: pile GPU xe + Mesa/Vulkan requise")
+    gates = roadmap.get("roadmap_gates", {})
+    if list(gates) != [f"L{i}" for i in range(9)]:
+        failures.append("roadmap: gates L0..L8 incomplets ou désordonnés")
 
-    windows_markers = ("E:\\", "%LOCALAPPDATA%", "windows-native", "native-windows")
-    for name, path in required.items():
-        text = path.read_text(encoding="utf-8")
-        if name != "migration" and any(marker in text for marker in windows_markers):
-            failures.append(f"{name}: hypothèse Windows interdite dans le contrat Fedora")
+    disallowed_suffixes = {".ps1", ".cmd", ".bat"}
+    disallowed_files = [
+        path.relative_to(root)
+        for path in root.rglob("*")
+        if path.is_file() and path.suffix.lower() in disallowed_suffixes
+    ]
+    if disallowed_files:
+        failures.append(f"repository: entrypoints non Linux interdits: {disallowed_files}")
 
     if candidate.get("version") == "7.2.3":
         warnings.append(
-            "Linux 7.2.3 est un candidat upstream: conserver le kernel Fedora officiel "
-            "comme rollback"
+            "Linux 7.2.3 reste un candidat: conserver le kernel Fedora officiel comme rollback"
         )
 
     return ContractReport(tuple(failures), tuple(warnings))
