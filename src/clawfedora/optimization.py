@@ -351,6 +351,8 @@ def compare_kernel(
 ) -> ComparisonReport:
     policy = root_contract(repo_root, "optimization_policy.yaml")
     cfg = _mapping(policy.get("kernel_comparison"))
+    pins = _mapping(policy.get("pins"))
+    kernel_pin = _mapping(pins.get("kernel_candidate"))
     baseline = _load_many(baseline_paths)
     candidate = _load_many(candidate_paths)
     minimum = int(cfg.get("minimum_repeated_runs", 0))
@@ -362,8 +364,19 @@ def compare_kernel(
         raise ValueError("L6: comparaison kernel exige le même backend")
     if _identity(baseline[0]) != _identity(candidate[0]):
         raise ValueError("L6: comparaison kernel identité modèle/corpus divergente")
-    if str(candidate[0]["kernel"]) != "7.2.3":
-        raise ValueError("L6: candidat kernel doit être 7.2.3")
+    baseline_id = str(cfg.get("baseline", ""))
+    candidate_id = str(cfg.get("candidate", ""))
+    if str(baseline[0]["candidate_id"]) != baseline_id:
+        raise ValueError("L6: candidate_id baseline kernel invalide")
+    if str(candidate[0]["candidate_id"]) != candidate_id:
+        raise ValueError("L6: candidate_id candidat kernel invalide")
+    expected_kernel = str(kernel_pin.get("version", ""))
+    candidate_release = str(candidate[0]["kernel"])
+    release_matches = candidate_release == expected_kernel or candidate_release.startswith(
+        f"{expected_kernel}-"
+    )
+    if not expected_kernel or not release_matches:
+        raise ValueError(f"L6: candidat kernel doit dériver de {expected_kernel or 'pin absent'}")
     aggregate, changes = _comparison_changes(baseline, candidate)
     reasons: list[str] = []
     if not _all_gates_pass(baseline + candidate):
@@ -378,7 +391,7 @@ def compare_kernel(
     verdict = "ELIGIBLE_FOR_HUMAN_PROMOTION" if not reasons else "KEEP_BASELINE"
     return ComparisonReport(
         kind="kernel",
-        candidate_id="upstream-7.2.3",
+        candidate_id=candidate_id,
         verdict=verdict,
         aggregate_improvement_pct=aggregate,
         per_model_change_pct=changes,
