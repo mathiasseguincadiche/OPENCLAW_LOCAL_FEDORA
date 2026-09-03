@@ -35,8 +35,25 @@ def test_bootstrap_is_dry_run_by_default_and_does_not_weaken_security() -> None:
         "chmod 777",
         "firewall-cmd --permanent --disable",
     )
+    lower_text = text.lower()
     for marker in forbidden:
-        assert marker not in text.lower()
+        assert marker.lower() not in lower_text, f"marqueur sécurité interdit: {marker}"
+
+
+def test_bootstrap_preserves_invoking_user_under_sudo() -> None:
+    text = _read("scripts/linux/00_bootstrap.sh")
+    assert "SUDO_USER" in text
+    assert "TARGET_USER" in text
+    assert 'TARGET_USER" == "root"' in text
+    assert 'usermod -aG "$group" "$TARGET_USER"' in text
+    assert 'loginctl enable-linger "$TARGET_USER"' in text
+    assert 'as_target "$VENV/bin/python"' in text
+
+
+def test_runtime_reports_missing_python_explicitly() -> None:
+    text = _read("scripts/linux/lib/runtime.sh")
+    assert "aucun Python géré ni python3 système disponible" in text
+    assert "return 127" in text
 
 
 def test_upstream_kernel_is_not_installed_by_bootstrap() -> None:
