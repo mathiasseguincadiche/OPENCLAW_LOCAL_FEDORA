@@ -11,10 +11,20 @@ Le dépôt est une **plateforme Fedora native en construction**, pas encore une 
 | L2 | Fedora 44 / hardware gate | PRÉPARÉ logiciel — preuve réelle requise sur la machine Fedora |
 | L3 | B580 `xe` + Mesa/Vulkan | PRÉPARÉ logiciel — preuve réelle requise sur la B580 |
 | L4 | OpenClaw + 8 agents + E2E | PRÉPARÉ logiciel — 8 smokes, outils, réparation et stabilité à exécuter réellement |
-| L5 | Qualification HARD-40M | PRÉPARÉ logiciel — 30 cas et hard cap 2400 s à exécuter réellement |
+| L5 | Qualification HARD-40M | PRÉPARÉ logiciel — nouvelle flotte 9B/12B/14B à mesurer réellement |
 | L6 | Optimisation runtimes Linux + kernel 7.2.3 | À FAIRE après baseline L5 PASS |
 | L7 | Golden Projects + projet représentatif | À FAIRE |
 | L8 | Approbation humaine V1 | À FAIRE |
+
+## Flotte nominale
+
+- `qwen-max` → `qwen3.5:9b-q4_K_M` — 6,6 Go ;
+- `gemma-deep` → `gemma3:12b-it-q4_K_M` — 8,1 Go ;
+- `devstral-devops` → `qwen2.5-coder:14b-instruct-q4_K_M` — 9,0 Go.
+
+Le contexte nominal est 8K. Le 16K reste un contexte de qualification, pas un réglage de production par défaut.
+
+`ministral-3:14b-instruct-2512-q4_K_M` est un challenger de `gemma-deep` uniquement. Il ne compte pas dans la flotte requise et ne peut pas être promu automatiquement.
 
 ## Invariants
 
@@ -27,7 +37,9 @@ Le dépôt est une **plateforme Fedora native en construction**, pas encore une 
 - llama.cpp Vulkan est un candidat direct.
 - llama.cpp SYCL/Level Zero est un candidat Linux optionnel de performance.
 - Un candidat optionnel ne bloque jamais la baseline.
-- Les trois modèles Qwen/Gemma/Devstral restent obligatoires.
+- Les trois alias `qwen-max`, `gemma-deep`, `devstral-devops` restent obligatoires.
+- Seul `qwen-max` reçoit les 3 probes Qwen thinking natifs.
+- Le spécialiste DevOps est isolé sous la famille `qwen-coder` et ne reçoit pas ces probes.
 - Les huit rôles agents restent exactement définis et `chef-operations` reste le défaut.
 - `exec.mode=ask`, `elevated=false` et providers loopback-only restent obligatoires.
 - Le moteur projet est fail-closed et `COMPLETE` requiert une approbation humaine explicite.
