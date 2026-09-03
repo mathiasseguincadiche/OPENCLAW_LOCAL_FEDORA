@@ -8,6 +8,8 @@ from typing import Any
 
 from clawfedora.core_config import core_contract
 
+RESERVED_FIELDS = {"event", "at"}
+
 
 @dataclass(frozen=True)
 class TelemetryEvent:
@@ -16,11 +18,22 @@ class TelemetryEvent:
     fields: dict[str, Any]
 
     def payload(self) -> dict[str, Any]:
-        return {"event": self.event, "at": self.at, **self.fields}
+        return {**self.fields, "event": self.event, "at": self.at}
 
 
 def _policy(repo_root: Path) -> dict[str, Any]:
     return core_contract(repo_root, "telemetry_policy.yaml")
+
+
+def _confined_path(runtime_root: Path, relative: str) -> Path:
+    value = Path(relative)
+    if not relative or value.is_absolute() or ".." in value.parts:
+        raise ValueError(f"telemetry: relative_path interdit: {relative}")
+    runtime = runtime_root.resolve()
+    target = (runtime / value).resolve(strict=False)
+    if target == runtime or runtime not in target.parents:
+        raise ValueError(f"telemetry: chemin hors runtime: {relative}")
+    return target
 
 
 def _event_path(repo_root: Path, runtime_root: Path) -> Path:
@@ -29,9 +42,7 @@ def _event_path(repo_root: Path, runtime_root: Path) -> Path:
     if not isinstance(retention, dict):
         raise ValueError("telemetry: retention invalide")
     relative = str(retention.get("relative_path", ""))
-    if not relative:
-        raise ValueError("telemetry: relative_path absent")
-    return runtime_root / relative
+    return _confined_path(runtime_root, relative)
 
 
 def _validate_fields(repo_root: Path, event: str, fields: dict[str, Any]) -> None:
@@ -42,6 +53,9 @@ def _validate_fields(repo_root: Path, event: str, fields: dict[str, Any]) -> Non
     forbidden = {str(item).casefold() for item in policy.get("forbidden_content", [])}
     if not event.strip():
         raise ValueError("telemetry: event vide")
+    reserved = sorted(set(fields) & RESERVED_FIELDS)
+    if reserved:
+        raise ValueError(f"telemetry: champs réservés interdits: {reserved}")
     unknown = sorted(set(fields) - allowed)
     if unknown:
         raise ValueError(f"telemetry: champs non autorisés: {unknown}")
@@ -50,7 +64,11 @@ def _validate_fields(repo_root: Path, event: str, fields: dict[str, Any]) -> Non
         text = str(value).casefold()
         if any(marker in lowered_key for marker in forbidden):
             raise ValueError(f"telemetry: champ interdit: {key}")
-        if any(marker in text for marker in ("api_key=", "password=", "bearer ")):
+        sensitive_patterns = {"bearer "}
+        for marker in forbidden:
+            sensitive_patterns.add(f"{marker}=")
+            sensitive_patterns.add(f"{marker}:")
+        if any(pattern in text for pattern in sensitive_patterns):
             raise ValueError("telemetry: contenu sensible détecté")
 
 
