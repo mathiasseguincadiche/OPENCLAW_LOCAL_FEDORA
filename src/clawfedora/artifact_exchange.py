@@ -8,6 +8,7 @@ from clawfedora.core_config import core_contract
 from clawfedora.project_common import (
     aggregate_records,
     assert_no_symlinks,
+    chmod_read_only_files,
     now,
     read_json,
     safe_output,
@@ -40,7 +41,10 @@ def _dependencies(project: Path) -> dict[str, list[str]]:
 
 
 def _dependents(
-    dependencies: dict[str, list[str]], producer: str, *, transitive: bool
+    dependencies: dict[str, list[str]],
+    producer: str,
+    *,
+    transitive: bool,
 ) -> list[tuple[str, bool]]:
     if producer not in dependencies:
         raise KeyError(f"tâche productrice inconnue: {producer}")
@@ -110,6 +114,7 @@ def _make_bundle(
     }
     write_json(destination / "manifest.json", manifest)
     assert_no_symlinks(destination, label="bundle d'échange")
+    chmod_read_only_files(destination)
     return destination
 
 
@@ -162,17 +167,21 @@ def publish_task_outputs(
                 )
             )
     index_path = project / "context" / "exchange" / "index.json"
-    index = read_json(index_path) if index_path.is_file() else {"schema_version": "1.0.0", "records": []}
+    index = (
+        read_json(index_path)
+        if index_path.is_file()
+        else {"schema_version": "1.0.0", "records": []}
+    )
     records = index.setdefault("records", [])
     if not isinstance(records, list):
         raise ValueError("index artifact exchange invalide")
     for bundle in published:
-        manifest = read_json(bundle / "manifest.json")
+        bundle_manifest = read_json(bundle / "manifest.json")
         records.append(
             {
                 "at": now(),
                 "producer_task_id": producer_task_id,
-                "consumer_task_id": manifest["consumer_task_id"],
+                "consumer_task_id": bundle_manifest["consumer_task_id"],
                 "attempt": attempt,
                 "status": normalized,
                 "bundle": bundle.relative_to(project).as_posix(),
@@ -195,8 +204,8 @@ def validate_bundle(project: Path, bundle: Path) -> list[str]:
     manifest_path = bundle / "manifest.json"
     if not manifest_path.is_file():
         return [f"manifest absent: {bundle.relative_to(project)}"]
-    manifest = read_json(manifest_path)
-    raw_files = manifest.get("files", [])
+    bundle_manifest = read_json(manifest_path)
+    raw_files = bundle_manifest.get("files", [])
     if not isinstance(raw_files, list):
         return ["manifest files invalide"]
     observed: list[dict[str, Any]] = []
@@ -216,7 +225,7 @@ def validate_bundle(project: Path, bundle: Path) -> list[str]:
         if digest != str(raw.get("sha256", "")) or size != int(raw.get("size", -1)):
             failures.append(f"artefact modifié: {relative}")
         observed.append({"path": relative, "sha256": digest, "size": size})
-    if aggregate_records(observed) != str(manifest.get("aggregate_sha256", "")):
+    if aggregate_records(observed) != str(bundle_manifest.get("aggregate_sha256", "")):
         failures.append("digest agrégé invalide")
     return failures
 
@@ -249,7 +258,9 @@ def validate_exchange_completeness(repo_root: Path, project: Path) -> list[str]:
         for consumer, _ in _dependents(dependencies, task_id, transitive=transitive):
             bundle = _bundle_path(project, task_id, consumer, attempts)
             if not bundle.is_dir():
-                failures.append(f"propagation absente: {task_id} -> {consumer} run-{attempts:03d}")
+                failures.append(
+                    f"propagation absente: {task_id} -> {consumer} run-{attempts:03d}"
+                )
             else:
                 failures.extend(validate_bundle(project, bundle))
     return failures
