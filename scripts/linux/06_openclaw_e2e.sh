@@ -59,12 +59,14 @@ export OPENCLAW_LOCAL_FEDORA_ROOT="$RUNTIME_ROOT"
 if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then
   exec systemd-inhibit --what=sleep --mode=block \
     --why="OPENCLAW_LOCAL_FEDORA L4 E2E" \
+    env OPENCLAW_LOCAL_FEDORA_SLEEP_INHIBITED=1 \
     "$PYTHON" -m clawfedora.cli --root "$REPO_ROOT" e2e \
     --backend "$BACKEND" --runtime-root "$RUNTIME_ROOT"
 fi
 
 exec systemd-inhibit --what=sleep --mode=block \
   --why="OPENCLAW_LOCAL_FEDORA L4 E2E" \
-  env PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
+  env OPENCLAW_LOCAL_FEDORA_SLEEP_INHIBITED=1 \
+  PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
   "$PYTHON" -m clawfedora.cli --root "$REPO_ROOT" e2e \
   --backend "$BACKEND" --runtime-root "$RUNTIME_ROOT"
