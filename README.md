@@ -47,11 +47,17 @@ Le kernel 7.2.3 n'est jamais installé par le bootstrap initial. Le kernel Fedor
 
 ## Flotte de modèles
 
-La flotte locale est exactement composée de :
+La flotte nominale est dimensionnée pour les **12 Gio de VRAM de la B580** :
 
-- `qwen-max` → `qwen3.8:27b`
-- `gemma-deep` → `gemma4:26b`
-- `devstral-devops` → `devstral-small-2:24b`
+- `qwen-max` → `qwen3.5:9b-q4_K_M` — 6,6 Go, vision/tools/thinking ;
+- `gemma-deep` → `gemma3:12b-it-q4_K_M` — 8,1 Go, vision/documentaire ;
+- `devstral-devops` → `qwen2.5-coder:14b-instruct-q4_K_M` — 9,0 Go, code/tools.
+
+Les huit rôles agents et les trois alias restent inchangés. Seuls les modèles sous-jacents ont été redimensionnés.
+
+Le contexte opérationnel nominal est **8192 tokens pour les trois modèles**. Le contexte 16384 est exercé uniquement par la qualification. Les fenêtres théoriques supérieures des modèles ne sont pas utilisées comme réglage nominal sur une carte 12 Gio.
+
+`ministral-3:14b-instruct-2512-q4_K_M` est enregistré comme challenger de `gemma-deep` pour comparer vision/documentation à une option vision + tools/function-calling. Il ne compte pas dans les trois modèles requis et ne peut jamais être promu automatiquement.
 
 Aucun petit modèle de secours nominal et aucun fallback cloud silencieux.
 
@@ -64,7 +70,8 @@ Le contrat de qualification est :
 - 12 scénarios couverts collectivement à 8K ;
 - 10 cas par modèle ;
 - 3 modèles obligatoires ;
-- Qwen reasoning natif sur 3 probes dédiés ;
+- Qwen reasoning natif sur 3 probes dédiés de `qwen-max` uniquement ;
+- le spécialiste `qwen-coder` n'hérite jamais de ces probes ;
 - 768 tokens max sur ces probes ;
 - 210 s max par cas ;
 - **2400 s / 40 min max pour le gate complet** ;
@@ -74,6 +81,8 @@ Le contrat de qualification est :
 - digest et quantification exacts enregistrés.
 
 La qualification prend comme baseline **Fedora avec son kernel officiel et Ollama Vulkan**. Les candidats Linux sont comparés uniquement à cette baseline, à modèle, quantification, prompt et contexte identiques.
+
+Le seuil HARD-40M reste volontairement à 6 tok/s tant que la B580 n'a pas fourni une nouvelle baseline réelle. L'objectif opérationnel de la flotte redimensionnée est de dépasser 10 tok/s de manière stable ; ce seuil ne sera relevé qu'après mesures reproductibles.
 
 ## Démarrage du socle
 
@@ -220,7 +229,7 @@ Le projet ne revendique aucun gain sans preuve reproductible.
 - firewalld conservé ;
 - secrets hors Git ;
 - cloud désactivé par défaut ;
-- aucune promotion automatique kernel/backend/V1.
+- aucune promotion automatique kernel/backend/modèle/V1.
 
 ## Licence
 
