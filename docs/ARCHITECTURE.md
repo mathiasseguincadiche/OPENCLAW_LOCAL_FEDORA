@@ -2,24 +2,22 @@
 
 ## Principe
 
-OPENCLAW_LOCAL_FEDORA n'est pas une traduction PowerShell → Bash. Le projet reconstruit uniquement la couche plateforme autour d'un cœur multi-agents portable.
+OPENCLAW_LOCAL_FEDORA est une plateforme **Linux-native autonome**. La logique métier doit vivre dans le package Python et les services Linux ; Bash reste une couche d'entrée fine.
 
 ```text
 Fedora 44 / GNOME 50 / Wayland
         │
         ├── systemd user ── OpenClaw Gateway
-        │
         ├── Podman
         ├── KVM / libvirt
         │
         └── Intel Arc B580 / xe
                 │
+           Mesa / Vulkan
+                │
         ┌───────┴────────┐
         │                │
-   Mesa Vulkan      Level Zero / SYCL
-        │                │
-        ├─ Ollama        └─ llama.cpp SYCL
-        └─ llama.cpp Vulkan
+   Ollama Vulkan   llama.cpp Vulkan
 ```
 
 ## Couche plateforme
@@ -30,20 +28,21 @@ Fedora 44 / GNOME 50 / Wayland
 - SELinux Enforcing et firewalld conservés.
 - `/srv/openclaw-local` comme racine de données lourdes lorsque le second NVMe est monté.
 - `~/.local/share/openclaw-local` comme fallback utilisateur.
-- Python dans un venv géré, jamais dépendant d'un interpréteur ambigu.
+- Python dans un venv géré.
+- Podman pour les conteneurs.
+- KVM/libvirt pour la virtualisation.
 
 ## Couche GPU
 
 ### Baseline
 
-`ollama-vulkan` est la baseline initiale parce qu'elle réduit le nombre de dépendances et permet une première qualification Fedora reproductible.
+`ollama-vulkan` est la baseline initiale : elle s'appuie sur le driver kernel `xe` et Mesa/Vulkan.
 
-### Candidats
+### Candidat
 
-- `llama-cpp-vulkan` : candidat direct, même pile Mesa.
-- `llama-cpp-sycl` : candidat Intel/Level Zero à qualifier séparément.
+`llama-cpp-vulkan` est le candidat de performance. Il utilise la même pile GPU afin que la comparaison mesure principalement le runtime LLM et ses réglages.
 
-Aucun candidat n'est promu à partir d'une impression subjective. Les comparaisons utilisent le même modèle, la même quantification, les mêmes prompts et les mêmes contextes.
+Aucun backend n'est promu à partir d'une impression subjective. Les comparaisons utilisent le même modèle, la même quantification, les mêmes prompts et les mêmes contextes.
 
 ## Kernel
 
@@ -52,13 +51,13 @@ Deux lignes sont conservées :
 1. kernel Fedora officiel : baseline supportée et rollback obligatoire ;
 2. Linux 7.2.3 upstream : candidat performance.
 
-Le kernel candidat ne peut être promu que s'il passe boot, GNOME/Wayland, B580/xe, Vulkan, Level Zero, OpenClaw, HARD-40M, E2E et stabilité, sans régression.
+Le kernel candidat ne peut être promu que s'il passe boot, GNOME/Wayland, B580/xe, Vulkan, OpenClaw, HARD-40M, E2E et stabilité, sans régression.
 
-## Cœur applicatif à migrer depuis OPENCLAW_LOCAL
+## Cœur fonctionnel
 
-À préserver :
+Le projet doit fournir nativement :
 
-- les 8 rôles agents ;
+- 8 rôles agents ;
 - Project Intake ;
 - Project Orchestrator ;
 - Artifact Exchange ;
@@ -70,15 +69,7 @@ Le kernel candidat ne peut être promu que s'il passe boot, GNOME/Wayland, B580/
 - V1 Release Readiness Gate ;
 - benchmark HARD-40M.
 
-À ne pas importer :
-
-- `scripts/windows/` ;
-- Task Scheduler ;
-- Windows Registry ;
-- WSL2 comme chemin nominal ;
-- racines `E:\...` ;
-- ACL Windows ;
-- hypothèses `windows_native`.
+Chaque composant doit être implémenté ou adapté pour Fedora sans créer de dépendance à une autre plateforme.
 
 ## État et preuves
 
@@ -94,4 +85,4 @@ Git ne contient que l'état attendu. Les données de runtime restent hors dépô
 └── benchmarks/
 ```
 
-Toute promotion de kernel, backend ou plateforme doit pointer vers des preuves locales identifiées et reproductibles.
+Toute promotion de kernel ou backend doit pointer vers des preuves locales identifiées et reproductibles.
