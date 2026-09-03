@@ -88,7 +88,8 @@ L4 vérifie :
 - erreur outil contrôlée puis réparation ;
 - 3 runs de stabilité.
 
-Le run réel est protégé contre la suspension par `systemd-inhibit`.
+Le run réel est protégé contre la suspension par `systemd-inhibit`. L'entrée CLI réelle est
+fail-closed : elle refuse de lancer L4 si elle n'est pas appelée depuis le launcher Linux protégé.
 
 ## L5 — HARD-40M
 
@@ -101,7 +102,7 @@ Contrat :
 - 12 scénarios couverts collectivement à 8K ;
 - 10 cas par modèle ;
 - 3 probes Qwen avec reasoning natif ;
-- 768 tokens max sur ces probes ;
+- plafond absolu de 768 tokens par scénario, avec 768 tokens sur les probes Qwen dédiés ;
 - 210 s max par cas ;
 - **2400 s / 40 min max pour le gate complet**, préflight et évaluation inclus ;
 - endpoint Ollama loopback uniquement ;
@@ -149,6 +150,10 @@ Le launcher utilise `systemd-inhibit --what=sleep --mode=block`. Le runner déma
 avant L2/L3 et réduit automatiquement le budget benchmark du temps déjà consommé. Il ne peut donc
 pas dépasser volontairement la limite de 2400 secondes.
 
+L'entrée CLI réelle refuse L5 si le marqueur du launcher protégé n'est pas présent et revalide les
+contrats HARD-40M avant tout accès au matériel ou à Ollama. Un fichier suite hors contrat ne peut
+donc pas contourner les limites en lançant directement la CLI.
+
 ## Seuils L5
 
 Le gate reste exigeant :
@@ -160,8 +165,8 @@ Le gate reste exigeant :
 - 8K : au moins `0.875` de checks PASS ;
 - 16K : au moins `0.75` de checks PASS.
 
-Une sortie tronquée, une erreur API ou un timeout de cas déclenche un fail-fast, car le taux
-d'erreur autorisé est nul.
+Une sortie tronquée, une erreur API, une métrique de performance absente ou un timeout de cas
+déclenche un fail-fast, car le taux d'erreur autorisé est nul.
 
 ## Preuves
 
@@ -173,6 +178,9 @@ Les preuves ne sont pas versionnées dans Git. Elles sont stockées sous la raci
 ├── openclaw-e2e/
 └── qualification/
 ```
+
+Les preuves L2/L3 restent toujours sous `proofs/hardware/`, y compris lorsqu'elles sont produites
+comme préflight d'un run HARD-40M. La preuve HARD-40M référence leurs chemins canoniques.
 
 Les preuves HARD-40M ne stockent pas la sortie brute des modèles : elles conservent le SHA-256,
 la longueur, les checks, les métriques, les identités modèles et les versions runtime.
