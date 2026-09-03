@@ -11,6 +11,7 @@ integrity:
   aggregate_digest_required: true
   mime_inventory_required: true
   intake_files_read_only: true
+  revalidate_before_phase_changes: true
   source_of_truth: central_project
 limits:
   max_single_file_bytes: 536870912
