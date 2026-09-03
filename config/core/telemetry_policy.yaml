@@ -1,0 +1,8 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+local_only: true
+allowed_fields: [event, at, project_id, task_id, agent_id, phase, status, duration_ms, model_alias, backend_id]
+forbidden_content: [prompt, response, document_content, secret, api_key, token, password]
+retention:
+  relative_path: state/telemetry/events.jsonl
+  commit_to_git: false

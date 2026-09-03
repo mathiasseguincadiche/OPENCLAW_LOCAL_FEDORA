@@ -1,0 +1,18 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+security:
+  reject_symlinks: true
+  reject_special_files: true
+  scan_obvious_secrets: true
+  execute_received_files: false
+  documents_are_untrusted_data: true
+integrity:
+  sha256_required: true
+  aggregate_digest_required: true
+  mime_inventory_required: true
+  intake_files_read_only: true
+  revalidate_before_phase_changes: true
+  source_of_truth: central_project
+limits:
+  max_single_file_bytes: 536870912
+  max_total_input_bytes: 4294967296

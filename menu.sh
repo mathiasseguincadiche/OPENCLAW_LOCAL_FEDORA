@@ -26,6 +26,7 @@ Actions:
   gpu                 Gate B580/xe/Mesa/Vulkan strict
   agents              Déploie les 8 workspaces agents gérés
   configure-openclaw  Configure OpenClaw; dry-run par défaut, --apply pour appliquer
+  project-selftest    Exécute le cycle projet synthétique complet hors matériel
 
 Backends OpenClaw:
   ollama-vulkan       baseline
@@ -79,6 +80,7 @@ case "$ACTION" in
   audit-strict) "$LINUX/01_audit_host.sh" --strict ;;
   gpu) "$LINUX/02_verify_gpu.sh" ;;
   agents) "$LINUX/03_deploy_agents.sh" ;;
+  project-selftest) run_cli project selftest ;;
   configure-openclaw)
     args=(--backend "$BACKEND")
     ((APPLY == 1)) && args+=(--apply)

@@ -7,7 +7,7 @@ Le dépôt est une **plateforme Fedora native en construction**, pas encore une 
 | Gate | Objet | État |
 |---|---|---|
 | L0 | Fondation, contrats et CI | PASS |
-| L1 | Cœur multi-agents Linux-native | EN COURS — couche agents/runtime implémentée, moteur projet restant |
+| L1 | Cœur multi-agents Linux-native | PASS logiciel — agents/runtime + moteur projet validés par CI Fedora 44 |
 | L2 | Fedora 44 kernel officiel : hardware gate | BLOQUÉ jusqu'à installation Fedora |
 | L3 | B580 `xe` + Mesa/Vulkan | BLOQUÉ jusqu'à installation Fedora |
 | L4 | OpenClaw + 8 agents + E2E | PRÉPARÉ — configuration réelle à prouver sur Fedora |
@@ -30,6 +30,10 @@ Le dépôt est une **plateforme Fedora native en construction**, pas encore une 
 - Les trois modèles Qwen/Gemma/Devstral restent obligatoires.
 - Les huit rôles agents restent exactement définis et `chef-operations` reste le défaut.
 - `exec.mode=ask`, `elevated=false` et providers loopback-only restent obligatoires.
+- Le moteur projet est fail-closed et `COMPLETE` requiert une approbation humaine explicite.
+- Les entrées projet sont non fiables, inventoriées, hashées et revérifiées avant les changements de phase.
+- Les bundles d'échange sont versionnés, immuables et revérifiés avant validation.
+- Le package final est re-hashé avant `COMPLETE`.
 - HARD-40M reste limité à 2400 secondes et 30 cas.
 - Aucun fallback cloud silencieux.
 - SELinux reste Enforcing.

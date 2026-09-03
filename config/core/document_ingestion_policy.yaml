@@ -1,0 +1,37 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+local_first: true
+analysis_gate:
+  require_index: true
+  require_complete_source_coverage: true
+  tool_required_must_be_actually_read: true
+formats:
+  pdf:
+    extensions: [.pdf]
+    method: pdf
+    initial_status: TOOL_REQUIRED
+  image:
+    extensions: [.png, .jpg, .jpeg, .webp, .bmp, .gif, .tif, .tiff]
+    method: view_image
+    initial_status: TOOL_REQUIRED
+  office:
+    extensions: [.docx, .pptx, .xlsx]
+    method: local_zip_xml_extract
+    initial_status: READ
+  archive:
+    extensions: [.zip]
+    method: local_safe_archive_extract
+    initial_status: READ
+  text:
+    extensions: [.txt, .md, .rst, .csv, .tsv, .json, .jsonl, .yaml, .yml, .xml, .toml, .ini, .cfg, .conf, .py, .sh, .bash, .zsh, .tf, .tfvars, .hcl, .js, .ts, .tsx, .jsx, .java, .go, .rs, .cs, .sql]
+    method: local_text_extract
+    initial_status: READ
+limits:
+  max_text_characters_per_file: 2000000
+  archive_max_members: 20000
+  archive_max_total_uncompressed_bytes: 2147483648
+  archive_max_single_member_bytes: 268435456
+  archive_max_compression_ratio: 200
+  nested_archives_are_opaque: true
+coverage_statuses: [READ, PARTIAL, UNREADABLE]
+coverage_methods: [local_text_extract, local_zip_xml_extract, local_safe_archive_extract, pdf, view_image, raw_file]
