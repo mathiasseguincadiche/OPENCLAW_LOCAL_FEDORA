@@ -13,7 +13,8 @@ make ci
 
 ## Exigences
 
-- pas de dépendance Windows dans le chemin Fedora nominal ;
+- la plateforme reste Fedora-native ;
+- la pile GPU nominale reste `xe` + Mesa/Vulkan ;
 - pas de désactivation SELinux/firewalld ;
 - pas de fallback cloud silencieux ;
 - pas de promotion automatique kernel/backend ;
@@ -24,4 +25,4 @@ make ci
 
 ## Changements matériels/performance
 
-Une PR peut ajouter un candidat ou une optimisation, mais elle ne peut pas le déclarer gagnant sans preuves matérielles observées sur la B580 cible.
+Une PR peut ajouter un candidat ou une optimisation Linux, mais elle ne peut pas le déclarer gagnant sans preuves matérielles observées sur la B580 cible.
