@@ -37,6 +37,33 @@ def test_l4_dry_run_is_linux_local_and_complete() -> None:
         openclaw_e2e.dry_run("invalid")
 
 
+def test_run_json_handles_list_invalid_json_and_command_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        openclaw_e2e.subprocess,
+        "run",
+        lambda *_args, **_kwargs: SimpleNamespace(returncode=0, stdout='[{"id": 1}]', stderr=""),
+    )
+    assert openclaw_e2e._run_json(["openclaw", "x"], 1) == {"list": [{"id": 1}]}
+
+    monkeypatch.setattr(
+        openclaw_e2e.subprocess,
+        "run",
+        lambda *_args, **_kwargs: SimpleNamespace(returncode=0, stdout="not-json", stderr=""),
+    )
+    with pytest.raises(ValueError, match="JSON valide"):
+        openclaw_e2e._run_json(["openclaw", "x"], 1)
+
+    monkeypatch.setattr(
+        openclaw_e2e.subprocess,
+        "run",
+        lambda *_args, **_kwargs: SimpleNamespace(returncode=3, stdout="", stderr="boom"),
+    )
+    with pytest.raises(RuntimeError, match="commande en échec"):
+        openclaw_e2e._run_json(["openclaw", "x"], 1)
+
+
 def test_agent_config_and_payload_validation(tmp_path: Path) -> None:
     entries = []
     for agent in AGENT_IDS:
@@ -60,6 +87,54 @@ def test_agent_config_and_payload_validation(tmp_path: Path) -> None:
         openclaw_e2e._assert_agent_success(payload, "intel-vulkan")
 
 
+def test_agent_helpers_reject_invalid_shapes_and_failed_runtime(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="agents invalide"):
+        openclaw_e2e._agent_entries({"agents": []})
+    with pytest.raises(ValueError, match="agents.list invalide"):
+        openclaw_e2e._agent_entries({"agents": {"list": {}}})
+    with pytest.raises(ValueError, match="exactement 8 agents"):
+        openclaw_e2e._agent_entries({"agents": {"list": []}})
+    with pytest.raises(ValueError, match="model invalide"):
+        openclaw_e2e._model_ref({"model": "bad"})
+    with pytest.raises(ValueError, match="référence modèle invalide"):
+        openclaw_e2e._model_ref({"model": {"primary": "bad"}})
+    with pytest.raises(ValueError, match="workspace absent"):
+        openclaw_e2e._workspace({})
+    with pytest.raises(FileNotFoundError, match="workspace absent"):
+        openclaw_e2e._workspace({"workspace": str(tmp_path / "missing")})
+
+    payload = _payload("x")
+    result = payload["result"]
+    assert isinstance(result, dict)
+    meta = result["meta"]
+    assert isinstance(meta, dict)
+    meta["error"] = {"message": "failure"}
+    with pytest.raises(RuntimeError, match="erreur agent"):
+        openclaw_e2e._assert_agent_success(payload, "ollama")
+
+    blocked = _payload("x")
+    blocked_result = blocked["result"]
+    assert isinstance(blocked_result, dict)
+    blocked_meta = blocked_result["meta"]
+    assert isinstance(blocked_meta, dict)
+    blocked_meta["livenessState"] = "blocked"
+    with pytest.raises(RuntimeError, match="liveness"):
+        openclaw_e2e._assert_agent_success(blocked, "ollama")
+
+    wrong_status = _payload("x")
+    wrong_status["status"] = "failed"
+    with pytest.raises(RuntimeError, match="status agent"):
+        openclaw_e2e._assert_agent_success(wrong_status, "ollama")
+
+
+def test_visible_text_fallback_shapes() -> None:
+    assert openclaw_e2e._visible_text({"final": " FINAL "}) == "FINAL"
+    assert openclaw_e2e._visible_text({"payloads": [{"text": "one"}, {"text": "two"}]}) == (
+        "one\ntwo"
+    )
+    assert openclaw_e2e._visible_text({}) == ""
+
+
 def test_gateway_ready_accepts_rpc_success(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         openclaw_e2e,
@@ -68,6 +143,39 @@ def test_gateway_ready_accepts_rpc_success(monkeypatch: pytest.MonkeyPatch) -> N
     )
     result = openclaw_e2e._gateway_ready("openclaw", timeout=2)
     assert result["rpc"]["ok"] is True
+
+
+def test_run_e2e_refuses_missing_binary_and_wrong_version(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(openclaw_e2e.shutil, "which", lambda _name: None)
+    code, evidence = openclaw_e2e.run_e2e(ROOT, backend="ollama-vulkan", runtime_root=tmp_path)
+    assert (code, evidence) == (2, None)
+
+    monkeypatch.setattr(openclaw_e2e.shutil, "which", lambda _name: "/usr/bin/openclaw")
+    monkeypatch.setattr(
+        openclaw_e2e.subprocess,
+        "run",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            returncode=0,
+            stdout="OpenClaw 0.0.0",
+            stderr="",
+        ),
+    )
+    code, evidence = openclaw_e2e.run_e2e(ROOT, backend="ollama-vulkan", runtime_root=tmp_path)
+    assert (code, evidence) == (2, None)
+
+
+def test_save_evidence_records_failed_verdict(tmp_path: Path) -> None:
+    code, path = openclaw_e2e._save_evidence(
+        tmp_path,
+        {"verdict": "FAIL", "error": "synthetic"},
+        success=False,
+    )
+    assert code == 2
+    assert path.is_file()
+    assert '"error": "synthetic"' in path.read_text(encoding="utf-8")
 
 
 def test_full_l4_simulation_creates_tool_repair_and_stability_evidence(
