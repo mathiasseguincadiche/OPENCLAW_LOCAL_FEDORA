@@ -7,7 +7,13 @@ from pathlib import Path
 
 from clawfedora.core_config import resolve_runtime_root
 from clawfedora.finops import append_cost_event, summarize
-from clawfedora.lifecycle import cleanup_managed, collect_health, create_backup, model_plan, restore_backup
+from clawfedora.lifecycle import (
+    cleanup_managed,
+    collect_health,
+    create_backup,
+    model_plan,
+    restore_backup,
+)
 from clawfedora.lifecycle_contracts import validate_lifecycle_contracts
 from clawfedora.telemetry import emit_event, read_events
 
@@ -90,12 +96,16 @@ def main(argv: list[str] | None = None) -> int:
         print(f"BACKUP_RESULT=PASS path={path}")
         return 0
     if args.command == "restore":
-        path = restore_backup(Path(args.archive).expanduser(), Path(args.destination).expanduser())
+        path = restore_backup(
+            Path(args.archive).expanduser(),
+            Path(args.destination).expanduser(),
+        )
         print(f"RESTORE_RESULT=PASS path={path}")
         return 0
     if args.command == "cleanup":
         if not args.apply:
-            print("CLEANUP_PLAN=managed-workspaces,managed-venv" + (",data" if args.purge_data else ""))
+            suffix = ",data" if args.purge_data else ""
+            print(f"CLEANUP_PLAN=managed-workspaces,managed-venv{suffix}")
             return 0
         removed = cleanup_managed(runtime_root, purge_data=bool(args.purge_data))
         print(f"CLEANUP_RESULT=PASS removed={len(removed)}")
