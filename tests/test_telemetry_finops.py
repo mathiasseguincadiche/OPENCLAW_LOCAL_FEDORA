@@ -1,13 +1,22 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 import pytest
+import yaml
 
 from clawfedora.finops import append_cost_event, summarize
-from clawfedora.telemetry import emit_event, read_events
+from clawfedora.telemetry import TelemetryEvent, emit_event, read_events
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _core_sandbox(tmp_path: Path) -> Path:
+    (tmp_path / "config/core").mkdir(parents=True)
+    for name in ("telemetry_policy.yaml", "budget_policy.yaml"):
+        shutil.copy(ROOT / "config/core" / name, tmp_path / "config/core" / name)
+    return tmp_path
 
 
 def test_telemetry_is_local_append_only_and_filtered(tmp_path: Path) -> None:
@@ -38,6 +47,27 @@ def test_telemetry_rejects_unknown_or_sensitive_fields(tmp_path: Path) -> None:
         emit_event(ROOT, tmp_path, "x", status="password=secret")
     with pytest.raises(ValueError, match="event vide"):
         emit_event(ROOT, tmp_path, "   ", status="PASS")
+
+
+def test_telemetry_reserved_fields_cannot_override_event_or_time() -> None:
+    event = TelemetryEvent(
+        event="real",
+        at="real-time",
+        fields={"event": "forged", "at": "forged-time", "status": "PASS"},
+    )
+    payload = event.payload()
+    assert payload["event"] == "real"
+    assert payload["at"] == "real-time"
+
+
+def test_telemetry_path_is_confined_to_runtime(tmp_path: Path) -> None:
+    root = _core_sandbox(tmp_path / "repo")
+    path = root / "config/core/telemetry_policy.yaml"
+    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+    payload["retention"]["relative_path"] = "../escape.jsonl"
+    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+    with pytest.raises(ValueError, match="chemin relatif interdit"):
+        emit_event(root, tmp_path / "runtime", "x", status="PASS")
 
 
 def test_telemetry_limit_is_validated(tmp_path: Path) -> None:
@@ -110,6 +140,23 @@ def test_finops_is_fail_closed(tmp_path: Path) -> None:
             amount_eur=1,
             reason="x",
             provider="provider",
+        )
+
+
+def test_finops_path_is_confined_to_runtime(tmp_path: Path) -> None:
+    root = _core_sandbox(tmp_path / "repo")
+    path = root / "config/core/budget_policy.yaml"
+    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+    payload["ledger"]["relative_path"] = "/tmp/escape.jsonl"
+    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+    with pytest.raises(ValueError, match="chemin relatif interdit"):
+        append_cost_event(
+            root,
+            tmp_path / "runtime",
+            event="reservation",
+            amount_eur=0.25,
+            reason="explicit",
+            provider="example",
         )
 
 
