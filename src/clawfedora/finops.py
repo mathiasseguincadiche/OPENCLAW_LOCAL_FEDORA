@@ -21,9 +21,14 @@ def _ledger_path(repo_root: Path, runtime_root: Path) -> Path:
     if not isinstance(ledger, dict):
         raise ValueError("finops: ledger invalide")
     relative = str(ledger.get("relative_path", ""))
-    if not relative:
-        raise ValueError("finops: relative_path absent")
-    return runtime_root / relative
+    value = Path(relative)
+    if not relative or value.is_absolute() or ".." in value.parts:
+        raise ValueError(f"finops: relative_path interdit: {relative}")
+    runtime = runtime_root.resolve()
+    target = (runtime / value).resolve(strict=False)
+    if target == runtime or runtime not in target.parents:
+        raise ValueError(f"finops: chemin hors runtime: {relative}")
+    return target
 
 
 def _rows(repo_root: Path, runtime_root: Path) -> list[dict[str, Any]]:
@@ -100,9 +105,7 @@ def _enforce_limits(
         limit = float(limits.get("per_project_eur", 0.0))
         candidate = project_total + amount_eur
         if limit <= 0 or candidate > limit + 1e-9:
-            raise ValueError(
-                f"finops: limite projet dépassée ({candidate:.6f}>{limit:.6f})"
-            )
+            raise ValueError(f"finops: limite projet dépassée ({candidate:.6f}>{limit:.6f})")
 
 
 def append_cost_event(
