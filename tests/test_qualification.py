@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
 
 from clawfedora import qualification
-from clawfedora.hardware_gate import HardwareGateReport
+from clawfedora.hardware_gate import GateCheck, HardwareGateReport
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -120,6 +122,80 @@ def test_scenario_output_limit_rejects_above_768() -> None:
         qualification._scenario_output_limit({"max_output_tokens": 769}, {})
 
 
+def test_real_ollama_stream_parser_records_metrics(monkeypatch: pytest.MonkeyPatch) -> None:
+    case = qualification.PlannedCase(
+        model_alias="qwen-max",
+        runtime_id="qwen3.8:27b",
+        family="qwen",
+        context=8192,
+        scenario={
+            "id": "synthetic",
+            "prompt": "Réponds brièvement.",
+            "synthetic_context_chars": 80,
+            "temperature": 0.0,
+        },
+        max_output_tokens=128,
+        think=False,
+        thinking_mode="off",
+    )
+
+    class FakeResponse:
+        def __enter__(self) -> FakeResponse:
+            return self
+
+        def __exit__(self, *_args: object) -> None:
+            return None
+
+        def __iter__(self):  # type: ignore[no-untyped-def]
+            return iter(
+                [
+                    b'{"message":{"content":"hello"}}\n',
+                    (
+                        b'{"message":{"content":" world"},"done":true,'
+                        b'"eval_count":2,"eval_duration":1000000000,'
+                        b'"prompt_eval_count":4,"prompt_eval_duration":1000000000,'
+                        b'"load_duration":1000000,"done_reason":"stop"}\n'
+                    ),
+                ]
+            )
+
+    monkeypatch.setattr(
+        qualification.urllib.request,
+        "urlopen",
+        lambda _request, timeout: FakeResponse(),
+    )
+    result = qualification._run_generation(
+        "http://127.0.0.1:11434",
+        case,
+        deadline=time.perf_counter() + 5,
+    )
+    assert result["output"] == "hello world"
+    assert result["eval_count"] == 2
+    assert result["tokens_per_second"] == pytest.approx(2.0)
+    assert result["prompt_tokens_per_second"] == pytest.approx(4.0)
+    assert result["output_truncated"] is False
+    assert result["response_ttft_ms"] is not None
+
+
+def test_generation_refuses_expired_case_budget() -> None:
+    case = qualification.PlannedCase(
+        model_alias="qwen-max",
+        runtime_id="qwen3.8:27b",
+        family="qwen",
+        context=8192,
+        scenario={"id": "synthetic", "prompt": "x"},
+        max_output_tokens=64,
+        think=False,
+        thinking_mode="off",
+    )
+    with pytest.raises(TimeoutError, match="budget du cas épuisé"):
+        qualification._run_generation(
+            "http://127.0.0.1:11434",
+            case,
+            deadline=time.perf_counter() - 1,
+        )
+
+
 def test_checks_cover_structured_positive_and_negative_rules() -> None:
     ok, details = qualification.run_checks(
         '{"a": 1, "b": 2}',
@@ -162,6 +238,22 @@ def test_evaluator_applies_global_and_context_thresholds() -> None:
     assert "error_rate" in result["failures"]
 
 
+def test_evaluator_fails_when_performance_metrics_are_missing() -> None:
+    policy = qualification.root_contract(ROOT, "qualification_policy.yaml")
+    cases = [
+        {
+            "status": "ok",
+            "check_passed": True,
+            "context": 8192,
+            "model_alias": "qwen-max",
+        }
+    ]
+    result = qualification.evaluate_cases(policy, cases)
+    assert result["verdict"] == "FAIL"
+    assert "missing_tokens_per_second" in result["failures"]
+    assert "missing_first_token_ms" in result["failures"]
+
+
 def test_loopback_endpoint_policy() -> None:
     assert qualification._loopback_endpoint("http://127.0.0.1:11434") is True
     assert qualification._loopback_endpoint("http://localhost:11434") is True
@@ -184,6 +276,28 @@ def test_model_inventory_requires_digest_and_quantization() -> None:
     bad["models"][0]["digest"] = ""
     with pytest.raises(ValueError, match="identité Ollama incomplète"):
         qualification._model_inventory(bad, required)
+
+
+def test_performance_profile_uses_powerprofilesctl(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        qualification.shutil,
+        "which",
+        lambda name: "/usr/bin/powerprofilesctl" if name == "powerprofilesctl" else None,
+    )
+    monkeypatch.setattr(
+        qualification.subprocess,
+        "run",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            returncode=0,
+            stdout="performance\n",
+            stderr="",
+        ),
+    )
+    assert qualification._performance_profile() == {
+        "source": "powerprofilesctl",
+        "value": "performance",
+        "ok": True,
+    }
 
 
 def _mock_hardware(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -245,6 +359,41 @@ def test_qualification_refuses_non_loopback_before_hardware(tmp_path: Path) -> N
         runtime_root=tmp_path,
         endpoint="http://example.com:11434",
     )
+    assert code == 2
+    assert evidence is None
+
+
+def test_qualification_stops_on_l2_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    failed = HardwareGateReport(
+        "L2",
+        (GateCheck("fedora-44", "FAIL", "synthetic"),),
+        "now",
+    )
+    monkeypatch.setattr(qualification, "collect_hardware_gate", lambda _root, _gate: failed)
+    monkeypatch.setattr(
+        qualification,
+        "write_hardware_evidence",
+        lambda _report, _directory: tmp_path / "l2.json",
+    )
+    code, evidence = qualification.run_qualification(ROOT, runtime_root=tmp_path)
+    assert code == 2
+    assert evidence == tmp_path / "l2.json"
+
+
+def test_qualification_stops_on_non_performance_profile(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _mock_hardware(monkeypatch, tmp_path)
+    monkeypatch.setattr(
+        qualification,
+        "_performance_profile",
+        lambda: {"source": "test", "value": "balanced", "ok": False},
+    )
+    code, evidence = qualification.run_qualification(ROOT, runtime_root=tmp_path)
     assert code == 2
     assert evidence is None
 
