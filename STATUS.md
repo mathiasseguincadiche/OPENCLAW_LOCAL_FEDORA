@@ -12,7 +12,7 @@ Le dépôt est une **plateforme Fedora native en construction**, pas encore une 
 | L3 | B580 `xe` + Mesa/Vulkan | BLOQUÉ jusqu'à installation Fedora |
 | L4 | OpenClaw + 8 agents + E2E | À FAIRE |
 | L5 | Qualification HARD-40M | À FAIRE |
-| L6 | Optimisation backend + kernel 7.2.3 | À FAIRE |
+| L6 | Optimisation runtimes Linux + kernel 7.2.3 | À FAIRE |
 | L7 | Golden Projects + projet représentatif | À FAIRE |
 | L8 | Approbation humaine V1 | À FAIRE |
 
@@ -22,9 +22,11 @@ Le dépôt est une **plateforme Fedora native en construction**, pas encore une 
 - Le kernel Fedora officiel reste toujours un rollback bootable.
 - Linux 7.2.3 est un candidat de performance, jamais une promotion automatique.
 - Intel Arc B580 utilise le driver kernel `xe`.
-- Mesa/Vulkan est l'unique pile GPU de runtime du projet.
+- Mesa/Vulkan est la pile GPU nominale.
 - Ollama Vulkan est la baseline runtime.
-- llama.cpp Vulkan est le candidat runtime de performance.
+- llama.cpp Vulkan est un candidat direct.
+- llama.cpp SYCL/Level Zero est un candidat Linux optionnel de performance.
+- Un candidat optionnel ne bloque jamais la baseline.
 - Les trois modèles Qwen/Gemma/Devstral restent obligatoires.
 - HARD-40M reste limité à 2400 secondes et 30 cas.
 - Aucun fallback cloud silencieux.
