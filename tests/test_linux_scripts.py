@@ -103,6 +103,7 @@ def test_long_gates_block_suspend_with_systemd_inhibit() -> None:
         assert "systemd-inhibit" in text
         assert "--what=sleep" in text
         assert "--mode=block" in text
+        assert "OPENCLAW_LOCAL_FEDORA_SLEEP_INHIBITED=1" in text
 
 
 def test_qualification_launcher_is_local_only_and_has_dry_run() -> None:
