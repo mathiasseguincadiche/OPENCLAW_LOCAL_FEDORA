@@ -90,7 +90,11 @@ def test_full_l4_simulation_creates_tool_repair_and_stability_evidence(
     config = {"agents": {"list": entries}}
     devops_workspace = workspace_root / "ingenieur-devops"
 
-    monkeypatch.setattr(openclaw_e2e.shutil, "which", lambda name: "/usr/bin/openclaw" if name == "openclaw" else None)
+    monkeypatch.setattr(
+        openclaw_e2e.shutil,
+        "which",
+        lambda name: "/usr/bin/openclaw" if name == "openclaw" else None,
+    )
     monkeypatch.setattr(
         openclaw_e2e.subprocess,
         "run",
