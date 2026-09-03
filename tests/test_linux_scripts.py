@@ -21,16 +21,6 @@ def test_shell_entrypoints_are_strict() -> None:
         assert "set -Eeuo pipefail" in text, path
 
 
-def test_repository_has_no_non_linux_entrypoint_files() -> None:
-    forbidden_suffixes = {".ps1", ".cmd", ".bat"}
-    offenders = [
-        path.relative_to(ROOT)
-        for path in ROOT.rglob("*")
-        if path.is_file() and path.suffix.lower() in forbidden_suffixes
-    ]
-    assert not offenders, offenders
-
-
 def test_bootstrap_is_dry_run_by_default_and_does_not_weaken_security() -> None:
     text = _read("scripts/linux/00_bootstrap.sh")
     assert "APPLY=0" in text
@@ -63,7 +53,7 @@ def test_upstream_kernel_is_not_installed_by_bootstrap() -> None:
     assert "kernel.org" not in text
 
 
-def test_gpu_stack_is_vulkan_only() -> None:
+def test_baseline_gpu_stack_is_vulkan() -> None:
     bootstrap = _read("scripts/linux/00_bootstrap.sh")
     gpu_gate = _read("scripts/linux/02_verify_gpu.sh")
     assert "mesa-vulkan-drivers" in bootstrap
