@@ -96,6 +96,18 @@ def test_hardware_evidence_is_written(tmp_path: Path) -> None:
     assert '"verdict": "PASS"' in path.read_text(encoding="utf-8")
 
 
+def test_qualification_hardware_snapshot_uses_canonical_directory(tmp_path: Path) -> None:
+    report = hardware_gate.HardwareGateReport(
+        gate="L2",
+        checks=(),
+        collected_at="2026-09-03T00:00:00+00:00",
+    )
+    requested = tmp_path / "proofs" / "qualification"
+    path = hardware_gate.write_hardware_evidence(report, requested)
+    assert path.parent == tmp_path / "proofs" / "hardware"
+    assert path.is_file()
+
+
 def test_unknown_hardware_gate_is_rejected() -> None:
     with pytest.raises(ValueError, match="l2 ou l3"):
         hardware_gate.collect_hardware_gate(ROOT, "l9")
