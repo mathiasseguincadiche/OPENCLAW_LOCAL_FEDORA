@@ -32,10 +32,9 @@ identity:
   exact_runtime_versions_recorded: true
   exact_kernel_recorded: true
   exact_mesa_recorded: true
-  exact_level_zero_recorded: true
 
-migration_performance_target:
-  source_baseline: OPENCLAW_LOCAL/windows11-b580
+linux_performance_target:
+  baseline: fedora-stock-kernel-plus-ollama-vulkan
   aggregate_improvement_target_pct: 10.0
   maximum_single_model_regression_pct: 5.0
   functional_regression_allowed: false
