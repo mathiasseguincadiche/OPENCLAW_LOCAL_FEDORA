@@ -78,6 +78,8 @@ def test_finops_append_and_summary(tmp_path: Path) -> None:
         "charges_eur": 0.12,
         "reservations_eur": 0.25,
         "refunds_eur": 0.02,
+        "releases_eur": 0.0,
+        "net_exposure_eur": 0.35,
     }
 
 
@@ -111,10 +113,32 @@ def test_finops_is_fail_closed(tmp_path: Path) -> None:
         )
 
 
+def test_finops_daily_limit_is_enforced(tmp_path: Path) -> None:
+    append_cost_event(
+        ROOT,
+        tmp_path,
+        event="reservation",
+        amount_eur=0.75,
+        reason="approved",
+        provider="example",
+    )
+    with pytest.raises(ValueError, match="limite daily"):
+        append_cost_event(
+            ROOT,
+            tmp_path,
+            event="reservation",
+            amount_eur=0.30,
+            reason="would exceed",
+            provider="example",
+        )
+
+
 def test_empty_finops_summary(tmp_path: Path) -> None:
     assert summarize(ROOT, tmp_path) == {
         "events": 0,
         "charges_eur": 0.0,
         "reservations_eur": 0.0,
         "refunds_eur": 0.0,
+        "releases_eur": 0.0,
+        "net_exposure_eur": 0.0,
     }
