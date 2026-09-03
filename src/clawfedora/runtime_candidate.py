@@ -73,7 +73,15 @@ def _verify_source(entry: dict[str, Any]) -> Path:
 
 
 def _preset_text(manifest: dict[str, Any], context_tokens: int, gpu_layers: int) -> str:
-    lines = ["version = 1", "", "[*]", f"c = {context_tokens}", f"n-gpu-layers = {gpu_layers}", "jinja = true", ""]
+    lines = [
+        "version = 1",
+        "",
+        "[*]",
+        f"c = {context_tokens}",
+        f"n-gpu-layers = {gpu_layers}",
+        "jinja = true",
+        "",
+    ]
     models = _mapping(manifest.get("models"))
     for alias in sorted(models):
         entry = _mapping(models[alias])
@@ -181,6 +189,10 @@ def prepare_runtime_files(
         raise ValueError("L6 runtime: nom unité invalide")
     unit_dir.mkdir(parents=True, exist_ok=True)
     unit_path = unit_dir / unit_name
+    read_write_paths = " ".join(
+        str(runtime_root.resolve() / relative)
+        for relative in ("runtime", "proofs", "benchmarks")
+    )
     unit = "\n".join(
         [
             "[Unit]",
@@ -197,7 +209,7 @@ def prepare_runtime_files(
             "ProtectSystem=strict",
             "ProtectHome=read-only",
             f"ReadOnlyPaths={model_dir}",
-            f"ReadWritePaths={runtime_root.resolve() / 'runtime'} {runtime_root.resolve() / 'proofs'} {runtime_root.resolve() / 'benchmarks'}",
+            f"ReadWritePaths={read_write_paths}",
             "RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6",
             "",
             "[Install]",
