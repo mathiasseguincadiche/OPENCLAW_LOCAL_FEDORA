@@ -297,7 +297,11 @@ def run_e2e(
             if text != f"AGENT_OK {agent}":
                 raise RuntimeError(f"smoke {agent}: réponse inattendue {text!r}")
             evidence["agent_smokes"].append(
-                {"agent": agent, "model_ref": _model_ref(entries[agent]), **_proof(payload, text, provider)}
+                {
+                    "agent": agent,
+                    "model_ref": _model_ref(entries[agent]),
+                    **_proof(payload, text, provider),
+                }
             )
 
         tool_agent = "ingenieur-devops"
@@ -366,7 +370,9 @@ def run_e2e(
             text = _visible_text(payload)
             if text != expected:
                 raise RuntimeError(f"stabilité {index}: réponse inattendue {text!r}")
-            evidence["stability"].append({"run": index, **_proof(payload, text, tool_provider)})
+            evidence["stability"].append(
+                {"run": index, **_proof(payload, text, tool_provider)}
+            )
     except (
         FileNotFoundError,
         OSError,
