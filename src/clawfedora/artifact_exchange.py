@@ -17,8 +17,17 @@ from clawfedora.project_common import (
 )
 
 
-def _plan_tasks(project: Path) -> dict[str, dict[str, Any]]:
-    payload = read_json(project / "context" / "project_plan.json")
+def _orchestration_artifact(repo_root: Path, project: Path, artifact_id: str) -> Path:
+    policy = core_contract(repo_root, "orchestration_policy.yaml")
+    relative = dict(policy["artifacts"]).get(artifact_id)
+    if not relative:
+        raise KeyError(f"artefact orchestration inconnu: {artifact_id}")
+    return project / str(relative)
+
+
+def _plan_tasks(repo_root: Path, project: Path) -> dict[str, dict[str, Any]]:
+    plan_path = _orchestration_artifact(repo_root, project, "plan")
+    payload = read_json(plan_path)
     tasks = payload.get("tasks", [])
     if not isinstance(tasks, list):
         raise ValueError("project_plan.json: tasks invalide")
@@ -33,10 +42,10 @@ def _plan_tasks(project: Path) -> dict[str, dict[str, Any]]:
     return result
 
 
-def _dependencies(project: Path) -> dict[str, list[str]]:
+def _dependencies(repo_root: Path, project: Path) -> dict[str, list[str]]:
     return {
         task_id: [str(value) for value in raw.get("depends_on", [])]
-        for task_id, raw in _plan_tasks(project).items()
+        for task_id, raw in _plan_tasks(repo_root, project).items()
     }
 
 
@@ -134,7 +143,7 @@ def publish_task_outputs(
     if normalized not in {"PASS", "FAIL"}:
         raise ValueError(f"statut tâche invalide: {status}")
     policy = core_contract(repo_root, "artifact_exchange_policy.yaml")
-    dependencies = _dependencies(project)
+    dependencies = _dependencies(repo_root, project)
     published = [
         _make_bundle(
             project,
@@ -166,7 +175,7 @@ def publish_task_outputs(
                     direct_dependency=direct,
                 )
             )
-    index_path = project / "context" / "exchange" / "index.json"
+    index_path = project / str(policy.get("root", "context/exchange")) / "index.json"
     index = (
         read_json(index_path)
         if index_path.is_file()
@@ -232,11 +241,12 @@ def validate_bundle(project: Path, bundle: Path) -> list[str]:
 
 def validate_exchange_completeness(repo_root: Path, project: Path) -> list[str]:
     policy = core_contract(repo_root, "artifact_exchange_policy.yaml")
-    assignments = read_json(project / "context" / "task_assignments.json")
+    assignments_path = _orchestration_artifact(repo_root, project, "assignments")
+    assignments = read_json(assignments_path)
     raw_tasks = assignments.get("tasks", [])
     if not isinstance(raw_tasks, list):
         raise ValueError("task_assignments.json: tasks invalide")
-    dependencies = _dependencies(project)
+    dependencies = _dependencies(repo_root, project)
     transitive = bool(dict(policy["propagation"])["transitive_dependents"])
     failures: list[str] = []
     for raw in raw_tasks:
@@ -255,7 +265,11 @@ def validate_exchange_completeness(repo_root: Path, project: Path) -> list[str]:
             failures.extend(validate_bundle(project, self_bundle))
         if status != "PASS":
             continue
-        for consumer, _ in _dependents(dependencies, task_id, transitive=transitive):
+        for consumer, _ in _dependents(
+            dependencies,
+            task_id,
+            transitive=transitive,
+        ):
             bundle = _bundle_path(project, task_id, consumer, attempts)
             if not bundle.is_dir():
                 failures.append(
