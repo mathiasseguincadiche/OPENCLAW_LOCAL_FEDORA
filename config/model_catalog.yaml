@@ -1,20 +1,35 @@
-schema_version: "1.0.0"
+schema_version: "1.1.0"
 platform_version: "0.1.0"
 
 models:
   qwen-max:
+    provider: ollama
     role: local-max
     runtime_id: qwen3.8:27b
+    vulkan_runtime_id: qwen3.8:27B
+    sycl_runtime_id: qwen3.8:27B
+    family: qwen
+    input: [text, image]
     required: true
     qualification_required: true
   gemma-deep:
+    provider: ollama
     role: local-deep
     runtime_id: gemma4:26b
+    vulkan_runtime_id: gemma4:26B
+    sycl_runtime_id: gemma4:26B
+    family: gemma
+    input: [text, image]
     required: true
     qualification_required: true
   devstral-devops:
+    provider: ollama
     role: local-specialist
     runtime_id: devstral-small-2:24b
+    vulkan_runtime_id: devstral-small-2:24B
+    sycl_runtime_id: devstral-small-2:24B
+    family: mistral
+    input: [text, image]
     required: true
     qualification_required: true
 
@@ -23,3 +38,4 @@ fleet_policy:
   implicit_model_download_during_benchmark: false
   cloud_model_as_local_fallback: false
   identity_digest_required_for_promotion: true
+  only_supported_aliases: [qwen-max, gemma-deep, devstral-devops]

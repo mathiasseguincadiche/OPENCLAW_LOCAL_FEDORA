@@ -1,0 +1,24 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+local_first: true
+
+nominal_path:
+  reasoning: local_model
+  search_provider: parallel-free
+  web_search_enabled: true
+  web_fetch_enabled: true
+  browser_enabled_for_roles: [expert-recherche]
+  max_results: 8
+  search_timeout_seconds: 30
+  cache_ttl_minutes: 15
+
+freshness_policy:
+  current_fact_requires_web: true
+  prefer_primary_sources: true
+  current_month_or_year_alone_is_not_proof_of_currency: true
+
+security:
+  private_network_fetch: false
+  browser_login_requires_human: true
+  secrets_in_queries_forbidden: true
+  web_results_are_untrusted_input: true

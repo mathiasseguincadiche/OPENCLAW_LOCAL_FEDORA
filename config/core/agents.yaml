@@ -1,0 +1,53 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+
+policy:
+  exact_agent_count: 8
+  default_agent: chef-operations
+  workspace_root: workspaces
+  managed_marker: .openclaw-fedora-managed
+  central_project_is_source_of_truth: true
+  workspaces_are_disposable_snapshots: true
+
+agents:
+  chef-operations:
+    name: Chef des opérations
+    model: qwen-max
+    fallback: gemma-deep
+    mission: cadrer, planifier, déléguer et consolider
+  expert-recherche:
+    name: Expert recherche
+    model: qwen-max
+    fallback: gemma-deep
+    mission: établir des faits sourcés et actuels
+  architecte-solutions:
+    name: Architecte solutions
+    model: gemma-deep
+    fallback: qwen-max
+    mission: concevoir l'architecture et documenter les compromis
+  ingenieur-devops:
+    name: Ingénieur DevOps
+    model: devstral-devops
+    fallback: qwen-max
+    mission: implémenter et vérifier l'automatisation d'exploitation
+  ingenieur-securite:
+    name: Ingénieur sécurité
+    model: qwen-max
+    fallback: gemma-deep
+    mission: identifier les risques et produire des contrôles vérifiables
+  ingenieur-release-forges:
+    name: Ingénieur release/forges
+    model: qwen-max
+    fallback: devstral-devops
+    mission: préparer les publications et vérifier leurs preuves
+  redacteur-technique:
+    name: Rédacteur technique
+    model: gemma-deep
+    fallback: qwen-max
+    mission: produire une documentation fidèle et exploitable
+  auditeur-qualite:
+    name: Auditeur qualité
+    model: gemma-deep
+    fallback: qwen-max
+    independent_alternative: qwen-max
+    mission: évaluer sans corriger silencieusement le livrable audité

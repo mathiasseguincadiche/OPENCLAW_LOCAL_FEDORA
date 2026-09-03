@@ -1,0 +1,51 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+
+security_defaults:
+  profile: coding
+  fs_workspace_only: true
+  exec_mode: ask
+  elevated_enabled: false
+  cloud_tools_without_explicit_escalation: false
+  document_tools: [pdf, view_image]
+
+write_enforcement:
+  protected_inputs: [intake, sources, context/exchange]
+  guard_manifest: .openclaw-fedora-input-guard.json
+  fail_on_protected_input_change: true
+  central_project_accepts_only_collected_task_outputs: true
+
+agents:
+  chef-operations:
+    profile: coding
+    also_allow: [pdf, view_image]
+    deny: [write, edit, apply_patch, exec, process]
+  expert-recherche:
+    profile: coding
+    also_allow: [browser, pdf, view_image]
+    deny: [write, edit, apply_patch, exec, process]
+  architecte-solutions:
+    profile: coding
+    also_allow: [pdf, view_image]
+    deny: [write, edit, apply_patch, exec, process]
+    write_scope: [context/architecture, diagrams]
+  ingenieur-devops:
+    profile: coding
+    also_allow: [pdf, view_image]
+    deny: []
+  ingenieur-securite:
+    profile: coding
+    also_allow: [pdf, view_image]
+    deny: [write, edit, apply_patch]
+  ingenieur-release-forges:
+    profile: coding
+    also_allow: [pdf, view_image]
+    deny: []
+  redacteur-technique:
+    profile: coding
+    also_allow: [pdf, view_image]
+    deny: [exec, process]
+  auditeur-qualite:
+    profile: coding
+    also_allow: [pdf, view_image]
+    deny: [write, edit, apply_patch, exec, process]
