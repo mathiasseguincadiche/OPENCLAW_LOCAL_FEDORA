@@ -21,6 +21,12 @@ def test_shell_entrypoints_are_strict() -> None:
         "scripts/linux/06_openclaw_e2e.sh",
         "scripts/linux/07_run_qualification.sh",
         "scripts/linux/08_power_profile.sh",
+        "scripts/linux/09_provision_models.sh",
+        "scripts/linux/10_install_full.sh",
+        "scripts/linux/11_health.sh",
+        "scripts/linux/12_backup_restore.sh",
+        "scripts/linux/13_repair.sh",
+        "scripts/linux/14_uninstall.sh",
         "scripts/linux/lib/runtime.sh",
     ):
         text = _read(path)
@@ -32,6 +38,8 @@ def test_bootstrap_is_dry_run_by_default_and_does_not_weaken_security() -> None:
     assert "APPLY=0" in text
     assert "--apply" in text
     assert "getenforce" in text
+    assert '"$RUNTIME_ROOT/state"' in text
+    assert '"$RUNTIME_ROOT/backups"' in text
     lower_text = text.lower()
     forbidden = (
         "setenforce 0",
@@ -122,11 +130,45 @@ def test_power_profile_requires_explicit_apply() -> None:
     assert "--apply" in text
 
 
-def test_menu_exposes_implemented_linux_gates() -> None:
+def test_full_install_is_explicit_and_pinned() -> None:
+    text = _read("scripts/linux/10_install_full.sh")
+    assert "APPLY=0" in text
+    assert 'OPENCLAW_PIN="2026.7.1-2"' in text
+    assert "09_provision_models.sh" in text
+    assert "04_configure_openclaw.sh" in text
+    assert "openclaw gateway install" in text
+    assert "systemctl --user enable --now openclaw-gateway.service" in text
+
+
+def test_uninstall_preserves_data_without_explicit_purge() -> None:
+    text = _read("scripts/linux/14_uninstall.sh")
+    assert "APPLY=0" in text
+    assert "PURGE=0" in text
+    assert "--purge-data" in text
+    assert "openclaw gateway uninstall" in text
+    assert "cleanup --apply" in text
+
+
+def test_repair_backups_before_reconfiguration() -> None:
+    text = _read("scripts/linux/13_repair.sh")
+    backup_index = text.index('"$LINUX/12_backup_restore.sh" backup')
+    configure_index = text.index('"$LINUX/04_configure_openclaw.sh" --apply')
+    assert backup_index < configure_index
+    assert "gateway restart --preserve-definition" in text
+
+
+def test_menu_exposes_implemented_linux_gates_and_lifecycle() -> None:
     text = _read("menu.sh")
     for action in (
         "status",
         "validate",
+        "lifecycle-validate",
+        "install",
+        "models",
+        "health",
+        "backup",
+        "repair",
+        "uninstall",
         "bootstrap",
         "audit",
         "audit-strict",
