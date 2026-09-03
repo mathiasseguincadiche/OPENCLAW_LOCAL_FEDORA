@@ -1,8 +1,8 @@
 # OPENCLAW_LOCAL_FEDORA
 
-Plateforme **Linux-native, local-first et fail-closed** destinée à faire fonctionner l'équipe multi-agents OpenClaw sur Fedora 44 avec une Intel Arc B580, puis à mesurer objectivement si cette plateforme dépasse la baseline Windows.
+Plateforme **Linux-native, local-first et fail-closed** destinée à faire fonctionner une équipe multi-agents OpenClaw sur Fedora 44 avec une Intel Arc B580.
 
-> **État : 0.1.0 — migration candidate.** Ce dépôt ne revendique encore aucun gain de performance matériel et aucune qualification V1.
+> **État : 0.1.0 — foundation candidate.** Aucun gain matériel ni verdict V1 n'est revendiqué avant mesures réelles sur la machine cible.
 
 ## Cible matérielle
 
@@ -13,10 +13,10 @@ Plateforme **Linux-native, local-first et fail-closed** destinée à faire fonct
 - Fedora Linux 44 Workstation
 - GNOME 50 / Wayland
 
-## Choix d'architecture
+## Architecture
 
 ```text
-Fedora 44 / GNOME 50
+Fedora 44 / GNOME 50 / Wayland
         │
         ├── systemd user ── OpenClaw Gateway
         ├── Podman
@@ -24,29 +24,27 @@ Fedora 44 / GNOME 50
         │
         └── Intel Arc B580 / xe
                 │
-        ┌───────┴────────────┐
-        │                    │
-   Mesa Vulkan         Level Zero / SYCL
-        │                    │
-   ┌────┴─────┐              └── llama.cpp SYCL
-   │          │
- Ollama   llama.cpp Vulkan
+           Mesa / Vulkan
+                │
+        ┌───────┴────────┐
+        │                │
+   Ollama Vulkan   llama.cpp Vulkan
 ```
 
-### Baseline vs candidats
+## Baseline et optimisation
 
 | Élément | Baseline | Candidat |
 |---|---|---|
 | Kernel | Fedora officiel | Linux 7.2.3 upstream |
-| GPU | Vulkan/Mesa | SYCL/Level Zero |
-| Runtime LLM | Ollama Vulkan | llama.cpp Vulkan / SYCL |
+| GPU | `xe` + Mesa/Vulkan | même pile, réglages qualifiés uniquement |
+| Runtime LLM | Ollama Vulkan | llama.cpp Vulkan |
 | Promotion | manuelle | après preuves uniquement |
 
-Le kernel 7.2.3 n'est **jamais** installé par le bootstrap initial et le kernel Fedora reste un rollback bootable obligatoire.
+Le kernel 7.2.3 n'est jamais installé par le bootstrap initial. Le kernel Fedora reste un rollback bootable obligatoire.
 
-## Modèles conservés pour la parité
+## Flotte de modèles
 
-La flotte locale reste exactement composée de :
+La flotte locale est exactement composée de :
 
 - `qwen-max` → `qwen3.8:27b`
 - `gemma-deep` → `gemma4:26b`
@@ -56,7 +54,7 @@ Aucun petit modèle de secours nominal et aucun fallback cloud silencieux.
 
 ## HARD-40M
 
-Le contrat de qualification de référence est conservé pour permettre une comparaison Windows/Fedora crédible :
+Le contrat de qualification est :
 
 - 30 cas ;
 - 24 cas 8K + 6 cas 16K ;
@@ -67,7 +65,7 @@ Le contrat de qualification de référence est conservé pour permettre une comp
 - **2400 s / 40 min max pour le gate complet** ;
 - aucun appel cloud pendant le benchmark.
 
-L'implémentation complète du runner sera importée avec le cœur portable pendant le gate M1. Le contrat est déjà verrouillé par tests afin d'éviter sa dilution pendant la migration.
+La qualification prend comme baseline **Fedora avec son kernel officiel et Ollama Vulkan**. Les optimisations sont comparées uniquement à cette baseline Linux, à modèle, quantification, prompt et contexte identiques.
 
 ## Démarrage du socle
 
@@ -77,7 +75,7 @@ Le bootstrap est dry-run par défaut :
 ./menu.sh --action bootstrap
 ```
 
-Pour appliquer sur une vraie Fedora 44 :
+Pour appliquer sur Fedora 44 :
 
 ```bash
 ./menu.sh --action bootstrap --apply
@@ -113,7 +111,7 @@ GitHub ajoute :
 
 - Python 3.12 ;
 - Python 3.13 ;
-- conteneur **Fedora 44 réel** ;
+- conteneur Fedora 44 ;
 - CodeQL ;
 - Dependency Review.
 
@@ -135,17 +133,23 @@ Racine préférée sur le second NVMe :
 
 Fallback utilisateur : `~/.local/share/openclaw-local`.
 
-## Migration depuis OPENCLAW_LOCAL
+## Roadmap Linux
 
-Le dépôt Windows reste **indépendant** et sert de baseline/rollback historique. La migration n'importe que le cœur portable.
+Le projet avance par gates :
 
-À préserver : agents, orchestrateur, intake, Artifact Exchange, Golden Projects, FinOps, télémétrie, sécurité local-first, identité modèles, HARD-40M et readiness V1.
-
-À remplacer : PowerShell, Registry, Task Scheduler, WSL2 nominal, drive letters et ACL Windows.
+- `L0` — fondation, contrats et CI ;
+- `L1` — cœur multi-agents Linux-native ;
+- `L2` — Fedora stock : hardware gate ;
+- `L3` — B580 `xe` + Mesa/Vulkan ;
+- `L4` — OpenClaw + 8 agents + E2E ;
+- `L5` — qualification HARD-40M ;
+- `L6` — optimisation backend/kernel Linux ;
+- `L7` — Golden Projects + projet représentatif ;
+- `L8` — approbation humaine V1.
 
 Voir :
 
-- `docs/MIGRATION_PLAN.md`
+- `docs/ROADMAP.md`
 - `docs/ARCHITECTURE.md`
 - `docs/FEDORA_B580.md`
 - `docs/KERNEL_POLICY.md`
@@ -155,7 +159,7 @@ Voir :
 
 ## Objectif de performance
 
-La migration vise **≥ 10 % de gain agrégé** contre la baseline Windows sur la même machine, à modèles/quantifications/prompts/contextes identiques, avec :
+La baseline est **Fedora stock + Ollama Vulkan**. L'objectif d'optimisation est **≥ 10 % de gain agrégé** lorsque c'est réaliste, avec :
 
 - aucune régression fonctionnelle ;
 - aucune régression sécurité ;
@@ -164,7 +168,7 @@ La migration vise **≥ 10 % de gain agrégé** contre la baseline Windows sur l
 - Golden Projects PASS ;
 - validation humaine finale.
 
-Si Fedora est meilleur opérationnellement mais n'atteint pas le gain chiffré, le projet le dira explicitement au lieu de fabriquer un verdict.
+Le projet ne revendique aucun gain sans preuve reproductible.
 
 ## Sécurité
 
