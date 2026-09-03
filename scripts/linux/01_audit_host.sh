@@ -2,7 +2,8 @@
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
-# shellcheck source=lib/runtime.sh
+# Runtime path is derived from this script's canonical directory.
+# shellcheck disable=SC1091
 source "$SCRIPT_DIR/lib/runtime.sh"
 
 STRICT=0
