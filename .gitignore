@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Runtime state: never commit local proofs, models or workspaces
+runtime/
+state/
+proofs/
+benchmarks/results/
+models/
+workspaces/
+projects/runtime/
+*.gguf
+*.safetensors
+
+# Secrets / local configuration
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+*~
+
+# Build
+dist/
+build/
+*.egg-info/
