@@ -21,7 +21,10 @@ def now() -> str:
 def validate_project_id(value: str) -> str:
     normalized = value.strip().lower()
     if not PROJECT_ID_RE.fullmatch(normalized):
-        raise ValueError("project_id invalide: 3-64 caractères [a-z0-9-], sans tiret aux extrémités")
+        raise ValueError(
+            "project_id invalide: 3-64 caractères [a-z0-9-], "
+            "sans tiret aux extrémités"
+        )
     return normalized
 
 
@@ -53,7 +56,10 @@ def read_json(path: Path) -> dict[str, Any]:
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    temporary.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
     temporary.replace(path)
 
 
