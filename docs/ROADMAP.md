@@ -88,10 +88,11 @@ Valider :
 Comparer à la baseline Fedora stock + Ollama Vulkan :
 
 - llama.cpp Vulkan ;
+- llama.cpp SYCL/Level Zero comme candidat optionnel ;
 - réglages runtime qualifiés ;
 - kernel 7.2.3 contre kernel Fedora officiel.
 
-Une variable change à la fois. Le kernel Fedora reste bootable.
+Une variable change à la fois. Les candidats optionnels ne bloquent jamais la baseline. Le kernel Fedora reste bootable.
 
 **Sortie :** candidat gagnant reproductible sur trois runs, sans régression fonctionnelle ni sécurité.
 
