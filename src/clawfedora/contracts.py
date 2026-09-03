@@ -117,7 +117,9 @@ def validate_repository(root: Path) -> ContractReport:
     if required_models != expected_models:
         failures.append("models: flotte requise doit rester exactement qwen/gemma/devstral")
     runtime_ids = [str(value.get("runtime_id", "")) for value in model_map.values()]
-    if any(not runtime_id for runtime_id in runtime_ids) or len(runtime_ids) != len(set(runtime_ids)):
+    runtime_ids_invalid = any(not runtime_id for runtime_id in runtime_ids)
+    runtime_ids_duplicated = len(runtime_ids) != len(set(runtime_ids))
+    if runtime_ids_invalid or runtime_ids_duplicated:
         failures.append("models: runtime_id absents ou dupliqués")
     fleet_policy = models.get("fleet_policy", {})
     if int(fleet_policy.get("exact_required_model_count", 0)) != 3:
@@ -160,10 +162,12 @@ def validate_repository(root: Path) -> ContractReport:
     if safety.get("cloud_calls_allowed") is not False:
         failures.append("qualification: aucun appel cloud autorisé")
     promotion = qualification.get("promotion", {})
-    if any(
-        promotion.get(key) is not False
-        for key in ("automatic_backend_promotion", "automatic_kernel_promotion", "automatic_v1_release")
-    ):
+    automatic_promotion_keys = (
+        "automatic_backend_promotion",
+        "automatic_kernel_promotion",
+        "automatic_v1_release",
+    )
+    if any(promotion.get(key) is not False for key in automatic_promotion_keys):
         failures.append("qualification: aucune promotion automatique autorisée")
     if promotion.get("final_human_approval_required") is not True:
         failures.append("qualification: approbation humaine finale requise")
@@ -187,7 +191,8 @@ def validate_repository(root: Path) -> ContractReport:
 
     if candidate.get("version") == "7.2.3":
         warnings.append(
-            "Linux 7.2.3 est un candidat upstream: conserver le kernel Fedora officiel comme rollback"
+            "Linux 7.2.3 est un candidat upstream: conserver le kernel Fedora officiel "
+            "comme rollback"
         )
 
     return ContractReport(tuple(failures), tuple(warnings))
