@@ -58,7 +58,11 @@ def _loopback(endpoint: str) -> bool:
     return parsed.scheme == "http" and parsed.hostname in {"127.0.0.1", "localhost", "::1"}
 
 
-def _request_json(url: str, payload: dict[str, Any] | None = None, timeout: float = 10) -> dict[str, Any]:
+def _request_json(
+    url: str,
+    payload: dict[str, Any] | None = None,
+    timeout: float = 10,
+) -> dict[str, Any]:
     data = json.dumps(payload).encode("utf-8") if payload is not None else None
     request = urllib.request.Request(
         url,
@@ -76,7 +80,8 @@ def _synthetic_context(characters: int) -> str:
     index = 1
     while sum(len(row) for row in rows) < characters:
         rows.append(
-            f"node-{index:04d}: env=synthetic service=example state=unknown owner=team-{index % 5}\n"
+            f"node-{index:04d}: env=synthetic service=example state=unknown "
+            f"owner=team-{index % 5}\n"
         )
         index += 1
     return "".join(rows)[:characters]
@@ -86,7 +91,11 @@ def _prompt(scenario: dict[str, Any]) -> str:
     body = str(scenario.get("prompt", ""))
     synthetic = int(scenario.get("synthetic_context_chars", 0) or 0)
     if synthetic:
-        return f"INVENTAIRE SYNTHÉTIQUE NON-PRODUCTION:\n{_synthetic_context(synthetic)}\nCONSIGNE:\n{body}"
+        return (
+            "INVENTAIRE SYNTHÉTIQUE NON-PRODUCTION:\n"
+            f"{_synthetic_context(synthetic)}\n"
+            f"CONSIGNE:\n{body}"
+        )
     return body
 
 
@@ -350,7 +359,13 @@ def run_performance_snapshot(
             passed, details = run_checks(str(result.pop("output")), case.checks)
             status = "ok" if passed else "check-failed"
             error: str | None = None
-        except (OSError, TimeoutError, urllib.error.URLError, json.JSONDecodeError, ValueError) as exc:
+        except (
+            OSError,
+            TimeoutError,
+            urllib.error.URLError,
+            json.JSONDecodeError,
+            ValueError,
+        ) as exc:
             result = {
                 "first_token_ms": None,
                 "wall_ms": (time.perf_counter() - started) * 1000,
@@ -386,8 +401,16 @@ def run_performance_snapshot(
     model_payload: dict[str, Any] = {}
     for alias in L6_SCENARIOS:
         subset = [item for item in case_results if item["model_alias"] == alias]
-        rates = [float(item["tokens_per_second"]) for item in subset if isinstance(item.get("tokens_per_second"), (int, float))]
-        first = [float(item["first_token_ms"]) for item in subset if isinstance(item.get("first_token_ms"), (int, float))]
+        rates = [
+            float(item["tokens_per_second"])
+            for item in subset
+            if isinstance(item.get("tokens_per_second"), (int, float))
+        ]
+        first = [
+            float(item["first_token_ms"])
+            for item in subset
+            if isinstance(item.get("first_token_ms"), (int, float))
+        ]
         errors = sum(item["status"] != "ok" for item in subset)
         identity = identities[alias]
         model_payload[alias] = {
