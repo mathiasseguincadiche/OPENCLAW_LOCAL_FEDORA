@@ -92,7 +92,7 @@ if [[ ! -x "$VENV/bin/python" ]]; then
   python3 -m venv "$VENV"
 fi
 "$VENV/bin/python" -m pip install --upgrade pip setuptools wheel
-"$VENV/bin/python" -m pip install -e "$REPO_ROOT[dev]"
+"$VENV/bin/python" -m pip install -e "${REPO_ROOT}[dev]"
 
 if systemctl list-unit-files virtqemud.socket >/dev/null 2>&1; then
   sudo systemctl enable --now virtqemud.socket
