@@ -88,7 +88,7 @@ def test_restore_rejects_unmanifested_extra_file(tmp_path: Path) -> None:
         extra_info = tarfile.TarInfo("state/extra.txt")
         extra_info.size = len(extra)
         tar.addfile(extra_info, io.BytesIO(extra))
-    with pytest.raises(ValueError, match="fichiers supplémentaires"):
+    with pytest.raises(ValueError, match="contenu archive non déclaré"):
         lifecycle.restore_backup(archive, tmp_path / "restore-extra")
 
 
