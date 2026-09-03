@@ -117,7 +117,9 @@ def validate_repository(root: Path) -> ContractReport:
     if required_models != expected_models:
         failures.append("models: flotte requise doit rester exactement qwen/gemma/devstral")
     runtime_ids = [str(value.get("runtime_id", "")) for value in model_map.values()]
-    if any(not runtime_id for runtime_id in runtime_ids) or len(runtime_ids) != len(set(runtime_ids)):
+    runtime_ids_invalid = any(not runtime_id for runtime_id in runtime_ids)
+    runtime_ids_duplicated = len(runtime_ids) != len(set(runtime_ids))
+    if runtime_ids_invalid or runtime_ids_duplicated:
         failures.append("models: runtime_id absents ou dupliqués")
     fleet_policy = models.get("fleet_policy", {})
     if int(fleet_policy.get("exact_required_model_count", 0)) != 3:
