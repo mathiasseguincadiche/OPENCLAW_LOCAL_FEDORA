@@ -12,6 +12,11 @@ from clawfedora import lifecycle
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _mark_runtime(runtime: Path) -> None:
+    runtime.mkdir(parents=True, exist_ok=True)
+    (runtime / lifecycle.RUNTIME_MARKER).write_text("managed\n", encoding="utf-8")
+
+
 def test_model_plan_is_exact_rightsized_fleet() -> None:
     plan = lifecycle.model_plan(ROOT)
     assert [item["runtime_id"] for item in plan] == [
@@ -24,6 +29,7 @@ def test_model_plan_is_exact_rightsized_fleet() -> None:
 
 def test_backup_restore_roundtrip_excludes_models_and_venv(tmp_path: Path) -> None:
     runtime = tmp_path / "runtime-root"
+    _mark_runtime(runtime)
     for relative, content in {
         "state/a.json": "state",
         "projects/p/README.md": "project",
@@ -43,6 +49,7 @@ def test_backup_restore_roundtrip_excludes_models_and_venv(tmp_path: Path) -> No
     assert (restored / "projects/p/README.md").is_file()
     assert not (restored / "models/model.gguf").exists()
     assert not (restored / "runtime/venv/bin/python").exists()
+    assert (restored / lifecycle.RUNTIME_MARKER).is_file()
     assert (restored / "BACKUP_MANIFEST.json").is_file()
 
 
@@ -71,6 +78,7 @@ def test_restore_rejects_archive_traversal(tmp_path: Path) -> None:
 
 def test_cleanup_only_removes_managed_by_default(tmp_path: Path) -> None:
     runtime = tmp_path / "runtime"
+    _mark_runtime(runtime)
     managed = runtime / "workspaces/managed"
     managed.mkdir(parents=True)
     (managed / lifecycle.MANAGED_MARKER).write_text("managed", encoding="utf-8")
@@ -90,6 +98,7 @@ def test_cleanup_only_removes_managed_by_default(tmp_path: Path) -> None:
 
 def test_cleanup_purge_is_explicit(tmp_path: Path) -> None:
     runtime = tmp_path / "runtime"
+    _mark_runtime(runtime)
     for name in ("projects", "proofs", "state", "models", "benchmarks"):
         path = runtime / name
         path.mkdir(parents=True)
@@ -99,9 +108,22 @@ def test_cleanup_purge_is_explicit(tmp_path: Path) -> None:
         assert not (runtime / name).exists()
 
 
+def test_cleanup_refuses_unmanaged_runtime(tmp_path: Path) -> None:
+    runtime = tmp_path / "unmanaged"
+    (runtime / "projects").mkdir(parents=True)
+    with pytest.raises(ValueError, match="marqueur runtime géré absent"):
+        lifecycle.cleanup_managed(runtime, purge_data=True)
+    assert (runtime / "projects").exists()
+
+
+def test_cleanup_refuses_filesystem_root() -> None:
+    with pytest.raises(ValueError, match="runtime root / interdit"):
+        lifecycle.cleanup_managed(Path("/"), purge_data=True)
+
+
 def test_health_reports_all_components(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     runtime = tmp_path / "runtime"
-    runtime.mkdir()
+    _mark_runtime(runtime)
     for agent_id in (
         "chef-operations",
         "expert-recherche",
