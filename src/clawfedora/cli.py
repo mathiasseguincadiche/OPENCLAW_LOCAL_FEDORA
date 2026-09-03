@@ -10,8 +10,13 @@ from clawfedora.audit import collect_audit
 from clawfedora.contracts import validate_repository
 from clawfedora.core_config import resolve_runtime_root
 from clawfedora.core_contracts import validate_core_contracts
+from clawfedora.hardware_gate import collect_hardware_gate, write_hardware_evidence
 from clawfedora.openclaw_config import build_openclaw_patch, write_openclaw_patch
+from clawfedora.openclaw_e2e import dry_run as e2e_dry_run
+from clawfedora.openclaw_e2e import run_e2e
 from clawfedora.project_cli import add_project_parser, run_project_command
+from clawfedora.qualification import dry_run as qualification_dry_run
+from clawfedora.qualification import run_qualification
 
 
 def _root_from_args(value: str | None) -> Path:
@@ -70,6 +75,40 @@ def _audit(strict: bool, as_json: bool) -> int:
         print(
             f"AUDIT_RESULT={'PASS' if report.ok else 'FAIL'} "
             f"failures={report.failures} warnings={report.warnings}"
+        )
+    return 0 if report.ok else 2
+
+
+def _hardware(
+    root: Path,
+    gate: str,
+    runtime_value: str | None,
+    as_json: bool,
+) -> int:
+    try:
+        report = collect_hardware_gate(root, gate)
+        runtime = resolve_runtime_root(runtime_value)
+        evidence = write_hardware_evidence(
+            report,
+            runtime / "proofs" / "hardware",
+        )
+    except (FileNotFoundError, OSError, ValueError) as exc:
+        if as_json:
+            print(json.dumps({"verdict": "FAIL", "error": str(exc)}, ensure_ascii=False))
+        else:
+            print(f"HARDWARE_RESULT=FAIL error={exc}")
+        return 2
+    if as_json:
+        payload = report.payload()
+        payload["evidence"] = str(evidence)
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+    else:
+        for check in report.checks:
+            print(f"{check.status:<4} {check.id:<24} {check.detail}")
+        print(f"EVIDENCE={evidence}")
+        print(
+            f"HARDWARE_RESULT={'PASS' if report.ok else 'FAIL'} "
+            f"gate={report.gate} failures={report.failures} warnings={report.warnings}"
         )
     return 0 if report.ok else 2
 
@@ -151,6 +190,66 @@ def _openclaw_render(
     return 0
 
 
+def _qualification(
+    root: Path,
+    runtime_value: str | None,
+    endpoint: str,
+    dry_run: bool,
+    as_json: bool,
+) -> int:
+    if dry_run:
+        try:
+            payload = qualification_dry_run(root)
+        except (FileNotFoundError, KeyError, ValueError) as exc:
+            print(f"QUALIFICATION_DRY_RUN=FAIL error={exc}")
+            return 2
+        if as_json:
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+        else:
+            print(
+                "QUALIFICATION_DRY_RUN=PASS "
+                f"gate={payload['gate']} cases={payload['cases']} "
+                f"contexts={payload['contexts']} qwen_native={payload['qwen_native_probes']} "
+                f"qwen_max={payload['qwen_native_max_output_tokens']} "
+                f"case_timeout={payload['case_timeout_seconds']}s "
+                f"hard_wall={payload['max_wall_seconds']}s"
+            )
+            print(
+                "PRECHECKS=L2,L3,performance-profile,ollama-model-identity "
+                "SUSPEND=systemd-inhibit CLOUD=false"
+            )
+        return 0
+    runtime = resolve_runtime_root(runtime_value)
+    code, _ = run_qualification(root, runtime_root=runtime, endpoint=endpoint)
+    return code
+
+
+def _e2e(
+    root: Path,
+    runtime_value: str | None,
+    backend: str,
+    dry_run: bool,
+    as_json: bool,
+) -> int:
+    if dry_run:
+        try:
+            payload = e2e_dry_run(backend)
+        except ValueError as exc:
+            print(f"L4_DRY_RUN=FAIL error={exc}")
+            return 2
+        if as_json:
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+        else:
+            print(
+                f"L4_DRY_RUN=PASS backend={backend} agents=8 "
+                "tool_call=true repair=true stability=3 gateway=true"
+            )
+        return 0
+    runtime = resolve_runtime_root(runtime_value)
+    code, _ = run_e2e(root, backend=backend, runtime_root=runtime)
+    return code
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="clawfedora")
     parser.add_argument("--root", help="racine du dépôt")
@@ -162,6 +261,27 @@ def build_parser() -> argparse.ArgumentParser:
     audit = subparsers.add_parser("audit", help="auditer Fedora 44 et la B580")
     audit.add_argument("--strict", action="store_true", help="faire échouer les prérequis Fedora")
     audit.add_argument("--json", action="store_true")
+
+    hardware = subparsers.add_parser("hardware", help="gates matériels L2/L3")
+    hardware.add_argument("--gate", choices=("l2", "l3"), required=True)
+    hardware.add_argument("--runtime-root")
+    hardware.add_argument("--json", action="store_true")
+
+    qualification = subparsers.add_parser("qualification", help="qualification HARD-40M L5")
+    qualification.add_argument("--runtime-root")
+    qualification.add_argument("--endpoint", default="http://127.0.0.1:11434")
+    qualification.add_argument("--dry-run", action="store_true")
+    qualification.add_argument("--json", action="store_true")
+
+    e2e = subparsers.add_parser("e2e", help="gate OpenClaw L4")
+    e2e.add_argument("--runtime-root")
+    e2e.add_argument(
+        "--backend",
+        choices=("ollama-vulkan", "llama-cpp-vulkan", "llama-cpp-sycl"),
+        default="ollama-vulkan",
+    )
+    e2e.add_argument("--dry-run", action="store_true")
+    e2e.add_argument("--json", action="store_true")
 
     agents = subparsers.add_parser("agents", help="valider ou déployer les huit workspaces")
     agent_commands = agents.add_subparsers(dest="agents_command", required=True)
@@ -195,6 +315,24 @@ def main(argv: list[str] | None = None) -> int:
         return _validate(root, bool(args.json))
     if args.command == "audit":
         return _audit(bool(args.strict), bool(args.json))
+    if args.command == "hardware":
+        return _hardware(root, str(args.gate), args.runtime_root, bool(args.json))
+    if args.command == "qualification":
+        return _qualification(
+            root,
+            args.runtime_root,
+            str(args.endpoint),
+            bool(args.dry_run),
+            bool(args.json),
+        )
+    if args.command == "e2e":
+        return _e2e(
+            root,
+            args.runtime_root,
+            str(args.backend),
+            bool(args.dry_run),
+            bool(args.json),
+        )
     if args.command == "agents":
         if args.agents_command == "validate":
             return _agents_validate(root, bool(args.json))
