@@ -6,8 +6,8 @@ from typing import Any
 
 import pytest
 
-from clawfedora.hardware_gate import HardwareGateReport
 from clawfedora import qualification
+from clawfedora.hardware_gate import HardwareGateReport
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -51,7 +51,9 @@ def _output_for(scenario_id: str) -> str:
         "kubernetes-root-cause": "kubectl get pods, describe, events puis logs sans supposer.",
         "terraform-multifile-change": "main.tf variables.tf outputs.tf",
         "ansible-idempotence": "check mode, handler, second passage changed=0, idempotence.",
-        "selinux-security-review": "SELinux Enforcing: AVC puis ausearch et restorecon, validation.",
+        "selinux-security-review": (
+            "SELinux Enforcing: AVC puis ausearch et restorecon, validation."
+        ),
         "rollback-runbook": "Préconditions\nDéploiement\nVérification\nRollback",
         "architecture-diagram-d2": (
             "Utilisateur -> OpenClaw\nOpenClaw -> Routeur\n"
@@ -252,7 +254,12 @@ def test_qualification_fails_fast_on_truncation(
         lambda url, **_kwargs: _tags() if url.endswith("/api/tags") else {"version": "test"},
     )
 
-    def truncated(_endpoint: str, case: qualification.PlannedCase, deadline: float) -> dict[str, Any]:
+    def truncated(
+        _endpoint: str,
+        case: qualification.PlannedCase,
+        deadline: float,
+    ) -> dict[str, Any]:
+        del deadline
         result = _generation(case)
         result["output_truncated"] = True
         result["eval_count"] = case.max_output_tokens
