@@ -25,7 +25,7 @@ Au 2026-09-03, OpenClaw documente comme supportés :
 - Node 25.9+ ;
 - Node 26 recommandé.
 
-Pour la comparaison de parité Windows→Fedora, la version OpenClaw reste d'abord identique à la baseline Windows (`2026.7.1-2`). Les upgrades runtime viennent **après** la mesure de parité afin de ne changer qu'une variable à la fois.
+La première qualification Fedora verrouille une version OpenClaw exacte. Les upgrades runtime interviennent ensuite, une variable à la fois, avec requalification obligatoire.
 
 ## Commandes opérateur futures
 
