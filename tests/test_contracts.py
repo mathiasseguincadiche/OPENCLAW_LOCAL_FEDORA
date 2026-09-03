@@ -27,7 +27,8 @@ def test_repository_contracts_pass() -> None:
 def test_windows_native_marker_is_rejected(tmp_path: Path) -> None:
     root = _sandbox(tmp_path)
     path = root / "config" / "platform.yaml"
-    path.write_text(path.read_text(encoding="utf-8") + "\nlegacy: windows-native\n", encoding="utf-8")
+    content = path.read_text(encoding="utf-8") + "\nlegacy: windows-native\n"
+    path.write_text(content, encoding="utf-8")
     report = validate_repository(root)
     assert not report.ok
     assert any("Windows" in failure for failure in report.failures)
