@@ -99,8 +99,17 @@ fi
 "$OPENCLAW" config patch --file "$PATCH_PATH"
 "$OPENCLAW" config validate --json | jq -e . >/dev/null
 AGENTS_JSON="$($OPENCLAW agents list --json)"
-[[ "$(jq '[.[]?] | length' <<<"$AGENTS_JSON")" -eq 8 ]] || {
-  echo "ERREUR: OpenClaw n'expose pas exactement 8 agents après application." >&2
+AGENT_COUNT="$(
+  jq -r '
+    if type == "array" then length
+    elif (.agents? | type) == "array" then (.agents | length)
+    elif (.list? | type) == "array" then (.list | length)
+    else 0
+    end
+  ' <<<"$AGENTS_JSON"
+)"
+[[ "$AGENT_COUNT" -eq 8 ]] || {
+  echo "ERREUR: OpenClaw n'expose pas exactement 8 agents après application (count=$AGENT_COUNT)." >&2
   exit 2
 }
 
