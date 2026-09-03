@@ -14,6 +14,7 @@ from clawfedora.optimization import (
     write_decision,
 )
 from clawfedora.optimization_contracts import validate_optimization_contracts
+from clawfedora.optimization_runner import run_performance_snapshot
 from clawfedora.runtime_candidate import SUPPORTED_BACKENDS, prepare_runtime_files
 
 
@@ -53,6 +54,17 @@ def build_parser() -> argparse.ArgumentParser:
     runtime_files.add_argument("--backend", choices=tuple(SUPPORTED_BACKENDS), required=True)
     runtime_files.add_argument("--unit-dir", required=True)
     runtime_files.add_argument("--json", action="store_true")
+
+    snapshot = sub.add_parser("snapshot")
+    snapshot.add_argument(
+        "--backend",
+        choices=("ollama-vulkan", "llama-cpp-vulkan", "llama-cpp-sycl"),
+        required=True,
+    )
+    snapshot.add_argument("--endpoint", required=True)
+    snapshot.add_argument("--kind", choices=("runtime", "kernel"), required=True)
+    snapshot.add_argument("--candidate-id", required=True)
+    snapshot.add_argument("--output", required=True)
 
     runtime = sub.add_parser("compare-runtime")
     _add_compare_args(runtime)
@@ -129,6 +141,23 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(payload, indent=2, ensure_ascii=False))
         else:
             print(f"L6_RUNTIME_FILES_RESULT=PASS unit={files.unit_name} endpoint={files.endpoint}")
+        return 0
+
+    if args.command == "snapshot":
+        try:
+            output = run_performance_snapshot(
+                repo_root,
+                runtime_root,
+                backend=str(args.backend),
+                endpoint=str(args.endpoint),
+                kind=str(args.kind),
+                candidate_id=str(args.candidate_id),
+                output=Path(args.output).expanduser().resolve(),
+            )
+        except (FileNotFoundError, KeyError, OSError, ValueError) as exc:
+            print(f"L6_SNAPSHOT_RESULT=FAIL error={exc}")
+            return 2
+        print(f"L6_SNAPSHOT_RESULT=PASS evidence={output}")
         return 0
 
     baseline = _paths(args.baseline)
