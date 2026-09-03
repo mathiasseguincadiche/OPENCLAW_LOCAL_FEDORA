@@ -19,6 +19,8 @@ from clawfedora.qualification import dry_run as qualification_dry_run
 from clawfedora.qualification import run_qualification
 from clawfedora.qualification_contracts import validate_qualification_contracts
 
+SLEEP_INHIBIT_MARKER = "OPENCLAW_LOCAL_FEDORA_SLEEP_INHIBITED"
+
 
 def _root_from_args(value: str | None) -> Path:
     if value:
@@ -194,6 +196,16 @@ def _openclaw_render(
     return 0
 
 
+def _sleep_inhibit_ok(gate: str) -> bool:
+    if os.environ.get(SLEEP_INHIBIT_MARKER) == "1":
+        return True
+    print(
+        f"{gate}_RESULT=FAIL systemd-inhibit requis; "
+        "utiliser le launcher Linux/menu pour un run réel"
+    )
+    return False
+
+
 def _qualification(
     root: Path,
     runtime_value: str | None,
@@ -223,6 +235,16 @@ def _qualification(
                 "SUSPEND=systemd-inhibit CLOUD=false"
             )
         return 0
+
+    if not _sleep_inhibit_ok("QUALIFICATION"):
+        return 2
+    contract_failures, _ = validate_qualification_contracts(root)
+    if contract_failures:
+        print(
+            "QUALIFICATION_RESULT=FAIL contrats invalides: "
+            + "; ".join(contract_failures)
+        )
+        return 2
     runtime = resolve_runtime_root(runtime_value)
     code, _ = run_qualification(root, runtime_root=runtime, endpoint=endpoint)
     return code
@@ -249,6 +271,9 @@ def _e2e(
                 "tool_call=true repair=true stability=3 gateway=true"
             )
         return 0
+
+    if not _sleep_inhibit_ok("L4"):
+        return 2
     runtime = resolve_runtime_root(runtime_value)
     code, _ = run_e2e(root, backend=backend, runtime_root=runtime)
     return code
