@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -19,7 +20,12 @@ from clawfedora.telemetry import emit_event, read_events
 
 
 def _root(value: str | None) -> Path:
-    return Path(value).expanduser().resolve() if value else Path(__file__).resolve().parents[2]
+    if value:
+        return Path(value).expanduser().resolve()
+    env = os.environ.get("OPENCLAW_LOCAL_FEDORA_REPO")
+    if env:
+        return Path(env).expanduser().resolve()
+    return Path(__file__).resolve().parents[2]
 
 
 def _models(repo_root: Path, apply: bool) -> int:
