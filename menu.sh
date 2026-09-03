@@ -3,7 +3,8 @@ set -Eeuo pipefail
 
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 LINUX="$REPO_ROOT/scripts/linux"
-# shellcheck source=scripts/linux/lib/runtime.sh
+# Runtime path is anchored under the repository root resolved above.
+# shellcheck disable=SC1091
 source "$LINUX/lib/runtime.sh"
 
 ACTION="status"
