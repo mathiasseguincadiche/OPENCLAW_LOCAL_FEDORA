@@ -161,9 +161,7 @@ def _check_l2(repo_root: Path) -> list[GateCheck]:
     )
 
     session = os.environ.get("XDG_SESSION_TYPE", "unknown").casefold()
-    checks.append(
-        GateCheck("wayland", "PASS" if session == "wayland" else "FAIL", session)
-    )
+    checks.append(GateCheck("wayland", "PASS" if session == "wayland" else "FAIL", session))
 
     cpu = _cpu_model()
     checks.append(
@@ -298,9 +296,16 @@ def collect_hardware_gate(repo_root: Path, gate: str) -> HardwareGateReport:
     )
 
 
+def _canonical_evidence_directory(directory: Path) -> Path:
+    if directory.name == "qualification" and directory.parent.name == "proofs":
+        return directory.parent / "hardware"
+    return directory
+
+
 def write_hardware_evidence(report: HardwareGateReport, directory: Path) -> Path:
-    directory.mkdir(parents=True, exist_ok=True)
+    canonical = _canonical_evidence_directory(directory)
+    canonical.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-    path = directory / f"hardware_{report.gate.casefold()}_{stamp}.json"
+    path = canonical / f"hardware_{report.gate.casefold()}_{stamp}.json"
     path.write_text(report.to_json() + "\n", encoding="utf-8")
     return path
