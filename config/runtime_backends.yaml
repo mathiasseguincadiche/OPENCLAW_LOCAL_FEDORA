@@ -1,0 +1,82 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+
+backends:
+  ollama-vulkan:
+    provider: ollama
+    mode: baseline
+    linux_native: true
+    endpoint: http://127.0.0.1:11434
+    accelerator: vulkan
+    gpu_stack: mesa
+    activation: automatic
+    qualification_required: true
+
+  llama-cpp-vulkan:
+    provider: llama_cpp_http
+    mode: candidate
+    linux_native: true
+    endpoint: http://127.0.0.1:8081/v1
+    api: openai-compatible
+    accelerator: vulkan
+    gpu_stack: mesa
+    device: Vulkan0
+    activation: managed-candidate
+    qualification_required: true
+    router:
+      models_max: 1
+      autoload: true
+      offline: true
+      gpu_layers: auto
+      context_tokens: 16384
+      parallel: 1
+
+  llama-cpp-sycl:
+    provider: llama_cpp_http
+    mode: candidate
+    linux_native: true
+    endpoint: http://127.0.0.1:8080/v1
+    api: openai-compatible
+    accelerator: sycl
+    device_api: level_zero
+    device: SYCL0
+    activation: managed-candidate
+    qualification_required: true
+    support_posture: benchmark-before-promotion
+    router:
+      models_max: 1
+      autoload: true
+      offline: true
+      gpu_layers: auto
+      context_tokens: 16384
+      parallel: 1
+
+selection:
+  initial_baseline: ollama-vulkan
+  production_backend: null
+  automatic_promotion: false
+  compare_same_model_when_possible: true
+  compare_same_quantization: true
+  no_cloud_fallback: true
+  required_metrics:
+    - first_token_ms
+    - response_ttft_ms
+    - tokens_per_second
+    - prompt_tokens_per_second
+    - vram_mib
+    - ram_mib
+    - model_load_ms
+    - model_switch_ms
+    - stability
+    - tool_calling
+    - power_watts
+
+promotion_requires:
+  - all_three_models_load
+  - hard_40m_qualification_pass
+  - openclaw_http_provider_smoke
+  - tool_calling_e2e
+  - three_stable_runs
+  - no_functional_regression
+  - no_security_regression
+  - human_review
