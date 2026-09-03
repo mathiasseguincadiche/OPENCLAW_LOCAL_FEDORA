@@ -58,12 +58,14 @@ printf 'QUALIFICATION_ENDPOINT=%s\n' "$ENDPOINT"
 if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then
   exec systemd-inhibit --what=sleep --mode=block \
     --why="OPENCLAW_LOCAL_FEDORA HARD-40M qualification" \
+    env OPENCLAW_LOCAL_FEDORA_SLEEP_INHIBITED=1 \
     "$PYTHON" -m clawfedora.cli --root "$REPO_ROOT" qualification \
     --runtime-root "$RUNTIME_ROOT" --endpoint "$ENDPOINT"
 fi
 
 exec systemd-inhibit --what=sleep --mode=block \
   --why="OPENCLAW_LOCAL_FEDORA HARD-40M qualification" \
-  env PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
+  env OPENCLAW_LOCAL_FEDORA_SLEEP_INHIBITED=1 \
+  PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
   "$PYTHON" -m clawfedora.cli --root "$REPO_ROOT" qualification \
   --runtime-root "$RUNTIME_ROOT" --endpoint "$ENDPOINT"
