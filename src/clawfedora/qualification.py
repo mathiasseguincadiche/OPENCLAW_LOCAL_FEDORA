@@ -75,7 +75,7 @@ def _request_json(
 
 def _scenario_output_limit(scenario: dict[str, Any], suite: dict[str, Any]) -> int:
     value = int(scenario.get("max_output_tokens", suite.get("default_max_output_tokens", 256)))
-    if value < 32 or value > 1024:
+    if value < 32 or value > 768:
         raise ValueError(f"limite de sortie scénario invalide: {value}")
     return value
 
@@ -425,9 +425,9 @@ def evaluate_cases(policy: dict[str, Any], cases: list[dict[str, Any]]) -> dict[
     if p95_first > float(thresholds["max_p95_first_token_ms"]):
         failures.append("p95_first_token_ms")
     context_thresholds = dict(thresholds["per_context_min_check_pass_rate"])
-    for context, observed in per_context.items():
-        if observed < float(context_thresholds[context]):
-            failures.append(f"context_{context}_check_pass_rate")
+    for context_key, observed in per_context.items():
+        if observed < float(context_thresholds[context_key]):
+            failures.append(f"context_{context_key}_check_pass_rate")
 
     model_metrics: dict[str, dict[str, float]] = {}
     for alias in ("qwen-max", "gemma-deep", "devstral-devops"):
@@ -652,14 +652,14 @@ def run_qualification(
         print(f"QUALIFICATION_RESULT=FAIL endpoint non-loopback: {endpoint}")
         return 2, None
 
-    evidence_dir = _evidence_directory(runtime)
+    hardware_evidence_dir = runtime / "proofs" / "hardware"
     l2 = collect_hardware_gate(repo_root, "l2")
-    l2_path = write_hardware_evidence(l2, evidence_dir)
+    l2_path = write_hardware_evidence(l2, hardware_evidence_dir)
     if not l2.ok:
         print(f"QUALIFICATION_RESULT=FAIL L2 evidence={l2_path}")
         return 2, l2_path
     l3 = collect_hardware_gate(repo_root, "l3")
-    l3_path = write_hardware_evidence(l3, evidence_dir)
+    l3_path = write_hardware_evidence(l3, hardware_evidence_dir)
     if not l3.ok:
         print(f"QUALIFICATION_RESULT=FAIL L3 evidence={l3_path}")
         return 2, l3_path
@@ -760,16 +760,16 @@ def run_qualification(
 
     if time.perf_counter() >= total_deadline:
         fail_fast_error = fail_fast_error or "HARD_TIMEOUT qualification"
-    evaluation = (
-        evaluate_cases(policy, cases)
-        if len(cases) == len(plan.cases)
-        else {
+    evaluation: dict[str, Any]
+    if len(cases) == len(plan.cases):
+        evaluation = evaluate_cases(policy, cases)
+    else:
+        evaluation = {
             "verdict": "FAIL",
             "failures": [fail_fast_error or "matrice incomplète"],
             "metrics": {},
             "thresholds": dict(dict(policy["automated_gates"])["thresholds"]),
         }
-    )
     if fail_fast_error and fail_fast_error not in evaluation["failures"]:
         evaluation["failures"].append(fail_fast_error)
         evaluation["verdict"] = "FAIL"
