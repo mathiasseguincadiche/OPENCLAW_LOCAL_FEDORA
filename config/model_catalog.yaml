@@ -36,7 +36,8 @@ models:
     runtime_id: qwen2.5-coder:14b-instruct-q4_K_M
     vulkan_runtime_id: qwen2.5-coder:14b-instruct-q4_K_M
     sycl_runtime_id: qwen2.5-coder:14b-instruct-q4_K_M
-    family: qwen
+    family: qwen-coder
+    architecture_family: qwen2
     input: [text]
     capabilities: [tools, code, code-reasoning, code-repair]
     approximate_weight_gib: 9.0
