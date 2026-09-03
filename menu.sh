@@ -104,15 +104,27 @@ printf '%s\n' ' Cloud           : explicite uniquement, jamais fallback silencie
 case "$ACTION" in
   lifecycle-validate) run_ops validate-lifecycle ;;
   install)
-    ((APPLY == 1)) && "$LINUX/10_install_full.sh" --apply || "$LINUX/10_install_full.sh"
+    if ((APPLY == 1)); then
+      "$LINUX/10_install_full.sh" --apply
+    else
+      "$LINUX/10_install_full.sh"
+    fi
     ;;
   models)
-    ((APPLY == 1)) && "$LINUX/09_provision_models.sh" --apply || "$LINUX/09_provision_models.sh"
+    if ((APPLY == 1)); then
+      "$LINUX/09_provision_models.sh" --apply
+    else
+      "$LINUX/09_provision_models.sh"
+    fi
     ;;
   health) "$LINUX/11_health.sh" ;;
   backup) "$LINUX/12_backup_restore.sh" backup ;;
   repair)
-    ((APPLY == 1)) && "$LINUX/13_repair.sh" --apply || "$LINUX/13_repair.sh"
+    if ((APPLY == 1)); then
+      "$LINUX/13_repair.sh" --apply
+    else
+      "$LINUX/13_repair.sh"
+    fi
     ;;
   uninstall)
     args=()
@@ -146,7 +158,11 @@ case "$ACTION" in
     "$LINUX/04_configure_openclaw.sh" "${args[@]}"
     ;;
   bootstrap)
-    ((APPLY == 1)) && "$LINUX/00_bootstrap.sh" --apply || "$LINUX/00_bootstrap.sh"
+    if ((APPLY == 1)); then
+      "$LINUX/00_bootstrap.sh" --apply
+    else
+      "$LINUX/00_bootstrap.sh"
+    fi
     ;;
   status)
     run_cli validate
