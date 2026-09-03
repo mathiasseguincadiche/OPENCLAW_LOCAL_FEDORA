@@ -17,6 +17,7 @@ from clawfedora.openclaw_e2e import run_e2e
 from clawfedora.project_cli import add_project_parser, run_project_command
 from clawfedora.qualification import dry_run as qualification_dry_run
 from clawfedora.qualification import run_qualification
+from clawfedora.qualification_contracts import validate_qualification_contracts
 
 
 def _root_from_args(value: str | None) -> Path:
@@ -38,6 +39,9 @@ def _validate(root: Path, as_json: bool) -> int:
         core_failures, core_warnings = validate_core_contracts(root)
         failures.extend(core_failures)
         warnings.extend(core_warnings)
+        qualification_failures, qualification_warnings = validate_qualification_contracts(root)
+        failures.extend(qualification_failures)
+        warnings.extend(qualification_warnings)
     except (FileNotFoundError, ValueError) as exc:
         failures.append(str(exc))
 
