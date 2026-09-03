@@ -1,0 +1,43 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+
+runtime:
+  initial_version_pin: "2026.7.1-2"
+  require_schema_capture_before_apply: true
+  require_patch_dry_run_before_apply: true
+  require_config_validate_after_apply: true
+  require_agents_list_after_apply: true
+
+plugins:
+  parallel_search:
+    id: parallel
+    package: "@openclaw/parallel-plugin"
+    version: "2026.7.1"
+    provider: parallel-free
+    install_if_missing: true
+    runtime_inspection_required: true
+
+gateway:
+  mode: local
+  bind: loopback
+  default_port: 18789
+
+agents:
+  default_agent: chef-operations
+  skip_bootstrap: true
+  context_tokens: 16384
+  compaction_reserve_tokens: 4096
+  pdf_max_bytes_mb: 50
+  pdf_max_pages: 20
+
+workspace:
+  managed_marker: .openclaw-fedora-managed
+  refuse_unmanaged_nonempty_workspace: true
+  shared_files: [CONTRACT.md, TOOLS.md, HEARTBEAT.md, PEDAGOGY.md]
+  role_files: [AGENTS.md, IDENTITY.md, SOUL.md]
+
+security:
+  secrets_in_generated_patch: false
+  providers_loopback_only: true
+  elevated_enabled: false
+  exec_mode: ask

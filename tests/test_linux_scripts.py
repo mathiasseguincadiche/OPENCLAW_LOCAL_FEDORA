@@ -15,6 +15,8 @@ def test_shell_entrypoints_are_strict() -> None:
         "scripts/linux/00_bootstrap.sh",
         "scripts/linux/01_audit_host.sh",
         "scripts/linux/02_verify_gpu.sh",
+        "scripts/linux/03_deploy_agents.sh",
+        "scripts/linux/04_configure_openclaw.sh",
         "scripts/linux/lib/runtime.sh",
     ):
         text = _read(path)
@@ -66,9 +68,40 @@ def test_runtime_python_fails_with_explicit_message_when_missing() -> None:
     assert "return 127" in text
 
 
-def test_menu_exposes_only_implemented_foundation_actions() -> None:
+def test_openclaw_config_is_dry_run_by_default_and_fail_closed() -> None:
+    text = _read("scripts/linux/04_configure_openclaw.sh")
+    assert "APPLY=0" in text
+    assert "DRY_RUN=PASS" in text
+    assert 'OPENCLAW_PIN="2026.7.1-2"' in text
+    assert "OpenClaw $OPENCLAW_PIN requis" in text
+    assert "require_backend_models" in text
+    assert "exactement 3 modèles" in text
+    assert "config patch --file \"$PATCH_PATH\" --dry-run" in text
+    assert "config validate --json" in text
+    assert "agents list --json" in text
+    assert "plugins inspect parallel --runtime --json" in text
+
+
+def test_openclaw_agent_inventory_accepts_supported_json_shapes() -> None:
+    text = _read("scripts/linux/04_configure_openclaw.sh")
+    assert 'type == "array" then length' in text
+    assert '(.agents? | type) == "array"' in text
+    assert '(.list? | type) == "array"' in text
+    assert '[[ "$AGENT_COUNT" -eq 8 ]]' in text
+
+
+def test_menu_exposes_only_implemented_actions() -> None:
     text = _read("menu.sh")
-    for action in ("status", "validate", "bootstrap", "audit", "audit-strict", "gpu"):
+    for action in (
+        "status",
+        "validate",
+        "bootstrap",
+        "audit",
+        "audit-strict",
+        "gpu",
+        "agents",
+        "configure-openclaw",
+    ):
         assert action in text
     assert "qualification)" not in text
     assert "golden)" not in text

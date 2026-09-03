@@ -1,16 +1,16 @@
 # État du projet
 
-Dernière mise à jour du socle : 2026-09-03.
+Dernière mise à jour : 2026-09-03.
 
 Le dépôt est une **plateforme Fedora native en construction**, pas encore une plateforme matériellement qualifiée. Aucun gain de performance n'est revendiqué avant mesures reproductibles sur la machine cible.
 
 | Gate | Objet | État |
 |---|---|---|
-| L0 | Fondation, contrats et CI | EN COURS |
-| L1 | Cœur multi-agents Linux-native | À FAIRE |
+| L0 | Fondation, contrats et CI | PASS |
+| L1 | Cœur multi-agents Linux-native | EN COURS — couche agents/runtime implémentée, moteur projet restant |
 | L2 | Fedora 44 kernel officiel : hardware gate | BLOQUÉ jusqu'à installation Fedora |
 | L3 | B580 `xe` + Mesa/Vulkan | BLOQUÉ jusqu'à installation Fedora |
-| L4 | OpenClaw + 8 agents + E2E | À FAIRE |
+| L4 | OpenClaw + 8 agents + E2E | PRÉPARÉ — configuration réelle à prouver sur Fedora |
 | L5 | Qualification HARD-40M | À FAIRE |
 | L6 | Optimisation runtimes Linux + kernel 7.2.3 | À FAIRE |
 | L7 | Golden Projects + projet représentatif | À FAIRE |
@@ -28,6 +28,8 @@ Le dépôt est une **plateforme Fedora native en construction**, pas encore une 
 - llama.cpp SYCL/Level Zero est un candidat Linux optionnel de performance.
 - Un candidat optionnel ne bloque jamais la baseline.
 - Les trois modèles Qwen/Gemma/Devstral restent obligatoires.
+- Les huit rôles agents restent exactement définis et `chef-operations` reste le défaut.
+- `exec.mode=ask`, `elevated=false` et providers loopback-only restent obligatoires.
 - HARD-40M reste limité à 2400 secondes et 30 cas.
 - Aucun fallback cloud silencieux.
 - SELinux reste Enforcing.

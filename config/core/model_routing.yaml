@@ -1,0 +1,44 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+
+policy:
+  local_first: true
+  cloud_enabled_by_default: false
+  supported_local_aliases: [qwen-max, gemma-deep, devstral-devops]
+  local_fallbacks_must_stay_in_supported_fleet: true
+
+agents:
+  chef-operations:
+    local_primary: qwen-max
+    local_fallback: gemma-deep
+    preferred_tier: max
+  expert-recherche:
+    local_primary: qwen-max
+    local_fallback: gemma-deep
+    preferred_tier: max
+  architecte-solutions:
+    local_primary: gemma-deep
+    local_fallback: qwen-max
+    preferred_tier: deep
+  ingenieur-devops:
+    local_primary: devstral-devops
+    local_fallback: qwen-max
+    preferred_tier: specialist
+  ingenieur-securite:
+    local_primary: qwen-max
+    local_fallback: gemma-deep
+    preferred_tier: max
+  ingenieur-release-forges:
+    local_primary: qwen-max
+    local_fallback: devstral-devops
+    preferred_tier: max
+  redacteur-technique:
+    local_primary: gemma-deep
+    local_fallback: qwen-max
+    preferred_tier: deep
+  auditeur-qualite:
+    local_primary: gemma-deep
+    local_fallback: qwen-max
+    independent_alternative: qwen-max
+    preferred_tier: deep
+    independence_rule: reviewer_family_must_differ_from_producer_when_practical
