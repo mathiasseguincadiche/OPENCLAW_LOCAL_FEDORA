@@ -34,7 +34,8 @@ def test_mapping_loopback_context_prompt_and_p95() -> None:
     with pytest.raises(ValueError, match="objet attendu"):
         optimization_runner._mapping([])
     assert optimization_runner._loopback("http://127.0.0.1:11434") is True
-    assert optimization_runner._loopback("http://localhost:8080/v1") is True
+    assert optimization_runner._loopback("http://localhost:8080/v1") is False
+    assert optimization_runner._loopback("http://[::1]:8080/v1") is False
     assert optimization_runner._loopback("https://127.0.0.1:8080") is False
     assert optimization_runner._loopback("http://example.com:8080") is False
 
