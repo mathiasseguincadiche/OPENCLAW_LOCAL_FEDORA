@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.core_config import AGENT_IDS, root_contract
-from clawfedora.project_common import validate_task_id
+from clawfedora.project_common import validate_project_id, validate_task_id
 
 EXPECTED_SCHEMA = "1.0.0"
 EXPECTED_GATE = "L7"
@@ -24,6 +24,7 @@ def _task_failures(project_id: str, raw_tasks: Any) -> list[str]:
     if len(tasks) != len(raw_tasks):
         failures.append(f"{project_id}: tasks doit contenir uniquement des objets")
         return failures
+
     ids: set[str] = set()
     dependencies: dict[str, list[str]] = {}
     for task in tasks:
@@ -36,12 +37,14 @@ def _task_failures(project_id: str, raw_tasks: Any) -> list[str]:
             failures.append(f"{project_id}: task id dupliqué: {task_id}")
             continue
         ids.add(task_id)
+
         role = str(task.get("role", ""))
         if role not in AGENT_IDS:
             failures.append(f"{project_id}/{task_id}: rôle inconnu: {role}")
         for field in ("title", "objective"):
             if not str(task.get(field, "")).strip():
                 failures.append(f"{project_id}/{task_id}: {field} vide")
+
         depends = task.get("depends_on", [])
         outputs = task.get("expected_outputs", [])
         criteria = task.get("acceptance_criteria", [])
@@ -53,7 +56,15 @@ def _task_failures(project_id: str, raw_tasks: Any) -> list[str]:
             outputs = []
         if not isinstance(criteria, list) or not criteria:
             failures.append(f"{project_id}/{task_id}: acceptance_criteria requis")
-        dependencies[task_id] = [str(value) for value in depends]
+
+        normalized_dependencies: list[str] = []
+        for dependency in depends:
+            try:
+                normalized_dependencies.append(validate_task_id(str(dependency)))
+            except ValueError:
+                normalized_dependencies.append(str(dependency))
+        dependencies[task_id] = normalized_dependencies
+
         for relative in outputs:
             value = Path(str(relative))
             parts = value.parts
@@ -67,10 +78,12 @@ def _task_failures(project_id: str, raw_tasks: Any) -> list[str]:
                 failures.append(
                     f"{project_id}/{task_id}: sortie non namespacée: {relative}"
                 )
+
     for task_id, values in dependencies.items():
         unknown = sorted(value for value in values if value not in ids)
         if unknown:
             failures.append(f"{project_id}/{task_id}: dépendances inconnues: {unknown}")
+
     visiting: set[str] = set()
     visited: set[str] = set()
 
@@ -95,11 +108,15 @@ def _project_failures(raw: Any, *, representative: bool) -> list[str]:
     label = "representative_project" if representative else "golden_project"
     if not isinstance(raw, dict):
         return [f"{label}: objet attendu"]
-    project_id = str(raw.get("id", "")).strip()
+
     failures: list[str] = []
-    if not project_id:
-        failures.append(f"{label}: id requis")
+    raw_project_id = str(raw.get("id", ""))
+    try:
+        project_id = validate_project_id(raw_project_id)
+    except ValueError as exc:
+        failures.append(f"{label}: {exc}")
         project_id = label
+
     if not str(raw.get("title", "")).strip():
         failures.append(f"{project_id}: title requis")
     if not str(raw.get("objective", "")).strip():
@@ -111,6 +128,7 @@ def _project_failures(raw: Any, *, representative: bool) -> list[str]:
         or any(not str(value).strip() for value in sources)
     ):
         failures.append(f"{project_id}: au moins une source texte non vide requise")
+
     failures.extend(_task_failures(project_id, raw.get("tasks")))
     if representative and isinstance(raw.get("tasks"), list):
         roles = {
@@ -126,6 +144,15 @@ def _project_failures(raw: Any, *, representative: bool) -> list[str]:
     return failures
 
 
+def _normalized_project_id(raw: Any) -> str | None:
+    if not isinstance(raw, dict):
+        return None
+    try:
+        return validate_project_id(str(raw.get("id", "")))
+    except ValueError:
+        return None
+
+
 def validate_golden_contracts(repo_root: Path) -> tuple[tuple[str, ...], tuple[str, ...]]:
     failures: list[str] = []
     warnings: list[str] = []
@@ -135,6 +162,7 @@ def validate_golden_contracts(repo_root: Path) -> tuple[tuple[str, ...], tuple[s
             failures.append("l7: schema_version doit être 1.0.0")
         if contract.get("gate") != EXPECTED_GATE:
             failures.append("l7: gate doit être L7")
+
         policy = _mapping(contract.get("policy"), "l7.policy")
         required_policy = {
             "local_only": True,
@@ -154,6 +182,7 @@ def validate_golden_contracts(repo_root: Path) -> tuple[tuple[str, ...], tuple[s
         for key, expected in required_policy.items():
             if policy.get(key) != expected:
                 failures.append(f"l7.policy.{key}: attendu={expected!r}")
+
         limitations = contract.get("limitations", [])
         if not isinstance(limitations, list) or len(limitations) < 3:
             failures.append("l7: au moins trois limites documentées sont requises")
@@ -162,23 +191,24 @@ def validate_golden_contracts(repo_root: Path) -> tuple[tuple[str, ...], tuple[s
         if not isinstance(goldens, list) or len(goldens) != 5:
             failures.append("l7: exactement cinq Golden Projects sont requis")
             goldens = []
+
         seen_ids: set[str] = set()
         for raw in goldens:
             failures.extend(_project_failures(raw, representative=False))
-            if isinstance(raw, dict):
-                project_id = str(raw.get("id", "")).strip()
-                if project_id in seen_ids:
-                    failures.append(f"l7: project id dupliqué: {project_id}")
-                seen_ids.add(project_id)
+            project_id = _normalized_project_id(raw)
+            if project_id is None:
+                continue
+            if project_id in seen_ids:
+                failures.append(f"l7: project id dupliqué: {project_id}")
+            seen_ids.add(project_id)
 
         representative = contract.get("representative_project")
         failures.extend(_project_failures(representative, representative=True))
-        if isinstance(representative, dict):
-            representative_id = str(representative.get("id", "")).strip()
-            if representative_id in seen_ids:
-                failures.append(
-                    f"l7: representative project id dupliqué: {representative_id}"
-                )
+        representative_id = _normalized_project_id(representative)
+        if representative_id is not None and representative_id in seen_ids:
+            failures.append(
+                f"l7: representative project id dupliqué: {representative_id}"
+            )
 
         if not failures:
             warnings.append(
