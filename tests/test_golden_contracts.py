@@ -138,12 +138,12 @@ def test_l7_contract_rejects_unsafe_outputs_dependencies_and_cycles(
     assert isinstance(second, dict)
     second["tasks"] = [
         {
-            **_task("a"),
-            "depends_on": ["b"],
+            **_task("task-a"),
+            "depends_on": ["task-b"],
         },
         {
-            **_task("b"),
-            "depends_on": ["a"],
+            **_task("task-b"),
+            "depends_on": ["task-a"],
         },
     ]
     monkeypatch.setattr(golden_contracts, "root_contract", lambda *_args: contract)
@@ -152,3 +152,26 @@ def test_l7_contract_rejects_unsafe_outputs_dependencies_and_cycles(
     assert "sortie non namespacée" in joined
     assert "dépendances inconnues" in joined
     assert "cycle de dépendances" in joined
+
+
+def test_l7_contract_rejects_invalid_and_normalized_duplicate_project_ids(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    contract = _valid_contract()
+    goldens = contract["golden_projects"]
+    assert isinstance(goldens, list)
+    first = goldens[0]
+    second = goldens[1]
+    assert isinstance(first, dict)
+    assert isinstance(second, dict)
+    first["id"] = "../escape"
+    second["id"] = "Golden-2"
+    third = goldens[2]
+    assert isinstance(third, dict)
+    third["id"] = "golden-2"
+
+    monkeypatch.setattr(golden_contracts, "root_contract", lambda *_args: contract)
+    failures, _ = golden_contracts.validate_golden_contracts(ROOT)
+    joined = "\n".join(failures)
+    assert "project_id invalide" in joined
+    assert "project id dupliqué: golden-2" in joined
