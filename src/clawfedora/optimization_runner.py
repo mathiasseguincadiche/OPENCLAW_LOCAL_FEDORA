@@ -55,7 +55,7 @@ def _mapping(value: Any) -> dict[str, Any]:
 
 def _loopback(endpoint: str) -> bool:
     parsed = urlparse(endpoint)
-    return parsed.scheme == "http" and parsed.hostname in {"127.0.0.1", "localhost", "::1"}
+    return parsed.scheme == "http" and parsed.hostname == "127.0.0.1"
 
 
 def _request_json(
