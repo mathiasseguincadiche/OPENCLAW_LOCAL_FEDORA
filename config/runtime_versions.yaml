@@ -1,4 +1,4 @@
-schema_version: "1.0.0"
+schema_version: "1.1.0"
 platform_version: "0.1.0"
 
 openclaw:
@@ -19,18 +19,24 @@ fedora_gpu_stack:
 
 llama_cpp:
   source: upstream
-  commit: null
-  policy: pin-exact-commit-before-first-performance-qualification
+  tag: "b10516"
+  commit: "b95502ba9aa0eb73a2f4fc8878d7fbe6a847a0b9"
+  policy: exact-pinned-release-for-l6
 
 ollama:
-  version: null
-  policy: pin-observed-version-before-first-performance-qualification
+  version: "0.32.14"
+  tag: "v0.32.14"
+  commit: "d67ad83426633195089509347ffd4fe795120198"
+  policy: exact-stable-pin-for-l6
 
 kernel:
   fedora_baseline: observed-at-install
   upstream_candidate: "7.2.3"
+  upstream_candidate_sha256: "8ba259e8e7b13ec6ef0941c8a39ad90b24bd4a4d6c0010ba6bafb794550ecd03"
 
 upgrade_policy:
   one_variable_at_a_time: true
   require_requalification_after_runtime_change: true
   never_upgrade_during_active_qualification: true
+  automatic_runtime_upgrade: false
+  automatic_kernel_upgrade: false
