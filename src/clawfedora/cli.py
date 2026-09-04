@@ -10,10 +10,12 @@ from clawfedora.audit import collect_audit
 from clawfedora.contracts import validate_repository
 from clawfedora.core_config import resolve_runtime_root
 from clawfedora.core_contracts import validate_core_contracts
+from clawfedora.golden_contracts import validate_golden_contracts
 from clawfedora.hardware_gate import collect_hardware_gate, write_hardware_evidence
 from clawfedora.openclaw_config import build_openclaw_patch, write_openclaw_patch
 from clawfedora.openclaw_e2e import dry_run as e2e_dry_run
 from clawfedora.openclaw_e2e import run_e2e
+from clawfedora.optimization_contracts import validate_optimization_contracts
 from clawfedora.project_cli import add_project_parser, run_project_command
 from clawfedora.qualification import dry_run as qualification_dry_run
 from clawfedora.qualification import run_qualification
@@ -44,6 +46,12 @@ def _validate(root: Path, as_json: bool) -> int:
         qualification_failures, qualification_warnings = validate_qualification_contracts(root)
         failures.extend(qualification_failures)
         warnings.extend(qualification_warnings)
+        optimization_failures, optimization_warnings = validate_optimization_contracts(root)
+        failures.extend(optimization_failures)
+        warnings.extend(optimization_warnings)
+        golden_failures, golden_warnings = validate_golden_contracts(root)
+        failures.extend(golden_failures)
+        warnings.extend(golden_warnings)
     except (FileNotFoundError, ValueError) as exc:
         failures.append(str(exc))
 
