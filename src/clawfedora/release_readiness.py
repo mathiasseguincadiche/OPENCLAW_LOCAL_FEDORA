@@ -577,7 +577,15 @@ def collect_readiness(repo_root: Path, runtime_root: Path) -> dict[str, Any]:
                 accepted,
             )
             l6_failures.extend(decision_failures)
-            manifest.append(_manifest_entry(runtime, "L6", f"decision:{kind}", decision_path, decision))
+            manifest.append(
+                _manifest_entry(
+                    runtime,
+                    "L6",
+                    f"decision:{kind}",
+                    decision_path,
+                    decision,
+                )
+            )
             for input_path in input_paths:
                 payload = _json(input_path)
                 entry = _manifest_entry(runtime, "L6", f"snapshot:{kind}", input_path, payload)
