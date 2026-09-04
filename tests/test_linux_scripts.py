@@ -183,6 +183,14 @@ def test_menu_exposes_implemented_linux_gates_and_lifecycle() -> None:
         "e2e",
         "qualification-dry-run",
         "qualification",
+        "challenger-model",
+        "golden-dry-run",
+        "golden",
+        "release-readiness-dry-run",
+        "release-readiness",
     ):
         assert action in text
-    assert "golden)" not in text
+    assert "golden) run_golden" in text
+    assert "release-readiness) run_l8 check" in text
+    assert "clawfedora-l8 approve" in text
+    assert "approve)" not in text
