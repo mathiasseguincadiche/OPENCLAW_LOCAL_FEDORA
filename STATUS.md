@@ -2,7 +2,7 @@
 
 Dernière mise à jour : 2026-09-03.
 
-Le dépôt est une **plateforme Fedora native dont le code source est en cours de complétion avant validation matérielle**. Les états « implémenté logiciellement » et « qualifié sur la machine cible » sont volontairement séparés.
+Le dépôt est une **plateforme Fedora native dont le socle logiciel L0-L7 est désormais implémenté et validé en CI**. Les états « implémenté logiciellement », « qualifié sur la machine cible » et « approuvé humainement pour V1 » restent volontairement séparés.
 
 ## Complétude du code source
 
@@ -11,18 +11,18 @@ Le dépôt est une **plateforme Fedora native dont le code source est en cours d
 | Fondation / contrats / CI | PASS |
 | 8 agents + routage + workspaces | PASS |
 | Moteur projet / Intake / Artifact Exchange | PASS |
-| Installation complète Fedora | IMPLÉMENTÉ — validation CI en cours |
-| Provisionnement explicite des modèles | IMPLÉMENTÉ — validation CI en cours |
-| Service OpenClaw systemd user | IMPLÉMENTÉ — validation CI en cours |
-| Health / repair / backup / restore / uninstall | IMPLÉMENTÉ — validation CI en cours |
-| Télémétrie locale | IMPLÉMENTÉ — validation CI en cours |
-| FinOps + limites | IMPLÉMENTÉ — validation CI en cours |
+| Installation complète Fedora | PASS logiciel — validation machine cible à produire |
+| Provisionnement explicite des modèles | PASS logiciel — validation machine cible à produire |
+| Service OpenClaw systemd user | PASS logiciel — validation machine cible à produire |
+| Health / repair / backup / restore / uninstall | PASS logiciel — validation machine cible à produire |
+| Télémétrie locale | PASS logiciel |
+| FinOps + limites | PASS logiciel |
 | L2/L3 gates matériels | IMPLÉMENTÉS — preuves réelles à produire |
 | L4 E2E OpenClaw | IMPLÉMENTÉ — preuve réelle à produire |
 | L5 HARD-40M | IMPLÉMENTÉ — preuve réelle à produire |
-| L6 comparaison runtimes/kernel/challenger | À IMPLÉMENTER |
-| L7 Golden Projects + projet représentatif | À IMPLÉMENTER |
-| L8 release readiness / V1 | À IMPLÉMENTER |
+| L6 comparaison runtimes/kernel/challenger | PASS logiciel — mesures réelles requises avant toute promotion |
+| L7 Golden Projects + projet représentatif | PASS logiciel/CI — 5 Golden Projects + 1 projet représentatif déterministes |
+| L8 release readiness / V1 | À IMPLÉMENTER / APPROUVER après preuves réelles requises |
 
 ## Gates de qualification
 
@@ -34,9 +34,9 @@ Le dépôt est une **plateforme Fedora native dont le code source est en cours d
 | L3 | B580 `xe` + Mesa/Vulkan | PENDING — B580 réelle requise |
 | L4 | OpenClaw + 8 agents + E2E | PENDING — E2E réel requis |
 | L5 | Qualification HARD-40M | PENDING — flotte 9B/12B/14B à mesurer |
-| L6 | Optimisation runtimes Linux + kernel 7.2.3 | PENDING — code framework à finir puis mesures |
-| L7 | Golden Projects + projet représentatif | PENDING — code à finir puis exécution réelle |
-| L8 | Approbation humaine V1 | BLOQUÉ jusqu'aux preuves requises |
+| L6 | Optimisation runtimes Linux + kernel 7.2.3 | PASS logiciel — mesures runtime/kernel/challenger réelles requises |
+| L7 | Golden Projects + projet représentatif | PASS logiciel/CI — moteur réel, sorties déterministes locales, gate humain préservé |
+| L8 | Approbation humaine V1 | BLOQUÉ jusqu'aux preuves matérielles/performance requises et à l'approbation humaine |
 
 ## Flotte nominale
 
@@ -65,6 +65,7 @@ Le contexte nominal est 8K. Le 16K reste un contexte de qualification, pas un r�
 - Les huit rôles agents restent exactement définis et `chef-operations` reste le défaut.
 - `exec.mode=ask`, `elevated=false` et providers loopback-only restent obligatoires.
 - Le moteur projet est fail-closed et `COMPLETE` requiert une approbation humaine explicite.
+- L7 s'arrête à `PACKAGING` et ne peut jamais convertir automatiquement une preuve en approbation humaine L8.
 - Les entrées projet sont non fiables, inventoriées, hashées et revérifiées avant les changements de phase.
 - Les bundles d'échange sont versionnés, immuables et revérifiés avant validation.
 - Le package final est re-hashé avant `COMPLETE`.
@@ -79,7 +80,8 @@ Le contexte nominal est 8K. Le 16K reste un contexte de qualification, pas un r�
 - L4 exige Gateway réel, 8 agents, tool-calling, réparation et stabilité 3/3.
 - HARD-40M reste limité à 2400 secondes et 30 cas, préflight et évaluation inclus.
 - Les runs longs utilisent `systemd-inhibit` pour bloquer la suspension.
-- Les preuves runtime restent hors Git et les sorties brutes des modèles ne sont pas persistées par L5.
+- Les preuves runtime restent hors Git et les sorties brutes des modèles ne sont pas persistées par L5/L6.
+- Les Golden Projects L7 exercent le vrai moteur projet et l'Artifact Exchange avec des sorties déterministes locales ; ils ne remplacent pas les preuves modèles/GPU de L4-L6.
 - Aucun fallback cloud silencieux.
 - SELinux reste Enforcing.
-- Une V1 ne pourra être déclarée qu'après code complet, preuves matérielles et approbation humaine.
+- Une V1 ne pourra être déclarée qu'après code complet, preuves matérielles/performance requises et approbation humaine L8.
