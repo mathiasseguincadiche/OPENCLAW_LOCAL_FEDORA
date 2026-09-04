@@ -1,0 +1,179 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+gate: L7
+policy:
+  local_only: true
+  cloud_allowed: false
+  remote_publication_allowed: false
+  final_human_completion_allowed: false
+  telemetry_required: true
+  finops_required: true
+  required_golden_projects: 5
+  required_representative_projects: 1
+  required_terminal_status: PACKAGING
+  required_validation_verdict: PASS
+  required_review_verdict: PASS
+  require_package_integrity: true
+  require_human_gate_preserved: true
+limitations:
+  - "Golden outputs are deterministic local fixtures; L4/L5/L6 cover live model and runtime quality."
+  - "No cloud escalation or remote publication is exercised by L7."
+  - "L7 stops at PACKAGING and never bypasses the final human approval required by L8."
+golden_projects:
+  - id: golden-docs-runbook
+    title: "Golden 1 — Runbook technique"
+    objective: "Transformer une demande courte en runbook technique validé et empaqueté."
+    sources:
+      - "Rédiger un runbook local-first pour exploiter un service Linux avec rollback explicite."
+    tasks:
+      - id: write-runbook
+        role: redacteur-technique
+        title: "Rédiger le runbook"
+        objective: "Produire un runbook exploitable et concis."
+        depends_on: []
+        expected_outputs: ["deliverables/write-runbook/runbook.md"]
+        acceptance_criteria: ["livrable non vide", "sortie namespacée"]
+  - id: golden-cicd-platform
+    title: "Golden 2 — Plateforme CI/CD"
+    objective: "Concevoir puis documenter une chaîne CI/CD locale et reproductible."
+    sources:
+      - "Proposer une architecture CI/CD avec build, tests, déploiement et rollback."
+    tasks:
+      - id: design-pipeline
+        role: architecte-solutions
+        title: "Concevoir la chaîne"
+        objective: "Définir les étapes et dépendances de la chaîne CI/CD."
+        depends_on: []
+        expected_outputs: ["deliverables/design-pipeline/architecture.md"]
+        acceptance_criteria: ["architecture décrite"]
+      - id: implement-pipeline
+        role: ingenieur-devops
+        title: "Décliner l'implémentation"
+        objective: "Produire le plan d'implémentation et de rollback."
+        depends_on: [design-pipeline]
+        expected_outputs: ["deliverables/implement-pipeline/implementation.md"]
+        acceptance_criteria: ["dépendance architecture respectée"]
+  - id: golden-security-review
+    title: "Golden 3 — Revue sécurité"
+    objective: "Analyser des contraintes techniques puis livrer une revue sécurité traçable."
+    sources:
+      - "Évaluer une plateforme locale : secrets, privilèges, réseau loopback et journalisation."
+    tasks:
+      - id: threat-review
+        role: ingenieur-securite
+        title: "Évaluer les risques"
+        objective: "Identifier contrôles, risques et mitigations."
+        depends_on: []
+        expected_outputs: ["deliverables/threat-review/security-review.md"]
+        acceptance_criteria: ["risques et mitigations présents"]
+  - id: golden-research-architecture
+    title: "Golden 4 — Recherche et architecture"
+    objective: "Faire converger recherche et architecture dans une chaîne multi-agent."
+    sources:
+      - "Comparer deux options d'architecture locales et recommander une cible avec limites."
+    tasks:
+      - id: research-options
+        role: expert-recherche
+        title: "Comparer les options"
+        objective: "Produire une synthèse de recherche structurée."
+        depends_on: []
+        expected_outputs: ["deliverables/research-options/research.md"]
+        acceptance_criteria: ["deux options comparées"]
+      - id: architecture-decision
+        role: architecte-solutions
+        title: "Formaliser la décision"
+        objective: "Transformer la recherche en décision d'architecture."
+        depends_on: [research-options]
+        expected_outputs: ["deliverables/architecture-decision/decision.md"]
+        acceptance_criteria: ["décision et limites explicites"]
+  - id: golden-release-package
+    title: "Golden 5 — Release et documentation"
+    objective: "Valider une chaîne DevOps vers packaging et documentation finale."
+    sources:
+      - "Préparer une release locale avec contrôles, rollback et notes opératoires."
+    tasks:
+      - id: prepare-release
+        role: ingenieur-devops
+        title: "Préparer la release"
+        objective: "Décrire les contrôles de livraison."
+        depends_on: []
+        expected_outputs: ["deliverables/prepare-release/release-plan.md"]
+        acceptance_criteria: ["contrôles et rollback présents"]
+      - id: forge-package
+        role: ingenieur-release-forges
+        title: "Préparer le packaging"
+        objective: "Définir le contenu publiable sans publication distante."
+        depends_on: [prepare-release]
+        expected_outputs: ["deliverables/forge-package/package-notes.md"]
+        acceptance_criteria: ["publication distante absente"]
+      - id: document-release
+        role: redacteur-technique
+        title: "Documenter la release"
+        objective: "Produire les notes finales d'exploitation."
+        depends_on: [forge-package]
+        expected_outputs: ["deliverables/document-release/operations.md"]
+        acceptance_criteria: ["notes d'exploitation présentes"]
+representative_project:
+  id: representative-devops-delivery
+  title: "Projet représentatif — Livraison DevOps multi-agent"
+  objective: "Exécuter le moteur projet complet avec les huit rôles, dépendances, Artifact Exchange, validation, review, packaging, télémétrie et FinOps."
+  sources:
+    - "Concevoir une plateforme de déploiement applicatif locale avec CI/CD, sécurité, packaging, documentation et rollback."
+    - "Contraintes : local-first, aucun cloud implicite, aucune publication distante, preuves traçables et approbation humaine finale."
+  tasks:
+    - id: frame-project
+      role: chef-operations
+      title: "Cadrer le projet"
+      objective: "Formaliser périmètre, contraintes et séquencement."
+      depends_on: []
+      expected_outputs: ["deliverables/frame-project/frame.md"]
+      acceptance_criteria: ["périmètre explicite"]
+    - id: research-platform
+      role: expert-recherche
+      title: "Rechercher les options"
+      objective: "Comparer les choix techniques pertinents."
+      depends_on: [frame-project]
+      expected_outputs: ["deliverables/research-platform/research.md"]
+      acceptance_criteria: ["options comparées"]
+    - id: design-platform
+      role: architecte-solutions
+      title: "Concevoir l'architecture"
+      objective: "Produire l'architecture cible à partir du cadrage et de la recherche."
+      depends_on: [frame-project, research-platform]
+      expected_outputs: ["deliverables/design-platform/architecture.md"]
+      acceptance_criteria: ["architecture et rollback décrits"]
+    - id: build-platform
+      role: ingenieur-devops
+      title: "Décliner l'implémentation"
+      objective: "Définir automatisation, CI/CD et exploitation."
+      depends_on: [design-platform]
+      expected_outputs: ["deliverables/build-platform/devops.md"]
+      acceptance_criteria: ["automatisation décrite"]
+    - id: secure-platform
+      role: ingenieur-securite
+      title: "Sécuriser la cible"
+      objective: "Vérifier secrets, privilèges, réseau et audit."
+      depends_on: [design-platform]
+      expected_outputs: ["deliverables/secure-platform/security.md"]
+      acceptance_criteria: ["contrôles de sécurité décrits"]
+    - id: release-platform
+      role: ingenieur-release-forges
+      title: "Préparer la release"
+      objective: "Assembler la stratégie de livraison et rollback."
+      depends_on: [build-platform, secure-platform]
+      expected_outputs: ["deliverables/release-platform/release.md"]
+      acceptance_criteria: ["package local uniquement"]
+    - id: document-platform
+      role: redacteur-technique
+      title: "Produire la documentation"
+      objective: "Rédiger les instructions d'exploitation finales."
+      depends_on: [release-platform]
+      expected_outputs: ["deliverables/document-platform/operations.md"]
+      acceptance_criteria: ["documentation exploitable"]
+    - id: audit-platform
+      role: auditeur-qualite
+      title: "Auditer les livrables"
+      objective: "Produire la synthèse de contrôle qualité avant gate projet."
+      depends_on: [document-platform]
+      expected_outputs: ["deliverables/audit-platform/audit.md"]
+      acceptance_criteria: ["synthèse qualité présente"]
