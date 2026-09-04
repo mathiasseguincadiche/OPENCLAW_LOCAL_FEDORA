@@ -76,7 +76,11 @@ def build_parser() -> argparse.ArgumentParser:
     snapshot.add_argument("--output", required=True)
 
     challenger_snapshot = sub.add_parser("snapshot-challenger")
-    challenger_snapshot.add_argument("--variant", choices=("incumbent", "challenger"), required=True)
+    challenger_snapshot.add_argument(
+        "--variant",
+        choices=("incumbent", "challenger"),
+        required=True,
+    )
     challenger_snapshot.add_argument("--endpoint", default="http://127.0.0.1:11434")
     challenger_snapshot.add_argument("--output", required=True)
 
