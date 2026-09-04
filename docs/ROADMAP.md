@@ -90,11 +90,14 @@ Comparer à la baseline Fedora stock + Ollama Vulkan :
 - llama.cpp Vulkan ;
 - llama.cpp SYCL/Level Zero comme candidat optionnel ;
 - réglages runtime qualifiés ;
-- kernel 7.2.3 contre kernel Fedora officiel.
+- kernel 7.2.3 contre kernel Fedora officiel ;
+- Gemma 3 12B contre Ministral 3 14B sur le slot `gemma-deep`, avec vision, qualité documentaire et tool-calling.
 
 Une variable change à la fois. Les candidats optionnels ne bloquent jamais la baseline. Le kernel Fedora reste bootable.
 
-**Sortie :** candidat gagnant reproductible sur trois runs, sans régression fonctionnelle ni sécurité.
+La flotte opérationnelle reste **exactement composée de trois alias**. Ministral est provisionné explicitement pour qualification, reste hors routage et ne peut jamais être promu automatiquement.
+
+**Sortie :** décisions reproductibles sur trois runs, sans régression fonctionnelle ni sécurité. Les verdicts possibles restent `KEEP_BASELINE` ou `ELIGIBLE_FOR_HUMAN_PROMOTION` ; aucune décision ne modifie automatiquement la configuration.
 
 ## L7 — Validation fonctionnelle complète
 
@@ -104,16 +107,49 @@ Une variable change à la fois. Les candidats optionnels ne bloquent jamais la b
 - limites documentées ;
 - télémétrie et FinOps validés.
 
-**Sortie :** chaîne complète PASS.
+L7 s'arrête à `PACKAGING` et préserve le gate humain final.
+
+**Sortie :** chaîne complète PASS côté moteur projet, sans `COMPLETE` automatique.
 
 ## L8 — V1
+
+### L8.A — Release Readiness
 
 Conditions cumulatives :
 
 - L0 à L7 PASS ;
-- preuves identifiées ;
+- preuves L2 à L7 présentes sous la racine runtime gérée ;
+- preuves identifiées et hashées en SHA-256 ;
+- décisions L6 runtime, kernel et Gemma ↔ Ministral recalculables avec les contrats courants ;
 - documentation cohérente ;
 - aucun seuil abaissé pour forcer un PASS ;
-- approbation humaine finale.
+- aucun fallback cloud ni promotion automatique.
 
-**Sortie :** autorisation explicite de préparer la V1.
+Le gate produit uniquement :
+
+- `BLOCKED` ; ou
+- `READY_FOR_HUMAN_REVIEW`.
+
+**Sortie :** `RELEASE_READINESS_REPORT.json`. Ce rapport n'approuve jamais V1.
+
+### L8.B — Approbation humaine explicite
+
+L'approbation est une action séparée qui exige :
+
+- un rapport `READY_FOR_HUMAN_REVIEW` ;
+- une identité d'approbateur explicite ;
+- `--acknowledge-v1` ;
+- une nouvelle validation de toutes les preuves courantes ;
+- le même hash d'ensemble de preuves que le rapport soumis.
+
+Elle écrit un enregistrement immuable `APPROVED_FOR_V1_PREPARATION` sous `proofs/l8/approvals/`.
+
+Cette action ne :
+
+- modifie pas le routage ;
+- ne promeut ni runtime, ni kernel, ni modèle ;
+- ne passe aucun projet à `COMPLETE` ;
+- ne crée ni tag ni release GitHub ;
+- ne publie rien automatiquement.
+
+**Sortie :** autorisation humaine explicite de **préparer** la V1. La création/publication effective de la release reste une opération distincte.
