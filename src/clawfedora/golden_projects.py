@@ -197,6 +197,11 @@ def _write_outputs(
     dependencies = task.get("depends_on", [])
     if not isinstance(dependencies, list):
         raise ValueError(f"L7: depends_on invalide pour {task_id}")
+    dependency_text = (
+        ", ".join(str(value) for value in dependencies)
+        if dependencies
+        else "aucune"
+    )
 
     project_root = project.resolve()
     outputs: list[str] = []
@@ -224,8 +229,7 @@ def _write_outputs(
                     f"Projet: {project_id}",
                     f"Rôle: {task['role']}",
                     f"Objectif: {task['objective']}",
-                    "Dépendances: "
-                    + (", ".join(str(value) for value in dependencies) if dependencies else "aucune"),
+                    "Dépendances: " + dependency_text,
                     "",
                     "L7 deterministic local evidence: PASS",
                     "Cloud: disabled",
