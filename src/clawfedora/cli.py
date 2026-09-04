@@ -20,6 +20,7 @@ from clawfedora.project_cli import add_project_parser, run_project_command
 from clawfedora.qualification import dry_run as qualification_dry_run
 from clawfedora.qualification import run_qualification
 from clawfedora.qualification_contracts import validate_qualification_contracts
+from clawfedora.release_readiness_contracts import validate_release_readiness_contracts
 
 SLEEP_INHIBIT_MARKER = "OPENCLAW_LOCAL_FEDORA_SLEEP_INHIBITED"
 
@@ -52,6 +53,9 @@ def _validate(root: Path, as_json: bool) -> int:
         golden_failures, golden_warnings = validate_golden_contracts(root)
         failures.extend(golden_failures)
         warnings.extend(golden_warnings)
+        readiness_failures, readiness_warnings = validate_release_readiness_contracts(root)
+        failures.extend(readiness_failures)
+        warnings.extend(readiness_warnings)
     except (FileNotFoundError, ValueError) as exc:
         failures.append(str(exc))
 
