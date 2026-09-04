@@ -67,8 +67,13 @@ def challenger_plan(repo_root: Path, variant: str) -> ChallengerModel:
         model = matches[0]
         runtime_id = str(model.get("runtime_id", ""))
         quantization = str(model.get("quantization", ""))
-        if model.get("promotion") != "benchmark-only" or model.get("automatic_promotion") is not False:
-            raise ValueError("L6 challenger: Ministral doit rester benchmark-only sans auto-promotion")
+        if (
+            model.get("promotion") != "benchmark-only"
+            or model.get("automatic_promotion") is not False
+        ):
+            raise ValueError(
+                "L6 challenger: Ministral doit rester benchmark-only sans auto-promotion"
+            )
     if not runtime_id or not quantization:
         raise ValueError("L6 challenger: identité modèle incomplète")
     return ChallengerModel(normalized, slot, runtime_id, quantization)
@@ -370,7 +375,9 @@ def run_challenger_snapshot(
                 "runtime_id": model.runtime_id,
                 "probe_id": probe["id"],
                 "context": 8192,
-                "prompt_sha256": hashlib.sha256(str(probe["prompt"]).encode("utf-8")).hexdigest(),
+                "prompt_sha256": hashlib.sha256(
+                    str(probe["prompt"]).encode("utf-8")
+                ).hexdigest(),
                 "status": status,
                 "check_passed": status == "ok",
                 "check_detail": detail,
@@ -438,7 +445,7 @@ def run_challenger_snapshot(
         "cases": cases,
         "raw_outputs_persisted": False,
         "cloud_calls_allowed": False,
-        "routed": False if model.variant == "challenger" else True,
+        "routed": model.variant == "incumbent",
         "automatic_promotion": False,
     }
     output.parent.mkdir(parents=True, exist_ok=True)
