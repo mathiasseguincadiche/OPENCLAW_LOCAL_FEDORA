@@ -3,8 +3,13 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 from pathlib import Path
 
+from clawfedora.challenger_runner import (
+    provision_challenger_plan,
+    run_challenger_snapshot,
+)
 from clawfedora.core_config import resolve_runtime_root
 from clawfedora.optimization import (
     compare_kernel,
@@ -50,6 +55,10 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--apply", action="store_true")
     stage.add_argument("--json", action="store_true")
 
+    challenger_model = sub.add_parser("provision-challenger")
+    challenger_model.add_argument("--apply", action="store_true")
+    challenger_model.add_argument("--json", action="store_true")
+
     runtime_files = sub.add_parser("runtime-files")
     runtime_files.add_argument("--backend", choices=tuple(SUPPORTED_BACKENDS), required=True)
     runtime_files.add_argument("--unit-dir", required=True)
@@ -65,6 +74,11 @@ def build_parser() -> argparse.ArgumentParser:
     snapshot.add_argument("--kind", choices=("runtime", "kernel"), required=True)
     snapshot.add_argument("--candidate-id", required=True)
     snapshot.add_argument("--output", required=True)
+
+    challenger_snapshot = sub.add_parser("snapshot-challenger")
+    challenger_snapshot.add_argument("--variant", choices=("incumbent", "challenger"), required=True)
+    challenger_snapshot.add_argument("--endpoint", default="http://127.0.0.1:11434")
+    challenger_snapshot.add_argument("--output", required=True)
 
     runtime = sub.add_parser("compare-runtime")
     _add_compare_args(runtime)
@@ -117,6 +131,31 @@ def main(argv: list[str] | None = None) -> int:
         print(f"L6_STAGE_RESULT=PASS apply={str(bool(args.apply)).lower()}")
         return 0
 
+    if args.command == "provision-challenger":
+        try:
+            payload = provision_challenger_plan(repo_root)
+            if args.apply:
+                completed = subprocess.run(
+                    ["ollama", "pull", str(payload["runtime_id"])],
+                    check=False,
+                )
+                if completed.returncode != 0:
+                    print(
+                        "L6_CHALLENGER_PROVISION_RESULT=FAIL "
+                        f"model={payload['runtime_id']}"
+                    )
+                    return 2
+        except (FileNotFoundError, OSError, ValueError) as exc:
+            print(f"L6_CHALLENGER_PROVISION_RESULT=FAIL error={exc}")
+            return 2
+        if args.json or not args.apply:
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+        print(
+            "L6_CHALLENGER_PROVISION_RESULT=PASS "
+            f"apply={str(bool(args.apply)).lower()} routed=false"
+        )
+        return 0
+
     if args.command == "runtime-files":
         try:
             files = prepare_runtime_files(
@@ -158,6 +197,23 @@ def main(argv: list[str] | None = None) -> int:
             print(f"L6_SNAPSHOT_RESULT=FAIL error={exc}")
             return 2
         print(f"L6_SNAPSHOT_RESULT=PASS evidence={output}")
+        return 0
+
+    if args.command == "snapshot-challenger":
+        try:
+            output = run_challenger_snapshot(
+                repo_root,
+                variant=str(args.variant),
+                endpoint=str(args.endpoint),
+                output=Path(args.output).expanduser().resolve(),
+            )
+        except (FileNotFoundError, KeyError, OSError, ValueError) as exc:
+            print(f"L6_CHALLENGER_SNAPSHOT_RESULT=FAIL error={exc}")
+            return 2
+        print(
+            "L6_CHALLENGER_SNAPSHOT_RESULT=PASS "
+            f"variant={args.variant} evidence={output}"
+        )
         return 0
 
     baseline = _paths(args.baseline)
