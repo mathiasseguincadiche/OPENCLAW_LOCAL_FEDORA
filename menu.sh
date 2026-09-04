@@ -29,7 +29,7 @@ Cycle de vie:
 
 Plateforme et qualification:
   status                 Contrats + cycle de vie + audit non bloquant
-  validate               Valide les contrats du dépôt + cycle de vie
+  validate               Valide tous les contrats L0-L8 + cycle de vie
   bootstrap              Prépare Fedora; dry-run par défaut
   audit                  Audit Fedora/B580 non bloquant
   audit-strict           Audit historique strict
@@ -44,6 +44,15 @@ Plateforme et qualification:
   e2e                    Gate L4 réel
   qualification-dry-run  Valide le plan HARD-40M
   qualification          Gate L5 réel HARD-40M
+  challenger-model       Plan/provision Ministral challenger hors routage; --apply explicite
+  golden-dry-run         Valide le plan L7 sans exécuter les projets
+  golden                 Exécute les 5 Golden Projects + projet représentatif
+  release-readiness-dry-run  Valide le framework L8 sans lire les preuves réelles
+  release-readiness      Agrège et revalide les preuves L0-L7; jamais d'approbation automatique
+
+Approbation V1:
+  L'approbation L8 n'est volontairement pas exposée comme action menu.
+  Utiliser clawfedora-l8 approve avec --report, --approver et --acknowledge-v1.
 
 Backends OpenClaw:
   ollama-vulkan          baseline
@@ -89,6 +98,30 @@ run_ops() {
       "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" "$@"
   fi
 }
+run_golden() {
+  if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then
+    "$PYTHON" -m clawfedora.golden_cli --root "$REPO_ROOT" "$@"
+  else
+    PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
+      "$PYTHON" -m clawfedora.golden_cli --root "$REPO_ROOT" "$@"
+  fi
+}
+run_l6() {
+  if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then
+    "$PYTHON" -m clawfedora.optimization_cli --root "$REPO_ROOT" "$@"
+  else
+    PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
+      "$PYTHON" -m clawfedora.optimization_cli --root "$REPO_ROOT" "$@"
+  fi
+}
+run_l8() {
+  if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then
+    "$PYTHON" -m clawfedora.release_readiness_cli --root "$REPO_ROOT" "$@"
+  else
+    PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
+      "$PYTHON" -m clawfedora.release_readiness_cli --root "$REPO_ROOT" "$@"
+  fi
+}
 
 printf '%s\n' '==============================================================================='
 printf '%s\n' ' OPENCLAW_LOCAL_FEDORA — FEDORA 44 / GNOME 50 / INTEL ARC B580'
@@ -97,8 +130,9 @@ printf '%s\n' ' Kernel baseline : Fedora officiel'
 printf '%s\n' ' Kernel 7.2.3    : candidat uniquement, jamais promotion automatique'
 printf '%s\n' ' GPU nominal     : xe + Mesa/Vulkan'
 printf '%s\n' ' Runtime baseline: Ollama Vulkan'
-printf '%s\n' ' Modèles         : Qwen 3.5 9B / Gemma 3 12B / Qwen 2.5 Coder 14B'
-printf '%s\n' ' Qualification  : HARD-40M / 30 cas / suspension inhibée'
+printf '%s\n' ' Modèles routés  : Qwen 3.5 9B / Gemma 3 12B / Qwen 2.5 Coder 14B (exactement 3)'
+printf '%s\n' ' Challenger      : Ministral 3 14B hors routage, benchmark uniquement'
+printf '%s\n' ' Qualification   : HARD-40M / 30 cas / suspension inhibée'
 printf '%s\n' ' Cloud           : explicite uniquement, jamais fallback silencieux'
 
 case "$ACTION" in
@@ -152,6 +186,15 @@ case "$ACTION" in
   e2e) "$LINUX/06_openclaw_e2e.sh" --backend "$BACKEND" ;;
   qualification-dry-run) "$LINUX/07_run_qualification.sh" --dry-run ;;
   qualification) "$LINUX/07_run_qualification.sh" ;;
+  challenger-model)
+    args=(provision-challenger)
+    ((APPLY == 1)) && args+=(--apply)
+    run_l6 "${args[@]}"
+    ;;
+  golden-dry-run) run_golden --dry-run ;;
+  golden) run_golden ;;
+  release-readiness-dry-run) run_l8 dry-run ;;
+  release-readiness) run_l8 check ;;
   configure-openclaw)
     args=(--backend "$BACKEND")
     ((APPLY == 1)) && args+=(--apply)

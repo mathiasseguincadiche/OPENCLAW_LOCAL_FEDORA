@@ -1,0 +1,85 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+gate: L8
+
+policy:
+  required_gates: [L0, L1, L2, L3, L4, L5, L6, L7]
+  runtime_evidence_gates: [L2, L3, L4, L5, L6, L7]
+  readiness_verdicts: [BLOCKED, READY_FOR_HUMAN_REVIEW]
+  approval_verdict: APPROVED_FOR_V1_PREPARATION
+  automatic_human_approval: false
+  explicit_human_approval_required: true
+  approval_requires_acknowledgement: true
+  approval_mutates_runtime_config: false
+  approval_publishes_release: false
+  thresholds_may_be_lowered: false
+  evidence_must_be_under_runtime_root: true
+  evidence_hash_algorithm: sha256
+  cloud_calls_allowed: false
+
+software_contracts:
+  repository: required
+  core: required
+  lifecycle: required
+  qualification: required
+  optimization: required
+  golden_projects: required
+  release_readiness: required
+
+evidence:
+  l2:
+    gate: L2
+    source: l5_hardware_reference
+    fallback_glob: proofs/hardware/hardware_l2_*.json
+    required_verdict: PASS
+  l3:
+    gate: L3
+    source: l5_hardware_reference
+    fallback_glob: proofs/hardware/hardware_l3_*.json
+    required_verdict: PASS
+  l4:
+    gate: L4
+    glob: proofs/openclaw-e2e/l4_*.json
+    required_verdict: PASS
+    required_backend: ollama-vulkan
+    required_agent_smokes: 8
+    required_stability_runs: 3
+  l5:
+    gate: L5
+    glob: proofs/qualification/hard40_*.json
+    required_verdict: PASS
+    required_protocol: fedora-hard40-v1
+    thresholds_source: qualification_policy.yaml
+    required_cases: 30
+  l6:
+    gate: L6
+    glob: proofs/l6/**/*.json
+    accepted_decision_verdicts: [KEEP_BASELINE, ELIGIBLE_FOR_HUMAN_PROMOTION]
+    required_decisions:
+      - kind: runtime
+        candidate_id: llama-cpp-vulkan
+      - kind: kernel
+        candidate_id: upstream-7.2.3
+      - kind: model-challenger
+        candidate_id: ministral-3:14b-instruct-2512-q4_K_M
+    optional_decisions:
+      - kind: runtime
+        candidate_id: llama-cpp-sycl
+    automatic_promotion_required: false
+  l7:
+    gate: L7
+    glob: proofs/l7/runs/*/L7_REPORT.json
+    required_verdict: PASS
+    required_golden_projects: 5
+    required_representative_projects: 1
+
+approval:
+  report_directory: proofs/l8/runs
+  approval_directory: proofs/l8/approvals
+  readiness_report_name: RELEASE_READINESS_REPORT.json
+  approval_prefix: V1_APPROVAL_
+  immutable_records: true
+  report_hash_required: true
+  current_evidence_recheck_required: true
+  human_approval_field: human_approved
+  approval_scope: prepare-v1
