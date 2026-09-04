@@ -18,6 +18,7 @@ dependencies = [
 clawfedora = "clawfedora.cli:main"
 clawfedora-ops = "clawfedora.ops_cli:main"
 clawfedora-golden = "clawfedora.golden_cli:main"
+clawfedora-l8 = "clawfedora.release_readiness_cli:main"
 
 [project.optional-dependencies]
 dev = [
