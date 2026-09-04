@@ -17,7 +17,9 @@ def _safe_relative_pattern(value: str, label: str) -> bool:
     return bool(value) and not path.is_absolute() and ".." not in path.parts
 
 
-def validate_release_readiness_contracts(repo_root: Path) -> tuple[tuple[str, ...], tuple[str, ...]]:
+def validate_release_readiness_contracts(
+    repo_root: Path,
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
     failures: list[str] = []
     warnings: list[str] = []
     try:
@@ -85,7 +87,8 @@ def validate_release_readiness_contracts(repo_root: Path) -> tuple[tuple[str, ..
         "golden_projects",
         "release_readiness",
     }
-    if set(software) != expected_software or any(value != "required" for value in software.values()):
+    software_required = all(value == "required" for value in software.values())
+    if set(software) != expected_software or not software_required:
         failures.append("L8: tous les contrats logiciels requis doivent rester obligatoires")
 
     evidence = _mapping(contract.get("evidence"), "evidence")
@@ -147,9 +150,18 @@ def validate_release_readiness_contracts(repo_root: Path) -> tuple[tuple[str, ..
         if normalized != expected:
             failures.append("L8: les trois décisions L6 obligatoires ont dérivé")
 
-    runtime_cfg = _mapping(optimization.get("runtime_comparison"), "optimization.runtime_comparison")
-    kernel_cfg = _mapping(optimization.get("kernel_comparison"), "optimization.kernel_comparison")
-    challenger_cfg = _mapping(optimization.get("model_challenger"), "optimization.model_challenger")
+    runtime_cfg = _mapping(
+        optimization.get("runtime_comparison"),
+        "optimization.runtime_comparison",
+    )
+    kernel_cfg = _mapping(
+        optimization.get("kernel_comparison"),
+        "optimization.kernel_comparison",
+    )
+    challenger_cfg = _mapping(
+        optimization.get("model_challenger"),
+        "optimization.model_challenger",
+    )
     if runtime_cfg.get("automatic_promotion") is not False:
         failures.append("L8: promotion automatique runtime interdite")
     if kernel_cfg.get("automatic_promotion") is not False:
@@ -184,7 +196,8 @@ def validate_release_readiness_contracts(repo_root: Path) -> tuple[tuple[str, ..
     approval = _mapping(contract.get("approval"), "approval")
     for key in ("report_directory", "approval_directory"):
         value = str(approval.get(key, ""))
-        if not _safe_relative_pattern(value, f"approval.{key}") or not value.startswith("proofs/l8/"):
+        safe = _safe_relative_pattern(value, f"approval.{key}")
+        if not safe or not value.startswith("proofs/l8/"):
             failures.append(f"L8: approval.{key} doit rester sous proofs/l8")
     if approval.get("immutable_records") is not True:
         failures.append("L8: les approbations doivent rester immuables")
