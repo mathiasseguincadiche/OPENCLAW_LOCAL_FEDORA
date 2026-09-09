@@ -133,6 +133,5 @@ promotion:
 
 runtime_comparison:
   required_for_backend_promotion: true
-  candidates: [ollama-vulkan, llama-cpp-vulkan, llama-cpp-sycl]
+  candidates: [ollama-vulkan, llama-cpp-vulkan]
   automatic_winner_promotion: false
-  optional_candidates_must_not_block_baseline: true
