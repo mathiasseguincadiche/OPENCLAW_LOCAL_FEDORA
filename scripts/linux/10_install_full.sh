@@ -8,15 +8,16 @@ source "$LINUX/lib/runtime.sh"
 
 APPLY=0
 [[ "${1:-}" == "--apply" ]] && APPLY=1
-OPENCLAW_PIN="2026.7.1-2"
+OPENCLAW_PIN="2026.9.2"
+OLLAMA_PIN="0.32.14"
 RUNTIME_ROOT="$(claw_runtime_root)"
 
 cat <<EOF
 INSTALL_PLAN Fedora=44 runtime=$RUNTIME_ROOT
-  1. bootstrap Fedora + GPU/KVM/Podman dependencies
-  2. install/start Ollama if missing
-  3. install OpenClaw $OPENCLAW_PIN if missing/wrong version
-  4. explicitly provision the three nominal models
+  1. bootstrap Fedora + SELinux/firewalld/GPU/KVM/Podman dependencies
+  2. install/converge Ollama $OLLAMA_PIN and start the local service
+  3. install/converge OpenClaw $OPENCLAW_PIN
+  4. explicitly provision the three nominal models Architecture V2
   5. deploy agent workspaces and apply OpenClaw config
   6. install/enable the OpenClaw systemd user gateway
   7. run product health check
@@ -34,12 +35,18 @@ fi
 
 "$LINUX/00_bootstrap.sh" --apply --enable-linger --runtime-root "$RUNTIME_ROOT"
 
-if ! command -v ollama >/dev/null 2>&1; then
+ollama_version="$(ollama --version 2>/dev/null | head -n1 || true)"
+if [[ "$ollama_version" != *"$OLLAMA_PIN"* ]]; then
   tmp_ollama="$(mktemp)"
   trap 'rm -f "$tmp_ollama" "${tmp_openclaw:-}"' EXIT
   curl -fsSL --proto '=https' --tlsv1.2 https://ollama.com/install.sh -o "$tmp_ollama"
-  sh "$tmp_ollama"
+  OLLAMA_VERSION="$OLLAMA_PIN" sh "$tmp_ollama"
 fi
+ollama_version="$(ollama --version 2>/dev/null | head -n1 || true)"
+[[ "$ollama_version" == *"$OLLAMA_PIN"* ]] || {
+  echo "INSTALL_RESULT=FAIL Ollama pin mismatch: ${ollama_version:-absent}" >&2
+  exit 2
+}
 if systemctl list-unit-files ollama.service >/dev/null 2>&1; then
   sudo systemctl enable --now ollama.service
 fi
@@ -60,6 +67,7 @@ OPENCLAW_VERSION="$(openclaw --version 2>/dev/null | head -n1 || true)"
   exit 2
 }
 
+export OPENCLAW_LOCAL_CLOUD_ENABLED="false"
 "$LINUX/09_provision_models.sh" --apply
 "$LINUX/04_configure_openclaw.sh" --apply --backend ollama-vulkan
 
@@ -77,3 +85,5 @@ else
 fi
 
 echo "INSTALL_RESULT=PASS"
+echo "OLLAMA_VERSION=$ollama_version"
+echo "OPENCLAW_VERSION=$OPENCLAW_VERSION"
