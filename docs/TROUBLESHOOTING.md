@@ -1,5 +1,18 @@
 # Dépannage par symptôme
 
+## Repères de lecture
+
+| Repère | Valeur |
+|---|---|
+| **Public cible** | Opérateurs confrontés à un incident, une anomalie ou un gate en échec. |
+| **Niveau** | Intermédiaire |
+| **Prérequis** | Disposer d'un symptôme observable et pouvoir exécuter `validate`, `health` et les commandes de diagnostic de la couche concernée. |
+| **Objectif** | Isoler la couche fautive et appliquer la correction minimale sans masquer l'échec ni affaiblir la sécurité. |
+| **Résultat attendu** | Savoir collecter les preuves utiles, vérifier la correction et décider d'un rollback ou d'une escalade. |
+| **Critère d’arrêt** | Arrêter toute correction qui exigerait `setenforce 0`, `chmod -R 777`, une exposition réseau inutile, un changement de modèle/backend non justifié ou plusieurs variables à la fois. |
+| **À lire ensuite** | [`OPERATIONS.md`](OPERATIONS.md) après retour à l'état sain, ou [`UPGRADE.md`](UPGRADE.md) si la correction implique un changement volontaire de version. |
+| **Source de vérité** | Les contrats `config/*.yaml`, les logs systemd/OpenClaw/Ollama et les preuves runtime du gate en échec. |
+
 Ce guide part du symptôme observé et suit toujours la même méthode : **observer → isoler → corriger au minimum → vérifier → rollback si nécessaire**.
 
 Ne pas désactiver SELinux, ouvrir le firewall, changer de modèle ou basculer de backend uniquement pour masquer un échec.
