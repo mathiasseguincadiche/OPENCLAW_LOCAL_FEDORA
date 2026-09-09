@@ -20,15 +20,25 @@ Le chemin d'installation exécute, dans cet ordre :
 
 1. bootstrap Fedora 44 ;
 2. création du runtime géré sous `/srv/openclaw-local` ;
-3. installation explicite d'Ollama si absent ;
-4. installation d'OpenClaw `2026.7.1-2` via l'installateur CLI officiel si nécessaire ;
-5. provisionnement explicite des trois modèles nominaux ;
+3. installation/convergence d'Ollama vers la version verrouillée par `config/runtime_versions.yaml` ;
+4. installation/convergence d'OpenClaw `2026.9.2` via l'installateur CLI officiel ;
+5. provisionnement explicite des trois modèles nominaux Architecture V2 ;
 6. déploiement des huit workspaces ;
 7. rendu, dry-run puis application de la configuration OpenClaw ;
 8. installation du Gateway comme service utilisateur systemd ;
 9. health-check final.
 
-L'installation complète doit être lancée depuis le compte Fedora de bureau, jamais directement en root.
+L'installation complète doit être lancée depuis le compte Fedora de bureau, jamais directement en root. Elle conserve SELinux Enforcing et firewalld actif ; aucun mécanisme de sécurité n'est désactivé pour contourner une erreur d'installation.
+
+## Flotte nominale
+
+Le provisionnement standard est limité aux trois alias routés :
+
+- `qwen-max` → `qwen3.5:9b-q4_K_M` ;
+- `gemma-deep` → `gemma4:12b-it-q4_K_M` ;
+- `devstral-devops` → `hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M`.
+
+`granite4.2:8b-q4_K_M` est un challenger L6 du spécialiste DevOps. Il reste hors routage, ne compte pas dans la flotte requise et n'est jamais téléchargé par le provisionnement nominal.
 
 ## Provisionnement des modèles
 
@@ -39,7 +49,16 @@ Le téléchargement implicite reste interdit pendant les benchmarks. Le téléch
 ./menu.sh --action models --apply
 ```
 
-La commande lit exclusivement `config/model_catalog.yaml`.
+La commande lit exclusivement `config/model_catalog.yaml` et ne provisionne que les trois modèles marqués `required: true`.
+
+Le challenger Granite utilise une action L6 séparée :
+
+```bash
+./menu.sh --action challenger-model
+./menu.sh --action challenger-model --apply
+```
+
+Cette action ne modifie jamais le routage et n'effectue aucune promotion automatique.
 
 ## Santé
 
@@ -120,7 +139,7 @@ clawfedora-ops --runtime-root /srv/openclaw-local telemetry \
 
 ## FinOps
 
-Le cloud reste désactivé par défaut. FinOps sert uniquement à enregistrer les escalades cloud explicitement approuvées.
+Le cloud reste désactivé par défaut. FinOps sert uniquement à enregistrer les escalades cloud explicitement approuvées lorsqu'une politique de projet les autorise ; aucune route LLM cloud ne fait partie de la flotte nominale Fedora.
 
 ```bash
 clawfedora-ops --runtime-root /srv/openclaw-local finops \
