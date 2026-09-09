@@ -8,10 +8,12 @@ Plateforme **Fedora 44 Linux-native, LLM local-only et fail-closed** pour exécu
 
 `OPENCLAW_LOCAL_FEDORA` est une édition Linux native : elle n'exécute pas la version Windows sous compatibilité. Installation, services, sécurité, conteneurs, virtualisation, GPU, exploitation et qualification reposent sur les primitives Fedora.
 
+**OpenClaw est verrouillé exactement en `2026.9.2`, et le plugin Parallel exactement en `2026.9.2`.** Une version plus récente, plus ancienne ou voisine n'est pas une variante supportée. Le projet interdit les mises à jour automatiques de ces deux composants ; changer leur version exige une modification contractuelle explicite et une requalification adaptée.
+
 ```text
 Fedora 44 / GNOME 50 / Wayland
         │
-        ├── systemd --user ── OpenClaw Gateway
+        ├── systemd --user ── OpenClaw Gateway 2026.9.2
         ├── SELinux Enforcing + firewalld
         ├── Podman
         ├── KVM / libvirt / OVMF
@@ -68,13 +70,14 @@ cd OPENCLAW_LOCAL_FEDORA
 ./menu.sh --action health
 ```
 
-Le premier `install` est un dry-run. L'application réelle doit être lancée depuis le compte Fedora de bureau, pas directement en root.
+Le premier `install` est un dry-run. L'application réelle doit être lancée depuis le compte Fedora de bureau, pas directement en root. L'installation converge OpenClaw vers **exactement `2026.9.2`** et échoue si cette version exacte ne peut pas être obtenue.
 
 Guide complet : [`docs/INSTALLATION.md`](docs/INSTALLATION.md).
 
 ## Premiers contrôles
 
 ```bash
+openclaw --version
 ./menu.sh --action status
 ./menu.sh --action health
 ./menu.sh --action project-selftest
@@ -82,7 +85,7 @@ Guide complet : [`docs/INSTALLATION.md`](docs/INSTALLATION.md).
 ./menu.sh --action qualification-dry-run
 ```
 
-Ces commandes permettent de valider progressivement le dépôt et le produit sans confondre dry-run, self-test et qualification matérielle.
+`openclaw --version` doit identifier exactement `2026.9.2`. Les autres commandes permettent de valider progressivement le dépôt et le produit sans confondre dry-run, self-test et qualification matérielle.
 
 Guide de prise en main : [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md).
 
@@ -116,7 +119,7 @@ L2 Fedora/hardware
   ↓
 L3 B580 / xe / Mesa-Vulkan
   ↓
-L4 OpenClaw E2E / 8 agents / outils
+L4 OpenClaw 2026.9.2 exact / 8 agents / outils
   ↓
 L5 HARD-40M
   ↓
@@ -140,6 +143,8 @@ Les invariants principaux sont :
 - SELinux **Enforcing** ;
 - firewalld actif ;
 - Gateway et providers locaux en loopback ;
+- OpenClaw exactement `2026.9.2`, sans mise à jour automatique ;
+- Parallel exactement `2026.9.2`, sans mise à jour automatique ;
 - LLM cloud non supporté dans le routage nominal ;
 - outils agents en base `minimal` fail-closed ;
 - `exec.mode=ask` et `elevated=false` ;
@@ -205,6 +210,7 @@ La documentation explique le produit, mais les valeurs opérationnelles sont dé
 
 - modèles → `config/model_catalog.yaml` ;
 - versions → `config/runtime_versions.yaml` ;
+- politique OpenClaw → `config/core/openclaw_policy.yaml` ;
 - routage → `config/core/model_routing.yaml` ;
 - outils → `config/core/tool_policy.yaml` ;
 - qualification → `config/qualification_policy.yaml` ;
