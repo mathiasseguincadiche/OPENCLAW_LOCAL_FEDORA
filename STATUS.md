@@ -28,7 +28,7 @@ Le dépôt est une **édition Fedora 44 Linux-native d'OPENCLAW_LOCAL**. Le socl
 | L2/L3 gates matériels | IMPLÉMENTÉS — preuves réelles à produire |
 | L4 E2E OpenClaw | IMPLÉMENTÉ — preuve réelle à produire |
 | L5 HARD-40M | IMPLÉMENTÉ — preuve réelle à produire |
-| L6 runtimes/kernel/challenger DevOps | IMPLÉMENTÉ — mesures réelles requises avant toute promotion |
+| L6 runtime Vulkan/kernel/challenger DevOps | IMPLÉMENTÉ — mesures réelles requises avant toute promotion |
 | L7 Golden Projects + projet représentatif | PASS logiciel — gate humain préservé |
 | L8 release readiness | PASS framework logiciel — preuves réelles L2-L7 requises |
 | L8 approbation humaine | IMPLÉMENTÉE mais NON EXÉCUTÉE |
@@ -43,7 +43,7 @@ Le dépôt est une **édition Fedora 44 Linux-native d'OPENCLAW_LOCAL**. Le socl
 | L3 | B580 `xe` + Mesa/Vulkan | PENDING — B580 réelle requise |
 | L4 | OpenClaw + 8 agents + E2E | PENDING — E2E réel requis |
 | L5 | Qualification HARD-40M | PENDING — flotte V2 à mesurer |
-| L6 | Ollama/Vulkan, llama.cpp, kernel 7.2.3, Granite challenger | PENDING matériel — contrats logiciels PASS |
+| L6 | Ollama/Vulkan, llama.cpp/Vulkan, kernel 7.2.3, Granite challenger | PENDING matériel — contrats logiciels PASS |
 | L7 | Golden Projects + projet représentatif | PASS logiciel — replay installation finale requis avant L8 réel |
 | L8 | Release Readiness / approbation humaine | BLOQUÉ jusqu'aux preuves L2-L7 réelles puis approbation explicite |
 
@@ -64,13 +64,13 @@ Le benchmark nominal reste à **8192 tokens**. Les agents OpenClaw disposent d'u
 ## Invariants Linux et agents
 
 - Fedora 44 + GNOME 50 + Wayland est la cible.
-- Intel Arc B580 utilise le driver kernel `xe` et Mesa/Vulkan comme pile nominale.
+- Intel Arc B580 utilise le driver kernel `xe` et Mesa/Vulkan comme pile GPU supportée.
 - SELinux doit rester **Enforcing** ; un test ne peut pas être « réparé » par `setenforce 0`.
 - firewalld est conservé et les providers/Gateway restent loopback-only.
 - Les services OpenClaw applicatifs utilisent `systemd --user` lorsqu'ils ne nécessitent pas de privilèges système.
 - Podman est le runtime conteneur Linux privilégié ; KVM/libvirt/OVMF fournit la virtualisation native.
 - Le kernel Fedora officiel reste toujours un rollback bootable ; Linux 7.2.3 est un candidat L6 seulement.
-- Ollama Vulkan est la baseline runtime ; llama.cpp Vulkan et SYCL/Level Zero sont des candidats mesurés séparément.
+- Ollama/Vulkan est la baseline runtime ; llama.cpp/Vulkan est l'unique candidat runtime L6.
 - Les trois alias `qwen-max`, `gemma-deep`, `devstral-devops` constituent exactement la flotte routée.
 - Granite reste hors flotte nominale et hors routage tant qu'aucune décision humaine post-qualification ne change explicitement le contrat.
 - Seul `qwen-max` reçoit les 3 probes Qwen thinking natifs HARD-40M.
@@ -107,4 +107,4 @@ Le framework L8 agrège les contrats logiciels et les preuves réelles L2-L7. Un
 
 Même en état READY, `human_approval.status` reste `PENDING` et `v1_approved` reste `false`. L'approbation exige une action humaine séparée et ne modifie ni le routage, ni le kernel, ni un backend, ni les modèles, ni `COMPLETE`, ni une release.
 
-**État actuel : CI logicielle Fedora V2 validée ; aucune qualification matérielle B580, aucun verdict de performance et aucune approbation V1 ne sont déclarés.**
+**État actuel : CI logicielle Fedora V2 validée ; aucune qualification matérielle B580, aucun nouveau verdict de performance et aucune approbation V1 ne sont déclarés par la CI.**

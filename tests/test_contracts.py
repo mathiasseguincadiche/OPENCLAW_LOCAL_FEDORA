@@ -96,15 +96,20 @@ def test_nominal_vulkan_runtime_cannot_be_changed_silently(tmp_path: Path) -> No
     assert any("Vulkan" in failure for failure in report.failures)
 
 
-def test_sycl_candidate_must_use_level_zero(tmp_path: Path) -> None:
+def test_extra_runtime_backend_is_rejected(tmp_path: Path) -> None:
     root = _sandbox(tmp_path)
     path = root / "config" / "runtime_backends.yaml"
     payload = yaml.safe_load(path.read_text(encoding="utf-8"))
-    payload["backends"]["llama-cpp-sycl"]["device_api"] = "invalid"
+    payload["backends"]["legacy-backend"] = {
+        "provider": "llama_cpp_http",
+        "linux_native": True,
+        "endpoint": "http://127.0.0.1:8080/v1",
+        "accelerator": "other",
+    }
     path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
     report = validate_repository(root)
     assert not report.ok
-    assert any("Level Zero" in failure for failure in report.failures)
+    assert any("strictement Vulkan" in failure for failure in report.failures)
 
 
 def test_roadmap_identity_is_linux_native(tmp_path: Path) -> None:

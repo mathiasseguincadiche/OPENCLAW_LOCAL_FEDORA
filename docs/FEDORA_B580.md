@@ -15,9 +15,9 @@ Sources :
 - https://packages.fedoraproject.org/pkgs/kernel/kernel-devel-matched/fedora-44-updates.html
 - https://packages.fedoraproject.org/pkgs/mesa/mesa-vulkan-drivers/fedora-44-updates.html
 
-## Baseline GPU
+## Pile GPU supportée
 
-La pile nominale est volontairement courte :
+La pile GPU du projet est volontairement unique et courte :
 
 ```text
 Intel Arc B580
@@ -43,17 +43,7 @@ vulkaninfo --summary
 
 Le compte utilisateur doit disposer des droits appropriés sur le render node. Le bootstrap ajoute les groupes `render` et `video` lorsqu'ils existent ; une reconnexion de session est nécessaire après modification de groupe.
 
-## Candidat SYCL/Level Zero
-
-SYCL/Level Zero est traité comme un **candidat Linux de performance**, pas comme une dépendance de base. Il est installé et mesuré dans une campagne séparée après validation complète de la baseline Vulkan.
-
-Règles :
-
-- il ne bloque jamais le bootstrap initial ;
-- il ne bloque jamais le gate matériel Vulkan ;
-- sa pile et ses versions doivent être enregistrées exactement lorsqu'il est activé ;
-- il doit battre la baseline sur des mesures comparables pour être retenu ;
-- Vulkan reste disponible comme chemin local de repli.
+`ollama-vulkan` est la baseline runtime. `llama-cpp-vulkan` est le seul candidat runtime L6 ; il utilise la même pile GPU et doit être évalué avec des entrées comparables avant toute décision.
 
 ## ReBAR
 

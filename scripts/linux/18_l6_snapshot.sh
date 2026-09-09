@@ -16,7 +16,7 @@ usage() {
 Usage: 18_l6_snapshot.sh --backend BACKEND --kind runtime|kernel \
        --candidate-id ID [--output FILE]
 
-BACKEND: ollama-vulkan | llama-cpp-vulkan | llama-cpp-sycl
+BACKEND: ollama-vulkan | llama-cpp-vulkan
 Le run est toujours local, sans téléchargement, sous systemd-inhibit.
 EOF
 }
@@ -36,7 +36,6 @@ done
 case "$BACKEND" in
   ollama-vulkan) ENDPOINT="http://127.0.0.1:11434" ;;
   llama-cpp-vulkan) ENDPOINT="http://127.0.0.1:8081/v1" ;;
-  llama-cpp-sycl) ENDPOINT="http://127.0.0.1:8080/v1" ;;
   *) echo "ERREUR: backend invalide: $BACKEND" >&2; exit 2 ;;
 esac
 case "$KIND" in runtime|kernel) ;; *) echo "ERREUR: kind invalide: $KIND" >&2; exit 2 ;; esac

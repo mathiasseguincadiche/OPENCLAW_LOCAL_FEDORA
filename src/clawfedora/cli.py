@@ -318,7 +318,7 @@ def build_parser() -> argparse.ArgumentParser:
     e2e.add_argument("--runtime-root")
     e2e.add_argument(
         "--backend",
-        choices=("ollama-vulkan", "llama-cpp-vulkan", "llama-cpp-sycl"),
+        choices=("ollama-vulkan", "llama-cpp-vulkan"),
         default="ollama-vulkan",
     )
     e2e.add_argument("--dry-run", action="store_true")
@@ -338,7 +338,7 @@ def build_parser() -> argparse.ArgumentParser:
     render.add_argument("--runtime-root")
     render.add_argument(
         "--backend",
-        choices=("ollama-vulkan", "llama-cpp-vulkan", "llama-cpp-sycl"),
+        choices=("ollama-vulkan", "llama-cpp-vulkan"),
         default="ollama-vulkan",
     )
     render.add_argument("--output")

@@ -12,11 +12,11 @@ APPLY=0
 
 usage() {
   cat <<'EOF'
-Usage: 17_runtime_candidate.sh --backend llama-cpp-vulkan|llama-cpp-sycl \
+Usage: 17_runtime_candidate.sh [--backend llama-cpp-vulkan] \
        --action install|start|stop|restart|status [--apply]
 
 Les actions mutantes sont dry-run sans --apply. `install` génère un preset router llama.cpp
-et une unité systemd utilisateur loopback. Aucun modèle n'est téléchargé.
+Vulkan et une unité systemd utilisateur loopback. Aucun modèle n'est téléchargé.
 EOF
 }
 
@@ -39,11 +39,12 @@ while (($#)); do
   shift
 done
 
-case "$BACKEND" in
-  llama-cpp-vulkan) UNIT="openclaw-llama-vulkan.service"; PORT=8081 ;;
-  llama-cpp-sycl) UNIT="openclaw-llama-sycl.service"; PORT=8080 ;;
-  *) echo "ERREUR: backend candidat invalide: $BACKEND" >&2; exit 2 ;;
-esac
+[[ "$BACKEND" == "llama-cpp-vulkan" ]] || {
+  echo "ERREUR: seul llama-cpp-vulkan est supporté comme candidat runtime" >&2
+  exit 2
+}
+UNIT="openclaw-llama-vulkan.service"
+PORT=8081
 case "$ACTION" in install|start|stop|restart|status) ;; *) echo "ERREUR: action invalide: $ACTION" >&2; exit 2 ;; esac
 
 if [[ "$ACTION" != "status" && "$APPLY" -eq 0 ]]; then

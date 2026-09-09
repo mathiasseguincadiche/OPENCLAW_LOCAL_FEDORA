@@ -62,9 +62,6 @@ evidence:
         candidate_id: upstream-7.2.3
       - kind: model-challenger
         candidate_id: granite4.2:8b-q4_K_M
-    optional_decisions:
-      - kind: runtime
-        candidate_id: llama-cpp-sycl
     automatic_promotion_required: false
   l7:
     gate: L7

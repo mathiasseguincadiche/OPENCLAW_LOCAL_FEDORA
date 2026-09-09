@@ -64,11 +64,10 @@ Application réelle :
 ./menu.sh --action configure-openclaw --backend ollama-vulkan --apply
 ```
 
-Candidats Linux :
+Candidat runtime Vulkan :
 
 ```bash
 ./menu.sh --action configure-openclaw --backend llama-cpp-vulkan --apply
-./menu.sh --action configure-openclaw --backend llama-cpp-sycl --apply
 ```
 
 Le configurateur applique une séquence fail-closed :

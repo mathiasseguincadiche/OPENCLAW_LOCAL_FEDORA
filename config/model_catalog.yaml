@@ -7,7 +7,6 @@ models:
     role: local-max
     runtime_id: qwen3.5:9b-q4_K_M
     vulkan_runtime_id: qwen3.5:9b-q4_K_M
-    sycl_runtime_id: qwen3.5:9b-q4_K_M
     family: qwen
     quantization: Q4_K_M
     input: [text, image]
@@ -23,7 +22,6 @@ models:
     role: local-deep
     runtime_id: gemma4:12b-it-q4_K_M
     vulkan_runtime_id: gemma4:12b-it-q4_K_M
-    sycl_runtime_id: gemma4:12b-it-q4_K_M
     family: gemma4
     quantization: Q4_K_M
     input: [text, image]
@@ -39,7 +37,6 @@ models:
     role: local-specialist
     runtime_id: hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M
     vulkan_runtime_id: hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M
-    sycl_runtime_id: hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M
     family: mistral3-reasoning
     quantization: Q4_K_M
     input: [text]

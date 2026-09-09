@@ -57,7 +57,6 @@ Approbation V1:
 Backends OpenClaw:
   ollama-vulkan          baseline
   llama-cpp-vulkan       candidat Linux
-  llama-cpp-sycl         candidat Linux optionnel
 EOF
 }
 

@@ -205,7 +205,7 @@ Application :
 ./menu.sh --action configure-openclaw --backend ollama-vulkan --apply
 ```
 
-Les backends `llama-cpp-vulkan` et `llama-cpp-sycl` sont des candidats L6. Ils ne doivent pas être choisis comme nouveaux defaults sans qualification et décision humaine.
+`llama-cpp-vulkan` est l'unique candidat runtime L6. Il ne doit pas remplacer la baseline sans qualification et décision humaine.
 
 ## Stockage
 

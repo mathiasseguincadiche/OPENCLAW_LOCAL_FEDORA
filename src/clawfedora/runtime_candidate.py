@@ -10,7 +10,7 @@ from typing import Any
 
 from clawfedora.core_config import root_contract
 
-SUPPORTED_BACKENDS = {"llama-cpp-vulkan": "vulkan", "llama-cpp-sycl": "sycl"}
+SUPPORTED_BACKENDS = {"llama-cpp-vulkan": "vulkan"}
 
 
 @dataclass(frozen=True)
@@ -107,24 +107,9 @@ def _preset_text(manifest: dict[str, Any], context_tokens: int, gpu_layers: int)
     return "\n".join(lines)
 
 
-def _launcher_text(backend: str, server: Path, args: list[str]) -> str:
+def _launcher_text(server: Path, args: list[str]) -> str:
     command = " ".join(shlex.quote(str(value)) for value in [server, *args])
-    lines = ["#!/usr/bin/env bash", "set -Eeuo pipefail"]
-    if backend == "llama-cpp-sycl":
-        lines.extend(
-            [
-                "if [[ -r /opt/intel/oneapi/setvars.sh ]]; then",
-                "  set +u",
-                "  # shellcheck disable=SC1091",
-                "  source /opt/intel/oneapi/setvars.sh >/dev/null",
-                "  set -u",
-                "fi",
-                "command -v icpx >/dev/null 2>&1 || { echo 'SYCL toolchain absent' >&2; exit 3; }",
-                "export GGML_SYCL_DEVICE='0'",
-            ]
-        )
-    lines.append(f"exec {command}")
-    return "\n".join(lines) + "\n"
+    return f"#!/usr/bin/env bash\nset -Eeuo pipefail\nexec {command}\n"
 
 
 def prepare_runtime_files(
@@ -163,7 +148,7 @@ def prepare_runtime_files(
     if host != "127.0.0.1":
         raise ValueError("L6 runtime: host loopback obligatoire")
     port = int(service.get("port", 0))
-    if port not in {8080, 8081}:
+    if port != 8081:
         raise ValueError("L6 runtime: port candidat inattendu")
     args = [
         "--host",
@@ -181,7 +166,7 @@ def prepare_runtime_files(
         "--no-webui",
     ]
     launcher = generated / f"launch-{backend_key}.sh"
-    launcher.write_text(_launcher_text(backend, server, args), encoding="utf-8")
+    launcher.write_text(_launcher_text(server, args), encoding="utf-8")
     launcher.chmod(0o750)
 
     unit_name = str(service.get("unit", ""))

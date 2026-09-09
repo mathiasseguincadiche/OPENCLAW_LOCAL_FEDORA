@@ -13,7 +13,7 @@ L4 OpenClaw + 8 agents + outils
         ↓
 L5 HARD-40M Ollama Vulkan
         ↓
-L6 runtimes + kernel + Ministral ↔ Granite (slot DevOps)
+L6 runtime Vulkan + kernel + Ministral ↔ Granite (slot DevOps)
         ↓
 L7 Golden Projects + projet représentatif
         ↓
@@ -76,7 +76,7 @@ Le gate exige :
 - paquet `mesa-vulkan-drivers` ;
 - `vulkaninfo --summary` confirmant la B580 Intel.
 
-SYCL/Level Zero n'est pas requis par L3 : il reste un candidat L6 optionnel.
+La pile GPU supportée par le projet est `xe` + Mesa/Vulkan.
 
 ## L4 — OpenClaw E2E
 
@@ -203,14 +203,13 @@ Les preuves HARD-40M et L6 ne stockent pas la sortie brute des modèles : elles 
 
 Après une baseline L5 PASS sur matériel réel, L6 compare une seule variable à la fois :
 
-1. kernel Fedora officiel + Ollama Vulkan — baseline ;
-2. kernel Fedora officiel + llama.cpp Vulkan ;
-3. kernel Fedora officiel + llama.cpp SYCL/Level Zero, si le candidat est installé ;
-4. kernel 7.2.3 + runtime retenu pour la comparaison ;
-5. Ministral 3 14B Reasoning vs Granite 4.2 8B sur le même slot `devstral-devops` ;
-6. trois runs minimum par série avant toute décision.
+1. kernel Fedora officiel + Ollama/Vulkan — baseline ;
+2. kernel Fedora officiel + llama.cpp/Vulkan — unique candidat runtime ;
+3. kernel 7.2.3 + runtime retenu pour la comparaison ;
+4. Ministral 3 14B Reasoning vs Granite 4.2 8B sur le même slot `devstral-devops` ;
+5. trois runs minimum par série avant toute décision.
 
-Un candidat optionnel absent ne rend jamais la baseline invalide. Le kernel Fedora officiel reste un rollback bootable obligatoire.
+Le kernel Fedora officiel reste un rollback bootable obligatoire.
 
 ### Challenger Granite — hors routage
 
@@ -305,7 +304,7 @@ L8 :
 - exige les preuves réelles L2-L7 ;
 - lie L2/L3 aux preuves référencées par L5 ;
 - refuse un HARD-40M dont les seuils, timeouts ou matrice diffèrent du contrat courant ;
-- exige les trois décisions L6 obligatoires : llama.cpp Vulkan, kernel 7.2.3 et Ministral ↔ Granite ;
+- exige les trois décisions L6 obligatoires : llama.cpp/Vulkan, kernel 7.2.3 et Ministral ↔ Granite ;
 - recharge les snapshots et **recalcule** les décisions L6 avec les contrats courants ;
 - exige L7 PASS avec six projets en `PACKAGING` et gate humain préservé ;
 - produit un manifeste SHA-256 de toutes les preuves retenues.
