@@ -1,5 +1,18 @@
 # Fedora 44 + Intel Arc B580
 
+## Repères de lecture
+
+| Repère | Valeur |
+|---|---|
+| **Public cible** | Opérateurs, mainteneurs et responsables de qualification matérielle. |
+| **Niveau** | Avancé |
+| **Prérequis** | Connaître la cible Fedora 44 et disposer d'un accès à la machine B580 pour les contrôles matériels. |
+| **Objectif** | Comprendre la pile GPU supportée et les observations nécessaires avant toute qualification ou comparaison. |
+| **Résultat attendu** | Savoir vérifier `xe`, le render node, Mesa/Vulkan, ReBAR et les métriques à enregistrer. |
+| **Critère d’arrêt** | Si PCI, `xe`, `/dev/dri` ou `vulkaninfo` ne sont pas conformes, arrêter la qualification et suivre [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md). |
+| **À lire ensuite** | [`QUALIFICATION.md`](QUALIFICATION.md), puis [`KERNEL_POLICY.md`](KERNEL_POLICY.md) pour les comparaisons L6. |
+| **Source de vérité** | `config/runtime_backends.yaml`, `config/qualification_policy.yaml` et les preuves réelles sous la racine runtime. |
+
 ## Références de pile au 2026-09-03
 
 Ces versions sont des **références observées**, pas des pins éternels. La qualification doit toujours enregistrer les versions réellement installées.
