@@ -2,116 +2,90 @@
 
 Ce répertoire est la porte d'entrée de la documentation de l'édition **Fedora 44 Linux-native**.
 
-La documentation est organisée par besoin opérateur. Les fichiers `config/*.yaml` restent la vérité machine pour les modèles, versions, routages, gates et politiques. Les documents expliquent comment utiliser ces contrats sans les redéfinir.
+La règle est simple : **une seule documentation, un seul parcours, compréhensible par tout le monde**. Aucune partie n'est réservée à un « débutant », un « opérateur » ou un « expert ». Une personne qui ouvre le projet sans connaître son contexte doit pouvoir suivre l'ordre indiqué ci-dessous et acquérir progressivement les notions nécessaires jusqu'à comprendre l'architecture, l'exploitation, le matériel, les changements contrôlés et la qualification DevOps du projet.
 
-## Parcours guidés
+Les fichiers `config/*.yaml` restent la vérité machine pour les modèles, versions, routages, gates et politiques. La documentation explique ces contrats sans les redéfinir.
 
-### Débutant — découvrir puis utiliser
+## Parcours unique
+
+Commencer au README racine, puis suivre simplement cet ordre :
 
 ```text
 README racine
    ↓
-INSTALLATION.md
+1. GETTING_STARTED.md       comprendre les états et les commandes de base
    ↓
-GETTING_STARTED.md
+2. INSTALLATION.md          installer sans contourner les garde-fous
    ↓
-OPERATIONS.md
+3. OPERATIONS.md            exploiter, observer, sauvegarder et réparer
+   ↓
+4. TROUBLESHOOTING.md       apprendre le diagnostic couche par couche
+   ↓
+5. ARCHITECTURE.md          comprendre comment les composants s'assemblent
+   ↓
+6. MULTI_AGENT_CORE.md      comprendre les 8 agents, modèles et outils
+   ↓
+7. PROJECT_ENGINE.md        comprendre le cycle d'un projet et les artefacts
+   ↓
+8. OPENCLAW_SYSTEMD.md      comprendre le Gateway comme service Linux
+   ↓
+9. LIFECYCLE.md             comprendre le cycle de vie complet du produit
+   ↓
+10. FEDORA_B580.md          comprendre B580 → xe → Mesa/Vulkan → runtime
+   ↓
+11. KERNEL_POLICY.md        comprendre baseline, candidat et rollback kernel
+   ↓
+12. UPGRADE.md              apprendre à changer une seule variable à la fois
+   ↓
+13. QUALIFICATION.md        comprendre et exécuter les preuves L2 à L8
+   ↓
+14. ROADMAP.md              relire l'ensemble du projet comme une progression
+   ↓
+STATUS.md                   vérifier l'état réellement atteint aujourd'hui
 ```
 
-Ce parcours convient à une première installation. Un échec de contrat, de prérequis ou de `health` doit interrompre le parcours et renvoyer vers `TROUBLESHOOTING.md` plutôt que pousser vers la qualification.
+La technicité augmente progressivement, mais le vocabulaire et les prérequis sont introduits au fil du parcours. Un lecteur n'est jamais envoyé vers une « zone expert » séparée : il continue simplement la même documentation.
 
-### Opérateur — exploiter et maintenir
+## Contrat de progression des guides
 
-```text
-GETTING_STARTED.md
-   ↓
-OPERATIONS.md
-   ├── incident ─────→ TROUBLESHOOTING.md
-   ├── changement ───→ UPGRADE.md
-   └── qualification → QUALIFICATION.md
-```
+Chaque guide du parcours commence par une section **Repères de progression** avec les mêmes huit informations :
 
-Ce parcours privilégie l'état observé, le diagnostic minimal, la sauvegarde et le rollback. Il ne transforme jamais une santé logicielle correcte en qualification matérielle implicite.
+1. **Pour qui** — toujours toute personne suivant le parcours ;
+2. **Position dans le parcours** — par exemple `5/14` ;
+3. **Prérequis** — ce qui doit déjà avoir été lu ou compris ;
+4. **Objectif** — ce que la page enseigne ;
+5. **Résultat attendu** — ce que le lecteur doit savoir faire ou expliquer après lecture ;
+6. **Critère d'arrêt** — quand il ne faut pas poursuivre mécaniquement ;
+7. **Continuer avec** — l'étape suivante du même parcours ;
+8. **Source de vérité** — le contrat, le code ou la preuve qui décide réellement.
 
-### Expert / mainteneur — comprendre les contrats et les preuves
+Ce contrat est vérifié par la CI. Une future modification ne doit pas recréer des niveaux de lecteurs ou plusieurs chemins documentaires concurrents.
 
-```text
-ARCHITECTURE.md
-   ↓
-MULTI_AGENT_CORE.md + PROJECT_ENGINE.md
-   ↓
-config/*.yaml  ← vérité machine
-   ↓
-FEDORA_B580.md + KERNEL_POLICY.md
-   ↓
-QUALIFICATION.md
-   ↓
-preuves runtime L2-L8 + STATUS.md
-```
+## Accès direct par besoin
 
-Ce parcours part de l'architecture, rejoint rapidement les contrats exécutables, puis les protocoles et preuves. La documentation explique ; les contrats et preuves décident.
+Le parcours ci-dessus reste la référence pour apprendre le projet de bout en bout. Une personne qui connaît déjà le sujet recherché peut néanmoins accéder directement à un document :
 
-## Contrat pédagogique des guides
-
-Chaque guide de référence commence par une section **Repères de lecture** contenant les mêmes huit informations :
-
-1. public cible ;
-2. niveau ;
-3. prérequis ;
-4. objectif ;
-5. résultat attendu ;
-6. critère d'arrêt ;
-7. document(s) à lire ensuite ;
-8. source de vérité.
-
-Ce bloc est vérifié par la CI afin qu'un futur document ne redevienne pas ambigu sur son audience, son niveau ou son point d'arrêt.
-
-## Par où commencer ?
-
-| Je veux… | Document |
+| Besoin immédiat | Document |
 |---|---|
-| comprendre le produit en quelques minutes | [`../README.md`](../README.md) |
-| installer la plateforme sur Fedora 44 | [`INSTALLATION.md`](INSTALLATION.md) |
-| effectuer les premières vérifications et lancer un premier usage | [`GETTING_STARTED.md`](GETTING_STARTED.md) |
-| administrer la plateforme au quotidien | [`OPERATIONS.md`](OPERATIONS.md) |
-| diagnostiquer une panne ou un comportement anormal | [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) |
-| mettre à jour OpenClaw, Ollama, un modèle, Mesa ou un kernel candidat | [`UPGRADE.md`](UPGRADE.md) |
+| comprendre les premières commandes et les états | [`GETTING_STARTED.md`](GETTING_STARTED.md) |
+| installer la plateforme | [`INSTALLATION.md`](INSTALLATION.md) |
+| exploiter la plateforme au quotidien | [`OPERATIONS.md`](OPERATIONS.md) |
+| diagnostiquer une anomalie | [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) |
 | comprendre l'architecture Linux | [`ARCHITECTURE.md`](ARCHITECTURE.md) |
 | comprendre les huit agents et leur routage | [`MULTI_AGENT_CORE.md`](MULTI_AGENT_CORE.md) |
 | comprendre le moteur de projets | [`PROJECT_ENGINE.md`](PROJECT_ENGINE.md) |
-| qualifier Fedora et l'Intel Arc B580 | [`QUALIFICATION.md`](QUALIFICATION.md) |
-| comprendre la pile B580 / `xe` / Vulkan | [`FEDORA_B580.md`](FEDORA_B580.md) |
-| comprendre la politique kernel | [`KERNEL_POLICY.md`](KERNEL_POLICY.md) |
 | comprendre le Gateway `systemd --user` | [`OPENCLAW_SYSTEMD.md`](OPENCLAW_SYSTEMD.md) |
 | comprendre le cycle de vie complet | [`LIFECYCLE.md`](LIFECYCLE.md) |
+| comprendre la pile B580 / `xe` / Vulkan | [`FEDORA_B580.md`](FEDORA_B580.md) |
+| comprendre la politique kernel | [`KERNEL_POLICY.md`](KERNEL_POLICY.md) |
+| mettre à jour OpenClaw, Ollama, modèles, Mesa ou kernel | [`UPGRADE.md`](UPGRADE.md) |
+| qualifier Fedora et l'Intel Arc B580 | [`QUALIFICATION.md`](QUALIFICATION.md) |
 | consulter les étapes L0–L8 | [`ROADMAP.md`](ROADMAP.md) |
 | connaître l'état réel du dépôt | [`../STATUS.md`](../STATUS.md) |
 | contribuer au code | [`../CONTRIBUTING.md`](../CONTRIBUTING.md) |
-| consulter la politique sécurité du dépôt | [`../SECURITY.md`](../SECURITY.md) |
+| consulter la politique sécurité | [`../SECURITY.md`](../SECURITY.md) |
 
-## Documents de référence
-
-### Utilisateur / opérateur
-
-- **INSTALLATION.md** : prérequis, dry-run, installation, vérification et retour arrière.
-- **GETTING_STARTED.md** : contrôles initiaux, commandes essentielles et premier parcours.
-- **OPERATIONS.md** : runbook d'exploitation quotidienne.
-- **TROUBLESHOOTING.md** : symptômes, diagnostic, correction, vérification et rollback.
-- **UPGRADE.md** : upgrades contrôlés, une variable à la fois.
-
-### Architecture / développement
-
-- **ARCHITECTURE.md** : architecture cible Fedora native.
-- **MULTI_AGENT_CORE.md** : huit rôles, workspaces et configuration OpenClaw.
-- **PROJECT_ENGINE.md** : Intake, Orchestrator, Artifact Exchange et packaging.
-- **LIFECYCLE.md** : contrat complet installation/maintenance/sauvegarde/désinstallation.
-
-### Qualification / matériel
-
-- **QUALIFICATION.md** : gates L2 à L8 et HARD-40M.
-- **FEDORA_B580.md** : pile Intel Arc B580, `xe` et Mesa/Vulkan.
-- **KERNEL_POLICY.md** : kernel Fedora nominal et candidat upstream.
-- **ROADMAP.md** : progression fonctionnelle et de qualification.
+Un accès direct est un raccourci de consultation, **pas un second parcours pédagogique**.
 
 ## Vérités canoniques
 
