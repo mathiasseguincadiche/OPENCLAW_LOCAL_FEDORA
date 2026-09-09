@@ -18,14 +18,12 @@ Fedora 44 / GNOME 50 / Wayland
         │
         └── Intel Arc B580 / xe
                 │
-        ┌───────┴──────────────┐
-        │                      │
-   Mesa / Vulkan      Level Zero / SYCL
-        │                      │
-  Ollama / llama.cpp      llama.cpp SYCL
+          Mesa / Vulkan
+                │
+       Ollama / llama.cpp
 ```
 
-Le chemin nominal reste **Fedora + kernel officiel + `xe` + Mesa/Vulkan + Ollama**. Les backends llama.cpp et le kernel upstream défini par les contrats sont des candidats de qualification, jamais des promotions automatiques.
+Le chemin GPU supporté est **Fedora + `xe` + Mesa/Vulkan**. Ollama/Vulkan reste la baseline et llama.cpp/Vulkan le candidat runtime L6. Le kernel upstream défini par les contrats reste un candidat séparé, sans promotion automatique.
 
 ## Flotte Architecture V2
 
@@ -122,7 +120,7 @@ L4 OpenClaw E2E / 8 agents / outils
   ↓
 L5 HARD-40M
   ↓
-L6 runtimes / kernel / challenger DevOps
+L6 runtime Vulkan / kernel / challenger DevOps
   ↓
 L7 Golden Projects
   ↓
