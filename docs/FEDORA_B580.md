@@ -1,17 +1,17 @@
 # Fedora 44 + Intel Arc B580
 
-## Repères de lecture
+## Repères de progression
 
 | Repère | Valeur |
 |---|---|
-| **Public cible** | Opérateurs, mainteneurs et responsables de qualification matérielle. |
-| **Niveau** | Avancé |
-| **Prérequis** | Connaître la cible Fedora 44 et disposer d'un accès à la machine B580 pour les contrôles matériels. |
-| **Objectif** | Comprendre la pile GPU supportée et les observations nécessaires avant toute qualification ou comparaison. |
-| **Résultat attendu** | Savoir vérifier `xe`, le render node, Mesa/Vulkan, ReBAR et les métriques à enregistrer. |
-| **Critère d’arrêt** | Si PCI, `xe`, `/dev/dri` ou `vulkaninfo` ne sont pas conformes, arrêter la qualification et suivre [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md). |
-| **À lire ensuite** | [`QUALIFICATION.md`](QUALIFICATION.md), puis [`KERNEL_POLICY.md`](KERNEL_POLICY.md) pour les comparaisons L6. |
-| **Source de vérité** | `config/runtime_backends.yaml`, `config/qualification_policy.yaml` et les preuves réelles sous la racine runtime. |
+| **Pour qui** | Toute personne qui suit le parcours et veut comprendre la pile matérielle utilisée par le projet. |
+| **Position dans le parcours** | 10/14 |
+| **Prérequis** | Avoir lu [`LIFECYCLE.md`](LIFECYCLE.md) et comprendre où commencent les preuves matérielles. |
+| **Objectif** | Comprendre le chemin B580 → `xe` → DRM → Mesa/Vulkan → Ollama/llama.cpp et les mesures utiles. |
+| **Résultat attendu** | Savoir vérifier chaque couche sans confondre détection, fonctionnement et qualification. |
+| **Critère d’arrêt** | Si la B580, `xe` ou Vulkan n’est pas observable, résoudre d’abord la couche concernée avant de parler performance. |
+| **Continuer avec** | [`KERNEL_POLICY.md`](KERNEL_POLICY.md) |
+| **Source de vérité** | L’état réel de la machine, `config/qualification_policy.yaml` et les preuves L2/L3. |
 
 ## Références de pile au 2026-09-03
 

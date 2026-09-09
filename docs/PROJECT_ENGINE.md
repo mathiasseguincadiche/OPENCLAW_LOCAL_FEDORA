@@ -1,17 +1,17 @@
 # Moteur de projets Linux-native
 
-## Repères de lecture
+## Repères de progression
 
 | Repère | Valeur |
 |---|---|
-| **Public cible** | Utilisateurs avancés, intégrateurs et mainteneurs du moteur projet. |
-| **Niveau** | Avancé |
-| **Prérequis** | Comprendre les huit agents, les workspaces et le principe d'Artifact Exchange. |
-| **Objectif** | Comprendre le cycle projet, l'ingestion, les transitions, la provenance des artefacts et les gates humains. |
-| **Résultat attendu** | Savoir interpréter les états du projet, les bundles d'échange, les contrôles d'intégrité et la limite du self-test. |
-| **Critère d’arrêt** | Une couverture source incomplète, une transition interdite ou une intégrité d'artefact invalide doit bloquer le projet avant validation ou packaging. |
-| **À lire ensuite** | [`MULTI_AGENT_CORE.md`](MULTI_AGENT_CORE.md) pour les rôles et [`QUALIFICATION.md`](QUALIFICATION.md) pour les Golden Projects/L7. |
-| **Source de vérité** | Le package `src/clawfedora/`, les contrats partagés sous `agents/_shared/` et les politiques `config/core/`. |
+| **Pour qui** | Toute personne qui veut comprendre comment une demande devient un projet traçable, sans prérequis de développement avancé. |
+| **Position dans le parcours** | 7/14 |
+| **Prérequis** | Avoir lu [`MULTI_AGENT_CORE.md`](MULTI_AGENT_CORE.md). |
+| **Objectif** | Comprendre Intake, planification, exécution, Artifact Exchange, validation et packaging. |
+| **Résultat attendu** | Savoir suivre le cycle d’un projet et comprendre pourquoi chaque transition et chaque artefact est contrôlé. |
+| **Critère d’arrêt** | Si les rôles agents ou leurs responsabilités ne sont pas clairs, revenir au cœur multi-agents. |
+| **Continuer avec** | [`OPENCLAW_SYSTEMD.md`](OPENCLAW_SYSTEMD.md) |
+| **Source de vérité** | L’implémentation du moteur projet sous `src/clawfedora/` et ses contrats/test associés. |
 
 Le moteur L1 transforme une entrée projet non structurée en état de travail traçable sans dépendance à un autre OS.
 

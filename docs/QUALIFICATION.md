@@ -1,17 +1,17 @@
 # Qualification Fedora
 
-## Repères de lecture
+## Repères de progression
 
 | Repère | Valeur |
 |---|---|
-| **Public cible** | Opérateurs de qualification, mainteneurs et reviewers préparant L2–L8. |
-| **Niveau** | Expert |
-| **Prérequis** | Installation saine, contrats PASS, baseline Fedora comprise et accès à la machine cible pour les gates matériels. |
-| **Objectif** | Exécuter les gates L2–L8 par preuves reproductibles sans transformer un résultat logiciel en revendication matérielle. |
-| **Résultat attendu** | Savoir produire, interpréter et chaîner les preuves L2–L8, arrêter au premier gate invalide et préserver l'approbation humaine finale. |
-| **Critère d’arrêt** | Tout gate en échec ou toute preuve absente/incohérente bloque les étapes suivantes ; ne jamais abaisser un seuil, changer plusieurs variables ou fabriquer un PASS. |
-| **À lire ensuite** | [`FEDORA_B580.md`](FEDORA_B580.md) et [`KERNEL_POLICY.md`](KERNEL_POLICY.md) pour L3/L6, puis [`../STATUS.md`](../STATUS.md) pour enregistrer uniquement l'état réellement observé. |
-| **Source de vérité** | `config/qualification_policy.yaml`, `config/optimization_policy.yaml`, `config/release_readiness.yaml`, `config/model_catalog.yaml` et les preuves sous la racine runtime. |
+| **Pour qui** | Toute personne qui a suivi le parcours et veut comprendre comment le projet transforme des observations en preuves reproductibles. |
+| **Position dans le parcours** | 13/14 |
+| **Prérequis** | Avoir lu [`UPGRADE.md`](UPGRADE.md) et compris baseline, changement unique, rollback et preuves runtime. |
+| **Objectif** | Comprendre puis exécuter correctement les gates L2 à L8, HARD-40M, L6 et l’approbation humaine. |
+| **Résultat attendu** | Savoir ce que chaque gate prouve, où les preuves sont stockées et pourquoi aucune CI ne remplace la machine réelle. |
+| **Critère d’arrêt** | Ne jamais poursuivre vers un gate supérieur si le gate précédent est absent, en échec ou mal compris. |
+| **Continuer avec** | [`ROADMAP.md`](ROADMAP.md) |
+| **Source de vérité** | `config/qualification_policy.yaml`, `config/optimization_policy.yaml`, `config/release_readiness.yaml` et les preuves runtime. |
 
 ## Principe
 

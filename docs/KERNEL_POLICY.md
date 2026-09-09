@@ -1,17 +1,17 @@
 # Politique kernel
 
-## Repères de lecture
+## Repères de progression
 
 | Repère | Valeur |
 |---|---|
-| **Public cible** | Mainteneurs, opérateurs avancés et responsables de qualification L6. |
-| **Niveau** | Expert |
-| **Prérequis** | Baseline Fedora fonctionnelle, kernel Fedora bootable conservé et compréhension des gates L3/L6. |
-| **Objectif** | Comprendre quand et comment comparer le kernel Fedora officiel au candidat upstream sans confondre nouveauté et amélioration. |
-| **Résultat attendu** | Savoir préparer K0/K1, appliquer les seuils de promotion et préserver un rollback bootable. |
-| **Critère d’arrêt** | Ne pas tester le candidat si la baseline Fedora n'est pas saine ou si aucun kernel Fedora fonctionnel n'est conservé. |
-| **À lire ensuite** | [`QUALIFICATION.md`](QUALIFICATION.md) pour le protocole L6 et [`UPGRADE.md`](UPGRADE.md) pour un changement contrôlé. |
-| **Source de vérité** | `config/kernel_policy.yaml`, `config/optimization_policy.yaml` et les preuves L6 produites sur la machine cible. |
+| **Pour qui** | Toute personne qui suit le parcours et veut comprendre pourquoi le kernel est traité comme une variable contrôlée. |
+| **Position dans le parcours** | 11/14 |
+| **Prérequis** | Avoir lu [`FEDORA_B580.md`](FEDORA_B580.md) et compris la pile B580/`xe`/Vulkan. |
+| **Objectif** | Comprendre la différence entre kernel Fedora nominal, candidat upstream, critères de comparaison et rollback. |
+| **Résultat attendu** | Savoir pourquoi un kernel plus récent n’est jamais promu sans preuves comparables. |
+| **Critère d’arrêt** | Ne jamais installer ou promouvoir un kernel candidat tant que la baseline Fedora et son rollback ne sont pas compris et vérifiés. |
+| **Continuer avec** | [`UPGRADE.md`](UPGRADE.md) |
+| **Source de vérité** | `config/kernel_policy.yaml`, les preuves L6 et l’état réellement booté de la machine. |
 
 ## Pourquoi deux kernels
 

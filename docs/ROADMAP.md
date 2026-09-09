@@ -1,17 +1,17 @@
 # Roadmap Linux-native
 
-## Repères de lecture
+## Repères de progression
 
 | Repère | Valeur |
 |---|---|
-| **Public cible** | Mainteneurs, reviewers et lecteurs souhaitant situer la maturité du projet. |
-| **Niveau** | Intermédiaire |
-| **Prérequis** | Avoir lu le README et connaître la distinction entre CI logicielle et preuves runtime. |
-| **Objectif** | Comprendre la progression L0–L8 et la sortie attendue de chaque gate. |
-| **Résultat attendu** | Savoir situer un travail, une preuve ou un blocage dans la roadmap sans confondre implémentation et qualification. |
-| **Critère d’arrêt** | Ne jamais considérer le gate suivant comme acquis si la sortie ou la preuve du gate précédent manque. |
-| **À lire ensuite** | [`QUALIFICATION.md`](QUALIFICATION.md) pour l'exécution des gates et [`../STATUS.md`](../STATUS.md) pour l'état réellement observé. |
-| **Source de vérité** | `config/roadmap_policy.yaml`, `config/qualification_policy.yaml` et `config/release_readiness.yaml`. |
+| **Pour qui** | Toute personne qui a suivi le parcours et veut relire le projet comme une progression complète de L0 à L8. |
+| **Position dans le parcours** | 14/14 |
+| **Prérequis** | Avoir lu [`QUALIFICATION.md`](QUALIFICATION.md). |
+| **Objectif** | Replacer architecture, exploitation, matériel, qualification et release readiness dans une seule progression de maturité. |
+| **Résultat attendu** | Savoir situer chaque composant, chaque gate et l’état actuel du projet dans la trajectoire globale. |
+| **Critère d’arrêt** | Ne jamais interpréter une étape planifiée ou implémentée comme une preuve réelle si `STATUS.md` ne la confirme pas. |
+| **Continuer avec** | [`../STATUS.md`](../STATUS.md) pour l’état réel courant, puis revenir au portail documentaire selon le besoin. |
+| **Source de vérité** | Les contrats `config/*.yaml`, les preuves runtime et [`../STATUS.md`](../STATUS.md). |
 
 ## Objectif
 

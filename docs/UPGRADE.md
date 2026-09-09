@@ -1,17 +1,17 @@
 # Upgrade contrôlé
 
-## Repères de lecture
+## Repères de progression
 
 | Repère | Valeur |
 |---|---|
-| **Public cible** | Mainteneurs et opérateurs préparant un changement de version, modèle, quantification, kernel ou runtime. |
-| **Niveau** | Avancé |
-| **Prérequis** | Baseline saine, `validate` et `health` PASS, backup récent et état de qualification connu. |
-| **Objectif** | Changer une seule variable à la fois avec validation avant/après, requalification adaptée et rollback préparé. |
-| **Résultat attendu** | Savoir déterminer les contrats à modifier, les gates à rejouer et le rollback avant d'accepter une nouvelle baseline. |
-| **Critère d’arrêt** | Ne pas commencer un upgrade si la baseline est déjà dégradée, si le backup échoue ou si aucun rollback n'est disponible. |
-| **À lire ensuite** | [`QUALIFICATION.md`](QUALIFICATION.md) pour rejouer les gates affectés, puis [`OPERATIONS.md`](OPERATIONS.md) pour revenir à l'exploitation normale. |
-| **Source de vérité** | `config/runtime_versions.yaml`, `config/model_catalog.yaml`, `config/optimization_policy.yaml` et les contrats concernés par la variable modifiée. |
+| **Pour qui** | Toute personne qui suit le parcours et veut apprendre à faire évoluer la plateforme sans perdre la capacité d’expliquer ou de rollback un changement. |
+| **Position dans le parcours** | 12/14 |
+| **Prérequis** | Avoir lu [`KERNEL_POLICY.md`](KERNEL_POLICY.md) et compris la règle « une variable à la fois ». |
+| **Objectif** | Apprendre à préparer, appliquer, vérifier et annuler un changement de version, modèle, quantification, Mesa, kernel ou runtime. |
+| **Résultat attendu** | Savoir construire une comparaison avant/après attribuable à une seule variable et identifier les gates à rejouer. |
+| **Critère d’arrêt** | Ne pas appliquer un upgrade si la baseline, le backup, le rollback ou les preuves à invalider ne sont pas identifiés. |
+| **Continuer avec** | [`QUALIFICATION.md`](QUALIFICATION.md) |
+| **Source de vérité** | `config/runtime_versions.yaml`, `config/model_catalog.yaml`, `config/optimization_policy.yaml` et les preuves avant/après. |
 
 Les upgrades de `OPENCLAW_LOCAL_FEDORA` suivent une règle simple : **une variable à la fois, avec baseline connue, preuves avant/après et rollback préparé**.
 
