@@ -1,17 +1,17 @@
 # Cœur multi-agents Linux-native
 
-## Repères de lecture
+## Repères de progression
 
 | Repère | Valeur |
 |---|---|
-| **Public cible** | Intégrateurs OpenClaw, mainteneurs et contributeurs travaillant sur les huit agents. |
-| **Niveau** | Avancé |
-| **Prérequis** | Connaître l'architecture générale et la flotte de trois modèles nominaux. |
-| **Objectif** | Comprendre les huit rôles, leurs workspaces, leur routage et la configuration OpenClaw Fedora-native. |
-| **Résultat attendu** | Savoir relier chaque rôle à son modèle, ses capacités, son workspace et son chemin de configuration. |
-| **Critère d’arrêt** | Si le rendu OpenClaw, le provider ou l'inventaire des huit agents ne correspond pas aux contrats, ne pas appliquer la configuration et suivre [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md). |
-| **À lire ensuite** | [`PROJECT_ENGINE.md`](PROJECT_ENGINE.md) pour l'orchestration de projets, puis [`OPERATIONS.md`](OPERATIONS.md) pour l'exploitation. |
-| **Source de vérité** | `config/core/model_routing.yaml`, `config/core/tool_policy.yaml`, `config/model_catalog.yaml` et les contrats sous `agents/`. |
+| **Pour qui** | Toute personne qui suit le parcours et veut comprendre comment les huit rôles collaborent dans l’architecture. |
+| **Position dans le parcours** | 6/14 |
+| **Prérequis** | Avoir lu [`ARCHITECTURE.md`](ARCHITECTURE.md). |
+| **Objectif** | Comprendre les huit agents, leur routage, leurs workspaces et la façon dont OpenClaw les configure sous Fedora. |
+| **Résultat attendu** | Savoir distinguer identité, modèle nominal, workspace, outils et responsabilités de chaque rôle. |
+| **Critère d’arrêt** | Si les notions de couche plateforme, runtime ou contrat restent floues, revenir à l’architecture avant de poursuivre. |
+| **Continuer avec** | [`PROJECT_ENGINE.md`](PROJECT_ENGINE.md) |
+| **Source de vérité** | `config/core/model_routing.yaml`, `config/core/tool_policy.yaml` et les contrats sous `agents/`. |
 
 ## Objectif
 
