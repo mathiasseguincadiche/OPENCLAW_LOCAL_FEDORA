@@ -12,7 +12,7 @@ PARALLEL_PIN="2026.9.2"
 
 usage() {
   cat <<'EOF'
-Usage: 04_configure_openclaw.sh [--apply] [--backend ollama-vulkan|llama-cpp-vulkan|llama-cpp-sycl]
+Usage: 04_configure_openclaw.sh [--apply] [--backend ollama-vulkan|llama-cpp-vulkan]
 
 Dry-run par défaut. --apply exécute la validation et l'application du patch OpenClaw.
 EOF
@@ -33,7 +33,7 @@ while (($#)); do
 done
 
 case "$BACKEND" in
-  ollama-vulkan|llama-cpp-vulkan|llama-cpp-sycl) ;;
+  ollama-vulkan|llama-cpp-vulkan) ;;
   *) echo "ERREUR: backend non supporté: $BACKEND" >&2; exit 2 ;;
 esac
 
@@ -113,7 +113,6 @@ export OPENCLAW_LOCAL_FEDORA_ROOT="$RUNTIME_ROOT"
 export OPENCLAW_LOCAL_CLOUD_ENABLED="false"
 export OLLAMA_API_KEY="ollama-local"
 export INTEL_VULKAN_API_KEY="intel-vulkan-local"
-export INTEL_SYCL_API_KEY="intel-sycl-local"
 
 if [[ ! -f "$STATE_ROOT/openclaw.json" ]]; then
   "$OPENCLAW" setup --baseline --workspace "$SYSTEM_WORKSPACE"
@@ -141,7 +140,6 @@ if [[ "$BACKEND" == "ollama-vulkan" ]]; then
   require_backend_models "ollama" "$OLLAMA_JSON" "ollama"
 else
   PROVIDER="intel-vulkan"
-  [[ "$BACKEND" == "llama-cpp-sycl" ]] && PROVIDER="intel-sycl"
   BASE_URL="$(jq -r --arg provider "$PROVIDER" '.models.providers[$provider].baseUrl' "$PATCH_PATH")"
   LLAMA_JSON="$(curl -fsS --max-time 10 "${BASE_URL%/}/models?reload=1")"
   require_backend_models "$PROVIDER" "$LLAMA_JSON" "llamacpp"
