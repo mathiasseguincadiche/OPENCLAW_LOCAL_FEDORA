@@ -11,6 +11,7 @@ import pytest
 from clawfedora import lifecycle
 
 ROOT = Path(__file__).resolve().parents[1]
+SPECIALIST = "hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M"
 
 
 def _mark_runtime(runtime: Path) -> None:
@@ -22,8 +23,8 @@ def test_model_plan_is_exact_rightsized_fleet() -> None:
     plan = lifecycle.model_plan(ROOT)
     assert [item["runtime_id"] for item in plan] == [
         "qwen3.5:9b-q4_K_M",
-        "gemma3:12b-it-q4_K_M",
-        "qwen2.5-coder:14b-instruct-q4_K_M",
+        "gemma4:12b-it-q4_K_M",
+        SPECIALIST,
     ]
     assert all(item["nominal_context_tokens"] == 8192 for item in plan)
 
