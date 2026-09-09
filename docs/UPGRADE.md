@@ -201,17 +201,17 @@ Le candidat défini par la politique kernel ne devient jamais le default automat
 
 Pour le promouvoir, il doit être comparé au kernel Fedora officiel avec les mêmes conditions de runtime, modèles, prompts et contextes, puis satisfaire les gates de `KERNEL_POLICY.md` et `QUALIFICATION.md`.
 
-## Upgrade llama.cpp Vulkan ou SYCL
+## Upgrade llama.cpp/Vulkan
 
-Ces backends sont des candidats L6.
+`llama-cpp-vulkan` est l'unique candidat runtime L6.
 
 Toute modification de version/tag/commit doit :
 
 - mettre à jour le pin ;
 - reconstruire/reprovisionner de façon reproductible ;
-- conserver les endpoints loopback ;
+- conserver l'endpoint loopback ;
 - refaire les comparaisons L6 sur plusieurs runs ;
-- préserver la baseline Ollama disponible.
+- préserver la baseline Ollama/Vulkan disponible.
 
 ## Upgrade Fedora majeur
 
@@ -262,7 +262,7 @@ Mettre à jour `STATUS.md` uniquement avec des états réellement observés.
 | Mesa/Vulkan | L3 + L4 + performance concernée |
 | kernel Fedora | L3 + L4 + L5 selon impact |
 | kernel candidat | protocole L6 complet |
-| backend llama.cpp | protocole L6 complet |
+| backend llama.cpp/Vulkan | protocole L6 complet |
 | Fedora majeure | requalification plateforme complète |
 
 ## Critère d'acceptation
