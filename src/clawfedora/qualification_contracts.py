@@ -33,8 +33,6 @@ def _validate_model_fleet(catalog: dict[str, Any], failures: list[str]) -> None:
             failures.append(f"qualification: runtime nominal inattendu pour {alias}")
         if model.get("vulkan_runtime_id") != expected_runtime:
             failures.append(f"qualification: runtime Vulkan inattendu pour {alias}")
-        if model.get("sycl_runtime_id") != expected_runtime:
-            failures.append(f"qualification: runtime SYCL inattendu pour {alias}")
         if model.get("input") != EXPECTED_INPUTS[alias]:
             failures.append(f"qualification: modalités d'entrée invalides pour {alias}")
         if int(model.get("nominal_context_tokens", 0)) != 8192:
@@ -180,8 +178,8 @@ def validate_qualification_contracts(repo_root: Path) -> tuple[tuple[str, ...], 
 
     comparison = _mapping(policy.get("runtime_comparison"))
     candidates = comparison.get("candidates", [])
-    if candidates != ["ollama-vulkan", "llama-cpp-vulkan", "llama-cpp-sycl"]:
-        failures.append("qualification: matrice de backends Linux attendue")
+    if candidates != ["ollama-vulkan", "llama-cpp-vulkan"]:
+        failures.append("qualification: matrice runtime doit rester strictement Vulkan")
     if comparison.get("automatic_winner_promotion") is not False:
         failures.append("qualification: promotion automatique du backend interdite")
 
