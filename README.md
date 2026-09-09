@@ -1,64 +1,85 @@
 # OPENCLAW_LOCAL_FEDORA
 
-Plateforme **Fedora 44 Linux-native, LLM local-only et fail-closed** pour exécuter une équipe multi-agents OpenClaw sur une Intel Arc B580.
+**Fedora 44 · Local AI · 8 agents · Intel Arc B580 · Vulkan · Fail-closed**
 
-> **État : 0.1.0 — logiciel Fedora validé par CI, qualification matérielle en attente.** Une CI verte prouve la cohérence du dépôt ; elle ne constitue pas un PASS B580, Vulkan, HARD-40M/L6 ni une approbation V1.
+[![CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml)
+[![Fedora 44](https://img.shields.io/badge/Fedora-44-51A2DA?logo=fedora&logoColor=white)](https://fedoraproject.org/)
+[![OpenClaw](https://img.shields.io/badge/OpenClaw-2026.9.2-111827)](config/runtime_versions.yaml)
+[![Python](https://img.shields.io/badge/Python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](pyproject.toml)
+[![License MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## En bref
+Plateforme **Linux-native, LLM local-only et multi-agents** pour exécuter OpenClaw sur Fedora 44 avec une Intel Arc B580, une pile Vulkan explicite, des contrôles fail-closed et une qualification reproductible.
 
-`OPENCLAW_LOCAL_FEDORA` est une édition Linux native : elle n'exécute pas la version Windows sous compatibilité. Installation, services, sécurité, conteneurs, virtualisation, GPU, exploitation et qualification reposent sur les primitives Fedora.
+> **État : 0.1.0 — logiciel Fedora validé par CI, qualification matérielle B580 en attente.** Une CI verte prouve la cohérence du dépôt ; elle ne constitue pas un PASS matériel, HARD-40M/L6 ni une approbation V1.
 
-**OpenClaw est verrouillé exactement en `2026.9.2`, et le plugin Parallel exactement en `2026.9.2`.** Une version plus récente, plus ancienne ou voisine n'est pas une variante supportée. Le projet interdit les mises à jour automatiques de ces deux composants ; changer leur version exige une modification contractuelle explicite et une requalification adaptée.
+## Pourquoi ce projet ?
 
-```text
-Fedora 44 / GNOME 50 / Wayland
-        │
-        ├── systemd --user ── OpenClaw Gateway 2026.9.2
-        ├── SELinux Enforcing + firewalld
-        ├── Podman
-        ├── KVM / libvirt / OVMF
-        │
-        └── Intel Arc B580 / xe
-                │
-          Mesa / Vulkan
-                │
-       Ollama / llama.cpp
+`OPENCLAW_LOCAL_FEDORA` vise plus loin qu'une simple démonstration « un LLM tourne en local ». Le dépôt fournit une plateforme complète où **installation, sécurité, routage, agents, exploitation, preuves et qualification** sont traités comme des contrats vérifiables.
+
+- **100 % local pour le routage LLM nominal** — aucun fallback cloud silencieux.
+- **8 agents spécialisés** — mêmes missions, workspaces et garde-fous reproductibles.
+- **3 modèles locaux Q4_K_M** — flotte nominale explicite, challenger séparé.
+- **Fedora-native** — `systemd`, SELinux, firewalld, Podman, KVM/libvirt et `xe`.
+- **Vulkan uniquement pour le GPU** — Ollama/Vulkan baseline, llama.cpp/Vulkan candidat L6.
+- **Fail-closed** — les incohérences de versions, contrats ou preuves bloquent la progression.
+- **Qualification L0 → L8** — la CI logicielle reste strictement distincte des preuves matérielles et de l'approbation humaine.
+
+## État en un coup d'œil
+
+| Domaine | État |
+|---|---|
+| Architecture V2 Fedora | **Implémentée** |
+| CI Fedora 44 | **PASS logiciel** |
+| OpenClaw | **`2026.9.2` exact, verrouillé** |
+| Parallel | **`2026.9.2` exact, verrouillé** |
+| Flotte nominale | **3 modèles locaux Q4_K_M** |
+| Agents | **8 rôles spécialisés** |
+| Runtime GPU | **Vulkan** |
+| Sécurité | **SELinux Enforcing + firewalld + loopback + fail-closed** |
+| Qualification B580 L2–L6 | **À exécuter sur la machine réelle** |
+| V1 | **Non approuvée** |
+
+Détail de l'état réel : [`STATUS.md`](STATUS.md).
+
+## Architecture
+
+```mermaid
+flowchart TD
+    U[Utilisateur] --> G[OpenClaw Gateway 2026.9.2]
+    G --> A[8 agents spécialisés]
+    A --> M[3 modèles locaux Q4_K_M]
+    M --> O[Ollama / Vulkan]
+    M -. candidat L6 .-> L[llama.cpp / Vulkan]
+    O --> V[Mesa / Vulkan]
+    L --> V
+    V --> X[Intel Arc B580 / xe]
+    X --> F[Fedora 44]
+
+    S[SELinux Enforcing] -. protège .-> G
+    W[firewalld + loopback] -. protège .-> G
+    Y[systemd --user] -. supervise .-> G
 ```
 
-Le chemin GPU supporté est **Fedora + `xe` + Mesa/Vulkan**. Ollama/Vulkan reste la baseline et llama.cpp/Vulkan le candidat runtime L6. Le kernel upstream défini par les contrats reste un candidat séparé, sans promotion automatique.
+Le chemin supporté est **Fedora 44 → `xe` → Mesa/Vulkan → runtime local**. Aucun autre chemin GPU n'est nominal.
 
-## Flotte Architecture V2
+## Flotte et agents
 
-La flotte routée contient **exactement trois modèles locaux Q4_K_M** :
-
-| Alias | Modèle nominal | Mission dominante |
+| Alias | Modèle nominal | Missions dominantes |
 |---|---|---|
 | `qwen-max` | `qwen3.5:9b-q4_K_M` | orchestration, recherche, sécurité, release |
 | `gemma-deep` | `gemma4:12b-it-q4_K_M` | architecture, documentation, audit |
 | `devstral-devops` | `hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M` | DevOps, code, réparation, tool-calling |
 
-L'alias `devstral-devops` est conservé pour la compatibilité des contrats. `granite4.2:8b-q4_K_M` est un **challenger DevOps hors routage** : il ne compte jamais comme quatrième modèle nominal et ne peut pas être promu automatiquement.
+Les huit agents sont `chef-operations`, `expert-recherche`, `architecte-solutions`, `ingenieur-devops`, `ingenieur-securite`, `ingenieur-release-forges`, `redacteur-technique` et `auditeur-qualite`.
 
-Les identités exactes et les politiques de flotte sont canoniquement définies dans `config/model_catalog.yaml`.
+`granite4.2:8b-q4_K_M` reste un challenger DevOps **hors routage** et ne compte pas comme quatrième modèle nominal.
 
-## Huit agents
-
-```text
-chef-operations          -> qwen-max
-expert-recherche         -> qwen-max
-architecte-solutions     -> gemma-deep
-ingenieur-devops         -> devstral-devops
-ingenieur-securite       -> qwen-max
-ingenieur-release-forges -> qwen-max
-redacteur-technique      -> gemma-deep
-auditeur-qualite         -> gemma-deep
-```
-
-Leurs missions restent spécialisées et leurs contrats détaillés vivent sous `agents/`. Voir [`docs/MULTI_AGENT_CORE.md`](docs/MULTI_AGENT_CORE.md).
+Sources de vérité : [`config/model_catalog.yaml`](config/model_catalog.yaml) et [`docs/MULTI_AGENT_CORE.md`](docs/MULTI_AGENT_CORE.md).
 
 ## Installation rapide
 
-Prérequis : Fedora 44 Workstation sur la machine cible, SELinux Enforcing et une session utilisateur normale.
+Prérequis : Fedora 44 Workstation, SELinux Enforcing et une session utilisateur normale.
 
 ```bash
 git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
@@ -70,152 +91,99 @@ cd OPENCLAW_LOCAL_FEDORA
 ./menu.sh --action health
 ```
 
-Le premier `install` est un dry-run. L'application réelle doit être lancée depuis le compte Fedora de bureau, pas directement en root. L'installation converge OpenClaw vers **exactement `2026.9.2`** et échoue si cette version exacte ne peut pas être obtenue.
+Le premier `install` est un **dry-run**. L'installation réelle converge OpenClaw vers **exactement `2026.9.2`** ; toute autre version est refusée.
 
 Guide complet : [`docs/INSTALLATION.md`](docs/INSTALLATION.md).
 
-## Premiers contrôles
+## Parcours de documentation
 
-```bash
-openclaw --version
-./menu.sh --action status
-./menu.sh --action health
-./menu.sh --action project-selftest
-./menu.sh --action e2e-dry-run --backend ollama-vulkan
-./menu.sh --action qualification-dry-run
-```
+Il n'existe **qu'une seule documentation et un seul parcours**. Une personne peut partir sans connaissance préalable et avancer progressivement jusqu'à l'architecture, l'exploitation DevOps et la qualification complète.
 
-`openclaw --version` doit identifier exactement `2026.9.2`. Les autres commandes permettent de valider progressivement le dépôt et le produit sans confondre dry-run, self-test et qualification matérielle.
-
-Guide de prise en main : [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md).
-
-## Exploitation quotidienne
-
-Les commandes principales sont :
-
-```bash
-./menu.sh --action health
-./menu.sh --action backup
-./menu.sh --action repair
-./menu.sh --action repair --apply
-```
-
-Pour le Gateway :
-
-```bash
-systemctl --user status openclaw-gateway.service
-journalctl --user -u openclaw-gateway.service -n 100 --no-pager
-openclaw gateway status
-```
-
-Le runbook opérateur complet est [`docs/OPERATIONS.md`](docs/OPERATIONS.md). Pour une panne, aller directement à [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md).
-
-## Qualification
-
-La qualification reste séparée du simple fonctionnement du produit :
+**Commencer ici : [`docs/README.md`](docs/README.md).**
 
 ```text
-L2 Fedora/hardware
-  ↓
-L3 B580 / xe / Mesa-Vulkan
-  ↓
-L4 OpenClaw 2026.9.2 exact / 8 agents / outils
-  ↓
-L5 HARD-40M
-  ↓
-L6 runtime Vulkan / kernel / challenger DevOps
-  ↓
-L7 Golden Projects
-  ↓
-L8 Release Readiness
-  ↓
-approbation humaine explicite
+Premiers pas
+→ Installation
+→ Exploitation
+→ Dépannage
+→ Architecture
+→ Multi-agents
+→ Moteur projet
+→ systemd
+→ Cycle de vie
+→ B580 / Vulkan
+→ Kernel
+→ Upgrade
+→ Qualification
+→ Roadmap
+→ État réel
 ```
 
-Le benchmark nominal utilise 8192 tokens ; les agents OpenClaw disposent de 16384 tokens pour leur contexte système/outils/orchestration. Le contexte agent 16K n'est pas une promotion automatique du benchmark.
-
-Procédure complète : [`docs/QUALIFICATION.md`](docs/QUALIFICATION.md).
-
-## Sécurité
-
-Les invariants principaux sont :
-
-- SELinux **Enforcing** ;
-- firewalld actif ;
-- Gateway et providers locaux en loopback ;
-- OpenClaw exactement `2026.9.2`, sans mise à jour automatique ;
-- Parallel exactement `2026.9.2`, sans mise à jour automatique ;
-- LLM cloud non supporté dans le routage nominal ;
-- outils agents en base `minimal` fail-closed ;
-- `exec.mode=ask` et `elevated=false` ;
-- `intake/`, `sources/` et `context/exchange/` protégés ;
-- télémétrie locale sans prompts, réponses, documents ni secrets ;
-- aucune promotion automatique de kernel, backend, modèle ou V1.
-
-Voir [`SECURITY.md`](SECURITY.md), [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) et les contrats sous `config/`.
-
-## Données runtime
-
-La racine préférée est :
-
-```text
-/srv/openclaw-local/
-├── .openclaw-fedora-runtime
-├── runtime/
-├── models/
-├── workspaces/
-├── projects/
-├── proofs/
-├── benchmarks/
-├── state/
-└── backups/
-```
-
-Les poids modèles, workspaces runtime, preuves et données projet ne sont pas versionnés dans Git.
-
-## Documentation
-
-Le point d'entrée complet est [`docs/README.md`](docs/README.md).
-
-**Si vous découvrez le projet, ne choisissez pas un “niveau” de documentation : suivez simplement le parcours unique indiqué dans `docs/README.md`. Il part des premières commandes et introduit progressivement l'installation, l'exploitation, le diagnostic, l'architecture, le matériel, les upgrades et la qualification.**
+Accès directs utiles :
 
 | Besoin | Document |
 |---|---|
-| installation | [`docs/INSTALLATION.md`](docs/INSTALLATION.md) |
 | premiers pas | [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) |
-| exploitation / runbook | [`docs/OPERATIONS.md`](docs/OPERATIONS.md) |
+| installation | [`docs/INSTALLATION.md`](docs/INSTALLATION.md) |
+| exploitation | [`docs/OPERATIONS.md`](docs/OPERATIONS.md) |
 | dépannage | [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) |
 | upgrade | [`docs/UPGRADE.md`](docs/UPGRADE.md) |
 | architecture | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
-| agents | [`docs/MULTI_AGENT_CORE.md`](docs/MULTI_AGENT_CORE.md) |
-| moteur projet | [`docs/PROJECT_ENGINE.md`](docs/PROJECT_ENGINE.md) |
-| B580 | [`docs/FEDORA_B580.md`](docs/FEDORA_B580.md) |
 | qualification | [`docs/QUALIFICATION.md`](docs/QUALIFICATION.md) |
-| kernel | [`docs/KERNEL_POLICY.md`](docs/KERNEL_POLICY.md) |
-| lifecycle | [`docs/LIFECYCLE.md`](docs/LIFECYCLE.md) |
-| état réel | [`STATUS.md`](STATUS.md) |
 
-## Développement
+Ces liens sont des raccourcis de consultation ; ils ne créent pas de parcours séparés.
+
+## Qualification
+
+```text
+L2 Fedora / hardware
+→ L3 B580 / xe / Mesa-Vulkan
+→ L4 OpenClaw 2026.9.2 / 8 agents / outils
+→ L5 HARD-40M
+→ L6 runtime Vulkan / kernel / challenger
+→ L7 Golden Projects
+→ L8 Release Readiness
+→ approbation humaine explicite
+```
+
+Le benchmark nominal reste à **8192 tokens**. Les agents OpenClaw disposent de **16384 tokens** pour système, outils et orchestration ; ce budget n'est pas une promotion automatique du benchmark matériel.
+
+Procédure : [`docs/QUALIFICATION.md`](docs/QUALIFICATION.md).
+
+## Sécurité et invariants
+
+- OpenClaw **exactement `2026.9.2`**, sans mise à jour automatique.
+- Parallel **exactement `2026.9.2`**, sans mise à jour automatique.
+- SELinux **Enforcing** et firewalld actif.
+- Gateway et providers locaux en loopback.
+- Base outils agents `minimal`, `exec.mode=ask`, `elevated=false`.
+- Aucun fallback LLM cloud silencieux.
+- Aucune promotion automatique de kernel, backend, modèle ou V1.
+- Les preuves runtime et données lourdes restent hors Git.
+
+Voir [`SECURITY.md`](SECURITY.md) et [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+## Développement et validation
 
 ```bash
 make install
 make ci
 ```
 
-GitHub valide notamment Python 3.12/3.13, Ruff, mypy, pytest avec couverture, ShellCheck, un conteneur `fedora:44`, CodeQL et Dependency Review.
+GitHub valide Python 3.12/3.13, Ruff, mypy, pytest avec couverture, ShellCheck, les contrats dans un conteneur `fedora:44`, CodeQL et Dependency Review.
 
-## Source de vérité
+## Sources de vérité
 
-La documentation explique le produit, mais les valeurs opérationnelles sont définies par les contrats :
-
-- modèles → `config/model_catalog.yaml` ;
-- versions → `config/runtime_versions.yaml` ;
-- politique OpenClaw → `config/core/openclaw_policy.yaml` ;
-- routage → `config/core/model_routing.yaml` ;
-- outils → `config/core/tool_policy.yaml` ;
-- qualification → `config/qualification_policy.yaml` ;
-- L6 → `config/optimization_policy.yaml` ;
-- L8 → `config/release_readiness.yaml`.
+| Domaine | Contrat |
+|---|---|
+| versions | [`config/runtime_versions.yaml`](config/runtime_versions.yaml) |
+| OpenClaw | [`config/core/openclaw_policy.yaml`](config/core/openclaw_policy.yaml) |
+| modèles | [`config/model_catalog.yaml`](config/model_catalog.yaml) |
+| routage | [`config/core/model_routing.yaml`](config/core/model_routing.yaml) |
+| outils | [`config/core/tool_policy.yaml`](config/core/tool_policy.yaml) |
+| qualification | [`config/qualification_policy.yaml`](config/qualification_policy.yaml) |
+| L6 | [`config/optimization_policy.yaml`](config/optimization_policy.yaml) |
+| L8 | [`config/release_readiness.yaml`](config/release_readiness.yaml) |
 
 ## Licence
 
