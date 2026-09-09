@@ -337,7 +337,7 @@ def run_performance_snapshot(
     candidate_id: str,
     output: Path,
 ) -> Path:
-    if backend not in {"ollama-vulkan", "llama-cpp-vulkan", "llama-cpp-sycl"}:
+    if backend not in {"ollama-vulkan", "llama-cpp-vulkan"}:
         raise ValueError(f"L6 runner: backend invalide: {backend}")
     if kind not in {"runtime", "kernel"}:
         raise ValueError(f"L6 runner: kind invalide: {kind}")
