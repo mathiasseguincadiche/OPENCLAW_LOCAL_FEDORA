@@ -1,0 +1,25 @@
+schema_version: 1
+repository:
+  description: "Fedora 44 native local-AI platform for an 8-agent OpenClaw 2026.9.2 fleet on Intel Arc B580 with Vulkan, fail-closed security and reproducible qualification."
+  homepage: null
+  topics:
+    - fedora
+    - fedora-linux
+    - openclaw
+    - local-ai
+    - llm
+    - multi-agent
+    - vulkan
+    - intel-arc
+    - intel-arc-b580
+    - ollama
+    - llama-cpp
+    - devops
+    - python
+    - systemd
+social_preview:
+  source: .github/social-preview.svg
+  width: 1280
+  height: 640
+  purpose: "Canonical source asset for GitHub Social Preview and external repository cards."
+  note: "Applying repository About metadata and Social Preview requires GitHub repository-administration access outside this repository content."
