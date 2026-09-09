@@ -47,7 +47,7 @@ La documentation est organisée par besoin opérateur. Les fichiers `config/*.ya
 ### Qualification / matériel
 
 - **QUALIFICATION.md** : gates L2 à L8 et HARD-40M.
-- **FEDORA_B580.md** : pile Intel Arc B580, `xe`, Mesa/Vulkan et SYCL candidat.
+- **FEDORA_B580.md** : pile Intel Arc B580, `xe` et Mesa/Vulkan.
 - **KERNEL_POLICY.md** : kernel Fedora nominal et candidat upstream.
 - **ROADMAP.md** : progression fonctionnelle et de qualification.
 
