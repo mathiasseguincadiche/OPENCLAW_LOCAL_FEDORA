@@ -1,5 +1,9 @@
 # OPENCLAW_LOCAL_FEDORA
 
+<p align="center">
+  <img src=".github/social-preview.svg" alt="OPENCLAW_LOCAL_FEDORA — Fedora 44, Local AI, 8 agents, Intel Arc B580, Vulkan" width="100%">
+</p>
+
 **Fedora 44 · Local AI · 8 agents · Intel Arc B580 · Vulkan · Fail-closed**
 
 [![CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml)
