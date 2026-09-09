@@ -7,17 +7,39 @@
 | **Pour qui** | Toute personne qui suit le parcours et veut apprendre à faire évoluer la plateforme sans perdre la capacité d’expliquer ou de rollback un changement. |
 | **Position dans le parcours** | 12/14 |
 | **Prérequis** | Avoir lu [`KERNEL_POLICY.md`](KERNEL_POLICY.md) et compris la règle « une variable à la fois ». |
-| **Objectif** | Apprendre à préparer, appliquer, vérifier et annuler un changement de version, modèle, quantification, Mesa, kernel ou runtime. |
+| **Objectif** | Apprendre à préparer, appliquer, vérifier et annuler un changement de modèle, quantification, Mesa, kernel ou runtime candidat, tout en respectant les composants explicitement verrouillés. |
 | **Résultat attendu** | Savoir construire une comparaison avant/après attribuable à une seule variable et identifier les gates à rejouer. |
 | **Critère d’arrêt** | Ne pas appliquer un upgrade si la baseline, le backup, le rollback ou les preuves à invalider ne sont pas identifiés. |
 | **Continuer avec** | [`QUALIFICATION.md`](QUALIFICATION.md) |
-| **Source de vérité** | `config/runtime_versions.yaml`, `config/model_catalog.yaml`, `config/optimization_policy.yaml` et les preuves avant/après. |
+| **Source de vérité** | `config/runtime_versions.yaml`, `config/core/openclaw_policy.yaml`, `config/model_catalog.yaml`, `config/optimization_policy.yaml` et les preuves avant/après. |
 
 Les upgrades de `OPENCLAW_LOCAL_FEDORA` suivent une règle simple : **une variable à la fois, avec baseline connue, preuves avant/après et rollback préparé**.
 
-Une version plus récente n'est pas automatiquement meilleure ni qualifiée.
+Une version plus récente n'est pas automatiquement meilleure ni qualifiée. Certains composants peuvent en plus être **verrouillés** et ne relèvent alors pas d'un upgrade opérateur courant.
 
-## Avant tout upgrade
+## Verrou OpenClaw actuel
+
+**OpenClaw est verrouillé exactement en `2026.9.2`.** Le plugin Parallel est lui aussi verrouillé exactement en `2026.9.2`.
+
+Dans l'état contractuel actuel du projet :
+
+- ne pas exécuter de mise à jour OpenClaw vers `latest` ;
+- ne pas suivre automatiquement un canal ou une version plus récente ;
+- ne pas modifier le contrat uniquement pour accepter la version déjà installée ;
+- ne pas considérer une version voisine comme compatible ;
+- laisser l'installateur converger vers `2026.9.2` si une autre version est détectée ;
+- considérer toute autre version comme une divergence tant qu'une migration explicite n'a pas été décidée et qualifiée.
+
+Les verrous canoniques sont dans :
+
+```text
+config/runtime_versions.yaml
+config/core/openclaw_policy.yaml
+```
+
+Le contrôle est également appliqué par l'installation, la configuration, L4, L8 et les tests CI.
+
+## Avant tout upgrade autorisé
 
 Exécuter :
 
@@ -38,81 +60,62 @@ ollama list
 vulkaninfo --summary
 ```
 
-Conserver les preuves de qualification encore valides et identifier celles que le changement invalidera.
+`openclaw --version` doit identifier exactement `2026.9.2`. Une autre valeur est d'abord un incident de conformité à corriger, pas une nouvelle baseline à accepter.
+
+Conserver les preuves de qualification encore valides et identifier celles que le changement autorisé invalidera.
 
 ## Principe de changement unique
 
 Ne pas modifier dans la même campagne :
 
-- OpenClaw + Ollama ;
 - modèle + quantification ;
 - kernel + Mesa ;
 - backend + kernel ;
 - modèle + contexte ;
 - plusieurs modèles nominaux simultanément.
 
+OpenClaw et Parallel ne figurent pas dans cette liste d'upgrades ordinaires : ils restent figés en `2026.9.2`.
+
 Le but est de pouvoir attribuer un changement de comportement à une seule variable.
 
 ## Source de vérité
 
-Les pins approuvés sont dans :
+Les versions et pins approuvés sont dans :
 
 ```text
 config/runtime_versions.yaml
+config/core/openclaw_policy.yaml
 config/model_catalog.yaml
 config/optimization_policy.yaml
 ```
 
 La documentation décrit le processus ; elle ne remplace pas ces contrats.
 
-## Upgrade OpenClaw
+## Changer OpenClaw : migration contractuelle, pas upgrade courant
 
-### Préparation
+Un changement futur de `2026.9.2` ne peut être traité que comme une **migration explicite de l'architecture supportée**.
 
-1. identifier la version candidate ;
-2. vérifier ses notes de version et changements de schéma ;
-3. créer une branche dédiée ;
-4. mettre à jour le pin contractuel et ses métadonnées vérifiables ;
-5. adapter les tests et le renderer si le schéma change.
+Il exige au minimum :
 
-### Validation logicielle
+1. une décision explicite de changer la version verrouillée ;
+2. une branche dédiée ;
+3. la vérification des notes de version et des changements de schéma ;
+4. la mise à jour cohérente de `config/runtime_versions.yaml` et `config/core/openclaw_policy.yaml` ;
+5. la mise à jour des métadonnées d'intégrité et de provenance de la release ;
+6. l'adaptation éventuelle du renderer, des scripts et des tests ;
+7. la CI complète ;
+8. la validation du schéma OpenClaw vivant ;
+9. `health` et L4 sur la machine cible ;
+10. la requalification des gates fonctionnels affectés, notamment L5/L7 lorsque nécessaire ;
+11. une revue humaine avant d'accepter une nouvelle baseline.
 
-```bash
-./menu.sh --action validate
-make ci
-```
+Tant que cette migration n'a pas été explicitement acceptée, **la seule version valide reste `2026.9.2`** et le rollback consiste à restaurer cette version exacte.
 
-### Validation machine
+## Changer Parallel : même principe
 
-Après installation de la candidate :
+Parallel reste verrouillé exactement en `2026.9.2` avec le provider `parallel-free`.
 
-```bash
-openclaw --version
-./menu.sh --action configure-openclaw --backend ollama-vulkan
-./menu.sh --action health
-./menu.sh --action e2e --backend ollama-vulkan
-```
-
-Selon l'impact, rejouer L5/L7 avant d'accepter la nouvelle baseline.
-
-### Rollback
-
-Rétablir le pin OpenClaw précédent, réinstaller cette version, réappliquer la configuration et rejouer `health` + L4.
-
-## Upgrade du plugin Parallel
-
-Traiter le plugin comme une variable distincte d'OpenClaw lorsque c'est possible.
-
-Vérifier :
-
-- package exact ;
-- version exacte ;
-- provider `parallel-free` ;
-- schéma OpenClaw ;
-- recherche Web ;
-- absence d'impact sur le routage LLM local-only.
-
-Rejouer les tests de configuration OpenClaw et les cas Web pertinents.
+Toute autre version doit être traitée comme une migration contractuelle distincte. Vérifier alors package exact, version exacte, provider, schéma OpenClaw, recherche Web, tests associés et absence d'impact sur le routage LLM local-only. Aucun update automatique de Parallel n'est autorisé par le contrat courant.
 
 ## Upgrade Ollama
 
@@ -241,14 +244,14 @@ Avant de déclarer la nouvelle version supportée, revalider au minimum :
 - Podman ;
 - KVM/libvirt ;
 - Ollama ;
-- OpenClaw ;
+- OpenClaw `2026.9.2` ;
 - L2/L3/L4/L5 ;
 - Golden Projects ;
 - documentation et CI de la nouvelle version.
 
 Ne pas remplacer `fedora:44` dans CI sans traiter explicitement ce changement comme une migration de plateforme.
 
-## Après chaque upgrade
+## Après chaque upgrade autorisé
 
 Toujours terminer par :
 
@@ -266,9 +269,9 @@ Mettre à jour `STATUS.md` uniquement avec des états réellement observés.
 | Variable changée | Minimum à rejouer |
 |---|---|
 | documentation seule | CI documentaire / contrats |
-| config OpenClaw | health + L4 |
-| OpenClaw | health + L4, puis gates fonctionnels impactés |
-| Parallel | config + recherche Web + tests associés |
+| config OpenClaw sans changement de version | health + L4 |
+| OpenClaw 2026.9.2 → autre version | **migration contractuelle** + CI + health + L4 + gates fonctionnels impactés + revue humaine |
+| Parallel 2026.9.2 → autre version | **migration contractuelle** + config + recherche Web + tests associés + revue humaine |
 | Ollama | health + L4 + L5/L6 selon impact |
 | modèle nominal | L4 + L5 + L7 + revue humaine |
 | quantification | L4 + L5 + L6 + L7 |
@@ -280,6 +283,8 @@ Mettre à jour `STATUS.md` uniquement avec des états réellement observés.
 
 ## Critère d'acceptation
 
-Un upgrade est accepté lorsque le dépôt, la machine cible et les preuves nécessaires sont cohérents avec les nouveaux contrats et que le rollback reste possible.
+Un upgrade autorisé est accepté lorsque le dépôt, la machine cible et les preuves nécessaires sont cohérents avec les contrats et que le rollback reste possible.
+
+Pour OpenClaw et Parallel, le contrat courant ne définit **aucune promotion automatique ni upgrade opérateur courant** : `2026.9.2` reste la valeur obligatoire jusqu'à décision explicite de migration.
 
 « Plus récent » n'est jamais un critère suffisant de promotion.
