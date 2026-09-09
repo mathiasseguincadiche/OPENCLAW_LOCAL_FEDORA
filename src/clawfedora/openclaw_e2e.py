@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.core_config import AGENT_IDS, resolve_runtime_root, root_contract
+from clawfedora.version_lock import extract_openclaw_version
 
 
 def dry_run(backend: str) -> dict[str, Any]:
@@ -239,7 +240,7 @@ def run_e2e(
         print("L4_RESULT=FAIL openclaw absent")
         return 2, None
     versions = root_contract(repo_root, "runtime_versions.yaml")
-    expected_version = str(dict(versions["openclaw"])["initial_qualification_pin"])
+    expected_version = str(dict(versions["openclaw"])["version"])
     version = subprocess.run(
         [openclaw, "--version"],
         check=False,
@@ -247,9 +248,13 @@ def run_e2e(
         text=True,
         timeout=10,
     )
-    actual_version = (version.stdout + version.stderr).strip()
-    if version.returncode != 0 or expected_version not in actual_version:
-        print(f"L4_RESULT=FAIL OpenClaw attendu={expected_version} reçu={actual_version}")
+    version_output = (version.stdout + version.stderr).strip()
+    try:
+        actual_version = extract_openclaw_version(version_output)
+    except ValueError:
+        actual_version = ""
+    if version.returncode != 0 or actual_version != expected_version:
+        print(f"L4_RESULT=FAIL OpenClaw attendu={expected_version} reçu={version_output}")
         return 2, None
 
     try:
@@ -273,6 +278,7 @@ def run_e2e(
         "gate": "L4",
         "backend": backend,
         "openclaw_version": actual_version,
+        "openclaw_version_output": version_output,
         "gateway": gateway,
         "cloud_enabled": False,
         "transport": "gateway",
