@@ -17,34 +17,49 @@ REQUIRED_DOCS = (
 )
 
 PEDAGOGICAL_GUIDES = (
-    "docs/INSTALLATION.md",
     "docs/GETTING_STARTED.md",
+    "docs/INSTALLATION.md",
     "docs/OPERATIONS.md",
     "docs/TROUBLESHOOTING.md",
-    "docs/UPGRADE.md",
     "docs/ARCHITECTURE.md",
     "docs/MULTI_AGENT_CORE.md",
     "docs/PROJECT_ENGINE.md",
-    "docs/QUALIFICATION.md",
-    "docs/FEDORA_B580.md",
-    "docs/KERNEL_POLICY.md",
     "docs/OPENCLAW_SYSTEMD.md",
     "docs/LIFECYCLE.md",
+    "docs/FEDORA_B580.md",
+    "docs/KERNEL_POLICY.md",
+    "docs/UPGRADE.md",
+    "docs/QUALIFICATION.md",
     "docs/ROADMAP.md",
 )
 
-PEDAGOGICAL_FIELDS = (
-    "Public cible",
-    "Niveau",
+PROGRESSION_FIELDS = (
+    "Pour qui",
+    "Position dans le parcours",
     "Prérequis",
     "Objectif",
     "Résultat attendu",
     "Critère d’arrêt",
-    "À lire ensuite",
+    "Continuer avec",
     "Source de vérité",
 )
 
-PEDAGOGICAL_LEVELS = {"Découverte", "Intermédiaire", "Avancé", "Expert"}
+NEXT_STEP = {
+    "docs/GETTING_STARTED.md": "INSTALLATION.md",
+    "docs/INSTALLATION.md": "OPERATIONS.md",
+    "docs/OPERATIONS.md": "TROUBLESHOOTING.md",
+    "docs/TROUBLESHOOTING.md": "ARCHITECTURE.md",
+    "docs/ARCHITECTURE.md": "MULTI_AGENT_CORE.md",
+    "docs/MULTI_AGENT_CORE.md": "PROJECT_ENGINE.md",
+    "docs/PROJECT_ENGINE.md": "OPENCLAW_SYSTEMD.md",
+    "docs/OPENCLAW_SYSTEMD.md": "LIFECYCLE.md",
+    "docs/LIFECYCLE.md": "FEDORA_B580.md",
+    "docs/FEDORA_B580.md": "KERNEL_POLICY.md",
+    "docs/KERNEL_POLICY.md": "UPGRADE.md",
+    "docs/UPGRADE.md": "QUALIFICATION.md",
+    "docs/QUALIFICATION.md": "ROADMAP.md",
+    "docs/ROADMAP.md": "STATUS.md",
+}
 
 
 def test_operator_documentation_set_is_complete() -> None:
@@ -59,40 +74,73 @@ def test_root_readme_is_an_entry_point_to_operator_docs() -> None:
     assert len(readme) < 9000, "README doit rester une porte d'entrée, pas le manuel complet"
 
 
-def test_docs_index_links_to_operator_and_reference_docs() -> None:
+def test_docs_index_links_to_all_progression_guides() -> None:
     index = (ROOT / "docs/README.md").read_text(encoding="utf-8")
     for path in PEDAGOGICAL_GUIDES:
         assert Path(path).name in index
 
 
-def test_docs_index_exposes_guided_reading_paths() -> None:
+def test_docs_index_exposes_one_universal_learning_path() -> None:
     index = (ROOT / "docs/README.md").read_text(encoding="utf-8")
-    for marker in (
-        "### Débutant — découvrir puis utiliser",
-        "### Opérateur — exploiter et maintenir",
-        "### Expert / mainteneur — comprendre les contrats et les preuves",
-        "## Contrat pédagogique des guides",
-    ):
-        assert marker in index
+    assert "## Parcours unique" in index
+    assert "une seule documentation, un seul parcours, compréhensible par tout le monde" in index
+
+    forbidden_segmented_paths = (
+        "### Débutant",
+        "### Opérateur",
+        "### Expert",
+        "## Parcours guidés",
+    )
+    for marker in forbidden_segmented_paths:
+        assert marker not in index
+
+    path_section = index.split("## Parcours unique", 1)[1].split(
+        "## Contrat de progression des guides", 1
+    )[0]
+    positions = [path_section.index(Path(path).name) for path in PEDAGOGICAL_GUIDES]
+    assert positions == sorted(positions)
+    assert path_section.index("STATUS.md") > positions[-1]
 
 
-def test_reference_guides_have_uniform_pedagogical_metadata() -> None:
+def test_reference_guides_form_one_continuous_progression() -> None:
     failures: list[str] = []
-    level_pattern = re.compile(r"\| \*\*Niveau\*\* \| ([^|]+) \|")
+    total = len(PEDAGOGICAL_GUIDES)
+    position_pattern = re.compile(r"\| \*\*Position dans le parcours\*\* \| ([^|]+) \|")
 
-    for relative in PEDAGOGICAL_GUIDES:
+    for index, relative in enumerate(PEDAGOGICAL_GUIDES, start=1):
         path = ROOT / relative
         text = path.read_text(encoding="utf-8")
-        header = "\n".join(text.splitlines()[:35])
-        if "## Repères de lecture" not in header:
-            failures.append(f"{relative}: section Repères de lecture absente du début du guide")
+        header = "\n".join(text.splitlines()[:40])
+
+        if "## Repères de progression" not in header:
+            failures.append(f"{relative}: section Repères de progression absente")
             continue
-        for field in PEDAGOGICAL_FIELDS:
+
+        for field in PROGRESSION_FIELDS:
             if f"| **{field}** |" not in header:
-                failures.append(f"{relative}: métadonnée pédagogique absente: {field}")
-        match = level_pattern.search(header)
-        if match is None or match.group(1).strip() not in PEDAGOGICAL_LEVELS:
-            failures.append(f"{relative}: niveau pédagogique invalide")
+                failures.append(f"{relative}: repère de progression absent: {field}")
+
+        if "| **Pour qui** | Toute personne" not in header:
+            failures.append(f"{relative}: le guide doit être explicitement accessible à toute personne")
+
+        if "| **Niveau** |" in header or "| **Public cible** |" in header:
+            failures.append(f"{relative}: segmentation par niveau/public interdite")
+
+        match = position_pattern.search(header)
+        expected_position = f"{index}/{total}"
+        if match is None or match.group(1).strip() != expected_position:
+            failures.append(
+                f"{relative}: position attendue {expected_position}, "
+                f"observée {match.group(1).strip() if match else 'absente'}"
+            )
+
+        expected_next = NEXT_STEP[relative]
+        continue_row = next(
+            (line for line in header.splitlines() if line.startswith("| **Continuer avec** |")),
+            "",
+        )
+        if expected_next not in continue_row:
+            failures.append(f"{relative}: étape suivante attendue {expected_next}")
 
     assert failures == []
 
