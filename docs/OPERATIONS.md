@@ -1,17 +1,17 @@
 # Runbook d'exploitation Fedora
 
-## Repères de lecture
+## Repères de progression
 
 | Repère | Valeur |
 |---|---|
-| **Public cible** | Opérateurs responsables du fonctionnement quotidien de la plateforme. |
-| **Niveau** | Intermédiaire |
-| **Prérequis** | Installation terminée, [`GETTING_STARTED.md`](GETTING_STARTED.md) lu et accès aux commandes utilisateur/systemd nécessaires. |
-| **Objectif** | Exploiter, diagnostiquer, sauvegarder, restaurer et faire revenir la plateforme à un état connu sans contourner les garde-fous. |
-| **Résultat attendu** | Savoir exécuter la routine de santé, isoler une couche fautive, produire un état minimal d'incident et appliquer un rollback adapté. |
-| **Critère d’arrêt** | Si `validate` ou `health` échoue sans cause comprise, ou si une correction exigerait de désactiver un garde-fou, basculer vers [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md). |
-| **À lire ensuite** | [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) en cas d'incident, [`UPGRADE.md`](UPGRADE.md) avant un changement, [`QUALIFICATION.md`](QUALIFICATION.md) pour les gates. |
-| **Source de vérité** | `config/*.yaml`, les états observés par `health/status` et les preuves runtime sous `/srv/openclaw-local/proofs/`. |
+| **Pour qui** | Toute personne qui exploite le projet après l’installation, même si elle découvre encore les pratiques d’exploitation Linux. |
+| **Position dans le parcours** | 3/14 |
+| **Prérequis** | Avoir lu [`GETTING_STARTED.md`](GETTING_STARTED.md) puis [`INSTALLATION.md`](INSTALLATION.md). |
+| **Objectif** | Apprendre à observer, maintenir, sauvegarder, restaurer et réparer la plateforme sans contourner les contrats. |
+| **Résultat attendu** | Savoir effectuer la routine quotidienne, collecter un état utile et choisir une correction minimale avec rollback. |
+| **Critère d’arrêt** | Si un symptôme n’est pas compris ou si `health` reste en échec, ne pas multiplier les changements ; poursuivre avec le guide de dépannage. |
+| **Continuer avec** | [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) |
+| **Source de vérité** | Les contrats `config/*.yaml`, les scripts gérés et les preuves runtime sous la racine locale. |
 
 Ce runbook couvre l'exploitation quotidienne de `OPENCLAW_LOCAL_FEDORA`. Son objectif est de permettre à un opérateur de diagnostiquer, maintenir et restaurer la plateforme sans contourner les garde-fous de sécurité ni confondre santé logicielle et qualification matérielle.
 
