@@ -67,7 +67,7 @@ def build_parser() -> argparse.ArgumentParser:
     snapshot = sub.add_parser("snapshot")
     snapshot.add_argument(
         "--backend",
-        choices=("ollama-vulkan", "llama-cpp-vulkan", "llama-cpp-sycl"),
+        choices=("ollama-vulkan", "llama-cpp-vulkan"),
         required=True,
     )
     snapshot.add_argument("--endpoint", required=True)
