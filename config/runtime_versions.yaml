@@ -3,6 +3,7 @@ platform_version: "0.1.0"
 
 openclaw:
   version: "2026.9.2"
+  initial_qualification_pin: "2026.9.2"  # compatibility alias; must equal version
   lock: exact
   integrity: "sha512-M6C7UsnX815nv26qBJFYGe6aGzv+ftZLRzV6S9oRXUtXg2Yn67eVntpssT94kgkquKVSeUxerUg0j1ONp4WYQg=="
   release_sha: "3928bad9badfcb6c7d140530435e806fb8092190"
