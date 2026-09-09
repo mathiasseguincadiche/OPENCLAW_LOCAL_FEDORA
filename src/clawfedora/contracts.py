@@ -129,27 +129,22 @@ def validate_repository(root: Path) -> ContractReport:
 
     backends = contracts["backends"]
     backend_map = backends.get("backends", {})
-    expected_backends = {"ollama-vulkan", "llama-cpp-vulkan", "llama-cpp-sycl"}
+    expected_backends = {"ollama-vulkan", "llama-cpp-vulkan"}
     if set(backend_map) != expected_backends:
-        failures.append("backends: matrice Linux runtime incomplète")
+        failures.append("backends: matrice runtime doit rester strictement Vulkan")
     for backend_id, backend in backend_map.items():
         if backend.get("linux_native") is not True:
             failures.append(f"backends: {backend_id} doit être Linux natif")
         endpoint = str(backend.get("endpoint", ""))
         if endpoint and not _loopback(endpoint):
             failures.append(f"backends: {backend_id} endpoint non loopback")
-        if backend_id == "llama-cpp-sycl":
-            if backend.get("accelerator") != "sycl" or backend.get("device_api") != "level_zero":
-                failures.append("backends: candidat SYCL doit utiliser Level Zero")
-        elif backend.get("accelerator") != "vulkan":
+        if backend.get("accelerator") != "vulkan":
             failures.append(f"backends: {backend_id} doit utiliser Vulkan")
     selection = backends.get("selection", {})
     if selection.get("initial_baseline") != "ollama-vulkan":
         failures.append("backends: baseline initiale Ollama Vulkan requise")
     if selection.get("automatic_promotion") is not False:
         failures.append("backends: promotion automatique interdite")
-    if selection.get("optional_candidates_must_not_block_baseline") is not True:
-        failures.append("backends: candidats optionnels ne doivent pas bloquer la baseline")
     if selection.get("no_cloud_fallback") is not True:
         failures.append("backends: aucun fallback cloud doit rester garanti")
 
@@ -195,6 +190,8 @@ def validate_repository(root: Path) -> ContractReport:
         failures.append("roadmap: Vulkan doit rester l'API GPU nominale")
     if linux_stack.get("nominal_gpu_userspace") != "mesa":
         failures.append("roadmap: Mesa doit rester la pile GPU nominale")
+    if linux_stack.get("performance_candidates") != ["llama-cpp-vulkan"]:
+        failures.append("roadmap: llama.cpp Vulkan doit rester l'unique candidat runtime")
     gates = roadmap.get("roadmap_gates", {})
     if list(gates) != [f"L{i}" for i in range(9)]:
         failures.append("roadmap: gates L0..L8 incomplets ou désordonnés")
