@@ -66,13 +66,18 @@ def validate_optimization_contracts(
         failures.append("l6: drift SHA-256 kernel")
 
     backend_map = _mapping(backends.get("backends"))
-    for backend_id in ("ollama-vulkan", "llama-cpp-vulkan", "llama-cpp-sycl"):
+    expected_backend_ids = {"ollama-vulkan", "llama-cpp-vulkan"}
+    if set(backend_map) != expected_backend_ids:
+        failures.append("l6: matrice runtime doit rester strictement Vulkan")
+    for backend_id in sorted(expected_backend_ids):
         backend = _mapping(backend_map.get(backend_id))
         endpoint = str(backend.get("endpoint", ""))
         if not endpoint.startswith("http://127.0.0.1:"):
             failures.append(f"l6: {backend_id} doit rester loopback")
         if backend.get("linux_native") is not True:
             failures.append(f"l6: {backend_id} doit être Linux-native")
+        if backend.get("accelerator") != "vulkan":
+            failures.append(f"l6: {backend_id} doit utiliser Vulkan")
     selection = _mapping(backends.get("selection"))
     if selection.get("automatic_promotion") is not False:
         failures.append("l6: promotion backend automatique interdite")
@@ -82,6 +87,8 @@ def validate_optimization_contracts(
     runtime_cmp = _mapping(policy.get("runtime_comparison"))
     if runtime_cmp.get("baseline") != "ollama-vulkan":
         failures.append("l6: baseline runtime doit rester ollama-vulkan")
+    if runtime_cmp.get("candidates") != ["llama-cpp-vulkan"]:
+        failures.append("l6: llama.cpp Vulkan doit être l'unique candidat runtime")
     if float(runtime_cmp.get("aggregate_improvement_target_pct", 0)) != 10.0:
         failures.append("l6: cible runtime agrégée doit rester 10%")
     if float(runtime_cmp.get("maximum_single_model_regression_pct", 999)) != 5.0:
