@@ -172,6 +172,8 @@ Les poids modèles, workspaces runtime, preuves et données projet ne sont pas v
 
 Le point d'entrée complet est [`docs/README.md`](docs/README.md).
 
+**Si vous découvrez le projet, ne choisissez pas un “niveau” de documentation : suivez simplement le parcours unique indiqué dans `docs/README.md`. Il part des premières commandes et introduit progressivement l'installation, l'exploitation, le diagnostic, l'architecture, le matériel, les upgrades et la qualification.**
+
 | Besoin | Document |
 |---|---|
 | installation | [`docs/INSTALLATION.md`](docs/INSTALLATION.md) |
