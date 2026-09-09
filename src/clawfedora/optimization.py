@@ -423,11 +423,11 @@ def compare_model_challenger(
         raise ValueError("L6: challenger contextes divergents")
     if list(incumbent[0]["prompt_hashes"]) != list(challenger[0]["prompt_hashes"]):
         raise ValueError("L6: challenger corpus de prompts divergent")
-    slot = str(cfg.get("slot", "gemma-deep"))
+    slot = str(cfg.get("slot", "devstral-devops"))
     incumbent_models = _mapping(incumbent[0]["models"])
     challenger_models = _mapping(challenger[0]["models"])
     if set(incumbent_models) != {slot} or set(challenger_models) != {slot}:
-        raise ValueError("L6: preuve challenger doit contenir uniquement le slot documentaire")
+        raise ValueError("L6: preuve challenger doit contenir uniquement le slot spécialiste DevOps")
     if _mapping(incumbent_models[slot])["runtime_id"] != cfg.get("incumbent"):
         raise ValueError("L6: incumbent inattendu")
     if _mapping(challenger_models[slot])["runtime_id"] != cfg.get("challenger"):
@@ -438,7 +438,7 @@ def compare_model_challenger(
     reasons: list[str] = []
     if not _all_gates_pass(incumbent + challenger):
         reasons.append("functional_or_security_gate_failed")
-    for required_flag in ("vision_pass", "document_quality_pass", "tool_calling_pass"):
+    for required_flag in ("coding_pass", "tool_calling_pass", "tool_repair_pass"):
         if any(run.get(required_flag) is not True for run in challenger):
             reasons.append(f"challenger_{required_flag}_failed")
     max_regression = float(cfg.get("maximum_performance_regression_pct", 0))
