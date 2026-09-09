@@ -22,20 +22,12 @@ def _policy() -> dict[str, object]:
         "paths": {
             "llama_models": "models/llama-router",
             "llama_vulkan_build": "runtime/llama.cpp/vulkan",
-            "llama_sycl_build": "runtime/llama.cpp/sycl",
         },
         "services": {
             "host": "127.0.0.1",
             "vulkan": {
                 "unit": "openclaw-llama-vulkan.service",
                 "port": 8081,
-                "models_max": 1,
-                "context_tokens": 8192,
-                "gpu_layers": 999,
-            },
-            "sycl": {
-                "unit": "openclaw-llama-sycl.service",
-                "port": 8080,
                 "models_max": 1,
                 "context_tokens": 8192,
                 "gpu_layers": 999,
@@ -79,13 +71,12 @@ def _runtime_tree(tmp_path: Path) -> Path:
         json.dumps({"models": models}),
         encoding="utf-8",
     )
-    for backend in ("vulkan", "sycl"):
-        build = runtime_root / f"runtime/llama.cpp/{backend}"
-        server = build / "bin/llama-server"
-        server.parent.mkdir(parents=True)
-        server.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        server.chmod(0o755)
-        (build / "OPENCLAW_BUILD_COMMIT").write_text(LLAMA_COMMIT, encoding="utf-8")
+    build = runtime_root / "runtime/llama.cpp/vulkan"
+    server = build / "bin/llama-server"
+    server.parent.mkdir(parents=True)
+    server.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    server.chmod(0o755)
+    (build / "OPENCLAW_BUILD_COMMIT").write_text(LLAMA_COMMIT, encoding="utf-8")
     return runtime_root
 
 
@@ -102,7 +93,7 @@ def test_safe_runtime_path_and_sha(tmp_path: Path) -> None:
         runtime_candidate._safe_runtime_path(tmp_path, "../escape")
 
 
-def test_prepare_runtime_files_for_vulkan_and_sycl(
+def test_prepare_runtime_files_for_vulkan(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -129,18 +120,6 @@ def test_prepare_runtime_files_for_vulkan_and_sycl(
     assert "ProtectSystem=strict" in unit
     assert "ReadOnlyPaths=" in unit
     assert "ReadWritePaths=" in unit
-
-    sycl = runtime_candidate.prepare_runtime_files(
-        tmp_path,
-        runtime_root,
-        "llama-cpp-sycl",
-        unit_dir=unit_dir,
-    )
-    launcher = sycl.launcher.read_text(encoding="utf-8")
-    assert sycl.endpoint == "http://127.0.0.1:8080/v1"
-    assert "/opt/intel/oneapi/setvars.sh" in launcher
-    assert "GGML_SYCL_DEVICE='0'" in launcher
-    assert "command -v icpx" in launcher
 
 
 def test_runtime_helpers_reject_invalid_manifest_and_sources(
