@@ -17,7 +17,7 @@ while (($#)); do
       ;;
     --dry-run) DRY_RUN=1 ;;
     -h|--help)
-      echo "Usage: 06_openclaw_e2e.sh [--backend BACKEND] [--dry-run]"
+      echo "Usage: 06_openclaw_e2e.sh [--backend ollama-vulkan|llama-cpp-vulkan] [--dry-run]"
       exit 0
       ;;
     *) echo "ERREUR: argument inconnu: $1" >&2; exit 2 ;;
@@ -26,7 +26,7 @@ while (($#)); do
 done
 
 case "$BACKEND" in
-  ollama-vulkan|llama-cpp-vulkan|llama-cpp-sycl) ;;
+  ollama-vulkan|llama-cpp-vulkan) ;;
   *) echo "ERREUR: backend non supporté: $BACKEND" >&2; exit 2 ;;
 esac
 
