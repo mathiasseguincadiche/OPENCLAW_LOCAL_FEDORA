@@ -9,12 +9,14 @@ import pytest
 from clawfedora import challenger_runner, optimization
 
 ROOT = Path(__file__).resolve().parents[1]
+SPECIALIST = "hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M"
+CHALLENGER = "granite4.2:8b-q4_K_M"
 
 
 def test_challenger_plan_is_outside_nominal_routing() -> None:
     plan = challenger_runner.provision_challenger_plan(ROOT)
-    assert plan["slot"] == "gemma-deep"
-    assert plan["runtime_id"] == "ministral-3:14b-instruct-2512-q4_K_M"
+    assert plan["slot"] == "devstral-devops"
+    assert plan["runtime_id"] == CHALLENGER
     assert plan["routed"] is False
     assert plan["counts_toward_required_fleet"] is False
     assert plan["automatic_promotion"] is False
@@ -24,15 +26,9 @@ def test_challenger_plan_is_outside_nominal_routing() -> None:
 def test_challenger_and_incumbent_share_the_same_slot() -> None:
     incumbent = challenger_runner.challenger_plan(ROOT, "incumbent")
     challenger = challenger_runner.challenger_plan(ROOT, "challenger")
-    assert incumbent.slot == challenger.slot == "gemma-deep"
-    assert incumbent.runtime_id == "gemma3:12b-it-q4_K_M"
-    assert challenger.runtime_id == "ministral-3:14b-instruct-2512-q4_K_M"
-
-
-def test_blue_square_fixture_is_a_png() -> None:
-    value = challenger_runner._png_blue_square()
-    assert value.startswith(b"\x89PNG\r\n\x1a\n")
-    assert len(value) > 100
+    assert incumbent.slot == challenger.slot == "devstral-devops"
+    assert incumbent.runtime_id == SPECIALIST
+    assert challenger.runtime_id == CHALLENGER
 
 
 def _fake_chat(
@@ -44,21 +40,32 @@ def _fake_chat(
 ) -> dict[str, Any]:
     assert timeout == 210.0
     probe_id = probe["id"]
-    if probe_id == "vision":
-        output = "BLUE_SQUARE"
-        calls: list[dict[str, Any]] = []
-    elif probe_id == "document-quality":
+    if probe_id == "coding":
         output = json.dumps(
-            {"service": "openclaw", "severity": "high", "decision": "rollback"}
+            {
+                "scope": "user",
+                "unit": "openclaw-gateway.service",
+                "action": "restart",
+            }
         )
-        calls = []
+        calls: list[dict[str, Any]] = []
+    elif probe_id == "tool-calling":
+        output = ""
+        calls = [
+            {
+                "function": {
+                    "name": "inspect_service",
+                    "arguments": {"unit": "openclaw-gateway.service"},
+                }
+            }
+        ]
     else:
         output = ""
         calls = [
             {
                 "function": {
-                    "name": "record_incident",
-                    "arguments": {"service": "openclaw", "severity": "high"},
+                    "name": "restart_user_unit",
+                    "arguments": {"unit": "openclaw-gateway.service"},
                 }
             }
         ]
@@ -105,12 +112,12 @@ def test_challenger_snapshot_records_required_live_quality_flags(
     )
     payload = json.loads(path.read_text(encoding="utf-8"))
     assert payload["kind"] == "model-challenger"
-    assert payload["candidate_id"] == "ministral-3:14b-instruct-2512-q4_K_M"
+    assert payload["candidate_id"] == CHALLENGER
     assert payload["functional_pass"] is True
     assert payload["security_pass"] is True
-    assert payload["vision_pass"] is True
-    assert payload["document_quality_pass"] is True
+    assert payload["coding_pass"] is True
     assert payload["tool_calling_pass"] is True
+    assert payload["tool_repair_pass"] is True
     assert payload["raw_outputs_persisted"] is False
     assert payload["cloud_calls_allowed"] is False
     assert payload["routed"] is False
@@ -143,5 +150,5 @@ def test_challenger_comparison_is_reproducible_from_three_runs(
             )
         )
     report = optimization.compare_model_challenger(ROOT, incumbent, challenger)
-    assert report.candidate_id == "ministral-3:14b-instruct-2512-q4_K_M"
+    assert report.candidate_id == CHALLENGER
     assert report.verdict == "ELIGIBLE_FOR_HUMAN_PROMOTION"
