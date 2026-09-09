@@ -95,17 +95,16 @@ Valider :
 
 ## L6 — Optimisation Linux
 
-Comparer à la baseline Fedora officielle + Ollama Vulkan :
+Comparer à la baseline Fedora officielle + Ollama/Vulkan :
 
-- llama.cpp Vulkan ;
-- llama.cpp SYCL/Level Zero comme candidat optionnel ;
+- llama.cpp/Vulkan comme unique candidat runtime ;
 - réglages runtime qualifiés ;
 - kernel 7.2.3 contre kernel Fedora officiel ;
 - `granite4.2:8b-q4_K_M` contre le spécialiste nominal Ministral sur le slot `devstral-devops`.
 
 La comparaison modèle mesure des capacités correspondant réellement à la mission DevOps : plan systemd utilisateur, tool-calling natif, réparation après feedback outil, sécurité et performance. Elle n'impose pas de test vision à un modèle text-only.
 
-Une variable change à la fois. Les candidats optionnels ne bloquent jamais la baseline. Le kernel Fedora reste bootable.
+Une variable change à la fois. Le kernel Fedora reste bootable.
 
 La flotte opérationnelle reste **exactement composée de trois alias**. Granite est provisionné explicitement uniquement pour L6, reste hors routage, ne compte pas dans la flotte requise et ne peut jamais être promu automatiquement.
 
