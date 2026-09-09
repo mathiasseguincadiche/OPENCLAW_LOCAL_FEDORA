@@ -9,12 +9,10 @@ from clawfedora.core_config import core_contract, root_contract
 
 PROVIDER_IDS = {
     "llama-cpp-vulkan": "intel-vulkan",
-    "llama-cpp-sycl": "intel-sycl",
 }
 PROVIDER_ENV_KEYS = {
     "ollama": "OLLAMA_API_KEY",
     "intel-vulkan": "INTEL_VULKAN_API_KEY",
-    "intel-sycl": "INTEL_SYCL_API_KEY",
 }
 
 
@@ -30,7 +28,6 @@ def _runtime_id(model: dict[str, Any], backend_id: str, *, alias: str) -> str:
     field = {
         "ollama-vulkan": "runtime_id",
         "llama-cpp-vulkan": "vulkan_runtime_id",
-        "llama-cpp-sycl": "sycl_runtime_id",
     }.get(backend_id)
     if field is None:
         raise ValueError(f"backend OpenClaw non supporté: {backend_id}")
