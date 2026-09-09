@@ -145,7 +145,7 @@ def validate_release_readiness_contracts(
         expected = {
             ("runtime", "llama-cpp-vulkan"),
             ("kernel", "upstream-7.2.3"),
-            ("model-challenger", "ministral-3:14b-instruct-2512-q4_K_M"),
+            ("model-challenger", "granite4.2:8b-q4_K_M"),
         }
         if normalized != expected:
             failures.append("L8: les trois décisions L6 obligatoires ont dérivé")
@@ -168,10 +168,10 @@ def validate_release_readiness_contracts(
         failures.append("L8: promotion automatique kernel interdite")
     if challenger_cfg.get("automatic_promotion") is not False:
         failures.append("L8: promotion automatique challenger interdite")
-    if challenger_cfg.get("slot") != "gemma-deep":
-        failures.append("L8: Ministral doit challenger uniquement gemma-deep")
-    if challenger_cfg.get("challenger") != "ministral-3:14b-instruct-2512-q4_K_M":
-        failures.append("L8: challenger Ministral inattendu")
+    if challenger_cfg.get("slot") != "devstral-devops":
+        failures.append("L8: Granite doit challenger uniquement le spécialiste DevOps")
+    if challenger_cfg.get("challenger") != "granite4.2:8b-q4_K_M":
+        failures.append("L8: challenger Granite inattendu")
 
     models = _mapping(catalog.get("models"), "model_catalog.models")
     required_aliases = {
