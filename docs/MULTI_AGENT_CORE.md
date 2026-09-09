@@ -1,5 +1,18 @@
 # Cœur multi-agents Linux-native
 
+## Repères de lecture
+
+| Repère | Valeur |
+|---|---|
+| **Public cible** | Intégrateurs OpenClaw, mainteneurs et contributeurs travaillant sur les huit agents. |
+| **Niveau** | Avancé |
+| **Prérequis** | Connaître l'architecture générale et la flotte de trois modèles nominaux. |
+| **Objectif** | Comprendre les huit rôles, leurs workspaces, leur routage et la configuration OpenClaw Fedora-native. |
+| **Résultat attendu** | Savoir relier chaque rôle à son modèle, ses capacités, son workspace et son chemin de configuration. |
+| **Critère d’arrêt** | Si le rendu OpenClaw, le provider ou l'inventaire des huit agents ne correspond pas aux contrats, ne pas appliquer la configuration et suivre [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md). |
+| **À lire ensuite** | [`PROJECT_ENGINE.md`](PROJECT_ENGINE.md) pour l'orchestration de projets, puis [`OPERATIONS.md`](OPERATIONS.md) pour l'exploitation. |
+| **Source de vérité** | `config/core/model_routing.yaml`, `config/core/tool_policy.yaml`, `config/model_catalog.yaml` et les contrats sous `agents/`. |
+
 ## Objectif
 
 La couche L1 matérialise huit rôles OpenClaw sous Fedora sans dépendre d'un autre système d'exploitation. Les contrats sont versionnés dans Git ; les workspaces réels restent sous la racine runtime locale.
