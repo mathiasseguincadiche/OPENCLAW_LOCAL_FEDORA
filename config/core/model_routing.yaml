@@ -1,44 +1,76 @@
-schema_version: "1.0.0"
+schema_version: "2.0.0"
 platform_version: "0.1.0"
 
 policy:
   local_first: true
+  local_only: true
+  cloud_models_supported: false
   cloud_enabled_by_default: false
   supported_local_aliases: [qwen-max, gemma-deep, devstral-devops]
   local_fallbacks_must_stay_in_supported_fleet: true
+  routing_order: [local_primary, local_specialist, local_deep, local_max]
+  no_hidden_small_model_fallback: true
 
 agents:
   chef-operations:
     local_primary: qwen-max
+    local_max: qwen-max
     local_fallback: gemma-deep
     preferred_tier: max
+    phase_preferences:
+      analyze: max
+      plan: max
   expert-recherche:
     local_primary: qwen-max
+    local_max: qwen-max
     local_fallback: gemma-deep
     preferred_tier: max
+    phase_preferences:
+      execute: max
   architecte-solutions:
     local_primary: gemma-deep
+    local_deep: gemma-deep
+    local_max: qwen-max
     local_fallback: qwen-max
     preferred_tier: deep
+    phase_preferences:
+      execute: deep
   ingenieur-devops:
     local_primary: devstral-devops
+    local_specialist: devstral-devops
+    local_max: qwen-max
     local_fallback: qwen-max
     preferred_tier: specialist
+    phase_preferences:
+      execute: specialist
   ingenieur-securite:
     local_primary: qwen-max
+    local_max: qwen-max
     local_fallback: gemma-deep
     preferred_tier: max
+    phase_preferences:
+      execute: max
   ingenieur-release-forges:
     local_primary: qwen-max
+    local_max: qwen-max
     local_fallback: devstral-devops
     preferred_tier: max
+    phase_preferences:
+      execute: max
   redacteur-technique:
     local_primary: gemma-deep
+    local_deep: gemma-deep
     local_fallback: qwen-max
     preferred_tier: deep
+    phase_preferences:
+      execute: deep
   auditeur-qualite:
     local_primary: gemma-deep
+    local_deep: gemma-deep
     local_fallback: qwen-max
     independent_alternative: qwen-max
     preferred_tier: deep
     independence_rule: reviewer_family_must_differ_from_producer_when_practical
+    phase_preferences:
+      validate: deep
+      review: deep
