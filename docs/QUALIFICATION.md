@@ -13,7 +13,7 @@ L4 OpenClaw + 8 agents + outils
         ↓
 L5 HARD-40M Ollama Vulkan
         ↓
-L6 runtimes + kernel + Gemma ↔ Ministral
+L6 runtimes + kernel + Ministral ↔ Granite (slot DevOps)
         ↓
 L7 Golden Projects + projet représentatif
         ↓
@@ -22,7 +22,19 @@ L8 Release Readiness
 Approbation humaine explicite
 ```
 
-Aucun gate matériel n'est déclaré PASS par la CI. La CI valide le protocole, les contrats, les tests, les DryRun et le comportement fail-closed. Les verdicts L2 à L6 doivent être produits sur la machine cible. L7 peut être validé logiciellement en CI, mais doit être rejoué sur l'installation finale avant L8.
+Aucun gate matériel n'est déclaré PASS par la CI. La CI valide le protocole, les contrats, les tests, les dry-runs et le comportement fail-closed. Les verdicts L2 à L6 nécessitent des preuves produites sur la machine Fedora 44 cible. L7 est vérifiable logiciellement en CI mais doit être rejoué sur l'installation finale avant L8.
+
+## Flotte Architecture V2 qualifiée
+
+La flotte routée doit rester exactement composée de trois alias :
+
+- `qwen-max` → `qwen3.5:9b-q4_K_M` ;
+- `gemma-deep` → `gemma4:12b-it-q4_K_M` ;
+- `devstral-devops` → `hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M`.
+
+`granite4.2:8b-q4_K_M` est uniquement un challenger L6 du slot `devstral-devops`. Il reste hors routage, hors flotte requise et ne peut jamais être promu automatiquement.
+
+Le contexte nominal est 8192 tokens. Le contexte 16384 est un contexte de qualification, pas un réglage de production automatiquement promu.
 
 ## L2 — Fedora 44 / poste matériel
 
@@ -68,7 +80,9 @@ SYCL/Level Zero n'est pas requis par L3 : il reste un candidat L6 optionnel.
 
 ## L4 — OpenClaw E2E
 
-DryRun :
+La version de qualification OpenClaw est verrouillée par `config/runtime_versions.yaml` et vaut actuellement `2026.9.2`.
+
+Dry-run :
 
 ```bash
 ./menu.sh --action e2e-dry-run --backend ollama-vulkan
@@ -105,7 +119,7 @@ Contrat :
 - 6 cas à 16K ;
 - 12 scénarios couverts collectivement à 8K ;
 - 10 cas par modèle ;
-- 3 probes Qwen avec reasoning natif ;
+- 3 probes Qwen avec reasoning natif, réservés à `qwen-max` ;
 - plafond absolu de 768 tokens par scénario, avec 768 tokens sur les probes Qwen dédiés ;
 - 210 s max par cas ;
 - **2400 s / 40 min max pour le gate complet**, préflight et évaluation inclus ;
@@ -116,17 +130,19 @@ Contrat :
 - kernel, Mesa et version Ollama enregistrés ;
 - aucune promotion automatique.
 
-### DryRun
+Le spécialiste `devstral-devops` conserve sa famille Ministral Reasoning propre. Il ne reçoit pas artificiellement les probes natifs Qwen.
+
+### Dry-run
 
 ```bash
 ./menu.sh --action qualification-dry-run
 ```
 
-Le DryRun valide la matrice et les contrats sans contacter Ollama ni le matériel.
+Le dry-run valide la matrice et les contrats sans contacter Ollama ni le matériel.
 
 ### Profil performance
 
-Le run réel exige un profil performance reproductible. Vérification sans modification :
+Vérification sans modification :
 
 ```bash
 ./menu.sh --action performance
@@ -152,11 +168,9 @@ Après la campagne, l'opérateur peut revenir explicitement à son profil habitu
 
 Le launcher utilise `systemd-inhibit --what=sleep --mode=block`. Le runner démarre son chronomètre avant L2/L3 et réduit automatiquement le budget benchmark du temps déjà consommé. Il ne peut donc pas dépasser volontairement la limite de 2400 secondes.
 
-L'entrée CLI réelle refuse L5 si le marqueur du launcher protégé n'est pas présent et revalide les contrats HARD-40M avant tout accès au matériel ou à Ollama. Un fichier suite hors contrat ne peut donc pas contourner les limites en lançant directement la CLI.
+L'entrée CLI réelle revalide les contrats HARD-40M avant tout accès au matériel ou à Ollama. Un fichier suite hors contrat ne peut pas contourner les limites en lançant directement la CLI.
 
 ## Seuils L5
-
-Le gate reste exigeant :
 
 - taux d'erreur maximum : `0.0` ;
 - taux de checks minimum : `0.875` ;
@@ -181,73 +195,79 @@ Les preuves ne sont pas versionnées dans Git. Elles sont stockées sous la raci
 └── l8/
 ```
 
-Les preuves L2/L3 restent toujours sous `proofs/hardware/`, y compris lorsqu'elles sont produites comme préflight d'un run HARD-40M. La preuve HARD-40M référence leurs chemins canoniques.
+Les preuves L2/L3 restent sous `proofs/hardware/`, y compris lorsqu'elles sont produites comme préflight d'un run HARD-40M. La preuve HARD-40M référence leurs chemins canoniques.
 
 Les preuves HARD-40M et L6 ne stockent pas la sortie brute des modèles : elles conservent les SHA-256, longueurs/checks nécessaires, métriques, identités modèles et versions runtime.
 
 ## L6 — Comparaisons Linux
 
-Après un L5 baseline PASS :
+Après une baseline L5 PASS sur matériel réel, L6 compare une seule variable à la fois :
 
-1. kernel Fedora officiel + Ollama Vulkan ;
+1. kernel Fedora officiel + Ollama Vulkan — baseline ;
 2. kernel Fedora officiel + llama.cpp Vulkan ;
 3. kernel Fedora officiel + llama.cpp SYCL/Level Zero, si le candidat est installé ;
-4. kernel 7.2.3 + runtime retenu pour comparaison ;
-5. Gemma 3 12B vs Ministral 3 14B sur le même slot `gemma-deep` ;
-6. confirmation par 3 runs par série avant toute décision.
+4. kernel 7.2.3 + runtime retenu pour la comparaison ;
+5. Ministral 3 14B Reasoning vs Granite 4.2 8B sur le même slot `devstral-devops` ;
+6. trois runs minimum par série avant toute décision.
 
-Une seule variable change à la fois. Un candidat optionnel absent ne rend jamais la baseline invalide.
+Un candidat optionnel absent ne rend jamais la baseline invalide. Le kernel Fedora officiel reste un rollback bootable obligatoire.
 
-### Challenger Ministral — hors routage
+### Challenger Granite — hors routage
 
-Le provisionnement nominal `models` reste limité aux trois modèles routés. Ministral utilise un chemin distinct :
+Le provisionnement nominal `models` reste limité aux trois modèles routés. Granite utilise un chemin distinct :
 
 ```bash
 ./menu.sh --action challenger-model
 ```
 
-Ce DryRun affiche le modèle mais ne télécharge rien. Provisionnement explicite :
+Le dry-run affiche le plan sans télécharger. Provisionnement explicite :
 
 ```bash
 ./menu.sh --action challenger-model --apply
 ```
 
-La commande appelle uniquement `ollama pull ministral-3:14b-instruct-2512-q4_K_M`. Elle ne modifie pas le routeur et ne compte jamais Ministral comme quatrième modèle nominal.
+La commande résout le runtime depuis `model_catalog.yaml` et appelle `ollama pull` uniquement pour `granite4.2:8b-q4_K_M`. Elle ne modifie jamais le routeur.
 
-Chaque série Gemma/Ministral se collecte séparément :
+### Snapshots spécialiste/challenger
+
+Collecte de l'incumbent Ministral :
 
 ```bash
 clawfedora-l6 --runtime-root /srv/openclaw-local snapshot-challenger \
   --variant incumbent \
-  --output /srv/openclaw-local/proofs/l6/challenger/gemma-run-1.json
-
-clawfedora-l6 --runtime-root /srv/openclaw-local snapshot-challenger \
-  --variant challenger \
   --output /srv/openclaw-local/proofs/l6/challenger/ministral-run-1.json
 ```
 
-Répéter trois fois chaque variante. Le runner utilise le même corpus de trois probes :
+Collecte du challenger Granite :
 
-- extraction documentaire structurée ;
-- tool-calling `record_incident` avec arguments exacts ;
-- vision sur fixture PNG locale.
+```bash
+clawfedora-l6 --runtime-root /srv/openclaw-local snapshot-challenger \
+  --variant challenger \
+  --output /srv/openclaw-local/proofs/l6/challenger/granite-run-1.json
+```
 
-Il enregistre `vision_pass`, `document_quality_pass`, `tool_calling_pass`, performances, identité/digest et hash des sorties, sans persister les sorties brutes.
+Répéter trois fois chaque variante. Le runner utilise le même corpus Fedora/DevOps de trois probes :
 
-La comparaison :
+- plan systemd utilisateur exact, sans sudo ;
+- tool-calling natif `inspect_service` avec arguments exacts ;
+- réparation d'une mauvaise intention `system` vers `restart_user_unit` après retour d'outil.
+
+Il enregistre `coding_pass`, `tool_calling_pass`, `tool_repair_pass`, `security_pass`, performances, identité/digest et hashes des sorties, sans persister les sorties brutes.
+
+### Comparaison
 
 ```bash
 clawfedora-l6 compare-challenger \
-  --baseline /srv/openclaw-local/proofs/l6/challenger/gemma-run-1.json \
-  --baseline /srv/openclaw-local/proofs/l6/challenger/gemma-run-2.json \
-  --baseline /srv/openclaw-local/proofs/l6/challenger/gemma-run-3.json \
-  --candidate /srv/openclaw-local/proofs/l6/challenger/ministral-run-1.json \
-  --candidate /srv/openclaw-local/proofs/l6/challenger/ministral-run-2.json \
-  --candidate /srv/openclaw-local/proofs/l6/challenger/ministral-run-3.json \
-  --output /srv/openclaw-local/proofs/l6/decisions/ministral.json
+  --baseline /srv/openclaw-local/proofs/l6/challenger/ministral-run-1.json \
+  --baseline /srv/openclaw-local/proofs/l6/challenger/ministral-run-2.json \
+  --baseline /srv/openclaw-local/proofs/l6/challenger/ministral-run-3.json \
+  --candidate /srv/openclaw-local/proofs/l6/challenger/granite-run-1.json \
+  --candidate /srv/openclaw-local/proofs/l6/challenger/granite-run-2.json \
+  --candidate /srv/openclaw-local/proofs/l6/challenger/granite-run-3.json \
+  --output /srv/openclaw-local/proofs/l6/decisions/granite.json
 ```
 
-Un résultat `ELIGIBLE_FOR_HUMAN_PROMOTION` n'effectue aucune promotion. Il signifie seulement que Ministral peut être proposé pour remplacer Gemma après décision humaine distincte.
+Un résultat `ELIGIBLE_FOR_HUMAN_PROMOTION` n'effectue aucune promotion. Il signifie uniquement que Granite peut être présenté à une revue humaine comme candidat de remplacement du spécialiste DevOps. Tant qu'aucune décision humaine distincte n'est prise, Ministral reste le modèle nominal routé.
 
 ## L7 — Golden Projects
 
@@ -285,7 +305,7 @@ L8 :
 - exige les preuves réelles L2-L7 ;
 - lie L2/L3 aux preuves référencées par L5 ;
 - refuse un HARD-40M dont les seuils, timeouts ou matrice diffèrent du contrat courant ;
-- exige les trois décisions L6 obligatoires : llama.cpp Vulkan, kernel 7.2.3 et Gemma ↔ Ministral ;
+- exige les trois décisions L6 obligatoires : llama.cpp Vulkan, kernel 7.2.3 et Ministral ↔ Granite ;
 - recharge les snapshots et **recalcule** les décisions L6 avec les contrats courants ;
 - exige L7 PASS avec six projets en `PACKAGING` et gate humain préservé ;
 - produit un manifeste SHA-256 de toutes les preuves retenues.
@@ -294,7 +314,7 @@ Le résultat est uniquement `BLOCKED` ou `READY_FOR_HUMAN_REVIEW`. Même READY, 
 
 ## Approbation humaine L8
 
-L'approbation n'est volontairement pas une action du menu. Elle nécessite une commande explicite :
+L'approbation n'est volontairement pas une action automatique du menu. Elle nécessite une commande explicite :
 
 ```bash
 clawfedora-l8 --runtime-root /srv/openclaw-local approve \
