@@ -1,17 +1,17 @@
 # OpenClaw sous Fedora : cycle de vie systemd
 
-## Repères de lecture
+## Repères de progression
 
 | Repère | Valeur |
 |---|---|
-| **Public cible** | Opérateurs Fedora et mainteneurs du Gateway OpenClaw. |
-| **Niveau** | Intermédiaire |
-| **Prérequis** | OpenClaw installé et session `systemd --user` fonctionnelle. |
-| **Objectif** | Comprendre le mécanisme de service utilisateur retenu pour le Gateway et les règles qui évitent les unités concurrentes ou les boucles de restart. |
-| **Résultat attendu** | Savoir installer, observer et diagnostiquer le Gateway avec les primitives OpenClaw et systemd supportées. |
-| **Critère d’arrêt** | Si `systemd --user` ne fonctionne pas ou si la configuration sort avec le code `78`, diagnostiquer avant tout restart répété via [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md). |
-| **À lire ensuite** | [`OPERATIONS.md`](OPERATIONS.md) pour le runbook quotidien et [`UPGRADE.md`](UPGRADE.md) avant un changement de version OpenClaw. |
-| **Source de vérité** | `config/core/openclaw_policy.yaml`, `config/runtime_versions.yaml` et le comportement du CLI OpenClaw vivant. |
+| **Pour qui** | Toute personne qui suit le parcours et veut comprendre comment OpenClaw vit réellement comme service Linux. |
+| **Position dans le parcours** | 8/14 |
+| **Prérequis** | Avoir lu [`PROJECT_ENGINE.md`](PROJECT_ENGINE.md) et connaître le rôle du Gateway. |
+| **Objectif** | Comprendre `systemd --user`, le cycle de vie du Gateway, les logs et les choix explicites comme le lingering. |
+| **Résultat attendu** | Savoir relier les commandes OpenClaw aux primitives systemd et diagnostiquer un service utilisateur. |
+| **Critère d’arrêt** | Si le Gateway ou la distinction service utilisateur/service système reste floue, revenir aux sections pratiques d’exploitation. |
+| **Continuer avec** | [`LIFECYCLE.md`](LIFECYCLE.md) |
+| **Source de vérité** | Les contrats OpenClaw du projet, les scripts Linux gérés et la documentation amont OpenClaw citée ici. |
 
 OpenClaw supporte nativement Linux et installe par défaut un service systemd utilisateur pour le Gateway.
 
