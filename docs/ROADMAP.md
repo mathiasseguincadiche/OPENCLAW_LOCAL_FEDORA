@@ -1,5 +1,18 @@
 # Roadmap Linux-native
 
+## Repères de lecture
+
+| Repère | Valeur |
+|---|---|
+| **Public cible** | Mainteneurs, reviewers et lecteurs souhaitant situer la maturité du projet. |
+| **Niveau** | Intermédiaire |
+| **Prérequis** | Avoir lu le README et connaître la distinction entre CI logicielle et preuves runtime. |
+| **Objectif** | Comprendre la progression L0–L8 et la sortie attendue de chaque gate. |
+| **Résultat attendu** | Savoir situer un travail, une preuve ou un blocage dans la roadmap sans confondre implémentation et qualification. |
+| **Critère d’arrêt** | Ne jamais considérer le gate suivant comme acquis si la sortie ou la preuve du gate précédent manque. |
+| **À lire ensuite** | [`QUALIFICATION.md`](QUALIFICATION.md) pour l'exécution des gates et [`../STATUS.md`](../STATUS.md) pour l'état réellement observé. |
+| **Source de vérité** | `config/roadmap_policy.yaml`, `config/qualification_policy.yaml` et `config/release_readiness.yaml`. |
+
 ## Objectif
 
 Construire OPENCLAW_LOCAL_FEDORA comme plateforme autonome Fedora 44 pour OpenClaw et Intel Arc B580, avec des gates reproductibles avant toute promotion de runtime, kernel, modèle challenger ou V1.
