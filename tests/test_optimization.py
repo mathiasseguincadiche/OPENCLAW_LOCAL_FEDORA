@@ -24,7 +24,7 @@ def _policy() -> dict[str, object]:
         "artifact_staging": {"network_downloads_allowed": False},
         "runtime_comparison": {
             "baseline": "ollama-vulkan",
-            "candidates": ["llama-cpp-vulkan", "llama-cpp-sycl"],
+            "candidates": ["llama-cpp-vulkan"],
             "minimum_repeated_runs": 3,
             "aggregate_improvement_target_pct": 10.0,
             "maximum_single_model_regression_pct": 5.0,
