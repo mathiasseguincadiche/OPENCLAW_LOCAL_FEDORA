@@ -2,14 +2,19 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import yaml
+
 ROOT = Path(__file__).resolve().parents[1]
 README = ROOT / "README.md"
+METADATA = ROOT / ".github/repository-metadata.yml"
+SOCIAL_PREVIEW = ROOT / ".github/social-preview.svg"
 
 
 def test_repository_landing_page_has_clear_identity_and_status() -> None:
     text = README.read_text(encoding="utf-8")
     for marker in (
         "Fedora 44 · Local AI · 8 agents · Intel Arc B580 · Vulkan · Fail-closed",
+        ".github/social-preview.svg",
         "## Pourquoi ce projet ?",
         "## État en un coup d'œil",
         "## Architecture",
@@ -61,3 +66,47 @@ def test_repository_landing_page_preserves_one_universal_documentation_path() ->
 def test_repository_landing_page_stays_concise() -> None:
     text = README.read_text(encoding="utf-8")
     assert len(text) < 9000
+
+
+def test_canonical_repository_metadata_is_versioned() -> None:
+    payload = yaml.safe_load(METADATA.read_text(encoding="utf-8"))
+    repository = payload["repository"]
+    assert repository["description"].startswith("Fedora 44 native local-AI platform")
+    assert repository["homepage"] is None
+    assert repository["topics"] == [
+        "fedora",
+        "fedora-linux",
+        "openclaw",
+        "local-ai",
+        "llm",
+        "multi-agent",
+        "vulkan",
+        "intel-arc",
+        "intel-arc-b580",
+        "ollama",
+        "llama-cpp",
+        "devops",
+        "python",
+        "systemd",
+    ]
+
+
+def test_social_preview_source_matches_project_invariants() -> None:
+    payload = yaml.safe_load(METADATA.read_text(encoding="utf-8"))
+    preview = payload["social_preview"]
+    assert preview["source"] == ".github/social-preview.svg"
+    assert preview["width"] == 1280
+    assert preview["height"] == 640
+    assert SOCIAL_PREVIEW.is_file()
+
+    text = SOCIAL_PREVIEW.read_text(encoding="utf-8")
+    for marker in (
+        "OPENCLAW_LOCAL_FEDORA",
+        "Fedora 44",
+        "OpenClaw 2026.9.2",
+        "8 agents",
+        "Intel Arc B580",
+        "Vulkan",
+        "hardware qualification pending",
+    ):
+        assert marker in text
