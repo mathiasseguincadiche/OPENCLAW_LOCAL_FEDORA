@@ -64,7 +64,7 @@ def _agent_tools(agent_id: str, policy: dict[str, Any]) -> dict[str, Any]:
     defaults = _mapping(policy.get("security_defaults"))
     entry = _mapping(_mapping(policy.get("agents")).get(agent_id))
     tools: dict[str, Any] = {
-        "profile": str(entry.get("profile", defaults.get("profile", "coding"))),
+        "profile": str(entry.get("profile", defaults.get("profile", "minimal"))),
         "fs": {"workspaceOnly": bool(defaults.get("fs_workspace_only", True))},
         "exec": {"mode": str(defaults.get("exec_mode", "ask"))},
         "elevated": {"enabled": bool(defaults.get("elevated_enabled", False))},
@@ -212,7 +212,7 @@ def build_openclaw_patch(
             "list": agent_list,
         },
         "tools": {
-            "profile": str(global_tools.get("profile", "coding")),
+            "profile": str(global_tools.get("profile", "minimal")),
             "fs": {"workspaceOnly": bool(global_tools.get("fs_workspace_only", True))},
             "exec": {
                 "mode": str(global_tools.get("exec_mode", "ask")),
