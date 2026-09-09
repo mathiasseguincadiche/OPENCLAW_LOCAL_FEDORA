@@ -188,7 +188,7 @@ def test_contract_reports_all_critical_policy_regressions(tmp_path: Path) -> Non
         "automatic_kernel_promotion",
         "automatic_v1_release",
         "approbation humaine",
-        "matrice de backends",
+        "matrice runtime",
         "promotion automatique du backend",
     ):
         assert marker in joined
