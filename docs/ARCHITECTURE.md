@@ -1,5 +1,18 @@
 # Architecture cible
 
+## Repères de lecture
+
+| Repère | Valeur |
+|---|---|
+| **Public cible** | Architectes, mainteneurs et contributeurs techniques. |
+| **Niveau** | Expert |
+| **Prérequis** | Avoir lu le README et connaître les composants principaux de la plateforme. |
+| **Objectif** | Comprendre les couches Fedora-native, leurs frontières et les invariants d'architecture. |
+| **Résultat attendu** | Savoir identifier la baseline, les composants candidats, les responsabilités de chaque couche et la place des preuves runtime. |
+| **Critère d’arrêt** | Si le besoin est d'exécuter ou dépanner la plateforme, basculer vers `OPERATIONS.md` ou `TROUBLESHOOTING.md` plutôt que déduire une procédure depuis ce document. |
+| **À lire ensuite** | [`MULTI_AGENT_CORE.md`](MULTI_AGENT_CORE.md), [`PROJECT_ENGINE.md`](PROJECT_ENGINE.md), puis [`QUALIFICATION.md`](QUALIFICATION.md). |
+| **Source de vérité** | `config/*.yaml`, notamment les contrats plateforme, runtime, modèles, optimisation et release readiness. |
+
 ## Principe
 
 OPENCLAW_LOCAL_FEDORA est une plateforme **Linux-native autonome**. La logique métier doit vivre dans le package Python et les services Linux ; Bash reste une couche d'entrée fine.
