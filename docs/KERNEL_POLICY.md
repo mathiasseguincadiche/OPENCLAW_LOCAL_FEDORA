@@ -1,5 +1,18 @@
 # Politique kernel
 
+## Repères de lecture
+
+| Repère | Valeur |
+|---|---|
+| **Public cible** | Mainteneurs, opérateurs avancés et responsables de qualification L6. |
+| **Niveau** | Expert |
+| **Prérequis** | Baseline Fedora fonctionnelle, kernel Fedora bootable conservé et compréhension des gates L3/L6. |
+| **Objectif** | Comprendre quand et comment comparer le kernel Fedora officiel au candidat upstream sans confondre nouveauté et amélioration. |
+| **Résultat attendu** | Savoir préparer K0/K1, appliquer les seuils de promotion et préserver un rollback bootable. |
+| **Critère d’arrêt** | Ne pas tester le candidat si la baseline Fedora n'est pas saine ou si aucun kernel Fedora fonctionnel n'est conservé. |
+| **À lire ensuite** | [`QUALIFICATION.md`](QUALIFICATION.md) pour le protocole L6 et [`UPGRADE.md`](UPGRADE.md) pour un changement contrôlé. |
+| **Source de vérité** | `config/kernel_policy.yaml`, `config/optimization_policy.yaml` et les preuves L6 produites sur la machine cible. |
+
 ## Pourquoi deux kernels
 
 Le projet vise les performances, mais refuse de confondre nouveauté et amélioration. Le kernel Fedora officiel reste donc la référence supportée et la voie de rollback. Linux 7.2.3 est un candidat séparé.
