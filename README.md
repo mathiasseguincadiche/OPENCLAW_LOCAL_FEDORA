@@ -1,8 +1,8 @@
 # OPENCLAW_LOCAL_FEDORA
 
-Plateforme **Linux-native, local-first et fail-closed** destinée à faire fonctionner une équipe multi-agents OpenClaw sur Fedora 44 avec une Intel Arc B580.
+Plateforme **Linux-native, LLM local-only et fail-closed** destinée à faire fonctionner une équipe multi-agents OpenClaw sur Fedora 44 avec une Intel Arc B580.
 
-> **État : 0.1.0 — code produit en cours de complétion avant qualification matérielle.** Aucun gain matériel ni verdict V1 n'est revendiqué avant mesures réelles sur la machine cible.
+> **État : 0.1.0 — édition Fedora en cours de qualification matérielle.** La conformité logicielle peut être démontrée par CI, mais aucun gain matériel ni verdict V1 n'est revendiqué avant mesures réelles sur la machine cible.
 
 ## Cible matérielle
 
@@ -13,14 +13,16 @@ Plateforme **Linux-native, local-first et fail-closed** destinée à faire fonct
 - Fedora Linux 44 Workstation
 - GNOME 50 / Wayland
 
-## Architecture
+## Architecture Linux native
 
 ```text
 Fedora 44 / GNOME 50 / Wayland
         │
-        ├── systemd user ── OpenClaw Gateway
+        ├── systemd --user ── OpenClaw Gateway
+        ├── SELinux Enforcing
+        ├── firewalld
         ├── Podman
-        ├── KVM / libvirt
+        ├── KVM / libvirt / OVMF
         │
         └── Intel Arc B580 / xe
                 │
@@ -32,6 +34,8 @@ Fedora 44 / GNOME 50 / Wayland
   │           │
 Ollama   llama.cpp Vulkan
 ```
+
+Cette édition n'exécute pas un runtime Windows sous compatibilité. Installation, services, sécurité, conteneurs, virtualisation, GPU, qualification et lifecycle utilisent les primitives Fedora/Linux natives.
 
 ## Baseline et candidats
 
@@ -45,21 +49,57 @@ Le chemin nominal reste **Fedora + `xe` + Mesa/Vulkan + Ollama**. SYCL/Level Zer
 
 Le kernel 7.2.3 n'est jamais installé par le bootstrap initial. Le kernel Fedora reste un rollback bootable obligatoire.
 
-## Flotte de modèles
+## Flotte de modèles Architecture V2
 
-La flotte nominale est dimensionnée pour les **12 Gio de VRAM de la B580** :
+La flotte routée contient **exactement trois modèles locaux Q4_K_M** et respecte les mêmes alias et responsabilités que l'édition Windows de référence :
 
-- `qwen-max` → `qwen3.5:9b-q4_K_M` — 6,6 Go, vision/tools/thinking ;
-- `gemma-deep` → `gemma3:12b-it-q4_K_M` — 8,1 Go, vision/documentaire ;
-- `devstral-devops` → `qwen2.5-coder:14b-instruct-q4_K_M` — 9,0 Go, code/tools.
+- `qwen-max` → `qwen3.5:9b-q4_K_M` — ~6,6 Gio, multimodal, orchestration/recherche/sécurité/release ;
+- `gemma-deep` → `gemma4:12b-it-q4_K_M` — ~7,6 Gio, multimodal, architecture/documentation/audit ;
+- `devstral-devops` → `hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M` — ~8,24 Gio, text-only, DevOps/software engineering/tool-calling.
 
-Les huit rôles agents et les trois alias restent inchangés. Seuls les modèles sous-jacents ont été redimensionnés.
+L'alias `devstral-devops` est conservé pour la compatibilité des contrats et des projets persistés. Il pointe désormais sur Ministral 3 14B Reasoning ; ce changement ne modifie ni la mission ni le routage du rôle `ingenieur-devops`.
 
-Le contexte opérationnel nominal est **8192 tokens pour les trois modèles**. Le contexte 16384 est exercé uniquement par la qualification. Les fenêtres théoriques supérieures des modèles ne sont pas utilisées comme réglage nominal sur une carte 12 Gio.
+Les huit rôles et leurs missions restent inchangés :
 
-`ministral-3:14b-instruct-2512-q4_K_M` est enregistré comme challenger de `gemma-deep` pour comparer vision/documentation à une option vision + tools/function-calling. Il ne compte pas dans les trois modèles requis et ne peut jamais être promu automatiquement.
+```text
+chef-operations          -> qwen-max
+expert-recherche         -> qwen-max
+architecte-solutions     -> gemma-deep
+ingenieur-devops         -> devstral-devops
+ingenieur-securite       -> qwen-max
+ingenieur-release-forges -> qwen-max
+redacteur-technique      -> gemma-deep
+auditeur-qualite         -> gemma-deep
+```
 
-Aucun petit modèle de secours nominal et aucun fallback cloud silencieux.
+L'Auditeur peut utiliser `qwen-max` comme alternative indépendante lorsque le producteur utilise `gemma-deep`.
+
+### Contexte
+
+Deux contrats sont volontairement séparés :
+
+- **8192 tokens** : contexte nominal du benchmark matériel et de HARD-40M ;
+- **16384 tokens** : contexte nominal des agents OpenClaw pour absorber système, outils et réserve d'orchestration ;
+- **>16K** : non promu sans qualification dédiée.
+
+Le contexte OpenClaw 16K n'est pas une promotion automatique du benchmark B580.
+
+### Challenger hors routage
+
+`granite-devops` → `granite4.2:8b-q4_K_M` est un challenger de benchmark du slot `devstral-devops`. Il compare notamment coding, tool-calling natif, réparation après retour d'outil, comportement terminal et fit B580. Il **ne compte pas dans la flotte routée**, n'est jamais un fallback implicite et ne peut pas être promu automatiquement.
+
+Aucun petit modèle de secours nominal et aucun fallback LLM cloud silencieux.
+
+## OpenClaw et recherche Web
+
+Le runtime initial de qualification est verrouillé sur :
+
+- OpenClaw `2026.9.2` ;
+- plugin officiel `@openclaw/parallel-plugin` `2026.9.2` ;
+- recherche `parallel-free` ;
+- Gateway loopback géré par `systemd --user`.
+
+La recherche Web ne constitue pas un backend LLM cloud. Les sources récupérées sont traitées par les modèles locaux. Les faits externes actuels doivent être accompagnés d'une preuve de currentness ; les affirmations techniquement vérifiables doivent recevoir une preuve runtime récente lorsque le contrat l'exige.
 
 ## Cycle de vie du produit
 
@@ -79,7 +119,7 @@ Application :
 ./menu.sh --action install --apply
 ```
 
-Le chemin complet prépare Fedora, crée la racine runtime gérée, installe/démarre Ollama si nécessaire, impose OpenClaw `2026.7.1-2`, provisionne explicitement les trois modèles, déploie les huit agents, applique la configuration locale et installe le Gateway comme service utilisateur systemd.
+Le chemin complet vérifie Fedora 44, maintient SELinux Enforcing et firewalld, prépare la racine runtime gérée, installe/converge Ollama `0.32.14`, impose OpenClaw `2026.9.2`, provisionne explicitement les trois modèles nominaux, déploie les huit agents, applique la configuration locale et installe le Gateway comme service utilisateur systemd.
 
 ### Modèles
 
@@ -90,7 +130,7 @@ Le téléchargement des modèles est une opération volontaire, distincte de la 
 ./menu.sh --action models --apply
 ```
 
-Aucun benchmark ne télécharge implicitement un modèle absent.
+Aucun benchmark ne télécharge implicitement un modèle absent. Le challenger Granite est également hors du provisionnement nominal.
 
 ### Santé, sauvegarde et réparation
 
@@ -122,30 +162,47 @@ Toute suppression destructive exige le marqueur `.openclaw-fedora-runtime` cré�
 
 Voir `docs/LIFECYCLE.md` pour le détail du cycle de vie, de la restauration, de la télémétrie et du FinOps.
 
+## Sécurité des agents
+
+La base d'outils OpenClaw est **`minimal` fail-closed**. Chaque rôle ne réautorise que les capacités nécessaires :
+
+- Chef : orchestration/sessions, lecture et Web, sans écriture ni exec ;
+- Recherche : lecture/Web/browser, sans écriture ni exec ;
+- Architecte : writer borné à `context/architecture` et `diagrams` ;
+- DevOps : édition/patch/exec dans son workspace ;
+- Sécurité : lecture/scan/exec, sans modification directe des sources ;
+- Release : outils d'implémentation et publication gouvernée ;
+- Rédacteur : écriture documentaire, sans exec ;
+- Auditeur : lecture/revue, sans correction silencieuse.
+
+`intake/`, `sources/` et `context/exchange/` sont des entrées protégées. Les bundles d'Artifact Exchange sont versionnés, hashés et propagés uniquement selon les contrats de tâche.
+
 ## HARD-40M
 
-Le contrat de qualification est :
+Le contrat de qualification Fedora est :
 
 - 30 cas ;
 - 24 cas 8K + 6 cas 16K ;
-- 12 scénarios couverts collectivement à 8K ;
+- 12 scénarios Linux couverts collectivement à 8K ;
 - 10 cas par modèle ;
 - 3 modèles obligatoires ;
 - Qwen reasoning natif sur 3 probes dédiés de `qwen-max` uniquement ;
-- le spécialiste `qwen-coder` n'hérite jamais de ces probes ;
-- 768 tokens max sur ces probes ;
+- Gemma 4 et Ministral Reasoning suivent leur protocole nominal sans hériter artificiellement des probes Qwen ;
+- 768 tokens max sur les probes Qwen natifs ;
 - 210 s max par cas ;
 - **2400 s / 40 min max pour le gate complet** ;
-- aucun appel cloud pendant le benchmark ;
+- aucun appel LLM cloud pendant le benchmark ;
 - aucun téléchargement implicite de modèle ;
 - endpoint Ollama loopback uniquement ;
 - digest et quantification exacts enregistrés.
 
-La qualification prend comme baseline **Fedora avec son kernel officiel et Ollama Vulkan**. Les candidats Linux sont comparés uniquement à cette baseline, à modèle, quantification, prompt et contexte identiques.
+La suite reste réellement Linux : elle couvre notamment systemd, SELinux, Kubernetes, Terraform, Ansible, rollback, diagrammes, fraîcheur Web, tool intent/réparation et discipline long contexte.
 
-Le seuil HARD-40M reste volontairement à 6 tok/s tant que la B580 n'a pas fourni une nouvelle baseline réelle. L'objectif opérationnel de la flotte redimensionnée est de dépasser 10 tok/s de manière stable ; ce seuil ne sera relevé qu'après mesures reproductibles.
+La qualification prend comme baseline **Fedora avec son kernel officiel et Ollama Vulkan**. Les candidats Linux sont comparés uniquement à cette baseline avec des preuves comparables.
 
-## Gates L2 à L5
+Le seuil HARD-40M reste volontairement à 6 tok/s tant que la B580 n'a pas fourni une nouvelle baseline réelle. Aucun seuil n'est relevé sur la base de CI ou d'une estimation.
+
+## Gates L2 à L8
 
 ### Vérification sans modèle
 
@@ -177,6 +234,17 @@ Le gate L4 vérifie les 8 agents, le Gateway, le provider local, le tool-calling
 
 Les runs L4/L5 sont exécutés sous `systemd-inhibit` pour bloquer la suspension pendant la preuve. Le chrono HARD-40M démarre avant les préflights L2/L3 ; le benchmark reçoit uniquement le budget restant avant la réserve d'évaluation.
 
+### Optimisation L6
+
+L6 compare sans promotion automatique :
+
+- Ollama/Vulkan vs llama.cpp/Vulkan ;
+- llama.cpp/SYCL/Level Zero comme candidat optionnel ;
+- kernel Fedora vs kernel upstream 7.2.3 ;
+- Ministral Reasoning vs Granite 4.2 8B pour le slot DevOps.
+
+Une éventuelle promotion nécessite des preuves répétées et une décision humaine.
+
 ## Développement
 
 ```bash
@@ -187,8 +255,9 @@ make ci
 Les gates locaux couvrent :
 
 - contrats YAML ;
+- contrats agents/routage/outils ;
 - contrats HARD-40M ;
-- contrats de cycle de vie ;
+- contrats de cycle de vie et L6/L8 ;
 - Ruff ;
 - mypy strict ;
 - pytest ;
@@ -199,9 +268,11 @@ GitHub ajoute :
 
 - Python 3.12 ;
 - Python 3.13 ;
-- conteneur Fedora 44 ;
+- conteneur réel `fedora:44` ;
 - CodeQL ;
 - Dependency Review.
+
+**Une CI verte démontre la cohérence logicielle, pas la qualification matérielle B580.**
 
 ## Données lourdes
 
@@ -234,7 +305,7 @@ Le projet avance par gates :
 - `L3` — B580 `xe` + Mesa/Vulkan ;
 - `L4` — OpenClaw + 8 agents + E2E ;
 - `L5` — qualification HARD-40M ;
-- `L6` — optimisation Linux : llama.cpp Vulkan, SYCL/Level Zero et kernel 7.2.3 ;
+- `L6` — optimisation Linux : llama.cpp Vulkan, SYCL/Level Zero, challenger DevOps et kernel 7.2.3 ;
 - `L7` — Golden Projects + projet représentatif ;
 - `L8` — approbation humaine V1.
 
@@ -264,15 +335,16 @@ La baseline est **Fedora stock + Ollama Vulkan**. L'objectif d'optimisation est 
 
 Le projet ne revendique aucun gain sans preuve reproductible.
 
-## Sécurité
+## Sécurité Fedora
 
 - SELinux Enforcing obligatoire ;
-- providers locaux loopback-only ;
-- firewalld conservé ;
+- providers et Gateway loopback-only ;
+- firewalld conservé et actif ;
+- services applicatifs privilégiés évités lorsque `systemd --user` suffit ;
+- Podman privilégié pour les conteneurs ;
 - secrets hors Git ;
-- cloud désactivé par défaut ;
+- LLM cloud non supporté dans le routage nominal ;
 - télémétrie locale sans prompts/réponses/documents/secrets ;
-- FinOps avec limites journalière, mensuelle et par projet ;
 - backup avant repair ;
 - purge destructive explicitement opt-in ;
 - aucune promotion automatique kernel/backend/modèle/V1.

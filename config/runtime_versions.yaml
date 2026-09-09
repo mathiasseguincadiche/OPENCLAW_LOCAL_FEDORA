@@ -2,14 +2,22 @@ schema_version: "1.1.0"
 platform_version: "0.1.0"
 
 openclaw:
-  initial_qualification_pin: "2026.7.1-2"
+  initial_qualification_pin: "2026.9.2"
+  integrity: "sha512-M6C7UsnX815nv26qBJFYGe6aGzv+ftZLRzV6S9oRXUtXg2Yn67eVntpssT94kgkquKVSeUxerUg0j1ONp4WYQg=="
+  release_sha: "3928bad9badfcb6c7d140530435e806fb8092190"
   policy: pin-exact-version-before-first-hardware-qualification
+  plugins:
+    parallel:
+      package: "@openclaw/parallel-plugin"
+      preferred: "2026.9.2"
+      provider: parallel-free
 
 node:
   minimum_supported:
     - "22.22.3"
     - "24.15.0"
     - "25.9.0"
+    - "26.0.0"
   preferred_major: 26
   installer_managed_runtime_allowed: true
 

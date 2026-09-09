@@ -1,8 +1,8 @@
-schema_version: "1.0.0"
+schema_version: "1.1.0"
 platform_version: "0.1.0"
 
 runtime:
-  initial_version_pin: "2026.7.1-2"
+  initial_version_pin: "2026.9.2"
   require_schema_capture_before_apply: true
   require_patch_dry_run_before_apply: true
   require_config_validate_after_apply: true
@@ -12,15 +12,17 @@ plugins:
   parallel_search:
     id: parallel
     package: "@openclaw/parallel-plugin"
-    version: "2026.7.1"
+    version: "2026.9.2"
     provider: parallel-free
     install_if_missing: true
+    converge_exact_version: true
     runtime_inspection_required: true
 
 gateway:
   mode: local
   bind: loopback
   default_port: 18789
+  lifecycle: systemd-user
 
 agents:
   default_agent: chef-operations
@@ -41,3 +43,5 @@ security:
   providers_loopback_only: true
   elevated_enabled: false
   exec_mode: ask
+  local_only_llm: true
+  selinux_must_remain_enforcing: true

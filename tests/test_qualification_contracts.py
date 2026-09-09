@@ -65,7 +65,7 @@ def test_contract_rejects_challenger_auto_promotion(tmp_path: Path) -> None:
     _copy_contracts(tmp_path)
     catalog_path = tmp_path / "config" / "model_catalog.yaml"
     payload = _load(catalog_path)
-    challenger = payload["challengers"]["gemma-deep"]["ministral-3-14b"]
+    challenger = payload["challengers"]["devstral-devops"]["granite-devops"]
     challenger["automatic_promotion"] = True
     _save(catalog_path, payload)
     failures, _ = validate_qualification_contracts(tmp_path)

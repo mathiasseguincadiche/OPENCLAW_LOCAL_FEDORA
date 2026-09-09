@@ -8,10 +8,12 @@ import pytest
 
 from clawfedora import optimization
 
+SPECIALIST = "hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M"
+CHALLENGER = "granite4.2:8b-q4_K_M"
 MODELS = {
     "qwen-max": "qwen3.5:9b-q4_K_M",
-    "gemma-deep": "gemma3:12b-it-q4_K_M",
-    "devstral-devops": "qwen2.5-coder:14b-instruct-q4_K_M",
+    "gemma-deep": "gemma4:12b-it-q4_K_M",
+    "devstral-devops": SPECIALIST,
 }
 
 
@@ -35,9 +37,9 @@ def _policy() -> dict[str, object]:
             "maximum_single_model_regression_pct": 2.0,
         },
         "model_challenger": {
-            "slot": "gemma-deep",
-            "incumbent": "gemma3:12b-it-q4_K_M",
-            "challenger": "ministral-3:14b-instruct-2512-q4_K_M",
+            "slot": "devstral-devops",
+            "incumbent": SPECIALIST,
+            "challenger": CHALLENGER,
             "minimum_repeated_runs": 3,
             "maximum_performance_regression_pct": 5.0,
         },
@@ -375,8 +377,8 @@ def test_model_challenger_comparison(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(optimization, "root_contract", _root_contract)
-    incumbent_ids = {"gemma-deep": "gemma3:12b-it-q4_K_M"}
-    challenger_ids = {"gemma-deep": "ministral-3:14b-instruct-2512-q4_K_M"}
+    incumbent_ids = {"devstral-devops": SPECIALIST}
+    challenger_ids = {"devstral-devops": CHALLENGER}
     incumbent = _series(
         tmp_path,
         "incumbent",
@@ -384,10 +386,15 @@ def test_model_challenger_comparison(
             _evidence(
                 f"i{index}",
                 "model-challenger",
-                "gemma3",
+                SPECIALIST,
                 "fedora",
                 "ollama-vulkan",
                 runtime_ids=incumbent_ids,
+                extra={
+                    "coding_pass": True,
+                    "tool_calling_pass": True,
+                    "tool_repair_pass": True,
+                },
             )
             for index in range(3)
         ],
@@ -399,14 +406,14 @@ def test_model_challenger_comparison(
             _evidence(
                 f"c{index}",
                 "model-challenger",
-                "ministral",
+                CHALLENGER,
                 "fedora",
                 "ollama-vulkan",
                 runtime_ids=challenger_ids,
                 extra={
-                    "vision_pass": True,
-                    "document_quality_pass": True,
+                    "coding_pass": True,
                     "tool_calling_pass": True,
+                    "tool_repair_pass": True,
                 },
             )
             for index in range(3)
@@ -414,6 +421,7 @@ def test_model_challenger_comparison(
     )
     report = optimization.compare_model_challenger(tmp_path, incumbent, challenger)
     assert report.verdict == "ELIGIBLE_FOR_HUMAN_PROMOTION"
+    assert report.candidate_id == CHALLENGER
 
     failed = _series(
         tmp_path,
@@ -422,15 +430,15 @@ def test_model_challenger_comparison(
             _evidence(
                 f"f{index}",
                 "model-challenger",
-                "ministral",
+                CHALLENGER,
                 "fedora",
                 "ollama-vulkan",
                 runtime_ids=challenger_ids,
                 tps=9.0,
                 extra={
-                    "vision_pass": index != 0,
-                    "document_quality_pass": False,
+                    "coding_pass": index != 0,
                     "tool_calling_pass": True,
+                    "tool_repair_pass": False,
                 },
             )
             for index in range(3)
@@ -438,8 +446,8 @@ def test_model_challenger_comparison(
     )
     report = optimization.compare_model_challenger(tmp_path, incumbent, failed)
     assert report.verdict == "KEEP_BASELINE"
-    assert "challenger_vision_pass_failed" in report.reasons
-    assert "challenger_document_quality_pass_failed" in report.reasons
+    assert "challenger_coding_pass_failed" in report.reasons
+    assert "challenger_tool_repair_pass_failed" in report.reasons
     assert any("performance_regression_exceeds" in reason for reason in report.reasons)
 
 

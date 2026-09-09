@@ -6,11 +6,35 @@
 
 ## Indépendance
 
-Utiliser si possible une famille de modèle différente de celle du producteur et signaler lorsqu'une indépendance complète n'est pas possible.
+Utiliser si possible une famille de modèle différente de celle du producteur. Signaler lorsqu'une indépendance complète n'est pas possible.
 
-## Contrôles
+## Contrôles supplémentaires
 
-Vérifier intégrité des entrées, couverture documentaire, cohérence analyse/plan/livrables, provenance et hashes des artefacts échangés, preuves Web requises, preuves runtime requises, documentation attendue, gates de publication et télémétrie non sensible.
+Pour un projet géré, vérifier également :
+
+- présence des preuves d'intégrité Intake ;
+- validité de `context/ingestion/index.json` et correspondance de ses SHA-256 avec les originaux ;
+- présence d'une entrée `source_coverage` pour chaque document déclaré, sans document réputé lu uniquement parce qu'il existe ;
+- utilisation cohérente de `pdf` et `view_image` lorsque les sources sont multimodales ;
+- tout `UNREADABLE` ou `PARTIAL` correctement reflété dans les limites/éléments manquants ;
+- cohérence entre consignes originales, analyse, plan et livrables ;
+- intégrité des manifests `context/exchange/`, provenance, tentatives et hashes des sorties propagées ;
+- présence des bundles attendus pour les tâches dépendantes et absence d'écrasement des tentatives précédentes ;
+- pour toute tâche dont `required_evidence` contient `web_evidence`, présence et validité de `evidence/<task-id>/web_evidence.json` ;
+- pour les faits `current` ou `volatile`, présence d'une source autoritative de currentness récupérée récemment, sans confondre date de publication et état actuel ;
+- corroboration par plusieurs sources/éditeurs lorsque `config/core/web_policy.yaml` l'exige, sauf source de vérité autoritative autorisée à se suffire à elle-même ;
+- absence de contradiction ouverte, d'affirmation `UNVERIFIED` ou de confiance inférieure au minimum contractuel ;
+- pour toute affirmation `machine_verifiable`, présence d'une preuve runtime PASS récente et cohérente avec la conclusion ;
+- absence d'omission de classification : si un livrable utilise un fait externe actuel mais que la tâche n'a pas demandé `web_evidence`, traiter l'omission comme finding bloquant ;
+- documentation progressive lorsqu'elle est attendue ;
+- absence de compétence déclarée acquise sans preuve pratique ;
+- conformité de la machine d'états de publication ;
+- présence des preuves distantes avant `PUBLISHED_AND_VERIFIED` ;
+- cohérence de la télémétrie sans prompts, réponses, secrets ni métriques inventées ;
+- sur Fedora, maintien de SELinux Enforcing, cohérence du scope systemd (`--user` vs système), exposition loopback, état firewalld et absence de contournement de sécurité ;
+- séparation stricte entre PASS CI logiciel et preuves matérielles réelles B580/Mesa/Vulkan/kernel/performance.
+
+L'Auditeur peut utiliser `pdf` et `view_image` pour contrôler directement un original, mais ne modifie ni les sources, ni les livrables audités, ni les bundles d'échange.
 
 ## Verdicts
 
@@ -19,4 +43,4 @@ Vérifier intégrité des entrées, couverture documentaire, cohérence analyse/
 - non conforme ;
 - non vérifiable faute de preuve.
 
-Un document non couvert, un bundle attendu absent/corrompu, une contradiction ouverte ou une preuve obligatoire manquante est bloquant lorsque cela empêche de démontrer la conformité.
+Un document non couvert, un bundle d'échange attendu absent/corrompu, une preuve Web requise absente, une contradiction ouverte ou une preuve runtime obligatoire manquante est bloquant lorsque cela empêche de démontrer la conformité. Un `FAIL` doit identifier les tâches à reprendre lorsque cela est possible ; sinon l'orchestrateur reste fail-closed et rouvre le périmètre nécessaire.

@@ -8,6 +8,7 @@ import pytest
 from clawfedora import optimization_cli
 
 ROOT = Path(__file__).resolve().parents[1]
+CHALLENGER = "granite4.2:8b-q4_K_M"
 
 
 def test_provision_challenger_dry_run_stays_off_routing(
@@ -19,7 +20,7 @@ def test_provision_challenger_dry_run_stays_off_routing(
         optimization_cli,
         "provision_challenger_plan",
         lambda _root: {
-            "runtime_id": "ministral-3:14b-instruct-2512-q4_K_M",
+            "runtime_id": CHALLENGER,
             "routed": False,
         },
     )
@@ -34,6 +35,7 @@ def test_provision_challenger_dry_run_stays_off_routing(
     )
     assert code == 0
     output = capsys.readouterr().out
+    assert CHALLENGER in output
     assert '"routed": false' in output
     assert "apply=false routed=false" in output
 
@@ -43,11 +45,10 @@ def test_provision_challenger_apply_is_explicit_ollama_pull(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    model = "ministral-3:14b-instruct-2512-q4_K_M"
     monkeypatch.setattr(
         optimization_cli,
         "provision_challenger_plan",
-        lambda _root: {"runtime_id": model, "routed": False},
+        lambda _root: {"runtime_id": CHALLENGER, "routed": False},
     )
     commands: list[list[str]] = []
 
@@ -68,7 +69,7 @@ def test_provision_challenger_apply_is_explicit_ollama_pull(
         ]
     )
     assert code == 0
-    assert commands == [["ollama", "pull", model]]
+    assert commands == [["ollama", "pull", CHALLENGER]]
     assert "apply=true routed=false" in capsys.readouterr().out
 
 
@@ -79,7 +80,7 @@ def test_provision_challenger_failed_pull_is_fail_closed(
     monkeypatch.setattr(
         optimization_cli,
         "provision_challenger_plan",
-        lambda _root: {"runtime_id": "ministral", "routed": False},
+        lambda _root: {"runtime_id": CHALLENGER, "routed": False},
     )
     monkeypatch.setattr(
         optimization_cli.subprocess,
@@ -106,7 +107,7 @@ def test_snapshot_challenger_dispatches_variant(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    evidence = tmp_path / "ministral.json"
+    evidence = tmp_path / "granite.json"
     observed: dict[str, object] = {}
 
     def snapshot(

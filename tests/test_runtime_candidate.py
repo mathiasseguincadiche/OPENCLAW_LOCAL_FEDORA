@@ -11,8 +11,8 @@ from clawfedora import runtime_candidate
 LLAMA_COMMIT = "b95502ba9aa0eb73a2f4fc8878d7fbe6a847a0b9"
 MODELS = {
     "qwen-max": "qwen3.5:9b-q4_K_M",
-    "gemma-deep": "gemma3:12b-it-q4_K_M",
-    "devstral-devops": "qwen2.5-coder:14b-instruct-q4_K_M",
+    "gemma-deep": "gemma4:12b-it-q4_K_M",
+    "devstral-devops": "hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M",
 }
 
 

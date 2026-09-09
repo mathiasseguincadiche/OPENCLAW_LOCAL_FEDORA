@@ -74,6 +74,12 @@ as_target() {
   fi
 }
 
+if command -v dnf5 >/dev/null 2>&1; then
+  DNF=(dnf5)
+else
+  DNF=(dnf)
+fi
+
 PACKAGES=(
   git curl wget rsync jq tar unzip pciutils usbutils lm_sensors
   python3 python3-pip python3-virtualenv
@@ -81,11 +87,13 @@ PACKAGES=(
   vulkan-tools mesa-vulkan-drivers igt-gpu-tools
   podman
   qemu-kvm libvirt virt-install virt-manager edk2-ovmf
+  firewalld policycoreutils-python-utils acl openssl lsof procps-ng util-linux
   shellcheck
 )
 
 printf 'BOOTSTRAP_PLAN Fedora=%s runtime=%s user=%s group=%s\n' \
   "$VERSION_ID" "$RUNTIME_ROOT" "$TARGET_USER" "$TARGET_GROUP"
+printf '  package manager: %s\n' "${DNF[*]}"
 printf '  packages: %s\n' "${PACKAGES[*]}"
 printf '  groups: render video libvirt\n'
 printf '  managed venv: %s/runtime/venv\n' "$RUNTIME_ROOT"
@@ -93,6 +101,9 @@ printf '  runtime dirs: models workspaces projects proofs benchmarks state backu
 printf '  managed marker: %s/%s\n' "$RUNTIME_ROOT" "$RUNTIME_MARKER"
 printf '  GPU stack: xe + Mesa/Vulkan\n'
 printf '  SELinux: must remain Enforcing\n'
+printf '  firewalld: installed and enabled; LLM/Gateway remain loopback\n'
+printf '  container runtime: Podman native\n'
+printf '  virtualization: KVM/libvirt + OVMF\n'
 printf '  kernel: Fedora package stays baseline; 7.2.3 is NOT installed here\n'
 
 if ((APPLY == 0)); then
@@ -105,7 +116,7 @@ if [[ "$(getenforce 2>/dev/null || true)" != "Enforcing" ]]; then
   exit 2
 fi
 
-as_root dnf install -y "${PACKAGES[@]}"
+as_root "${DNF[@]}" install -y "${PACKAGES[@]}"
 
 for group in render video libvirt; do
   if getent group "$group" >/dev/null 2>&1; then
@@ -126,12 +137,21 @@ as_target install -d -m 0750 \
 as_target touch "$RUNTIME_ROOT/$RUNTIME_MARKER"
 as_target chmod 0600 "$RUNTIME_ROOT/$RUNTIME_MARKER"
 
+# Conserver les contextes SELinux canoniques plutôt que désactiver la politique.
+as_root restorecon -RF "$RUNTIME_ROOT" || true
+
 VENV="$RUNTIME_ROOT/runtime/venv"
 if [[ ! -x "$VENV/bin/python" ]]; then
   as_target python3 -m venv "$VENV"
 fi
 as_target "$VENV/bin/python" -m pip install --upgrade pip setuptools wheel
 as_target "$VENV/bin/python" -m pip install -e "${REPO_ROOT}[dev]"
+
+as_root systemctl enable --now firewalld.service
+if ! as_root systemctl is-active --quiet firewalld.service; then
+  echo "ERREUR: firewalld n'est pas actif après bootstrap." >&2
+  exit 2
+fi
 
 if systemctl list-unit-files virtqemud.socket >/dev/null 2>&1; then
   as_root systemctl enable --now virtqemud.socket
@@ -144,4 +164,6 @@ if ((ENABLE_LINGER == 1)); then
 fi
 
 echo "BOOTSTRAP_RESULT=PASS"
+echo "SELINUX=$(getenforce)"
+echo "FIREWALLD=$(as_root systemctl is-active firewalld.service)"
 echo "IMPORTANT: déconnecte/reconnecte la session pour appliquer les nouveaux groupes render/video/libvirt."

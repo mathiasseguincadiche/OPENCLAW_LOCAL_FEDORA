@@ -7,7 +7,8 @@ source "$SCRIPT_DIR/lib/runtime.sh"
 
 APPLY=0
 BACKEND="ollama-vulkan"
-OPENCLAW_PIN="2026.7.1-2"
+OPENCLAW_PIN="2026.9.2"
+PARALLEL_PIN="2026.9.2"
 
 usage() {
   cat <<'EOF'
@@ -84,10 +85,11 @@ require_backend_models() {
 
 printf 'OPENCLAW_CONFIG_PLAN backend=%s runtime=%s state=%s\n' "$BACKEND" "$RUNTIME_ROOT" "$STATE_ROOT"
 printf '  openclaw pin: %s\n' "$OPENCLAW_PIN"
+printf '  parallel pin: %s\n' "$PARALLEL_PIN"
 printf '  workspaces: %s\n' "$RUNTIME_ROOT/workspaces"
 printf '  patch: %s\n' "$PATCH_PATH"
 printf '  schema: %s\n' "$SCHEMA_PATH"
-printf '  sequence: version -> schema -> agents -> render -> backend-models -> patch-dry-run -> apply -> validate -> agents-list\n'
+printf '  sequence: version -> plugin -> schema -> agents -> render -> backend-models -> patch-dry-run -> apply -> validate -> agents-list\n'
 
 if ((APPLY == 0)); then
   echo "DRY_RUN=PASS -- aucune configuration OpenClaw modifiée."
@@ -108,6 +110,7 @@ OPENCLAW_VERSION="$($OPENCLAW --version 2>/dev/null | head -n1)"
 mkdir -p "$STATE_ROOT" "$GENERATED_ROOT" "$SYSTEM_WORKSPACE"
 export OPENCLAW_STATE_DIR="$STATE_ROOT"
 export OPENCLAW_LOCAL_FEDORA_ROOT="$RUNTIME_ROOT"
+export OPENCLAW_LOCAL_CLOUD_ENABLED="false"
 export OLLAMA_API_KEY="ollama-local"
 export INTEL_VULKAN_API_KEY="intel-vulkan-local"
 export INTEL_SYCL_API_KEY="intel-sycl-local"
@@ -118,9 +121,11 @@ fi
 
 PLUGIN_JSON="$($OPENCLAW plugins list --json)"
 if ! jq -e '.plugins[]? | select(.id == "parallel")' >/dev/null <<<"$PLUGIN_JSON"; then
-  "$OPENCLAW" plugins install 'npm:@openclaw/parallel-plugin@2026.7.1' --pin
-  PLUGIN_JSON="$($OPENCLAW plugins list --json)"
+  "$OPENCLAW" plugins install "npm:@openclaw/parallel-plugin@$PARALLEL_PIN" --pin
+else
+  "$OPENCLAW" plugins update "@openclaw/parallel-plugin@$PARALLEL_PIN"
 fi
+PLUGIN_JSON="$($OPENCLAW plugins list --json)"
 if [[ "$(jq -r '.plugins[]? | select(.id == "parallel") | .enabled' <<<"$PLUGIN_JSON" | head -n1)" != "true" ]]; then
   "$OPENCLAW" plugins enable parallel
 fi

@@ -38,6 +38,8 @@ def test_bootstrap_is_dry_run_by_default_and_does_not_weaken_security() -> None:
     assert "APPLY=0" in text
     assert "--apply" in text
     assert "getenforce" in text
+    assert "firewalld" in text
+    assert "policycoreutils-python-utils" in text
     assert '"$RUNTIME_ROOT/state"' in text
     assert '"$RUNTIME_ROOT/backups"' in text
     lower_text = text.lower()
@@ -84,7 +86,8 @@ def test_openclaw_config_is_dry_run_by_default_and_fail_closed() -> None:
     text = _read("scripts/linux/04_configure_openclaw.sh")
     assert "APPLY=0" in text
     assert "DRY_RUN=PASS" in text
-    assert 'OPENCLAW_PIN="2026.7.1-2"' in text
+    assert 'OPENCLAW_PIN="2026.9.2"' in text
+    assert 'PARALLEL_PIN="2026.9.2"' in text
     assert "OpenClaw $OPENCLAW_PIN requis" in text
     assert "require_backend_models" in text
     assert "exactement 3 modèles" in text
@@ -92,6 +95,8 @@ def test_openclaw_config_is_dry_run_by_default_and_fail_closed() -> None:
     assert "config validate --json" in text
     assert "agents list --json" in text
     assert "plugins inspect parallel --runtime --json" in text
+    assert "plugins update" in text
+    assert 'OPENCLAW_LOCAL_CLOUD_ENABLED="false"' in text
 
 
 def test_openclaw_agent_inventory_accepts_supported_json_shapes() -> None:
@@ -133,7 +138,9 @@ def test_power_profile_requires_explicit_apply() -> None:
 def test_full_install_is_explicit_and_pinned() -> None:
     text = _read("scripts/linux/10_install_full.sh")
     assert "APPLY=0" in text
-    assert 'OPENCLAW_PIN="2026.7.1-2"' in text
+    assert 'OPENCLAW_PIN="2026.9.2"' in text
+    assert 'OLLAMA_PIN="0.32.14"' in text
+    assert 'OLLAMA_VERSION="$OLLAMA_PIN"' in text
     assert "09_provision_models.sh" in text
     assert "04_configure_openclaw.sh" in text
     assert "openclaw gateway install" in text

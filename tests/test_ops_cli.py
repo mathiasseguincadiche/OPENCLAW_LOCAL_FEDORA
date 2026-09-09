@@ -7,6 +7,7 @@ import pytest
 from clawfedora import ops_cli
 
 ROOT = Path(__file__).resolve().parents[1]
+SPECIALIST = "hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M"
 
 
 def test_validate_lifecycle_command(capsys: pytest.CaptureFixture[str]) -> None:
@@ -36,8 +37,9 @@ def test_models_dry_run_lists_three_models(capsys: pytest.CaptureFixture[str]) -
     output = capsys.readouterr().out
     assert '"verdict": "PLAN"' in output
     assert "qwen3.5:9b-q4_K_M" in output
-    assert "gemma3:12b-it-q4_K_M" in output
-    assert "qwen2.5-coder:14b-instruct-q4_K_M" in output
+    assert "gemma4:12b-it-q4_K_M" in output
+    assert SPECIALIST in output
+    assert "granite4.2:8b-q4_K_M" not in output
 
 
 def test_cleanup_dry_run_never_deletes(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:

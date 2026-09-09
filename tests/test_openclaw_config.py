@@ -12,6 +12,7 @@ from clawfedora.openclaw_config import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
+SPECIALIST = "hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M"
 
 
 def _agents_by_id(patch: dict[str, object]) -> dict[str, dict[str, object]]:
@@ -52,28 +53,33 @@ def test_ollama_patch_has_eight_agents_and_strict_tools(tmp_path: Path) -> None:
     }
     assert set(by_id) == {
         "qwen3.5:9b-q4_K_M",
-        "gemma3:12b-it-q4_K_M",
-        "qwen2.5-coder:14b-instruct-q4_K_M",
+        "gemma4:12b-it-q4_K_M",
+        SPECIALIST,
     }
     assert all(entry["contextTokens"] == 8192 for entry in by_id.values())
-    assert by_id["qwen2.5-coder:14b-instruct-q4_K_M"]["input"] == ["text"]
+    assert by_id[SPECIALIST]["input"] == ["text"]
+    assert by_id["qwen3.5:9b-q4_K_M"]["input"] == ["text", "image"]
+    assert by_id["gemma4:12b-it-q4_K_M"]["input"] == ["text", "image"]
 
     agents = _agents_by_id(patch)
     assert len(agents) == 8
     assert agents["chef-operations"]["default"] is True
     assert agents["ingenieur-devops"]["model"] == {
-        "primary": "ollama/qwen2.5-coder:14b-instruct-q4_K_M",
+        "primary": f"ollama/{SPECIALIST}",
         "fallbacks": ["ollama/qwen3.5:9b-q4_K_M"],
     }
     research_tools = agents["expert-recherche"]["tools"]
     assert isinstance(research_tools, dict)
+    assert research_tools["profile"] == "minimal"
     assert "browser" in research_tools["alsoAllow"]
     security_tools = agents["ingenieur-securite"]["tools"]
     assert isinstance(security_tools, dict)
+    assert security_tools["profile"] == "minimal"
     assert "write" in security_tools["deny"]
 
     tools = patch["tools"]
     assert isinstance(tools, dict)
+    assert tools["profile"] == "minimal"
     assert tools["exec"] == {"mode": "ask", "applyPatch": {"workspaceOnly": True}}
     assert tools["elevated"] == {"enabled": False}
     web = tools["web"]
@@ -107,9 +113,7 @@ def test_vulkan_candidate_keeps_multimodal_on_ollama(tmp_path: Path) -> None:
     agents = _agents_by_id(patch)
     devops_model = agents["ingenieur-devops"]["model"]
     assert isinstance(devops_model, dict)
-    assert devops_model["primary"] == (
-        "intel-vulkan/qwen2.5-coder:14b-instruct-q4_K_M"
-    )
+    assert devops_model["primary"] == f"intel-vulkan/{SPECIALIST}"
     defaults = patch["agents"]
     assert isinstance(defaults, dict)
     agent_defaults = defaults["defaults"]
@@ -117,7 +121,7 @@ def test_vulkan_candidate_keeps_multimodal_on_ollama(tmp_path: Path) -> None:
     image_model = agent_defaults["imageModel"]
     assert isinstance(image_model, dict)
     assert image_model["primary"] == "ollama/qwen3.5:9b-q4_K_M"
-    assert image_model["fallbacks"] == ["ollama/gemma3:12b-it-q4_K_M"]
+    assert image_model["fallbacks"] == ["ollama/gemma4:12b-it-q4_K_M"]
 
 
 def test_sycl_candidate_is_explicit_and_local(tmp_path: Path) -> None:

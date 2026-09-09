@@ -88,9 +88,14 @@ def test_l6_contract_rejects_policy_and_version_drift(tmp_path: Path) -> None:
     kernel_cmp["minimum_aggregate_improvement_pct"] = 4.0
     kernel_cmp["maximum_single_model_regression_pct"] = 3.0
     kernel_cmp["minimum_repeated_runs"] = 2
+    challenger["slot"] = "gemma-deep"
     challenger["incumbent"] = "bad"
     challenger["challenger"] = "bad"
     challenger["automatic_promotion"] = True
+    challenger["require_coding_pass"] = False
+    challenger["require_tool_calling_pass"] = False
+    challenger["require_tool_repair_pass"] = False
+    challenger["require_security_pass"] = False
     staging["network_downloads_allowed"] = True
     staging["explicit_only"] = False
     staging["require_sha256"] = False
@@ -133,9 +138,14 @@ def test_l6_contract_rejects_policy_and_version_drift(tmp_path: Path) -> None:
     assert "seuil agrégé kernel divergent" in joined
     assert "seuil régression kernel divergent" in joined
     assert "au moins 3 runs kernel" in joined
-    assert "incumbent documentaire inattendu" in joined
-    assert "challenger Ministral divergent" in joined
+    assert "slot spécialiste DevOps" in joined
+    assert "incumbent spécialiste inattendu" in joined
+    assert "challenger Granite inattendu" in joined
     assert "promotion modèle automatique" in joined
+    assert "require_coding_pass=true" in joined
+    assert "require_tool_calling_pass=true" in joined
+    assert "require_tool_repair_pass=true" in joined
+    assert "require_security_pass=true" in joined
     assert "staging ne doit jamais télécharger" in joined
     assert "staging explicite requis" in joined
     assert "SHA-256 des artefacts requis" in joined
@@ -176,11 +186,11 @@ def test_l6_contract_rejects_backend_kernel_and_challenger_drift(tmp_path: Path)
     models = _load(root, "model_catalog.yaml")
     challengers = models["challengers"]
     assert isinstance(challengers, dict)
-    gemma = challengers["gemma-deep"]
-    assert isinstance(gemma, dict)
-    ministral = gemma["ministral-3-14b"]
-    assert isinstance(ministral, dict)
-    ministral["automatic_promotion"] = True
+    devops = challengers["devstral-devops"]
+    assert isinstance(devops, dict)
+    granite = devops["granite-devops"]
+    assert isinstance(granite, dict)
+    granite["automatic_promotion"] = True
     _save(root, "model_catalog.yaml", models)
 
     failures, warnings = validate_optimization_contracts(root)

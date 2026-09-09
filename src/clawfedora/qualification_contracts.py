@@ -8,8 +8,8 @@ from clawfedora.qualification import build_plan
 
 EXPECTED_RUNTIME_IDS = {
     "qwen-max": "qwen3.5:9b-q4_K_M",
-    "gemma-deep": "gemma3:12b-it-q4_K_M",
-    "devstral-devops": "qwen2.5-coder:14b-instruct-q4_K_M",
+    "gemma-deep": "gemma4:12b-it-q4_K_M",
+    "devstral-devops": "hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M",
 }
 EXPECTED_INPUTS = {
     "qwen-max": ["text", "image"],
@@ -45,11 +45,20 @@ def _validate_model_fleet(catalog: dict[str, Any], failures: list[str]) -> None:
     qwen = _mapping(models.get("qwen-max"))
     if qwen.get("family") != "qwen" or "thinking" not in qwen.get("capabilities", []):
         failures.append("qualification: qwen-max doit rester le seul Qwen thinking nominal")
-    coder = _mapping(models.get("devstral-devops"))
-    if coder.get("family") != "qwen-coder" or coder.get("architecture_family") != "qwen2":
-        failures.append("qualification: spécialiste DevOps doit rester isolé en qwen-coder")
+    gemma = _mapping(models.get("gemma-deep"))
+    if gemma.get("family") != "gemma4" or gemma.get("input") != ["text", "image"]:
+        failures.append("qualification: gemma-deep doit rester Gemma 4 multimodal")
+    specialist = _mapping(models.get("devstral-devops"))
+    if specialist.get("family") != "mistral3-reasoning":
+        failures.append("qualification: spécialiste DevOps doit être Ministral 3 Reasoning")
+    if specialist.get("compatibility_alias") is not True:
+        failures.append("qualification: alias devstral-devops doit rester explicitement compatible")
+    if specialist.get("source_repo") != "mistralai/Ministral-3-14B-Reasoning-2512-GGUF":
+        failures.append("qualification: source GGUF officielle Ministral attendue")
 
     fleet = _mapping(catalog.get("fleet_policy"))
+    if fleet.get("local_only") is not True or fleet.get("cloud_models_supported") is not False:
+        failures.append("qualification: flotte Architecture V2 doit rester LLM local-only")
     if int(fleet.get("nominal_context_tokens", 0)) != 8192:
         failures.append("qualification: contexte nominal flotte doit rester 8192")
     if int(fleet.get("maximum_qualified_context_tokens", 0)) != 16384:
@@ -60,11 +69,11 @@ def _validate_model_fleet(catalog: dict[str, Any], failures: list[str]) -> None:
         failures.append("qualification: challenger ne doit pas compter dans la flotte requise")
 
     challengers = _mapping(catalog.get("challengers"))
-    gemma_challengers = _mapping(challengers.get("gemma-deep"))
-    ministral = _mapping(gemma_challengers.get("ministral-3-14b"))
-    if ministral.get("runtime_id") != "ministral-3:14b-instruct-2512-q4_K_M":
-        failures.append("qualification: challenger Ministral 3 14B attendu")
-    if ministral.get("automatic_promotion") is not False:
+    devops_challengers = _mapping(challengers.get("devstral-devops"))
+    granite = _mapping(devops_challengers.get("granite-devops"))
+    if granite.get("runtime_id") != "granite4.2:8b-q4_K_M":
+        failures.append("qualification: challenger Granite 4.2 8B attendu")
+    if granite.get("automatic_promotion") is not False:
         failures.append("qualification: promotion automatique challenger interdite")
 
 

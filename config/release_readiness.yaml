@@ -61,7 +61,7 @@ evidence:
       - kind: kernel
         candidate_id: upstream-7.2.3
       - kind: model-challenger
-        candidate_id: ministral-3:14b-instruct-2512-q4_K_M
+        candidate_id: granite4.2:8b-q4_K_M
     optional_decisions:
       - kind: runtime
         candidate_id: llama-cpp-sycl
