@@ -272,45 +272,40 @@ def _l6(runtime: Path) -> None:
         incumbent.append(
             _snapshot(
                 runtime,
-                run_id=f"gemma-{index}",
+                run_id=f"ministral-{index}",
                 kind="model-challenger",
                 candidate_id=str(challenger_cfg["incumbent"]),
                 kernel="6.17.0-fedora",
                 backend="ollama-vulkan",
                 models={
-                    "gemma-deep": _model_metrics(
-                        str(challenger_cfg["incumbent"]), "digest-gemma", 12.0
+                    "devstral-devops": _model_metrics(
+                        str(challenger_cfg["incumbent"]), "digest-ministral", 12.0
                     )
-                },
-                extra={
-                    "vision_pass": True,
-                    "document_quality_pass": True,
-                    "tool_calling_pass": True,
                 },
             )
         )
         challenger.append(
             _snapshot(
                 runtime,
-                run_id=f"ministral-{index}",
+                run_id=f"granite-{index}",
                 kind="model-challenger",
                 candidate_id=str(challenger_cfg["challenger"]),
                 kernel="6.17.0-fedora",
                 backend="ollama-vulkan",
                 models={
-                    "gemma-deep": _model_metrics(
-                        str(challenger_cfg["challenger"]), "digest-ministral", 12.0
+                    "devstral-devops": _model_metrics(
+                        str(challenger_cfg["challenger"]), "digest-granite", 12.0
                     )
                 },
                 extra={
-                    "vision_pass": True,
-                    "document_quality_pass": True,
+                    "coding_pass": True,
                     "tool_calling_pass": True,
+                    "tool_repair_pass": True,
                 },
             )
         )
     challenger_report = compare_model_challenger(ROOT, incumbent, challenger)
-    write_decision(challenger_report, runtime / "proofs/l6/decisions/ministral.json")
+    write_decision(challenger_report, runtime / "proofs/l6/decisions/granite.json")
 
 
 def _l7(runtime: Path) -> Path:
@@ -383,16 +378,10 @@ def test_l8_collects_and_recomputes_all_required_evidence(tmp_path: Path) -> Non
     payload = collect_readiness(ROOT, runtime)
     assert payload["verdict"] == READY
     assert payload["software_contracts"]["verdict"] == "PASS"
-    assert all(payload["gates"][gate]["status"] == "PASS" for gate in [
-        "L0",
-        "L1",
-        "L2",
-        "L3",
-        "L4",
-        "L5",
-        "L6",
-        "L7",
-    ])
+    assert all(
+        payload["gates"][gate]["status"] == "PASS"
+        for gate in ["L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7"]
+    )
     assert len(payload["gates"]["L6"]["decisions"]) == 3
     assert all(item["recomputed"] is True for item in payload["gates"]["L6"]["decisions"])
     assert len(payload["evidence_set_sha256"]) == 64
@@ -415,9 +404,9 @@ def test_l8_blocks_if_hard40_thresholds_are_tampered(tmp_path: Path) -> None:
     assert any("seuils" in failure for failure in report["failures"])
 
 
-def test_l8_blocks_if_mandatory_ministral_decision_is_missing(tmp_path: Path) -> None:
+def test_l8_blocks_if_mandatory_granite_decision_is_missing(tmp_path: Path) -> None:
     runtime = _runtime(tmp_path)
-    (runtime / "proofs/l6/decisions/ministral.json").unlink()
+    (runtime / "proofs/l6/decisions/granite.json").unlink()
     report = collect_readiness(ROOT, runtime)
     assert report["verdict"] == BLOCKED
     assert any("model-challenger" in failure for failure in report["failures"])
