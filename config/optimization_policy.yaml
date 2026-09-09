@@ -18,7 +18,6 @@ pins:
 paths:
   llama_source: runtime/src/llama.cpp
   llama_vulkan_build: runtime/llama.cpp/vulkan
-  llama_sycl_build: runtime/llama.cpp/sycl
   llama_models: models/llama-router
   evidence: proofs/l6
   comparisons: benchmarks/l6
@@ -42,19 +41,10 @@ services:
     models_autoload: true
     context_tokens: 8192
     gpu_layers: 999
-  sycl:
-    unit: openclaw-llama-sycl.service
-    port: 8080
-    models_max: 1
-    models_autoload: true
-    context_tokens: 8192
-    gpu_layers: 999
-    device_api: level_zero
-    optional: true
 
 runtime_comparison:
   baseline: ollama-vulkan
-  candidates: [llama-cpp-vulkan, llama-cpp-sycl]
+  candidates: [llama-cpp-vulkan]
   minimum_repeated_runs: 3
   aggregate_improvement_target_pct: 10.0
   maximum_single_model_regression_pct: 5.0
@@ -65,7 +55,6 @@ runtime_comparison:
   require_functional_pass: true
   require_security_pass: true
   automatic_promotion: false
-  optional_candidate_failure_blocks_baseline: false
 
 kernel_comparison:
   baseline: fedora-official
