@@ -1,17 +1,17 @@
 # Architecture cible
 
-## Repères de lecture
+## Repères de progression
 
 | Repère | Valeur |
 |---|---|
-| **Public cible** | Architectes, mainteneurs et contributeurs techniques. |
-| **Niveau** | Expert |
-| **Prérequis** | Avoir lu le README et connaître les composants principaux de la plateforme. |
-| **Objectif** | Comprendre les couches Fedora-native, leurs frontières et les invariants d'architecture. |
-| **Résultat attendu** | Savoir identifier la baseline, les composants candidats, les responsabilités de chaque couche et la place des preuves runtime. |
-| **Critère d’arrêt** | Si le besoin est d'exécuter ou dépanner la plateforme, basculer vers `OPERATIONS.md` ou `TROUBLESHOOTING.md` plutôt que déduire une procédure depuis ce document. |
-| **À lire ensuite** | [`MULTI_AGENT_CORE.md`](MULTI_AGENT_CORE.md), [`PROJECT_ENGINE.md`](PROJECT_ENGINE.md), puis [`QUALIFICATION.md`](QUALIFICATION.md). |
-| **Source de vérité** | `config/*.yaml`, notamment les contrats plateforme, runtime, modèles, optimisation et release readiness. |
+| **Pour qui** | Toute personne qui veut comprendre comment les composants déjà manipulés s’assemblent, sans expertise préalable en architecture. |
+| **Position dans le parcours** | 5/14 |
+| **Prérequis** | Avoir suivi les étapes pratiques jusqu’à [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md). |
+| **Objectif** | Relier Fedora, systemd, sécurité, GPU, runtimes LLM, OpenClaw et le cœur fonctionnel dans une vue cohérente. |
+| **Résultat attendu** | Savoir expliquer les grandes couches du système et où se trouvent état attendu, données runtime et preuves. |
+| **Critère d’arrêt** | Si une couche reste abstraite, revenir aux commandes pratiques précédentes avant d’introduire les détails multi-agents. |
+| **Continuer avec** | [`MULTI_AGENT_CORE.md`](MULTI_AGENT_CORE.md) |
+| **Source de vérité** | Les contrats `config/*.yaml` et l’implémentation sous `src/` et `scripts/linux/`. |
 
 ## Principe
 
