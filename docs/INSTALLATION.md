@@ -1,5 +1,18 @@
 # Installation Fedora 44
 
+## Repères de lecture
+
+| Repère | Valeur |
+|---|---|
+| **Public cible** | Utilisateurs installant la plateforme et opérateurs Fedora. |
+| **Niveau** | Intermédiaire |
+| **Prérequis** | Fedora 44 Workstation, session utilisateur normale, UEFI/ReBAR vérifiés, SELinux Enforcing et firewalld actif. |
+| **Objectif** | Installer la plateforme de façon reproductible, d'abord en dry-run puis en application explicite. |
+| **Résultat attendu** | Installation convergée avec Gateway, Ollama, trois modèles nominaux, huit workspaces et `health` cohérent. |
+| **Critère d’arrêt** | Arrêter en cas d'échec de `validate`, de prérequis Fedora non conforme ou de dry-run incompris ; suivre [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) avant toute tentative de contournement. |
+| **À lire ensuite** | [`GETTING_STARTED.md`](GETTING_STARTED.md), puis [`OPERATIONS.md`](OPERATIONS.md); [`QUALIFICATION.md`](QUALIFICATION.md) seulement après une installation saine. |
+| **Source de vérité** | `config/runtime_versions.yaml`, `config/model_catalog.yaml`, les contrats plateforme/OpenClaw et les scripts Linux versionnés. |
+
 Ce guide couvre la mise en service de `OPENCLAW_LOCAL_FEDORA` sur la plateforme cible. Il décrit l'installation du produit ; il ne remplace pas la qualification matérielle L2–L8.
 
 ## Cible supportée
