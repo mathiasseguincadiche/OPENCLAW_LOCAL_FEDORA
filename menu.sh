@@ -44,7 +44,7 @@ Plateforme et qualification:
   e2e                    Gate L4 réel
   qualification-dry-run  Valide le plan HARD-40M
   qualification          Gate L5 réel HARD-40M
-  challenger-model       Plan/provision Ministral challenger hors routage; --apply explicite
+  challenger-model       Plan/provision Granite challenger hors routage; --apply explicite
   golden-dry-run         Valide le plan L7 sans exécuter les projets
   golden                 Exécute les 5 Golden Projects + projet représentatif
   release-readiness-dry-run  Valide le framework L8 sans lire les preuves réelles
@@ -123,17 +123,17 @@ run_l8() {
   fi
 }
 
-printf '%s\n' '==============================================================================='
+printf '%s\n' '=============================================================================='
 printf '%s\n' ' OPENCLAW_LOCAL_FEDORA — FEDORA 44 / GNOME 50 / INTEL ARC B580'
 printf '%s\n' '=============================================================================='
 printf '%s\n' ' Kernel baseline : Fedora officiel'
 printf '%s\n' ' Kernel 7.2.3    : candidat uniquement, jamais promotion automatique'
 printf '%s\n' ' GPU nominal     : xe + Mesa/Vulkan'
 printf '%s\n' ' Runtime baseline: Ollama Vulkan'
-printf '%s\n' ' Modèles routés  : Qwen 3.5 9B / Gemma 3 12B / Qwen 2.5 Coder 14B (exactement 3)'
-printf '%s\n' ' Challenger      : Ministral 3 14B hors routage, benchmark uniquement'
+printf '%s\n' ' Modèles routés  : Qwen 3.5 9B / Gemma 4 12B / Ministral 3 14B Reasoning (exactement 3)'
+printf '%s\n' ' Challenger      : Granite 4.2 8B hors routage, benchmark uniquement'
 printf '%s\n' ' Qualification   : HARD-40M / 30 cas / suspension inhibée'
-printf '%s\n' ' Cloud           : explicite uniquement, jamais fallback silencieux'
+printf '%s\n' ' Cloud           : aucun routage LLM cloud nominal, jamais fallback silencieux'
 
 case "$ACTION" in
   lifecycle-validate) run_ops validate-lifecycle ;;
