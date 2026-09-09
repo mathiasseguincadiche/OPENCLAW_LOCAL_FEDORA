@@ -9,6 +9,15 @@ claw_runtime_root() {
   printf '%s\n' "${OPENCLAW_LOCAL_FEDORA_ROOT:-/srv/openclaw-local}"
 }
 
+claw_extract_openclaw_version() {
+  local output="${1:-}"
+  if [[ "$output" =~ (^|[^0-9])([0-9]{4}\.[0-9]+\.[0-9]+)([^0-9.]|$) ]]; then
+    printf '%s\n' "${BASH_REMATCH[2]}"
+    return 0
+  fi
+  return 1
+}
+
 claw_python() {
   local runtime_root repo_root system_python
   runtime_root="$(claw_runtime_root)"

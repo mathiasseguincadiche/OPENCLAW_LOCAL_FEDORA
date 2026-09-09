@@ -2,7 +2,9 @@ schema_version: "1.1.0"
 platform_version: "0.1.0"
 
 runtime:
-  initial_version_pin: "2026.9.2"
+  required_version: "2026.9.2"
+  version_lock: exact
+  automatic_update_allowed: false
   require_schema_capture_before_apply: true
   require_patch_dry_run_before_apply: true
   require_config_validate_after_apply: true
@@ -13,9 +15,11 @@ plugins:
     id: parallel
     package: "@openclaw/parallel-plugin"
     version: "2026.9.2"
+    version_lock: exact
     provider: parallel-free
     install_if_missing: true
     converge_exact_version: true
+    automatic_update_allowed: false
     runtime_inspection_required: true
 
 gateway:

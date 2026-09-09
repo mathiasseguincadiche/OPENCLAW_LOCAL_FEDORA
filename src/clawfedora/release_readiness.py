@@ -22,6 +22,7 @@ from clawfedora.optimization import (
 from clawfedora.optimization_contracts import validate_optimization_contracts
 from clawfedora.qualification_contracts import validate_qualification_contracts
 from clawfedora.release_readiness_contracts import validate_release_readiness_contracts
+from clawfedora.version_lock import extract_openclaw_version
 
 REPORT_SCHEMA = "1.0.0"
 READY = "READY_FOR_HUMAN_REVIEW"
@@ -211,12 +212,20 @@ def _validate_l4(
     stability = payload.get("stability", [])
     if not isinstance(stability, list) or len(stability) != int(cfg["required_stability_runs"]):
         failures.append("L4: exactement 3 runs de stabilité requis")
+
     versions = root_contract(repo_root, "runtime_versions.yaml")
-    expected = str(_mapping(versions.get("openclaw"), "runtime_versions.openclaw").get(
-        "initial_qualification_pin", ""
-    ))
-    if expected and expected not in str(payload.get("openclaw_version", "")):
-        failures.append("L4: version OpenClaw ne correspond pas au pin courant")
+    expected = str(
+        _mapping(versions.get("openclaw"), "runtime_versions.openclaw").get(
+            "version", ""
+        )
+    )
+    raw_observed = str(payload.get("openclaw_version", ""))
+    try:
+        observed_version = extract_openclaw_version(raw_observed)
+    except ValueError:
+        observed_version = ""
+    if not expected or observed_version != expected:
+        failures.append("L4: version OpenClaw ne correspond pas au verrou exact courant")
     return failures
 
 
@@ -284,11 +293,13 @@ def _validate_l5(repo_root: Path, payload: dict[str, Any], cfg: dict[str, Any]) 
         }
         if set(indexed) != set(expected_models):
             failures.append("L5: alias modèles divergents")
-        for alias, expected in expected_models.items():
+        for alias, expected_model in expected_models.items():
             actual = indexed.get(alias, {})
-            if str(actual.get("runtime_id", "")) != str(expected.get("runtime_id", "")):
+            if str(actual.get("runtime_id", "")) != str(expected_model.get("runtime_id", "")):
                 failures.append(f"L5: runtime_id divergent pour {alias}")
-            if str(actual.get("quantization_level", "")) != str(expected.get("quantization", "")):
+            if str(actual.get("quantization_level", "")) != str(
+                expected_model.get("quantization", "")
+            ):
                 failures.append(f"L5: quantification divergente pour {alias}")
             if not str(actual.get("digest", "")):
                 failures.append(f"L5: digest modèle absent pour {alias}")
@@ -370,9 +381,11 @@ def _validate_l6_decision(
     if section is None:
         failures.append(f"L6: kind décision inconnu: {kind}")
         return failures, []
-    minimum = int(_mapping(optimization.get(section), f"optimization.{section}").get(
-        "minimum_repeated_runs", 0
-    ))
+    minimum = int(
+        _mapping(optimization.get(section), f"optimization.{section}").get(
+            "minimum_repeated_runs", 0
+        )
+    )
     if len(baseline_ids) < minimum or len(candidate_ids) < minimum:
         failures.append(f"L6: {kind} exige au moins {minimum} runs par série")
 
@@ -424,7 +437,11 @@ def _validate_l7(payload: dict[str, Any], cfg: dict[str, Any]) -> list[str]:
         cfg["required_representative_projects"]
     ):
         failures.append("L7: projet représentatif PASS requis")
-    for key in ("cloud_calls_allowed", "remote_publication_allowed", "automatic_human_approval"):
+    for key in (
+        "cloud_calls_allowed",
+        "remote_publication_allowed",
+        "automatic_human_approval",
+    ):
         if payload.get(key) is not False:
             failures.append(f"L7: {key} doit rester false")
     if payload.get("final_human_completion") is not False:
@@ -467,7 +484,9 @@ def collect_readiness(repo_root: Path, runtime_root: Path) -> dict[str, Any]:
             "source": "repository+lifecycle contracts",
         },
         "L1": {
-            "status": "PASS" if software.get("core", {}).get("verdict") == "PASS" else "BLOCKED",
+            "status": "PASS"
+            if software.get("core", {}).get("verdict") == "PASS"
+            else "BLOCKED",
             "source": "core contracts",
         },
     }
@@ -654,10 +673,15 @@ def collect_readiness(repo_root: Path, runtime_root: Path) -> dict[str, Any]:
 
     manifest.sort(key=lambda item: (str(item["gate"]), str(item["role"]), str(item["path"])))
     evidence_hash = _canonical_hash(manifest)
-    verdict = READY if not failures and all(
-        gates.get(gate, {}).get("status") == "PASS"
-        for gate in ("L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7")
-    ) else BLOCKED
+    verdict = (
+        READY
+        if not failures
+        and all(
+            gates.get(gate, {}).get("status") == "PASS"
+            for gate in ("L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7")
+        )
+        else BLOCKED
+    )
     return {
         "schema_version": REPORT_SCHEMA,
         "gate": "L8",
@@ -665,9 +689,9 @@ def collect_readiness(repo_root: Path, runtime_root: Path) -> dict[str, Any]:
         "verdict": verdict,
         "runtime_root": str(runtime),
         "software_contracts": {
-            "verdict": "PASS" if not any(
-                component.get("verdict") == "FAIL" for component in software.values()
-            ) else "FAIL",
+            "verdict": "PASS"
+            if not any(component.get("verdict") == "FAIL" for component in software.values())
+            else "FAIL",
             "components": software,
         },
         "gates": gates,

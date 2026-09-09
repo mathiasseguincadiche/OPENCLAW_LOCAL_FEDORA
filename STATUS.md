@@ -21,7 +21,7 @@ Le dépôt est une **édition Fedora 44 Linux-native d'OPENCLAW_LOCAL**. Le socl
 | SELinux / firewalld / systemd-user / Podman / KVM | INTÉGRÉS au bootstrap/lifecycle |
 | Provisionnement explicite des 3 modèles nominaux | IMPLÉMENTÉ — validation machine cible à produire |
 | Challenger Granite hors routage | IMPLÉMENTÉ — qualification réelle à produire |
-| OpenClaw 2026.9.2 + Parallel 2026.9.2 | CONTRATS ET CONVERGENCE IMPLÉMENTÉS |
+| OpenClaw **exactement 2026.9.2** + Parallel **exactement 2026.9.2** | VERROUILLÉS — contrats, convergence et contrôles exacts implémentés ; mises à jour automatiques interdites |
 | Service OpenClaw systemd user | IMPLÉMENTÉ — validation machine cible à produire |
 | Health / repair / backup / restore / uninstall | IMPLÉMENTÉ — validation machine cible à produire |
 | Télémétrie locale | PASS logiciel |
@@ -41,7 +41,7 @@ Le dépôt est une **édition Fedora 44 Linux-native d'OPENCLAW_LOCAL**. Le socl
 | L1 | Cœur multi-agents Linux-native | PASS logiciel |
 | L2 | Fedora 44 / hardware gate | PENDING — machine Fedora réelle requise |
 | L3 | B580 `xe` + Mesa/Vulkan | PENDING — B580 réelle requise |
-| L4 | OpenClaw + 8 agents + E2E | PENDING — E2E réel requis |
+| L4 | OpenClaw 2026.9.2 exact + 8 agents + E2E | PENDING — E2E réel requis |
 | L5 | Qualification HARD-40M | PENDING — flotte V2 à mesurer |
 | L6 | Ollama/Vulkan, llama.cpp/Vulkan, kernel 7.2.3, Granite challenger | PENDING matériel — contrats logiciels PASS |
 | L7 | Golden Projects + projet représentatif | PASS logiciel — replay installation finale requis avant L8 réel |
@@ -71,6 +71,9 @@ Le benchmark nominal reste à **8192 tokens**. Les agents OpenClaw disposent d'u
 - Podman est le runtime conteneur Linux privilégié ; KVM/libvirt/OVMF fournit la virtualisation native.
 - Le kernel Fedora officiel reste toujours un rollback bootable ; Linux 7.2.3 est un candidat L6 seulement.
 - Ollama/Vulkan est la baseline runtime ; llama.cpp/Vulkan est l'unique candidat runtime L6.
+- **OpenClaw 2026.9.2 est l'unique version OpenClaw supportée par ce contrat.** Une version voisine, plus récente ou plus ancienne doit être refusée ; aucun canal `latest`, upgrade automatique ou convergence implicite vers une autre version n'est autorisé.
+- Le plugin Parallel reste lui aussi verrouillé exactement en `2026.9.2`.
+- Changer la version OpenClaw ou Parallel exige une modification contractuelle explicite, une branche dédiée et la requalification des gates affectés ; ce n'est pas une opération de maintenance courante.
 - Les trois alias `qwen-max`, `gemma-deep`, `devstral-devops` constituent exactement la flotte routée.
 - Granite reste hors flotte nominale et hors routage tant qu'aucune décision humaine post-qualification ne change explicitement le contrat.
 - Seul `qwen-max` reçoit les 3 probes Qwen thinking natifs HARD-40M.

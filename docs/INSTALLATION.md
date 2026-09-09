@@ -11,7 +11,7 @@
 | **Résultat attendu** | Obtenir une installation cohérente dont `health` et `status` sont interprétables. |
 | **Critère d’arrêt** | Arrêter au premier prérequis non satisfait, au premier dry-run incohérent ou au premier health-check non compris. |
 | **Continuer avec** | [`OPERATIONS.md`](OPERATIONS.md) |
-| **Source de vérité** | `config/runtime_versions.yaml`, `config/model_catalog.yaml` et les contrats de cycle de vie. |
+| **Source de vérité** | `config/runtime_versions.yaml`, `config/core/openclaw_policy.yaml`, `config/model_catalog.yaml` et les contrats de cycle de vie. |
 
 Ce guide couvre la mise en service de `OPENCLAW_LOCAL_FEDORA` sur la plateforme cible. Il décrit l'installation du produit ; il ne remplace pas la qualification matérielle L2–L8.
 
@@ -26,6 +26,8 @@ La cible nominale est :
 - Mesa/Vulkan ;
 - SELinux **Enforcing** ;
 - firewalld actif ;
+- **OpenClaw exactement `2026.9.2`** ;
+- plugin Parallel exactement `2026.9.2` ;
 - OpenClaw Gateway géré par `systemd --user` ;
 - Ollama/Vulkan comme runtime baseline.
 
@@ -72,7 +74,7 @@ Vérifier les contrats avant toute modification de la machine :
 ./menu.sh --action validate
 ```
 
-Le dépôt doit échouer fermé si ses contrats ne sont pas cohérents.
+Le dépôt doit échouer fermé si ses contrats ne sont pas cohérents. Cette validation vérifie notamment que le verrou OpenClaw reste exactement `2026.9.2` et que les mises à jour automatiques restent interdites.
 
 ## Étape 1 — Dry-run complet
 
@@ -87,7 +89,7 @@ Le dry-run affiche le plan sans effectuer l'installation. Le chemin nominal est 
 1. bootstrap Fedora 44 ;
 2. préparation du runtime géré ;
 3. installation/convergence Ollama ;
-4. installation/convergence OpenClaw ;
+4. installation/convergence OpenClaw **exactement `2026.9.2`** ;
 5. provisionnement explicite des trois modèles nominaux ;
 6. déploiement des huit workspaces ;
 7. configuration OpenClaw ;
@@ -130,14 +132,19 @@ Lorsque le dry-run et le bootstrap sont compris :
 ./menu.sh --action install --apply
 ```
 
-L'installateur converge vers les pins définis par les contrats du dépôt, notamment OpenClaw, le plugin Parallel et Ollama. Les valeurs canoniques sont dans `config/runtime_versions.yaml` ; le guide ne doit pas servir de second fichier de configuration.
+L'installateur converge vers les pins définis par les contrats du dépôt. Pour OpenClaw, ce n'est pas une simple préférence : **la seule version acceptée est `2026.9.2`**. Si une autre version est détectée, l'installation tente de converger vers `2026.9.2` via l'installateur CLI officiel puis vérifie à nouveau la version par égalité exacte. Si une autre version demeure, l'installation échoue.
+
+Le plugin Parallel est lui aussi verrouillé exactement en `2026.9.2`. Les valeurs canoniques sont dans `config/runtime_versions.yaml` et `config/core/openclaw_policy.yaml` ; le guide ne doit pas servir de second fichier de configuration.
 
 L'installation complète active explicitement le Gateway OpenClaw en service utilisateur :
 
 ```bash
+openclaw --version
 systemctl --user status openclaw-gateway.service
 openclaw gateway status
 ```
+
+La première commande doit identifier exactement `2026.9.2`.
 
 ## Étape 4 — Vérification du produit
 
@@ -218,6 +225,8 @@ Application :
 ./menu.sh --action configure-openclaw --backend ollama-vulkan --apply
 ```
 
+Le mode `--apply` refuse de poursuivre si `openclaw --version` n'identifie pas exactement `2026.9.2`.
+
 `llama-cpp-vulkan` est l'unique candidat runtime L6. Il ne doit pas remplacer la baseline sans qualification et décision humaine.
 
 ## Stockage
@@ -254,11 +263,12 @@ Le `project-selftest` est un test logiciel synthétique. Le `e2e-dry-run` et le 
 
 ## Échec d'installation
 
-Ne contourner ni SELinux, ni firewalld, ni les contrôles de version pour obtenir artificiellement un PASS.
+Ne contourner ni SELinux, ni firewalld, ni les contrôles de version pour obtenir artificiellement un PASS. Une autre version OpenClaw ne doit jamais être « acceptée » en modifiant simplement le contrat.
 
 Utiliser d'abord :
 
 ```bash
+openclaw --version
 ./menu.sh --action health
 systemctl --user status openclaw-gateway.service
 journalctl --user -u openclaw-gateway.service -n 200 --no-pager
@@ -277,9 +287,3 @@ Le chemin de réparation officiel commence par une sauvegarde :
 ```
 
 Pour les procédures d'exploitation, de sauvegarde et de restauration, voir [`OPERATIONS.md`](OPERATIONS.md) et [`LIFECYCLE.md`](LIFECYCLE.md).
-
-## Installation réussie ≠ qualification matérielle
-
-Une installation est considérée fonctionnellement en place lorsque le health-check et les contrôles logiciels passent. Elle n'est **pas** pour autant qualifiée B580, Vulkan, HARD-40M, L6 ou V1.
-
-La qualification réelle suit les gates L2 à L8 sur la machine cible.

@@ -2,14 +2,18 @@ schema_version: "1.1.0"
 platform_version: "0.1.0"
 
 openclaw:
-  initial_qualification_pin: "2026.9.2"
+  version: "2026.9.2"
+  initial_qualification_pin: "2026.9.2"  # compatibility alias; must equal version
+  lock: exact
   integrity: "sha512-M6C7UsnX815nv26qBJFYGe6aGzv+ftZLRzV6S9oRXUtXg2Yn67eVntpssT94kgkquKVSeUxerUg0j1ONp4WYQg=="
   release_sha: "3928bad9badfcb6c7d140530435e806fb8092190"
-  policy: pin-exact-version-before-first-hardware-qualification
+  policy: exact-version-locked
+  automatic_update: false
   plugins:
     parallel:
       package: "@openclaw/parallel-plugin"
-      preferred: "2026.9.2"
+      version: "2026.9.2"
+      lock: exact
       provider: parallel-free
 
 node:
@@ -46,5 +50,8 @@ upgrade_policy:
   one_variable_at_a_time: true
   require_requalification_after_runtime_change: true
   never_upgrade_during_active_qualification: true
+  openclaw_version_locked: true
+  openclaw_update_requires_explicit_contract_change: true
+  parallel_plugin_version_locked: true
   automatic_runtime_upgrade: false
   automatic_kernel_upgrade: false

@@ -16,7 +16,7 @@ cat <<EOF
 INSTALL_PLAN Fedora=44 runtime=$RUNTIME_ROOT
   1. bootstrap Fedora + SELinux/firewalld/GPU/KVM/Podman dependencies
   2. install/converge Ollama $OLLAMA_PIN and start the local service
-  3. install/converge OpenClaw $OPENCLAW_PIN
+  3. install/converge OpenClaw exactly $OPENCLAW_PIN
   4. explicitly provision the three nominal models Architecture V2
   5. deploy agent workspaces and apply OpenClaw config
   6. install/enable the OpenClaw systemd user gateway
@@ -52,18 +52,20 @@ if systemctl list-unit-files ollama.service >/dev/null 2>&1; then
 fi
 
 export PATH="$HOME/.openclaw/bin:$HOME/.local/bin:$PATH"
-OPENCLAW_VERSION="$(openclaw --version 2>/dev/null | head -n1 || true)"
-if [[ "$OPENCLAW_VERSION" != *"$OPENCLAW_PIN"* ]]; then
+OPENCLAW_VERSION_TEXT="$(openclaw --version 2>/dev/null | head -n1 || true)"
+OPENCLAW_VERSION="$(claw_extract_openclaw_version "$OPENCLAW_VERSION_TEXT" || true)"
+if [[ "$OPENCLAW_VERSION" != "$OPENCLAW_PIN" ]]; then
   tmp_openclaw="$(mktemp)"
   trap 'rm -f "${tmp_ollama:-}" "$tmp_openclaw"' EXIT
   curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install-cli.sh -o "$tmp_openclaw"
-  bash "$tmp_openclaw" --version "$OPENCLAW_PIN" --no-onboard
+  bash "$tmp_openclaw" --install-method npm --version "$OPENCLAW_PIN" --no-onboard
   export PATH="$HOME/.openclaw/bin:$HOME/.local/bin:$PATH"
 fi
 
-OPENCLAW_VERSION="$(openclaw --version 2>/dev/null | head -n1 || true)"
-[[ "$OPENCLAW_VERSION" == *"$OPENCLAW_PIN"* ]] || {
-  echo "INSTALL_RESULT=FAIL OpenClaw pin mismatch: ${OPENCLAW_VERSION:-absent}" >&2
+OPENCLAW_VERSION_TEXT="$(openclaw --version 2>/dev/null | head -n1 || true)"
+OPENCLAW_VERSION="$(claw_extract_openclaw_version "$OPENCLAW_VERSION_TEXT" || true)"
+[[ "$OPENCLAW_VERSION" == "$OPENCLAW_PIN" ]] || {
+  echo "INSTALL_RESULT=FAIL OpenClaw exact pin mismatch: ${OPENCLAW_VERSION_TEXT:-absent}" >&2
   exit 2
 }
 
