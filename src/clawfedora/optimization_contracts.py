@@ -11,6 +11,8 @@ EXPECTED_LLAMA_TAG = "b10516"
 EXPECTED_LLAMA_COMMIT = "b95502ba9aa0eb73a2f4fc8878d7fbe6a847a0b9"
 EXPECTED_KERNEL = "7.2.3"
 EXPECTED_KERNEL_SHA256 = "8ba259e8e7b13ec6ef0941c8a39ad90b24bd4a4d6c0010ba6bafb794550ecd03"
+EXPECTED_SPECIALIST = "hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M"
+EXPECTED_CHALLENGER = "granite4.2:8b-q4_K_M"
 
 
 def _mapping(value: Any) -> dict[str, Any]:
@@ -109,16 +111,28 @@ def validate_optimization_contracts(
 
     challenger_policy = _mapping(policy.get("model_challenger"))
     challengers = _mapping(models.get("challengers"))
-    gemma_challengers = _mapping(challengers.get("gemma-deep"))
-    ministral = _mapping(gemma_challengers.get("ministral-3-14b"))
-    if challenger_policy.get("incumbent") != "gemma3:12b-it-q4_K_M":
-        failures.append("l6: incumbent documentaire inattendu")
-    if challenger_policy.get("challenger") != ministral.get("runtime_id"):
-        failures.append("l6: challenger Ministral divergent")
-    if ministral.get("automatic_promotion") is not False:
+    devops_challengers = _mapping(challengers.get("devstral-devops"))
+    granite = _mapping(devops_challengers.get("granite-devops"))
+    if challenger_policy.get("slot") != "devstral-devops":
+        failures.append("l6: challenger doit cibler le slot spécialiste DevOps")
+    if challenger_policy.get("incumbent") != EXPECTED_SPECIALIST:
+        failures.append("l6: incumbent spécialiste inattendu")
+    if challenger_policy.get("challenger") != EXPECTED_CHALLENGER:
+        failures.append("l6: challenger Granite inattendu")
+    if challenger_policy.get("challenger") != granite.get("runtime_id"):
+        failures.append("l6: challenger Granite divergent du catalogue")
+    if granite.get("automatic_promotion") is not False:
         failures.append("l6: promotion automatique challenger interdite")
     if challenger_policy.get("automatic_promotion") is not False:
         failures.append("l6: promotion modèle automatique interdite")
+    for required in (
+        "require_coding_pass",
+        "require_tool_calling_pass",
+        "require_tool_repair_pass",
+        "require_security_pass",
+    ):
+        if challenger_policy.get(required) is not True:
+            failures.append(f"l6: {required}=true requis")
 
     staging = _mapping(policy.get("artifact_staging"))
     if staging.get("network_downloads_allowed") is not False:
