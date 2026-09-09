@@ -1,4 +1,4 @@
-schema_version: "1.0.0"
+schema_version: "1.1.0"
 platform_version: "0.1.0"
 gate: L6
 
@@ -84,13 +84,13 @@ kernel_comparison:
   baseline_must_remain_bootable: true
 
 model_challenger:
-  slot: gemma-deep
-  incumbent: gemma3:12b-it-q4_K_M
-  challenger: ministral-3:14b-instruct-2512-q4_K_M
+  slot: devstral-devops
+  incumbent: hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M
+  challenger: granite4.2:8b-q4_K_M
   minimum_repeated_runs: 3
-  require_vision_pass: true
-  require_document_quality_pass: true
+  require_coding_pass: true
   require_tool_calling_pass: true
+  require_tool_repair_pass: true
   require_security_pass: true
   maximum_performance_regression_pct: 5.0
   tie_policy: keep-incumbent
