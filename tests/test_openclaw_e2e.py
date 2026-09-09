@@ -208,7 +208,7 @@ def test_full_l4_simulation_creates_tool_repair_and_stability_evidence(
         "run",
         lambda *_args, **_kwargs: SimpleNamespace(
             returncode=0,
-            stdout="OpenClaw 2026.7.1-2\n",
+            stdout="OpenClaw 2026.9.2\n",
             stderr="",
         ),
     )
