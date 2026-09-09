@@ -121,7 +121,9 @@ def test_reference_guides_form_one_continuous_progression() -> None:
                 failures.append(f"{relative}: repère de progression absent: {field}")
 
         if "| **Pour qui** | Toute personne" not in header:
-            failures.append(f"{relative}: le guide doit être explicitement accessible à toute personne")
+            failures.append(
+                f"{relative}: le guide doit être explicitement accessible à toute personne"
+            )
 
         if "| **Niveau** |" in header or "| **Public cible** |" in header:
             failures.append(f"{relative}: segmentation par niveau/public interdite")
