@@ -1,4 +1,4 @@
-schema_version: "1.3.0"
+schema_version: "2.0.0"
 platform_version: "0.1.0"
 
 models:
@@ -11,63 +11,76 @@ models:
     family: qwen
     quantization: Q4_K_M
     input: [text, image]
-    capabilities: [vision, tools, thinking]
+    capabilities: [vision, tools, thinking, orchestration, research]
     approximate_weight_gib: 6.6
     nominal_context_tokens: 8192
     qualification_contexts: [8192, 16384]
     required: true
     qualification_required: true
+
   gemma-deep:
     provider: ollama
     role: local-deep
-    runtime_id: gemma3:12b-it-q4_K_M
-    vulkan_runtime_id: gemma3:12b-it-q4_K_M
-    sycl_runtime_id: gemma3:12b-it-q4_K_M
-    family: gemma
+    runtime_id: gemma4:12b-it-q4_K_M
+    vulkan_runtime_id: gemma4:12b-it-q4_K_M
+    sycl_runtime_id: gemma4:12b-it-q4_K_M
+    family: gemma4
     quantization: Q4_K_M
     input: [text, image]
-    capabilities: [vision]
-    approximate_weight_gib: 8.1
-    nominal_context_tokens: 8192
-    qualification_contexts: [8192, 16384]
-    required: true
-    qualification_required: true
-  devstral-devops:
-    provider: ollama
-    role: local-specialist
-    runtime_id: qwen2.5-coder:14b-instruct-q4_K_M
-    vulkan_runtime_id: qwen2.5-coder:14b-instruct-q4_K_M
-    sycl_runtime_id: qwen2.5-coder:14b-instruct-q4_K_M
-    family: qwen-coder
-    architecture_family: qwen2
-    quantization: Q4_K_M
-    input: [text]
-    capabilities: [tools, code, code-reasoning, code-repair]
-    approximate_weight_gib: 9.0
+    capabilities: [vision, reasoning, architecture, documentation, independent-review]
+    approximate_weight_gib: 7.6
     nominal_context_tokens: 8192
     qualification_contexts: [8192, 16384]
     required: true
     qualification_required: true
 
+  devstral-devops:
+    provider: ollama
+    role: local-specialist
+    runtime_id: hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M
+    vulkan_runtime_id: hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M
+    sycl_runtime_id: hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M
+    family: mistral3-reasoning
+    quantization: Q4_K_M
+    input: [text]
+    capabilities: [tools, code, code-reasoning, code-repair, native-tool-calling, deep-reasoning]
+    approximate_weight_gib: 8.24
+    nominal_context_tokens: 8192
+    qualification_contexts: [8192, 16384]
+    required: true
+    qualification_required: true
+    compatibility_alias: true
+    compatibility_note: "Alias logique historique conservé; Architecture V2 route le spécialiste DevOps vers Ministral 3 14B Reasoning Q4_K_M."
+    source_kind: huggingface_gguf
+    source_repo: mistralai/Ministral-3-14B-Reasoning-2512-GGUF
+    source_quantization: Q4_K_M
+    source_license: Apache-2.0
+    multimodal_handoff: [qwen-max, gemma-deep]
+
 challengers:
-  gemma-deep:
-    ministral-3-14b:
+  devstral-devops:
+    granite-devops:
       provider: ollama
-      runtime_id: ministral-3:14b-instruct-2512-q4_K_M
-      family: mistral
+      runtime_id: granite4.2:8b-q4_K_M
+      family: granite4.2
       quantization: Q4_K_M
-      input: [text, image]
-      capabilities: [vision, tools, function-calling, json]
-      approximate_weight_gib: 9.1
+      input: [text]
+      capabilities: [code, native-tool-calling, tool-feedback-repair, terminal-reasoning]
+      approximate_weight_gib: 5.3
       nominal_context_tokens: 8192
-      qualification_contexts: [8192, 16384]
+      qualification_contexts: [8192]
       promotion: benchmark-only
       automatic_promotion: false
 
 fleet_policy:
+  local_first: true
+  local_only: true
+  cloud_models_supported: false
   exact_required_model_count: 3
   nominal_context_tokens: 8192
   maximum_qualified_context_tokens: 16384
+  openclaw_agent_context_tokens: 16384
+  openclaw_agent_context_is_benchmark_promotion: false
   target_gpu_vram_gib: 12
   implicit_model_download_during_benchmark: false
   cloud_model_as_local_fallback: false
