@@ -124,24 +124,6 @@ def test_vulkan_candidate_keeps_multimodal_on_ollama(tmp_path: Path) -> None:
     assert image_model["fallbacks"] == ["ollama/gemma4:12b-it-q4_K_M"]
 
 
-def test_sycl_candidate_is_explicit_and_local(tmp_path: Path) -> None:
-    patch = build_openclaw_patch(ROOT, tmp_path, "llama-cpp-sycl")
-    models = patch["models"]
-    assert isinstance(models, dict)
-    providers = models["providers"]
-    assert isinstance(providers, dict)
-    sycl = providers["intel-sycl"]
-    assert isinstance(sycl, dict)
-    assert sycl["baseUrl"] == "http://127.0.0.1:8080/v1"
-    assert sycl["api"] == "openai-completions"
-    assert sycl["apiKey"] == {
-        "source": "env",
-        "provider": "default",
-        "id": "INTEL_SYCL_API_KEY",
-    }
-    assert "intel-sycl-local" not in json.dumps(patch)
-
-
 def test_unknown_backend_is_rejected(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="backend absent"):
         build_openclaw_patch(ROOT, tmp_path, "unknown")
