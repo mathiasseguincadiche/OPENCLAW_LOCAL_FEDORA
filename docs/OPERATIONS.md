@@ -1,5 +1,18 @@
 # Runbook d'exploitation Fedora
 
+## Repères de lecture
+
+| Repère | Valeur |
+|---|---|
+| **Public cible** | Opérateurs responsables du fonctionnement quotidien de la plateforme. |
+| **Niveau** | Intermédiaire |
+| **Prérequis** | Installation terminée, [`GETTING_STARTED.md`](GETTING_STARTED.md) lu et accès aux commandes utilisateur/systemd nécessaires. |
+| **Objectif** | Exploiter, diagnostiquer, sauvegarder, restaurer et faire revenir la plateforme à un état connu sans contourner les garde-fous. |
+| **Résultat attendu** | Savoir exécuter la routine de santé, isoler une couche fautive, produire un état minimal d'incident et appliquer un rollback adapté. |
+| **Critère d’arrêt** | Si `validate` ou `health` échoue sans cause comprise, ou si une correction exigerait de désactiver un garde-fou, basculer vers [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md). |
+| **À lire ensuite** | [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) en cas d'incident, [`UPGRADE.md`](UPGRADE.md) avant un changement, [`QUALIFICATION.md`](QUALIFICATION.md) pour les gates. |
+| **Source de vérité** | `config/*.yaml`, les états observés par `health/status` et les preuves runtime sous `/srv/openclaw-local/proofs/`. |
+
 Ce runbook couvre l'exploitation quotidienne de `OPENCLAW_LOCAL_FEDORA`. Son objectif est de permettre à un opérateur de diagnostiquer, maintenir et restaurer la plateforme sans contourner les garde-fous de sécurité ni confondre santé logicielle et qualification matérielle.
 
 ## Principes opérateur

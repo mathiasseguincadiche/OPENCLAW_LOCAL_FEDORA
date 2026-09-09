@@ -4,6 +4,68 @@ Ce répertoire est la porte d'entrée de la documentation de l'édition **Fedora
 
 La documentation est organisée par besoin opérateur. Les fichiers `config/*.yaml` restent la vérité machine pour les modèles, versions, routages, gates et politiques. Les documents expliquent comment utiliser ces contrats sans les redéfinir.
 
+## Parcours guidés
+
+### Débutant — découvrir puis utiliser
+
+```text
+README racine
+   ↓
+INSTALLATION.md
+   ↓
+GETTING_STARTED.md
+   ↓
+OPERATIONS.md
+```
+
+Ce parcours convient à une première installation. Un échec de contrat, de prérequis ou de `health` doit interrompre le parcours et renvoyer vers `TROUBLESHOOTING.md` plutôt que pousser vers la qualification.
+
+### Opérateur — exploiter et maintenir
+
+```text
+GETTING_STARTED.md
+   ↓
+OPERATIONS.md
+   ├── incident ─────→ TROUBLESHOOTING.md
+   ├── changement ───→ UPGRADE.md
+   └── qualification → QUALIFICATION.md
+```
+
+Ce parcours privilégie l'état observé, le diagnostic minimal, la sauvegarde et le rollback. Il ne transforme jamais une santé logicielle correcte en qualification matérielle implicite.
+
+### Expert / mainteneur — comprendre les contrats et les preuves
+
+```text
+ARCHITECTURE.md
+   ↓
+MULTI_AGENT_CORE.md + PROJECT_ENGINE.md
+   ↓
+config/*.yaml  ← vérité machine
+   ↓
+FEDORA_B580.md + KERNEL_POLICY.md
+   ↓
+QUALIFICATION.md
+   ↓
+preuves runtime L2-L8 + STATUS.md
+```
+
+Ce parcours part de l'architecture, rejoint rapidement les contrats exécutables, puis les protocoles et preuves. La documentation explique ; les contrats et preuves décident.
+
+## Contrat pédagogique des guides
+
+Chaque guide de référence commence par une section **Repères de lecture** contenant les mêmes huit informations :
+
+1. public cible ;
+2. niveau ;
+3. prérequis ;
+4. objectif ;
+5. résultat attendu ;
+6. critère d'arrêt ;
+7. document(s) à lire ensuite ;
+8. source de vérité.
+
+Ce bloc est vérifié par la CI afin qu'un futur document ne redevienne pas ambigu sur son audience, son niveau ou son point d'arrêt.
+
 ## Par où commencer ?
 
 | Je veux… | Document |

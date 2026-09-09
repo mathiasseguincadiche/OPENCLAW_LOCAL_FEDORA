@@ -1,5 +1,18 @@
 # Qualification Fedora
 
+## Repères de lecture
+
+| Repère | Valeur |
+|---|---|
+| **Public cible** | Opérateurs de qualification, mainteneurs et reviewers préparant L2–L8. |
+| **Niveau** | Expert |
+| **Prérequis** | Installation saine, contrats PASS, baseline Fedora comprise et accès à la machine cible pour les gates matériels. |
+| **Objectif** | Exécuter les gates L2–L8 par preuves reproductibles sans transformer un résultat logiciel en revendication matérielle. |
+| **Résultat attendu** | Savoir produire, interpréter et chaîner les preuves L2–L8, arrêter au premier gate invalide et préserver l'approbation humaine finale. |
+| **Critère d’arrêt** | Tout gate en échec ou toute preuve absente/incohérente bloque les étapes suivantes ; ne jamais abaisser un seuil, changer plusieurs variables ou fabriquer un PASS. |
+| **À lire ensuite** | [`FEDORA_B580.md`](FEDORA_B580.md) et [`KERNEL_POLICY.md`](KERNEL_POLICY.md) pour L3/L6, puis [`../STATUS.md`](../STATUS.md) pour enregistrer uniquement l'état réellement observé. |
+| **Source de vérité** | `config/qualification_policy.yaml`, `config/optimization_policy.yaml`, `config/release_readiness.yaml`, `config/model_catalog.yaml` et les preuves sous la racine runtime. |
+
 ## Principe
 
 La qualification est entièrement Linux-native et avance par preuves :

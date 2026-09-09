@@ -1,5 +1,18 @@
 # OpenClaw sous Fedora : cycle de vie systemd
 
+## Repères de lecture
+
+| Repère | Valeur |
+|---|---|
+| **Public cible** | Opérateurs Fedora et mainteneurs du Gateway OpenClaw. |
+| **Niveau** | Intermédiaire |
+| **Prérequis** | OpenClaw installé et session `systemd --user` fonctionnelle. |
+| **Objectif** | Comprendre le mécanisme de service utilisateur retenu pour le Gateway et les règles qui évitent les unités concurrentes ou les boucles de restart. |
+| **Résultat attendu** | Savoir installer, observer et diagnostiquer le Gateway avec les primitives OpenClaw et systemd supportées. |
+| **Critère d’arrêt** | Si `systemd --user` ne fonctionne pas ou si la configuration sort avec le code `78`, diagnostiquer avant tout restart répété via [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md). |
+| **À lire ensuite** | [`OPERATIONS.md`](OPERATIONS.md) pour le runbook quotidien et [`UPGRADE.md`](UPGRADE.md) avant un changement de version OpenClaw. |
+| **Source de vérité** | `config/core/openclaw_policy.yaml`, `config/runtime_versions.yaml` et le comportement du CLI OpenClaw vivant. |
+
 OpenClaw supporte nativement Linux et installe par défaut un service systemd utilisateur pour le Gateway.
 
 Documentation amont :
