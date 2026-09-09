@@ -1,17 +1,17 @@
 # Installation Fedora 44
 
-## Repères de lecture
+## Repères de progression
 
 | Repère | Valeur |
 |---|---|
-| **Public cible** | Utilisateurs installant la plateforme et opérateurs Fedora. |
-| **Niveau** | Intermédiaire |
-| **Prérequis** | Fedora 44 Workstation, session utilisateur normale, UEFI/ReBAR vérifiés, SELinux Enforcing et firewalld actif. |
-| **Objectif** | Installer la plateforme de façon reproductible, d'abord en dry-run puis en application explicite. |
-| **Résultat attendu** | Installation convergée avec Gateway, Ollama, trois modèles nominaux, huit workspaces et `health` cohérent. |
-| **Critère d’arrêt** | Arrêter en cas d'échec de `validate`, de prérequis Fedora non conforme ou de dry-run incompris ; suivre [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) avant toute tentative de contournement. |
-| **À lire ensuite** | [`GETTING_STARTED.md`](GETTING_STARTED.md), puis [`OPERATIONS.md`](OPERATIONS.md); [`QUALIFICATION.md`](QUALIFICATION.md) seulement après une installation saine. |
-| **Source de vérité** | `config/runtime_versions.yaml`, `config/model_catalog.yaml`, les contrats plateforme/OpenClaw et les scripts Linux versionnés. |
+| **Pour qui** | Toute personne qui suit le parcours du projet, y compris lors d’une première installation Linux/IA locale. |
+| **Position dans le parcours** | 2/14 |
+| **Prérequis** | Avoir lu [`GETTING_STARTED.md`](GETTING_STARTED.md) et compris la différence entre dry-run, health-check et qualification. |
+| **Objectif** | Installer la plateforme Fedora proprement, en comprenant chaque étape et sans contourner les garde-fous. |
+| **Résultat attendu** | Obtenir une installation cohérente dont `health` et `status` sont interprétables. |
+| **Critère d’arrêt** | Arrêter au premier prérequis non satisfait, au premier dry-run incohérent ou au premier health-check non compris. |
+| **Continuer avec** | [`OPERATIONS.md`](OPERATIONS.md) |
+| **Source de vérité** | `config/runtime_versions.yaml`, `config/model_catalog.yaml` et les contrats de cycle de vie. |
 
 Ce guide couvre la mise en service de `OPENCLAW_LOCAL_FEDORA` sur la plateforme cible. Il décrit l'installation du produit ; il ne remplace pas la qualification matérielle L2–L8.
 
