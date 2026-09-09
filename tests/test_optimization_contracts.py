@@ -81,6 +81,7 @@ def test_l6_contract_rejects_policy_and_version_drift(tmp_path: Path) -> None:
     for value in (runtime_cmp, kernel_cmp, challenger, staging, evidence, promotion):
         assert isinstance(value, dict)
     runtime_cmp["baseline"] = "bad"
+    runtime_cmp["candidates"] = ["unexpected"]
     runtime_cmp["aggregate_improvement_target_pct"] = 9.0
     runtime_cmp["maximum_single_model_regression_pct"] = 6.0
     runtime_cmp["minimum_repeated_runs"] = 2
@@ -131,6 +132,7 @@ def test_l6_contract_rejects_policy_and_version_drift(tmp_path: Path) -> None:
     assert "drift runtime_versions/optimization" in joined
     assert "drift SHA-256 kernel" in joined
     assert "baseline runtime" in joined
+    assert "unique candidat runtime" in joined
     assert "cible runtime agrégée" in joined
     assert "régression runtime" in joined
     assert "au moins 3 runs runtime" in joined
@@ -163,11 +165,12 @@ def test_l6_contract_rejects_backend_kernel_and_challenger_drift(tmp_path: Path)
     selection = backends["selection"]
     assert isinstance(backend_map, dict)
     assert isinstance(selection, dict)
-    for backend_id in ("ollama-vulkan", "llama-cpp-vulkan", "llama-cpp-sycl"):
+    for backend_id in ("ollama-vulkan", "llama-cpp-vulkan"):
         backend = backend_map[backend_id]
         assert isinstance(backend, dict)
         backend["endpoint"] = "http://0.0.0.0:9999"
         backend["linux_native"] = False
+        backend["accelerator"] = "other"
     selection["automatic_promotion"] = True
     selection["no_cloud_fallback"] = False
     _save(root, "runtime_backends.yaml", backends)
@@ -196,8 +199,9 @@ def test_l6_contract_rejects_backend_kernel_and_challenger_drift(tmp_path: Path)
     failures, warnings = validate_optimization_contracts(root)
     joined = "\n".join(failures)
     assert warnings == ()
-    assert joined.count("doit rester loopback") == 3
-    assert joined.count("doit être Linux-native") == 3
+    assert joined.count("doit rester loopback") == 2
+    assert joined.count("doit être Linux-native") == 2
+    assert joined.count("doit utiliser Vulkan") == 2
     assert "promotion backend automatique interdite" in joined
     assert "fallback cloud interdit" in joined
     assert "kernel_policy candidate divergent" in joined
