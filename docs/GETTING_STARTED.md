@@ -1,5 +1,18 @@
 # Premiers pas
 
+## Repères de lecture
+
+| Repère | Valeur |
+|---|---|
+| **Public cible** | Nouveaux utilisateurs et opérateurs découvrant le projet. |
+| **Niveau** | Découverte |
+| **Prérequis** | Dépôt cloné, ou installation Fedora déjà disponible pour les contrôles non destructifs. |
+| **Objectif** | Suivre le premier parcours sûr pour comprendre l'état du dépôt, du produit, des modèles et des agents. |
+| **Résultat attendu** | Savoir lancer `validate`, `status`, `health`, distinguer les niveaux de preuve et choisir le guide suivant. |
+| **Critère d’arrêt** | Un échec de `validate` doit être résolu avant de poursuivre ; un `health` en échec sur une installation existante renvoie vers [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md). |
+| **À lire ensuite** | [`INSTALLATION.md`](INSTALLATION.md) si le produit n'est pas installé, sinon [`OPERATIONS.md`](OPERATIONS.md). |
+| **Source de vérité** | Les contrats `config/*.yaml`; ce guide n'est jamais une seconde configuration. |
+
 Ce guide suppose que l'installation Fedora est terminée ou que le dépôt est disponible pour des dry-runs. Il donne un parcours court pour comprendre l'état du produit sans lancer immédiatement une qualification matérielle longue.
 
 ## 1. Vérifier le dépôt
