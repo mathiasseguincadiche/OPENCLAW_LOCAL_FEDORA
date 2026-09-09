@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-import base64
 import hashlib
 import json
 import platform
 import statistics
-import struct
 import time
 import urllib.error
 import urllib.request
-import zlib
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -46,8 +43,8 @@ def challenger_plan(repo_root: Path, variant: str) -> ChallengerModel:
     policy = root_contract(repo_root, "optimization_policy.yaml")
     cfg = _mapping(policy.get("model_challenger"), "optimization.model_challenger")
     slot = str(cfg.get("slot", ""))
-    if slot != "gemma-deep":
-        raise ValueError("L6 challenger: slot doit rester gemma-deep")
+    if slot != "devstral-devops":
+        raise ValueError("L6 challenger: slot doit rester devstral-devops")
     if normalized == "incumbent":
         model = _mapping(_mapping(catalog.get("models"), "models").get(slot), slot)
         runtime_id = str(model.get("runtime_id", ""))
@@ -63,7 +60,7 @@ def challenger_plan(repo_root: Path, variant: str) -> ChallengerModel:
             if isinstance(raw, dict) and raw.get("runtime_id") == cfg.get("challenger")
         ]
         if len(matches) != 1:
-            raise ValueError("L6 challenger: Ministral doit être l'unique challenger attendu")
+            raise ValueError("L6 challenger: Granite doit être l'unique challenger attendu")
         model = matches[0]
         runtime_id = str(model.get("runtime_id", ""))
         quantization = str(model.get("quantization", ""))
@@ -72,7 +69,7 @@ def challenger_plan(repo_root: Path, variant: str) -> ChallengerModel:
             or model.get("automatic_promotion") is not False
         ):
             raise ValueError(
-                "L6 challenger: Ministral doit rester benchmark-only sans auto-promotion"
+                "L6 challenger: Granite doit rester benchmark-only sans auto-promotion"
             )
     if not runtime_id or not quantization:
         raise ValueError("L6 challenger: identité modèle incomplète")
@@ -132,45 +129,25 @@ def _inventory(endpoint: str, model: ChallengerModel) -> dict[str, Any]:
     }
 
 
-def _png_blue_square() -> bytes:
-    width = 64
-    height = 64
-    row = b"\x00" + (b"\x00\x00\xff" * width)
-    raw = row * height
-
-    def chunk(kind: bytes, data: bytes) -> bytes:
-        return (
-            struct.pack(">I", len(data))
-            + kind
-            + data
-            + struct.pack(">I", zlib.crc32(kind + data) & 0xFFFFFFFF)
-        )
-
-    return (
-        b"\x89PNG\r\n\x1a\n"
-        + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0))
-        + chunk(b"IDAT", zlib.compress(raw, level=9))
-        + chunk(b"IEND", b"")
-    )
-
-
 def _probe_definitions() -> tuple[dict[str, Any], ...]:
-    document = (
-        "Document incident: service=openclaw; severity=high; decision=rollback. "
-        "Retourne uniquement un objet JSON avec exactement les clés service, severity, decision "
-        "et les valeurs du document."
+    coding = (
+        "Un service systemd utilisateur openclaw-gateway.service doit être redémarré sans sudo. "
+        "Réponds uniquement avec le JSON exact suivant, sans Markdown: "
+        '{"scope":"user","unit":"openclaw-gateway.service","action":"restart"}'
     )
-    tool_prompt = (
-        "Enregistre l'incident du service openclaw avec severity high en appelant exactement "
-        "l'outil record_incident. N'invente aucun autre champ."
+    tool_calling = (
+        "Inspecte le service utilisateur openclaw-gateway.service en appelant exactement "
+        "l'outil inspect_service. N'invente aucun autre champ."
     )
-    vision_prompt = (
-        "Observe l'image jointe. Réponds uniquement BLUE_SQUARE si elle montre un carré bleu uni."
+    tool_repair = (
+        "Retour d'outil précédent: ERROR scope=system unit=openclaw-gateway.service; "
+        "le service est géré par systemd --user. Répare l'intention en appelant exactement "
+        "restart_user_unit avec unit=openclaw-gateway.service."
     )
     return (
-        {"id": "document-quality", "prompt": document},
-        {"id": "tool-calling", "prompt": tool_prompt},
-        {"id": "vision", "prompt": vision_prompt},
+        {"id": "coding", "prompt": coding},
+        {"id": "tool-calling", "prompt": tool_calling},
+        {"id": "tool-repair", "prompt": tool_repair},
     )
 
 
@@ -179,19 +156,29 @@ def _tool_schema() -> list[dict[str, Any]]:
         {
             "type": "function",
             "function": {
-                "name": "record_incident",
-                "description": "Record one incident",
+                "name": "inspect_service",
+                "description": "Inspect one systemd user service",
                 "parameters": {
                     "type": "object",
-                    "properties": {
-                        "service": {"type": "string"},
-                        "severity": {"type": "string"},
-                    },
-                    "required": ["service", "severity"],
+                    "properties": {"unit": {"type": "string"}},
+                    "required": ["unit"],
                     "additionalProperties": False,
                 },
             },
-        }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "restart_user_unit",
+                "description": "Restart one systemd user service",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"unit": {"type": "string"}},
+                    "required": ["unit"],
+                    "additionalProperties": False,
+                },
+            },
+        },
     ]
 
 
@@ -203,15 +190,13 @@ def _chat_probe(
     timeout: float = 210.0,
 ) -> dict[str, Any]:
     message: dict[str, Any] = {"role": "user", "content": str(probe["prompt"])}
-    if probe["id"] == "vision":
-        message["images"] = [base64.b64encode(_png_blue_square()).decode("ascii")]
     payload: dict[str, Any] = {
         "model": model.runtime_id,
         "messages": [message],
         "stream": True,
         "options": {"num_ctx": 8192, "num_predict": 256, "temperature": 0.0},
     }
-    if probe["id"] == "tool-calling":
+    if probe["id"] in {"tool-calling", "tool-repair"}:
         payload["tools"] = _tool_schema()
     request = urllib.request.Request(
         f"{endpoint.rstrip('/')}/api/chat",
@@ -258,40 +243,42 @@ def _chat_probe(
     }
 
 
+def _tool_call_matches(tool_calls: list[Any], name: str) -> bool:
+    for raw in tool_calls:
+        if not isinstance(raw, dict):
+            continue
+        function = raw.get("function", {})
+        if not isinstance(function, dict) or function.get("name") != name:
+            continue
+        arguments = function.get("arguments", {})
+        if isinstance(arguments, str):
+            try:
+                arguments = json.loads(arguments)
+            except json.JSONDecodeError:
+                continue
+        if isinstance(arguments, dict) and arguments == {"unit": "openclaw-gateway.service"}:
+            return True
+    return False
+
+
 def _evaluate_probe(probe_id: str, output: str, tool_calls: list[Any]) -> tuple[bool, str]:
-    if probe_id == "vision":
-        passed = output.strip() == "BLUE_SQUARE"
-        return passed, "exact BLUE_SQUARE" if passed else "vision marker mismatch"
-    if probe_id == "document-quality":
+    if probe_id == "coding":
         try:
             value = json.loads(output)
         except json.JSONDecodeError:
-            return False, "document output is not JSON"
+            return False, "coding output is not JSON"
         passed = value == {
-            "service": "openclaw",
-            "severity": "high",
-            "decision": "rollback",
+            "scope": "user",
+            "unit": "openclaw-gateway.service",
+            "action": "restart",
         }
-        return passed, "exact document extraction" if passed else "document extraction mismatch"
+        return passed, "exact systemd-user plan" if passed else "coding plan mismatch"
     if probe_id == "tool-calling":
-        for raw in tool_calls:
-            if not isinstance(raw, dict):
-                continue
-            function = raw.get("function", {})
-            if not isinstance(function, dict) or function.get("name") != "record_incident":
-                continue
-            arguments = function.get("arguments", {})
-            if isinstance(arguments, str):
-                try:
-                    arguments = json.loads(arguments)
-                except json.JSONDecodeError:
-                    continue
-            if isinstance(arguments, dict) and arguments == {
-                "service": "openclaw",
-                "severity": "high",
-            }:
-                return True, "record_incident exact arguments"
-        return False, "required tool call absent or invalid"
+        passed = _tool_call_matches(tool_calls, "inspect_service")
+        return passed, "inspect_service exact arguments" if passed else "inspect_service call invalid"
+    if probe_id == "tool-repair":
+        passed = _tool_call_matches(tool_calls, "restart_user_unit")
+        return passed, "tool feedback repaired" if passed else "repair tool call invalid"
     raise ValueError(f"L6 challenger: probe inconnue: {probe_id}")
 
 
@@ -400,14 +387,14 @@ def run_challenger_snapshot(
         if isinstance(item.get("first_token_ms"), (int, float))
     ]
     flags = {
-        "document_quality_pass": any(
-            item["probe_id"] == "document-quality" and item["status"] == "ok" for item in cases
+        "coding_pass": any(
+            item["probe_id"] == "coding" and item["status"] == "ok" for item in cases
         ),
         "tool_calling_pass": any(
             item["probe_id"] == "tool-calling" and item["status"] == "ok" for item in cases
         ),
-        "vision_pass": any(
-            item["probe_id"] == "vision" and item["status"] == "ok" for item in cases
+        "tool_repair_pass": any(
+            item["probe_id"] == "tool-repair" and item["status"] == "ok" for item in cases
         ),
     }
     errors = sum(item["status"] != "ok" for item in cases)
@@ -434,7 +421,7 @@ def run_challenger_snapshot(
         "contexts": [8192],
         "prompt_hashes": sorted(str(item["prompt_sha256"]) for item in cases),
         "functional_pass": all(item["status"] == "ok" for item in cases),
-        "security_pass": True,
+        "security_pass": _loopback(endpoint),
         **flags,
         "metrics": {
             "cases": len(cases),
