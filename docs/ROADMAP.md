@@ -2,7 +2,7 @@
 
 ## Objectif
 
-Construire OPENCLAW_LOCAL_FEDORA comme plateforme autonome Fedora 44 pour OpenClaw et Intel Arc B580, avec des gates reproductibles avant toute promotion de runtime, kernel ou V1.
+Construire OPENCLAW_LOCAL_FEDORA comme plateforme autonome Fedora 44 pour OpenClaw et Intel Arc B580, avec des gates reproductibles avant toute promotion de runtime, kernel, modèle challenger ou V1.
 
 ## L0 — Fondation
 
@@ -14,21 +14,27 @@ Construire OPENCLAW_LOCAL_FEDORA comme plateforme autonome Fedora 44 pour OpenCl
 - Ruff, mypy, pytest, ShellCheck ;
 - CodeQL et Dependency Review.
 
-**Sortie :** tous les checks PASS.
+**Sortie :** tous les checks logiciels PASS.
 
 ## L1 — Cœur multi-agents
 
 Implémenter nativement :
 
-- les 8 agents ;
+- les 8 agents et leurs missions inchangées ;
 - Project Intake ;
 - Project Orchestrator ;
 - Artifact Exchange ;
 - Golden Projects ;
 - télémétrie ;
 - FinOps ;
-- identité des modèles ;
+- identité et routage des modèles ;
 - readiness V1.
+
+La flotte routée reste exactement :
+
+- `qwen-max` → `qwen3.5:9b-q4_K_M` ;
+- `gemma-deep` → `gemma4:12b-it-q4_K_M` ;
+- `devstral-devops` → `hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M`.
 
 **Sortie :** contrats et tests fonctionnels PASS.
 
@@ -46,7 +52,7 @@ Sur la machine réelle :
 - ReBAR ;
 - second T705 monté pour `/srv/openclaw-local`.
 
-**Sortie :** `audit-strict` PASS.
+**Sortie :** `audit-strict` PASS produit sur la machine cible.
 
 ## L3 — B580 Vulkan
 
@@ -56,13 +62,15 @@ Valider :
 - render node ;
 - Mesa Vulkan ;
 - `vulkaninfo` ;
-- Ollama Vulkan ;
-- llama.cpp Vulkan.
+- Ollama Vulkan.
 
-**Sortie :** GPU gate PASS et smokes runtime PASS.
+`llama.cpp Vulkan` appartient à la comparaison L6 et ne conditionne pas la validité de la baseline L3.
+
+**Sortie :** GPU gate PASS et smokes baseline runtime PASS sur B580 réelle.
 
 ## L4 — OpenClaw E2E
 
+- OpenClaw `2026.9.2` ;
 - Gateway géré par systemd user ;
 - 8 agents ;
 - routage local ;
@@ -71,7 +79,7 @@ Valider :
 - stabilité ;
 - aucun fallback cloud silencieux.
 
-**Sortie :** E2E PASS.
+**Sortie :** E2E PASS sur l'installation Fedora cible.
 
 ## L5 — HARD-40M
 
@@ -79,23 +87,27 @@ Valider :
 - 24 × 8K ;
 - 6 × 16K ;
 - trois modèles obligatoires ;
-- 2400 s maximum.
+- 3 probes Qwen natifs réservés à `qwen-max` ;
+- 2400 s maximum ;
+- zéro appel cloud et zéro téléchargement implicite.
 
 **Sortie :** qualification PASS avec identité exacte des modèles et runtimes enregistrée.
 
 ## L6 — Optimisation Linux
 
-Comparer à la baseline Fedora stock + Ollama Vulkan :
+Comparer à la baseline Fedora officielle + Ollama Vulkan :
 
 - llama.cpp Vulkan ;
 - llama.cpp SYCL/Level Zero comme candidat optionnel ;
 - réglages runtime qualifiés ;
 - kernel 7.2.3 contre kernel Fedora officiel ;
-- Gemma 3 12B contre Ministral 3 14B sur le slot `gemma-deep`, avec vision, qualité documentaire et tool-calling.
+- `granite4.2:8b-q4_K_M` contre le spécialiste nominal Ministral sur le slot `devstral-devops`.
+
+La comparaison modèle mesure des capacités correspondant réellement à la mission DevOps : plan systemd utilisateur, tool-calling natif, réparation après feedback outil, sécurité et performance. Elle n'impose pas de test vision à un modèle text-only.
 
 Une variable change à la fois. Les candidats optionnels ne bloquent jamais la baseline. Le kernel Fedora reste bootable.
 
-La flotte opérationnelle reste **exactement composée de trois alias**. Ministral est provisionné explicitement pour qualification, reste hors routage et ne peut jamais être promu automatiquement.
+La flotte opérationnelle reste **exactement composée de trois alias**. Granite est provisionné explicitement uniquement pour L6, reste hors routage, ne compte pas dans la flotte requise et ne peut jamais être promu automatiquement.
 
 **Sortie :** décisions reproductibles sur trois runs, sans régression fonctionnelle ni sécurité. Les verdicts possibles restent `KEEP_BASELINE` ou `ELIGIBLE_FOR_HUMAN_PROMOTION` ; aucune décision ne modifie automatiquement la configuration.
 
@@ -120,7 +132,7 @@ Conditions cumulatives :
 - L0 à L7 PASS ;
 - preuves L2 à L7 présentes sous la racine runtime gérée ;
 - preuves identifiées et hashées en SHA-256 ;
-- décisions L6 runtime, kernel et Gemma ↔ Ministral recalculables avec les contrats courants ;
+- décisions L6 runtime, kernel et Ministral ↔ Granite recalculables avec les contrats courants ;
 - documentation cohérente ;
 - aucun seuil abaissé pour forcer un PASS ;
 - aucun fallback cloud ni promotion automatique.
@@ -153,3 +165,7 @@ Cette action ne :
 - ne publie rien automatiquement.
 
 **Sortie :** autorisation humaine explicite de **préparer** la V1. La création/publication effective de la release reste une opération distincte.
+
+## Principe de preuve
+
+Un PASS de CI démontre la cohérence logicielle du dépôt. Il ne vaut jamais preuve matérielle B580, Vulkan, performance ou V1. Ces états ne peuvent être promus qu'à partir des preuves runtime prévues par les gates correspondants.
