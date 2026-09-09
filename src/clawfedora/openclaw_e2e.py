@@ -14,7 +14,7 @@ from clawfedora.core_config import AGENT_IDS, resolve_runtime_root, root_contrac
 
 
 def dry_run(backend: str) -> dict[str, Any]:
-    if backend not in {"ollama-vulkan", "llama-cpp-vulkan", "llama-cpp-sycl"}:
+    if backend not in {"ollama-vulkan", "llama-cpp-vulkan"}:
         raise ValueError(f"backend L4 invalide: {backend}")
     return {
         "verdict": "PASS",
