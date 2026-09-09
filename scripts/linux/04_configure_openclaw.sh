@@ -84,7 +84,7 @@ require_backend_models() {
 }
 
 printf 'OPENCLAW_CONFIG_PLAN backend=%s runtime=%s state=%s\n' "$BACKEND" "$RUNTIME_ROOT" "$STATE_ROOT"
-printf '  openclaw pin: %s\n' "$OPENCLAW_PIN"
+printf '  openclaw exact pin: %s\n' "$OPENCLAW_PIN"
 printf '  parallel pin: %s\n' "$PARALLEL_PIN"
 printf '  workspaces: %s\n' "$RUNTIME_ROOT/workspaces"
 printf '  patch: %s\n' "$PATCH_PATH"
@@ -101,9 +101,10 @@ OPENCLAW="$(command -v openclaw || true)"
 command -v jq >/dev/null 2>&1 || { echo "ERREUR: jq requis." >&2; exit 127; }
 command -v curl >/dev/null 2>&1 || { echo "ERREUR: curl requis." >&2; exit 127; }
 
-OPENCLAW_VERSION="$($OPENCLAW --version 2>/dev/null | head -n1)"
-[[ "$OPENCLAW_VERSION" == *"$OPENCLAW_PIN"* ]] || {
-  echo "ERREUR: OpenClaw $OPENCLAW_PIN requis; détecté: ${OPENCLAW_VERSION:-inconnu}" >&2
+OPENCLAW_VERSION_TEXT="$($OPENCLAW --version 2>/dev/null | head -n1)"
+OPENCLAW_VERSION="$(claw_extract_openclaw_version "$OPENCLAW_VERSION_TEXT" || true)"
+[[ "$OPENCLAW_VERSION" == "$OPENCLAW_PIN" ]] || {
+  echo "ERREUR: OpenClaw exactement $OPENCLAW_PIN requis; détecté: ${OPENCLAW_VERSION_TEXT:-inconnu}" >&2
   exit 2
 }
 
@@ -163,4 +164,4 @@ AGENT_COUNT="$(
   exit 2
 }
 
-echo "OPENCLAW_CONFIG_RESULT=PASS backend=$BACKEND agents=8"
+echo "OPENCLAW_CONFIG_RESULT=PASS backend=$BACKEND agents=8 openclaw=$OPENCLAW_VERSION"
