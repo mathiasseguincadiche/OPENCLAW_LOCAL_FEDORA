@@ -1,17 +1,17 @@
 # Cycle de vie du produit
 
-## Repères de lecture
+## Repères de progression
 
 | Repère | Valeur |
 |---|---|
-| **Public cible** | Opérateurs et mainteneurs responsables de l'installation, sauvegarde, réparation et désinstallation. |
-| **Niveau** | Intermédiaire |
-| **Prérequis** | Connaître la racine runtime gérée et avoir lu [`INSTALLATION.md`](INSTALLATION.md). |
-| **Objectif** | Comprendre le cycle de vie complet et les opérations réversibles du produit sans confondre code fonctionnel et preuve matérielle. |
-| **Résultat attendu** | Savoir installer, provisionner, sauvegarder, restaurer, réparer et désinstaller en préservant les données et garde-fous. |
-| **Critère d’arrêt** | Arrêter toute opération destructive si la racine runtime, son marqueur ou le backup ne sont pas compris ou vérifiables ; passer par [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md). |
-| **À lire ensuite** | [`OPERATIONS.md`](OPERATIONS.md) pour l'exploitation quotidienne et [`UPGRADE.md`](UPGRADE.md) pour les changements de version. |
-| **Source de vérité** | Les contrats `config/*.yaml`, `config/core/telemetry_policy.yaml` et les scripts Linux de lifecycle. |
+| **Pour qui** | Toute personne qui veut comprendre comment le produit s’installe, se maintient, se sauvegarde, se répare et se retire proprement. |
+| **Position dans le parcours** | 9/14 |
+| **Prérequis** | Avoir lu [`OPENCLAW_SYSTEMD.md`](OPENCLAW_SYSTEMD.md). |
+| **Objectif** | Relier installation, santé, sauvegarde, restauration, réparation, désinstallation, télémétrie et FinOps dans un cycle de vie cohérent. |
+| **Résultat attendu** | Savoir identifier l’état géré du produit et les opérations autorisées à chaque étape. |
+| **Critère d’arrêt** | Si une opération destructive ou une réparation n’est pas comprise, rester en dry-run et revenir aux guides d’exploitation/dépannage. |
+| **Continuer avec** | [`FEDORA_B580.md`](FEDORA_B580.md) |
+| **Source de vérité** | Les scripts `scripts/linux/`, les contrats de cycle de vie et les politiques sous `config/`. |
 
 `OPENCLAW_LOCAL_FEDORA` distingue strictement le **code source complet** des **preuves matérielles**. Le cycle de vie peut être implémenté et testé en CI sans revendiquer un PASS B580 réel.
 
