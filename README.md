@@ -9,7 +9,7 @@
 [![CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml)
 [![Fedora 44](https://img.shields.io/badge/Fedora-44-51A2DA?logo=fedora&logoColor=white)](https://fedoraproject.org/)
-[![OpenClaw](https://img.shields.io/badge/OpenClaw-2026.9.2-111827)](config/runtime_versions.yaml)
+[![OpenClaw](https://img.shields.io/badge/OpenClaw-2026.9.6-111827)](config/runtime_versions.yaml)
 [![Python](https://img.shields.io/badge/Python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](pyproject.toml)
 [![License MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
@@ -35,8 +35,8 @@ Plateforme **Linux-native, LLM local-only et multi-agents** pour exécuter OpenC
 |---|---|
 | Architecture V2 Fedora | **Implémentée** |
 | CI Fedora 44 | **PASS logiciel** |
-| OpenClaw | **`2026.9.2` exact, verrouillé** |
-| Parallel | **`2026.9.2` exact, verrouillé** |
+| OpenClaw | **`2026.9.6` exact, verrouillé** |
+| Parallel | **`2026.9.6` exact, verrouillé** |
 | Flotte nominale | **3 modèles locaux Q4_K_M** |
 | Agents | **8 rôles spécialisés** |
 | Runtime GPU | **Vulkan** |
@@ -50,7 +50,7 @@ Détail de l'état réel : [`STATUS.md`](STATUS.md).
 
 ```mermaid
 flowchart TD
-    U[Utilisateur] --> G[OpenClaw Gateway 2026.9.2]
+    U[Utilisateur] --> G[OpenClaw Gateway 2026.9.6]
     G --> A[8 agents spécialisés]
     A --> M[3 modèles locaux Q4_K_M]
     M --> O[Ollama / Vulkan]
@@ -95,7 +95,7 @@ cd OPENCLAW_LOCAL_FEDORA
 ./menu.sh --action health
 ```
 
-Le premier `install` est un **dry-run**. L'installation réelle converge OpenClaw vers **exactement `2026.9.2`** ; toute autre version est refusée.
+Le premier `install` est un **dry-run**. L'installation réelle converge OpenClaw vers **exactement `2026.9.6`** ; toute autre version est refusée.
 
 Guide complet : [`docs/INSTALLATION.md`](docs/INSTALLATION.md).
 
@@ -142,7 +142,7 @@ Ces liens sont des raccourcis de consultation ; ils ne créent pas de parcours s
 ```text
 L2 Fedora / hardware
 → L3 B580 / xe / Mesa-Vulkan
-→ L4 OpenClaw 2026.9.2 / 8 agents / outils
+→ L4 OpenClaw 2026.9.6 / 8 agents / outils
 → L5 HARD-40M
 → L6 runtime Vulkan / kernel / challenger
 → L7 Golden Projects
@@ -156,8 +156,8 @@ Procédure : [`docs/QUALIFICATION.md`](docs/QUALIFICATION.md).
 
 ## Sécurité et invariants
 
-- OpenClaw **exactement `2026.9.2`**, sans mise à jour automatique.
-- Parallel **exactement `2026.9.2`**, sans mise à jour automatique.
+- OpenClaw **exactement `2026.9.6`**, sans mise à jour automatique.
+- Parallel **exactement `2026.9.6`**, sans mise à jour automatique.
 - SELinux **Enforcing** et firewalld actif.
 - Gateway et providers locaux en loopback.
 - Base outils agents `minimal`, `exec.mode=ask`, `elevated=false`.
