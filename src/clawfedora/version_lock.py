@@ -11,7 +11,7 @@ def extract_openclaw_version(output: str) -> str:
     """Extract one exact OpenClaw calendar-version token from CLI output.
 
     Fail closed on missing or ambiguous version output so a prefix such as
-    ``2026.9.2`` can never validate ``2026.9.20``.
+    ``2026.9.6`` can never validate ``2026.9.60``.
     """
 
     versions: list[str] = list(dict.fromkeys(_OPENCLAW_VERSION_RE.findall(output)))
