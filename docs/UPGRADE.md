@@ -19,7 +19,7 @@ Une version plus récente n'est pas automatiquement meilleure ni qualifiée. Cer
 
 ## Verrou OpenClaw actuel
 
-**OpenClaw est verrouillé exactement en `2026.9.2`.** Le plugin Parallel est lui aussi verrouillé exactement en `2026.9.2`.
+**OpenClaw est verrouillé exactement en `2026.9.6`.** Le plugin Parallel est lui aussi verrouillé exactement en `2026.9.6`.
 
 Dans l'état contractuel actuel du projet :
 
@@ -27,7 +27,7 @@ Dans l'état contractuel actuel du projet :
 - ne pas suivre automatiquement un canal ou une version plus récente ;
 - ne pas modifier le contrat uniquement pour accepter la version déjà installée ;
 - ne pas considérer une version voisine comme compatible ;
-- laisser l'installateur converger vers `2026.9.2` si une autre version est détectée ;
+- laisser l'installateur converger vers `2026.9.6` si une autre version est détectée ;
 - considérer toute autre version comme une divergence tant qu'une migration explicite n'a pas été décidée et qualifiée.
 
 Les verrous canoniques sont dans :
@@ -60,7 +60,7 @@ ollama list
 vulkaninfo --summary
 ```
 
-`openclaw --version` doit identifier exactement `2026.9.2`. Une autre valeur est d'abord un incident de conformité à corriger, pas une nouvelle baseline à accepter.
+`openclaw --version` doit identifier exactement `2026.9.6`. Une autre valeur est d'abord un incident de conformité à corriger, pas une nouvelle baseline à accepter.
 
 Conserver les preuves de qualification encore valides et identifier celles que le changement autorisé invalidera.
 
@@ -74,7 +74,7 @@ Ne pas modifier dans la même campagne :
 - modèle + contexte ;
 - plusieurs modèles nominaux simultanément.
 
-OpenClaw et Parallel ne figurent pas dans cette liste d'upgrades ordinaires : ils restent figés en `2026.9.2`.
+OpenClaw et Parallel ne figurent pas dans cette liste d'upgrades ordinaires : ils restent figés en `2026.9.6`.
 
 Le but est de pouvoir attribuer un changement de comportement à une seule variable.
 
@@ -93,7 +93,7 @@ La documentation décrit le processus ; elle ne remplace pas ces contrats.
 
 ## Changer OpenClaw : migration contractuelle, pas upgrade courant
 
-Un changement futur de `2026.9.2` ne peut être traité que comme une **migration explicite de l'architecture supportée**.
+Un changement futur de `2026.9.6` ne peut être traité que comme une **migration explicite de l'architecture supportée**.
 
 Il exige au minimum :
 
@@ -109,11 +109,11 @@ Il exige au minimum :
 10. la requalification des gates fonctionnels affectés, notamment L5/L7 lorsque nécessaire ;
 11. une revue humaine avant d'accepter une nouvelle baseline.
 
-Tant que cette migration n'a pas été explicitement acceptée, **la seule version valide reste `2026.9.2`** et le rollback consiste à restaurer cette version exacte.
+Tant que cette migration n'a pas été explicitement acceptée, **la seule version valide reste `2026.9.6`** et le rollback consiste à restaurer cette version exacte.
 
 ## Changer Parallel : même principe
 
-Parallel reste verrouillé exactement en `2026.9.2` avec le provider `parallel-free`.
+Parallel reste verrouillé exactement en `2026.9.6` avec le provider `parallel-free`.
 
 Toute autre version doit être traitée comme une migration contractuelle distincte. Vérifier alors package exact, version exacte, provider, schéma OpenClaw, recherche Web, tests associés et absence d'impact sur le routage LLM local-only. Aucun update automatique de Parallel n'est autorisé par le contrat courant.
 
@@ -244,7 +244,7 @@ Avant de déclarer la nouvelle version supportée, revalider au minimum :
 - Podman ;
 - KVM/libvirt ;
 - Ollama ;
-- OpenClaw `2026.9.2` ;
+- OpenClaw `2026.9.6` ;
 - L2/L3/L4/L5 ;
 - Golden Projects ;
 - documentation et CI de la nouvelle version.
@@ -270,8 +270,8 @@ Mettre à jour `STATUS.md` uniquement avec des états réellement observés.
 |---|---|
 | documentation seule | CI documentaire / contrats |
 | config OpenClaw sans changement de version | health + L4 |
-| OpenClaw 2026.9.2 → autre version | **migration contractuelle** + CI + health + L4 + gates fonctionnels impactés + revue humaine |
-| Parallel 2026.9.2 → autre version | **migration contractuelle** + config + recherche Web + tests associés + revue humaine |
+| OpenClaw 2026.9.6 → autre version | **migration contractuelle** + CI + health + L4 + gates fonctionnels impactés + revue humaine |
+| Parallel 2026.9.6 → autre version | **migration contractuelle** + config + recherche Web + tests associés + revue humaine |
 | Ollama | health + L4 + L5/L6 selon impact |
 | modèle nominal | L4 + L5 + L7 + revue humaine |
 | quantification | L4 + L5 + L6 + L7 |
@@ -285,6 +285,6 @@ Mettre à jour `STATUS.md` uniquement avec des états réellement observés.
 
 Un upgrade autorisé est accepté lorsque le dépôt, la machine cible et les preuves nécessaires sont cohérents avec les contrats et que le rollback reste possible.
 
-Pour OpenClaw et Parallel, le contrat courant ne définit **aucune promotion automatique ni upgrade opérateur courant** : `2026.9.2` reste la valeur obligatoire jusqu'à décision explicite de migration.
+Pour OpenClaw et Parallel, le contrat courant ne définit **aucune promotion automatique ni upgrade opérateur courant** : `2026.9.6` reste la valeur obligatoire jusqu'à décision explicite de migration.
 
 « Plus récent » n'est jamais un critère suffisant de promotion.
