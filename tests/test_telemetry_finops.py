@@ -75,42 +75,18 @@ def test_telemetry_limit_is_validated(tmp_path: Path) -> None:
         read_events(ROOT, tmp_path, limit=0)
 
 
-def test_finops_append_and_summary(tmp_path: Path) -> None:
-    reservation = append_cost_event(
-        ROOT,
-        tmp_path,
-        event="reservation",
-        amount_eur=0.25,
-        reason="explicit research escalation",
-        provider="example-cloud",
-        project_id="project-1",
-    )
-    assert reservation["amount_eur"] == 0.25
-    append_cost_event(
-        ROOT,
-        tmp_path,
-        event="charge",
-        amount_eur=0.12,
-        reason="approved research request",
-        provider="example-cloud",
-    )
-    append_cost_event(
-        ROOT,
-        tmp_path,
-        event="refund",
-        amount_eur=0.02,
-        reason="provider correction",
-        provider="example-cloud",
-    )
-    summary = summarize(ROOT, tmp_path)
-    assert summary == {
-        "events": 3,
-        "charges_eur": 0.12,
-        "reservations_eur": 0.25,
-        "refunds_eur": 0.02,
-        "releases_eur": 0.0,
-        "net_exposure_eur": 0.35,
-    }
+def test_finops_zero_spend_denies_cloud_costs(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="zero-spend"):
+        append_cost_event(
+            ROOT,
+            tmp_path,
+            event="reservation",
+            amount_eur=0.01,
+            reason="must remain local",
+            provider="example-cloud",
+            project_id="project-1",
+        )
+    assert summarize(ROOT, tmp_path)["net_exposure_eur"] == 0.0
 
 
 def test_finops_is_fail_closed(tmp_path: Path) -> None:
@@ -153,31 +129,22 @@ def test_finops_path_is_confined_to_runtime(tmp_path: Path) -> None:
         append_cost_event(
             root,
             tmp_path / "runtime",
-            event="reservation",
+            event="refund",
             amount_eur=0.25,
-            reason="explicit",
+            reason="path validation",
             provider="example",
         )
 
 
-def test_finops_daily_limit_is_enforced(tmp_path: Path) -> None:
-    append_cost_event(
-        ROOT,
-        tmp_path,
-        event="reservation",
-        amount_eur=0.75,
-        reason="approved",
-        provider="example",
-    )
-    with pytest.raises(ValueError, match="limite daily"):
-        append_cost_event(
-            ROOT,
-            tmp_path,
-            event="reservation",
-            amount_eur=0.30,
-            reason="would exceed",
-            provider="example",
-        )
+def test_finops_zero_spend_contract_is_explicit() -> None:
+    policy = yaml.safe_load((ROOT / "config/core/budget_policy.yaml").read_text(encoding="utf-8"))
+    assert policy["zero_spend"] is True
+    assert policy["limits"] == {
+        "daily_eur": 0.0,
+        "monthly_eur": 0.0,
+        "per_project_eur": 0.0,
+    }
+    assert policy["behavior"]["default_reservation_eur"] == 0.0
 
 
 def test_empty_finops_summary(tmp_path: Path) -> None:
