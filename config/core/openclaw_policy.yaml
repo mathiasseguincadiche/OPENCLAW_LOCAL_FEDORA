@@ -2,7 +2,7 @@ schema_version: "1.1.0"
 platform_version: "0.1.0"
 
 runtime:
-  required_version: "2026.9.2"
+  required_version: "2026.9.6"
   version_lock: exact
   automatic_update_allowed: false
   require_schema_capture_before_apply: true
@@ -14,7 +14,7 @@ plugins:
   parallel_search:
     id: parallel
     package: "@openclaw/parallel-plugin"
-    version: "2026.9.2"
+    version: "2026.9.6"
     version_lock: exact
     provider: parallel-free
     install_if_missing: true
