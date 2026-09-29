@@ -117,6 +117,13 @@ def _validate_project_contracts(
     budget = contracts["budget_policy.yaml"]
     if budget.get("cloud_enabled_by_default") is not False:
         failures.append("core/budget: cloud désactivé par défaut requis")
+    if budget.get("zero_spend") is not True:
+        failures.append("core/budget: zero_spend=true requis")
+    limits = _mapping(budget.get("limits"))
+    if any(float(limits.get(key, -1.0)) != 0.0 for key in ("daily_eur", "monthly_eur", "per_project_eur")):
+        failures.append("core/budget: tous les plafonds doivent rester à 0 EUR")
+    if float(_mapping(budget.get("behavior")).get("default_reservation_eur", -1.0)) != 0.0:
+        failures.append("core/budget: réservation par défaut doit rester à 0 EUR")
     if _mapping(budget.get("behavior")).get("on_limit") != "deny":
         failures.append("core/budget: dépassement doit être refusé")
 
