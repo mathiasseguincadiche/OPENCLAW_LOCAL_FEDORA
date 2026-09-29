@@ -11,7 +11,7 @@ CURRENT_IDS = (
     "gemma4:12b-it-q4_K_M",
     "hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M",
     "granite4.2:8b-q4_K_M",
-    "2026.9.2",
+    "2026.9.6",
 )
 
 # Construits en fragments afin que le garde ne se signale pas lui-même.
