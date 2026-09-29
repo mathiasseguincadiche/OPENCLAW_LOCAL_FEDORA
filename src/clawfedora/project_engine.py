@@ -424,7 +424,11 @@ def ready_tasks(repo_root: Path, project: Path) -> list[dict[str, Any]]:
             )
         ):
             ready.append(item)
-    return ready
+    execution = dict(_policy(repo_root)["execution"])
+    limit = int(execution["max_parallel_tasks"])
+    if limit < 1:
+        raise ValueError("orchestration: max_parallel_tasks doit être >= 1")
+    return ready[:limit]
 
 
 def _outputs_are_namespaced(task_id: str, outputs: list[str]) -> None:
