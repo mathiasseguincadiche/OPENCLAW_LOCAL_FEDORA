@@ -122,6 +122,8 @@ def append_cost_event(
     behavior = policy.get("behavior", {})
     if policy.get("cloud_enabled_by_default") is not False:
         raise ValueError("finops: cloud doit rester désactivé par défaut")
+    if policy.get("zero_spend") is True and event in POSITIVE_EVENTS:
+        raise ValueError("finops: politique zero-spend, dépense cloud interdite")
     if not isinstance(behavior, dict) or behavior.get("require_reason") is not True:
         raise ValueError("finops: raison obligatoire par contrat")
     if amount_eur < 0:
