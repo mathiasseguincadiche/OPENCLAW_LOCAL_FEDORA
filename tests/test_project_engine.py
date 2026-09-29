@@ -147,6 +147,44 @@ def _pass_single_task(project: Path) -> None:
     )
 
 
+
+def test_ready_tasks_respects_parallel_task_cap(tmp_path: Path) -> None:
+    project = _project(tmp_path)
+    _analyze(project)
+    plan = _plan()
+    tasks = plan["tasks"]
+    assert isinstance(tasks, list)
+    second = tasks[1]
+    assert isinstance(second, dict)
+    second["depends_on"] = []
+    store_plan(ROOT, project, plan)
+    transition_project(
+        ROOT,
+        project,
+        "PLANNED",
+        actor="chef-operations",
+        reason="plan",
+    )
+    create_assignments(ROOT, project)
+    transition_project(
+        ROOT,
+        project,
+        "ASSIGNED",
+        actor="chef-operations",
+        reason="assign",
+    )
+    transition_project(
+        ROOT,
+        project,
+        "IN_PROGRESS",
+        actor="chef-operations",
+        reason="execute",
+    )
+    ready = ready_tasks(ROOT, project)
+    assert len(ready) == 1
+    assert ready[0]["task_id"] == "build-output"
+
+
 def test_complete_project_lifecycle_requires_human_approval(tmp_path: Path) -> None:
     project = _project(tmp_path)
     _analyze(project)
