@@ -86,8 +86,8 @@ def test_openclaw_config_is_dry_run_by_default_and_fail_closed() -> None:
     text = _read("scripts/linux/04_configure_openclaw.sh")
     assert "APPLY=0" in text
     assert "DRY_RUN=PASS" in text
-    assert 'OPENCLAW_PIN="2026.9.2"' in text
-    assert 'PARALLEL_PIN="2026.9.2"' in text
+    assert 'OPENCLAW_PIN="2026.9.6"' in text
+    assert 'PARALLEL_PIN="2026.9.6"' in text
     assert "OpenClaw exactement $OPENCLAW_PIN requis" in text
     assert '[[ "$OPENCLAW_VERSION" == "$OPENCLAW_PIN" ]]' in text
     assert '[[ "$OPENCLAW_VERSION" == *"$OPENCLAW_PIN"* ]]' not in text
@@ -140,7 +140,7 @@ def test_power_profile_requires_explicit_apply() -> None:
 def test_full_install_is_explicit_and_pinned() -> None:
     text = _read("scripts/linux/10_install_full.sh")
     assert "APPLY=0" in text
-    assert 'OPENCLAW_PIN="2026.9.2"' in text
+    assert 'OPENCLAW_PIN="2026.9.6"' in text
     assert 'OLLAMA_PIN="0.32.14"' in text
     assert 'OLLAMA_VERSION="$OLLAMA_PIN"' in text
     assert '--install-method npm --version "$OPENCLAW_PIN"' in text
