@@ -8,7 +8,7 @@ source "$LINUX/lib/runtime.sh"
 
 APPLY=0
 [[ "${1:-}" == "--apply" ]] && APPLY=1
-OPENCLAW_PIN="2026.9.2"
+OPENCLAW_PIN="2026.9.6"
 OLLAMA_PIN="0.32.14"
 RUNTIME_ROOT="$(claw_runtime_root)"
 
