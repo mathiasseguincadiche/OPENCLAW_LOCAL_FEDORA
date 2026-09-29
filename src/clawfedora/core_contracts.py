@@ -20,7 +20,7 @@ CORE_FILES = (
     "telemetry_policy.yaml",
 )
 
-LOCKED_OPENCLAW_VERSION = "2026.9.2"
+LOCKED_OPENCLAW_VERSION = "2026.9.6"
 
 
 def _mapping(value: Any) -> dict[str, Any]:
@@ -214,23 +214,23 @@ def validate_core_contracts(
     upgrade_policy = _mapping(runtime_versions.get("upgrade_policy"))
 
     if version_contract.get("version") != LOCKED_OPENCLAW_VERSION:
-        failures.append("core/openclaw: version verrouillée doit rester 2026.9.2")
+        failures.append("core/openclaw: version verrouillée doit rester 2026.9.6")
     if version_contract.get("lock") != "exact":
         failures.append("core/openclaw: verrou de version exact requis")
     if version_contract.get("automatic_update") is not False:
         failures.append("core/openclaw: mise à jour automatique interdite")
     if openclaw_runtime.get("required_version") != LOCKED_OPENCLAW_VERSION:
-        failures.append("core/openclaw: required_version doit rester 2026.9.2")
+        failures.append("core/openclaw: required_version doit rester 2026.9.6")
     if openclaw_runtime.get("version_lock") != "exact":
         failures.append("core/openclaw: version_lock=exact requis")
     if openclaw_runtime.get("automatic_update_allowed") is not False:
         failures.append("core/openclaw: automatic_update_allowed=false requis")
     if parallel_version.get("version") != LOCKED_OPENCLAW_VERSION:
-        failures.append("core/openclaw: plugin Parallel doit rester en 2026.9.2")
+        failures.append("core/openclaw: plugin Parallel doit rester en 2026.9.6")
     if parallel_version.get("lock") != "exact":
         failures.append("core/openclaw: plugin Parallel doit être verrouillé exactement")
     if parallel_policy.get("version") != LOCKED_OPENCLAW_VERSION:
-        failures.append("core/openclaw: politique Parallel doit rester en 2026.9.2")
+        failures.append("core/openclaw: politique Parallel doit rester en 2026.9.6")
     if parallel_policy.get("version_lock") != "exact":
         failures.append("core/openclaw: politique Parallel exige version_lock=exact")
     if parallel_policy.get("automatic_update_allowed") is not False:
