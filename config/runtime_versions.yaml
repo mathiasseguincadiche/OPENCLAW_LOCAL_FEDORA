@@ -2,17 +2,17 @@ schema_version: "1.1.0"
 platform_version: "0.1.0"
 
 openclaw:
-  version: "2026.9.2"
-  initial_qualification_pin: "2026.9.2"  # compatibility alias; must equal version
+  version: "2026.9.6"
+  initial_qualification_pin: "2026.9.6"  # compatibility alias; must equal version
   lock: exact
-  integrity: "sha512-M6C7UsnX815nv26qBJFYGe6aGzv+ftZLRzV6S9oRXUtXg2Yn67eVntpssT94kgkquKVSeUxerUg0j1ONp4WYQg=="
-  release_sha: "3928bad9badfcb6c7d140530435e806fb8092190"
+  integrity: "sha512-Ie0kyQSCVfFqixsgVg39vevUDq01Ch5u3+7Yu5Y3qARczmdAe+lzp8bVnO9925rHiW/+CFp70zfORCyPmCH31g=="
+  release_sha: "eb377ac59e6c9fd6c7705028034812becf00271b"
   policy: exact-version-locked
   automatic_update: false
   plugins:
     parallel:
       package: "@openclaw/parallel-plugin"
-      version: "2026.9.2"
+      version: "2026.9.6"
       lock: exact
       provider: parallel-free
 
