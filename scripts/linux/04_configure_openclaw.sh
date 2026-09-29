@@ -7,8 +7,8 @@ source "$SCRIPT_DIR/lib/runtime.sh"
 
 APPLY=0
 BACKEND="ollama-vulkan"
-OPENCLAW_PIN="2026.9.2"
-PARALLEL_PIN="2026.9.2"
+OPENCLAW_PIN="2026.9.6"
+PARALLEL_PIN="2026.9.6"
 
 usage() {
   cat <<'EOF'
