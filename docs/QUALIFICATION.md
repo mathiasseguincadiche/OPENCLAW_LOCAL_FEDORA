@@ -93,7 +93,7 @@ La pile GPU supportée par le projet est `xe` + Mesa/Vulkan.
 
 ## L4 — OpenClaw E2E
 
-La version de qualification OpenClaw est verrouillée par `config/runtime_versions.yaml` et vaut actuellement `2026.9.2`.
+La version de qualification OpenClaw est verrouillée par `config/runtime_versions.yaml` et vaut actuellement `2026.9.6`.
 
 Dry-run :
 
