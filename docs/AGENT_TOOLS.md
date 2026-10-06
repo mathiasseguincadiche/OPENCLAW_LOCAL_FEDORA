@@ -35,3 +35,5 @@ Tous disposent de lecture, PDF/images et outils web autorisés, recherche locale
 [LEARNING_WORKFLOW.md](LEARNING_WORKFLOW.md) décrit la pratique guidée, les soumissions humaines et les reprises de dépendances. Six ou sept profils ne signifient pas autant de modèles en VRAM. Un seul Qwen, une génération à la fois, spécialistes sollicités uniquement s’ils sont utiles. Une synthèse peut coûter un appel supplémentaire: utiliser le rédacteur pour un livrable qui a besoin de cohérence, pas pour reformater chaque réponse triviale.
 
 Tous peuvent interpréter un rapport CI avec clawfedora_ci_report, sans exécution ni authentification automatique du résultat. Voir [les contrôles infrastructure](INFRASTRUCTURE_CHECKS.md).
+
+Tous peuvent aussi produire de vrais documents Markdown/TXT/PDF/DOCX avec `clawfedora_artifact`. L’architecte, le DevOps et la sécurité peuvent générer configurations, scripts et templates dans leur format technique. Le chat fournit des liens de téléchargement; les projets conservent source, relecture et exports cohérents. Voir [les formats et le parcours de livraison](FILE_OUTPUTS.md).
