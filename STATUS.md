@@ -125,3 +125,7 @@ Le mentor réutilise chef-operations, sans huitième agent. L’aide adaptative,
 ## Guide utilisateur et présentation publique
 
 Le guide PDF, sa source HTML imprimable et les vues d’architecture Draw.io sont disponibles depuis le [guide utilisateur](docs/GUIDE_UTILISATEUR.md). Le README met en avant le besoin, les sept rôles et le parcours quotidien. Les versions et identités techniques restent définies par les contrats du dépôt.
+
+## Fichiers et exports documentaires
+
+Le toolkit 0.5.0 fournit la production contrôlée de Markdown/TXT, PDF/DOCX dérivés et configurations/code selon le rôle. Le chat joint des liens locaux signés; le worker collecte les exports binaires et leur source, y compris après relecture guidée. Les tests d’export ne constituent pas une qualification du modèle réel ou du poste. [Formats et limites](docs/FILE_OUTPUTS.md).

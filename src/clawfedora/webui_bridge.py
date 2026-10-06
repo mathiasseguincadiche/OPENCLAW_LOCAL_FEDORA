@@ -100,6 +100,39 @@ class BridgeHandler(BaseHTTPRequestHandler):
         self.wfile.write(raw)
 
     def do_GET(self) -> None:
+        if self.path.startswith("/artifacts/"):
+            from urllib.parse import parse_qs, urlsplit
+
+            from clawfedora.chat_artifacts import download
+
+            if self.headers.get("Host") != f"127.0.0.1:{self.server.server_port}":
+                self._send(403, {"error": {"message": "hôte local requis"}})
+                return
+            try:
+                url = urlsplit(self.path)
+                query = parse_qs(url.query)
+                target, filename = download(
+                    self.server.runtime,
+                    self.server.token,
+                    url.path,
+                    query.get("expires", [""])[0],
+                    query.get("signature", [""])[0],
+                )
+                raw = target.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/octet-stream")
+                self.send_header(
+                    "Content-Disposition", 'attachment; filename="' + filename + '"'
+                )
+                self.send_header("Content-Length", str(len(raw)))
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("X-Content-Type-Options", "nosniff")
+                self.send_header("Content-Security-Policy", "default-src 'none'; sandbox")
+                self.end_headers()
+                self.wfile.write(raw)
+            except (OSError, ValueError, KeyError, TypeError):
+                self._send(403, {"error": {"message": "artefact absent, modifié ou lien expiré"}})
+            return
         if not self._authorized():
             self._send(401, {"error": {"message": "authentification locale requise"}})
         elif self.path == "/v1/models":
@@ -149,13 +182,23 @@ class BridgeHandler(BaseHTTPRequestHandler):
             with worker_lock(self.server.runtime):
                 session = str(uuid.uuid4())
                 write_progress(self.server.runtime, None, "chat", role=role, session=session)
+                from clawfedora.chat_artifacts import links
+                from clawfedora.project_worker import _tool_receipts
+
+                workspace = self.server.runtime / "workspaces" / role
+                before = _tool_receipts(workspace)
                 try:
                     response = self.server.runner(
                         role, mentor_context(self.server.runtime) + "\n" + prompt, session
                     )
+                    attachments = links(
+                        self.server.runtime, role, before, self.server.server_port, self.server.token
+                    )
                 finally:
                     write_progress(self.server.runtime, None, "idle")
             text = response["text"]
+            if isinstance(text, str):
+                text += attachments
             if not isinstance(text, str) or len(text.encode()) > 32000:
                 raise ValueError("réponse locale invalide")
         except (OSError, ValueError, KeyError, RuntimeError) as exc:

@@ -445,6 +445,12 @@ function renderLearning(id, data) {
     form.append(node("h4", item.task_id + " · " + item.role), node("pre", item.guidance));
     form.append(node("p", "Complétez l’amorce, puis indiquez ce que vous avez compris et vérifié. Aucun code n’est exécuté par ce formulaire."));
     for (const [path, content] of Object.entries(item.files)) {
+      if (content.startsWith("@document-export:")) {
+        const source = content.slice("@document-export:".length);
+        form.append(node("h4", path), node("p", "Export produit depuis " + source + ". Modifiez la source Markdown ci-dessous; le fichier sera généré après relecture."));
+        inputs[path] = {value: content};
+        continue;
+      }
       const graphical = path.endsWith(".drawio") || path.endsWith(".svg");
       const details = node("details");
       if (graphical) {
@@ -477,6 +483,14 @@ function renderLearning(id, data) {
           finally { upload.disabled = false; submit.disabled = !!form.querySelector("input[type=file]:disabled"); }
         });
         label.append(upload); form.append(download, label);
+      } else {
+        const download = node("button", "Télécharger " + path.split("/").pop(), "secondary"); download.type = "button";
+        download.addEventListener("click", () => {
+          const url = URL.createObjectURL(new Blob([input.value], {type: "application/octet-stream"}));
+          const link = node("a"); link.href = url; link.download = path.split("/").pop(); link.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        });
+        form.append(download);
       }
     }
     const explanation = field(form, "Mon raisonnement et le travail effectué", "", true);

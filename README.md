@@ -25,7 +25,7 @@ La cible est **Fedora 44, Ryzen 7 7700, 48 Go de RAM et Intel Arc B580 12 Go**, 
 - **Une génération à la fois** : le chat et les projets utilisent un verrou commun.
 - **Sept rôles spécialisés** : seuls ceux utiles à la demande sont sollicités.
 - **Un accompagnement adaptatif** : aide directe pour un sujet maîtrisé, pratique guidée pour apprendre.
-- **Des outils locaux limités** : recherche documentaire, schémas Draw.io, contrôles statiques et lecture de rapports CI.
+- **Des outils locaux ciblés** : recherche documentaire, schémas Draw.io, documents Markdown/PDF/DOCX/TXT, fichiers techniques, contrôles statiques et rapports CI.
 - **Une validation humaine** : les commandes proposées sont exécutées par l’apprenant dans son exercice; les fichiers sont relus avant publication.
 
 Le contexte reste à 8192 tokens et la réponse à 1024 tokens. Les grandes demandes sont découpées. Gemma, Ministral et Granite servent à des expériences séparées; ils ne sont pas installés ou routés par défaut. [Profil quotidien](docs/DAILY_PROFILE.md) · [Choix du modèle](docs/MODEL_SELECTION_2026_10.md).
@@ -44,7 +44,7 @@ Le contexte reste à 8192 tokens et la réponse à 1024 tokens. Les grandes dema
 | Rédacteur pédagogique | Relier les contributions et produire une documentation claire |
 | Auditeur qualité | Relire les critères, les sources et les preuves dans une nouvelle session |
 
-Un rôle est un ensemble de consignes et d’outils autour du même Qwen, pas un modèle supplémentaire en mémoire. Chaque spécialiste explique son raisonnement; le rédacteur n’est pas seul responsable de l’apprentissage. [Rôles et pédagogie](docs/AGENT_TOOLS.md) · [Plugins disponibles](docs/SPECIALIST_TOOLING.md).
+Un rôle est un ensemble de consignes et d’outils autour du même Qwen, pas un modèle supplémentaire en mémoire. Chaque spécialiste explique son raisonnement; le rédacteur n’est pas seul responsable de l’apprentissage. [Rôles et pédagogie](docs/AGENT_TOOLS.md) · [Plugins disponibles](docs/SPECIALIST_TOOLING.md) · [Formats des livrables](docs/FILE_OUTPUTS.md).
 
 ## Trois usages complémentaires
 

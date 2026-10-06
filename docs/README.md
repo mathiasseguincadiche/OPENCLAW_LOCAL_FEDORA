@@ -70,6 +70,7 @@ Le parcours ci-dessus reste la référence pour apprendre le projet de bout en b
 | Besoin immédiat | Document |
 |---|---|
 | comprendre et utiliser l’ensemble du projet | [`GUIDE_UTILISATEUR.md`](GUIDE_UTILISATEUR.md) |
+| obtenir documents et configurations au bon format | [`FILE_OUTPUTS.md`](FILE_OUTPUTS.md) |
 | créer et modifier des schémas Draw.io | [`DRAWIO.md`](DRAWIO.md) |
 | connaître les plugins réellement disponibles | [`SPECIALIST_TOOLING.md`](SPECIALIST_TOOLING.md) |
 | comprendre le mentor et les retours de pratique | [`LEARNING_WORKFLOW.md`](LEARNING_WORKFLOW.md) |

@@ -4,7 +4,7 @@
 
 Le guide présente la configuration de référence, le choix de Qwen, les sept rôles, leurs outils réellement disponibles et le parcours complet d’utilisation. Il distingue l’aide à la compréhension, la production de son propre travail, les contrôles statiques et les preuves d’exécution.
 
-- [Télécharger le guide PDF](guide-utilisateur.pdf) — 15 pages, édition du 6 octobre 2026.
+- [Télécharger le guide PDF](guide-utilisateur.pdf) — 16 pages, édition du 6 octobre 2026.
 - [Lire la source HTML imprimable](guide-utilisateur.html) — contenu du PDF, consultable hors ligne.
 - [Architecture : source Draw.io](diagrams/atelier-architecture.drawio) et [aperçu SVG](diagrams/atelier-architecture.svg).
 - [Rôles : source Draw.io](diagrams/atelier-roles.drawio) et [aperçu SVG](diagrams/atelier-roles.svg).
@@ -14,7 +14,7 @@ Le guide présente la configuration de référence, le choix de Qwen, les sept r
 1. L’origine du projet : budget, autonomie et apprentissage infrastructure/OPS.
 2. La machine cible : Ryzen 7 7700, 48 Go de RAM et Arc B580 12 Go.
 3. L’architecture : chat et projets, OpenClaw, Ollama, Qwen et données locales.
-4. Les sept spécialités, les plugins métier et leurs limites.
+4. Les sept spécialités, leurs plugins et la production de documents/configurations au bon format.
 5. Le mode Adaptatif, la pratique guidée et les retours avant publication.
 6. L’installation, les interfaces et un premier parcours de projet.
 7. Un exemple de pipeline progressif avec Git, Docker, CI et Ansible.
