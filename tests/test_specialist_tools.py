@@ -79,7 +79,11 @@ def test_gitleaks_unavailable_is_explicit_or_real_output_is_redacted() -> None:
     assert secret not in str(result)
 
 
-def test_diagram_reference_resolves_only_current_verified_architect_artifact(tmp_path: Path) -> None:
+@pytest.mark.parametrize("kind", ["svg", "drawio"])
+def test_diagram_reference_resolves_only_current_verified_architect_artifact(
+    tmp_path: Path,
+    kind: str,
+) -> None:
     deploy_workspaces(ROOT, tmp_path)
     role = "architecte-solutions"
     workspace = tmp_path / "workspaces" / role
@@ -90,15 +94,18 @@ def test_diagram_reference_resolves_only_current_verified_architect_artifact(tmp
         "clawfedora_diagram",
         {"nodes": ["Git", "CI", "Service"], "edges": [[0, 1], [1, 2]]},
     )
-    assert "svg" not in generated and generated["svg_reference"].startswith("@tool-svg:")
+    assert "svg" not in generated and "drawio" not in generated
+    reference = generated[f"{kind}_reference"]
+    assert reference.startswith(f"@tool-{kind}:")
     proof = workspace / generated["receipt"]
     task = {"role": role}
-    response = {"files": {"deliverables/architecture/infra.svg": generated["svg_reference"]}}
+    filename = f"diagrams/architecture/infra.{kind}"
+    response = {"files": {filename: reference}}
     _resolve_tool_files(workspace, set(), task, response)
-    assert "<svg" in response["files"]["deliverables/architecture/infra.svg"]
-    for before, role_name, filename in [
-        ({proof}, role, "infra.svg"),
-        (set(), "redacteur-pedagogique", "infra.svg"),
+    assert ("<svg" if kind == "svg" else "<mxfile") in response["files"][filename]
+    for before, role_name, invalid_output in [
+        ({proof}, role, filename),
+        (set(), "redacteur-pedagogique", filename),
         (set(), role, "infra.md"),
     ]:
         with pytest.raises(ValueError, match="cette tâche"):
@@ -106,12 +113,10 @@ def test_diagram_reference_resolves_only_current_verified_architect_artifact(tmp
                 workspace,
                 before,
                 {"role": role_name},
-                {"files": {filename: generated["svg_reference"]}},
+                {"files": {invalid_output: reference}},
             )
-    artifact = proof.with_suffix(".svg")
+    artifact = proof.with_suffix(f".{kind}")
     artifact.chmod(0o640)
     artifact.write_text("<svg>changed</svg>")
     with pytest.raises(ValueError, match="invalide"):
-        _resolve_tool_files(
-            workspace, set(), task, {"files": {"infra.svg": generated["svg_reference"]}}
-        )
+        _resolve_tool_files(workspace, set(), task, {"files": {filename: reference}})

@@ -25,7 +25,7 @@ Une plateforme locale pour apprendre l’infrastructure/OPS, avec **installation
 - **7 agents spécialisés** — mêmes missions, workspaces et garde-fous reproductibles.
 - **1 modèle quotidien Q4_K_M** — flotte nominale explicite, challenger séparé.
 - **Interfaces locales** — Open WebUI slim pour discuter, atelier pour importer, cadrer, approuver, exécuter et livrer les projets; [installation](docs/OPENWEBUI.md).
-- **Outils et apprentissage OPS** — recherche bornée, trames métier, schémas et contrôles statiques; [rôles et outils effectifs](docs/AGENT_TOOLS.md).
+- **Outils et apprentissage OPS** — recherche bornée, trames métier, [schémas Draw.io éditables](docs/DRAWIO.md) et contrôles statiques; [rôles et outils effectifs](docs/AGENT_TOOLS.md).
 - **Fedora-native** — `systemd`, SELinux, firewalld et `xe` ; développement et KVM optionnels.
 - **Vulkan uniquement pour le GPU** — Ollama/Vulkan baseline, llama.cpp/Vulkan candidat L6.
 - **Fail-closed** — les incohérences de versions, contrats ou preuves bloquent la progression.

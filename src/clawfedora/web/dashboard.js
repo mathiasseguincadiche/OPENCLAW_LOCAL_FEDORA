@@ -445,8 +445,39 @@ function renderLearning(id, data) {
     form.append(node("h4", item.task_id + " · " + item.role), node("pre", item.guidance));
     form.append(node("p", "Complétez l’amorce, puis indiquez ce que vous avez compris et vérifié. Aucun code n’est exécuté par ce formulaire."));
     for (const [path, content] of Object.entries(item.files)) {
-      const input = field(form, path, content, true); input.maxLength = 60000; input.rows = 8;
+      const graphical = path.endsWith(".drawio") || path.endsWith(".svg");
+      const details = node("details");
+      if (graphical) {
+        form.append(node("h4", path), node("p", path.endsWith(".drawio")
+          ? "Téléchargez l’ébauche, ouvrez-la dans Draw.io, modifiez-la et enregistrez-la. Remettez le fichier ici; sa sauvegarde habituelle est acceptée et convertie localement en XML lisible."
+          : "Cet aperçu est séparé du schéma éditable. Après modification dans Draw.io, réexportez et remettez le SVG correspondant."));
+        details.append(node("summary", "Voir le contenu du fichier")); form.append(details);
+      }
+      const input = field(graphical ? details : form, path, content, true); input.maxLength = 60000; input.rows = 8;
       inputs[path] = input;
+      if (graphical) {
+        const download = node("button", "Télécharger " + path.split("/").pop(), "secondary"); download.type = "button";
+        download.addEventListener("click", () => {
+          const url = URL.createObjectURL(new Blob([input.value], { type: "application/octet-stream" }));
+          const link = node("a"); link.href = url; link.download = path.split("/").pop();
+          document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+        });
+        const label = node("label", "Remettre le fichier modifié · " + path), upload = node("input"); upload.type = "file";
+        upload.accept = path.endsWith(".drawio") ? ".drawio,.xml" : ".svg";
+        upload.addEventListener("change", async () => {
+          const file = upload.files[0]; if (!file) return;
+          upload.setCustomValidity(""); upload.disabled = true;
+          const submit = form.querySelector("button[type=submit]"); submit.disabled = true;
+          try {
+            if (file.size > 60000) throw new Error("Fichier limité à 60 000 octets.");
+            const text = await file.text();
+            if (!text.trim() || new TextEncoder().encode(text).length > 60000) throw new Error("Fichier vide ou trop volumineux.");
+            input.value = text; tell("Fichier repris dans votre brouillon. Expliquez vos changements avant de soumettre.");
+          } catch (error) { upload.setCustomValidity(error.message); tell(error.message, true); }
+          finally { upload.disabled = false; submit.disabled = !!form.querySelector("input[type=file]:disabled"); }
+        });
+        label.append(upload); form.append(download, label);
+      }
     }
     const explanation = field(form, "Mon raisonnement et le travail effectué", "", true);
     explanation.required = true; explanation.maxLength = 2000;

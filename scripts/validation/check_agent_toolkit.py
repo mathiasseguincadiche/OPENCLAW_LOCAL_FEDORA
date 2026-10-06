@@ -60,6 +60,12 @@ for (const [name,role,params] of [
  if(!tool) throw new Error('Missing factory '+name);
  const result=await tool.execute('verification',params);
  if(!result.content?.[0]?.text) throw new Error('Missing result '+name);
+ if(name==='clawfedora_diagram') {
+  const value=JSON.parse(result.content[0].text);
+  if(!value.drawio_reference?.startsWith('@tool-drawio:') ||
+     !value.svg_reference?.startsWith('@tool-svg:'))
+   throw new Error('Missing editable diagram references');
+ }
  console.log('NATIVE_TOOL=PASS name='+name);
 }
 const entry=registry.tools.find(x=>x.names.includes('clawfedora_diagram'));

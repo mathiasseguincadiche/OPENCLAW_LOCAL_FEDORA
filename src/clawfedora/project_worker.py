@@ -215,6 +215,10 @@ def _collection_targets(
             raise ValueError(f"sortie hors collect_scopes: {relative}")
         if not isinstance(content, str) or not content.strip() or len(content.encode()) > 256_000:
             raise ValueError(f"contenu vide ou trop volumineux: {relative}")
+        if path.suffix.lower() == ".drawio":
+            from clawfedora.drawio import inspect_diagram
+
+            inspect_diagram(content)
         target = project / path
         for parent in [target, *target.parents]:
             if parent == project.parent:
@@ -275,24 +279,27 @@ def _resolve_tool_files(
     if not isinstance(files, dict):
         return
     for output, value in list(files.items()):
-        if not isinstance(value, str) or not value.startswith("@tool-svg:"):
+        if not isinstance(value, str) or not value.startswith(("@tool-svg:", "@tool-drawio:")):
             continue
-        identifier = value.removeprefix("@tool-svg:")
+        kind, identifier = value.split(":", 1)
+        extension = ".drawio" if kind == "@tool-drawio" else ".svg"
         if (
             identifier not in current
             or task["role"] != "architecte-solutions"
-            or not output.endswith(".svg")
+            or not output.endswith(extension)
         ):
             raise ValueError("référence de schéma non issue de cette tâche")
         proof = read_json(current[identifier])
-        artifact = current[identifier].with_suffix(".svg")
+        artifact = current[identifier].with_suffix(extension)
         if (
             proof.get("origin") != "managed-tool-runner"
             or proof.get("tool") != "clawfedora_diagram"
             or not artifact.is_file()
             or artifact.is_symlink()
             or artifact.stat().st_size > 16000
-            or sha256_file(artifact) != proof.get("artifact_sha256")
+            or sha256_file(artifact) != proof.get(
+                "drawio_sha256" if extension == ".drawio" else "artifact_sha256"
+            )
         ):
             raise ValueError("rendu de schéma invalide")
         files[output] = artifact.read_text()
