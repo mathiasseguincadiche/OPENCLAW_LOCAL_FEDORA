@@ -67,6 +67,9 @@ Le parcours ci-dessus reste la référence pour apprendre le projet de bout en b
 
 | Besoin immédiat | Document |
 |---|---|
+| comprendre le mentor et les retours de pratique | [`LEARNING_WORKFLOW.md`](LEARNING_WORKFLOW.md) |
+| comparer les modèles adaptés à la B580 | [`MODEL_SELECTION_2026_10.md`](MODEL_SELECTION_2026_10.md) |
+| relier les rapports CI aux vérifications OPS | [`INFRASTRUCTURE_CHECKS.md`](INFRASTRUCTURE_CHECKS.md) |
 | comprendre les premières commandes et les états | [`GETTING_STARTED.md`](GETTING_STARTED.md) |
 | installer la plateforme | [`INSTALLATION.md`](INSTALLATION.md) |
 | exploiter la plateforme au quotidien | [`OPERATIONS.md`](OPERATIONS.md) |

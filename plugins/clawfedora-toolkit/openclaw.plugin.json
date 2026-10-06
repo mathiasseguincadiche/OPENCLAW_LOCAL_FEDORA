@@ -1,7 +1,7 @@
 {
   "id": "clawfedora-toolkit",
   "name": "ClawFedora OPS Toolkit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "activation": {
     "onStartup": false
   },
@@ -23,6 +23,9 @@
     },
     "clawfedora_tool_status": {
       "optional": true
+    },
+    "clawfedora_ci_report": {
+      "optional": true
     }
   },
   "configSchema": {
@@ -37,7 +40,8 @@
       "clawfedora_diagram",
       "clawfedora_check",
       "clawfedora_lint",
-      "clawfedora_tool_status"
+      "clawfedora_tool_status",
+      "clawfedora_ci_report"
     ]
   }
 }

@@ -97,7 +97,7 @@ challengers:
       - native-tool-calling
       - tool-feedback-repair
       - terminal-reasoning
-      approximate_weight_gib: 5.3
+      approximate_weight_gib: 4.94
       nominal_context_tokens: 8192
       qualification_contexts:
       - 8192

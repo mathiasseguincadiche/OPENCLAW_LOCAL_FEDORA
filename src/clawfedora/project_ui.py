@@ -13,6 +13,7 @@ from typing import Any
 
 from clawfedora.core_config import AGENT_IDS
 from clawfedora.learning import checkpoints, contract
+from clawfedora.mentor import copy_profile
 from clawfedora.project_common import assert_no_symlinks, read_json, write_json
 from clawfedora.project_control import write_progress
 from clawfedora.project_engine import (
@@ -82,7 +83,7 @@ def create_from_browser(repo: Path, runtime: Path, data: dict[str, Any]) -> Path
                 "projet-" + uuid.uuid4().hex[:12],
                 title,
                 intake_items=inputs,
-                learning_mode=str(data.get("learning_mode", "guided")),
+                learning_mode=str(data.get("learning_mode", "adaptive")),
                 learning_goals=data.get("learning_goals", []),
             )
             write_json(project / "context/upload_labels.json", labels)
@@ -180,10 +181,15 @@ def propose(
                 "courtes, spécialistes uniquement si utiles, dépendances explicites, chemins "
                 "deliverables/<id>/fichier.md ou diagrams/<id>/fichier.svg; "
                 "sorties au plus 1024 tokens "
-                "par tâche. Lire context/learning/contract.json: chaque tâche explique un mécanisme "
-                "et laisse une action à l’apprenant en mode guidé. Ne pas proposer une livraison "
+                "par tâche. Lire context/learning/contract.json et mentor.json s’il existe. "
+                "Mode adaptive: learning_mode guided pour une compétence nouvelle à pratiquer, "
+                "direct pour une aide maîtrisée, recherche ou rédaction. Plan approuvé par l’humain. "
+                "Tenir compte du background Linux/réseau; expliquer l’utile. "
+                "Ne pas proposer une livraison "
                 "entière d’un coup. Une tâche de rédaction, si utile, revient au rédacteur "
-                "pédagogique après les contributions techniques, avec dépendances explicites. "
+                "pédagogique: writing_scope final après toutes les contributions techniques, "
+                "intermediate "
+                "après ses seules sources utiles; dépendances explicites. "
                 "L’architecte conçoit flux et schémas. Aucun code proposé n’est exécuté. Rôles: "
                 + ", ".join(AGENT_IDS)
             )
@@ -192,6 +198,7 @@ def propose(
             f"{instructions} Répondre uniquement en JSON, concis (1024 tokens), forme: "
             + json.dumps(shape)
         )
+        copy_profile(runtime, snapshot)
         snapshot_guard, central_guard = _guard(snapshot), _guard(project)
         invoke = runner or openclaw_runner(runtime, repo, plain_text=True)
         session = str(uuid.uuid4())

@@ -23,7 +23,7 @@ La couche L1 matérialise sept rôles OpenClaw sous Fedora sans dépendre d'un a
 
 | Agent | Responsabilité |
 |---|---|
-| `chef-operations` | cadrage, plan court et dépendances |
+| `chef-operations` | mentor infrastructure/OPS, aide adaptée, plan court et dépendances |
 | `expert-recherche` | faits datés, sources et mécanismes |
 | `architecte-solutions` | infrastructure, flux, schémas et décisions |
 | `ingenieur-devops` | automatisation, CI/CD, exploitation et rollback |

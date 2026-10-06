@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
+import uuid
 from pathlib import Path
 from typing import Any
 
 from clawfedora.project_common import now, read_json, validate_task_id, write_json
 
 
-def initialize(project: Path, mode: str = "guided", goals: list[str] | None = None) -> None:
-    if mode not in {"guided", "direct"}:
-        raise ValueError("accompagnement guided ou direct requis")
+def initialize(project: Path, mode: str = "adaptive", goals: list[str] | None = None) -> None:
+    if mode not in {"adaptive", "guided", "direct"}:
+        raise ValueError("accompagnement adaptive, guided ou direct requis")
     goals = goals or []
     if (
         not isinstance(goals, list)
@@ -37,7 +38,7 @@ def contract(project: Path) -> dict[str, Any]:
         # Existing approved plans keep their behavior; no silent retrofit of human gates.
         return {"mode": "direct", "goals": [], "legacy": True}
     value = read_json(path)
-    if value.get("mode") not in {"guided", "direct"}:
+    if value.get("mode") not in {"adaptive", "guided", "direct"}:
         raise ValueError("contrat d’apprentissage invalide")
     return value
 
@@ -54,10 +55,27 @@ def awaiting(project: Path) -> list[dict[str, Any]]:
     return [item for item in checkpoints(project) if item.get("status") == "AWAITING_PRACTICE"]
 
 
-def instructions(project: Path) -> str:
+def task_mode(project: Path, task: dict[str, Any]) -> str:
+    mode = contract(project)["mode"]
+    if mode != "adaptive":
+        return str(mode)
+    # Only the approved plan can choose task-level support; no model-selected runtime gate.
+    return str(
+        task.get(
+            "learning_mode",
+            "guided" if task["role"] in {"architecte-solutions", "ingenieur-devops"} else "direct",
+        )
+    )
+
+
+def pending_feedback(project: Path) -> list[dict[str, Any]]:
+    return [item for item in checkpoints(project) if item.get("status") == "AWAITING_FEEDBACK"]
+
+
+def instructions(project: Path, task: dict[str, Any] | None = None) -> str:
     value = contract(project)
     goals = "; ".join(value.get("goals", [])) or "comprendre le mécanisme et apprendre à vérifier"
-    if value["mode"] == "direct":
+    if (task_mode(project, task) if task else value["mode"]) == "direct":
         return f"Mode direct choisi: résultat complet autorisé, expliquer l’utile. {goals}. "
     return (
         f"Mode guidé. Objectifs: {goals}. Ne fais pas l’exercice à la place de l’apprenant. "
@@ -91,19 +109,14 @@ def submit(
     repo: Path, runtime: Path, project: Path, task_id: str, data: dict[str, Any]
 ) -> dict[str, Any]:
     from clawfedora.project_control import write_progress
-    from clawfedora.project_engine import (
-        all_tasks_pass,
-        current_status,
-        record_task_result,
-        transition_project,
-    )
+    from clawfedora.project_engine import current_status
     from clawfedora.project_intake import validate_input_integrity
-    from clawfedora.project_worker import _collect, worker_lock
+    from clawfedora.project_worker import _collection_targets, worker_lock
 
     with worker_lock(runtime, allow_gaming=True):
         if data.get("human_approved") is not True:
             raise ValueError("soumission humaine explicite requise")
-        if current_status(project) != "IN_PROGRESS" or contract(project)["mode"] != "guided":
+        if current_status(project) != "IN_PROGRESS" or contract(project)["mode"] == "direct":
             raise ValueError("étape guidée active requise")
         if validate_input_integrity(project):
             raise ValueError("intégrité des sources invalide")
@@ -115,7 +128,7 @@ def submit(
             raise ValueError("aucune étape guidée connue pour cette tâche")
         # The request selects an existing checkpoint; only its managed identity builds paths.
         task_id = str(checkpoint["task_id"])
-        if checkpoint.get("status") != "AWAITING_PRACTICE":
+        if checkpoint.get("status") not in {"AWAITING_PRACTICE", "AWAITING_FEEDBACK"}:
             raise ValueError("aucune pratique en attente pour cette tâche")
         explanation = data.get("explanation")
         observations = data.get("observations", "Pas d’exécution réelle déclarée.")
@@ -129,32 +142,38 @@ def submit(
         if sum(len(v.encode()) for v in files.values()) > 60000:
             raise ValueError("soumission limitée à 60000 octets")
         task = read_json(project / "context/tasks" / f"{validate_task_id(task_id)}.json")["task"]
-        outputs = _collect(repo, project, task, {"files": files})
-        result = record_task_result(
-            repo,
-            project,
-            task_id=task_id,
-            agent=str(task["role"]),
-            status="PASS",
-            outputs=outputs,
-            summary="Travail soumis par l’apprenant; audits techniques encore requis.",
+        _collection_targets(repo, project, task, {"files": files})
+        # Keep drafts out of published artifacts and dependency bundles until feedback.
+        previous = checkpoint.get("submissions", [])
+        if len(previous) >= 20:
+            raise ValueError("20 essais conservés: demander une reprise approuvée de cette tâche")
+        previous.append(
+            {
+                "at": now(),
+                "files": files,
+                "explanation": explanation.strip(),
+                "observations": observations.strip(),
+            }
         )
         checkpoint.update(
-            status="SUBMITTED",
+            status="AWAITING_FEEDBACK",
             submitted_at=now(),
+            submission_id=str(uuid.uuid4()),
             files=files,
             explanation=explanation.strip(),
             observations=observations.strip(),
             origin="human_self_report",
             runtime_tested=False,
             skill_acquired=False,
+            submissions=previous,
+            feedback_attempts=0,
         )
         write_json(checkpoint_path(project, task_id), checkpoint)
-        if all_tasks_pass(repo, project):
-            transition_project(
-                repo, project, "VALIDATING", actor="human", reason="practice_submitted"
-            )
-            write_progress(runtime, project, "awaiting_validation")
-        else:
-            write_progress(runtime, project, "awaiting_next_step")
-        return result
+        assignments_path = project / "context/task_assignments.json"
+        assignments = read_json(assignments_path)
+        for item in assignments["tasks"]:
+            if item["task_id"] == task_id:
+                item["status"] = "AWAITING_FEEDBACK"
+        write_json(assignments_path, assignments)
+        write_progress(runtime, project, "awaiting_feedback", task=task_id)
+        return {"task_id": task_id, "status": "AWAITING_FEEDBACK"}

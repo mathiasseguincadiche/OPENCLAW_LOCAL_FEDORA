@@ -51,7 +51,7 @@ context/exchange/<task-id>/self/run-001/
 context/exchange/<consumer>/dependencies/<producer>/run-001/
 ```
 
-Les sorties d'une tâche ne sont propagées aux dépendants qu'après `PASS`. Les SHA-256 et le digest agrégé sont revérifiés avant `VALIDATING`.
+Les sorties d'une tâche ne sont propagées aux dépendants qu'après `PASS`. En pratique guidée, la soumission reste `AWAITING_FEEDBACK`: une revue ciblée dans une session neuve est requise avant collecte et publication. Le reçu correspond au contenu et à l’identité de cette soumission; une correction demandée garde les dépendants bloqués. Voir [LEARNING_WORKFLOW.md](LEARNING_WORKFLOW.md). Les SHA-256 et le digest agrégé sont revérifiés avant `VALIDATING`.
 
 ## Validation et packaging
 

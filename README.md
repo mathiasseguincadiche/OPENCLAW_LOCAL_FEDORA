@@ -19,7 +19,7 @@ Plateforme **Linux-native, LLM local-only et multi-agents** pour exécuter OpenC
 
 ## Pourquoi ce projet ?
 
-`OPENCLAW_LOCAL_FEDORA` vise plus loin qu'une simple démonstration « un LLM tourne en local ». Le dépôt fournit une plateforme complète où **installation, sécurité, routage, agents, exploitation, preuves et qualification** sont traités comme des contrats vérifiables.
+Une plateforme locale pour apprendre l’infrastructure/OPS, avec **installation, agents, outils et preuves** vérifiables.
 
 - **100 % local pour le routage LLM nominal** — aucun fallback cloud silencieux.
 - **7 agents spécialisés** — mêmes missions, workspaces et garde-fous reproductibles.
@@ -80,11 +80,13 @@ Le chemin supporté est **Fedora 44 → `xe` → Mesa/Vulkan → runtime local**
 | `gemma-deep` | `gemma4:12b-it-q4_K_M`, revue alternative expérimentale |
 | `devstral-devops` | Ministral 3 14B Reasoning Q4_K_M, comparaison expérimentale |
 
-Les sept rôles sont `chef-operations`, `expert-recherche`, `architecte-solutions`, `ingenieur-devops`, `ingenieur-securite`, `redacteur-pedagogique` et `auditeur-qualite`. Ce sont des sessions spécialisées sur le même modèle, exécutées successivement.
+Sept profils successifs sur le même modèle: mentor infrastructure/OPS (`chef-operations`), recherche, architecte, DevOps, sécurité, rédacteur et auditeur. Les spécialistes sont appelés seulement si utiles.
 
 `granite4.2:8b-q4_K_M` reste un challenger hors routage. [Profil quotidien et migration](docs/DAILY_PROFILE.md) décrit les limites mémoire, le mode jeux, le collecteur et les tests réels.
 
-[Apprendre en construisant](docs/LEARNING_WORKFLOW.md) décrit le parcours guidé, les étapes humaines et les modifications cohérentes. [Plugins métier](docs/SPECIALIST_TOOLING.md) détaille les contrôles réellement disponibles.
+[Apprendre en construisant](docs/LEARNING_WORKFLOW.md) décrit l’aide adaptative, les retours avant publication, les notes personnelles et les modifications cohérentes. [Plugins métier](docs/SPECIALIST_TOOLING.md) détaille les contrôles réellement disponibles.
+
+[Choix du modèle au 6 octobre 2026](docs/MODEL_SELECTION_2026_10.md): tests publiés, limites et comparaison reproductible de Qwen/Gemma/Granite sur le PC.
 
 Sources de vérité : [`config/model_catalog.yaml`](config/model_catalog.yaml) et [`docs/MULTI_AGENT_CORE.md`](docs/MULTI_AGENT_CORE.md).
 
@@ -108,7 +110,7 @@ Guide complet : [`docs/INSTALLATION.md`](docs/INSTALLATION.md).
 
 ## Parcours de documentation
 
-Il n'existe **qu'une seule documentation et un seul parcours**. Une personne peut partir sans connaissance préalable et avancer progressivement jusqu'à l'architecture, l'exploitation DevOps et la qualification complète.
+Il n’existe **qu'une seule documentation et un seul parcours**, accessible sans connaissance préalable, jusqu’à la qualification.
 
 **Commencer ici : [`docs/README.md`](docs/README.md).**
 

@@ -15,8 +15,9 @@ from urllib.request import urlopen
 from clawfedora import project_ui
 from clawfedora.core_config import root_contract
 from clawfedora.knowledge import build_index, search, store_note
-from clawfedora.learning import awaiting, submit
+from clawfedora.learning import awaiting, pending_feedback, submit
 from clawfedora.local_http import LocalServer
+from clawfedora.mentor import profile, save_profile
 from clawfedora.project_common import read_json
 from clawfedora.project_control import is_paused, progress, request_pause, worker_active
 from clawfedora.project_engine import current_status, transition_project
@@ -49,6 +50,7 @@ def snapshot(repo_root: Path, runtime: Path) -> dict[str, Any]:
                     "completed": sum(t.get("status") == "PASS" for t in tasks),
                     "total": len(tasks),
                     "awaiting_practice": bool(awaiting(path.parent)),
+                    "awaiting_feedback": bool(pending_feedback(path.parent)),
                 }
             )
         except (OSError, ValueError, KeyError):
@@ -90,6 +92,7 @@ def snapshot(repo_root: Path, runtime: Path) -> dict[str, Any]:
         "gateway_available": gateway_available,
         "worker": progress(runtime),
         "projects": projects,
+        "mentor": profile(runtime),
         "webui_installed": (runtime / "state/webui/enabled").is_file(),
         "versions": {
             "openclaw": versions["openclaw"]["version"],
@@ -225,6 +228,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     self.server.repo_root, self.server.runtime, data
                 )
                 self._send(201, {"project_id": project.name})
+                return
+            if self.path == "/api/mentor":
+                with worker_lock(self.server.runtime, allow_gaming=True):
+                    value = save_profile(self.server.runtime, data)
+                self._send(200, value)
                 return
             project = self._project(str(data["project_id"]))
             if self.path in {"/api/propose-analysis", "/api/propose-plan", "/api/audit"}:

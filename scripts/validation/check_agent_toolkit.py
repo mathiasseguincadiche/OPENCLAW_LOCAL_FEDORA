@@ -45,7 +45,7 @@ with tempfile.TemporaryDirectory(prefix="clawfedora-native-tools-") as temporary
         + """
 const registry=await loadOpenClawPlugins({config,onlyPluginIds:['clawfedora-toolkit'],
  activate:false,cache:false,throwOnLoadError:true});
-if(registry.tools.length!==6) throw new Error('Native tool registration incomplete');
+if(registry.tools.length!==7) throw new Error('Native tool registration incomplete');
 for (const [name,role,params] of [
  ['clawfedora_outline','ingenieur-devops',{kind:'runbook',title:'Sauvegarde'}],
  ['clawfedora_diagram','architecte-solutions',{nodes:['Atelier','Ollama'],edges:[[0,1]]}],
@@ -53,6 +53,7 @@ for (const [name,role,params] of [
  ['clawfedora_search','expert-recherche',{query:'OPS'}],
  ['clawfedora_lint','redacteur-pedagogique',{format:'markdown',content:'# Guide\\n\\nUne étape.\\n'}],
  ['clawfedora_tool_status','chef-operations',{}],
+ ['clawfedora_ci_report','chef-operations',{format:'ci-checks',content:JSON.stringify({checks:[{tool:'restore',exit_code:0}]})}],
 ]) {
  const entry=registry.tools.find(x=>x.names.includes(name));
  const tool=entry.factory({agentId:role,workspaceDir:runtime+'/workspaces/'+role});

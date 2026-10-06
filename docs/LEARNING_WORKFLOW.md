@@ -4,17 +4,20 @@ L’objectif est de devenir capable de choisir une stratégie, expliquer son mé
 
 ## Un parcours proportionné
 
-À la création d’un projet dans l’atelier, choisir **Guidé** et, si utile, indiquer jusqu’à trois objectifs. Le chef cadre un projet court avec les spécialistes nécessaires. Chaque étape suit cette logique:
+Le **mentor infrastructure/OPS** devient l’entrée principale, sous l’ID stable chef-operations. À la création, le mode **Adaptatif** est proposé: le plan approuvé précise une aide directe ou une pratique guidée par tâche. Architecture/DevOps sont guidés par défaut; recherche, sécurité, audit et rédaction sont directs par défaut. Les modes globaux Guidé et Direct restent des choix explicites. Le mentor respecte les acquis Linux/réseau et cadre un projet court avec les spécialistes nécessaires. Les trois objectifs facultatifs servent à concentrer l’effort, sans questionnaire systématique. Chaque étape suit cette logique:
 
 1. Le spécialiste expose le problème et un mécanisme, définit les mots utiles et montre un petit exemple distinct de l’exercice.
 2. Il prépare une amorce avec des éléments à compléter. Le moteur conserve cette proposition en attente: aucune sortie finale n’est publiée et les dépendants ne démarrent pas.
 3. L’apprenant complète ses fichiers, décrit son raisonnement et indique ses observations ou ce qu’il n’a pas exécuté. Le formulaire n’exécute aucun code.
-4. La soumission passe par le collecteur et devient une contribution du projet. Ce PASS signifie «artefacts collectés», pas «fonctionne en production» ni «compétence acquise».
-5. L’utilisateur prépare l’étape suivante. Après toutes les contributions, validation et relecture examinent les critères, les sources et la qualité des explications. La livraison reste explicitement approuvée par l’utilisateur.
+4. La soumission devient AWAITING_FEEDBACK. Elle reste dans le dossier pédagogique, sans sortie finale ni bundle utilisable par les dépendants. Demander le retour appelle le spécialiste dans une session neuve, sur une copie protégée du travail complété et de ses sources. Les contrôles statiques disponibles portent sur ces fichiers, avec leurs hashes.
+5. Le retour explique ce qui est correct et l’action suivante. Un critère insuffisant donne REVISE: corriger puis resoumettre. Un PASS cohérent avec les critères et les contrôles publie les fichiers et le reçu de revue; le checkpoint devient REVIEWED. Cela ne prouve pas un déploiement ni une compétence acquise. Deux essais de retour maximum par soumission; aucune boucle pendant la pratique. En attente de retour ou après une erreur, le formulaire permet de corriger et resoumettre explicitement; les anciens essais restent conservés.
+6. L’utilisateur prépare l’étape suivante. Après toutes les contributions, validation et relecture examinent les critères, les sources et la qualité des explications. La livraison reste explicitement approuvée par l’utilisateur.
 
 Les éléments d’une réponse trop longue sont découpés en étapes; contexte 8K et sortie 1024 tokens restent inchangés. Un contrat compact `context/learning/contract.json` accompagne cadrage, plan, tâches et audits. Le contrat commun est réellement ajouté au `AGENTS.md` de chaque workspace, pas seulement déposé dans un fichier séparé.
 
-Dans une discussion Open WebUI, les mêmes consignes pédagogiques s’appliquent, mais aucun jalon de projet n’est créé automatiquement. Demander un indice, partager son essai puis demander une correction est une bonne utilisation du chat. Les comportements rédactionnels du Qwen réel restent à évaluer sur la machine: un prompt n’est pas une preuve de qualité.
+Dans l’atelier, ouvrir «Mon accompagnement et la continuité du chat»: cinq notes facultatives et courtes (acquis, sujet, difficulté, observations, prochaine étape), enregistrées par une action humaine. Aucun modèle ne les modifie automatiquement. Relier le projet permet au chat de recevoir son statut et son checkpoint courants. Pas de fine-tuning, nouveau service ou modèle supplémentaire.
+
+Dans une discussion Open WebUI, comprendre appelle une explication directe, débloquer une hypothèse et son contrôle, pratiquer une étape et des indices. Aucun jalon de projet n’est créé automatiquement. Demander un indice, partager son essai puis demander une correction est une bonne utilisation du chat. Les comportements rédactionnels du Qwen réel restent à évaluer sur la machine: un prompt n’est pas une preuve de qualité.
 
 ## Relier les outils au métier
 
@@ -34,9 +37,9 @@ Cela ne rend pas tous ces outils nécessaires au premier exercice. Commencer par
 
 ## Spécialistes et rédacteur
 
-Chaque spécialiste enseigne dans son domaine. L’architecte conçoit les flux, limites et schémas et justifie ses décisions. Le DevOps explique les effets et les vérifications. La sécurité fait comprendre scénarios et contrôles. La recherche date ses sources. Le chef ordonne les petites étapes. L’auditeur vérifie la fidélité et les preuves.
+Chaque spécialiste enseigne dans son domaine. L’architecte conçoit les flux, limites et schémas et justifie ses décisions. Le DevOps explique les effets et les vérifications. La sécurité fait comprendre scénarios et contrôles. La recherche date ses sources. Le mentor ordonne les petites étapes et aide à transférer les acquis. L’auditeur vérifie la fidélité et les preuves.
 
-Le **rédacteur pédagogique** organise les contributions actuelles, relie les notions, définit le vocabulaire et conserve les nuances. Il ne décide pas silencieusement de l’architecture et ne résout pas les étapes pratiques en attente. Le moteur refuse une tâche de rédaction qui ne dépend pas, directement ou indirectement, de toutes les contributions techniques du plan. Une modification technique entraîne donc aussi la reprise de sa synthèse. Sept rôles restent sept profils du même modèle: le coût vient des appels réellement effectués. Une tâche simple peut n’utiliser qu’un spécialiste.
+Le **rédacteur pédagogique** organise les contributions actuelles, relie les notions, définit le vocabulaire et conserve les nuances. Il ne décide pas silencieusement de l’architecture et ne résout pas les étapes pratiques en attente. Le moteur refuse une **synthèse finale** (writing_scope final par défaut) qui ne dépend pas, directement ou indirectement, de toutes les contributions techniques du plan. Un **document intermédiaire** (writing_scope intermediate explicite) attend ses seules sources nécessaires. Une modification technique entraîne donc aussi la reprise de sa synthèse. Sept rôles restent sept profils du même modèle: le coût vient des appels réellement effectués. Une tâche simple peut n’utiliser qu’un spécialiste.
 
 ## Reprendre une modification sans incohérences
 
