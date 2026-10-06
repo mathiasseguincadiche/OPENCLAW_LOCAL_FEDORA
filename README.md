@@ -24,7 +24,7 @@ La cible est **Fedora 44, Ryzen 7 7700, 48 Go de RAM et Intel Arc B580 12 Go**, 
 - **Un seul modèle quotidien** : Qwen 3.5 9B Q4_K_M, partagé par tous les rôles.
 - **Une génération à la fois** : le chat et les projets utilisent un verrou commun.
 - **Sept rôles spécialisés** : seuls ceux utiles à la demande sont sollicités.
-- **Un accompagnement adaptatif** : aide directe pour un sujet maîtrisé, pratique guidée pour apprendre.
+- **Un accompagnement adaptatif** : exemples expliqués, indices adaptés aux acquis et pratique guidée pour apprendre.
 - **Des outils locaux ciblés** : recherche documentaire, schémas Draw.io, documents Markdown/PDF/DOCX/TXT, fichiers techniques, contrôles statiques et rapports CI.
 - **Une validation humaine** : les commandes proposées sont exécutées par l’apprenant dans son exercice; les fichiers sont relus avant publication.
 

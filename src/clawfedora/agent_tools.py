@@ -30,7 +30,9 @@ TOOL_ROLES = {
     "clawfedora_ci_report": set(AGENT_IDS),
 }
 OUTLINES = {
-    "chef-operations": {"brief": ["Objectif", "Contraintes", "Livrables", "Critères de fin"]},
+    "chef-operations": {
+        "brief": ["Besoin OPS", "Acquis et difficulté", "Petite étape", "Livrables et preuve"]
+    },
     "expert-recherche": {"sources": ["Question", "Source et date", "Preuve", "Limites"]},
     "architecte-solutions": {
         "adr": ["Contexte", "Options", "Décision et compromis", "Conséquences", "Réversibilité"],
@@ -41,7 +43,7 @@ OUTLINES = {
             "Prérequis et droits",
             "Procédure",
             "Résultat attendu",
-            "Preuves",
+            "Observation et diagnostic",
             "Rollback",
         ],
         "incident": ["Symptômes", "Impact", "Diagnostic", "Correction", "Validation", "Prévention"],
@@ -54,17 +56,16 @@ OUTLINES = {
         "guide": [
             "Le problème",
             "Le mécanisme",
-            "Un petit exemple",
-            "À vous de pratiquer",
-            "Vérifier",
-            "Diagnostiquer",
+            "Un petit exemple expliqué",
+            "Action à essayer si utile",
+            "Observation, diagnostic et retour arrière",
         ],
         "explanation": [
             "Idée principale",
-            "Vocabulaire utile",
+            "Lien avec les acquis et vocabulaire utile",
             "Pourquoi ce choix",
             "Limites",
-            "Prochaine étape",
+            "Exemple et prochaine action utile",
         ],
     },
 }
@@ -260,6 +261,8 @@ def invoke(
             for section in OUTLINES[role][kind]
         ),
         "scope": "trame, aucune preuve inventée",
+        "instruction": "Adapter les rubriques au besoin; exemple expliqué avant une amorce. "
+        "Ce plan n’est pas obligatoire pour une réponse courte.",
     }
 
 
