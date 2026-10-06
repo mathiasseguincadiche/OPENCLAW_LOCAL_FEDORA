@@ -28,9 +28,7 @@ def _mapping(value: Any) -> dict[str, Any]:
 
 
 def _loopback(endpoint: str) -> bool:
-    return endpoint.startswith("http://127.0.0.1:") or endpoint.startswith(
-        "http://localhost:"
-    )
+    return endpoint.startswith("http://127.0.0.1:") or endpoint.startswith("http://localhost:")
 
 
 def _validate_project_contracts(
@@ -160,10 +158,10 @@ def validate_core_contracts(
     agents = _mapping(contracts["agents.yaml"].get("agents"))
     expected = set(AGENT_IDS)
     if set(agents) != expected:
-        failures.append("core/agents: exactement huit rôles sont requis")
+        failures.append("core/agents: exactement six rôles sont requis")
     policy = _mapping(contracts["agents.yaml"].get("policy"))
-    if int(policy.get("exact_agent_count", 0)) != 8:
-        failures.append("core/agents: exact_agent_count doit rester à 8")
+    if int(policy.get("exact_agent_count", 0)) != 6:
+        failures.append("core/agents: exact_agent_count doit rester à 6")
     if policy.get("default_agent") != "chef-operations":
         failures.append("core/agents: chef-operations doit rester l'agent par défaut")
 
@@ -172,21 +170,16 @@ def validate_core_contracts(
     routing = _mapping(contracts["model_routing.yaml"].get("agents"))
     tools = _mapping(contracts["tool_policy.yaml"].get("agents"))
     if set(routing) != expected or set(tools) != expected:
-        failures.append("core: routage et politique outils doivent couvrir les huit agents")
+        failures.append("core: routage et politique outils doivent couvrir les six agents")
 
     for agent_id, raw in agents.items():
         entry = _mapping(raw)
         model = str(entry.get("model", ""))
         fallback = str(entry.get("fallback", ""))
         if model not in model_aliases or fallback not in model_aliases:
-            failures.append(
-                f"core/agents: modèle ou fallback invalide pour {agent_id}"
-            )
+            failures.append(f"core/agents: modèle ou fallback invalide pour {agent_id}")
         route = _mapping(routing.get(agent_id))
-        if (
-            route.get("local_primary") != model
-            or route.get("local_fallback") != fallback
-        ):
+        if route.get("local_primary") != model or route.get("local_fallback") != fallback:
             failures.append(f"core/routing: divergence de routage pour {agent_id}")
 
     defaults = _mapping(contracts["tool_policy.yaml"].get("security_defaults"))
@@ -249,10 +242,7 @@ def validate_core_contracts(
         failures.append("core/openclaw: Gateway local loopback requis")
     if security.get("providers_loopback_only") is not True:
         failures.append("core/openclaw: providers loopback-only requis")
-    if (
-        security.get("exec_mode") != "ask"
-        or security.get("elevated_enabled") is not False
-    ):
+    if security.get("exec_mode") != "ask" or security.get("elevated_enabled") is not False:
         failures.append("core/openclaw: exec=ask et elevated=false requis")
 
     backends = root_contract(repo_root, "runtime_backends.yaml")

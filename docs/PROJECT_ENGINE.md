@@ -1,5 +1,7 @@
 # Moteur de projets Linux-native
 
+> Profil quotidien : six rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+
 ## Repères de progression
 
 | Repère | Valeur |
@@ -40,7 +42,7 @@ Une analyse ne passe pas si `source_coverage[]` ne couvre pas exactement l'index
 
 ## Plan et exécution
 
-Chaque tâche possède un rôle parmi les huit agents, des dépendances, sorties attendues et critères d'acceptation. Les cycles de dépendances sont refusés. Les sorties sont obligatoirement namespacées sous `work/<task-id>/`, `deliverables/<task-id>/`, `evidence/<task-id>/` ou `diagrams/<task-id>/`.
+Chaque tâche possède un rôle parmi les six agents, des dépendances, sorties attendues et critères d'acceptation. Les cycles de dépendances sont refusés. Les sorties sont obligatoirement namespacées sous `work/<task-id>/`, `deliverables/<task-id>/`, `evidence/<task-id>/` ou `diagrams/<task-id>/`.
 
 Chaque tentative crée un bundle immuable :
 

@@ -23,7 +23,7 @@ README racine
    ↓
 5. ARCHITECTURE.md          comprendre comment les composants s'assemblent
    ↓
-6. MULTI_AGENT_CORE.md      comprendre les 8 agents, modèles et outils
+6. MULTI_AGENT_CORE.md      comprendre les 6 agents, modèles et outils
    ↓
 7. PROJECT_ENGINE.md        comprendre le cycle d'un projet et les artefacts
    ↓
@@ -72,7 +72,7 @@ Le parcours ci-dessus reste la référence pour apprendre le projet de bout en b
 | exploiter la plateforme au quotidien | [`OPERATIONS.md`](OPERATIONS.md) |
 | diagnostiquer une anomalie | [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) |
 | comprendre l'architecture Linux | [`ARCHITECTURE.md`](ARCHITECTURE.md) |
-| comprendre les huit agents et leur routage | [`MULTI_AGENT_CORE.md`](MULTI_AGENT_CORE.md) |
+| comprendre les six agents et leur routage | [`MULTI_AGENT_CORE.md`](MULTI_AGENT_CORE.md) |
 | comprendre le moteur de projets | [`PROJECT_ENGINE.md`](PROJECT_ENGINE.md) |
 | comprendre le Gateway `systemd --user` | [`OPENCLAW_SYSTEMD.md`](OPENCLAW_SYSTEMD.md) |
 | comprendre le cycle de vie complet | [`LIFECYCLE.md`](LIFECYCLE.md) |
@@ -104,3 +104,5 @@ Une documentation ne doit jamais devenir une seconde configuration cachée.
 ## Invariant critique
 
 Une CI verte démontre la cohérence logicielle du dépôt. Elle ne démontre pas la qualification réelle de Fedora 44, de l'Intel Arc B580, de Vulkan, des performances HARD-40M/L6 ni l'approbation V1. Ces preuves sont produites sur la machine cible et restent soumises aux gates prévus.
+
+Le [profil quotidien B580](DAILY_PROFILE.md) précise les limites et la migration vers six rôles et un modèle.

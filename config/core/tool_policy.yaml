@@ -1,80 +1,153 @@
-schema_version: "1.3.0"
-platform_version: "0.1.0"
-
+schema_version: 1.3.0
+platform_version: 0.1.0
 security_defaults:
   profile: minimal
   fs_workspace_only: true
   exec_mode: ask
   elevated_enabled: false
   cloud_tools_without_explicit_escalation: false
-  document_tools: [pdf, view_image]
-
+  document_tools:
+  - pdf
+  - view_image
 write_enforcement:
-  protected_inputs: [intake, sources, context/exchange]
+  protected_inputs:
+  - intake
+  - sources
+  - context/exchange
   guard_manifest: .openclaw-fedora-input-guard.json
   fail_on_protected_input_change: true
   collect_scopes_are_enforced: true
   central_project_accepts_only_collected_task_outputs: true
-
 agents:
   chef-operations:
     profile: minimal
-    also_allow: [read, web_search, web_fetch, agents_list, sessions_list, sessions_history, sessions_search, sessions_send, sessions_spawn, subagents, session_status, pdf, view_image]
-    deny: [write, edit, apply_patch, exec, process]
-    collect_scopes: [work, evidence]
-
+    also_allow:
+    - read
+    - web_search
+    - web_fetch
+    - agents_list
+    - sessions_list
+    - sessions_history
+    - sessions_search
+    - session_status
+    - pdf
+    - view_image
+    deny:
+    - apply_patch
+    - edit
+    - exec
+    - process
+    - write
+    collect_scopes:
+    - work
+    - deliverables
+    - evidence
+    - diagrams
   expert-recherche:
     profile: minimal
-    also_allow: [read, web_search, web_fetch, browser, session_status, pdf, view_image]
-    deny: [write, edit, apply_patch, exec, process]
-    collect_scopes: [work, evidence]
-
+    also_allow:
+    - read
+    - web_search
+    - web_fetch
+    - session_status
+    - pdf
+    - view_image
+    deny:
+    - apply_patch
+    - edit
+    - exec
+    - process
+    - write
+    collect_scopes:
+    - work
+    - deliverables
+    - evidence
+    - diagrams
   architecte-solutions:
     profile: minimal
-    also_allow: [read, web_search, web_fetch, session_status, pdf, view_image]
-    deny: [write, edit, apply_patch, exec, process]
-    artifact_writer: architecture_scoped
-    write_scope: [context/architecture, diagrams]
-    collect_scopes: [work, evidence, diagrams]
-
+    also_allow:
+    - read
+    - web_search
+    - web_fetch
+    - session_status
+    - pdf
+    - view_image
+    deny:
+    - apply_patch
+    - edit
+    - exec
+    - process
+    - write
+    collect_scopes:
+    - work
+    - deliverables
+    - evidence
+    - diagrams
   ingenieur-devops:
     profile: minimal
-    also_allow: [read, write, edit, apply_patch, exec, process, web_search, web_fetch, session_status, pdf, view_image]
-    deny: []
-    collect_scopes: [work, deliverables, evidence, diagrams]
-
+    also_allow:
+    - read
+    - web_search
+    - web_fetch
+    - session_status
+    - pdf
+    - view_image
+    deny:
+    - apply_patch
+    - edit
+    - exec
+    - process
+    - write
+    collect_scopes:
+    - work
+    - deliverables
+    - evidence
+    - diagrams
   ingenieur-securite:
     profile: minimal
-    also_allow: [read, exec, process, web_search, web_fetch, session_status, pdf, view_image]
-    deny: [write, edit, apply_patch]
-    collect_scopes: [work, evidence]
-
-  ingenieur-release-forges:
-    profile: minimal
-    also_allow: [read, write, edit, apply_patch, exec, process, web_search, web_fetch, session_status, pdf, view_image]
-    deny: []
-    collect_scopes: [work, deliverables, evidence]
-
-  redacteur-technique:
-    profile: minimal
-    also_allow: [read, write, edit, apply_patch, web_search, web_fetch, session_status, pdf, view_image]
-    deny: [exec, process]
-    collect_scopes: [work, deliverables, evidence, diagrams]
-
+    also_allow:
+    - read
+    - web_search
+    - web_fetch
+    - session_status
+    - pdf
+    - view_image
+    deny:
+    - apply_patch
+    - edit
+    - exec
+    - process
+    - write
+    collect_scopes:
+    - work
+    - deliverables
+    - evidence
+    - diagrams
   auditeur-qualite:
     profile: minimal
-    also_allow: [read, web_search, web_fetch, session_status, pdf, view_image]
-    deny: [write, edit, apply_patch, exec, process]
-    collect_scopes: [work, evidence]
-
+    also_allow:
+    - read
+    - web_search
+    - web_fetch
+    - session_status
+    - pdf
+    - view_image
+    deny:
+    - apply_patch
+    - edit
+    - exec
+    - process
+    - write
+    collect_scopes:
+    - work
+    - deliverables
+    - evidence
+    - diagrams
 notes:
-  - "Le profil minimal est la base fail-closed; chaque rôle réautorise uniquement ses capacités nécessaires."
-  - "Les huit rôles peuvent inspecter les PDF et images de leur workspace via pdf/view_image."
-  - "Seul expert-recherche reçoit browser par défaut pour les sites JavaScript complexes."
-  - "Chef-operations conserve les outils de sessions nécessaires à la délégation sans recevoir les primitives d'écriture ou d'exécution."
-  - "Toute commande exec autorisée hors allowlist requiert une approbation humaine avec exec_mode=ask."
-  - "Le mode elevated reste désactivé sur Fedora, y compris lorsque sudo existe sur l'hôte."
-  - "Ingénieur sécurité audite et scanne mais ne modifie pas directement les sources."
-  - "Architecte produit ADR et schémas via un writer borné à context/architecture et diagrams."
-  - "Le Workspace Guard protège intake, sources et context/exchange; une altération bloque la collecte."
-  - "collect_scopes borne les sorties qu'un agent peut promouvoir vers le projet central."
+- Les six rôles rendent leurs livrables sous forme JSON au worker; seul le collecteur
+  écrit les chemins attendus.
+- Les outils exec/process et les écritures natives sont désactivés dans le profil
+  quotidien.
+- Le worker est le seul ordonnanceur; pas de délégation native imbriquée.
+- Internet fournit des sources non fiables; aucun modèle cloud de secours.
+- Un navigateur ou une exécution de code exigent un profil isolé qualifié séparément.

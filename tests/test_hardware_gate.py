@@ -18,7 +18,9 @@ def test_l2_gate_passes_expected_fedora_host(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr(hardware_gate, "_gnome_major", lambda: (50, "GNOME Shell 50.2"))
     monkeypatch.setattr(hardware_gate, "_cpu_model", lambda: "AMD Ryzen 7 7700 8-Core Processor")
     monkeypatch.setattr(hardware_gate, "_mem_total_gib", lambda: 47.0)
-    monkeypatch.setattr(hardware_gate, "_b580_lspci", lambda: (True, "Intel Arc B580"))
+    monkeypatch.setattr(
+        hardware_gate, "_b580_lspci", lambda: (True, "Intel Arc B580\n Kernel driver in use: xe")
+    )
     monkeypatch.setattr(hardware_gate, "_rebar_enabled", lambda: (True, "Resizable BAR enabled"))
     monkeypatch.setattr(hardware_gate.os, "cpu_count", lambda: 16)
     monkeypatch.setenv("XDG_SESSION_TYPE", "wayland")
@@ -56,7 +58,9 @@ def test_l2_gate_passes_expected_fedora_host(monkeypatch: pytest.MonkeyPatch) ->
 
 
 def test_l3_gate_requires_xe_render_mesa_and_vulkan(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(hardware_gate, "_b580_lspci", lambda: (True, "Intel Arc B580"))
+    monkeypatch.setattr(
+        hardware_gate, "_b580_lspci", lambda: (True, "Intel Arc B580\n Kernel driver in use: xe")
+    )
 
     def run(command: list[str], timeout: int = 15) -> tuple[int, str]:
         del timeout

@@ -119,19 +119,40 @@ def _b580_lspci() -> tuple[bool, str]:
     rc, output = _run(["lspci", "-nnk"])
     if rc != 0:
         return False, output
-    matched = [line for line in output.splitlines() if "B580" in line and "Intel" in line]
-    return bool(matched), "\n".join(matched) if matched else output[-800:]
+    lines = output.splitlines()
+    matched = [index for index, line in enumerate(lines) if "B580" in line and "Intel" in line]
+    if len(matched) != 1:
+        return False, "B580 PCI unique non observée"
+    start = matched[0]
+    block = [lines[start]]
+    for line in lines[start + 1 :]:
+        if line and not line[0].isspace():
+            break
+        block.append(line)
+    return True, "\n".join(block)
+
+
+def parse_rebar_current_size(output: str) -> int | None:
+    """Return the largest *current* BAR aperture in MiB, never its supported sizes."""
+    sizes = re.findall(r"current size:\s*(\d+)\s*(MB|GB)", output, flags=re.IGNORECASE)
+    return max(
+        (int(number) * (1024 if unit.upper() == "GB" else 1) for number, unit in sizes), default=None
+    )
 
 
 def _rebar_enabled() -> tuple[bool, str]:
-    rc, output = _run(["lspci", "-vv"], timeout=20)
-    if rc != 0:
-        return False, output
-    lines = [line.strip() for line in output.splitlines() if "Resizable BAR" in line]
-    if not lines:
-        return False, "Resizable BAR non observé dans lspci -vv"
-    disabled = all("disabled" in line.casefold() for line in lines)
-    return not disabled, "; ".join(lines[:8])
+    rc, inventory = _run(["lspci", "-Dnn"])
+    matches = [
+        line.split()[0] for line in inventory.splitlines() if "B580" in line and "Intel" in line
+    ]
+    if rc != 0 or len(matches) != 1:
+        return False, "B580 PCI unique non identifiée; ReBAR non confirmé"
+    slot = matches[0]
+    rc, output = _run(["lspci", "-s", slot, "-vv"], timeout=20)
+    size = parse_rebar_current_size(output) if rc == 0 else None
+    # A 12 GiB device needs an aperture large enough for its framebuffer.
+    ok = size is not None and size >= 12 * 1024
+    return ok, f"B580={slot} current_BAR_MiB={size}; cible>=12288 (permissions requises si inconnu)"
 
 
 def _check_l2(repo_root: Path) -> list[GateCheck]:
@@ -233,10 +254,16 @@ def _check_l3() -> list[GateCheck]:
     b580, gpu_detail = _b580_lspci()
     checks.append(GateCheck("gpu-b580", "PASS" if b580 else "FAIL", gpu_detail))
 
-    rc, lsmod = _run(["lsmod"])
-    xe = rc == 0 and any(
-        line.split()[0] == "xe" for line in lsmod.splitlines() if line.split()
+    bound = "Kernel driver in use: xe" in gpu_detail
+    checks.append(
+        GateCheck(
+            "b580-bound-driver",
+            "PASS" if bound else "FAIL",
+            "B580 liée à xe" if bound else "driver de la B580 non confirmé",
+        )
     )
+    rc, lsmod = _run(["lsmod"])
+    xe = rc == 0 and any(line.split()[0] == "xe" for line in lsmod.splitlines() if line.split())
     checks.append(
         GateCheck("driver-xe", "PASS" if xe else "FAIL", "xe chargé" if xe else lsmod[-500:])
     )

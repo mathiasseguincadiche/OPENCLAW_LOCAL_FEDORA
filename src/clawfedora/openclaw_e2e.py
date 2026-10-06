@@ -10,7 +10,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from clawfedora.core_config import AGENT_IDS, resolve_runtime_root, root_contract
+from clawfedora.core_config import (
+    AGENT_IDS,
+    openclaw_environment,
+    resolve_runtime_root,
+    root_contract,
+)
 from clawfedora.version_lock import extract_openclaw_version
 
 
@@ -26,9 +31,9 @@ def dry_run(backend: str) -> dict[str, Any]:
             "openclaw-version",
             "config-validate",
             "gateway-rpc-readiness",
-            "agents-list-exactly-8",
-            "eight-agent-smokes",
-            "tool-write-read-proof",
+            "agents-list-exactly-6",
+            "six-agent-smokes",
+            "tool-read-proof",
             "tool-error-repair",
             "stability-3-runs",
         ],
@@ -40,19 +45,20 @@ def dry_run(backend: str) -> dict[str, Any]:
     }
 
 
-def _run_json(command: list[str], timeout: int) -> dict[str, Any]:
+def _run_json(command: list[str], timeout: int, runtime_root: Path | None = None) -> dict[str, Any]:
     completed = subprocess.run(
         command,
         check=False,
         capture_output=True,
         text=True,
         timeout=timeout,
+        env=openclaw_environment(runtime_root),
     )
     text = (completed.stdout + "\n" + completed.stderr).strip()
     if completed.returncode != 0:
         raise RuntimeError(f"commande en échec ({completed.returncode}): {text[-1200:]}")
     try:
-        payload = json.loads(text)
+        payload = json.loads(completed.stdout.strip())
     except json.JSONDecodeError as exc:
         raise ValueError(f"OpenClaw n'a pas retourné un JSON valide: {text[-1200:]}") from exc
     if not isinstance(payload, dict) and not isinstance(payload, list):
@@ -66,13 +72,12 @@ def _state_root() -> Path:
     explicit = os.environ.get("OPENCLAW_STATE_DIR")
     if explicit:
         return Path(explicit).expanduser().resolve()
-    xdg = os.environ.get("XDG_STATE_HOME")
-    base = Path(xdg).expanduser() if xdg else Path.home() / ".local" / "state"
-    return (base / "openclaw-local").resolve()
+    return (resolve_runtime_root() / "state/openclaw").resolve()
 
 
-def _config() -> dict[str, Any]:
-    path = _state_root() / "openclaw.json"
+def _config(runtime_root: Path | None = None) -> dict[str, Any]:
+    state = runtime_root / "state/openclaw" if runtime_root is not None else _state_root()
+    path = state / "openclaw.json"
     if not path.is_file():
         raise FileNotFoundError(f"configuration OpenClaw absente: {path}")
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -85,15 +90,20 @@ def _agent_entries(config: dict[str, Any]) -> dict[str, dict[str, Any]]:
     agents = config.get("agents", {})
     if not isinstance(agents, dict):
         raise ValueError("openclaw.json: agents invalide")
-    entries = agents.get("list", [])
-    if not isinstance(entries, list):
-        raise ValueError("openclaw.json: agents.list invalide")
-    result: dict[str, dict[str, Any]] = {}
-    for raw in entries:
-        if isinstance(raw, dict) and raw.get("id"):
-            result[str(raw["id"])] = raw
+    canonical = agents.get("entries")
+    if isinstance(canonical, dict):
+        result = {
+            str(key): dict(value, id=key)
+            for key, value in canonical.items()
+            if isinstance(value, dict)
+        }
+    else:
+        entries = agents.get("list", [])
+        if not isinstance(entries, list):
+            raise ValueError("openclaw.json: roster invalide")
+        result = {str(raw["id"]): raw for raw in entries if isinstance(raw, dict) and raw.get("id")}
     if set(result) != set(AGENT_IDS):
-        raise ValueError(f"OpenClaw doit exposer exactement 8 agents: {sorted(result)}")
+        raise ValueError(f"OpenClaw doit exposer exactement 6 agents: {sorted(result)}")
     return result
 
 
@@ -133,6 +143,8 @@ def _visible_text(payload: dict[str, Any]) -> str:
     if isinstance(final, str) and final.strip():
         return final.strip()
     payloads = payload.get("payloads")
+    if payloads is None and isinstance(result, dict):
+        payloads = result.get("payloads")
     if isinstance(payloads, list):
         texts = [
             str(item.get("text", "")).strip()
@@ -160,9 +172,11 @@ def _assert_agent_success(payload: dict[str, Any], expected_provider: str) -> No
     if status and status != "ok":
         raise RuntimeError(f"status agent invalide: {status}")
     serialized = json.dumps(payload, ensure_ascii=False)
-    provider_marker = f'"provider": "{expected_provider}"'
-    provider_marker_compact = f'"provider":"{expected_provider}"'
-    if provider_marker not in serialized and provider_marker_compact not in serialized:
+    agent_meta = meta.get("agentMeta", {})
+    observed_provider = meta.get("provider") or (
+        agent_meta.get("provider") if isinstance(agent_meta, dict) else None
+    )
+    if observed_provider != expected_provider:
         raise RuntimeError(f"preuve provider={expected_provider} absente")
     if '"transport":"embedded"' in serialized.replace(" ", ""):
         raise RuntimeError("transport embedded interdit pour L4")
@@ -170,7 +184,9 @@ def _assert_agent_success(payload: dict[str, Any], expected_provider: str) -> No
         raise RuntimeError("fallback silencieux depuis Gateway interdit")
 
 
-def _gateway_ready(openclaw: str, timeout: int = 90) -> dict[str, Any]:
+def _gateway_ready(
+    openclaw: str, timeout: int = 90, runtime_root: Path | None = None
+) -> dict[str, Any]:
     deadline = time.monotonic() + timeout
     last: dict[str, Any] | None = None
     while time.monotonic() < deadline:
@@ -178,6 +194,7 @@ def _gateway_ready(openclaw: str, timeout: int = 90) -> dict[str, Any]:
             last = _run_json(
                 [openclaw, "gateway", "status", "--require-rpc", "--json"],
                 timeout=15,
+                runtime_root=runtime_root,
             )
         except (RuntimeError, ValueError, subprocess.TimeoutExpired):
             time.sleep(2)
@@ -197,6 +214,7 @@ def _agent_call(
     message: str,
     timeout: int,
     thinking: str = "off",
+    runtime_root: Path | None = None,
 ) -> dict[str, Any]:
     return _run_json(
         [
@@ -215,6 +233,7 @@ def _agent_call(
             "--json",
         ],
         timeout=timeout + 30,
+        runtime_root=runtime_root,
     )
 
 
@@ -258,14 +277,14 @@ def run_e2e(
         return 2, None
 
     try:
-        _run_json([openclaw, "config", "validate", "--json"], timeout=30)
-        gateway = _gateway_ready(openclaw)
-        config = _config()
+        _run_json([openclaw, "config", "validate", "--json"], timeout=30, runtime_root=runtime)
+        gateway = _gateway_ready(openclaw, runtime_root=runtime)
+        config = _config(runtime)
         entries = _agent_entries(config)
-        listed = _run_json([openclaw, "agents", "list", "--json"], timeout=30)
+        listed = _run_json([openclaw, "agents", "list", "--json"], timeout=30, runtime_root=runtime)
         raw_list = listed.get("list") or listed.get("agents")
-        if not isinstance(raw_list, list) or len(raw_list) != 8:
-            raise ValueError("OpenClaw agents list doit contenir exactement 8 agents")
+        if not isinstance(raw_list, list) or len(raw_list) != 6:
+            raise ValueError("OpenClaw agents list doit contenir exactement 6 agents")
     except (FileNotFoundError, RuntimeError, ValueError, TimeoutError) as exc:
         print(f"L4_RESULT=FAIL preflight={exc}")
         return 2, None
@@ -293,6 +312,7 @@ def run_e2e(
             provider = _provider(_model_ref(entries[agent]))
             payload = _agent_call(
                 openclaw,
+                runtime_root=runtime,
                 agent=agent,
                 session=f"{session_prefix}-smoke-{agent}",
                 message=f"N'utilise aucun outil. Réponds exactement: AGENT_OK {agent}",
@@ -317,13 +337,16 @@ def run_e2e(
         scratch = workspace / ".openclaw-e2e" / stamp
         scratch.mkdir(parents=True, exist_ok=False)
         relative = f".openclaw-e2e/{stamp}/tool-ok.txt"
+        nonce = os.urandom(16).hex()
+        marker = workspace / relative
+        marker.write_text(nonce, encoding="utf-8")
         tool_prompt = (
-            f"Crée le fichier {relative} avec exactement TOOL_OK. Utilise les outils fichiers. "
-            "Si nécessaire utilise tool_search puis tool_call. N'utilise pas exec. "
-            "Après écriture réponds exactement TOOL_OK."
+            f"Lis le fichier {relative} avec read. Réponds uniquement avec son contenu exact. "
+            "N'utilise aucun outil d'écriture ou exec."
         )
         payload = _agent_call(
             openclaw,
+            runtime_root=runtime,
             agent=tool_agent,
             session=f"{session_prefix}-tool",
             message=tool_prompt,
@@ -332,7 +355,7 @@ def run_e2e(
         _assert_agent_success(payload, tool_provider)
         text = _visible_text(payload)
         marker = workspace / relative
-        if text != "TOOL_OK" or marker.read_text(encoding="utf-8").strip() != "TOOL_OK":
+        if text != nonce or marker.read_text(encoding="utf-8").strip() != nonce:
             raise RuntimeError("preuve tool-calling invalide")
         evidence["tool_call"] = {
             **_proof(payload, text, tool_provider),
@@ -341,13 +364,17 @@ def run_e2e(
 
         missing_relative = f".openclaw-e2e/{stamp}/missing.txt"
         repair_relative = f".openclaw-e2e/{stamp}/repair-ok.txt"
+        repaired = workspace / repair_relative
+        repair_nonce = os.urandom(16).hex()
+        repaired.write_text(repair_nonce, encoding="utf-8")
         repair_prompt = (
-            f"Essaie d'abord de lire {missing_relative}; ce fichier n'existe pas. "
-            f"Après l'erreur outil, crée {repair_relative} avec exactement REPAIR_OK, "
-            "puis réponds exactement REPAIR_OK. N'utilise pas exec."
+            f"Essaie de lire {missing_relative}; ce fichier n'existe pas. "
+            f"Après l'erreur lis {repair_relative}, puis réponds uniquement avec son contenu exact. "
+            "N'utilise aucun outil d'écriture ou exec."
         )
         payload = _agent_call(
             openclaw,
+            runtime_root=runtime,
             agent=tool_agent,
             session=f"{session_prefix}-repair",
             message=repair_prompt,
@@ -356,7 +383,7 @@ def run_e2e(
         _assert_agent_success(payload, tool_provider)
         text = _visible_text(payload)
         repaired = workspace / repair_relative
-        if text != "REPAIR_OK" or repaired.read_text(encoding="utf-8").strip() != "REPAIR_OK":
+        if text != repair_nonce or repaired.read_text(encoding="utf-8").strip() != repair_nonce:
             raise RuntimeError("preuve réparation après erreur outil invalide")
         evidence["repair"] = {
             **_proof(payload, text, tool_provider),
@@ -367,6 +394,7 @@ def run_e2e(
             expected = f"STABLE_OK {index}"
             payload = _agent_call(
                 openclaw,
+                runtime_root=runtime,
                 agent=tool_agent,
                 session=f"{session_prefix}-stable-{index}",
                 message=f"N'utilise aucun outil. Réponds exactement: {expected}",
@@ -376,9 +404,7 @@ def run_e2e(
             text = _visible_text(payload)
             if text != expected:
                 raise RuntimeError(f"stabilité {index}: réponse inattendue {text!r}")
-            evidence["stability"].append(
-                {"run": index, **_proof(payload, text, tool_provider)}
-            )
+            evidence["stability"].append({"run": index, **_proof(payload, text, tool_provider)})
     except (
         FileNotFoundError,
         OSError,

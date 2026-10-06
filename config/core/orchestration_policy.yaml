@@ -1,22 +1,45 @@
-schema_version: "1.0.0"
-platform_version: "0.1.0"
+schema_version: 1.0.0
+platform_version: 0.1.0
 engine:
   fail_closed: true
   local_first: true
   final_human_approval_required: true
   document_ingestion_required_before_analysis: true
   artifact_exchange_fail_closed: true
-status_flow: [INTAKE_READY, ANALYZED, CLARIFICATION_REQUIRED, PLANNED, ASSIGNED, IN_PROGRESS, VALIDATING, REVIEW, PACKAGING, COMPLETE]
+  native_subagent_delegation: false
+status_flow:
+- INTAKE_READY
+- ANALYZED
+- CLARIFICATION_REQUIRED
+- PLANNED
+- ASSIGNED
+- IN_PROGRESS
+- VALIDATING
+- REVIEW
+- PACKAGING
+- COMPLETE
 transitions:
-  INTAKE_READY: [ANALYZED]
-  ANALYZED: [CLARIFICATION_REQUIRED, PLANNED]
-  CLARIFICATION_REQUIRED: [ANALYZED]
-  PLANNED: [ASSIGNED]
-  ASSIGNED: [IN_PROGRESS]
-  IN_PROGRESS: [VALIDATING]
-  VALIDATING: [IN_PROGRESS, REVIEW]
-  REVIEW: [IN_PROGRESS, PACKAGING]
-  PACKAGING: [COMPLETE]
+  INTAKE_READY:
+  - ANALYZED
+  ANALYZED:
+  - CLARIFICATION_REQUIRED
+  - PLANNED
+  CLARIFICATION_REQUIRED:
+  - ANALYZED
+  PLANNED:
+  - ASSIGNED
+  ASSIGNED:
+  - IN_PROGRESS
+  IN_PROGRESS:
+  - VALIDATING
+  VALIDATING:
+  - IN_PROGRESS
+  - REVIEW
+  REVIEW:
+  - IN_PROGRESS
+  - PACKAGING
+  PACKAGING:
+  - COMPLETE
   COMPLETE: []
 artifacts:
   analysis: context/project_analysis.json
@@ -32,6 +55,9 @@ execution:
   max_task_attempts: 2
   task_output_namespaced_by_task: true
   propagate_passed_outputs_to_dependents: true
+  owner: project-worker
+  global_inference_lock: true
+  queue_limit: 4
 human_gates:
   blocking_clarifications: true
   destructive_actions: true

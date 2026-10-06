@@ -197,11 +197,7 @@ def _write_outputs(
     dependencies = task.get("depends_on", [])
     if not isinstance(dependencies, list):
         raise ValueError(f"L7: depends_on invalide pour {task_id}")
-    dependency_text = (
-        ", ".join(str(value) for value in dependencies)
-        if dependencies
-        else "aucune"
-    )
+    dependency_text = ", ".join(str(value) for value in dependencies) if dependencies else "aucune"
 
     project_root = project.resolve()
     outputs: list[str] = []
@@ -255,6 +251,7 @@ def _run_project(
     spec: dict[str, Any],
     *,
     kind: str,
+    live_runtime: Path | None = None,
 ) -> GoldenProjectResult:
     started = time.perf_counter()
     project: Path | None = None
@@ -304,48 +301,58 @@ def _run_project(
         )
 
         tasks = _task_map(spec)
-        completed: set[str] = set()
-        while len(completed) < len(tasks):
-            ready = ready_tasks(repo_root, project)
-            pending = [
-                item
-                for item in ready
-                if str(item.get("task_id")) not in completed
-            ]
-            if not pending:
-                raise ValueError(
-                    f"L7: graphe bloqué pour {project_id}; completed={sorted(completed)}"
-                )
-            for assignment in pending:
-                task_id = validate_task_id(str(assignment["task_id"]))
-                task = tasks[task_id]
-                outputs = _write_outputs(project, task, project_id)
-                record_task_result(
-                    repo_root,
-                    project,
-                    task_id=task_id,
-                    agent=str(task["role"]),
-                    status="PASS",
-                    outputs=outputs,
-                    summary="L7 deterministic project-engine evidence PASS",
-                )
-                completed.add(task_id)
+        if live_runtime is not None:
+            from clawfedora.project_worker import run_project_tasks
 
-        transition_project(
-            repo_root,
-            project,
-            "VALIDATING",
-            actor="auditeur-qualite",
-            reason="l7_tasks_pass",
-        )
-        store_verdict(
-            repo_root,
-            project,
-            "validation",
-            "PASS",
-            [],
-            reviewer="auditeur-qualite",
-        )
+            results = run_project_tasks(repo_root, live_runtime, project)
+            if not results or any(item["status"] != "PASS" for item in results):
+                raise ValueError("L7 live: tâches non PASS")
+        else:
+            completed: set[str] = set()
+            while len(completed) < len(tasks):
+                ready = ready_tasks(repo_root, project)
+                pending = [item for item in ready if str(item.get("task_id")) not in completed]
+                if not pending:
+                    raise ValueError(
+                        f"L7: graphe bloqué pour {project_id}; completed={sorted(completed)}"
+                    )
+                for assignment in pending:
+                    task_id = validate_task_id(str(assignment["task_id"]))
+                    task = tasks[task_id]
+                    outputs = _write_outputs(project, task, project_id)
+                    record_task_result(
+                        repo_root,
+                        project,
+                        task_id=task_id,
+                        agent=str(task["role"]),
+                        status="PASS",
+                        outputs=outputs,
+                        summary="L7 deterministic project-engine evidence PASS",
+                    )
+                    completed.add(task_id)
+
+            transition_project(
+                repo_root,
+                project,
+                "VALIDATING",
+                actor="auditeur-qualite",
+                reason="l7_tasks_pass",
+            )
+        if live_runtime is not None:
+            from clawfedora.project_worker import review_project
+
+            verdict_path = review_project(repo_root, live_runtime, project, "validation")
+            if read_json(verdict_path)["verdict"] != "PASS":
+                raise ValueError("L7 live: audit validation non PASS")
+        else:
+            store_verdict(
+                repo_root,
+                project,
+                "validation",
+                "PASS",
+                [],
+                reviewer="auditeur-qualite",
+            )
         transition_project(
             repo_root,
             project,
@@ -353,15 +360,22 @@ def _run_project(
             actor="auditeur-qualite",
             reason="l7_validation_pass",
         )
-        store_verdict(
-            repo_root,
-            project,
-            "review",
-            "PASS",
-            [],
-            reviewer="auditeur-qualite",
-        )
-        package_project(repo_root, project, actor="ingenieur-release-forges")
+        if live_runtime is not None:
+            from clawfedora.project_worker import review_project
+
+            verdict_path = review_project(repo_root, live_runtime, project, "review")
+            if read_json(verdict_path)["verdict"] != "PASS":
+                raise ValueError("L7 live: audit review non PASS")
+        else:
+            store_verdict(
+                repo_root,
+                project,
+                "review",
+                "PASS",
+                [],
+                reviewer="auditeur-qualite",
+            )
+        package_project(repo_root, project, actor="ingenieur-devops")
 
         policy = _l7_policy(repo_root)
         package_failures = validate_package(repo_root, project)
@@ -374,22 +388,24 @@ def _run_project(
         required_state = str(policy["required_terminal_status"])
         required_validation = str(policy["required_validation_verdict"])
         required_review = str(policy["required_review_verdict"])
-        verdict = "PASS" if all(
-            (
-                package_integrity,
-                human_gate,
-                status == required_state,
-                validation == required_validation,
-                review == required_review,
+        verdict = (
+            "PASS"
+            if all(
+                (
+                    package_integrity,
+                    human_gate,
+                    status == required_state,
+                    validation == required_validation,
+                    review == required_review,
+                )
             )
-        ) else "FAIL"
+            else "FAIL"
+        )
         failures: list[str] = list(package_failures)
         if status != required_state:
             failures.append(f"terminal_status={status} expected={required_state}")
         if validation != required_validation:
-            failures.append(
-                f"validation={validation} expected={required_validation}"
-            )
+            failures.append(f"validation={validation} expected={required_validation}")
         if review != required_review:
             failures.append(f"review={review} expected={required_review}")
         if not human_gate:
@@ -447,10 +463,7 @@ def dry_run(repo_root: Path) -> dict[str, Any]:
     )
     if not isinstance(goldens, list):
         raise ValueError("L7: golden_projects invalide")
-    golden_ids = [
-        _project_id(_mapping(item, "golden_project"))
-        for item in goldens
-    ]
+    golden_ids = [_project_id(_mapping(item, "golden_project")) for item in goldens]
     return {
         "schema_version": REPORT_SCHEMA,
         "gate": "L7",
@@ -458,9 +471,7 @@ def dry_run(repo_root: Path) -> dict[str, Any]:
         "golden_projects": golden_ids,
         "representative_project": _project_id(representative),
         "project_count": len(goldens) + 1,
-        "task_count": sum(
-            len(_task_map(_mapping(item, "golden_project"))) for item in goldens
-        )
+        "task_count": sum(len(_task_map(_mapping(item, "golden_project"))) for item in goldens)
         + len(_task_map(representative)),
         "cloud_calls_allowed": False,
         "remote_publication_allowed": False,
@@ -503,7 +514,7 @@ def _record_local_accounting(
     )
 
 
-def run_golden_suite(repo_root: Path, runtime_root: Path) -> tuple[int, Path]:
+def run_golden_suite(repo_root: Path, runtime_root: Path, *, live: bool = False) -> tuple[int, Path]:
     failures, _ = validate_golden_contracts(repo_root)
     if failures:
         raise ValueError("; ".join(failures))
@@ -524,7 +535,9 @@ def run_golden_suite(repo_root: Path, runtime_root: Path) -> tuple[int, Path]:
 
     for raw in goldens:
         spec = _mapping(raw, "golden_project")
-        result = _run_project(repo_root, run_root, spec, kind="golden")
+        result = _run_project(
+            repo_root, run_root, spec, kind="golden", live_runtime=runtime_root if live else None
+        )
         results.append(result)
         _record_local_accounting(repo_root, run_root, result)
 
@@ -533,6 +546,7 @@ def run_golden_suite(repo_root: Path, runtime_root: Path) -> tuple[int, Path]:
         run_root,
         representative,
         kind="representative",
+        live_runtime=runtime_root if live else None,
     )
     results.append(representative_result)
     _record_local_accounting(repo_root, run_root, representative_result)
@@ -544,12 +558,9 @@ def run_golden_suite(repo_root: Path, runtime_root: Path) -> tuple[int, Path]:
         for result in results
         if result.verdict != "PASS"
     ]
-    goldens_pass = sum(
-        result.kind == "golden" and result.verdict == "PASS" for result in results
-    )
+    goldens_pass = sum(result.kind == "golden" and result.verdict == "PASS" for result in results)
     representative_pass = sum(
-        result.kind == "representative" and result.verdict == "PASS"
-        for result in results
+        result.kind == "representative" and result.verdict == "PASS" for result in results
     )
     if goldens_pass != int(policy["required_golden_projects"]):
         result_failures.append(
@@ -561,13 +572,9 @@ def run_golden_suite(repo_root: Path, runtime_root: Path) -> tuple[int, Path]:
             f"{representative_pass}/{policy['required_representative_projects']}"
         )
     if len(telemetry) != len(results):
-        result_failures.append(
-            f"telemetry_events={len(telemetry)} expected={len(results)}"
-        )
+        result_failures.append(f"telemetry_events={len(telemetry)} expected={len(results)}")
     if int(finops.get("events", 0)) != len(results) * 2:
-        result_failures.append(
-            f"finops_events={finops.get('events')} expected={len(results) * 2}"
-        )
+        result_failures.append(f"finops_events={finops.get('events')} expected={len(results) * 2}")
     if float(finops.get("net_exposure_eur", 0.0)) != 0.0:
         result_failures.append("finops net exposure must remain 0 EUR")
     if any(not result.human_gate_preserved for result in results):
@@ -578,6 +585,8 @@ def run_golden_suite(repo_root: Path, runtime_root: Path) -> tuple[int, Path]:
         "schema_version": REPORT_SCHEMA,
         "generated_at": datetime.now(UTC).isoformat(),
         "gate": "L7",
+        "execution_mode": "live-openclaw" if live else "synthetic",
+        "ai_runtime_exercised": live,
         "run_id": run_id,
         "verdict": verdict,
         "golden_projects_pass": goldens_pass,

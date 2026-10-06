@@ -12,8 +12,6 @@ AGENT_IDS = (
     "architecte-solutions",
     "ingenieur-devops",
     "ingenieur-securite",
-    "ingenieur-release-forges",
-    "redacteur-technique",
     "auditeur-qualite",
 )
 
@@ -52,3 +50,17 @@ def resolve_runtime_root(explicit: str | Path | None = None) -> Path:
     if preferred.is_dir():
         return preferred.resolve()
     return (Path.home() / ".local" / "share" / "openclaw-local").resolve()
+
+
+def openclaw_environment(runtime: Path | None = None) -> dict[str, str]:
+    root = runtime or resolve_runtime_root()
+    env = dict(os.environ)
+    env.pop("OPENCLAW_CONFIG_PATH", None)
+    env.update(
+        OPENCLAW_STATE_DIR=str(root / "state/openclaw"),
+        OPENCLAW_LOCAL_FEDORA_ROOT=str(root),
+        OPENCLAW_LOCAL_CLOUD_ENABLED="false",
+        OLLAMA_API_KEY="ollama-local",
+        INTEL_VULKAN_API_KEY="intel-vulkan-local",
+    )
+    return env

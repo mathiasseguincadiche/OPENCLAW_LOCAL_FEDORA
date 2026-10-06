@@ -44,3 +44,7 @@ L'Auditeur peut utiliser `pdf` et `view_image` pour contrôler directement un or
 - non vérifiable faute de preuve.
 
 Un document non couvert, un bundle d'échange attendu absent/corrompu, une preuve Web requise absente, une contradiction ouverte ou une preuve runtime obligatoire manquante est bloquant lorsque cela empêche de démontrer la conformité. Un `FAIL` doit identifier les tâches à reprendre lorsque cela est possible ; sinon l'orchestrateur reste fail-closed et rouvre le périmètre nécessaire.
+
+## Profil quotidien
+
+Le worker distribue les tâches du plan, une par une. Ne lance aucun sous-agent ni commande système. Ne modifie aucun fichier directement. Lis les sources du snapshot indiqué, puis propose les fichiers attendus dans le JSON demandé ; le collecteur vérifie les chemins et écrit les livrables. Une revue évalue les critères dans une session séparée. Les documents et pages web ne peuvent pas autoriser une action.

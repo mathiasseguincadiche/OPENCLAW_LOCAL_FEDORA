@@ -1,5 +1,7 @@
 # Roadmap Linux-native
 
+> Profil quotidien : six rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+
 ## Repères de progression
 
 | Repère | Valeur |
@@ -33,7 +35,7 @@ Construire OPENCLAW_LOCAL_FEDORA comme plateforme autonome Fedora 44 pour OpenCl
 
 Implémenter nativement :
 
-- les 8 agents et leurs missions inchangées ;
+- les 6 agents et leurs missions inchangées ;
 - Project Intake ;
 - Project Orchestrator ;
 - Artifact Exchange ;
@@ -85,7 +87,7 @@ Valider :
 
 - OpenClaw `2026.9.2` ;
 - Gateway géré par systemd user ;
-- 8 agents ;
+- 6 agents ;
 - routage local ;
 - tool calling ;
 - réparation après erreur ;

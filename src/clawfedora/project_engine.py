@@ -80,9 +80,7 @@ def _validate_ingestion_index(project: Path) -> list[dict[str, Any]]:
         document_id = str(raw.get("document_id", ""))
         relative = str(raw.get("path", ""))
         if not document_id or document_id in seen_ids:
-            raise ValueError(
-                f"index ingestion: document_id invalide/dupliqué: {document_id}"
-            )
+            raise ValueError(f"index ingestion: document_id invalide/dupliqué: {document_id}")
         if relative in seen_paths:
             raise ValueError(f"index ingestion: chemin dupliqué: {relative}")
         seen_ids.add(document_id)
@@ -108,9 +106,7 @@ def _validate_ingestion_index(project: Path) -> list[dict[str, Any]]:
     if seen_paths != actual_files:
         missing = sorted(actual_files - seen_paths)
         extra = sorted(seen_paths - actual_files)
-        raise ValueError(
-            f"index ingestion périmé: missing={missing} extra={extra}"
-        )
+        raise ValueError(f"index ingestion périmé: missing={missing} extra={extra}")
     if int(index.get("source_count", -1)) != len(normalized):
         raise ValueError("index ingestion: source_count divergent")
     return normalized
@@ -131,9 +127,7 @@ def _coverage_gate(repo_root: Path, project: Path, payload: dict[str, Any]) -> N
     if set(by_id) != set(expected):
         missing = sorted(set(expected) - set(by_id))
         extra = sorted(set(by_id) - set(expected))
-        raise ValueError(
-            f"source_coverage incomplète: missing={missing} extra={extra}"
-        )
+        raise ValueError(f"source_coverage incomplète: missing={missing} extra={extra}")
     ingestion_policy = core_contract(repo_root, "document_ingestion_policy.yaml")
     statuses = set(ingestion_policy["coverage_statuses"])
     methods = set(ingestion_policy["coverage_methods"])
@@ -146,23 +140,13 @@ def _coverage_gate(repo_root: Path, project: Path, payload: dict[str, Any]) -> N
             raise ValueError(f"source_coverage invalide pour {document_id}")
         kind = str(source.get("kind", ""))
         required_method = str(source.get("method", ""))
-        if (
-            kind in {"pdf", "image"}
-            and status != "UNREADABLE"
-            and method != required_method
-        ):
-            raise ValueError(
-                f"{document_id}: lecture réelle via {required_method} requise"
-            )
+        if kind in {"pdf", "image"} and status != "UNREADABLE" and method != required_method:
+            raise ValueError(f"{document_id}: lecture réelle via {required_method} requise")
         if status == "UNREADABLE":
             unreadable += 1
     missing_information = payload.get("missing_information", [])
-    if unreadable and (
-        not isinstance(missing_information, list) or not missing_information
-    ):
-        raise ValueError(
-            "document UNREADABLE: missing_information doit exposer la limite"
-        )
+    if unreadable and (not isinstance(missing_information, list) or not missing_information):
+        raise ValueError("document UNREADABLE: missing_information doit exposer la limite")
 
 
 def store_analysis(repo_root: Path, project: Path, payload: dict[str, Any]) -> Path:
@@ -188,10 +172,7 @@ def store_analysis(repo_root: Path, project: Path, payload: dict[str, Any]) -> P
 def _question(value: Any) -> tuple[str, bool]:
     if isinstance(value, dict):
         text = str(
-            value.get("question")
-            or value.get("description")
-            or value.get("text")
-            or ""
+            value.get("question") or value.get("description") or value.get("text") or ""
         ).strip()
         return text, bool(value.get("blocking", True))
     return str(value).strip(), True
@@ -329,9 +310,7 @@ def store_plan(repo_root: Path, project: Path, payload: dict[str, Any]) -> Path:
     _assert_input_integrity(project)
     tasks = payload.get("tasks", [])
     workstreams = payload.get("workstreams", [])
-    if not isinstance(tasks, list) or any(
-        not isinstance(item, dict) for item in tasks
-    ):
+    if not isinstance(tasks, list) or any(not isinstance(item, dict) for item in tasks):
         raise ValueError("plan: tasks doit être une liste d'objets")
     if not isinstance(workstreams, list):
         raise ValueError("plan: workstreams doit être une liste")
@@ -402,11 +381,7 @@ def ready_tasks(repo_root: Path, project: Path) -> list[dict[str, Any]]:
     tasks = assignments.get("tasks", [])
     if not isinstance(tasks, list):
         raise ValueError("assignments: tasks invalide")
-    by_id = {
-        str(item.get("task_id")): item
-        for item in tasks
-        if isinstance(item, dict)
-    }
+    by_id = {str(item.get("task_id")): item for item in tasks if isinstance(item, dict)}
     maximum = int(dict(_policy(repo_root)["execution"])["max_task_attempts"])
     ready: list[dict[str, Any]] = []
     for item in tasks:
@@ -419,12 +394,12 @@ def ready_tasks(repo_root: Path, project: Path) -> list[dict[str, Any]]:
             item.get("status") != "PASS"
             and int(item.get("attempts", 0)) < maximum
             and all(
-                by_id.get(str(dependency), {}).get("status") == "PASS"
-                for dependency in dependencies
+                by_id.get(str(dependency), {}).get("status") == "PASS" for dependency in dependencies
             )
         ):
             ready.append(item)
-    return ready
+    limit = int(dict(_policy(repo_root)["execution"])["max_parallel_tasks"])
+    return ready[:limit]
 
 
 def _outputs_are_namespaced(task_id: str, outputs: list[str]) -> None:
@@ -469,25 +444,16 @@ def record_task_result(
     tasks = assignments.get("tasks", [])
     if not isinstance(tasks, list):
         raise ValueError("assignments: tasks invalide")
-    by_id = {
-        str(item.get("task_id")): item
-        for item in tasks
-        if isinstance(item, dict)
-    }
+    by_id = {str(item.get("task_id")): item for item in tasks if isinstance(item, dict)}
     task = by_id.get(normalized_task_id)
     if task is None:
         raise KeyError(f"tâche inconnue: {normalized_task_id}")
     if str(task.get("role")) != agent:
-        raise PermissionError(
-            f"{normalized_task_id}: agent attendu={task.get('role')} reçu={agent}"
-        )
+        raise PermissionError(f"{normalized_task_id}: agent attendu={task.get('role')} reçu={agent}")
     dependencies = task.get("depends_on", [])
     if not isinstance(dependencies, list):
         raise ValueError(f"{normalized_task_id}: depends_on invalide")
-    if any(
-        by_id.get(str(dependency), {}).get("status") != "PASS"
-        for dependency in dependencies
-    ):
+    if any(by_id.get(str(dependency), {}).get("status") != "PASS" for dependency in dependencies):
         raise ValueError(f"{normalized_task_id}: dépendances non PASS")
     maximum = int(dict(_policy(repo_root)["execution"])["max_task_attempts"])
     attempt = int(task.get("attempts", 0)) + 1
@@ -531,9 +497,7 @@ def all_tasks_pass(repo_root: Path, project: Path) -> bool:
     tasks = _require(repo_root, project, "assignments").get("tasks", [])
     if not isinstance(tasks, list) or not tasks:
         return False
-    return all(
-        isinstance(item, dict) and item.get("status") == "PASS" for item in tasks
-    )
+    return all(isinstance(item, dict) and item.get("status") == "PASS" for item in tasks)
 
 
 def store_verdict(
@@ -596,9 +560,7 @@ def validate_package(repo_root: Path, project: Path) -> list[str]:
     failures: list[str] = []
     package_manifest = _require(repo_root, project, "package_manifest")
     raw_files = package_manifest.get("files", [])
-    if not isinstance(raw_files, list) or any(
-        not isinstance(item, dict) for item in raw_files
-    ):
+    if not isinstance(raw_files, list) or any(not isinstance(item, dict) for item in raw_files):
         return ["package_manifest: files invalide"]
     observed = _deliverable_records(project)
     if raw_files != observed:
@@ -611,9 +573,7 @@ def validate_package(repo_root: Path, project: Path) -> list[str]:
     else:
         observed_paths = {str(item["path"]) for item in observed}
         missing = sorted(
-            str(value)
-            for value in expected_deliverables
-            if str(value) not in observed_paths
+            str(value) for value in expected_deliverables if str(value) not in observed_paths
         )
         if missing:
             failures.append(f"package_manifest: livrables attendus absents: {missing}")
@@ -640,10 +600,7 @@ def _assert_transition(
     _assert_input_integrity(project)
     if target == "ANALYZED":
         _require(repo_root, project, "analysis")
-        if (
-            current == "CLARIFICATION_REQUIRED"
-            and open_blocking_clarifications(repo_root, project)
-        ):
+        if current == "CLARIFICATION_REQUIRED" and open_blocking_clarifications(repo_root, project):
             raise ValueError("clarifications bloquantes non résolues")
     elif target == "CLARIFICATION_REQUIRED":
         if not open_blocking_clarifications(repo_root, project):
@@ -743,9 +700,7 @@ def package_project(
         raise ValueError("project.json: expected_deliverables invalide")
     observed_paths = {str(item["path"]) for item in records}
     missing = sorted(
-        str(value)
-        for value in expected_deliverables
-        if str(value) not in observed_paths
+        str(value) for value in expected_deliverables if str(value) not in observed_paths
     )
     if missing:
         raise ValueError(f"livrables attendus absents: {missing}")

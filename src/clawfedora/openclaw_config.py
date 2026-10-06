@@ -92,7 +92,13 @@ def _ollama_provider(catalog: dict[str, Any]) -> dict[str, Any]:
                 "name": runtime_id,
                 "input": inputs,
                 "contextTokens": context_tokens,
-                "params": {"num_ctx": context_tokens, "keep_alive": "15m"},
+                "maxTokens": 1024,
+                "params": {
+                    "num_ctx": context_tokens,
+                    "num_predict": 1024,
+                    "keep_alive": "3m",
+                    "think": False,
+                },
             }
         )
     return {
@@ -165,7 +171,6 @@ def build_openclaw_patch(
     for spec in load_agent_specs(repo_root):
         route = _mapping(routes.get(spec.agent_id))
         primary_alias = str(route.get("local_primary", spec.model))
-        fallback_alias = str(route.get("local_fallback", spec.fallback))
         agent_list.append(
             {
                 "id": spec.agent_id,
@@ -174,42 +179,67 @@ def build_openclaw_patch(
                 "workspace": str(runtime_root / "workspaces" / spec.agent_id),
                 "model": {
                     "primary": _backend_ref(primary_alias, catalog, backend_id),
-                    "fallbacks": [_backend_ref(fallback_alias, catalog, backend_id)],
+                    "fallbacks": [],
                 },
-                "experimental": {"localModelLean": True},
+                "experimental": {"localModelLean": False},
+                "subagents": {"allowAgents": []},
                 "tools": _agent_tools(spec.agent_id, tools),
             }
         )
 
     qwen_ollama = _backend_ref("qwen-max", catalog, "ollama-vulkan")
-    gemma_ollama = _backend_ref("gemma-deep", catalog, "ollama-vulkan")
     defaults = _mapping(openclaw_policy.get("agents"))
     web = _mapping(web_policy.get("nominal_path"))
     global_tools = _mapping(tools.get("security_defaults"))
 
     return {
         "gateway": {"mode": "local", "bind": "loopback"},
-        "models": {"providers": providers},
+        "models": {"mode": "replace", "providers": providers},
         "agents": {
             "defaults": {
                 "skipBootstrap": bool(defaults.get("skip_bootstrap", True)),
+                "bootstrapMaxChars": 2500,
+                "bootstrapTotalMaxChars": 8000,
+                "maxConcurrent": 1,
+                "thinkingDefault": "off",
+                "heartbeat": {"every": "0m"},
+                "subagents": {
+                    "maxConcurrent": 1,
+                    "maxSpawnDepth": 1,
+                    "maxChildrenPerAgent": 1,
+                    "allowAgents": [],
+                },
                 "compaction": {
-                    "reserveTokens": int(defaults.get("compaction_reserve_tokens", 4096)),
-                    "reserveTokensFloor": int(defaults.get("compaction_reserve_tokens", 4096)),
+                    "keepRecentTokens": int(defaults.get("compaction_reserve_tokens", 1024)),
+                    "memoryFlush": {"enabled": False},
                 },
                 "model": {
                     "primary": _backend_ref("qwen-max", catalog, backend_id),
-                    "fallbacks": [_backend_ref("gemma-deep", catalog, backend_id)],
+                    "fallbacks": [],
                 },
-                "imageModel": {"primary": qwen_ollama, "fallbacks": [gemma_ollama]},
-                "pdfModel": {"primary": qwen_ollama, "fallbacks": [gemma_ollama]},
-                "pdfMaxBytesMb": int(defaults.get("pdf_max_bytes_mb", 50)),
+                "imageModel": {"primary": qwen_ollama, "fallbacks": []},
+                "pdfModel": {"primary": qwen_ollama, "fallbacks": []},
+                "pdfMaxMb": int(defaults.get("pdf_max_bytes_mb", 50)),
                 "pdfMaxPages": int(defaults.get("pdf_max_pages", 20)),
             },
-            "list": agent_list,
+            "entries": {
+                str(entry["id"]): {key: value for key, value in entry.items() if key != "id"}
+                for entry in agent_list
+            },
         },
         "tools": {
             "profile": str(global_tools.get("profile", "minimal")),
+            "deny": [
+                "exec",
+                "process",
+                "write",
+                "edit",
+                "apply_patch",
+                "sessions_spawn",
+                "sessions_send",
+                "subagents",
+                "browser",
+            ],
             "fs": {"workspaceOnly": bool(global_tools.get("fs_workspace_only", True))},
             "exec": {
                 "mode": str(global_tools.get("exec_mode", "ask")),
@@ -226,8 +256,8 @@ def build_openclaw_patch(
                 },
                 "fetch": {
                     "enabled": bool(web.get("web_fetch_enabled", True)),
-                    "maxChars": 20000,
-                    "maxCharsCap": 20000,
+                    "maxChars": int(web.get("fetch_max_chars", 4000)),
+                    "maxCharsCap": int(web.get("fetch_max_chars", 4000)),
                     "timeoutSeconds": 30,
                 },
             },
@@ -241,3 +271,22 @@ def write_openclaw_patch(path: Path, patch: dict[str, Any]) -> Path:
     temporary.write_text(json.dumps(patch, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     temporary.replace(path)
     return path
+
+
+def prepare_migration_patch(patch: dict[str, Any], backend_id: str) -> dict[str, Any]:
+    """Stage managed settings; retire roster entries separately through the native SDK."""
+    result: dict[str, Any] = json.loads(json.dumps(patch))
+    result["agents"]["ownership"] = "explicit"
+    defaults = result["agents"]["defaults"]
+    defaults["systemAgent"] = {"agentId": "chef-operations"}
+    result["talk"] = {"agentId": "chef-operations"}
+    defaults["pdfMaxBytesMb"] = None
+    defaults["compaction"].update(reserveTokens=None, reserveTokensFloor=None)
+    if backend_id == "ollama-vulkan":
+        result["models"]["providers"]["intel-vulkan"] = None
+    for entry in result["agents"]["entries"].values():
+        entry["default"] = None
+    for retired in ("main", "redacteur-technique", "ingenieur-release-forges"):
+        result["agents"]["entries"][retired] = {"default": None}
+    # Do not unset agents.list: the pinned CLI redirects this legacy alias to entries.
+    return result

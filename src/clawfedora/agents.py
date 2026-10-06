@@ -60,8 +60,8 @@ def validate_agent_assets(repo_root: Path) -> tuple[str, ...]:
     except (FileNotFoundError, ValueError) as exc:
         return (str(exc),)
 
-    if len(specs) != 8 or tuple(spec.agent_id for spec in specs) != AGENT_IDS:
-        failures.append("agents: les huit rôles attendus ne sont pas exactement présents")
+    if len(specs) != 6 or tuple(spec.agent_id for spec in specs) != AGENT_IDS:
+        failures.append("agents: les six rôles attendus ne sont pas exactement présents")
 
     for spec in specs:
         if not spec.name or not spec.model or not spec.fallback or not spec.mission:

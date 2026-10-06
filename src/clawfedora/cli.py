@@ -279,7 +279,7 @@ def _e2e(
             print(json.dumps(payload, indent=2, ensure_ascii=False))
         else:
             print(
-                f"L4_DRY_RUN=PASS backend={backend} agents=8 "
+                f"L4_DRY_RUN=PASS backend={backend} agents=6 "
                 "tool_call=true repair=true stability=3 gateway=true"
             )
         return 0

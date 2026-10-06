@@ -27,7 +27,7 @@ golden_projects:
       - "Rédiger un runbook local-first pour exploiter un service Linux avec rollback explicite."
     tasks:
       - id: write-runbook
-        role: redacteur-technique
+        role: architecte-solutions
         title: "Rédiger le runbook"
         objective: "Produire un runbook exploitable et concis."
         depends_on: []
@@ -100,14 +100,14 @@ golden_projects:
         expected_outputs: ["deliverables/prepare-release/release-plan.md"]
         acceptance_criteria: ["contrôles et rollback présents"]
       - id: forge-package
-        role: ingenieur-release-forges
+        role: ingenieur-devops
         title: "Préparer le packaging"
         objective: "Définir le contenu publiable sans publication distante."
         depends_on: [prepare-release]
         expected_outputs: ["deliverables/forge-package/package-notes.md"]
         acceptance_criteria: ["publication distante absente"]
       - id: document-release
-        role: redacteur-technique
+        role: architecte-solutions
         title: "Documenter la release"
         objective: "Produire les notes finales d'exploitation."
         depends_on: [forge-package]
@@ -157,14 +157,14 @@ representative_project:
       expected_outputs: ["deliverables/secure-platform/security.md"]
       acceptance_criteria: ["contrôles de sécurité décrits"]
     - id: release-platform
-      role: ingenieur-release-forges
+      role: ingenieur-devops
       title: "Préparer la release"
       objective: "Assembler la stratégie de livraison et rollback."
       depends_on: [build-platform, secure-platform]
       expected_outputs: ["deliverables/release-platform/release.md"]
       acceptance_criteria: ["package local uniquement"]
     - id: document-platform
-      role: redacteur-technique
+      role: architecte-solutions
       title: "Produire la documentation"
       objective: "Rédiger les instructions d'exploitation finales."
       depends_on: [release-platform]

@@ -174,7 +174,7 @@ def test_operator_banner_matches_architecture_v2_semantics() -> None:
         "Gemma 4 12B",
         "Ministral 3 14B Reasoning",
         "Granite 4.2 8B hors routage",
-        "exactement 3",
+        "exactement 1",
     ):
         assert expected in menu
     for obsolete in (

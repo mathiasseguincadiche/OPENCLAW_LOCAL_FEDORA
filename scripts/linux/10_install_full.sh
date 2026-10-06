@@ -7,17 +7,24 @@ LINUX="$REPO_ROOT/scripts/linux"
 source "$LINUX/lib/runtime.sh"
 
 APPLY=0
-[[ "${1:-}" == "--apply" ]] && APPLY=1
-OPENCLAW_PIN="2026.9.2"
-OLLAMA_PIN="0.32.14"
+ENABLE_LINGER=0
+for arg in "$@"; do
+  case "$arg" in
+    --apply) APPLY=1 ;;
+    --enable-linger) ENABLE_LINGER=1 ;;
+    *) echo "Usage: 10_install_full.sh [--apply] [--enable-linger]" >&2; exit 2 ;;
+  esac
+done
+OPENCLAW_PIN="$(claw_pin openclaw version)"
+OLLAMA_PIN="$(claw_pin ollama version)"
 RUNTIME_ROOT="$(claw_runtime_root)"
 
 cat <<EOF
 INSTALL_PLAN Fedora=44 runtime=$RUNTIME_ROOT
-  1. bootstrap Fedora + SELinux/firewalld/GPU/KVM/Podman dependencies
+  1. bootstrap Fedora + SELinux/firewalld/minimal GPU dependencies; KVM/dev optional
   2. install/converge Ollama $OLLAMA_PIN and start the local service
   3. install/converge OpenClaw exactly $OPENCLAW_PIN
-  4. explicitly provision the three nominal models Architecture V2
+  4. explicitly provision one daily model Qwen; extra models are optional
   5. deploy agent workspaces and apply OpenClaw config
   6. install/enable the OpenClaw systemd user gateway
   7. run product health check
@@ -33,7 +40,9 @@ if ((EUID == 0)); then
   exit 2
 fi
 
-"$LINUX/00_bootstrap.sh" --apply --enable-linger --runtime-root "$RUNTIME_ROOT"
+BOOTSTRAP_ARGS=(--apply --runtime-root "$RUNTIME_ROOT")
+((ENABLE_LINGER == 0)) || BOOTSTRAP_ARGS+=(--enable-linger)
+"$LINUX/00_bootstrap.sh" "${BOOTSTRAP_ARGS[@]}"
 
 ollama_version="$(ollama --version 2>/dev/null | head -n1 || true)"
 if [[ "$ollama_version" != *"$OLLAMA_PIN"* ]]; then
@@ -48,6 +57,7 @@ ollama_version="$(ollama --version 2>/dev/null | head -n1 || true)"
   exit 2
 }
 if systemctl list-unit-files ollama.service >/dev/null 2>&1; then
+  "$LINUX/21_daily_profile.sh" configure-ollama --apply
   sudo systemctl enable --now ollama.service
 fi
 
@@ -69,21 +79,30 @@ OPENCLAW_VERSION="$(claw_extract_openclaw_version "$OPENCLAW_VERSION_TEXT" || tr
   exit 2
 }
 
+unset OPENCLAW_CONFIG_PATH
 export OPENCLAW_LOCAL_CLOUD_ENABLED="false"
+PYTHON="$(claw_python)"
+LEGACY_STATE="${XDG_STATE_HOME:-$HOME/.local/state}/openclaw-local"
+if [[ -d "$LEGACY_STATE" && ! -e "$RUNTIME_ROOT/state/openclaw" ]]; then
+  "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" migrate-state --source "$LEGACY_STATE" --apply
+fi
 "$LINUX/09_provision_models.sh" --apply
+"$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" models-lock --apply
 "$LINUX/04_configure_openclaw.sh" --apply --backend ollama-vulkan
 
-export OPENCLAW_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/openclaw-local"
+OPENCLAW_STATE_DIR="$(claw_openclaw_state)"
+export OPENCLAW_STATE_DIR
 openclaw gateway install
+"$LINUX/21_daily_profile.sh" configure-gateway --apply
 systemctl --user enable --now openclaw-gateway.service
 openclaw gateway status --json >/dev/null
 
 PYTHON="$(claw_python)"
 if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then
-  "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" health
+  "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" health --probe
 else
   PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
-    "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" health
+    "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" health --probe
 fi
 
 echo "INSTALL_RESULT=PASS"

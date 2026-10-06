@@ -1,5 +1,7 @@
 # Dépannage par symptôme
 
+> Profil quotidien : six rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+
 ## Repères de progression
 
 | Repère | Valeur |
@@ -78,7 +80,7 @@ openclaw gateway status
 openclaw gateway status
 ```
 
-Vérifier que les huit workspaces gérés existent et que la configuration attendue est rendue.
+Vérifier que les six workspaces gérés existent et que la configuration attendue est rendue.
 
 ### Correction
 
