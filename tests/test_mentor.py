@@ -93,3 +93,22 @@ def test_long_history_keeps_recent_context_and_declares_omissions() -> None:
     assert "1 anciens messages" in prompt
     with pytest.raises(ValueError):
         chat_prompt({"model": MODEL_IDS[0], "messages": messages * 100})
+
+
+@pytest.mark.parametrize("root_link", [False, True])
+def test_linked_project_selection_cannot_escape_managed_inventory(
+    tmp_path: Path, root_link: bool
+) -> None:
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "project.json").write_text("{}")
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    if root_link:
+        (runtime / "projects").symlink_to(outside)
+    else:
+        (runtime / "projects").mkdir()
+        (runtime / "projects/example").symlink_to(outside)
+    with pytest.raises(ValueError, match="lien symbolique"):
+        save_profile(runtime, {"human_approved": True, "project_id": "example"})
+    assert not (runtime / "state/mentor.json").exists()

@@ -22,8 +22,13 @@ def profile(runtime: Path) -> dict[str, Any]:
     assert_no_symlinks(path, label="fiche mentor")
     if path.is_file():
         value = read_json(path)
-        if not isinstance(value, dict) or any(
-            not isinstance(value.get(key, ""), str) or len(value.get(key, "")) > 500 for key in FIELDS
+        if (
+            not isinstance(value, dict)
+            or not isinstance(value.get("project_id", ""), str)
+            or any(
+                not isinstance(value.get(key, ""), str) or len(value.get(key, "")) > 500
+                for key in FIELDS
+            )
         ):
             raise ValueError("fiche mentor invalide")
         if value.get("project_id"):
@@ -84,11 +89,18 @@ def context(runtime: Path) -> str:
 
 
 def _project(runtime: Path, identifier: str) -> Path:
-    path = runtime / "projects" / validate_task_id(identifier)
-    assert_no_symlinks(path, label="projet mentor")
-    if not (path / "project.json").is_file():
-        raise ValueError("projet mentor inconnu")
-    return path
+    identifier = validate_task_id(identifier)
+    projects = runtime / "projects"
+    if projects.is_symlink():
+        raise ValueError("projets mentor: lien symbolique racine interdit")
+    if projects.is_dir():
+        for candidate in projects.iterdir():
+            if candidate.name == identifier:
+                # Select an existing managed path; no request value builds a filesystem path.
+                assert_no_symlinks(candidate, label="projet mentor")
+                if (candidate / "project.json").is_file():
+                    return candidate
+    raise ValueError("projet mentor inconnu")
 
 
 def copy_profile(runtime: Path, snapshot: Path) -> None:
