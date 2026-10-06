@@ -9,6 +9,7 @@ from clawfedora.artifact_exchange import (
     validate_exchange_completeness,
 )
 from clawfedora.core_config import AGENT_IDS, core_contract
+from clawfedora.document_exports import output_bytes
 from clawfedora.project_common import (
     aggregate_records,
     now,
@@ -289,6 +290,12 @@ def _validate_plan(tasks: list[dict[str, Any]]) -> None:
             if not values or any(not isinstance(v, str) or not v.strip() for v in values):
                 raise ValueError(f"{task_id}: {field} non vide requis")
         _outputs_are_namespaced(task_id, task["expected_outputs"])
+        for output in task["expected_outputs"]:
+            if (
+                Path(output).suffix.lower() in {".pdf", ".docx"}
+                and str(Path(output).with_suffix(".md")) not in task["expected_outputs"]
+            ):
+                raise ValueError("PDF/DOCX: la source .md de même nom est requise dans le plan")
         dependencies[task_id] = [str(item) for item in task.get("depends_on", [])]
     for task_id, values in dependencies.items():
         unknown = [value for value in values if value not in ids]
@@ -507,8 +514,8 @@ def record_task_result(
             or set(hashes) != set(packet["expected_outputs"])
             or hashes
             != {
-                path: sha256(content.encode()).hexdigest()
-                for path, content in checkpoint["files"].items()
+                path: sha256(output_bytes(path, checkpoint["files"])).hexdigest()
+                for path in checkpoint["files"]
             }
             or any(
                 sha256_file(safe_output(project, path)) != digest for path, digest in hashes.items()

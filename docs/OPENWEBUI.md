@@ -62,6 +62,12 @@ Une modification approuvée dans le dossier archive les livrables concernés et 
 
 Les pièces jointes d’un chat ne deviennent pas automatiquement des sources de projet. Utiliser l’import de l’atelier pour conserver hashes, provenance et gates. Une discussion n’a aucun pouvoir de transition sur les projets. Les gros dossiers, archives et opérations de reprise avancées gardent l’intake/moteur CLI existant.
 
+## Obtenir des fichiers dans la discussion
+
+Demander explicitement le format : « Fournis une fiche Markdown, PDF et DOCX », ou « Génère un `main.tf` commenté ». Les spécialistes utilisent le plugin natif `clawfedora_artifact`; la passerelle ajoute des liens locaux signés vers les fichiers réellement produits pendant ce tour. Les liens expirent après 24 heures : télécharger les fichiers pour les conserver. Aucun jeton opérateur n’apparaît dans les liens.
+
+Tous les rôles produisent des documents Markdown/TXT/PDF/DOCX; l’architecte, le DevOps et la sécurité produisent aussi des fichiers techniques. Le chat conserve ses livrables dans le workspace du rôle. Pour une livraison suivie, relue et partagée entre spécialistes, demander ces mêmes formats dans le plan d’un projet. Voir [FILE_OUTPUTS.md](FILE_OUTPUTS.md) pour les formats, la source Markdown commune et les limites des exports.
+
 ## Ressources et isolation
 
 Image **v0.11.4-slim**, figée par digest dans `config/webui_policy.yaml`, sans Ollama embarqué, embeddings, reranker ou voix locale. Podman rootless; un worker web, limite 3 Gio RAM, 2 CPU, 256 processus, capacités Linux retirées et `no-new-privileges`. Pas de GPU, socket Podman/Docker ou répertoire personnel monté. Seul `state/webui/data` est monté, avec le label SELinux privé `:Z`.
@@ -92,4 +98,4 @@ Sources: [installation et variante slim](https://docs.openwebui.com/getting-star
 
 ## Entrée mentor
 
-Le profil chef-operations est présenté comme Mentor infrastructure/OPS. Il peut aider seul pour une question courte; les autres spécialités servent lorsqu’un besoin le justifie. Les notes se modifient dans l’atelier d’un projet et se partagent avec les snapshots. Le chat reçoit une petite description de l’étape actuelle du projet relié; il ne publie ni fichiers ni résultats de tâche. Voir [LEARNING_WORKFLOW.md](LEARNING_WORKFLOW.md).
+Le profil chef-operations est présenté comme Mentor infrastructure/OPS. Il peut aider seul pour une question courte; les autres spécialités servent lorsqu’un besoin le justifie. Les notes se modifient dans l’atelier d’un projet et se partagent avec les snapshots. Le chat reçoit une petite description de l’étape actuelle du projet relié; ses fichiers téléchargeables ne deviennent pas des livrables de projet et il ne publie aucun résultat de tâche. Voir [LEARNING_WORKFLOW.md](LEARNING_WORKFLOW.md).

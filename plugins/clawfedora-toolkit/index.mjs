@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import { join, isAbsolute } from "node:path";
 const string = { type: "string", maxLength: 12000 };
 const definitions = [
+  ["clawfedora_artifact", "Produire un fichier téléchargeable UTF-8 ou une source Markdown et ses exports PDF/DOCX/TXT. Retourner les références dans files; pour un export, inclure la source .md dans le même dossier. Aucun code exécuté.", {format:{type:"string",enum:["markdown","text","yaml","json","python","shell","hcl","ini","toml","xml","dockerfile","template"]},content:string,filename:{type:"string",maxLength:100,pattern:"^[A-Za-z0-9_.-]+$"},exports:{type:"array",maxItems:3,uniqueItems:true,items:{type:"string",enum:["pdf","docx","txt"]}}}, ["format","content"]],
   ["clawfedora_search", "Chercher au maximum quatre passages texte dans le snapshot de ton rôle. Aucun embedding.", { query: string, scope: string }, ["query"]],
   ["clawfedora_outline", "Préparer une trame de document OPS; ne crée pas de fichier ni de preuve.", { kind: string, title: string }, ["kind"]],
   ["clawfedora_diagram", "Architecte: source Draw.io native éditable et aperçu SVG, huit nœuds maximum. Retourner drawio_reference pour la sortie .drawio attendue, svg_reference pour son aperçu .svg facultatif; ne pas réécrire le XML.", { nodes: { type: "array", items: { type: "string", maxLength: 60 }, minItems: 1, maxItems: 8 }, edges: { type: "array", maxItems: 12, items: { type: "array", items: { type: "integer", minimum: 0, maximum: 7 }, minItems: 2, maxItems: 2 } } }, ["nodes"]],

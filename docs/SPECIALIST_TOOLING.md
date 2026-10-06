@@ -2,6 +2,10 @@
 
 Le SDK OpenClaw appelle un plugin natif local, `clawfedora-toolkit`, explicitement autorisé par rôle. Ce n’est pas une collection de prompts ni un terminal général. Le plugin existant est enrichi, sans second orchestrateur, serveur MCP permanent, modèle d’embeddings ou modèle IA supplémentaire.
 
+## Produire des fichiers et des documents
+
+`clawfedora_artifact` génère de vrais fichiers téléchargeables : Markdown/TXT pour tous les rôles, exports PDF/DOCX/TXT depuis Markdown, et formats techniques pour architecte/DevOps/sécurité. Les documents et configurations ne sont pas limités à une réponse dans le chat. [Formats, exemples et parcours complet](FILE_OUTPUTS.md).
+
 ## Ce qui est intégré
 
 | Spécialiste | Outils disponibles et usage |
@@ -11,7 +15,7 @@ Le SDK OpenClaw appelle un plugin natif local, `clawfedora-toolkit`, expliciteme
 | Architecte | trame ADR, schéma structuré → Draw.io éditable + aperçu SVG local |
 | DevOps | ShellCheck pour Bash, yamllint pour YAML, PyMarkdown pour ses runbooks, parsing JSON/Python |
 | Sécurité | Gitleaks pour les secrets du texte fourni, ShellCheck/yamllint et contrôles OPS existants |
-| Rédacteur pédagogique | trames guide/explication et PyMarkdown pour la forme des documents |
+| Rédacteur pédagogique | trames, production Markdown/PDF/DOCX/TXT et PyMarkdown |
 | Auditeur | les mêmes contrôles statiques et lecture des preuves, sans corriger les livrables |
 
 `clawfedora_lint(format, content)` choisit parmi les formats autorisés du rôle: `shell`, `yaml`, `markdown`, `secrets`. Entrée 12 Ko, délai 5 secondes par commande, rapport court, aucune exécution du script ou déploiement. `clawfedora_tool_status` expose ce qui est effectivement présent. Un binaire absent donne **UNAVAILABLE**, jamais un PASS supposé.
@@ -22,7 +26,7 @@ ShellCheck et Gitleaks proviennent des paquets Fedora du bootstrap. Les petites 
 
 Le helper reçoit un workspace géré et le rôle fourni par OpenClaw. Il fixe l’interpréteur et les commandes; aucun choix d’exécutable, argument libre, chemin système, jeton cloud ou URL à télécharger ne vient du modèle. Les linters travaillent en répertoire temporaire, sans configuration ni plugins issus du projet, et les directives de désactivation sont ignorées. Le schéma Draw.io est construit depuis des libellés/indices bornés, avec styles et géométrie fixes: aucun XML libre du modèle, image externe, lien ou script. Le SVG initial reprend les mêmes blocs et connexions. Graphviz n’est plus requis ni installé par le bootstrap; aucun paquet existant n’est désinstallé.
 
-Pour le lint et les schémas, le helper écrit un reçu généré sous `.clawfedora-tool-evidence` du workspace. Il conserve statut, version, hash du texte et résultat réel. Le worker copie ses nouveaux reçus dans `evidence/<task>/tool-*.json`, après le contrôle d’intégrité; le modèle ne choisit pas le chemin. Les sources .drawio et aperçus .svg restent dans des fichiers générés; le modèle retourne drawio_reference et svg_reference pour les sorties attendues. Le worker vérifie chaque hash et collecte ces fichiers sans exiger la réécriture du XML dans les 1024 tokens. Les anciens contrats .svg restent compatibles. [DRAWIO.md](DRAWIO.md) décrit le téléchargement, l’édition et la reprise du brouillon. Dans un chat, le reçu reste dans le workspace et aucun projet n’est modifié. Gitleaks retourne uniquement identifiant de règle et ligne, jamais les secrets ou son rapport brut.
+Pour les fichiers, le lint et les schémas, le helper écrit un reçu généré sous `.clawfedora-tool-evidence` du workspace. Il conserve statut, version, hash du texte et résultat réel. Le worker copie ses nouveaux reçus dans `evidence/<task>/tool-*.json`, après le contrôle d’intégrité; le modèle ne choisit pas le chemin. Les sources .drawio et aperçus .svg restent dans des fichiers générés; le modèle retourne drawio_reference et svg_reference pour les sorties attendues. Le worker vérifie chaque hash et collecte ces fichiers sans exiger la réécriture du XML dans les 1024 tokens. Les anciens contrats .svg restent compatibles. [DRAWIO.md](DRAWIO.md) décrit le téléchargement, l’édition et la reprise du brouillon. Dans un chat, le reçu reste dans le workspace et aucun projet n’est modifié. Gitleaks retourne uniquement identifiant de règle et ligne, jamais les secrets ou son rapport brut.
 
 Le reçu d’une amorce ne valide pas le fichier complété ensuite: **le hash doit correspondre au contenu contrôlé**. Les linters vérifient forme/syntaxe, Gitleaks des secrets du texte fourni. Aucun de ces PASS ne prouve une restauration, un déploiement, une configuration métier correcte ou une sécurité exhaustive. Les tests réels sont exécutés par l’apprenant dans son exercice/CI qualifié.
 

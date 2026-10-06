@@ -36,6 +36,7 @@ agents:
     - clawfedora_outline
     - clawfedora_ci_report
     - clawfedora_tool_status
+    - clawfedora_artifact
     deny:
     - apply_patch
     - edit
@@ -60,6 +61,7 @@ agents:
     - clawfedora_outline
     - clawfedora_ci_report
     - clawfedora_tool_status
+    - clawfedora_artifact
     deny:
     - apply_patch
     - edit
@@ -85,6 +87,7 @@ agents:
     - clawfedora_diagram
     - clawfedora_ci_report
     - clawfedora_tool_status
+    - clawfedora_artifact
     deny:
     - apply_patch
     - edit
@@ -110,6 +113,7 @@ agents:
     - clawfedora_check
     - clawfedora_ci_report
     - clawfedora_tool_status
+    - clawfedora_artifact
     - clawfedora_lint
     deny:
     - apply_patch
@@ -136,6 +140,7 @@ agents:
     - clawfedora_check
     - clawfedora_ci_report
     - clawfedora_tool_status
+    - clawfedora_artifact
     - clawfedora_lint
     deny:
     - apply_patch
@@ -162,6 +167,7 @@ agents:
     - clawfedora_check
     - clawfedora_ci_report
     - clawfedora_tool_status
+    - clawfedora_artifact
     - clawfedora_lint
     deny:
     - apply_patch
@@ -188,6 +194,7 @@ agents:
     - clawfedora_lint
     - clawfedora_ci_report
     - clawfedora_tool_status
+    - clawfedora_artifact
     deny:
     - apply_patch
     - edit

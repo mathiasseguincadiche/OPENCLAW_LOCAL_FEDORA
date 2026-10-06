@@ -35,7 +35,7 @@ def review_submission(
     task_id = validate_task_id(checkpoint["task_id"])
     task = read_json(project / "context/tasks" / f"{task_id}.json")["task"]
     files = checkpoint["files"]
-    _collection_targets(repo, project, task, {"files": files})
+    targets = _collection_targets(repo, project, task, {"files": files})
     if validate_input_integrity(project):
         raise ValueError("intégrité des sources invalide")
     if int(checkpoint.get("feedback_attempts", 0)) >= 2:
@@ -67,10 +67,12 @@ def review_submission(
             else:
                 shutil.copy2(source, target)
     checks = []
-    for relative, content in files.items():
+    for target, generated in targets:
+        relative = target.relative_to(project).as_posix()
+        content = files[relative]
         path = snapshot / relative
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(content)
+        path.write_bytes(generated)
         if path.suffix.lower() == ".drawio":
             checks.append({"path": relative, "format": "drawio", **inspect_diagram(content)})
         kind = {".sh": "shell", ".yaml": "yaml", ".yml": "yaml", ".md": "markdown"}.get(

@@ -311,3 +311,7 @@ Pour OpenClaw et Parallel, le contrat courant ne définit **aucune promotion aut
 « Plus récent » n'est jamais un critère suffisant de promotion.
 
 Le module Open WebUI est arrêté avant la sauvegarde lors de la migration quotidienne, puis reconvergé s’il était installé. `state/webui` contient sa base, ses fichiers, son jeton d’intégration et sa clé de session; conserver ces éléments ensemble. Voir [OPENWEBUI.md](OPENWEBUI.md).
+
+## Production de fichiers : toolkit 0.5.0
+
+Cette édition ajoute les dépendances documentaires Python figées et le plugin `clawfedora_artifact`. Sur une installation existante, sauvegarder puis réappliquer la migration gérée en tête de ce guide, avec le compte Fedora habituel : runtime/package, plugin et workspaces doivent être actualisés ensemble. Les pins OpenClaw/Ollama et le modèle unique restent inchangés. Vérifier `clawfedora_tool_status`, puis exporter une courte fiche PDF/DOCX depuis l’interface. Les anciens plans gardent leurs chemins; ajouter un export demande un nouveau plan ou une révision approuvée avec sa source Markdown. [Livrables](FILE_OUTPUTS.md).
