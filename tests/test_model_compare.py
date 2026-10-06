@@ -89,7 +89,7 @@ def test_dry_run_never_requests_or_downloads_a_model(
     assert model_compare.main() == 0
     plan = read_json(output)
     assert plan["runtime_tested"] is False and plan["automatic_promotion"] is False
-    assert len(plan["cases"]) == 8 and len(plan["models"]) == 3
+    assert len(plan["cases"]) == 12 and len(plan["models"]) == 3
     assert model_compare.comparison_plan(ROOT, 1536)["context"] == 8192
     with pytest.raises(SystemExit):
         model_compare.main()
@@ -101,13 +101,15 @@ def test_comparison_budget_is_explicit(tokens: int, repeats: int) -> None:
         model_compare.comparison_plan(ROOT, tokens, repeats)
 
 
+@pytest.mark.parametrize("case_index", [0, 8])
 def test_response_comparison_keeps_raw_answers_and_requires_human_review(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
+    case_index: int,
 ) -> None:
     calls = fake_api(monkeypatch)
     plan = model_compare.comparison_plan(ROOT)
-    plan["cases"] = plan["cases"][:1]
+    plan["cases"] = [plan["cases"][case_index]]
     output = tmp_path / "result.json"
     result = model_compare.run_comparison(ROOT, tmp_path / "runtime", output, plan)
     assert result["status"] == "AWAITING_HUMAN_REVIEW"
@@ -119,6 +121,9 @@ def test_response_comparison_keeps_raw_answers_and_requires_human_review(
     assert sum(call["url"].endswith("/generate") for call in calls) == 3
     assert not any("pull" in call["url"] for call in calls)
     assert all(call["payload"]["think"] is False for call in calls if call["url"].endswith("/chat"))
+    for call in calls:
+        if call["url"].endswith("/chat"):
+            assert call["payload"]["messages"][1:-1] == plan["cases"][0].get("history", [])
     assert read_json(output)["status"] == "AWAITING_HUMAN_REVIEW"
 
 

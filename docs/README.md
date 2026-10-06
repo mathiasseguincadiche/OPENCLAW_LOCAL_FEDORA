@@ -117,3 +117,5 @@ Une CI verte démontre la cohérence logicielle du dépôt. Elle ne démontre pa
 Le [profil quotidien B580](DAILY_PROFILE.md) précise les limites et la migration vers sept rôles et un modèle.
 
 Le [guide de l'atelier local](LOCAL_ASSISTANT.md) explique le tableau de bord, la recherche dans les documents, les décisions persistantes et la pause/reprise.
+
+La [comparaison pédagogique du Qwen](PEDAGOGY_EVALUATION.md) prépare des captures natives et une relecture A/B humaine; elle ne certifie pas l’apprentissage.

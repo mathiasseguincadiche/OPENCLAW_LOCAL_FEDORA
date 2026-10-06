@@ -418,9 +418,10 @@ async function renderMentor(id) {
   if (openedProject !== id) return;
   const details = node("details"), form = node("form"), inputs = {};
   details.append(node("summary", "Mon accompagnement et la continuité du chat"));
-  form.append(node("p", "Notes facultatives, modifiables par vous. Le mentor les consulte dans le chat et les projets. Aucun niveau n’est certifié automatiquement."));
+  form.append(node("p", "Gardez un acquis, un blocage précis et une prochaine action. Ces notes facultatives aident à adapter les indices et à réutiliser une notion dans un autre exercice. Vous seul les enregistrez; aucun niveau n’est certifié automatiquement."));
+  const examples = { background: "Ex. : je sais diagnostiquer DNS et les services Linux.", focus: "Ex. : rendre une configuration Ansible idempotente.", difficulties: "Ex. : je confonds check-mode et preuve d’une deuxième exécution.", evidence: "Ex. : deuxième exécution sans changement, logs conservés; observation déclarée.", next_step: "Ex. : prévoir puis vérifier l’effet d’une variable modifiée." };
   for (const [key, label] of Object.entries({ background: "Ce que je sais déjà", focus: "Ce que je travaille maintenant", difficulties: "Mes difficultés", evidence: "Ce que j’ai réalisé ou vérifié", next_step: "Ma prochaine étape" })) {
-    const input = field(form, label, saved[key] || "", true); input.maxLength = 500; inputs[key] = input;
+    const input = field(form, label, saved[key] || "", true); input.maxLength = 500; input.placeholder = examples[key]; inputs[key] = input;
   }
   const attach = node("input"), attachLabel = node("label"); attach.type = "checkbox"; attach.checked = saved.project_id === id;
   attachLabel.append(attach, document.createTextNode(" Relier le mentor à ce projet dans Open WebUI")); form.append(attachLabel);

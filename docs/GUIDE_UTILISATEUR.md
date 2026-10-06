@@ -15,7 +15,7 @@ Le guide présente la configuration de référence, le choix de Qwen, les sept r
 2. La machine cible : Ryzen 7 7700, 48 Go de RAM et Arc B580 12 Go.
 3. L’architecture : chat et projets, OpenClaw, Ollama, Qwen et données locales.
 4. Les sept spécialités, leurs plugins et la production de documents/configurations au bon format.
-5. Le mode Adaptatif, la pratique guidée et les retours avant publication.
+5. Le mode Adaptatif, les exemples expliqués, les indices progressifs et les retours avant publication.
 6. L’installation, les interfaces et un premier parcours de projet.
 7. Un exemple de pipeline progressif avec Git, Docker, CI et Ansible.
 8. Le rôle de Terraform, du cloud et de Kubernetes selon l’exercice.

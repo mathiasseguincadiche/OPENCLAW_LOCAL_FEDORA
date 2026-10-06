@@ -19,6 +19,20 @@ Dans l’atelier, ouvrir «Mon accompagnement et la continuité du chat»: cinq 
 
 Dans une discussion Open WebUI, comprendre appelle une explication directe, débloquer une hypothèse et son contrôle, pratiquer une étape et des indices. Aucun jalon de projet n’est créé automatiquement. Demander un indice, partager son essai puis demander une correction est une bonne utilisation du chat. Les comportements rédactionnels du Qwen réel restent à évaluer sur la machine: un prompt n’est pas une preuve de qualité.
 
+## Une aide qui s’adapte et diminue
+
+Le lecteur connaît déjà Linux et les réseaux : relier un nouveau mécanisme à un service, un port, un processus, un droit ou un diagnostic familier. Expliquer le jargon lorsqu’il apparaît. L’analogie est facultative et doit garder sa limite; elle ne remplace pas le mécanisme exact. Une réponse courte n’a pas besoin d’un plan en cinq parties, d’un cours ou de trois points à retenir.
+
+Pour une notion nouvelle, expliquer un petit exemple complet, distinct de l’exercice. Proposer ensuite une amorce et une action limitée; les TODO seuls ne suffisent pas. Selon les essais reçus, passer de l’exemple expliqué à un indice, puis à une variante que l’apprenant traite avec davantage d’autonomie. Ce retrait d’aide concerne les explications : il ne modifie ni le mode approuvé ni les gates du projet et ne certifie pas un niveau.
+
+Avant une action, prévoir son effet; après, comparer l’observation à cette prévision. En cas d’écart, formuler une hypothèse et choisir un contrôle; préparer un retour arrière lorsque pertinent. Exemple Ansible : expliquer l’idempotence sur un petit cas, demander ce que devrait produire la deuxième exécution, puis comparer dans le laboratoire. Réutiliser ensuite ce raisonnement pour une autre configuration. L’apprenant exécute les opérations et conserve leurs preuves.
+
+Les notes du mentor peuvent garder « je connais les services Linux », « je confonds check-mode et preuve réelle », « prochaine étape : vérifier un template ». L’agent propose une formulation courte; seul l’humain l’enregistre. Une notion est rappelée lorsqu’elle aide le travail suivant, sans agenda automatique ni questionnaire systématique.
+
+Le rédacteur adapte le document à son destinataire et au format demandé; ses trames sont des aides facultatives. L’auditeur contrôle l’exactitude, les limites, l’utilité des vérifications et la fidélité aux contributions. La clarté d’un texte, un lint Markdown et un export PDF réussi ne prouvent pas un apprentissage.
+
+La charte commune reste compacte et réellement injectée dans chaque profil. Les budgets 8K/1024 et les sept rôles restent inchangés. [PEDAGOGY_EVALUATION.md](PEDAGOGY_EVALUATION.md) explique comment comparer les réponses du vrai Qwen avant/après, avec jugement humain. Ces choix s’inspirent des principes d’adaptation aux acquis et d’autonomie progressive du [CESE](https://education.nsw.gov.au/about-us/education-data-and-research/cese/publications/practical-guides-for-educators/cognitive-load-theory-in-practice.html), et d’alternance exemples/exercices et questions explicatives de l’[IES](https://ies.ed.gov/ncee/wwc/PracticeGuide/1). Leur efficacité dans cet atelier reste à vérifier; ils ne constituent pas une garantie propre au modèle.
+
 ## Relier les outils au métier
 
 Les produits s’apprennent plus facilement lorsqu’on sait quelle responsabilité ils remplissent:

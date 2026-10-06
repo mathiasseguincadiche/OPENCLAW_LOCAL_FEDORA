@@ -25,12 +25,37 @@ VRAM_SCOPE = (
 )
 
 
+def messages(case: dict[str, Any]) -> list[dict[str, str]]:
+    history = case.get("history", [])
+    if (
+        not isinstance(history, list)
+        or len(history) > 10
+        or any(
+            not isinstance(item, dict)
+            or item.get("role") not in {"user", "assistant"}
+            or not isinstance(item.get("content"), str)
+            for item in history
+        )
+    ):
+        raise ValueError("historique de comparaison texte requis")
+    result = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        *history,
+        {"role": "user", "content": case["prompt"]},
+    ]
+    if len(json.dumps(result, ensure_ascii=False).encode()) > 6000:
+        raise ValueError("contexte de comparaison limité à 6000 octets")
+    return result
+
+
 def comparison_plan(repo: Path, tokens: int = 1024, repeats: int = 1) -> dict[str, Any]:
     if tokens not in {1024, 1536, 2048} or not 1 <= repeats <= 3:
         raise ValueError("sortie 1024/1536/2048 et 1 à 3 répétitions requises")
     catalog = root_contract(repo, "model_catalog.yaml")
     models = catalog["models"]
     suite = load_yaml(repo / "benchmarks/suites/mentor_ops_fr.yaml")
+    for case in suite["cases"]:
+        messages(case)
     return {
         "created_at": now(),
         "status": "PLANNED",
@@ -113,13 +138,7 @@ def run_comparison(repo: Path, runtime: Path, output: Path, plan: dict[str, Any]
                                             "presence_penalty": plan["presence_penalty"],
                                             "seed": plan["seed_base"] + repeat,
                                         },
-                                        "messages": [
-                                            {
-                                                "role": "system",
-                                                "content": SYSTEM_PROMPT,
-                                            },
-                                            {"role": "user", "content": case["prompt"]},
-                                        ],
+                                        "messages": messages(case),
                                     },
                                 )
                             if value.get("done") is not True:

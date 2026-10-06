@@ -41,7 +41,7 @@ Ces résultats soutiennent Qwen comme base pratique, mais montrent aussi des err
 
 ## Comparaison réalisable sur le PC
 
-La suite `benchmarks/suites/mentor_ops_fr.yaml` contient huit situations courtes et trois critères humains par réponse. Elle teste le transfert Linux/réseau vers les pratiques OPS, le diagnostic, une action ciblée et la séparation déclaration/preuve.
+La suite `benchmarks/suites/mentor_ops_fr.yaml` contient douze situations courtes et trois critères humains par réponse. Elle teste le transfert Linux/réseau, le diagnostic, le retrait d’aide, la rédaction et la séparation déclaration/preuve. Les historiques fixés sont conservés. Cette comparaison de candidats utilise un prompt commun sans profils/outils OpenClaw; pour comparer les consignes du Qwen quotidien, utiliser [le protocole pédagogique natif](PEDAGOGY_EVALUATION.md).
 
 Depuis le dépôt et sa venv, préparer uniquement le plan :
 

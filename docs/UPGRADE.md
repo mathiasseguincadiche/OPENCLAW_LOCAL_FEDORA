@@ -315,3 +315,7 @@ Le module Open WebUI est arrêté avant la sauvegarde lors de la migration quoti
 ## Production de fichiers : toolkit 0.5.0
 
 Cette édition ajoute les dépendances documentaires Python figées et le plugin `clawfedora_artifact`. Sur une installation existante, sauvegarder puis réappliquer la migration gérée en tête de ce guide, avec le compte Fedora habituel : runtime/package, plugin et workspaces doivent être actualisés ensemble. Les pins OpenClaw/Ollama et le modèle unique restent inchangés. Vérifier `clawfedora_tool_status`, puis exporter une courte fiche PDF/DOCX depuis l’interface. Les anciens plans gardent leurs chemins; ajouter un export demande un nouveau plan ou une révision approuvée avec sa source Markdown. [Livrables](FILE_OUTPUTS.md).
+
+## Charte pédagogique et comparaison
+
+Cette révision actualise les consignes partagées, les trames Python et les retours; réappliquer package/runtime, plugin et workspaces ensemble par la migration sauvegardée habituelle. Les anciennes tâches conservent leur mode et leurs approbations. Avant de remplacer les profils déployés, une capture facultative peut servir de référence au [protocole avant/après](PEDAGOGY_EVALUATION.md). Les notes du mentor restent humaines et ne sont ni réinitialisées ni certifiées.

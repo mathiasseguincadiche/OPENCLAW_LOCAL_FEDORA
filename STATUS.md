@@ -129,3 +129,7 @@ Le guide PDF, sa source HTML imprimable et les vues d’architecture Draw.io son
 ## Fichiers et exports documentaires
 
 Le toolkit 0.5.0 fournit la production contrôlée de Markdown/TXT, PDF/DOCX dérivés et configurations/code selon le rôle. Le chat joint des liens locaux signés; le worker collecte les exports binaires et leur source, y compris après relecture guidée. Les tests d’export ne constituent pas une qualification du modèle réel ou du poste. [Formats et limites](docs/FILE_OUTPUTS.md).
+
+## Accompagnement OPS adapté aux acquis
+
+La charte commune, les trames et les retours privilégient exemples expliqués, indices progressifs, prévision/observation/diagnostic et notes humaines. Les budgets et gates sont conservés. Douze cas couvrent les sept rôles; `clawfedora.pedagogy_eval` prépare des captures natives et une comparaison A/B humaine. Les contrôles logiciels utilisent des réponses simulées : aucune amélioration pédagogique du Qwen réel ni compétence acquise n’est revendiquée avant une relecture sur la machine. Voir [le protocole](docs/PEDAGOGY_EVALUATION.md).

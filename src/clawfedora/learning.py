@@ -80,9 +80,11 @@ def instructions(project: Path, task: dict[str, Any] | None = None) -> str:
         return f"Mode direct choisi: résultat complet autorisé, expliquer l’utile. {goals}. "
     return (
         f"Mode guidé. Objectifs: {goals}. Ne fais pas l’exercice à la place de l’apprenant. "
-        "Dans summary: problème, mécanisme simple, petit exemple distinct et prochaine action. "
+        "Dans summary: besoin OPS, mécanisme, petit exemple expliqué distinct et prochaine action. "
         "Dans files: amorce courte ou trame à compléter, avec TODO explicites, pas une solution "
-        "entière. Au plus trois notions. L’apprenant complétera ces fichiers et soumettra son "
+        "entière. Aucun TODO sans explication. Demander une prévision ou observation utile, "
+        "pas un quiz systématique; réduire les indices selon les essais reçus. Au plus trois "
+        "notions nouvelles. L’apprenant complétera ces fichiers et soumettra son "
         "raisonnement/résultat observé; cette proposition ne valide aucune tâche. "
     )
 
