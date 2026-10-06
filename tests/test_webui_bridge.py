@@ -204,3 +204,32 @@ def test_maintenance_refuses_active_inference_and_reuses_inherited_lock(tmp_path
         check=False,
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_chat_uses_approved_notes_and_displays_history_omission(tmp_path: Path) -> None:
+    from clawfedora.mentor import save_profile
+
+    save_profile(tmp_path, {"human_approved": True, "background": "Administrateur Linux"})
+    captured = []
+
+    def runner(_role: str, prompt: str, _session: str) -> dict[str, Any]:
+        captured.append(prompt)
+        return {"text": "Vérifions une observation."}
+
+    with make_server(ROOT, tmp_path, TOKEN, 0, runner=runner) as server:
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        messages = [
+            {"role": "user", "content": "old" + "x" * 5990},
+            {"role": "user", "content": "Question actuelle"},
+        ]
+        status, raw = request(
+            server, "/v1/chat/completions", {"model": MODEL_IDS[0], "messages": messages}
+        )
+        assert status == 200
+        assert "Contexte allégé" in json.loads(raw)["choices"][0]["message"]["content"]
+        assert "Administrateur Linux" in captured[0]
+        models = json.loads(request(server, "/v1/models")[1])["data"]
+        assert models[0]["name"] == "Mentor infrastructure/OPS"
+        server.shutdown()
+        thread.join(timeout=5)

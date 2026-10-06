@@ -357,7 +357,7 @@ def create_project(
     intake_items: Iterable[Path] = (),
     source_items: Iterable[Path] = (),
     expected_deliverables: Iterable[str] = (),
-    learning_mode: str = "guided",
+    learning_mode: str = "adaptive",
     learning_goals: list[str] | None = None,
 ) -> Path:
     policy = core_contract(repo_root, "intake_policy.yaml")

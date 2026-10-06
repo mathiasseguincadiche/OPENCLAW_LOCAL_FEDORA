@@ -1,1 +1,11 @@
-{"name":"clawfedora-toolkit","version":"0.1.0","type":"module","private":true,"openclaw":{"extensions":["./index.mjs"]}}
+{
+  "name": "clawfedora-toolkit",
+  "version": "0.3.0",
+  "type": "module",
+  "private": true,
+  "openclaw": {
+    "extensions": [
+      "./index.mjs"
+    ]
+  }
+}

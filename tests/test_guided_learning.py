@@ -29,6 +29,19 @@ def starter(role: str, prompt: str, _session: str) -> dict[str, Any]:
     }
 
 
+def reviewer(_role: str, prompt: str, _session: str) -> dict[str, Any]:
+    data = json.loads(prompt.split("\n", 1)[1])
+    return {
+        "verdict": "PASS",
+        "feedback": "Choix motivé; limites explicitement déclarées.",
+        "next_action": "Vérifier le prochain compromis.",
+        "criteria": [
+            {"passed": True, "evidence": "Critère illustré dans le document."}
+            for _ in data["task"]["acceptance_criteria"]
+        ],
+    }
+
+
 def payload(item: dict[str, Any]) -> dict[str, Any]:
     return {
         "files": {
@@ -41,9 +54,11 @@ def payload(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def test_new_projects_default_to_guided_and_all_roles_receive_common_context(tmp_path: Path) -> None:
+def test_new_projects_default_to_adaptive_and_all_roles_receive_common_context(
+    tmp_path: Path,
+) -> None:
     project = create_project(ROOT, tmp_path, "guided-project", "Guidé")
-    assert contract(project)["mode"] == "guided"
+    assert contract(project)["mode"] == "adaptive"
     shared = (ROOT / "agents/_shared/PEDAGOGY.md").read_text()
     assert "huit agents" not in shared and "Gemma" not in shared
     deploy_workspaces(ROOT, tmp_path)
@@ -58,7 +73,7 @@ def test_guidance_does_not_publish_or_complete_work_and_resume_waits_for_learner
     planned: tuple[Path, Path],
 ) -> None:
     runtime, project = planned
-    initialize(project, goals=["Comparer et vérifier une architecture"])
+    initialize(project, mode="guided", goals=["Comparer et vérifier une architecture"])
     calls: list[str] = []
 
     def guide(role: str, prompt: str, session: str) -> dict[str, Any]:
@@ -78,7 +93,10 @@ def test_guidance_does_not_publish_or_complete_work_and_resume_waits_for_learner
     assert calls == ["architecte-solutions"]
     item = awaiting(project)[0]
     submitted = submit(ROOT, runtime, project, item["task_id"], payload(item))
-    assert submitted["status"] == "PASS"  # Collection only; semantic audit remains separate.
+    assert submitted["status"] == "AWAITING_FEEDBACK"
+    assert not (project / "deliverables/design-choice/report.md").exists()
+    assert ready_tasks(ROOT, project) == []
+    run_project_tasks(ROOT, runtime, project, runner=reviewer)
     assert checkpoints(project)[0]["skill_acquired"] is False
     assert checkpoints(project)[0]["runtime_tested"] is False
     assert not awaiting(project)
@@ -86,6 +104,7 @@ def test_guidance_does_not_publish_or_complete_work_and_resume_waits_for_learner
     assert calls == ["architecte-solutions", "expert-recherche"]
     item = awaiting(project)[0]
     submit(ROOT, runtime, project, item["task_id"], payload(item))
+    run_project_tasks(ROOT, runtime, project, runner=reviewer)
     assert read_json(project / "project.json")["status"] == "VALIDATING"
     assert not (project / "evidence/validation_report.json").exists()
 

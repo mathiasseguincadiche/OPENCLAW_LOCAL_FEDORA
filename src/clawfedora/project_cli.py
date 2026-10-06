@@ -49,7 +49,9 @@ def add_project_parser(
     create.add_argument("--intake", action="append", default=[])
     create.add_argument("--source", action="append", default=[])
     create.add_argument("--deliverable", action="append", default=[])
-    create.add_argument("--learning-mode", choices=("guided", "direct"), default="guided")
+    create.add_argument(
+        "--learning-mode", choices=("adaptive", "guided", "direct"), default="adaptive"
+    )
     create.add_argument("--learning-goal", action="append", default=[])
 
     practice = commands.add_parser("practice", help="soumettre le travail d’une étape guidée")

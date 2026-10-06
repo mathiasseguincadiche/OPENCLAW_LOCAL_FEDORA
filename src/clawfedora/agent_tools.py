@@ -12,6 +12,7 @@ from typing import Any
 
 import yaml
 
+from clawfedora.ci_reports import summarize
 from clawfedora.core_config import AGENT_IDS
 from clawfedora.project_common import assert_no_symlinks, read_json
 from clawfedora.specialist_tools import FORMATS, available, lint, receipt, run_fixed
@@ -23,6 +24,7 @@ TOOL_ROLES = {
     "clawfedora_check": {"ingenieur-devops", "ingenieur-securite", "auditeur-qualite"},
     "clawfedora_lint": set(FORMATS),
     "clawfedora_tool_status": set(AGENT_IDS),
+    "clawfedora_ci_report": set(AGENT_IDS),
 }
 OUTLINES = {
     "chef-operations": {"brief": ["Objectif", "Contraintes", "Livrables", "Critères de fin"]},
@@ -235,6 +237,8 @@ def invoke(
         return result
     if tool == "clawfedora_check":
         return check(data)
+    if tool == "clawfedora_ci_report":
+        return summarize(data)
     if tool == "clawfedora_tool_status":
         return {"available": available(), "lint_formats": sorted(FORMATS.get(role, set()))}
     if tool == "clawfedora_lint":

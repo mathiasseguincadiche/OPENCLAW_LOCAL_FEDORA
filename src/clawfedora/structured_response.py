@@ -9,6 +9,32 @@ from urllib.request import Request, urlopen
 
 def response_schema(prompt: str) -> dict[str, Any]:
     payload = json.loads(prompt.split("\n", 1)[1])
+    if prompt.startswith("Retour pédagogique"):
+        count = len(payload["task"]["acceptance_criteria"])
+        return {
+            "type": "object",
+            "required": ["verdict", "feedback", "next_action", "criteria"],
+            "additionalProperties": False,
+            "properties": {
+                "verdict": {"type": "string", "enum": ["PASS", "REVISE"]},
+                "feedback": {"type": "string", "minLength": 1, "maxLength": 2000},
+                "next_action": {"type": "string", "minLength": 1, "maxLength": 500},
+                "criteria": {
+                    "type": "array",
+                    "minItems": count,
+                    "maxItems": count,
+                    "items": {
+                        "type": "object",
+                        "required": ["passed", "evidence"],
+                        "additionalProperties": False,
+                        "properties": {
+                            "passed": {"type": "boolean"},
+                            "evidence": {"type": "string", "minLength": 1},
+                        },
+                    },
+                },
+            },
+        }
     if prompt.startswith("Session indépendante"):
         criterion = {
             "type": "object",

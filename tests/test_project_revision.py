@@ -44,6 +44,15 @@ def test_writer_depends_on_all_technical_work_transitively() -> None:
     tasks[-1]["depends_on"] = ["design"]
     with pytest.raises(ValueError, match="dépendances techniques manquantes"):
         _validate_plan(tasks)
+    tasks[-1]["writing_scope"] = "intermediate"
+    _validate_plan(tasks)
+    tasks[-1]["learning_mode"] = "arbitrary"
+    with pytest.raises(ValueError, match="learning_mode"):
+        _validate_plan(tasks)
+    tasks[-1]["learning_mode"] = "direct"
+    tasks[-1]["writing_scope"] = "arbitrary"
+    with pytest.raises(ValueError, match="writing_scope"):
+        _validate_plan(tasks)
 
 
 def result(_role: str, prompt: str, _session: str) -> dict[str, Any]:

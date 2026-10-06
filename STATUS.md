@@ -14,7 +14,7 @@ Le dépôt est une **édition Fedora 44 Linux-native d'OPENCLAW_LOCAL**. Le socl
 | Ruff / mypy / pytest / couverture / ShellCheck | PASS |
 | CodeQL / Dependency Review | soumis aux checks GitHub de la PR |
 | Garde anti-drift Architecture V2 | PASS — anciens IDs modèles/OpenClaw interdits |
-| 6 agents + routage + workspaces | PASS logiciel — mêmes missions et alias que Windows |
+| 7 profils + routage + workspaces | PASS logiciel — mentor OPS et six spécialités sur Qwen unique |
 | Politique outils `minimal` fail-closed | PASS logiciel |
 | Moteur projet / Intake / Artifact Exchange | PASS logiciel |
 | Installation complète Fedora 44 | IMPLÉMENTÉE — validation machine cible à produire |
@@ -55,13 +55,13 @@ Le tableau de bord a été exercé dans Chromium avec recherche et conservation 
 
 ## Modèle quotidien et comparaisons expérimentales
 
-Les six rôles quotidiens utilisent uniquement `qwen3.5:9b-q4_K_M`, avec 8192 tokens de contexte, 1024 tokens de sortie et une génération à la fois. Les trois alias suivants sont conservés pour les campagnes de comparaison expérimentales :
+Les sept rôles quotidiens utilisent uniquement `qwen3.5:9b-q4_K_M`, avec 8192 tokens de contexte, 1024 tokens de sortie et une génération à la fois. Les trois alias suivants sont conservés pour les campagnes de comparaison expérimentales :
 
 - `qwen-max` → `qwen3.5:9b-q4_K_M` — Q4_K_M, multimodal ;
 - `gemma-deep` → `gemma4:12b-it-q4_K_M` — Q4_K_M, multimodal ;
 - `devstral-devops` → `hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M` — Q4_K_M, text-only.
 
-`devstral-devops` est un alias historique du benchmark DevOps. Le rôle quotidien `ingenieur-devops` utilise Qwen comme les cinq autres spécialités.
+`devstral-devops` est un alias historique du benchmark DevOps. Le rôle quotidien `ingenieur-devops` utilise Qwen comme les six autres profils.
 
 Le benchmark de référence reste à **8192 tokens**. Les comparaisons à 16K et les modèles supplémentaires ne modifient pas automatiquement le profil quotidien.
 
@@ -83,13 +83,13 @@ Le benchmark de référence reste à **8192 tokens**. Les comparaisons à 16K et
 - Le routage quotidien expose uniquement Qwen ; les trois alias de comparaison restent expérimentaux.
 - Granite reste hors flotte nominale et hors routage tant qu'aucune décision humaine post-qualification ne change explicitement le contrat.
 - Les probes Qwen thinking du protocole HARD-40M sont réservés aux benchmarks ; le quotidien utilise `think=false`.
-- Les six rôles agents restent exactement définis et `chef-operations` reste le défaut.
-- Les missions des agents ne sont pas redéfinies par l'édition Fedora ; les prompts ont été enrichis avec ingestion, provenance, Web/runtime evidence, Artifact Exchange et garanties Linux natives.
+- Les sept profils agents restent exactement définis et `chef-operations` reste le défaut.
+- Le mentor coordonne l’aide OPS; les spécialités conservent leurs responsabilités et reçoivent des consignes pédagogiques compactes.
 - La politique outils part de `minimal` ; les commandes et écritures natives des agents sont interdites, les résultats sont collectés par le worker.
 - `intake/`, `sources/` et `context/exchange/` restent protégés et traçables.
 - Le moteur projet est fail-closed et `COMPLETE` requiert une approbation humaine explicite.
 - L8 readiness ne peut jamais approuver V1 automatiquement.
-- Les preuves runtime restent hors Git et les sorties brutes modèles ne sont pas persistées par L5/L6.
+- Les preuves runtime restent hors Git et les sorties brutes modèles ne sont pas persistées par L5/L6. La comparaison mentor séparée conserve ses réponses pour la revue humaine, dans le rapport explicitement choisi.
 - Aucun fallback LLM cloud silencieux.
 
 ## HARD-40M expérimental
@@ -117,3 +117,7 @@ Le framework L8 agrège les contrats logiciels et les preuves réelles L2-L7. Un
 Même en état READY, `human_approval.status` reste `PENDING` et `v1_approved` reste `false`. L'approbation exige une action humaine séparée et ne modifie ni le routage, ni le kernel, ni un backend, ni les modèles, ni `COMPLETE`, ni une release.
 
 **État actuel : CI logicielle Fedora V2 validée ; aucune qualification matérielle B580, aucun nouveau verdict de performance et aucune approbation V1 ne sont déclarés par la CI.**
+
+## Mentor infrastructure/OPS et choix du modèle
+
+Le mentor réutilise chef-operations, sans huitième agent. L’aide adaptative, les notes personnelles approuvées, la continuité du chat et les retours avant publication des brouillons sont implémentés. Le plugin interprète les rapports CI sans simuler leur exécution. La comparaison française Qwen/Gemma/Granite est préparée; ses tests automatisés utilisent des réponses simulées. Les mesures physiques, la qualité pédagogique du modèle réel et la promotion éventuelle de budgets plus grands restent à produire sur Fedora/B580. [Recherche et protocole](docs/MODEL_SELECTION_2026_10.md).

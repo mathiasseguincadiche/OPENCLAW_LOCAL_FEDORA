@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
@@ -273,6 +274,10 @@ def _validate_plan(tasks: list[dict[str, Any]]) -> None:
         role = str(task.get("role", ""))
         if role not in AGENT_IDS:
             raise ValueError(f"{task_id}: rôle inconnu: {role}")
+        if task.get("learning_mode", "guided") not in {"guided", "direct"}:
+            raise ValueError(f"{task_id}: learning_mode guided ou direct requis")
+        if task.get("writing_scope", "final") not in {"final", "intermediate"}:
+            raise ValueError(f"{task_id}: writing_scope final ou intermediate requis")
         for field in ("title", "objective"):
             if not str(task.get(field, "")).strip():
                 raise ValueError(f"{task_id}: {field} vide")
@@ -312,7 +317,7 @@ def _validate_plan(tasks: list[dict[str, Any]]) -> None:
         in {"expert-recherche", "architecte-solutions", "ingenieur-devops", "ingenieur-securite"}
     }
     for task in tasks:
-        if task["role"] != "redacteur-pedagogique":
+        if task["role"] != "redacteur-pedagogique" or task.get("writing_scope") == "intermediate":
             continue
         upstream: set[str] = set()
         queue = list(dependencies[task["id"]])
@@ -322,9 +327,7 @@ def _validate_plan(tasks: list[dict[str, Any]]) -> None:
                 upstream.add(value)
                 queue.extend(dependencies[value])
         if missing := technical - upstream:
-            raise ValueError(
-                f"{task['id']}: dépendances techniques manquantes: {sorted(missing)}"
-            )
+            raise ValueError(f"{task['id']}: dépendances techniques manquantes: {sorted(missing)}")
 
 
 def store_plan(repo_root: Path, project: Path, payload: dict[str, Any]) -> Path:
@@ -418,6 +421,7 @@ def ready_tasks(repo_root: Path, project: Path) -> list[dict[str, Any]]:
         if (
             item.get("status") != "PASS"
             and item.get("status") != "AWAITING_PRACTICE"
+            and item.get("status") != "AWAITING_FEEDBACK"
             and int(item.get("attempts", 0)) - int(item.get("revision_attempt_base", 0)) < maximum
             and all(
                 by_id.get(str(dependency), {}).get("status") == "PASS" for dependency in dependencies
@@ -481,6 +485,36 @@ def record_task_result(
         raise ValueError(f"{normalized_task_id}: depends_on invalide")
     if any(by_id.get(str(dependency), {}).get("status") != "PASS" for dependency in dependencies):
         raise ValueError(f"{normalized_task_id}: dépendances non PASS")
+    if normalized == "PASS" and task.get("status") in {"AWAITING_PRACTICE", "AWAITING_FEEDBACK"}:
+        receipt_path = project / "evidence" / normalized_task_id / "learning-feedback.json"
+        if task["status"] != "AWAITING_FEEDBACK" or not receipt_path.is_file():
+            raise ValueError("retour pédagogique requis avant publication")
+        receipt = read_json(receipt_path)
+        packet = read_json(project / "context/tasks" / f"{normalized_task_id}.json")["task"]
+        checkpoint = read_json(project / "context/learning/tasks" / f"{normalized_task_id}.json")
+        criteria = receipt.get("criteria", [])
+        hashes = receipt.get("files", {})
+        if (
+            checkpoint.get("status") != "AWAITING_FEEDBACK"
+            or not checkpoint.get("submission_id")
+            or receipt.get("submission_id") != checkpoint["submission_id"]
+            or receipt.get("verdict") != "PASS"
+            or receipt.get("origin") != "specialist-review"
+            or not isinstance(criteria, list)
+            or len(criteria) != len(packet["acceptance_criteria"])
+            or not all(isinstance(item, dict) and item.get("passed") is True for item in criteria)
+            or not isinstance(hashes, dict)
+            or set(hashes) != set(packet["expected_outputs"])
+            or hashes
+            != {
+                path: sha256(content.encode()).hexdigest()
+                for path, content in checkpoint["files"].items()
+            }
+            or any(
+                sha256_file(safe_output(project, path)) != digest for path, digest in hashes.items()
+            )
+        ):
+            raise ValueError("retour pédagogique invalide ou livrables modifiés")
     maximum = int(dict(_policy(repo_root)["execution"])["max_task_attempts"])
     attempt = int(task.get("attempts", 0)) + 1
     if attempt - int(task.get("revision_attempt_base", 0)) > maximum:

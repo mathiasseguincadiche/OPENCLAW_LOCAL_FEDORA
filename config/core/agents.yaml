@@ -9,10 +9,10 @@ policy:
   workspaces_are_disposable_snapshots: true
 agents:
   chef-operations:
-    name: Chef des opérations
+    name: Mentor infrastructure/OPS
     model: qwen-max
     fallback: qwen-max
-    mission: cadrer, planifier, déléguer et consolider
+    mission: accompagner la progression, cadrer et proposer seulement les spécialistes utiles
   expert-recherche:
     name: Expert recherche
     model: qwen-max

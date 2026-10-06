@@ -23,7 +23,7 @@ Les sauvegardes utilisent l’API SQLite pour inclure les transactions validées
 
 ## Sept spécialités sur un modèle
 
-- Chef : cadrage, analyse et plan avec dépendances explicites.
+- Mentor infrastructure/OPS (chef-operations) : aide adaptée, transfert des acquis, cadrage et plan.
 - Recherche : faits, sources et actualité via Internet.
 - Architecte : architecture, décisions et schémas.
 - DevOps : code proposé, exploitation et préparation des livraisons.
@@ -67,7 +67,7 @@ clawfedora project review --project-id mon-projet --kind review --apply
 clawfedora project package --project-id mon-projet
 ```
 
-Le worker fournit un snapshot de la tâche et une session neuve. Les entrées et le projet central sont contrôlés par hashes avant la collecte. Prévoir des tâches courtes : 1024 tokens de sortie ne permettent pas de produire plusieurs longs fichiers dans une seule réponse. Les justifications de chaque critère, les hashes du snapshot et la session de revue sont conservés dans le verdict. Le modèle répond en JSON avec les contenus des fichiers ; le collecteur accepte uniquement les chemins attendus, les scopes du rôle et le namespace de la tâche. Les fichiers vides, trop volumineux, liés ou sortant du projet sont refusés. Un PASS de tâche signifie **artefacts collectés** ; le projet doit ensuite passer validation et revue. Une erreur de génération reste une tentative FAIL traçable, sans promotion automatique.
+Le worker fournit un snapshot de la tâche et une session neuve. Les entrées et le projet central sont contrôlés par hashes avant la collecte. Prévoir des tâches courtes : 1024 tokens de sortie ne permettent pas de produire plusieurs longs fichiers dans une seule réponse. Les justifications de chaque critère, les hashes du snapshot et la session de revue sont conservés dans le verdict. Le modèle répond en JSON avec les contenus des fichiers ; le collecteur accepte uniquement les chemins attendus, les scopes du rôle et le namespace de la tâche. Les fichiers vides, trop volumineux, liés ou sortant du projet sont refusés. En pratique guidée, la soumission reste AWAITING_FEEDBACK jusqu’à un retour ciblé; aucune dépendance n’avance sur le brouillon. Après revue cohérente, un PASS signifie **contribution collectée et critères relus**, sans preuve de déploiement ni de compétence. En mode direct, PASS reste une collecte. Le projet doit ensuite passer validation et revue. Une erreur de génération reste une tentative FAIL traçable, sans promotion automatique.
 
 Les agents ont `read`, les outils documents et les outils web utiles. Les écritures natives, `exec` et `process` sont désactivés. `workspaceOnly` n'est pas présenté comme un sandbox de commandes. Le profil quotidien propose du code et des scripts ; leur exécution sur l'hôte reste une action opérateur. Un futur profil d'exécution isolée devra être qualifié avant activation.
 
@@ -109,3 +109,5 @@ Ces commandes n'activent pas ces modèles dans OpenClaw. Le benchmark direct les
 La mesure VRAM expérimentale utilise les clients DRM `xe` de la B580 sélectionnée et échantillonne pendant l'inférence. Un compteur d'un iGPU AMD ne peut pas être utilisé à sa place. Si les `fdinfo` du compte Ollama sont inaccessibles, la comparaison est bloquée : il faut organiser une collecte autorisée sur Fedora, sans annoncer un pic fictif. Ces compteurs mesurent les allocations des clients observables, pas toute la mémoire physique occupée par les firmwares.
 
 `clawfedora-golden` sans `--live` vérifie le moteur avec des sorties synthétiques. Ce résultat ne peut plus autoriser L8. `clawfedora-golden --live` appelle le worker puis l'auditeur réel pour les cinq scénarios et le projet représentatif ; le gate humain final reste obligatoire. Le script `scripts/validation/check_openclaw_schema.py` valide aussi les deux providers et la migration avec le CLI OpenClaw exact ; il vérifie le rejet de l’ancien paramètre PDF. Ce contrôle natif demande le runtime et le plugin épinglés, et reste distinct de la CI existante.
+
+Le choix du modèle et les tests publiés sont documentés dans [MODEL_SELECTION_2026_10.md](MODEL_SELECTION_2026_10.md). La comparaison de réponses françaises et les expériences de sorties 1536/2048 ou de résidence 15 minutes n’augmentent pas les budgets quotidiens.

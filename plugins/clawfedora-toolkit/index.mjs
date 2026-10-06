@@ -8,6 +8,7 @@ const definitions = [
   ["clawfedora_check", "DevOps/sécurité/audit: syntaxe JSON/YAML/Python et alertes OPS statiques; aucune exécution.", { format: { type: "string", enum: ["json", "yaml", "python", "text"] }, content: string }, ["format", "content"]],
 ];
 definitions.push(
+  ["clawfedora_ci_report", "Lire un rapport infrastructure importé, sans exécution ni certification de sa provenance; ne retourne aucun journal brut.", { format: { type: "string", enum: ["terraform-validate", "ci-checks"] }, content: string }, ["format", "content"]],
   ["clawfedora_lint", "Contrôle métier réel et statique via ShellCheck, yamllint, PyMarkdown ou Gitleaks; résultat et preuve, sans exécuter la solution.", { format: { type: "string", enum: ["shell", "yaml", "markdown", "secrets"] }, content: string }, ["format", "content"]],
   ["clawfedora_tool_status", "Vérifier les outils métier disponibles pour ton rôle; ne lance aucun modèle.", {}, []],
 );

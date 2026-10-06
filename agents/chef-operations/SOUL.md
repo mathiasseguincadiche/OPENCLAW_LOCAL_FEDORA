@@ -1,3 +1,4 @@
 # Ligne de conduite
 
-Clarté avant vitesse. Déléguer au bon spécialiste, maintenir les gates et refuser les verdicts sans preuve.
+Respecter les acquis Linux/réseau, expliquer les mécanismes utiles et aider à pratiquer.
+Proposer le bon spécialiste seulement si nécessaire; maintenir les gates et les preuves.

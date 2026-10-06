@@ -24,6 +24,9 @@ const phases = {
   reviewed: "Audit enregistré",
   interrupted: "Travail interrompu — reprise possible",
   awaiting_practice: "À vous de compléter et vérifier cette étape",
+  awaiting_feedback: "Travail reçu : retour du spécialiste à demander",
+  feedback: "Relecture ciblée de votre travail",
+  feedback_ready: "Retour disponible : lire puis poursuivre",
   awaiting_next_step: "Étape soumise — préparez la suivante",
 };
 const gib = (n) =>
@@ -117,7 +120,8 @@ async function refresh() {
             project.total +
             " tâches" +
             (project.paused ? " · Pause demandée" : "") +
-            (project.awaiting_practice ? " · À vous de pratiquer" : ""),
+            (project.awaiting_practice ? " · À vous de pratiquer" : "") +
+            (project.awaiting_feedback ? " · Retour à demander" : ""),
         ),
       );
       if (project.total) {
@@ -132,7 +136,7 @@ async function refresh() {
       const pause = node("button", "Mettre en pause", "secondary"),
         resume = node(
           "button",
-          project.paused ? "Reprendre" : "Préparer la prochaine étape",
+          project.awaiting_feedback ? "Demander le retour" : project.paused ? "Reprendre" : "Préparer la prochaine étape",
         );
       pause.disabled =
         !["ASSIGNED", "IN_PROGRESS"].includes(project.status) || project.paused;
@@ -323,6 +327,8 @@ async function loadProject(id) {
     }
     $("proposal").replaceChildren();
     if (data.draft && !data.draft.approved) renderProposal(id, data.draft);
+    await renderMentor(id);
+    if (sequence !== editorSequence) return;
     renderLearning(id, data);
     renderRevision(id, data);
   } catch (error) { tell(error.message, true); }
@@ -355,6 +361,19 @@ function renderProposal(id, draft) {
       const label = node("label", "Spécialité"), role = node("select");
       for (const name of ["chef-operations", "expert-recherche", "architecte-solutions", "ingenieur-devops", "ingenieur-securite", "redacteur-pedagogique", "auditeur-qualite"]) { const option = node("option", name); option.value = name; role.append(option); }
       role.value = task.role; label.append(role); group.append(label); form.append(group);
+      const support = node("select"), supportLabel = node("label", "Aide pour cette étape");
+      for (const [value, text] of [["guided", "Je pratique avec des indices"], ["direct", "Aide directe"]]) { const option = node("option", text); option.value = value; support.append(option); }
+      support.value = task.learning_mode || (["architecte-solutions", "ingenieur-devops"].includes(task.role) ? "guided" : "direct");
+      support.addEventListener("change", () => { task.learning_mode = support.value; });
+      task.learning_mode = support.value; supportLabel.append(support); group.append(supportLabel);
+      if (task.role === "redacteur-pedagogique") {
+        const scope = node("select"), scopeLabel = node("label", "Portée de la rédaction");
+        for (const [value, text] of [["final", "Synthèse finale : toutes les tâches techniques"], ["intermediate", "Document intermédiaire : ses seules sources"]]) { const option = node("option", text); option.value = value; scope.append(option); }
+        scope.value = task.writing_scope || "final";
+        task.writing_scope = scope.value;
+        scope.addEventListener("change", () => { task.writing_scope = scope.value; });
+        scopeLabel.append(scope); group.append(scopeLabel);
+      }
       tasks.push({ task, values, role });
     }
   }
@@ -393,12 +412,35 @@ $("create-form").addEventListener("submit", async event => {
   } catch (error) { tell(error.message, true); }
 });
 
+async function renderMentor(id) {
+  const area = $("mentor"); area.replaceChildren();
+  const saved = (await api("/api/status")).mentor || {};
+  if (openedProject !== id) return;
+  const details = node("details"), form = node("form"), inputs = {};
+  details.append(node("summary", "Mon accompagnement et la continuité du chat"));
+  form.append(node("p", "Notes facultatives, modifiables par vous. Le mentor les consulte dans le chat et les projets. Aucun niveau n’est certifié automatiquement."));
+  for (const [key, label] of Object.entries({ background: "Ce que je sais déjà", focus: "Ce que je travaille maintenant", difficulties: "Mes difficultés", evidence: "Ce que j’ai réalisé ou vérifié", next_step: "Ma prochaine étape" })) {
+    const input = field(form, label, saved[key] || "", true); input.maxLength = 500; inputs[key] = input;
+  }
+  const attach = node("input"), attachLabel = node("label"); attach.type = "checkbox"; attach.checked = saved.project_id === id;
+  attachLabel.append(attach, document.createTextNode(" Relier le mentor à ce projet dans Open WebUI")); form.append(attachLabel);
+  const button = node("button", "Enregistrer mes notes"); button.type = "submit"; form.append(button);
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    const data = Object.fromEntries(Object.entries(inputs).map(([key, input]) => [key, input.value]));
+    if (await action("/api/mentor", { ...data, project_id: attach.checked ? id : "", human_approved: true })) tell("Notes du mentor enregistrées. Le chat reste sans écriture dans le projet.");
+  });
+  details.append(form); area.append(details);
+}
+
 function renderLearning(id, data) {
   const area = $("learning"); area.replaceChildren();
-  area.append(node("h3", data.learning.mode === "guided" ? "Apprendre en construisant" : "Propositions directes"));
+  area.append(node("h3", data.learning.mode === "direct" ? "Propositions directes" : "Apprendre avec une aide adaptée"));
   area.append(node("p", "Une soumission conserve votre travail et vos observations. Les audits restent requis; aucune compétence n’est déclarée acquise automatiquement."));
   for (const item of data.checkpoints || []) {
-    if (item.status !== "AWAITING_PRACTICE") continue;
+    if (item.feedback) area.append(node("h4", "Retour · " + item.task_id), node("p", item.feedback.feedback), node("p", "Prochaine action : " + item.feedback.next_action));
+    if (item.status === "AWAITING_FEEDBACK") area.append(node("p", "Travail reçu. Demandez le retour; vous pouvez encore corriger puis resoumettre le brouillon. Les dépendants restent bloqués."));
+    if (!["AWAITING_PRACTICE", "AWAITING_FEEDBACK"].includes(item.status)) continue;
     const form = node("form"), inputs = {};
     form.append(node("h4", item.task_id + " · " + item.role), node("pre", item.guidance));
     form.append(node("p", "Complétez l’amorce, puis indiquez ce que vous avez compris et vérifié. Aucun code n’est exécuté par ce formulaire."));
@@ -413,12 +455,12 @@ function renderLearning(id, data) {
     const label = node("label"), approved = node("input"); approved.type = "checkbox"; approved.required = true;
     label.append(approved, document.createTextNode(" Je soumets mon travail; les observations sont exactes et les limites explicites."));
     form.append(label);
-    const button = node("button", "Soumettre mon étape"); button.type = "submit"; form.append(button);
+    const button = node("button", item.status === "AWAITING_FEEDBACK" ? "Modifier et resoumettre mon étape" : "Soumettre mon étape"); button.type = "submit"; form.append(button);
     form.addEventListener("submit", async event => {
       event.preventDefault(); if (!approved.checked) return;
       const files = Object.fromEntries(Object.entries(inputs).map(([path, input]) => [path, input.value]));
       const result = await action("/api/practice", { project_id: id, task_id: item.task_id, files, explanation: explanation.value, observations: observations.value, human_approved: true });
-      if (result) { await loadProject(id); tell("Étape soumise. Vous pouvez préparer la suivante ou consulter l’audit."); }
+      if (result) { await loadProject(id); tell("Travail reçu. Reprenez pour demander le retour avant de poursuivre."); }
     });
     area.append(form);
   }
