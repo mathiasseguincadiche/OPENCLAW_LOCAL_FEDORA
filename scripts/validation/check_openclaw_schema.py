@@ -29,9 +29,10 @@ for backend in ("ollama-vulkan", "llama-cpp-vulkan"):
         state = Path(temporary)
         config = build_openclaw_patch(repo, state, backend)
         config["plugins"] = {
-            "allow": ["parallel"],
+            **config["plugins"],
+            "allow": ["parallel", "memory-core"],
             "load": {"paths": [str(plugin)]},
-            "entries": {"parallel": {"enabled": True}},
+            "entries": {**config["plugins"]["entries"], "parallel": {"enabled": True}},
         }
         path = state / "openclaw.json"
         env = dict(

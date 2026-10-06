@@ -7,7 +7,9 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.core_config import resolve_runtime_root
+from clawfedora.knowledge import build_index, search, store_note
 from clawfedora.project_common import project_path, read_json
+from clawfedora.project_control import request_pause
 from clawfedora.project_engine import (
     create_assignments,
     create_clarifications,
@@ -22,7 +24,7 @@ from clawfedora.project_engine import (
     transition_project,
 )
 from clawfedora.project_intake import create_project
-from clawfedora.project_worker import review_project, run_project_tasks
+from clawfedora.project_worker import review_project, run_project_tasks, worker_lock
 
 
 def _load_object(path: str) -> dict[str, Any]:
@@ -49,6 +51,20 @@ def add_project_parser(
     status = commands.add_parser("status")
     status.add_argument("--runtime-root")
     status.add_argument("--project-id", required=True)
+
+    for name in ("pause", "resume", "index", "search", "remember", "research"):
+        command = commands.add_parser(name)
+        command.add_argument("--runtime-root")
+        command.add_argument("--project-id", required=True)
+        if name == "search":
+            command.add_argument("--query", required=True)
+        elif name == "remember":
+            command.add_argument("--title", required=True)
+            command.add_argument("--text", required=True)
+        elif name == "research":
+            command.add_argument("--file", required=True)
+        elif name == "resume":
+            command.add_argument("--apply", action="store_true")
 
     analysis = commands.add_parser("analysis")
     analysis.add_argument("--runtime-root")
@@ -301,6 +317,34 @@ def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
         elif command == "status":
             project_manifest = read_json(_project(args) / "project.json")
             print(json.dumps(project_manifest, indent=2, ensure_ascii=False))
+        elif command == "pause":
+            request_pause(_runtime(args), _project(args))
+            print("PROJECT_PAUSE=requested-at-task-boundary")
+        elif command == "resume":
+            if not args.apply:
+                print("PROJECT_RESUME_PLAN=continue-unfinished-tasks")
+            else:
+                results = run_project_tasks(repo_root, _runtime(args), _project(args), resume=True)
+                print(json.dumps(results, ensure_ascii=False))
+                if any(result["status"] == "FAIL" for result in results):
+                    return 2
+        elif command == "search":
+            print(json.dumps(search(repo_root, _project(args), args.query), ensure_ascii=False))
+        elif command in {"index", "remember", "research"}:
+            with worker_lock(_runtime(args), allow_gaming=True):
+                if command == "remember":
+                    store_note(repo_root, _project(args), args.title, args.text)
+                elif command == "research":
+                    note = _load_object(args.file)
+                    store_note(
+                        repo_root,
+                        _project(args),
+                        note["title"],
+                        note["text"],
+                        kind="research",
+                        sources=note["sources"],
+                    )
+                print(json.dumps(build_index(repo_root, _project(args)), ensure_ascii=False))
         elif command == "analysis":
             path = store_analysis(
                 repo_root,

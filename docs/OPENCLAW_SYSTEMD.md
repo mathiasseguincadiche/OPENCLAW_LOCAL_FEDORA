@@ -30,11 +30,11 @@ Documentation amont :
 3. Le Gateway reste loopback-only par défaut.
 4. Le code de sortie de configuration invalide `78` doit empêcher une boucle de restart.
 5. L'activation de lingering est un choix explicite de l'opérateur, pas un effet caché du bootstrap.
-6. Le Gateway doit être exécuté avec **OpenClaw exactement `2026.9.2`**. Une autre version doit être traitée comme une divergence de contrat, pas comme une variante supportée.
+6. Le Gateway doit être exécuté avec **OpenClaw exactement `2026.9.8`**. Une autre version doit être traitée comme une divergence de contrat, pas comme une variante supportée.
 
 ## Version OpenClaw verrouillée
 
-La version supportée par `OPENCLAW_LOCAL_FEDORA` est **exactement `2026.9.2`**.
+La version supportée par `OPENCLAW_LOCAL_FEDORA` est **exactement `2026.9.8`**.
 
 Ce verrou est défini simultanément dans :
 
@@ -51,12 +51,12 @@ Les mises à jour automatiques, un canal `latest` ou l'acceptation d'une version
 
 Au 2026-09-03, OpenClaw documente comme supportés :
 
-- Node 22.22.3+ ;
-- Node 24.15+ ;
-- Node 25.9+ ;
-- Node 26 recommandé.
+- Node 24.16.0+ dans la branche 24 ;
+- Node 26.1.0+ recommandé.
 
-Le choix de version Node ne modifie pas le verrou OpenClaw : le runtime applicatif reste `2026.9.2` tant que le contrat du projet n'est pas explicitement changé.
+OpenClaw 2026.9.8 exige `>=24.16.0 <25 || >=26.1.0`. Les branches 22 et 25 ne sont plus acceptées. Le schéma natif a été vérifié avec Node 24.21.0 ; l'installateur officiel gère un runtime compatible dans l'espace utilisateur.
+
+Le choix de version Node ne modifie pas le verrou OpenClaw : le runtime applicatif reste `2026.9.8` tant que le contrat du projet n'est pas explicitement changé.
 
 ## Commandes opérateur
 
@@ -68,7 +68,7 @@ journalctl --user -u openclaw-gateway.service
 openclaw gateway status
 ```
 
-La première commande doit identifier exactement `2026.9.2`. En cas de divergence, suivre le dépannage et restaurer la version contractuelle avant de poursuivre.
+La première commande doit identifier exactement `2026.9.8`. En cas de divergence, suivre le dépannage et restaurer la version contractuelle avant de poursuivre.
 
 Si la machine doit faire tourner le Gateway après logout :
 

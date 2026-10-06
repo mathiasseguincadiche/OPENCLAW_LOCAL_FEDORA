@@ -15,6 +15,8 @@ La cible reste Ryzen 7 7700, 48 Gio de RAM, Arc B580 12 Gio, Fedora 44, `xe` et 
 | Recherche concise | Quatre résultats, pages limitées à 4000 caractères |
 | Pas de tâches de fond automatiques | Heartbeat désactivé ; lingering facultatif |
 
+Le [tableau de bord et la recherche documentaire](LOCAL_ASSISTANT.md) ajoutent un suivi local, des décisions persistantes, des recherches datées et une pause/reprise entre les tâches. La recherche reste sur le CPU et une réponse conforme ne demande aucune génération supplémentaire.
+
 Les limites Ollama concernent les clients de **ce serveur**. Un autre serveur démarré manuellement ou un candidat llama.cpp consomme aussi le GPU. Ne pas les démarrer simultanément en usage quotidien. Le verrou Python sérialise le worker et ses revues ; les commandes manuelles de modification des projets doivent être exécutées quand le worker est arrêté.
 
 Les sauvegardes utilisent l’API SQLite pour inclure les transactions validées encore dans le journal WAL. Elles restent des instantanés par fichier ; arrêter les écritures et le worker avant une sauvegarde complète garantit la cohérence entre projets et sessions.

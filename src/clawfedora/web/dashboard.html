@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Mon atelier IA · OpenClaw Fedora</title>
+    <link rel="stylesheet" href="/dashboard.css" />
+    <script src="/dashboard.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <p class="eyebrow">OPENCLAW · FEDORA</p>
+          <h1>Mon atelier IA</h1>
+          <p class="intro">
+            Vos projets, vos documents et une IA à la mesure de votre PC.
+          </p>
+        </div>
+        <span id="profile" class="badge">Connexion…</span>
+      </header>
+      <section class="resources" aria-label="Ressources de l’ordinateur">
+        <article>
+          <span>Mémoire de l’ordinateur</span><strong id="ram">—</strong>
+        </article>
+        <article>
+          <span>Mémoire vidéo du modèle</span><strong id="vram">—</strong>
+        </article>
+        <article>
+          <span>Modèle chargé</span><strong id="model">—</strong>
+        </article>
+      </section>
+      <p id="activity" class="activity" aria-live="polite">
+        Chargement de l’état…
+      </p>
+      <p id="message" role="status"></p>
+      <section aria-labelledby="projects-heading">
+        <h2 id="projects-heading">Mes projets</h2>
+        <div id="projects"></div>
+      </section>
+      <section class="knowledge" aria-labelledby="knowledge-heading">
+        <h2 id="knowledge-heading">Retrouver et conserver</h2>
+        <label for="selected">Projet</label
+        ><select id="selected"></select>
+        <form id="search-form">
+          <label for="query"
+            >Rechercher dans les documents et les décisions</label
+          >
+          <div class="row">
+            <input
+              id="query"
+              maxlength="2000"
+              placeholder="Ex. : choix de la configuration"
+              required
+            />
+            <button type="submit">Rechercher</button
+            ><button id="index" type="button" class="secondary">
+              Actualiser l’index
+            </button>
+          </div>
+        </form>
+        <div id="hits" aria-live="polite"></div>
+        <details>
+          <summary>Conserver une décision pour ce projet</summary>
+          <form id="note-form">
+            <label for="note-title">Titre</label
+            ><input id="note-title" maxlength="200" required />
+            <label for="note-text">Décision et raisons</label
+            ><textarea
+              id="note-text"
+              rows="4"
+              maxlength="12000"
+              required
+            ></textarea>
+            <button type="submit">Conserver la décision</button>
+          </form>
+        </details>
+      </section>
+      <footer>
+        <p>
+          Six spécialités · Un modèle à la fois · Recherche locale sans modèle
+          supplémentaire.
+        </p>
+        <p id="services"></p>
+        <p>
+          La mémoire vidéo affichée concerne le modèle ; elle n’inclut pas les
+          jeux et l’affichage.
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>

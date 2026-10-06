@@ -44,16 +44,18 @@ BOOTSTRAP_ARGS=(--apply --runtime-root "$RUNTIME_ROOT")
 ((ENABLE_LINGER == 0)) || BOOTSTRAP_ARGS+=(--enable-linger)
 "$LINUX/00_bootstrap.sh" "${BOOTSTRAP_ARGS[@]}"
 
-ollama_version="$(ollama --version 2>/dev/null | head -n1 || true)"
-if [[ "$ollama_version" != *"$OLLAMA_PIN"* ]]; then
+OLLAMA_VERSION_TEXT="$(ollama --version 2>/dev/null || true)"
+ollama_version="$(claw_extract_ollama_version "$OLLAMA_VERSION_TEXT" || true)"
+if [[ "$ollama_version" != "$OLLAMA_PIN" ]]; then
   tmp_ollama="$(mktemp)"
   trap 'rm -f "$tmp_ollama" "${tmp_openclaw:-}"' EXIT
   curl -fsSL --proto '=https' --tlsv1.2 https://ollama.com/install.sh -o "$tmp_ollama"
   OLLAMA_VERSION="$OLLAMA_PIN" sh "$tmp_ollama"
 fi
-ollama_version="$(ollama --version 2>/dev/null | head -n1 || true)"
-[[ "$ollama_version" == *"$OLLAMA_PIN"* ]] || {
-  echo "INSTALL_RESULT=FAIL Ollama pin mismatch: ${ollama_version:-absent}" >&2
+OLLAMA_VERSION_TEXT="$(ollama --version 2>/dev/null || true)"
+ollama_version="$(claw_extract_ollama_version "$OLLAMA_VERSION_TEXT" || true)"
+[[ "$ollama_version" == "$OLLAMA_PIN" ]] || {
+  echo "INSTALL_RESULT=FAIL Ollama pin mismatch: ${OLLAMA_VERSION_TEXT:-absent}" >&2
   exit 2
 }
 if systemctl list-unit-files ollama.service >/dev/null 2>&1; then

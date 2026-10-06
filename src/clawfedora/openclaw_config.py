@@ -194,7 +194,12 @@ def build_openclaw_patch(
     global_tools = _mapping(tools.get("security_defaults"))
 
     return {
-        "gateway": {"mode": "local", "bind": "loopback"},
+        "gateway": {
+            "mode": "local",
+            "bind": "loopback",
+            "controlUi": {"newSessionModelDefaults": "configured"},
+        },
+        "plugins": {"slots": {"memory": "none"}, "entries": {"memory-core": {"enabled": False}}},
         "models": {"mode": "replace", "providers": providers},
         "agents": {
             "defaults": {

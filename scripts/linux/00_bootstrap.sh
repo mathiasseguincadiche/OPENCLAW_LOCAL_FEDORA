@@ -85,7 +85,7 @@ else
 fi
 
 PACKAGES=(
-  git curl wget rsync jq tar unzip pciutils usbutils lm_sensors
+  git curl wget rsync jq tar unzip pciutils usbutils lm_sensors poppler-utils
   python3 python3-pip python3-virtualenv
   vulkan-tools mesa-vulkan-drivers igt-gpu-tools
   firewalld policycoreutils-python-utils acl openssl lsof procps-ng util-linux

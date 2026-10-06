@@ -1,0 +1,20 @@
+schema_version: "1.0.0"
+platform_version: "0.1.0"
+local_only: true
+backend: sqlite-fts5
+limits:
+  max_documents: 256
+  max_file_bytes: 8388608
+  max_text_chars: 2000000
+  max_total_chars: 16000000
+  max_chunks: 16000
+  chunk_chars: 1200
+  overlap_chars: 200
+  max_results: 4
+  max_result_chars: 4000
+  pdf_max_pages: 20
+  pdf_timeout_seconds: 30
+notes:
+  max_chars: 12000
+  max_sources: 4
+  research_ttl_hours: 24

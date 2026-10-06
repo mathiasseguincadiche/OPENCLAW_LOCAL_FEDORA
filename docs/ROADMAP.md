@@ -85,7 +85,7 @@ Valider :
 
 ## L4 — OpenClaw E2E
 
-- OpenClaw `2026.9.2` ;
+- OpenClaw `2026.9.8` ;
 - Gateway géré par systemd user ;
 - 6 agents ;
 - routage local ;
