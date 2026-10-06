@@ -200,7 +200,9 @@ def _collection_targets(
     if not isinstance(files, dict) or set(files) != set(expected):
         raise ValueError("sorties agent différentes des chemins attendus")
     validated: list[tuple[Path, str]] = []
-    for relative, content in files.items():
+    # Submitted keys select approved outputs; they never construct filesystem paths.
+    for relative in expected:
+        content = files[relative]
         path = Path(relative)
         if (
             path.is_absolute()

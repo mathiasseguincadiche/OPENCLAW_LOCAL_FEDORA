@@ -126,6 +126,21 @@ def test_existing_projects_without_learning_contract_keep_approved_behavior(
     assert len(results) == 2 and all(r["status"] == "PASS" for r in results)
 
 
+@pytest.mark.parametrize("identifier", ["../design-choice", "unknown-task", "research-check"])
+def test_submitted_task_only_selects_an_existing_waiting_checkpoint(
+    planned: tuple[Path, Path],
+    identifier: str,
+) -> None:
+    runtime, project = planned
+    initialize(project)
+    run_project_tasks(ROOT, runtime, project, runner=starter)
+    item = awaiting(project)[0]
+    with pytest.raises(ValueError):
+        submit(ROOT, runtime, project, identifier, payload(item))
+    assert awaiting(project)[0]["task_id"] == "design-choice"
+    assert not (project / "deliverables/design-choice/report.md").exists()
+
+
 def test_guided_plan_cannot_be_audited_before_practice(planned: tuple[Path, Path]) -> None:
     runtime, project = planned
     initialize(project)
