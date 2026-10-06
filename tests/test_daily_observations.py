@@ -146,7 +146,7 @@ def test_health_uses_full_json_inventory_and_reports_no_gpu_offload(
 
     def command(args: list[str], _runtime: Path | None = None) -> tuple[bool, str]:
         if args[-1] == "--version":
-            return True, "OpenClaw 2026.9.2"
+            return True, "OpenClaw 2026.9.8"
         if "gateway" in args:
             return True, '{"rpc":{"ok":true}}'
         if args == ["getenforce"]:
@@ -159,7 +159,7 @@ def test_health_uses_full_json_inventory_and_reports_no_gpu_offload(
 
     def request(url: str, **_kwargs: Any) -> dict[str, Any]:
         if url.endswith("/api/version"):
-            return {"version": "0.32.14"}
+            return {"version": "0.35.1"}
         if url.endswith("/api/tags"):
             inventory = tags()
             inventory["models"].insert(0, {"name": "x" * 1000})

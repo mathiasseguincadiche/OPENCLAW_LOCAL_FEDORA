@@ -221,4 +221,4 @@ def test_installer_reads_exact_pins_without_third_party_python_packages() -> Non
         capture_output=True,
         check=True,
     )
-    assert result.stdout.splitlines() == ["2026.9.2", "0.32.14"]
+    assert result.stdout.splitlines() == ["2026.9.8", "0.35.1"]

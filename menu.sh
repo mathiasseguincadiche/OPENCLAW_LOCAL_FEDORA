@@ -20,10 +20,12 @@ Usage: ./menu.sh --action ACTION [--apply] [--backend BACKEND] [--purge-data]
 
 Cycle de vie:
   install                Installation complète; dry-run, --apply pour appliquer
+  upgrade                Migration sauvegardée vers les versions du dépôt; --apply requis
   models                 Plan/provision de Qwen quotidien; --apply pour télécharger
   gaming                 Libérer le GPU pour jouer; --apply pour arrêter les services
   daily                  Reprendre les services IA; --apply obligatoire
   health                 Santé produit complète
+  dashboard              Tableau de bord local : projets, recherche et ressources
   backup                 Sauvegarde state/projects/proofs/workspaces
   repair                 Backup + doctor + reconfiguration + health
   uninstall              Désinstallation conservatrice; --apply requis
@@ -153,6 +155,9 @@ case "$ACTION" in
       "$LINUX/09_provision_models.sh"
     fi
     ;;
+  upgrade)
+    if ((APPLY == 1)); then "$LINUX/22_upgrade_daily.sh" --apply; else "$LINUX/22_upgrade_daily.sh"; fi
+    ;;
   gaming)
     if ((APPLY == 1)); then "$LINUX/21_daily_profile.sh" gaming --apply; else "$LINUX/21_daily_profile.sh" gaming; fi
     ;;
@@ -160,6 +165,7 @@ case "$ACTION" in
     if ((APPLY == 1)); then "$LINUX/21_daily_profile.sh" daily --apply; else "$LINUX/21_daily_profile.sh" daily; fi
     ;;
   health) "$LINUX/11_health.sh" ;;
+  dashboard) run_cli dashboard --serve ;;
   backup) "$LINUX/12_backup_restore.sh" backup ;;
   repair)
     if ((APPLY == 1)); then

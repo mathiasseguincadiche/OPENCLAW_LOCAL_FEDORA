@@ -2,26 +2,24 @@ schema_version: "1.1.0"
 platform_version: "0.1.0"
 
 openclaw:
-  version: "2026.9.2"
-  initial_qualification_pin: "2026.9.2"  # compatibility alias; must equal version
+  version: "2026.9.8"
+  initial_qualification_pin: "2026.9.8"  # compatibility alias; must equal version
   lock: exact
-  integrity: "sha512-M6C7UsnX815nv26qBJFYGe6aGzv+ftZLRzV6S9oRXUtXg2Yn67eVntpssT94kgkquKVSeUxerUg0j1ONp4WYQg=="
-  release_sha: "3928bad9badfcb6c7d140530435e806fb8092190"
+  integrity: "sha512-G+JkNUhtpDE3cXR4AEi2NyyG9fqI/T2WUSl8ZnR8AATH8Dh1kC3qYFL7wwPoZtgHiP/cszA86PEiE0PDysxb9Q=="
+  release_sha: "fc23bc864e4553c2d215e479eeec47b67a0bf943"
   policy: exact-version-locked
   automatic_update: false
   plugins:
     parallel:
       package: "@openclaw/parallel-plugin"
-      version: "2026.9.2"
+      version: "2026.9.8"
       lock: exact
       provider: parallel-free
 
 node:
   minimum_supported:
-    - "22.22.3"
-    - "24.15.0"
-    - "25.9.0"
-    - "26.0.0"
+    - "24.16.0"
+    - "26.1.0"
   preferred_major: 26
   installer_managed_runtime_allowed: true
 
@@ -36,9 +34,9 @@ llama_cpp:
   policy: exact-pinned-release-for-l6
 
 ollama:
-  version: "0.32.14"
-  tag: "v0.32.14"
-  commit: "d67ad83426633195089509347ffd4fe795120198"
+  version: "0.35.1"
+  tag: "v0.35.1"
+  commit: "b0c1ca4f7549d7acdfa52a7dcffc934bc63a43ce"
   policy: exact-stable-pin-for-l6
 
 kernel:

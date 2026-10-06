@@ -117,7 +117,7 @@ def _l5(runtime: Path, l2: Path, l3: Path) -> Path:
             "case_timeout_seconds": full["case_timeout_seconds"],
             "kernel": "fedora-test",
             "mesa": "mesa-test",
-            "ollama_version": "0.32.14",
+            "ollama_version": "0.35.1",
             "performance_profile": {"source": "test", "value": "performance", "ok": True},
             "endpoint": "http://127.0.0.1:11434",
             "cloud_calls_allowed": False,

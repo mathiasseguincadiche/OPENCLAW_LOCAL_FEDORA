@@ -17,7 +17,7 @@
 
   <line x1="92" y1="278" x2="1188" y2="278" stroke="#334155" stroke-width="2"/>
 
-  <text x="92" y="350" fill="#f8fafc" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="34" font-weight="600">OpenClaw 2026.9.2 · local-only · fail-closed</text>
+  <text x="92" y="350" fill="#f8fafc" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="34" font-weight="600">OpenClaw 2026.9.8 · local-only · fail-closed</text>
   <text x="92" y="402" fill="#cbd5e1" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="25">Fedora-native platform for reproducible multi-agent operations and qualification.</text>
 
   <g font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="21" font-weight="600">

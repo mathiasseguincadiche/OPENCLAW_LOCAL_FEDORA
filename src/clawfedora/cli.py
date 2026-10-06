@@ -174,10 +174,7 @@ def _agents_deploy(root: Path, runtime_value: str | None, as_json: bool) -> int:
             )
         )
     else:
-        print(
-            f"AGENTS_DEPLOY_RESULT=PASS count={len(deployed)} "
-            f"root={runtime_root / 'workspaces'}"
-        )
+        print(f"AGENTS_DEPLOY_RESULT=PASS count={len(deployed)} root={runtime_root / 'workspaces'}")
     return 0
 
 
@@ -212,8 +209,7 @@ def _sleep_inhibit_ok(gate: str) -> bool:
     if os.environ.get(SLEEP_INHIBIT_MARKER) == "1":
         return True
     print(
-        f"{gate}_RESULT=FAIL systemd-inhibit requis; "
-        "utiliser le launcher Linux/menu pour un run réel"
+        f"{gate}_RESULT=FAIL systemd-inhibit requis; utiliser le launcher Linux/menu pour un run réel"
     )
     return False
 
@@ -252,10 +248,7 @@ def _qualification(
         return 2
     contract_failures, _ = validate_qualification_contracts(root)
     if contract_failures:
-        print(
-            "QUALIFICATION_RESULT=FAIL contrats invalides: "
-            + "; ".join(contract_failures)
-        )
+        print("QUALIFICATION_RESULT=FAIL contrats invalides: " + "; ".join(contract_failures))
         return 2
     runtime = resolve_runtime_root(runtime_value)
     code, _ = run_qualification(root, runtime_root=runtime, endpoint=endpoint)
@@ -324,7 +317,7 @@ def build_parser() -> argparse.ArgumentParser:
     e2e.add_argument("--dry-run", action="store_true")
     e2e.add_argument("--json", action="store_true")
 
-    agents = subparsers.add_parser("agents", help="valider ou déployer les huit workspaces")
+    agents = subparsers.add_parser("agents", help="valider ou déployer les six workspaces")
     agent_commands = agents.add_subparsers(dest="agents_command", required=True)
     agents_validate = agent_commands.add_parser("validate")
     agents_validate.add_argument("--json", action="store_true")
@@ -345,6 +338,10 @@ def build_parser() -> argparse.ArgumentParser:
     render.add_argument("--json", action="store_true")
 
     add_project_parser(subparsers)
+    dashboard = subparsers.add_parser("dashboard", help="suivi local des projets et des ressources")
+    dashboard.add_argument("--runtime-root")
+    dashboard.add_argument("--serve", action="store_true")
+    dashboard.add_argument("--port", type=int, default=18890)
     return parser
 
 
@@ -389,6 +386,19 @@ def main(argv: list[str] | None = None) -> int:
         )
     if args.command == "project":
         return run_project_command(root, args)
+    if args.command == "dashboard":
+        from clawfedora.dashboard import serve, snapshot
+
+        runtime = resolve_runtime_root(args.runtime_root)
+        try:
+            if args.serve:
+                serve(root, runtime, args.port)
+            else:
+                print(json.dumps(snapshot(root, runtime), ensure_ascii=False))
+        except (OSError, ValueError) as exc:
+            print(f"DASHBOARD_RESULT=FAIL error={exc}")
+            return 2
+        return 0
     parser.error(f"commande non supportée: {args.command}")
     return 2
 

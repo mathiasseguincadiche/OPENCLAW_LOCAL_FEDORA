@@ -34,7 +34,7 @@ def test_repository_landing_page_exposes_real_project_badges() -> None:
         "actions/workflows/ci.yml/badge.svg?branch=main",
         "actions/workflows/codeql.yml/badge.svg?branch=main",
         "Fedora-44",
-        "OpenClaw-2026.9.2",
+        "OpenClaw-2026.9.8",
         "Python-3.12%20%7C%203.13",
         "License-MIT",
     ):
@@ -48,7 +48,7 @@ def test_repository_landing_page_preserves_truthful_readiness_language() -> None
         "PASS logiciel",
         "À exécuter sur la machine réelle",
         "V1 | **Non approuvée**",
-        "exactement `2026.9.2`",
+        "exactement `2026.9.8`",
         "Aucun fallback LLM cloud silencieux",
     ):
         assert marker in text
@@ -103,7 +103,7 @@ def test_social_preview_source_matches_project_invariants() -> None:
     for marker in (
         "OPENCLAW_LOCAL_FEDORA",
         "Fedora 44",
-        "OpenClaw 2026.9.2",
+        "OpenClaw 2026.9.8",
         "6 agents",
         "Intel Arc B580",
         "Vulkan",

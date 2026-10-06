@@ -1,6 +1,6 @@
 # État du projet
 
-Dernière mise à jour : 2026-09-09.
+Dernière mise à jour : 2026-10-06.
 
 Le dépôt est une **édition Fedora 44 Linux-native d'OPENCLAW_LOCAL**. Le socle logiciel L0-L8 est implémenté et la branche Architecture V2 Fedora passe la CI logicielle, y compris le contrat exécuté dans un conteneur `fedora:44`. Les états « code/CI cohérents », « qualifié sur la machine B580 », « READY_FOR_HUMAN_REVIEW » et « approuvé humainement pour préparer V1 » restent strictement séparés.
 
@@ -19,9 +19,9 @@ Le dépôt est une **édition Fedora 44 Linux-native d'OPENCLAW_LOCAL**. Le socl
 | Moteur projet / Intake / Artifact Exchange | PASS logiciel |
 | Installation complète Fedora 44 | IMPLÉMENTÉE — validation machine cible à produire |
 | SELinux / firewalld / systemd-user / Podman / KVM | INTÉGRÉS au bootstrap/lifecycle |
-| Provisionnement explicite des 3 modèles nominaux | IMPLÉMENTÉ — validation machine cible à produire |
+| Provisionnement explicite de Qwen quotidien ; 3 modèles pour benchmark expérimental | IMPLÉMENTÉ — validation machine cible à produire |
 | Challenger Granite hors routage | IMPLÉMENTÉ — qualification réelle à produire |
-| OpenClaw **exactement 2026.9.2** + Parallel **exactement 2026.9.2** | VERROUILLÉS — contrats, convergence et contrôles exacts implémentés ; mises à jour automatiques interdites |
+| OpenClaw **exactement 2026.9.8** + Parallel **exactement 2026.9.8** | VERROUILLÉS — contrats, convergence et contrôles exacts implémentés ; mises à jour automatiques interdites |
 | Service OpenClaw systemd user | IMPLÉMENTÉ — validation machine cible à produire |
 | Health / repair / backup / restore / uninstall | IMPLÉMENTÉ — validation machine cible à produire |
 | Télémétrie locale | PASS logiciel |
@@ -33,6 +33,12 @@ Le dépôt est une **édition Fedora 44 Linux-native d'OPENCLAW_LOCAL**. Le socl
 | L8 release readiness | PASS framework logiciel — preuves réelles L2-L7 requises |
 | L8 approbation humaine | IMPLÉMENTÉE mais NON EXÉCUTÉE |
 
+## Atelier local quotidien
+
+OpenClaw/Parallel 2026.9.8 et Ollama 0.35.1 sont les nouveaux pins contractuels. Le schéma et la migration sont vérifiés avec le CLI OpenClaw réel dans une installation isolée. L'interface locale, la recherche SQLite FTS5, les décisions, les recherches datées et la pause/reprise sont implémentées ; aucun modèle supplémentaire n'est chargé. Les réponses JSON conformes ne nécessitent aucune réparation LLM.
+
+Le tableau de bord a été exercé dans Chromium avec recherche et conservation d'une décision. Ces vérifications logicielles ne mettent pas à jour une installation Fedora existante et ne qualifient pas la B580. Voir [LOCAL_ASSISTANT.md](docs/LOCAL_ASSISTANT.md) et la migration dans [UPGRADE.md](docs/UPGRADE.md).
+
 ## Gates de qualification
 
 | Gate | Objet | État des preuves |
@@ -41,23 +47,23 @@ Le dépôt est une **édition Fedora 44 Linux-native d'OPENCLAW_LOCAL**. Le socl
 | L1 | Cœur multi-agents Linux-native | PASS logiciel |
 | L2 | Fedora 44 / hardware gate | PENDING — machine Fedora réelle requise |
 | L3 | B580 `xe` + Mesa/Vulkan | PENDING — B580 réelle requise |
-| L4 | OpenClaw 2026.9.2 exact + 6 agents + E2E | PENDING — E2E réel requis |
+| L4 | OpenClaw 2026.9.8 exact + 6 agents + E2E | PENDING — E2E réel requis |
 | L5 | Qualification HARD-40M | PENDING — flotte V2 à mesurer |
 | L6 | Ollama/Vulkan, llama.cpp/Vulkan, kernel 7.2.3, Granite challenger | PENDING matériel — contrats logiciels PASS |
 | L7 | Golden Projects + projet représentatif | PASS logiciel — replay installation finale requis avant L8 réel |
 | L8 | Release Readiness / approbation humaine | BLOQUÉ jusqu'aux preuves L2-L7 réelles puis approbation explicite |
 
-## Flotte nominale Architecture V2
+## Modèle quotidien et comparaisons expérimentales
 
-La flotte routée reste exactement à trois alias :
+Les six rôles quotidiens utilisent uniquement `qwen3.5:9b-q4_K_M`, avec 8192 tokens de contexte, 1024 tokens de sortie et une génération à la fois. Les trois alias suivants sont conservés pour les campagnes de comparaison expérimentales :
 
 - `qwen-max` → `qwen3.5:9b-q4_K_M` — Q4_K_M, multimodal ;
 - `gemma-deep` → `gemma4:12b-it-q4_K_M` — Q4_K_M, multimodal ;
 - `devstral-devops` → `hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M` — Q4_K_M, text-only.
 
-`devstral-devops` reste l'alias historique du spécialiste DevOps. Sa mission, son rôle et son routage ne changent pas ; seule son identité modèle nominale est alignée sur Architecture V2.
+`devstral-devops` est un alias historique du benchmark DevOps. Le rôle quotidien `ingenieur-devops` utilise Qwen comme les cinq autres spécialités.
 
-Le benchmark nominal reste à **8192 tokens**. Les agents OpenClaw disposent d'un budget de contexte distinct prévu par la politique runtime pour absorber système, outils et orchestration. Cette différence ne vaut jamais promotion automatique du benchmark matériel.
+Le benchmark de référence reste à **8192 tokens**. Les comparaisons à 16K et les modèles supplémentaires ne modifient pas automatiquement le profil quotidien.
 
 `granite-devops` → `granite4.2:8b-q4_K_M` est le challenger du slot `devstral-devops`. Il reste hors routage et ne compte jamais comme quatrième modèle nominal. Son protocole L6 vérifie coding, tool-calling natif, réparation après retour d'outil, sécurité et performance sur runs répétés.
 
@@ -71,22 +77,22 @@ Le benchmark nominal reste à **8192 tokens**. Les agents OpenClaw disposent d'u
 - Podman est le runtime conteneur Linux privilégié ; KVM/libvirt/OVMF fournit la virtualisation native.
 - Le kernel Fedora officiel reste toujours un rollback bootable ; Linux 7.2.3 est un candidat L6 seulement.
 - Ollama/Vulkan est la baseline runtime ; llama.cpp/Vulkan est l'unique candidat runtime L6.
-- **OpenClaw 2026.9.2 est l'unique version OpenClaw supportée par ce contrat.** Une version voisine, plus récente ou plus ancienne doit être refusée ; aucun canal `latest`, upgrade automatique ou convergence implicite vers une autre version n'est autorisé.
-- Le plugin Parallel reste lui aussi verrouillé exactement en `2026.9.2`.
+- **OpenClaw 2026.9.8 est l'unique version OpenClaw supportée par ce contrat.** Une version voisine, plus récente ou plus ancienne doit être refusée ; aucun canal `latest`, upgrade automatique ou convergence implicite vers une autre version n'est autorisé.
+- Le plugin Parallel reste lui aussi verrouillé exactement en `2026.9.8`.
 - Changer la version OpenClaw ou Parallel exige une modification contractuelle explicite, une branche dédiée et la requalification des gates affectés ; ce n'est pas une opération de maintenance courante.
-- Les trois alias `qwen-max`, `gemma-deep`, `devstral-devops` constituent exactement la flotte routée.
+- Le routage quotidien expose uniquement Qwen ; les trois alias de comparaison restent expérimentaux.
 - Granite reste hors flotte nominale et hors routage tant qu'aucune décision humaine post-qualification ne change explicitement le contrat.
-- Seul `qwen-max` reçoit les 3 probes Qwen thinking natifs HARD-40M.
+- Les probes Qwen thinking du protocole HARD-40M sont réservés aux benchmarks ; le quotidien utilise `think=false`.
 - Les six rôles agents restent exactement définis et `chef-operations` reste le défaut.
 - Les missions des agents ne sont pas redéfinies par l'édition Fedora ; les prompts ont été enrichis avec ingestion, provenance, Web/runtime evidence, Artifact Exchange et garanties Linux natives.
-- La politique outils part de `minimal`, `exec.mode=ask`, `elevated=false` et réautorise uniquement ce qui est nécessaire au rôle.
+- La politique outils part de `minimal` ; les commandes et écritures natives des agents sont interdites, les résultats sont collectés par le worker.
 - `intake/`, `sources/` et `context/exchange/` restent protégés et traçables.
 - Le moteur projet est fail-closed et `COMPLETE` requiert une approbation humaine explicite.
 - L8 readiness ne peut jamais approuver V1 automatiquement.
 - Les preuves runtime restent hors Git et les sorties brutes modèles ne sont pas persistées par L5/L6.
 - Aucun fallback LLM cloud silencieux.
 
-## HARD-40M
+## HARD-40M expérimental
 
 Le contrat reste :
 

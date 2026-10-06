@@ -106,3 +106,5 @@ Une documentation ne doit jamais devenir une seconde configuration cachée.
 Une CI verte démontre la cohérence logicielle du dépôt. Elle ne démontre pas la qualification réelle de Fedora 44, de l'Intel Arc B580, de Vulkan, des performances HARD-40M/L6 ni l'approbation V1. Ces preuves sont produites sur la machine cible et restent soumises aux gates prévus.
 
 Le [profil quotidien B580](DAILY_PROFILE.md) précise les limites et la migration vers six rôles et un modèle.
+
+Le [guide de l'atelier local](LOCAL_ASSISTANT.md) explique le tableau de bord, la recherche dans les documents, les décisions persistantes et la pause/reprise.

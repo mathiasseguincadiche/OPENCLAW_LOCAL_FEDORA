@@ -18,9 +18,10 @@ CORE_FILES = (
     "artifact_exchange_policy.yaml",
     "budget_policy.yaml",
     "telemetry_policy.yaml",
+    "knowledge_policy.yaml",
 )
 
-LOCKED_OPENCLAW_VERSION = "2026.9.2"
+LOCKED_OPENCLAW_VERSION = "2026.9.8"
 
 
 def _mapping(value: Any) -> dict[str, Any]:
@@ -35,6 +36,28 @@ def _validate_project_contracts(
     contracts: dict[str, dict[str, Any]],
     failures: list[str],
 ) -> None:
+    knowledge = contracts["knowledge_policy.yaml"]
+    if knowledge.get("local_only") is not True or knowledge.get("backend") != "sqlite-fts5":
+        failures.append("knowledge: recherche locale SQLite FTS5 requise")
+    limits = _mapping(knowledge.get("limits"))
+    if (
+        not 0 < int(limits.get("max_results", 0)) <= 4
+        or not 0 < int(limits.get("max_result_chars", 0)) <= 4000
+    ):
+        failures.append("knowledge: passages limités à 4 et 4000 caractères requis")
+    if not 0 <= int(limits.get("overlap_chars", -1)) < int(limits.get("chunk_chars", 0)):
+        failures.append("knowledge: taille/recouvrement de passage invalides")
+    for key in (
+        "max_documents",
+        "max_file_bytes",
+        "max_text_chars",
+        "max_total_chars",
+        "max_chunks",
+        "pdf_max_pages",
+        "pdf_timeout_seconds",
+    ):
+        if int(limits.get(key, 0)) <= 0:
+            failures.append(f"knowledge: limite positive requise: {key}")
     intake = contracts["intake_policy.yaml"]
     intake_security = _mapping(intake.get("security"))
     intake_integrity = _mapping(intake.get("integrity"))
@@ -207,23 +230,23 @@ def validate_core_contracts(
     upgrade_policy = _mapping(runtime_versions.get("upgrade_policy"))
 
     if version_contract.get("version") != LOCKED_OPENCLAW_VERSION:
-        failures.append("core/openclaw: version verrouillée doit rester 2026.9.2")
+        failures.append("core/openclaw: version verrouillée doit rester 2026.9.8")
     if version_contract.get("lock") != "exact":
         failures.append("core/openclaw: verrou de version exact requis")
     if version_contract.get("automatic_update") is not False:
         failures.append("core/openclaw: mise à jour automatique interdite")
     if openclaw_runtime.get("required_version") != LOCKED_OPENCLAW_VERSION:
-        failures.append("core/openclaw: required_version doit rester 2026.9.2")
+        failures.append("core/openclaw: required_version doit rester 2026.9.8")
     if openclaw_runtime.get("version_lock") != "exact":
         failures.append("core/openclaw: version_lock=exact requis")
     if openclaw_runtime.get("automatic_update_allowed") is not False:
         failures.append("core/openclaw: automatic_update_allowed=false requis")
     if parallel_version.get("version") != LOCKED_OPENCLAW_VERSION:
-        failures.append("core/openclaw: plugin Parallel doit rester en 2026.9.2")
+        failures.append("core/openclaw: plugin Parallel doit rester en 2026.9.8")
     if parallel_version.get("lock") != "exact":
         failures.append("core/openclaw: plugin Parallel doit être verrouillé exactement")
     if parallel_policy.get("version") != LOCKED_OPENCLAW_VERSION:
-        failures.append("core/openclaw: politique Parallel doit rester en 2026.9.2")
+        failures.append("core/openclaw: politique Parallel doit rester en 2026.9.8")
     if parallel_policy.get("version_lock") != "exact":
         failures.append("core/openclaw: politique Parallel exige version_lock=exact")
     if parallel_policy.get("automatic_update_allowed") is not False:

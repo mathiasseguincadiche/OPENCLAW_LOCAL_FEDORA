@@ -57,6 +57,9 @@ def openclaw_environment(runtime: Path | None = None) -> dict[str, str]:
     env = dict(os.environ)
     env.pop("OPENCLAW_CONFIG_PATH", None)
     env.update(
+        PATH=os.pathsep.join(
+            [str(Path.home() / ".openclaw/bin"), str(Path.home() / ".local/bin"), env.get("PATH", "")]
+        ),
         OPENCLAW_STATE_DIR=str(root / "state/openclaw"),
         OPENCLAW_LOCAL_FEDORA_ROOT=str(root),
         OPENCLAW_LOCAL_CLOUD_ENABLED="false",

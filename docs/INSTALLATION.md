@@ -28,8 +28,8 @@ La cible nominale est :
 - Mesa/Vulkan ;
 - SELinux **Enforcing** ;
 - firewalld actif ;
-- **OpenClaw exactement `2026.9.2`** ;
-- plugin Parallel exactement `2026.9.2` ;
+- **OpenClaw exactement `2026.9.8`** ;
+- plugin Parallel exactement `2026.9.8` ;
 - OpenClaw Gateway géré par `systemd --user` ;
 - Ollama/Vulkan comme runtime baseline.
 
@@ -76,7 +76,7 @@ Vérifier les contrats avant toute modification de la machine :
 ./menu.sh --action validate
 ```
 
-Le dépôt doit échouer fermé si ses contrats ne sont pas cohérents. Cette validation vérifie notamment que le verrou OpenClaw reste exactement `2026.9.2` et que les mises à jour automatiques restent interdites.
+Le dépôt doit échouer fermé si ses contrats ne sont pas cohérents. Cette validation vérifie notamment que le verrou OpenClaw reste exactement `2026.9.8` et que les mises à jour automatiques restent interdites.
 
 ## Étape 1 — Dry-run complet
 
@@ -91,7 +91,7 @@ Le dry-run affiche le plan sans effectuer l'installation. Le chemin nominal est 
 1. bootstrap Fedora 44 ;
 2. préparation du runtime géré ;
 3. installation/convergence Ollama ;
-4. installation/convergence OpenClaw **exactement `2026.9.2`** ;
+4. installation/convergence OpenClaw **exactement `2026.9.8`** ;
 5. provisionnement explicite des un modèle quotidien et deux candidats optionnels ;
 6. déploiement des huit workspaces ;
 7. configuration OpenClaw ;
@@ -134,9 +134,9 @@ Lorsque le dry-run et le bootstrap sont compris :
 ./menu.sh --action install --apply
 ```
 
-L'installateur converge vers les pins définis par les contrats du dépôt. Pour OpenClaw, ce n'est pas une simple préférence : **la seule version acceptée est `2026.9.2`**. Si une autre version est détectée, l'installation tente de converger vers `2026.9.2` via l'installateur CLI officiel puis vérifie à nouveau la version par égalité exacte. Si une autre version demeure, l'installation échoue.
+L'installateur converge vers les pins définis par les contrats du dépôt. Pour OpenClaw, ce n'est pas une simple préférence : **la seule version acceptée est `2026.9.8`**. Si une autre version est détectée, l'installation tente de converger vers `2026.9.8` via l'installateur CLI officiel puis vérifie à nouveau la version par égalité exacte. Si une autre version demeure, l'installation échoue.
 
-Le plugin Parallel est lui aussi verrouillé exactement en `2026.9.2`. Les valeurs canoniques sont dans `config/runtime_versions.yaml` et `config/core/openclaw_policy.yaml` ; le guide ne doit pas servir de second fichier de configuration.
+Le plugin Parallel est lui aussi verrouillé exactement en `2026.9.8`. Les valeurs canoniques sont dans `config/runtime_versions.yaml` et `config/core/openclaw_policy.yaml` ; le guide ne doit pas servir de second fichier de configuration.
 
 L'installation complète active explicitement le Gateway OpenClaw en service utilisateur :
 
@@ -146,7 +146,7 @@ systemctl --user status openclaw-gateway.service
 openclaw gateway status
 ```
 
-La première commande doit identifier exactement `2026.9.2`.
+La première commande doit identifier exactement `2026.9.8`.
 
 ## Étape 4 — Vérification du produit
 
@@ -227,7 +227,7 @@ Application :
 ./menu.sh --action configure-openclaw --backend ollama-vulkan --apply
 ```
 
-Le mode `--apply` refuse de poursuivre si `openclaw --version` n'identifie pas exactement `2026.9.2`.
+Le mode `--apply` refuse de poursuivre si `openclaw --version` n'identifie pas exactement `2026.9.8`.
 
 `llama-cpp-vulkan` est l'unique candidat runtime L6. Il ne doit pas remplacer la baseline sans qualification et décision humaine.
 

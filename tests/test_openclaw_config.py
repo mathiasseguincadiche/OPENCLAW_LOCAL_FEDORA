@@ -25,7 +25,13 @@ def _agents_by_id(patch: dict[str, object]) -> dict[str, dict[str, object]]:
 
 def test_ollama_patch_has_six_agents_and_strict_tools(tmp_path: Path) -> None:
     patch = build_openclaw_patch(ROOT, tmp_path, "ollama-vulkan")
-    assert patch["gateway"] == {"mode": "local", "bind": "loopback"}
+    assert patch["gateway"] == {
+        "mode": "local",
+        "bind": "loopback",
+        "controlUi": {"newSessionModelDefaults": "configured"},
+    }
+    assert patch["plugins"]["slots"]["memory"] == "none"
+    assert patch["plugins"]["entries"]["memory-core"]["enabled"] is False
     models = patch["models"]
     assert isinstance(models, dict)
     providers = models["providers"]

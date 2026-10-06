@@ -36,7 +36,7 @@ Le chemin d'installation exécute, dans cet ordre :
 1. bootstrap Fedora 44 ;
 2. création du runtime géré sous `/srv/openclaw-local` ;
 3. installation/convergence d'Ollama vers la version verrouillée par `config/runtime_versions.yaml` ;
-4. installation/convergence d'OpenClaw `2026.9.2` via l'installateur CLI officiel ;
+4. installation/convergence d'OpenClaw `2026.9.8` via l'installateur CLI officiel ;
 5. provisionnement explicite des un modèle quotidien et deux candidats optionnels Architecture V2 ;
 6. déploiement des huit workspaces ;
 7. rendu, dry-run puis application de la configuration OpenClaw ;

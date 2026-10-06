@@ -14,12 +14,12 @@ from clawfedora.version_lock import extract_openclaw_version
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_openclaw_contract_is_exactly_locked_to_2026_9_2() -> None:
+def test_openclaw_contract_is_exactly_locked_to_2026_9_8() -> None:
     versions = yaml.safe_load((ROOT / "config/runtime_versions.yaml").read_text(encoding="utf-8"))
     policy = yaml.safe_load((ROOT / "config/core/openclaw_policy.yaml").read_text(encoding="utf-8"))
 
     openclaw = versions["openclaw"]
-    assert LOCKED_OPENCLAW_VERSION == "2026.9.2"
+    assert LOCKED_OPENCLAW_VERSION == "2026.9.8"
     assert openclaw["version"] == LOCKED_OPENCLAW_VERSION
     assert openclaw["initial_qualification_pin"] == openclaw["version"]
     assert openclaw["lock"] == "exact"
@@ -48,14 +48,14 @@ def test_openclaw_contract_is_exactly_locked_to_2026_9_2() -> None:
 
 
 def test_python_parser_does_not_confuse_neighbor_versions() -> None:
-    assert extract_openclaw_version("OpenClaw 2026.9.2") == "2026.9.2"
-    assert extract_openclaw_version("OpenClaw 2026.9.20") == "2026.9.20"
-    assert extract_openclaw_version("OpenClaw 2026.9.20") != LOCKED_OPENCLAW_VERSION
+    assert extract_openclaw_version("OpenClaw 2026.9.8") == "2026.9.8"
+    assert extract_openclaw_version("OpenClaw 2026.9.80") == "2026.9.80"
+    assert extract_openclaw_version("OpenClaw 2026.9.80") != LOCKED_OPENCLAW_VERSION
 
     with pytest.raises(ValueError, match="absente ou ambiguë"):
         extract_openclaw_version("OpenClaw version inconnue")
     with pytest.raises(ValueError, match="absente ou ambiguë"):
-        extract_openclaw_version("OpenClaw 2026.9.2 puis 2026.9.20")
+        extract_openclaw_version("OpenClaw 2026.9.8 puis 2026.9.80")
 
 
 def test_shell_parser_extracts_the_whole_version_token() -> None:
@@ -67,14 +67,14 @@ def test_shell_parser_extracts_the_whole_version_token() -> None:
             'source "$1"; claw_extract_openclaw_version "$2"',
             "bash",
             str(helper),
-            "OpenClaw 2026.9.20",
+            "OpenClaw 2026.9.80",
         ],
         check=False,
         capture_output=True,
         text=True,
     )
     assert completed.returncode == 0
-    assert completed.stdout.strip() == "2026.9.20"
+    assert completed.stdout.strip() == "2026.9.80"
     assert completed.stdout.strip() != LOCKED_OPENCLAW_VERSION
 
 
@@ -102,7 +102,7 @@ def test_l4_refuses_neighbor_openclaw_version(
         "run",
         lambda *_args, **_kwargs: SimpleNamespace(
             returncode=0,
-            stdout="OpenClaw 2026.9.20\n",
+            stdout="OpenClaw 2026.9.80\n",
             stderr="",
         ),
     )
@@ -133,7 +133,7 @@ def test_l8_refuses_neighbor_openclaw_version() -> None:
         "tool_call": {},
         "repair": {},
         "stability": [{"run": index} for index in range(1, 4)],
-        "openclaw_version": "2026.9.20",
+        "openclaw_version": "2026.9.80",
     }
 
     failures = release_readiness._validate_l4(ROOT, payload, cfg)
