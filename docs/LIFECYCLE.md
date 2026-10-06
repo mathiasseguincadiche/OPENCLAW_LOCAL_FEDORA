@@ -45,9 +45,9 @@ Le chemin d'installation exécute, dans cet ordre :
 
 L'installation complète doit être lancée depuis le compte Fedora de bureau, jamais directement en root. Elle conserve SELinux Enforcing et firewalld actif ; aucun mécanisme de sécurité n'est désactivé pour contourner une erreur d'installation.
 
-## Flotte nominale
+## Modèle quotidien et catalogue expérimental
 
-Le provisionnement standard est limité aux trois alias routés :
+Le provisionnement standard installe uniquement `qwen-max`, partagé par les sept rôles. Le catalogue conserve aussi Gemma et Ministral comme candidats optionnels pour une comparaison explicitement préparée :
 
 - `qwen-max` → `qwen3.5:9b-q4_K_M` ;
 - `gemma-deep` → `gemma4:12b-it-q4_K_M` ;
@@ -64,7 +64,7 @@ Le téléchargement implicite reste interdit pendant les benchmarks. Le téléch
 ./menu.sh --action models --apply
 ```
 
-La commande lit exclusivement `config/model_catalog.yaml` et ne provisionne que les trois modèles marqués `required: true`.
+La commande lit exclusivement `config/model_catalog.yaml` et ne provisionne par défaut que Qwen, seul modèle marqué `required: true`.
 
 Le challenger Granite utilise une action L6 séparée :
 
@@ -81,7 +81,7 @@ Cette action ne modifie jamais le routage et n'effectue aucune promotion automat
 ./menu.sh --action health
 ```
 
-Le health-check couvre : contrats du dépôt, runtime root, CLI OpenClaw, Gateway, Ollama, inventaire exact des trois modèles et sept workspaces gérés.
+Le health-check couvre : contrats du dépôt, runtime root, CLI OpenClaw, Gateway, Ollama, modèle Qwen requis et sept workspaces gérés; les candidats de comparaison sont optionnels.
 
 ## Sauvegarde et restauration
 

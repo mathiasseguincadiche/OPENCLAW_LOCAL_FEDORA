@@ -43,19 +43,17 @@ Si le produit est déjà installé :
 
 Le health-check est la commande de référence pour savoir si OpenClaw, Ollama, les modèles et les workspaces attendus sont présents et cohérents.
 
-## 3. Connaître les un modèle quotidien et deux candidats optionnels
+## 3. Comprendre le modèle quotidien et les candidats
 
-La flotte opérationnelle contient exactement trois alias :
+Les sept rôles partagent **Qwen 3.5 9B Q4_K_M**, seul modèle installé et routé par défaut, via l’alias `qwen-max`. Une seule génération est active à la fois.
 
-| Alias | Usage principal |
+| Alias | Usage prévu |
 |---|---|
-| `qwen-max` | orchestration, recherche, sécurité, release |
-| `gemma-deep` | architecture, documentation, revue indépendante |
-| `devstral-devops` | DevOps, code, réparation et tool-calling |
+| `qwen-max` | modèle quotidien de tous les rôles |
+| `gemma-deep` | Gemma, candidat optionnel dans une comparaison expérimentale |
+| `devstral-devops` | Ministral Reasoning, candidat optionnel dans le benchmark DevOps |
 
-Les identités runtime exactes sont définies uniquement dans `config/model_catalog.yaml`.
-
-Le challenger Granite appartient à L6 et reste hors routage tant qu'aucune décision humaine post-qualification n'a modifié les contrats.
+Les identités runtime exactes sont définies dans `config/model_catalog.yaml`; le routage quotidien est dans `config/core/model_routing.yaml`. Le challenger Granite appartient à L6 et reste hors routage. Aucune comparaison ne modifie automatiquement le profil quotidien.
 
 ## 4. Connaître les sept agents
 

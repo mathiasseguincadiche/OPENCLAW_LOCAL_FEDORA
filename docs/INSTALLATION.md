@@ -92,7 +92,7 @@ Le dry-run affiche le plan sans effectuer l'installation. Le chemin nominal est 
 2. préparation du runtime géré ;
 3. installation/convergence Ollama ;
 4. installation/convergence OpenClaw **exactement `2026.9.8`** ;
-5. provisionnement explicite des un modèle quotidien et deux candidats optionnels ;
+5. provisionnement explicite de Qwen, seul modèle quotidien obligatoire ;
 6. déploiement des sept workspaces ;
 7. configuration OpenClaw ;
 8. installation du Gateway `systemd --user` ;
@@ -211,7 +211,7 @@ Puis appliqué explicitement :
 ./menu.sh --action models --apply
 ```
 
-Le provisionnement nominal contient exactement les trois modèles routés définis dans `config/model_catalog.yaml`. Le challenger Granite n'est pas un quatrième modèle nominal et utilise le chemin L6 dédié.
+Le provisionnement nominal installe uniquement Qwen, seul modèle `required: true` dans `config/model_catalog.yaml`. Gemma et Ministral sont des candidats de comparaison optionnels; ils ne sont pas installés ni routés au quotidien. Granite utilise le chemin L6 dédié. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md) pour préparer explicitement une expérience.
 
 ## Configuration OpenClaw séparée
 

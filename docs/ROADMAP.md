@@ -45,7 +45,7 @@ Implémenter nativement :
 - identité et routage des modèles ;
 - readiness V1.
 
-La flotte routée reste exactement :
+Le quotidien route uniquement Qwen pour les sept rôles. Les trois alias conservés dans le catalogue pour les comparaisons expérimentales sont :
 
 - `qwen-max` → `qwen3.5:9b-q4_K_M` ;
 - `gemma-deep` → `gemma4:12b-it-q4_K_M` ;
@@ -101,7 +101,7 @@ Valider :
 - 30 cas ;
 - 24 × 8K ;
 - 6 × 16K ;
-- trois modèles obligatoires ;
+- trois modèles requis pour cette campagne expérimentale, distincts du Qwen quotidien ;
 - 3 probes Qwen natifs réservés à `qwen-max` ;
 - 2400 s maximum ;
 - zéro appel cloud et zéro téléchargement implicite.
@@ -121,7 +121,7 @@ La comparaison modèle mesure des capacités correspondant réellement à la mis
 
 Une variable change à la fois. Le kernel Fedora reste bootable.
 
-La flotte opérationnelle reste **exactement composée de trois alias**. Granite est provisionné explicitement uniquement pour L6, reste hors routage, ne compte pas dans la flotte requise et ne peut jamais être promu automatiquement.
+La campagne expérimentale compare les trois alias du catalogue; le quotidien conserve Qwen seul. Granite est provisionné explicitement pour L6, reste hors routage et ne peut jamais être promu automatiquement.
 
 **Sortie :** décisions reproductibles sur trois runs, sans régression fonctionnelle ni sécurité. Les verdicts possibles restent `KEEP_BASELINE` ou `ELIGIBLE_FOR_HUMAN_PROMOTION` ; aucune décision ne modifie automatiquement la configuration.
 

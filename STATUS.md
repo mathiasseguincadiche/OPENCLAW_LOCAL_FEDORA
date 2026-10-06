@@ -2,7 +2,7 @@
 
 Dernière mise à jour : 2026-10-06.
 
-Le dépôt est une **édition Fedora 44 Linux-native d'OPENCLAW_LOCAL**. Le socle logiciel L0-L8 est implémenté et la branche Architecture V2 Fedora passe la CI logicielle, y compris le contrat exécuté dans un conteneur `fedora:44`. Les états « code/CI cohérents », « qualifié sur la machine B580 », « READY_FOR_HUMAN_REVIEW » et « approuvé humainement pour préparer V1 » restent strictement séparés.
+Le dépôt porte le nom public **Atelier IA local — Infrastructure & OPS**. Il reste une édition Fedora 44 Linux-native, avec le nom technique de dépôt `OPENCLAW_LOCAL_FEDORA`. Le socle logiciel L0-L8 est implémenté et la branche Architecture V2 Fedora passe la CI logicielle, y compris le contrat exécuté dans un conteneur `fedora:44`. Les états « code/CI cohérents », « qualifié sur la machine B580 », « READY_FOR_HUMAN_REVIEW » et « approuvé humainement pour préparer V1 » restent strictement séparés.
 
 ## Complétude du code source
 
@@ -12,7 +12,7 @@ Le dépôt est une **édition Fedora 44 Linux-native d'OPENCLAW_LOCAL**. Le socl
 | Python 3.12 / 3.13 | PASS |
 | Conteneur `fedora:44` | PASS contrats + tests logiciels |
 | Ruff / mypy / pytest / couverture / ShellCheck | PASS |
-| CodeQL / Dependency Review | soumis aux checks GitHub de la PR |
+| CodeQL / Dependency Review | vérifiés sur chaque PR; consulter les checks du commit courant |
 | Garde anti-drift Architecture V2 | PASS — anciens IDs modèles/OpenClaw interdits |
 | 7 profils + routage + workspaces | PASS logiciel — mentor OPS et six spécialités sur Qwen unique |
 | Politique outils `minimal` fail-closed | PASS logiciel |
@@ -47,7 +47,7 @@ Le tableau de bord a été exercé dans Chromium avec recherche et conservation 
 | L1 | Cœur multi-agents Linux-native | PASS logiciel |
 | L2 | Fedora 44 / hardware gate | PENDING — machine Fedora réelle requise |
 | L3 | B580 `xe` + Mesa/Vulkan | PENDING — B580 réelle requise |
-| L4 | OpenClaw 2026.9.8 exact + 6 agents + E2E | PENDING — E2E réel requis |
+| L4 | OpenClaw 2026.9.8 exact + 7 agents + E2E | PENDING — E2E réel requis |
 | L5 | Qualification HARD-40M | PENDING — flotte V2 à mesurer |
 | L6 | Ollama/Vulkan, llama.cpp/Vulkan, kernel 7.2.3, Granite challenger | PENDING matériel — contrats logiciels PASS |
 | L7 | Golden Projects + projet représentatif | PASS logiciel — replay installation finale requis avant L8 réel |
@@ -121,3 +121,7 @@ Même en état READY, `human_approval.status` reste `PENDING` et `v1_approved` r
 ## Mentor infrastructure/OPS et choix du modèle
 
 Le mentor réutilise chef-operations, sans huitième agent. L’aide adaptative, les notes personnelles approuvées, la continuité du chat et les retours avant publication des brouillons sont implémentés. Le plugin interprète les rapports CI sans simuler leur exécution. La comparaison française Qwen/Gemma/Granite est préparée; ses tests automatisés utilisent des réponses simulées. Les mesures physiques, la qualité pédagogique du modèle réel et la promotion éventuelle de budgets plus grands restent à produire sur Fedora/B580. [Recherche et protocole](docs/MODEL_SELECTION_2026_10.md).
+
+## Guide utilisateur et présentation publique
+
+Le guide PDF, sa source HTML imprimable et les vues d’architecture Draw.io sont disponibles depuis le [guide utilisateur](docs/GUIDE_UTILISATEUR.md). Le README met en avant le besoin, les sept rôles et le parcours quotidien. Les versions et identités techniques restent définies par les contrats du dépôt.

@@ -1,4 +1,6 @@
-# Documentation OPENCLAW_LOCAL_FEDORA
+# Documentation — Atelier IA local · Infrastructure & OPS
+
+Le [guide de présentation et d’utilisation](GUIDE_UTILISATEUR.md), disponible en PDF, donne les repères pour comprendre l’ensemble. Il présente le même parcours avec des exemples; les guides ci-dessous restent la référence technique.
 
 Ce répertoire est la porte d'entrée de la documentation de l'édition **Fedora 44 Linux-native**.
 
@@ -67,6 +69,9 @@ Le parcours ci-dessus reste la référence pour apprendre le projet de bout en b
 
 | Besoin immédiat | Document |
 |---|---|
+| comprendre et utiliser l’ensemble du projet | [`GUIDE_UTILISATEUR.md`](GUIDE_UTILISATEUR.md) |
+| créer et modifier des schémas Draw.io | [`DRAWIO.md`](DRAWIO.md) |
+| connaître les plugins réellement disponibles | [`SPECIALIST_TOOLING.md`](SPECIALIST_TOOLING.md) |
 | comprendre le mentor et les retours de pratique | [`LEARNING_WORKFLOW.md`](LEARNING_WORKFLOW.md) |
 | comparer les modèles adaptés à la B580 | [`MODEL_SELECTION_2026_10.md`](MODEL_SELECTION_2026_10.md) |
 | relier les rapports CI aux vérifications OPS | [`INFRASTRUCTURE_CHECKS.md`](INFRASTRUCTURE_CHECKS.md) |
