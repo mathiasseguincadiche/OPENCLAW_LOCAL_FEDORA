@@ -12,6 +12,7 @@ license = {text = "MIT"}
 authors = [{name = "mathiasseguincadiche"}]
 dependencies = [
   "PyYAML>=6.0.2,<7",
+  "defusedxml==0.7.1",
   "yamllint==1.38.0",
   "pymarkdownlnt==0.9.40",
 ]
@@ -30,6 +31,7 @@ dev = [
   "pytest-cov>=6,<8",
   "ruff>=0.12,<1",
   "types-PyYAML>=6.0.12,<7",
+  "types-defusedxml==0.7.0.20260504",
 ]
 
 [tool.setuptools.packages.find]

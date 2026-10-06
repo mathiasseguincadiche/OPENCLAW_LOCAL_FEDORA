@@ -33,7 +33,7 @@ Passer par **Demander une modification cohérente du projet**, choisir la tâche
 
 ## Pourquoi cette intégration légère
 
-Le plugin métier existant suffit: export natif Draw.io, aperçu local, références vérifiées, téléchargement et reprise de fichier. Graphviz n’est plus requis par cet outil et le bootstrap ne l’installe plus; une ancienne installation n’est pas désinstallée automatiquement. L’éditeur reste un outil de l’apprenant. Aucun diagramme n’est envoyé automatiquement sur Internet.
+Le plugin métier existant suffit: export natif Draw.io, aperçu local, références vérifiées, téléchargement et reprise de fichier. Le petit parseur Python defusedxml 0.7.1 protège la lecture des XML importés, y compris après décompression. Graphviz n’est plus requis par cet outil et le bootstrap ne l’installe plus; une ancienne installation n’est pas désinstallée automatiquement. L’éditeur reste un outil de l’apprenant. Aucun diagramme n’est envoyé automatiquement sur Internet.
 
 Draw.io propose aussi un [serveur MCP et des plugins officiels](https://www.drawio.com/docs/reference/diagram-generation/). Ils peuvent devenir utiles pour piloter l’éditeur ou exporter avec sa CLI. Ils ne sont pas intégrés ici: leur ajout demande une vérification de compatibilité OpenClaw, de droits et d’usage réel. Le plugin local conserve le périmètre actuel et évite un service permanent supplémentaire.
 

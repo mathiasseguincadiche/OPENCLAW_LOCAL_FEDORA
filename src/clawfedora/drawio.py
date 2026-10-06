@@ -10,14 +10,17 @@ from typing import Any
 from urllib.parse import unquote
 from xml.etree import ElementTree as ET
 
+from defusedxml import ElementTree as SafeET
+from defusedxml.common import DefusedXmlException
+
 
 def _document(content: str) -> ET.Element:
     if not content.strip() or len(content.encode()) > 60000:
         raise ValueError("Draw.io: XML limité à 60000 octets")
-    if "<!DOCTYPE" in content.upper() or "<!ENTITY" in content.upper():
-        raise ValueError("Draw.io: DTD et entités interdites")
     try:
-        return ET.fromstring(content)
+        return SafeET.fromstring(content, forbid_dtd=True, forbid_entities=True, forbid_external=True)
+    except DefusedXmlException as exc:
+        raise ValueError("Draw.io: DTD, entités et références externes interdites") from exc
     except ET.ParseError as exc:
         raise ValueError("Draw.io: XML invalide") from exc
 
