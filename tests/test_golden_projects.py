@@ -55,9 +55,7 @@ def test_l7_full_suite_runs_real_project_engine_locally(tmp_path: Path) -> None:
         project for project in report["projects"] if project["kind"] == "representative"
     )
     project_path = Path(representative["project_path"])
-    project_manifest = json.loads(
-        (project_path / "project.json").read_text(encoding="utf-8")
-    )
+    project_manifest = json.loads((project_path / "project.json").read_text(encoding="utf-8"))
     assert project_manifest["status"] == "PACKAGING"
     final_report = json.loads(
         (project_path / "evidence/final_report.json").read_text(encoding="utf-8")
@@ -82,6 +80,7 @@ def test_l7_suite_fails_closed_when_one_project_fails(
         spec: dict[str, object],
         *,
         kind: str,
+        live_runtime: Path | None = None,
     ) -> golden_projects.GoldenProjectResult:
         nonlocal calls
         calls += 1

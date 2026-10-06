@@ -31,7 +31,7 @@ def test_l4_dry_run_is_linux_local_and_complete() -> None:
     assert payload["verdict"] == "PASS"
     assert payload["gate"] == "L4"
     assert payload["cloud_enabled"] is False
-    assert "eight-agent-smokes" in payload["sequence"]
+    assert "six-agent-smokes" in payload["sequence"]
     assert "tool-error-repair" in payload["sequence"]
     with pytest.raises(ValueError, match="backend L4 invalide"):
         openclaw_e2e.dry_run("invalid")
@@ -90,9 +90,9 @@ def test_agent_config_and_payload_validation(tmp_path: Path) -> None:
 def test_agent_helpers_reject_invalid_shapes_and_failed_runtime(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="agents invalide"):
         openclaw_e2e._agent_entries({"agents": []})
-    with pytest.raises(ValueError, match="agents.list invalide"):
+    with pytest.raises(ValueError, match="roster invalide"):
         openclaw_e2e._agent_entries({"agents": {"list": {}}})
-    with pytest.raises(ValueError, match="exactement 8 agents"):
+    with pytest.raises(ValueError, match="exactement 6 agents"):
         openclaw_e2e._agent_entries({"agents": {"list": []}})
     with pytest.raises(ValueError, match="model invalide"):
         openclaw_e2e._model_ref({"model": "bad"})
@@ -139,7 +139,7 @@ def test_gateway_ready_accepts_rpc_success(monkeypatch: pytest.MonkeyPatch) -> N
     monkeypatch.setattr(
         openclaw_e2e,
         "_run_json",
-        lambda _command, timeout: {"rpc": {"ok": True}, "timeout": timeout},
+        lambda _command, timeout, **_kwargs: {"rpc": {"ok": True}, "timeout": timeout},
     )
     result = openclaw_e2e._gateway_ready("openclaw", timeout=2)
     assert result["rpc"]["ok"] is True
@@ -212,10 +212,12 @@ def test_full_l4_simulation_creates_tool_repair_and_stability_evidence(
             stderr="",
         ),
     )
-    monkeypatch.setattr(openclaw_e2e, "_config", lambda: config)
-    monkeypatch.setattr(openclaw_e2e, "_gateway_ready", lambda _openclaw: {"rpc": {"ok": True}})
+    monkeypatch.setattr(openclaw_e2e, "_config", lambda *_args: config)
+    monkeypatch.setattr(
+        openclaw_e2e, "_gateway_ready", lambda _openclaw, **_kwargs: {"rpc": {"ok": True}}
+    )
 
-    def run_json(command: list[str], timeout: int) -> dict[str, object]:
+    def run_json(command: list[str], timeout: int, **_kwargs: object) -> dict[str, object]:
         del timeout
         if command[1:3] == ["config", "validate"]:
             return {"status": "ok"}
@@ -235,24 +237,23 @@ def test_full_l4_simulation_creates_tool_repair_and_stability_evidence(
         message: str,
         timeout: int,
         thinking: str = "off",
+        runtime_root: Path | None = None,
     ) -> dict[str, object]:
         del session, timeout, thinking
         if "AGENT_OK" in message:
             return _payload(f"AGENT_OK {agent}")
-        if "TOOL_OK" in message:
+        if "tool-ok.txt" in message:
             match = re.search(r"(\.openclaw-e2e/[^/]+/tool-ok\.txt)", message)
             assert match
             target = devops_workspace / match.group(1)
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text("TOOL_OK\n", encoding="utf-8")
-            return _payload("TOOL_OK")
-        if "REPAIR_OK" in message:
+            return _payload(target.read_text(encoding="utf-8"))
+        if "repair-ok.txt" in message:
             match = re.search(r"(\.openclaw-e2e/[^/]+/repair-ok\.txt)", message)
             assert match
             target = devops_workspace / match.group(1)
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text("REPAIR_OK\n", encoding="utf-8")
-            return _payload("REPAIR_OK")
+            return _payload(target.read_text(encoding="utf-8"))
         if "STABLE_OK" in message:
             stable_counter["value"] += 1
             return _payload(f"STABLE_OK {stable_counter['value']}")
@@ -271,3 +272,20 @@ def test_full_l4_simulation_creates_tool_repair_and_stability_evidence(
     assert '"tool_call"' in text
     assert '"repair"' in text
     assert text.count('"run":') == 3
+
+
+def test_native_command_uses_managed_state_and_accepts_stderr_warning(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("OPENCLAW_CONFIG_PATH", "/wrong/openclaw.json")
+    monkeypatch.setenv("OPENCLAW_STATE_DIR", "/wrong/state")
+
+    def native(*_args: object, **kwargs: object) -> SimpleNamespace:
+        env = kwargs["env"]
+        assert isinstance(env, dict)
+        assert env["OPENCLAW_STATE_DIR"] == str(tmp_path / "state/openclaw")
+        assert "OPENCLAW_CONFIG_PATH" not in env
+        return SimpleNamespace(returncode=0, stdout='{"valid":true}', stderr="plugin warning")
+
+    monkeypatch.setattr(openclaw_e2e.subprocess, "run", native)
+    assert openclaw_e2e._run_json(["openclaw", "config", "validate"], 1, tmp_path) == {"valid": True}

@@ -7,8 +7,8 @@ source "$SCRIPT_DIR/lib/runtime.sh"
 
 APPLY=0
 BACKEND="ollama-vulkan"
-OPENCLAW_PIN="2026.9.2"
-PARALLEL_PIN="2026.9.2"
+OPENCLAW_PIN="$(claw_pin openclaw version)"
+PARALLEL_PIN="$OPENCLAW_PIN"
 
 usage() {
   cat <<'EOF'
@@ -40,7 +40,7 @@ esac
 REPO_ROOT="$(claw_repo_root)"
 RUNTIME_ROOT="$(claw_runtime_root)"
 PYTHON="$(claw_python)"
-STATE_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}/openclaw-local"
+STATE_ROOT="$(claw_openclaw_state)"
 GENERATED_ROOT="$RUNTIME_ROOT/runtime/generated"
 SYSTEM_WORKSPACE="$RUNTIME_ROOT/workspaces/system"
 PATCH_PATH="$GENERATED_ROOT/openclaw.$BACKEND.patch.json"
@@ -70,8 +70,8 @@ require_backend_models() {
     mapfile -t actual < <(jq -r '.data[]?.id' <<<"$inventory_json")
   fi
 
-  [[ "${#expected[@]}" -eq 3 ]] || {
-    echo "ERREUR: le patch n'expose pas exactement 3 modèles pour $provider." >&2
+  [[ "${#expected[@]}" -eq 1 ]] || {
+    echo "ERREUR: le patch n'expose pas exactement un modèle quotidien pour $provider." >&2
     return 2
   }
   local expected_model
@@ -108,7 +108,9 @@ OPENCLAW_VERSION="$(claw_extract_openclaw_version "$OPENCLAW_VERSION_TEXT" || tr
   exit 2
 }
 
+"$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" backup
 mkdir -p "$STATE_ROOT" "$GENERATED_ROOT" "$SYSTEM_WORKSPACE"
+unset OPENCLAW_CONFIG_PATH
 export OPENCLAW_STATE_DIR="$STATE_ROOT"
 export OPENCLAW_LOCAL_FEDORA_ROOT="$RUNTIME_ROOT"
 export OPENCLAW_LOCAL_CLOUD_ENABLED="false"
@@ -117,6 +119,11 @@ export INTEL_VULKAN_API_KEY="intel-vulkan-local"
 
 if [[ ! -f "$STATE_ROOT/openclaw.json" ]]; then
   "$OPENCLAW" setup --baseline --workspace "$SYSTEM_WORKSPACE"
+fi
+
+if ! "$OPENCLAW" config validate --json >/dev/null; then
+  "$OPENCLAW" doctor --fix --non-interactive
+  "$OPENCLAW" config validate --json >/dev/null
 fi
 
 PLUGIN_JSON="$($OPENCLAW plugins list --json)"
@@ -136,6 +143,16 @@ fi
 "$PYTHON" -m clawfedora.cli --root "$REPO_ROOT" openclaw render \
   --runtime-root "$RUNTIME_ROOT" --backend "$BACKEND" --output "$PATCH_PATH"
 
+# Preserve retired entries temporarily: the native SDK removes only their config records.
+"$PYTHON" - "$PATCH_PATH" "$BACKEND" <<'PYCODE'
+import json, sys
+from pathlib import Path
+from clawfedora.openclaw_config import prepare_migration_patch
+path = Path(sys.argv[1])
+payload = prepare_migration_patch(json.loads(path.read_text()), sys.argv[2])
+path.write_text(json.dumps(payload, indent=2) + "\n")
+PYCODE
+
 if [[ "$BACKEND" == "ollama-vulkan" ]]; then
   OLLAMA_JSON="$(curl -fsS --max-time 5 'http://127.0.0.1:11434/api/tags')"
   require_backend_models "ollama" "$OLLAMA_JSON" "ollama"
@@ -148,6 +165,7 @@ fi
 
 "$OPENCLAW" config patch --file "$PATCH_PATH" --dry-run
 "$OPENCLAW" config patch --file "$PATCH_PATH"
+node "$REPO_ROOT/scripts/linux/retire_managed_agents.mjs" "$OPENCLAW"
 "$OPENCLAW" config validate --json | jq -e . >/dev/null
 AGENTS_JSON="$($OPENCLAW agents list --json)"
 AGENT_COUNT="$(
@@ -159,9 +177,9 @@ AGENT_COUNT="$(
     end
   ' <<<"$AGENTS_JSON"
 )"
-[[ "$AGENT_COUNT" -eq 8 ]] || {
-  echo "ERREUR: OpenClaw n'expose pas exactement 8 agents après application (count=$AGENT_COUNT)." >&2
+[[ "$AGENT_COUNT" -eq 6 ]] || {
+  echo "ERREUR: OpenClaw n'expose pas exactement 6 agents après application (count=$AGENT_COUNT)." >&2
   exit 2
 }
 
-echo "OPENCLAW_CONFIG_RESULT=PASS backend=$BACKEND agents=8 openclaw=$OPENCLAW_VERSION"
+echo "OPENCLAW_CONFIG_RESULT=PASS backend=$BACKEND agents=6 openclaw=$OPENCLAW_VERSION"

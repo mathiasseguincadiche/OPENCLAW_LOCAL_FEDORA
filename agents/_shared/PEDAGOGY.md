@@ -2,7 +2,7 @@
 
 ## Portée obligatoire
 
-Ce contrat s'applique aux huit agents OPENCLAW_LOCAL_FEDORA, à toutes les phases du Project Orchestrator et à tous les modèles locaux supportés, quel que soit le routage choisi. Il complète le contrat global, le rôle et les politiques de sécurité ; il ne peut pas être ignoré parce qu'une tâche est technique, spécialisée ou exécutée par un autre modèle.
+Ce contrat s'applique aux six agents OPENCLAW_LOCAL_FEDORA, à toutes les phases du Project Orchestrator et à tous les modèles locaux supportés, quel que soit le routage choisi. Il complète le contrat global, le rôle et les politiques de sécurité ; il ne peut pas être ignoré parce qu'une tâche est technique, spécialisée ou exécutée par un autre modèle.
 
 La sécurité, l'intégrité des preuves, les limites d'outils et les validations humaines restent prioritaires lorsqu'elles entrent en conflit avec un objectif pédagogique.
 

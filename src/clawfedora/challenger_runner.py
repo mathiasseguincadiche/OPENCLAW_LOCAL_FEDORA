@@ -14,6 +14,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from clawfedora.core_config import root_contract
+from clawfedora.gpu_telemetry import PeakSampler, b580_slot, xe_vram_mib
 
 
 @dataclass(frozen=True)
@@ -68,9 +69,7 @@ def challenger_plan(repo_root: Path, variant: str) -> ChallengerModel:
             model.get("promotion") != "benchmark-only"
             or model.get("automatic_promotion") is not False
         ):
-            raise ValueError(
-                "L6 challenger: Granite doit rester benchmark-only sans auto-promotion"
-            )
+            raise ValueError("L6 challenger: Granite doit rester benchmark-only sans auto-promotion")
     if not runtime_id or not quantization:
         raise ValueError("L6 challenger: identité modèle incomplète")
     return ChallengerModel(normalized, slot, runtime_id, quantization)
@@ -283,15 +282,7 @@ def _evaluate_probe(probe_id: str, output: str, tool_calls: list[Any]) -> tuple[
 
 
 def _vram_mib() -> float:
-    values: list[int] = []
-    for path in Path("/sys/class/drm").glob("card*/device/mem_info_vram_used"):
-        try:
-            values.append(int(path.read_text(encoding="utf-8").strip()))
-        except (OSError, ValueError):
-            continue
-    if not values:
-        raise ValueError("L6 challenger: télémétrie VRAM xe indisponible")
-    return max(values) / (1024 * 1024)
+    return xe_vram_mib(b580_slot())
 
 
 def _ram_mib() -> float:
@@ -328,33 +319,34 @@ def run_challenger_snapshot(
     cases: list[dict[str, Any]] = []
     for probe in _probe_definitions():
         started = time.perf_counter()
-        try:
-            result = _chat_probe(endpoint, model, probe)
-            output_text = str(result.pop("output"))
-            tool_calls = result.pop("tool_calls")
-            tool_calls = tool_calls if isinstance(tool_calls, list) else []
-            passed, detail = _evaluate_probe(str(probe["id"]), output_text, tool_calls)
-            status = "ok" if passed else "check-failed"
-            error: str | None = None
-        except (
-            OSError,
-            TimeoutError,
-            urllib.error.URLError,
-            json.JSONDecodeError,
-            ValueError,
-        ) as exc:
-            output_text = ""
-            result = {
-                "first_token_ms": None,
-                "wall_ms": (time.perf_counter() - started) * 1000,
-                "tokens_per_second": None,
-                "output_tokens": 0,
-                "finish_reason": None,
-            }
-            detail = f"{type(exc).__name__}: {exc}"
-            status = "error"
-            error = str(exc)
-        vram = _vram_mib()
+        with PeakSampler(_vram_mib) as sampler:
+            try:
+                result = _chat_probe(endpoint, model, probe)
+                output_text = str(result.pop("output"))
+                tool_calls = result.pop("tool_calls")
+                tool_calls = tool_calls if isinstance(tool_calls, list) else []
+                passed, detail = _evaluate_probe(str(probe["id"]), output_text, tool_calls)
+                status = "ok" if passed else "check-failed"
+                error: str | None = None
+            except (
+                OSError,
+                TimeoutError,
+                urllib.error.URLError,
+                json.JSONDecodeError,
+                ValueError,
+            ) as exc:
+                output_text = ""
+                result = {
+                    "first_token_ms": None,
+                    "wall_ms": (time.perf_counter() - started) * 1000,
+                    "tokens_per_second": None,
+                    "output_tokens": 0,
+                    "finish_reason": None,
+                }
+                detail = f"{type(exc).__name__}: {exc}"
+                status = "error"
+                error = str(exc)
+        vram = sampler.value()
         ram = _ram_mib()
         cases.append(
             {
@@ -362,9 +354,7 @@ def run_challenger_snapshot(
                 "runtime_id": model.runtime_id,
                 "probe_id": probe["id"],
                 "context": 8192,
-                "prompt_sha256": hashlib.sha256(
-                    str(probe["prompt"]).encode("utf-8")
-                ).hexdigest(),
+                "prompt_sha256": hashlib.sha256(str(probe["prompt"]).encode("utf-8")).hexdigest(),
                 "status": status,
                 "check_passed": status == "ok",
                 "check_detail": detail,
@@ -387,9 +377,7 @@ def run_challenger_snapshot(
         if isinstance(item.get("first_token_ms"), (int, float))
     ]
     flags = {
-        "coding_pass": any(
-            item["probe_id"] == "coding" and item["status"] == "ok" for item in cases
-        ),
+        "coding_pass": any(item["probe_id"] == "coding" and item["status"] == "ok" for item in cases),
         "tool_calling_pass": any(
             item["probe_id"] == "tool-calling" and item["status"] == "ok" for item in cases
         ),

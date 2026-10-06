@@ -18,16 +18,12 @@ SPECIALIST = "hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M"
 def _agents_by_id(patch: dict[str, object]) -> dict[str, dict[str, object]]:
     agents_root = patch["agents"]
     assert isinstance(agents_root, dict)
-    entries = agents_root["list"]
-    assert isinstance(entries, list)
-    return {
-        str(entry["id"]): entry
-        for entry in entries
-        if isinstance(entry, dict) and "id" in entry
-    }
+    entries = agents_root["entries"]
+    assert isinstance(entries, dict)
+    return {key: dict(value) for key, value in entries.items() if isinstance(value, dict)}
 
 
-def test_ollama_patch_has_eight_agents_and_strict_tools(tmp_path: Path) -> None:
+def test_ollama_patch_has_six_agents_and_strict_tools(tmp_path: Path) -> None:
     patch = build_openclaw_patch(ROOT, tmp_path, "ollama-vulkan")
     assert patch["gateway"] == {"mode": "local", "bind": "loopback"}
     models = patch["models"]
@@ -53,25 +49,21 @@ def test_ollama_patch_has_eight_agents_and_strict_tools(tmp_path: Path) -> None:
     }
     assert set(by_id) == {
         "qwen3.5:9b-q4_K_M",
-        "gemma4:12b-it-q4_K_M",
-        SPECIALIST,
     }
     assert all(entry["contextTokens"] == 8192 for entry in by_id.values())
-    assert by_id[SPECIALIST]["input"] == ["text"]
     assert by_id["qwen3.5:9b-q4_K_M"]["input"] == ["text", "image"]
-    assert by_id["gemma4:12b-it-q4_K_M"]["input"] == ["text", "image"]
 
     agents = _agents_by_id(patch)
-    assert len(agents) == 8
+    assert len(agents) == 6
     assert agents["chef-operations"]["default"] is True
     assert agents["ingenieur-devops"]["model"] == {
-        "primary": f"ollama/{SPECIALIST}",
-        "fallbacks": ["ollama/qwen3.5:9b-q4_K_M"],
+        "primary": "ollama/qwen3.5:9b-q4_K_M",
+        "fallbacks": [],
     }
     research_tools = agents["expert-recherche"]["tools"]
     assert isinstance(research_tools, dict)
     assert research_tools["profile"] == "minimal"
-    assert "browser" in research_tools["alsoAllow"]
+    assert "browser" not in research_tools["alsoAllow"]
     security_tools = agents["ingenieur-securite"]["tools"]
     assert isinstance(security_tools, dict)
     assert security_tools["profile"] == "minimal"
@@ -106,14 +98,11 @@ def test_vulkan_candidate_keeps_multimodal_on_ollama(tmp_path: Path) -> None:
     assert "intel-vulkan-local" not in json.dumps(patch)
     vulkan_models = vulkan["models"]
     assert isinstance(vulkan_models, list)
-    assert all(
-        isinstance(entry, dict) and entry["contextTokens"] == 8192
-        for entry in vulkan_models
-    )
+    assert all(isinstance(entry, dict) and entry["contextTokens"] == 8192 for entry in vulkan_models)
     agents = _agents_by_id(patch)
     devops_model = agents["ingenieur-devops"]["model"]
     assert isinstance(devops_model, dict)
-    assert devops_model["primary"] == f"intel-vulkan/{SPECIALIST}"
+    assert devops_model["primary"] == "intel-vulkan/qwen3.5:9b-q4_K_M"
     defaults = patch["agents"]
     assert isinstance(defaults, dict)
     agent_defaults = defaults["defaults"]
@@ -121,7 +110,7 @@ def test_vulkan_candidate_keeps_multimodal_on_ollama(tmp_path: Path) -> None:
     image_model = agent_defaults["imageModel"]
     assert isinstance(image_model, dict)
     assert image_model["primary"] == "ollama/qwen3.5:9b-q4_K_M"
-    assert image_model["fallbacks"] == ["ollama/gemma4:12b-it-q4_K_M"]
+    assert image_model["fallbacks"] == []
 
 
 def test_unknown_backend_is_rejected(tmp_path: Path) -> None:
@@ -139,3 +128,16 @@ def test_patch_writer_is_atomic_json(tmp_path: Path) -> None:
     output = write_openclaw_patch(tmp_path / "generated" / "openclaw.patch.json", patch)
     assert json.loads(output.read_text(encoding="utf-8")) == patch
     assert not output.with_suffix(output.suffix + ".tmp").exists()
+
+
+def test_generated_configuration_contains_references_without_credential_values(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    value = "test-sensitive-value-must-never-be-persisted"
+    monkeypatch.setenv("OLLAMA_API_KEY", value)
+    monkeypatch.setenv("INTEL_VULKAN_API_KEY", value)
+    patch = build_openclaw_patch(ROOT, tmp_path, "llama-cpp-vulkan")
+    assert value not in json.dumps(patch)
+    providers = patch["models"]["providers"]
+    assert providers["ollama"]["apiKey"]["id"] == "OLLAMA_API_KEY"
+    assert providers["intel-vulkan"]["apiKey"]["id"] == "INTEL_VULKAN_API_KEY"

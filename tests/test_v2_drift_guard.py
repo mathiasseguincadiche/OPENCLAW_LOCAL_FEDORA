@@ -53,5 +53,5 @@ def test_canonical_contract_contains_current_fleet_and_openclaw_pin() -> None:
     for runtime_id in CURRENT_IDS[:4]:
         assert runtime_id in catalog
     assert CURRENT_IDS[4] in versions
-    assert "exact_required_model_count: 3" in catalog
+    assert "exact_required_model_count: 1" in catalog
     assert "challenger_counts_toward_required_fleet: false" in catalog

@@ -14,7 +14,7 @@ Le dépôt est une **édition Fedora 44 Linux-native d'OPENCLAW_LOCAL**. Le socl
 | Ruff / mypy / pytest / couverture / ShellCheck | PASS |
 | CodeQL / Dependency Review | soumis aux checks GitHub de la PR |
 | Garde anti-drift Architecture V2 | PASS — anciens IDs modèles/OpenClaw interdits |
-| 8 agents + routage + workspaces | PASS logiciel — mêmes missions et alias que Windows |
+| 6 agents + routage + workspaces | PASS logiciel — mêmes missions et alias que Windows |
 | Politique outils `minimal` fail-closed | PASS logiciel |
 | Moteur projet / Intake / Artifact Exchange | PASS logiciel |
 | Installation complète Fedora 44 | IMPLÉMENTÉE — validation machine cible à produire |
@@ -41,7 +41,7 @@ Le dépôt est une **édition Fedora 44 Linux-native d'OPENCLAW_LOCAL**. Le socl
 | L1 | Cœur multi-agents Linux-native | PASS logiciel |
 | L2 | Fedora 44 / hardware gate | PENDING — machine Fedora réelle requise |
 | L3 | B580 `xe` + Mesa/Vulkan | PENDING — B580 réelle requise |
-| L4 | OpenClaw 2026.9.2 exact + 8 agents + E2E | PENDING — E2E réel requis |
+| L4 | OpenClaw 2026.9.2 exact + 6 agents + E2E | PENDING — E2E réel requis |
 | L5 | Qualification HARD-40M | PENDING — flotte V2 à mesurer |
 | L6 | Ollama/Vulkan, llama.cpp/Vulkan, kernel 7.2.3, Granite challenger | PENDING matériel — contrats logiciels PASS |
 | L7 | Golden Projects + projet représentatif | PASS logiciel — replay installation finale requis avant L8 réel |
@@ -77,7 +77,7 @@ Le benchmark nominal reste à **8192 tokens**. Les agents OpenClaw disposent d'u
 - Les trois alias `qwen-max`, `gemma-deep`, `devstral-devops` constituent exactement la flotte routée.
 - Granite reste hors flotte nominale et hors routage tant qu'aucune décision humaine post-qualification ne change explicitement le contrat.
 - Seul `qwen-max` reçoit les 3 probes Qwen thinking natifs HARD-40M.
-- Les huit rôles agents restent exactement définis et `chef-operations` reste le défaut.
+- Les six rôles agents restent exactement définis et `chef-operations` reste le défaut.
 - Les missions des agents ne sont pas redéfinies par l'édition Fedora ; les prompts ont été enrichis avec ingestion, provenance, Web/runtime evidence, Artifact Exchange et garanties Linux natives.
 - La politique outils part de `minimal`, `exec.mode=ask`, `elevated=false` et réautorise uniquement ce qui est nécessaire au rôle.
 - `intake/`, `sources/` et `context/exchange/` restent protégés et traçables.

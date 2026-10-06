@@ -75,9 +75,7 @@ def _task_failures(project_id: str, raw_tasks: Any) -> list[str]:
                 or parts[0] != "deliverables"
                 or parts[1] != task_id
             ):
-                failures.append(
-                    f"{project_id}/{task_id}: sortie non namespacée: {relative}"
-                )
+                failures.append(f"{project_id}/{task_id}: sortie non namespacée: {relative}")
 
     for task_id, values in dependencies.items():
         unknown = sorted(value for value in values if value not in ids)
@@ -131,15 +129,11 @@ def _project_failures(raw: Any, *, representative: bool) -> list[str]:
 
     failures.extend(_task_failures(project_id, raw.get("tasks")))
     if representative and isinstance(raw.get("tasks"), list):
-        roles = {
-            str(item.get("role", ""))
-            for item in raw["tasks"]
-            if isinstance(item, dict)
-        }
+        roles = {str(item.get("role", "")) for item in raw["tasks"] if isinstance(item, dict)}
         missing_roles = sorted(set(AGENT_IDS) - roles)
         if missing_roles:
             failures.append(
-                f"{project_id}: les huit rôles doivent être exercés, absents={missing_roles}"
+                f"{project_id}: les six rôles doivent être exercés, absents={missing_roles}"
             )
     return failures
 
@@ -206,9 +200,7 @@ def validate_golden_contracts(repo_root: Path) -> tuple[tuple[str, ...], tuple[s
         failures.extend(_project_failures(representative, representative=True))
         representative_id = _normalized_project_id(representative)
         if representative_id is not None and representative_id in seen_ids:
-            failures.append(
-                f"l7: representative project id dupliqué: {representative_id}"
-            )
+            failures.append(f"l7: representative project id dupliqué: {representative_id}")
 
         if not failures:
             warnings.append(

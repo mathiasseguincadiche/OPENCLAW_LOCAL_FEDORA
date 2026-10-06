@@ -15,14 +15,14 @@ def test_agent_assets_and_specs_are_complete() -> None:
     assert validate_agent_assets(ROOT) == ()
     specs = load_agent_specs(ROOT)
     assert tuple(spec.agent_id for spec in specs) == AGENT_IDS
-    assert len(specs) == 8
+    assert len(specs) == 6
     assert specs[0].agent_id == "chef-operations"
-    assert {spec.model for spec in specs} == {"qwen-max", "gemma-deep", "devstral-devops"}
+    assert {spec.model for spec in specs} == {"qwen-max"}
 
 
 def test_deploy_workspaces_is_managed_and_idempotent(tmp_path: Path) -> None:
     deployed = deploy_workspaces(ROOT, tmp_path)
-    assert len(deployed) == 8
+    assert len(deployed) == 6
     for workspace in deployed:
         marker = workspace / ".openclaw-fedora-managed"
         payload = json.loads(marker.read_text(encoding="utf-8"))

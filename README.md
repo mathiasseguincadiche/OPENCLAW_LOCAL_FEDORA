@@ -1,10 +1,10 @@
 # OPENCLAW_LOCAL_FEDORA
 
 <p align="center">
-  <img src=".github/social-preview.svg" alt="OPENCLAW_LOCAL_FEDORA — Fedora 44, Local AI, 8 agents, Intel Arc B580, Vulkan" width="100%">
+  <img src=".github/social-preview.svg" alt="OPENCLAW_LOCAL_FEDORA — Fedora 44, Local AI, 6 agents, Intel Arc B580, Vulkan" width="100%">
 </p>
 
-**Fedora 44 · Local AI · 8 agents · Intel Arc B580 · Vulkan · Fail-closed**
+**Fedora 44 · Local AI · 6 agents · Intel Arc B580 · Vulkan · Fail-closed**
 
 [![CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml)
@@ -22,9 +22,9 @@ Plateforme **Linux-native, LLM local-only et multi-agents** pour exécuter OpenC
 `OPENCLAW_LOCAL_FEDORA` vise plus loin qu'une simple démonstration « un LLM tourne en local ». Le dépôt fournit une plateforme complète où **installation, sécurité, routage, agents, exploitation, preuves et qualification** sont traités comme des contrats vérifiables.
 
 - **100 % local pour le routage LLM nominal** — aucun fallback cloud silencieux.
-- **8 agents spécialisés** — mêmes missions, workspaces et garde-fous reproductibles.
-- **3 modèles locaux Q4_K_M** — flotte nominale explicite, challenger séparé.
-- **Fedora-native** — `systemd`, SELinux, firewalld, Podman, KVM/libvirt et `xe`.
+- **6 agents spécialisés** — mêmes missions, workspaces et garde-fous reproductibles.
+- **1 modèle quotidien Q4_K_M** — flotte nominale explicite, challenger séparé.
+- **Fedora-native** — `systemd`, SELinux, firewalld et `xe` ; développement et KVM optionnels.
 - **Vulkan uniquement pour le GPU** — Ollama/Vulkan baseline, llama.cpp/Vulkan candidat L6.
 - **Fail-closed** — les incohérences de versions, contrats ou preuves bloquent la progression.
 - **Qualification L0 → L8** — la CI logicielle reste strictement distincte des preuves matérielles et de l'approbation humaine.
@@ -37,8 +37,8 @@ Plateforme **Linux-native, LLM local-only et multi-agents** pour exécuter OpenC
 | CI Fedora 44 | **PASS logiciel** |
 | OpenClaw | **`2026.9.2` exact, verrouillé** |
 | Parallel | **`2026.9.2` exact, verrouillé** |
-| Flotte nominale | **3 modèles locaux Q4_K_M** |
-| Agents | **8 rôles spécialisés** |
+| Flotte nominale | **1 modèle quotidien Q4_K_M** |
+| Agents | **6 rôles spécialisés** |
 | Runtime GPU | **Vulkan** |
 | Sécurité | **SELinux Enforcing + firewalld + loopback + fail-closed** |
 | Qualification B580 L2–L6 | **À exécuter sur la machine réelle** |
@@ -50,11 +50,12 @@ Détail de l'état réel : [`STATUS.md`](STATUS.md).
 
 ```mermaid
 flowchart TD
-    U[Utilisateur] --> G[OpenClaw Gateway 2026.9.2]
-    G --> A[8 agents spécialisés]
-    A --> M[3 modèles locaux Q4_K_M]
+    U[Plan validé par utilisateur] --> W1[Worker séquentiel]
+    W1 --> G[OpenClaw Gateway 2026.9.2]
+    G --> A[6 rôles en sessions successives]
+    A --> M[Qwen 9B Q4_K_M]
     M --> O[Ollama / Vulkan]
-    M -. candidat L6 .-> L[llama.cpp / Vulkan]
+    M -. candidat qualifié séparément .-> L[llama.cpp / Vulkan]
     O --> V[Mesa / Vulkan]
     L --> V
     V --> X[Intel Arc B580 / xe]
@@ -69,15 +70,15 @@ Le chemin supporté est **Fedora 44 → `xe` → Mesa/Vulkan → runtime local**
 
 ## Flotte et agents
 
-| Alias | Modèle nominal | Missions dominantes |
-|---|---|---|
-| `qwen-max` | `qwen3.5:9b-q4_K_M` | orchestration, recherche, sécurité, release |
-| `gemma-deep` | `gemma4:12b-it-q4_K_M` | architecture, documentation, audit |
-| `devstral-devops` | `hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M` | DevOps, code, réparation, tool-calling |
+| Alias | Usage |
+|---|---|
+| `qwen-max` | `qwen3.5:9b-q4_K_M`, seul modèle installé et routé par défaut |
+| `gemma-deep` | `gemma4:12b-it-q4_K_M`, revue alternative expérimentale |
+| `devstral-devops` | Ministral 3 14B Reasoning Q4_K_M, comparaison expérimentale |
 
-Les huit agents sont `chef-operations`, `expert-recherche`, `architecte-solutions`, `ingenieur-devops`, `ingenieur-securite`, `ingenieur-release-forges`, `redacteur-technique` et `auditeur-qualite`.
+Les six rôles sont `chef-operations`, `expert-recherche`, `architecte-solutions`, `ingenieur-devops`, `ingenieur-securite` et `auditeur-qualite`. Ce sont des sessions spécialisées sur le même modèle, exécutées successivement.
 
-`granite4.2:8b-q4_K_M` reste un challenger DevOps **hors routage** et ne compte pas comme quatrième modèle nominal.
+`granite4.2:8b-q4_K_M` reste un challenger hors routage. [Profil quotidien et migration](docs/DAILY_PROFILE.md) décrit les limites mémoire, le mode jeux, le collecteur et les tests réels.
 
 Sources de vérité : [`config/model_catalog.yaml`](config/model_catalog.yaml) et [`docs/MULTI_AGENT_CORE.md`](docs/MULTI_AGENT_CORE.md).
 
@@ -142,7 +143,7 @@ Ces liens sont des raccourcis de consultation ; ils ne créent pas de parcours s
 ```text
 L2 Fedora / hardware
 → L3 B580 / xe / Mesa-Vulkan
-→ L4 OpenClaw 2026.9.2 / 8 agents / outils
+→ L4 OpenClaw 2026.9.2 / 6 agents / outils
 → L5 HARD-40M
 → L6 runtime Vulkan / kernel / challenger
 → L7 Golden Projects
@@ -150,7 +151,7 @@ L2 Fedora / hardware
 → approbation humaine explicite
 ```
 
-Le benchmark nominal reste à **8192 tokens**. Les agents OpenClaw disposent de **16384 tokens** pour système, outils et orchestration ; ce budget n'est pas une promotion automatique du benchmark matériel.
+Le benchmark nominal reste à **8192 tokens**. Les agents OpenClaw disposent de **8192 tokens** pour système, outils et orchestration ; 16K exige une qualification expérimentale distincte.
 
 Procédure : [`docs/QUALIFICATION.md`](docs/QUALIFICATION.md).
 
@@ -160,7 +161,7 @@ Procédure : [`docs/QUALIFICATION.md`](docs/QUALIFICATION.md).
 - Parallel **exactement `2026.9.2`**, sans mise à jour automatique.
 - SELinux **Enforcing** et firewalld actif.
 - Gateway et providers locaux en loopback.
-- Base outils agents `minimal`, `exec.mode=ask`, `elevated=false`.
+- Base outils agents en lecture, commandes et écritures natives désactivées ; collecteur borné aux fichiers du plan.
 - Aucun fallback LLM cloud silencieux.
 - Aucune promotion automatique de kernel, backend, modèle ou V1.
 - Les preuves runtime et données lourdes restent hors Git.

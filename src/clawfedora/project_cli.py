@@ -22,6 +22,7 @@ from clawfedora.project_engine import (
     transition_project,
 )
 from clawfedora.project_intake import create_project
+from clawfedora.project_worker import review_project, run_project_tasks
 
 
 def _load_object(path: str) -> dict[str, Any]:
@@ -78,6 +79,17 @@ def add_project_parser(
     ready.add_argument("--runtime-root")
     ready.add_argument("--project-id", required=True)
 
+    run = commands.add_parser("run", help="exécuter le plan séquentiellement via OpenClaw")
+    run.add_argument("--runtime-root")
+    run.add_argument("--project-id", required=True)
+    run.add_argument("--apply", action="store_true")
+
+    audit = commands.add_parser("review", help="audit des livrables dans une session séparée")
+    audit.add_argument("--runtime-root")
+    audit.add_argument("--project-id", required=True)
+    audit.add_argument("--kind", choices=("validation", "review"), required=True)
+    audit.add_argument("--apply", action="store_true")
+
     result = commands.add_parser("result")
     result.add_argument("--runtime-root")
     result.add_argument("--project-id", required=True)
@@ -106,7 +118,7 @@ def add_project_parser(
     package = commands.add_parser("package")
     package.add_argument("--runtime-root")
     package.add_argument("--project-id", required=True)
-    package.add_argument("--actor", default="ingenieur-release-forges")
+    package.add_argument("--actor", default="ingenieur-devops")
 
     commands.add_parser(
         "selftest",
@@ -182,7 +194,7 @@ def _selftest(repo_root: Path) -> dict[str, Any]:
                 "tasks": [
                     {
                         "id": "write-report",
-                        "role": "redacteur-technique",
+                        "role": "architecte-solutions",
                         "title": "Rédiger le rapport",
                         "objective": "Produire le livrable final",
                         "depends_on": [],
@@ -221,7 +233,7 @@ def _selftest(repo_root: Path) -> dict[str, Any]:
             repo_root,
             project,
             task_id="write-report",
-            agent="redacteur-technique",
+            agent="architecte-solutions",
             status="PASS",
             outputs=["deliverables/write-report/final.md"],
             summary="livrable créé",
@@ -256,7 +268,7 @@ def _selftest(repo_root: Path) -> dict[str, Any]:
             [],
             reviewer="auditeur-qualite",
         )
-        package_project(repo_root, project, actor="ingenieur-release-forges")
+        package_project(repo_root, project, actor="ingenieur-devops")
         transition_project(
             repo_root,
             project,
@@ -321,6 +333,27 @@ def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
         elif command == "ready":
             ready = ready_tasks(repo_root, _project(args))
             print(json.dumps(ready, indent=2, ensure_ascii=False))
+        elif command == "review":
+            if not args.apply:
+                print("PROJECT_REVIEW_PLAN=separate-readonly-auditor")
+            else:
+                path = review_project(repo_root, _runtime(args), _project(args), args.kind)
+                print(f"PROJECT_REVIEW={path}")
+                if read_json(path)["verdict"] != "PASS":
+                    return 2
+        elif command == "run":
+            if not args.apply:
+                print(
+                    json.dumps(
+                        {"dry_run": True, "ready": ready_tasks(repo_root, _project(args))},
+                        ensure_ascii=False,
+                    )
+                )
+            else:
+                results = run_project_tasks(repo_root, _runtime(args), _project(args))
+                print(json.dumps(results, ensure_ascii=False))
+                if any(result["status"] == "FAIL" for result in results):
+                    return 2
         elif command == "result":
             result = record_task_result(
                 repo_root,
@@ -345,15 +378,9 @@ def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
         elif command == "verdict":
             findings: list[dict[str, Any]] = []
             if args.findings_file:
-                raw = json.loads(
-                    Path(args.findings_file).read_text(encoding="utf-8")
-                )
-                if not isinstance(raw, list) or any(
-                    not isinstance(item, dict) for item in raw
-                ):
-                    raise ValueError(
-                        "findings-file doit contenir une liste JSON d'objets"
-                    )
+                raw = json.loads(Path(args.findings_file).read_text(encoding="utf-8"))
+                if not isinstance(raw, list) or any(not isinstance(item, dict) for item in raw):
+                    raise ValueError("findings-file doit contenir une liste JSON d'objets")
                 findings = raw
             path = store_verdict(
                 repo_root,
@@ -381,6 +408,7 @@ def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
         KeyError,
         OSError,
         PermissionError,
+        RuntimeError,
         ValueError,
     ) as exc:
         print(f"PROJECT_RESULT=FAIL error={exc}")

@@ -15,6 +15,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from clawfedora.core_config import load_yaml, root_contract
+from clawfedora.gpu_telemetry import PeakSampler, b580_slot, xe_vram_mib
 from clawfedora.qualification import run_checks
 
 L6_SCENARIOS: dict[str, tuple[str, ...]] = {
@@ -80,8 +81,7 @@ def _synthetic_context(characters: int) -> str:
     index = 1
     while sum(len(row) for row in rows) < characters:
         rows.append(
-            f"node-{index:04d}: env=synthetic service=example state=unknown "
-            f"owner=team-{index % 5}\n"
+            f"node-{index:04d}: env=synthetic service=example state=unknown owner=team-{index % 5}\n"
         )
         index += 1
     return "".join(rows)[:characters]
@@ -165,15 +165,7 @@ def _artifact_identities(repo_root: Path, runtime_root: Path) -> dict[str, dict[
 
 
 def _vram_mib() -> float:
-    values: list[int] = []
-    for path in Path("/sys/class/drm").glob("card*/device/mem_info_vram_used"):
-        try:
-            values.append(int(path.read_text(encoding="utf-8").strip()))
-        except (OSError, ValueError):
-            continue
-    if not values:
-        raise ValueError("L6 runner: télémétrie VRAM xe indisponible")
-    return max(values) / (1024 * 1024)
+    return xe_vram_mib(b580_slot())
 
 
 def _ram_mib() -> float:
@@ -351,33 +343,34 @@ def run_performance_snapshot(
     max_ram = 0.0
     for case in cases:
         started = time.perf_counter()
-        try:
-            if backend == "ollama-vulkan":
-                result = _ollama_case(endpoint, case, 210)
-            else:
-                result = _llama_case(endpoint, case, 210)
-            passed, details = run_checks(str(result.pop("output")), case.checks)
-            status = "ok" if passed else "check-failed"
-            error: str | None = None
-        except (
-            OSError,
-            TimeoutError,
-            urllib.error.URLError,
-            json.JSONDecodeError,
-            ValueError,
-        ) as exc:
-            result = {
-                "first_token_ms": None,
-                "wall_ms": (time.perf_counter() - started) * 1000,
-                "tokens_per_second": None,
-                "prompt_tokens_per_second": None,
-                "output_tokens": 0,
-                "finish_reason": None,
-            }
-            details = [f"{type(exc).__name__}: {exc}"]
-            status = "error"
-            error = str(exc)
-        vram = _vram_mib()
+        with PeakSampler(_vram_mib) as sampler:
+            try:
+                if backend == "ollama-vulkan":
+                    result = _ollama_case(endpoint, case, 210)
+                else:
+                    result = _llama_case(endpoint, case, 210)
+                passed, details = run_checks(str(result.pop("output")), case.checks)
+                status = "ok" if passed else "check-failed"
+                error: str | None = None
+            except (
+                OSError,
+                TimeoutError,
+                urllib.error.URLError,
+                json.JSONDecodeError,
+                ValueError,
+            ) as exc:
+                result = {
+                    "first_token_ms": None,
+                    "wall_ms": (time.perf_counter() - started) * 1000,
+                    "tokens_per_second": None,
+                    "prompt_tokens_per_second": None,
+                    "output_tokens": 0,
+                    "finish_reason": None,
+                }
+                details = [f"{type(exc).__name__}: {exc}"]
+                status = "error"
+                error = str(exc)
+        vram = sampler.value()
         ram = _ram_mib()
         max_vram = max(max_vram, vram)
         max_ram = max(max_ram, ram)

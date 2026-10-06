@@ -23,8 +23,6 @@ def test_model_plan_is_exact_rightsized_fleet() -> None:
     plan = lifecycle.model_plan(ROOT)
     assert [item["runtime_id"] for item in plan] == [
         "qwen3.5:9b-q4_K_M",
-        "gemma4:12b-it-q4_K_M",
-        SPECIALIST,
     ]
     assert all(item["nominal_context_tokens"] == 8192 for item in plan)
 
@@ -141,27 +139,53 @@ def test_cleanup_refuses_filesystem_root() -> None:
 def test_health_reports_all_components(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     runtime = tmp_path / "runtime"
     _mark_runtime(runtime)
-    for agent_id in (
-        "chef-operations",
-        "expert-recherche",
-        "architecte-solutions",
-        "ingenieur-devops",
-        "ingenieur-securite",
-        "ingenieur-release-forges",
-        "redacteur-technique",
-        "auditeur-qualite",
-    ):
+    from clawfedora.core_config import AGENT_IDS
+
+    for agent_id in AGENT_IDS:
         workspace = runtime / "workspaces" / agent_id
         workspace.mkdir(parents=True)
         (workspace / lifecycle.MANAGED_MARKER).write_text("managed", encoding="utf-8")
 
     monkeypatch.setattr(lifecycle.shutil, "which", lambda name: f"/usr/bin/{name}")
 
+    from clawfedora.hardware_gate import HardwareGateReport
+    from clawfedora.project_common import write_json
+
+    model = str(lifecycle.model_plan(ROOT)[0]["runtime_id"])
+    write_json(
+        runtime / "state/model-identities.json",
+        {"models": {model: {"digest": "a" * 64, "quantization_level": "Q4_K_M"}}},
+    )
+
+    def request(url: str, **_kwargs: object) -> dict[str, object]:
+        if url.endswith("/api/version"):
+            return {"version": "0.32.14"}
+        return {
+            "models": [
+                {"name": model, "digest": "a" * 64, "details": {"quantization_level": "Q4_K_M"}}
+            ]
+        }
+
+    monkeypatch.setattr(lifecycle, "_request_json", request)
+    monkeypatch.setattr(
+        lifecycle, "collect_hardware_gate", lambda *_args: HardwareGateReport("L3", (), "now")
+    )
+
     def run(command: list[str], **_kwargs: object) -> SimpleNamespace:
-        if command[-1] == "list":
-            output = "\n".join(item["runtime_id"] for item in lifecycle.model_plan(ROOT))
+        if command[-1] == "--version":
+            output = "OpenClaw 2026.9.2"
+        elif command[0] == "getenforce":
+            output = "Enforcing"
+        elif "is-active" in command:
+            output = "active"
+        elif "show" in command:
+            output = (
+                "OLLAMA_NUM_PARALLEL=1 OLLAMA_MAX_LOADED_MODELS=1 "
+                "OLLAMA_MAX_QUEUE=4 OLLAMA_VULKAN=1 OLLAMA_HOST=127.0.0.1:11434 "
+                f"OLLAMA_MODELS={runtime}/models/ollama"
+            )
         else:
-            output = '{"runtime":"running","rpc":"ok"}'
+            output = '{"rpc":{"ok":true}}'
         return SimpleNamespace(returncode=0, stdout=output, stderr="")
 
     monkeypatch.setattr(lifecycle.subprocess, "run", run)
@@ -175,4 +199,10 @@ def test_health_reports_all_components(monkeypatch: pytest.MonkeyPatch, tmp_path
         "openclaw-gateway",
         "agent-workspaces",
         "model-inventory",
+        "openclaw-version",
+        "ollama-version",
+        "selinux-enforcing",
+        "firewalld",
+        "b580-vulkan",
+        "effective-inference-limits",
     }

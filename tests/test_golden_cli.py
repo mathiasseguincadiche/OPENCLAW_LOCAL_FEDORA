@@ -59,7 +59,7 @@ def test_full_run_text_and_json(
     monkeypatch.setattr(
         golden_cli,
         "run_golden_suite",
-        lambda _repo, _runtime: (0, report_path),
+        lambda _repo, _runtime, **_kwargs: (0, report_path),
     )
 
     assert golden_cli.main(["--root", str(ROOT), "--runtime-root", str(tmp_path)]) == 0
@@ -68,9 +68,7 @@ def test_full_run_text_and_json(
     assert "L7_RESULT=PASS golden=5/5 representative=1/1" in output
     assert "finops_exposure_eur=0.0" in output
 
-    assert golden_cli.main(
-        ["--root", str(ROOT), "--runtime-root", str(tmp_path), "--json"]
-    ) == 0
+    assert golden_cli.main(["--root", str(ROOT), "--runtime-root", str(tmp_path), "--json"]) == 0
     assert json.loads(capsys.readouterr().out)["verdict"] == "PASS"
 
 

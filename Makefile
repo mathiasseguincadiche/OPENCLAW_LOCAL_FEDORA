@@ -1,4 +1,4 @@
-.PHONY: install validate test lint shellcheck ci
+.PHONY: install validate test lint shellcheck ci native-schema
 
 install:
 	python3 -m venv .venv
@@ -8,7 +8,7 @@ validate:
 	.venv/bin/clawfedora validate
 
 lint:
-	.venv/bin/ruff check src tests
+	.venv/bin/ruff check src tests scripts/validation
 	.venv/bin/mypy src
 
 shellcheck:
@@ -20,3 +20,6 @@ test:
 	.venv/bin/pytest -q --cov=clawfedora --cov-report=term-missing
 
 ci: validate lint shellcheck test
+
+native-schema:
+	.venv/bin/python scripts/validation/check_openclaw_schema.py

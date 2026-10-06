@@ -90,7 +90,7 @@ def _l5(runtime: Path, l2: Path, l3: Path) -> Path:
     assert isinstance(models, dict)
     identities: list[dict[str, Any]] = []
     for alias, raw in models.items():
-        if not isinstance(raw, dict) or raw.get("required") is not True:
+        if not isinstance(raw, dict) or alias not in policy["required_models"]:
             continue
         identities.append(
             {
@@ -332,6 +332,8 @@ def _l7(runtime: Path) -> Path:
             "schema_version": "1.0.0",
             "generated_at": "2026-09-03T12:00:00+00:00",
             "gate": "L7",
+            "execution_mode": "live-openclaw",
+            "ai_runtime_exercised": True,
             "run_id": "test-run",
             "verdict": "PASS",
             "golden_projects_pass": 5,

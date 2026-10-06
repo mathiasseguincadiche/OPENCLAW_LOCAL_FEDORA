@@ -3,12 +3,14 @@ set -Eeuo pipefail
 
 APPLY=0
 ENABLE_LINGER=0
+WITH_DEV=0
+WITH_KVM=0
 RUNTIME_ROOT="/srv/openclaw-local"
 RUNTIME_MARKER=".openclaw-fedora-runtime"
 
 usage() {
   cat <<'EOF'
-Usage: 00_bootstrap.sh [--apply] [--enable-linger] [--runtime-root PATH]
+Usage: 00_bootstrap.sh [--apply] [--enable-linger] [--with-dev] [--with-kvm] [--runtime-root PATH]
 
 Par défaut, le script est un dry-run. --apply est obligatoire pour modifier le système.
 Le script peut être lancé comme utilisateur normal (recommandé) ou via sudo ; dans ce cas,
@@ -20,6 +22,8 @@ while (($#)); do
   case "$1" in
     --apply) APPLY=1 ;;
     --enable-linger) ENABLE_LINGER=1 ;;
+    --with-dev) WITH_DEV=1 ;;
+    --with-kvm) WITH_KVM=1 ;;
     --runtime-root)
       shift
       [[ $# -gt 0 ]] || { echo "ERREUR: --runtime-root exige une valeur" >&2; exit 2; }
@@ -83,13 +87,16 @@ fi
 PACKAGES=(
   git curl wget rsync jq tar unzip pciutils usbutils lm_sensors
   python3 python3-pip python3-virtualenv
-  gcc gcc-c++ make cmake ninja-build pkgconf-pkg-config
   vulkan-tools mesa-vulkan-drivers igt-gpu-tools
-  podman
-  qemu-kvm libvirt virt-install virt-manager edk2-ovmf
   firewalld policycoreutils-python-utils acl openssl lsof procps-ng util-linux
-  shellcheck
 )
+
+if ((WITH_DEV == 1)); then
+  PACKAGES+=(gcc gcc-c++ make cmake ninja-build pkgconf-pkg-config shellcheck podman)
+fi
+if ((WITH_KVM == 1)); then
+  PACKAGES+=(qemu-kvm libvirt virt-install virt-manager edk2-ovmf)
+fi
 
 printf 'BOOTSTRAP_PLAN Fedora=%s runtime=%s user=%s group=%s\n' \
   "$VERSION_ID" "$RUNTIME_ROOT" "$TARGET_USER" "$TARGET_GROUP"
@@ -102,8 +109,8 @@ printf '  managed marker: %s/%s\n' "$RUNTIME_ROOT" "$RUNTIME_MARKER"
 printf '  GPU stack: xe + Mesa/Vulkan\n'
 printf '  SELinux: must remain Enforcing\n'
 printf '  firewalld: installed and enabled; LLM/Gateway remain loopback\n'
-printf '  container runtime: Podman native\n'
-printf '  virtualization: KVM/libvirt + OVMF\n'
+printf '  development/Podman: optional with-dev=%s\n' "$WITH_DEV"
+printf '  virtualization: optional with-kvm=%s\n' "$WITH_KVM"
 printf '  kernel: Fedora package stays baseline; 7.2.3 is NOT installed here\n'
 
 if ((APPLY == 0)); then
@@ -118,7 +125,9 @@ fi
 
 as_root "${DNF[@]}" install -y "${PACKAGES[@]}"
 
-for group in render video libvirt; do
+GROUPS_TO_ADD=(render video)
+((WITH_KVM == 0)) || GROUPS_TO_ADD+=(libvirt)
+for group in "${GROUPS_TO_ADD[@]}"; do
   if getent group "$group" >/dev/null 2>&1; then
     as_root usermod -aG "$group" "$TARGET_USER"
   fi
@@ -145,7 +154,11 @@ if [[ ! -x "$VENV/bin/python" ]]; then
   as_target python3 -m venv "$VENV"
 fi
 as_target "$VENV/bin/python" -m pip install --upgrade pip setuptools wheel
-as_target "$VENV/bin/python" -m pip install -e "${REPO_ROOT}[dev]"
+if ((WITH_DEV == 1)); then
+  as_target "$VENV/bin/python" -m pip install -e "${REPO_ROOT}[dev]"
+else
+  as_target "$VENV/bin/python" -m pip install -e "$REPO_ROOT"
+fi
 
 as_root systemctl enable --now firewalld.service
 if ! as_root systemctl is-active --quiet firewalld.service; then
@@ -153,9 +166,9 @@ if ! as_root systemctl is-active --quiet firewalld.service; then
   exit 2
 fi
 
-if systemctl list-unit-files virtqemud.socket >/dev/null 2>&1; then
+if ((WITH_KVM == 1)) && systemctl list-unit-files virtqemud.socket >/dev/null 2>&1; then
   as_root systemctl enable --now virtqemud.socket
-elif systemctl list-unit-files libvirtd.service >/dev/null 2>&1; then
+elif ((WITH_KVM == 1)) && systemctl list-unit-files libvirtd.service >/dev/null 2>&1; then
   as_root systemctl enable --now libvirtd.service
 fi
 

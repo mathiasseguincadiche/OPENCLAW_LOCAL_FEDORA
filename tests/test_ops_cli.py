@@ -37,17 +37,15 @@ def test_models_dry_run_lists_three_models(capsys: pytest.CaptureFixture[str]) -
     output = capsys.readouterr().out
     assert '"verdict": "PLAN"' in output
     assert "qwen3.5:9b-q4_K_M" in output
-    assert "gemma4:12b-it-q4_K_M" in output
-    assert SPECIALIST in output
+    assert "gemma4:12b-it-q4_K_M" not in output
+    assert SPECIALIST not in output
     assert "granite4.2:8b-q4_K_M" not in output
 
 
 def test_cleanup_dry_run_never_deletes(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     project = tmp_path / "projects/p"
     project.mkdir(parents=True)
-    code = ops_cli.main(
-        ["--root", str(ROOT), "--runtime-root", str(tmp_path), "cleanup"]
-    )
+    code = ops_cli.main(["--root", str(ROOT), "--runtime-root", str(tmp_path), "cleanup"])
     assert code == 0
     assert project.exists()
     assert "CLEANUP_PLAN=" in capsys.readouterr().out
@@ -71,9 +69,7 @@ def test_telemetry_cli_roundtrip(tmp_path: Path, capsys: pytest.CaptureFixture[s
     )
     assert code == 0
     assert "TELEMETRY_RESULT=PASS" in capsys.readouterr().out
-    code = ops_cli.main(
-        ["--root", str(ROOT), "--runtime-root", str(tmp_path), "telemetry", "--show"]
-    )
+    code = ops_cli.main(["--root", str(ROOT), "--runtime-root", str(tmp_path), "telemetry", "--show"])
     assert code == 0
     assert '"event": "project.status"' in capsys.readouterr().out
 
@@ -98,8 +94,6 @@ def test_finops_cli_summary(tmp_path: Path, capsys: pytest.CaptureFixture[str]) 
     )
     assert code == 0
     capsys.readouterr()
-    code = ops_cli.main(
-        ["--root", str(ROOT), "--runtime-root", str(tmp_path), "finops", "--show"]
-    )
+    code = ops_cli.main(["--root", str(ROOT), "--runtime-root", str(tmp_path), "finops", "--show"])
     assert code == 0
     assert '"reservations_eur": 0.25' in capsys.readouterr().out

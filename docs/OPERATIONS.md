@@ -1,5 +1,7 @@
 # Runbook d'exploitation Fedora
 
+> Profil quotidien : six rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+
 ## Repères de progression
 
 | Repère | Valeur |
@@ -109,7 +111,7 @@ Si un modèle nominal manque, ne le télécharger que via le chemin explicite du
 
 Aucun benchmark ne doit télécharger implicitement un modèle absent.
 
-## Vérification des huit agents
+## Vérification des six agents
 
 ```bash
 ./menu.sh --action health

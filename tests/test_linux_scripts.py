@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -86,14 +87,14 @@ def test_openclaw_config_is_dry_run_by_default_and_fail_closed() -> None:
     text = _read("scripts/linux/04_configure_openclaw.sh")
     assert "APPLY=0" in text
     assert "DRY_RUN=PASS" in text
-    assert 'OPENCLAW_PIN="2026.9.2"' in text
-    assert 'PARALLEL_PIN="2026.9.2"' in text
+    assert 'OPENCLAW_PIN="$(claw_pin openclaw version)"' in text
+    assert 'PARALLEL_PIN="$OPENCLAW_PIN"' in text
     assert "OpenClaw exactement $OPENCLAW_PIN requis" in text
     assert '[[ "$OPENCLAW_VERSION" == "$OPENCLAW_PIN" ]]' in text
     assert '[[ "$OPENCLAW_VERSION" == *"$OPENCLAW_PIN"* ]]' not in text
     assert "require_backend_models" in text
-    assert "exactement 3 modèles" in text
-    assert "config patch --file \"$PATCH_PATH\" --dry-run" in text
+    assert "exactement un modèle quotidien" in text
+    assert 'config patch --file "$PATCH_PATH" --dry-run' in text
     assert "config validate --json" in text
     assert "agents list --json" in text
     assert "plugins inspect parallel --runtime --json" in text
@@ -106,7 +107,7 @@ def test_openclaw_agent_inventory_accepts_supported_json_shapes() -> None:
     assert 'type == "array" then length' in text
     assert '(.agents? | type) == "array"' in text
     assert '(.list? | type) == "array"' in text
-    assert '[[ "$AGENT_COUNT" -eq 8 ]]' in text
+    assert '[[ "$AGENT_COUNT" -eq 6 ]]' in text
 
 
 def test_long_gates_block_suspend_with_systemd_inhibit() -> None:
@@ -140,8 +141,8 @@ def test_power_profile_requires_explicit_apply() -> None:
 def test_full_install_is_explicit_and_pinned() -> None:
     text = _read("scripts/linux/10_install_full.sh")
     assert "APPLY=0" in text
-    assert 'OPENCLAW_PIN="2026.9.2"' in text
-    assert 'OLLAMA_PIN="0.32.14"' in text
+    assert 'OPENCLAW_PIN="$(claw_pin openclaw version)"' in text
+    assert 'OLLAMA_PIN="$(claw_pin ollama version)"' in text
     assert 'OLLAMA_VERSION="$OLLAMA_PIN"' in text
     assert '--install-method npm --version "$OPENCLAW_PIN"' in text
     assert '[[ "$OPENCLAW_VERSION" == "$OPENCLAW_PIN" ]]' in text
@@ -206,3 +207,18 @@ def test_menu_exposes_implemented_linux_gates_and_lifecycle() -> None:
     assert "release-readiness) run_l8 check" in text
     assert "clawfedora-l8 approve" in text
     assert "approve)" not in text
+
+
+def test_installer_reads_exact_pins_without_third_party_python_packages() -> None:
+    result = subprocess.run(
+        [
+            "bash",
+            "-c",
+            "source scripts/linux/lib/runtime.sh; claw_pin openclaw version; claw_pin ollama version",
+        ],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    assert result.stdout.splitlines() == ["2026.9.2", "0.32.14"]

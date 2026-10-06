@@ -1,5 +1,7 @@
 # Premiers pas
 
+> Profil quotidien : six rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+
 ## Repères de progression
 
 | Repère | Valeur |
@@ -41,7 +43,7 @@ Si le produit est déjà installé :
 
 Le health-check est la commande de référence pour savoir si OpenClaw, Ollama, les modèles et les workspaces attendus sont présents et cohérents.
 
-## 3. Connaître les trois modèles nominaux
+## 3. Connaître les un modèle quotidien et deux candidats optionnels
 
 La flotte opérationnelle contient exactement trois alias :
 
@@ -55,7 +57,7 @@ Les identités runtime exactes sont définies uniquement dans `config/model_cata
 
 Le challenger Granite appartient à L6 et reste hors routage tant qu'aucune décision humaine post-qualification n'a modifié les contrats.
 
-## 4. Connaître les huit agents
+## 4. Connaître les six agents
 
 Les rôles sont :
 
@@ -64,15 +66,15 @@ Les rôles sont :
 - `architecte-solutions` ;
 - `ingenieur-devops` ;
 - `ingenieur-securite` ;
-- `ingenieur-release-forges` ;
-- `redacteur-technique` ;
+- `ingenieur-devops` ;
+- `architecte-solutions` ;
 - `auditeur-qualite`.
 
 Leurs missions sont décrites dans [`MULTI_AGENT_CORE.md`](MULTI_AGENT_CORE.md) et leurs contrats détaillés sont versionnés sous `agents/`.
 
 ## 5. Vérifier les workspaces
 
-Pour déployer ou remettre en cohérence les huit workspaces gérés :
+Pour déployer ou remettre en cohérence les six workspaces gérés :
 
 ```bash
 ./menu.sh --action agents

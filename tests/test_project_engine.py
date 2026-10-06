@@ -78,7 +78,7 @@ def _plan() -> dict[str, object]:
             },
             {
                 "id": "write-doc",
-                "role": "redacteur-technique",
+                "role": "architecte-solutions",
                 "title": "Documenter",
                 "objective": "Créer la documentation",
                 "depends_on": ["build-output"],
@@ -186,9 +186,7 @@ def test_complete_project_lifecycle_requires_human_approval(tmp_path: Path) -> N
         outputs=["work/build-output/result.txt"],
         summary="construction validée",
     )
-    assert [item["task_id"] for item in ready_tasks(ROOT, project)] == [
-        "write-doc"
-    ]
+    assert [item["task_id"] for item in ready_tasks(ROOT, project)] == ["write-doc"]
 
     second = project / "deliverables" / "write-doc" / "final.md"
     second.parent.mkdir(parents=True)
@@ -197,7 +195,7 @@ def test_complete_project_lifecycle_requires_human_approval(tmp_path: Path) -> N
         ROOT,
         project,
         task_id="write-doc",
-        agent="redacteur-technique",
+        agent="architecte-solutions",
         status="PASS",
         outputs=["deliverables/write-doc/final.md"],
         summary="documentation validée",
@@ -235,7 +233,7 @@ def test_complete_project_lifecycle_requires_human_approval(tmp_path: Path) -> N
     manifest_path, report_path = package_project(
         ROOT,
         project,
-        actor="ingenieur-release-forges",
+        actor="ingenieur-devops",
     )
     assert manifest_path.is_file() and report_path.is_file()
     with pytest.raises(PermissionError, match="humaine"):
@@ -434,7 +432,7 @@ def test_package_tamper_blocks_complete(tmp_path: Path) -> None:
     deliverable = project / "deliverables" / "build-output" / "final.md"
     deliverable.parent.mkdir(parents=True, exist_ok=True)
     deliverable.write_text("original", encoding="utf-8")
-    package_project(ROOT, project, actor="ingenieur-release-forges")
+    package_project(ROOT, project, actor="ingenieur-devops")
     deliverable.write_text("tampered", encoding="utf-8")
     with pytest.raises(ValueError, match="package final invalide"):
         transition_project(

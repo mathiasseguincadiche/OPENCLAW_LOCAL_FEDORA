@@ -111,9 +111,8 @@ def _manifest_entry(
         "path": _relative(runtime_root, path),
         "sha256": _sha256(path),
         "schema_version": payload.get("schema_version"),
-        "verdict": payload.get("verdict") or _mapping(
-            payload.get("evaluation", {}), "evaluation"
-        ).get("verdict"),
+        "verdict": payload.get("verdict")
+        or _mapping(payload.get("evaluation", {}), "evaluation").get("verdict"),
     }
 
 
@@ -196,15 +195,13 @@ def _validate_l4(
         failures.append("L4: transport Gateway requis")
     smokes = payload.get("agent_smokes", [])
     if not isinstance(smokes, list) or len(smokes) != int(cfg["required_agent_smokes"]):
-        failures.append("L4: exactement 8 smokes agents requis")
+        failures.append("L4: exactement 6 smokes agents requis")
     else:
         observed = {
-            str(item.get("agent"))
-            for item in smokes
-            if isinstance(item, dict) and item.get("agent")
+            str(item.get("agent")) for item in smokes if isinstance(item, dict) and item.get("agent")
         }
         if observed != set(AGENT_IDS):
-            failures.append("L4: inventaire des 8 agents divergent")
+            failures.append("L4: inventaire des 6 agents divergent")
     if not isinstance(payload.get("tool_call"), dict):
         failures.append("L4: preuve tool-calling absente")
     if not isinstance(payload.get("repair"), dict):
@@ -214,11 +211,7 @@ def _validate_l4(
         failures.append("L4: exactement 3 runs de stabilité requis")
 
     versions = root_contract(repo_root, "runtime_versions.yaml")
-    expected = str(
-        _mapping(versions.get("openclaw"), "runtime_versions.openclaw").get(
-            "version", ""
-        )
-    )
+    expected = str(_mapping(versions.get("openclaw"), "runtime_versions.openclaw").get("version", ""))
     raw_observed = str(payload.get("openclaw_version", ""))
     try:
         observed_version = extract_openclaw_version(raw_observed)
@@ -280,7 +273,7 @@ def _validate_l5(repo_root: Path, payload: dict[str, Any], cfg: dict[str, Any]) 
     expected_models = {
         str(alias): raw
         for alias, raw in models.items()
-        if isinstance(raw, dict) and raw.get("required") is True
+        if isinstance(raw, dict) and alias in policy["required_models"]
     }
     identities = payload.get("model_identities", [])
     if not isinstance(identities, list) or len(identities) != 3:
@@ -382,9 +375,7 @@ def _validate_l6_decision(
         failures.append(f"L6: kind décision inconnu: {kind}")
         return failures, []
     minimum = int(
-        _mapping(optimization.get(section), f"optimization.{section}").get(
-            "minimum_repeated_runs", 0
-        )
+        _mapping(optimization.get(section), f"optimization.{section}").get("minimum_repeated_runs", 0)
     )
     if len(baseline_ids) < minimum or len(candidate_ids) < minimum:
         failures.append(f"L6: {kind} exige au moins {minimum} runs par série")
@@ -429,6 +420,11 @@ def _validate_l7(payload: dict[str, Any], cfg: dict[str, Any]) -> list[str]:
     failures: list[str] = []
     if payload.get("schema_version") != "1.0.0" or payload.get("gate") != "L7":
         failures.append("L7: schéma/gate invalide")
+    if (
+        payload.get("execution_mode") != "live-openclaw"
+        or payload.get("ai_runtime_exercised") is not True
+    ):
+        failures.append("L7: simulation synthétique ne prouve pas une exécution IA réelle")
     if payload.get("verdict") != cfg.get("required_verdict"):
         failures.append("L7: verdict réel non PASS")
     if int(payload.get("golden_projects_pass", 0)) != int(cfg["required_golden_projects"]):
@@ -484,9 +480,7 @@ def collect_readiness(repo_root: Path, runtime_root: Path) -> dict[str, Any]:
             "source": "repository+lifecycle contracts",
         },
         "L1": {
-            "status": "PASS"
-            if software.get("core", {}).get("verdict") == "PASS"
-            else "BLOCKED",
+            "status": "PASS" if software.get("core", {}).get("verdict") == "PASS" else "BLOCKED",
             "source": "core contracts",
         },
     }

@@ -26,7 +26,7 @@ def test_l7_contract_reports_missing_file(tmp_path: Path) -> None:
     assert warnings == ()
 
 
-def _task(task_id: str, role: str = "redacteur-technique") -> dict[str, Any]:
+def _task(task_id: str, role: str = "architecte-solutions") -> dict[str, Any]:
     return {
         "id": task_id,
         "role": role,
@@ -56,8 +56,8 @@ def _valid_contract() -> dict[str, Any]:
         _task("architecture", "architecte-solutions"),
         _task("devops", "ingenieur-devops"),
         _task("security", "ingenieur-securite"),
-        _task("release", "ingenieur-release-forges"),
-        _task("docs", "redacteur-technique"),
+        _task("release", "ingenieur-devops"),
+        _task("docs", "architecte-solutions"),
         _task("audit", "auditeur-qualite"),
     ]
     return {
@@ -116,7 +116,7 @@ def test_l7_contract_is_fail_closed_on_policy_and_project_drift(
     assert "required_golden_projects" in joined
     assert "trois limites documentées" in joined
     assert "exactement cinq Golden Projects" in joined
-    assert "les huit rôles doivent être exercés" in joined
+    assert "les six rôles doivent être exercés" in joined
 
 
 def test_l7_contract_rejects_unsafe_outputs_dependencies_and_cycles(

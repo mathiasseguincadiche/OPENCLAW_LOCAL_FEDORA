@@ -110,9 +110,7 @@ def build_plan(
     if not isinstance(scenarios_raw, list) or len(scenarios_raw) != 12:
         raise ValueError("suite L5: exactement 12 scénarios requis")
     scenarios = {
-        str(item["id"]): item
-        for item in scenarios_raw
-        if isinstance(item, dict) and item.get("id")
+        str(item["id"]): item for item in scenarios_raw if isinstance(item, dict) and item.get("id")
     }
     if len(scenarios) != 12:
         raise ValueError("suite L5: ids scénarios invalides ou dupliqués")
@@ -180,12 +178,9 @@ def build_plan(
     if len(planned) != int(full["total_cases"]):
         raise ValueError(f"qualification: {len(planned)} cas, attendu {full['total_cases']}")
     context_counts = {
-        context: sum(case.context == context for case in planned)
-        for context in required_contexts
+        context: sum(case.context == context for case in planned) for context in required_contexts
     }
-    expected_contexts = {
-        int(key): int(value) for key, value in dict(full["contexts"]).items()
-    }
+    expected_contexts = {int(key): int(value) for key, value in dict(full["contexts"]).items()}
     if context_counts != expected_contexts:
         raise ValueError(f"qualification: distribution contextes invalide {context_counts}")
     if covered_8k != set(scenarios):
@@ -224,8 +219,19 @@ def _synthetic_context(characters: int) -> str:
 
 def _prompt_for(case: PlannedCase) -> str:
     synthetic = int(case.scenario.get("synthetic_context_chars", 0) or 0)
+    if synthetic and case.context == 16384:
+        synthetic = int(case.scenario.get("synthetic_context_chars_16k", synthetic))
     prefix = _synthetic_context(synthetic)
     prompt = str(case.scenario["prompt"])
+    if prefix and case.scenario["id"] == "long-context-discipline":
+        midpoint = len(prefix) // 2
+        prefix = (
+            "CANARY_START=START_FEDORA_SYNTHETIC\n"
+            + prefix[:midpoint]
+            + "\nCANARY_MIDDLE=MIDDLE_B580_SYNTHETIC\n"
+            + prefix[midpoint:]
+            + "\nCANARY_END=END_LOCAL_SYNTHETIC\n"
+        )
     if prefix:
         return f"INVENTAIRE SYNTHÉTIQUE NON-PRODUCTION:\n{prefix}\nCONSIGNE:\n{prompt}"
     return prompt
@@ -301,9 +307,10 @@ def _run_generation(
     prompt_count = int(final.get("prompt_eval_count") or 0)
     prompt_duration = int(final.get("prompt_eval_duration") or 0)
     done_reason = str(final.get("done_reason") or "") or None
-    truncated = bool(
-        done_reason and done_reason.casefold() in {"length", "max_tokens", "limit"}
-    ) or eval_count >= case.max_output_tokens
+    truncated = (
+        bool(done_reason and done_reason.casefold() in {"length", "max_tokens", "limit"})
+        or eval_count >= case.max_output_tokens
+    )
     return {
         "output": "".join(output_chunks).strip(),
         "first_generation_ms": (
@@ -369,6 +376,28 @@ def run_checks(output: str, checks: list[Any]) -> tuple[bool, list[str]]:
             ok = not any(_casefold_contains(output, value) for value in values)
         elif kind == "json_keys":
             ok = _check_json_keys(output, keys)
+        elif kind == "json_equals":
+            try:
+                observed = json.loads(output)
+                expected = raw.get("expected", {})
+                ok = (
+                    isinstance(observed, dict)
+                    and isinstance(expected, dict)
+                    and all(observed.get(key) == value for key, value in expected.items())
+                )
+            except json.JSONDecodeError:
+                ok = False
+        elif kind == "json_nonempty_lists":
+            try:
+                observed = json.loads(output)
+                ok = isinstance(observed, dict) and all(
+                    isinstance(observed.get(key), list)
+                    and bool(observed[key])
+                    and all(isinstance(item, str) and item.strip() for item in observed[key])
+                    for key in keys
+                )
+            except json.JSONDecodeError:
+                ok = False
         elif kind == "yaml_keys":
             ok = _check_yaml_keys(output, keys)
         else:
@@ -524,6 +553,8 @@ def _model_inventory(
             details = {}
         digest = str(raw.get("digest") or "")
         quantization = str(details.get("quantization_level") or "")
+        if quantization.upper() != str(model.get("quantization", "Q4_K_M")).upper():
+            raise ValueError(f"quantization divergente: {runtime_id}: {quantization}")
         if not digest or not quantization:
             raise ValueError(f"identité Ollama incomplète: {runtime_id}")
         inventory.append(
@@ -617,9 +648,7 @@ def dry_run(repo_root: Path) -> dict[str, Any]:
         "cases": len(plan.cases),
         "contexts": plan.contexts,
         "qwen_native_probes": len(plan.qwen_native_cases),
-        "qwen_native_max_output_tokens": dict(policy["full_gate"])[
-            "qwen_native_max_output_tokens"
-        ],
+        "qwen_native_max_output_tokens": dict(policy["full_gate"])["qwen_native_max_output_tokens"],
         "case_timeout_seconds": dict(policy["full_gate"])["case_timeout_seconds"],
         "max_wall_seconds": dict(policy["full_gate"])["max_wall_seconds"],
         "required_models": list(policy["required_models"]),
@@ -684,6 +713,9 @@ def run_qualification(
         )
         required = _selected_models(catalog, policy)
         identities = _model_inventory(tags, required)
+        from clawfedora.model_identity import verify_model_lock
+
+        verify_model_lock(runtime, identities)
     except (OSError, urllib.error.URLError, json.JSONDecodeError, ValueError) as exc:
         print(f"QUALIFICATION_RESULT=FAIL preflight Ollama: {exc}")
         return 2, None
@@ -722,6 +754,15 @@ def run_qualification(
                 str(result["output"]),
                 list(case.scenario.get("checks", [])),
             )
+            if case.scenario["id"] == "long-context-discipline":
+                consumed = int(result.get("prompt_eval_count", 0))
+                minimum = 12000 if case.context == 16384 else 4000
+                adequate = minimum <= consumed <= case.context - case.max_output_tokens
+                passed = passed and adequate
+                details.append(
+                    f"long_context_actual_input_tokens={consumed} minimum={minimum}:"
+                    f"{'pass' if adequate else 'fail'}"
+                )
             case_payload = _case_evidence(case, result, passed, details)
             cases.append(case_payload)
             verdict = "PASS" if case_payload["check_passed"] else "CHECK_FAIL"

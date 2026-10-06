@@ -43,11 +43,11 @@ def _output_for(scenario_id: str) -> str:
     values = {
         "project-intake-analysis": json.dumps(
             {
-                "objectives": [],
-                "constraints": [],
-                "deliverables": [],
-                "risks": [],
-                "first_actions": [],
+                "objectives": ["service"],
+                "constraints": ["local"],
+                "deliverables": ["README"],
+                "risks": ["ressources"],
+                "first_actions": ["observer"],
             }
         ),
         "systemd-service-debug": "systemctl puis journalctl, vérifier et rollback sans supposer.",
@@ -59,8 +59,7 @@ def _output_for(scenario_id: str) -> str:
         ),
         "rollback-runbook": "Préconditions\nDéploiement\nVérification\nRollback",
         "architecture-diagram-d2": (
-            "Utilisateur -> OpenClaw\nOpenClaw -> Routeur\n"
-            "Routeur -> Ollama\nRouteur -> llama.cpp"
+            "Utilisateur -> OpenClaw\nOpenClaw -> Routeur\nRouteur -> Ollama\nRouteur -> llama.cpp"
         ),
         "web-freshness-discipline": "Vérifier une source officielle récente sur le web.",
         "tool-intent-json": json.dumps(
@@ -69,7 +68,14 @@ def _output_for(scenario_id: str) -> str:
         "tool-feedback-repair-json": json.dumps(
             {"diagnosis": "file_not_found", "next_action": "vérifier le chemin"}
         ),
-        "long-context-discipline": "dérive versions; dérive paramètres; dérive permissions",
+        "long-context-discipline": json.dumps(
+            {
+                "start": "START_FEDORA_SYNTHETIC",
+                "middle": "MIDDLE_B580_SYNTHETIC",
+                "end": "END_LOCAL_SYNTHETIC",
+                "risks": ["versions", "paramètres", "permissions"],
+            }
+        ),
     }
     return values[scenario_id]
 
@@ -83,7 +89,7 @@ def _generation(case: qualification.PlannedCase) -> dict[str, Any]:
         "wall_ms": 1000.0,
         "eval_count": 100,
         "tokens_per_second": 10.0,
-        "prompt_eval_count": 100,
+        "prompt_eval_count": 12500 if case.context == 16384 else 5000,
         "prompt_tokens_per_second": 100.0,
         "load_duration_ms": 20.0,
         "thinking_chars": 50 if case.thinking_mode == "native" else 0,
@@ -307,6 +313,19 @@ def test_performance_profile_uses_powerprofilesctl(monkeypatch: pytest.MonkeyPat
 
 
 def _mock_hardware(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    state = tmp_path / "runtime/state"
+    state.mkdir(parents=True, exist_ok=True)
+    (state / "model-identities.json").write_text(
+        json.dumps(
+            {
+                "models": {
+                    item["name"]: {"digest": item["digest"], "quantization_level": "Q4_K_M"}
+                    for item in _tags()["models"]
+                }
+            }
+        )
+    )
+
     def collect(_root: Path, gate: str) -> HardwareGateReport:
         return HardwareGateReport(gate.upper(), (), "now")
 

@@ -37,7 +37,12 @@ else
 fi
 
 command -v openclaw >/dev/null 2>&1 || { echo "REPAIR_RESULT=FAIL openclaw absent" >&2; exit 2; }
-openclaw doctor
+unset OPENCLAW_CONFIG_PATH
+OPENCLAW_STATE_DIR="$(claw_openclaw_state)"
+export OPENCLAW_STATE_DIR
+export OLLAMA_API_KEY="ollama-local"
+export INTEL_VULKAN_API_KEY="intel-vulkan-local"
+openclaw doctor --non-interactive
 "$LINUX/03_deploy_agents.sh"
 "$LINUX/04_configure_openclaw.sh" --apply --backend ollama-vulkan
 openclaw gateway restart --preserve-definition

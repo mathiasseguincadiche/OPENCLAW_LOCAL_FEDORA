@@ -20,7 +20,9 @@ Usage: ./menu.sh --action ACTION [--apply] [--backend BACKEND] [--purge-data]
 
 Cycle de vie:
   install                Installation complète; dry-run, --apply pour appliquer
-  models                 Plan/provision des 3 modèles; --apply pour télécharger
+  models                 Plan/provision de Qwen quotidien; --apply pour télécharger
+  gaming                 Libérer le GPU pour jouer; --apply pour arrêter les services
+  daily                  Reprendre les services IA; --apply obligatoire
   health                 Santé produit complète
   backup                 Sauvegarde state/projects/proofs/workspaces
   repair                 Backup + doctor + reconfiguration + health
@@ -37,7 +39,7 @@ Plateforme et qualification:
   hardware-l3            Gate L3 B580/xe/Mesa/Vulkan + preuve JSON
   gpu                    Alias historique du gate B580
   performance            Profil performance; dry-run, --apply pour l'activer
-  agents                 Déploie les 8 workspaces agents gérés
+  agents                 Déploie les 6 workspaces agents gérés
   configure-openclaw     Configure OpenClaw; dry-run, --apply pour appliquer
   project-selftest       Cycle projet synthétique complet hors matériel
   e2e-dry-run            Plan du gate L4 OpenClaw sans appel modèle
@@ -129,7 +131,8 @@ printf '%s\n' ' Kernel baseline : Fedora officiel'
 printf '%s\n' ' Kernel 7.2.3    : candidat uniquement, jamais promotion automatique'
 printf '%s\n' ' GPU nominal     : xe + Mesa/Vulkan'
 printf '%s\n' ' Runtime baseline: Ollama Vulkan'
-printf '%s\n' ' Modèles routés  : Qwen 3.5 9B / Gemma 4 12B / Ministral 3 14B Reasoning (exactement 3)'
+printf '%s\n' ' Modèle quotidien: Qwen 3.5 9B (exactement 1), contexte 8192'
+printf '%s\n' ' Optionnels      : Gemma 4 12B / Ministral 3 14B Reasoning, qualification séparée'
 printf '%s\n' ' Challenger      : Granite 4.2 8B hors routage, benchmark uniquement'
 printf '%s\n' ' Qualification   : HARD-40M / 30 cas / suspension inhibée'
 printf '%s\n' ' Cloud           : aucun routage LLM cloud nominal, jamais fallback silencieux'
@@ -149,6 +152,12 @@ case "$ACTION" in
     else
       "$LINUX/09_provision_models.sh"
     fi
+    ;;
+  gaming)
+    if ((APPLY == 1)); then "$LINUX/21_daily_profile.sh" gaming --apply; else "$LINUX/21_daily_profile.sh" gaming; fi
+    ;;
+  daily)
+    if ((APPLY == 1)); then "$LINUX/21_daily_profile.sh" daily --apply; else "$LINUX/21_daily_profile.sh" daily; fi
     ;;
   health) "$LINUX/11_health.sh" ;;
   backup) "$LINUX/12_backup_restore.sh" backup ;;

@@ -16,9 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_openclaw_contract_is_exactly_locked_to_2026_9_2() -> None:
     versions = yaml.safe_load((ROOT / "config/runtime_versions.yaml").read_text(encoding="utf-8"))
-    policy = yaml.safe_load(
-        (ROOT / "config/core/openclaw_policy.yaml").read_text(encoding="utf-8")
-    )
+    policy = yaml.safe_load((ROOT / "config/core/openclaw_policy.yaml").read_text(encoding="utf-8"))
 
     openclaw = versions["openclaw"]
     assert LOCKED_OPENCLAW_VERSION == "2026.9.2"
@@ -84,12 +82,12 @@ def test_install_and_config_scripts_use_exact_openclaw_equality() -> None:
     install = (ROOT / "scripts/linux/10_install_full.sh").read_text(encoding="utf-8")
     configure = (ROOT / "scripts/linux/04_configure_openclaw.sh").read_text(encoding="utf-8")
 
-    assert 'OPENCLAW_PIN="2026.9.2"' in install
+    assert 'OPENCLAW_PIN="$(claw_pin openclaw version)"' in install
     assert '--install-method npm --version "$OPENCLAW_PIN"' in install
     assert '[[ "$OPENCLAW_VERSION" == "$OPENCLAW_PIN" ]]' in install
     assert '[[ "$OPENCLAW_VERSION" == *"$OPENCLAW_PIN"* ]]' not in install
 
-    assert 'OPENCLAW_PIN="2026.9.2"' in configure
+    assert 'OPENCLAW_PIN="$(claw_pin openclaw version)"' in configure
     assert '[[ "$OPENCLAW_VERSION" == "$OPENCLAW_PIN" ]]' in configure
     assert '[[ "$OPENCLAW_VERSION" == *"$OPENCLAW_PIN"* ]]' not in configure
 

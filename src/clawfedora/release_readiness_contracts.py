@@ -108,8 +108,8 @@ def validate_release_readiness_contracts(
     l4 = _mapping(evidence.get("l4"), "evidence.l4")
     if l4.get("required_backend") != "ollama-vulkan":
         failures.append("L8: L4 doit rester qualifié sur la baseline Ollama Vulkan")
-    if int(l4.get("required_agent_smokes", 0)) != 8:
-        failures.append("L8: L4 doit conserver 8 smokes agents")
+    if int(l4.get("required_agent_smokes", 0)) != 6:
+        failures.append("L8: L4 doit conserver 6 smokes agents")
     if int(l4.get("required_stability_runs", 0)) != 3:
         failures.append("L8: L4 doit conserver 3 runs de stabilité")
 
@@ -179,11 +179,11 @@ def validate_release_readiness_contracts(
         for alias, raw in models.items()
         if isinstance(raw, dict) and raw.get("required") is True
     }
-    if required_aliases != {"qwen-max", "gemma-deep", "devstral-devops"}:
-        failures.append("L8: flotte nominale doit rester exactement à trois alias")
+    if required_aliases != {"qwen-max"}:
+        failures.append("L8: flotte quotidienne doit rester limitée à qwen-max")
     fleet = _mapping(catalog.get("fleet_policy"), "model_catalog.fleet_policy")
-    if int(fleet.get("exact_required_model_count", 0)) != 3:
-        failures.append("L8: exact_required_model_count doit rester 3")
+    if int(fleet.get("exact_required_model_count", 0)) != 1:
+        failures.append("L8: exact_required_model_count doit rester 1")
     if fleet.get("challenger_counts_toward_required_fleet") is not False:
         failures.append("L8: le challenger ne doit pas compter dans la flotte nominale")
 

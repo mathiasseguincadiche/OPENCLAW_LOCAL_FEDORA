@@ -27,6 +27,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--runtime-root", help="racine runtime/proofs")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--json", action="store_true")
+    parser.add_argument(
+        "--live", action="store_true", help="appels OpenClaw réels; sinon simulation du moteur"
+    )
     return parser
 
 
@@ -46,7 +49,7 @@ def main(argv: list[str] | None = None) -> int:
                 )
             return 0
         runtime_root = resolve_runtime_root(args.runtime_root)
-        code, report_path = run_golden_suite(repo_root, runtime_root)
+        code, report_path = run_golden_suite(repo_root, runtime_root, live=bool(args.live))
         report = json.loads(report_path.read_text(encoding="utf-8"))
         if args.json:
             print(json.dumps(report, indent=2, ensure_ascii=False))
