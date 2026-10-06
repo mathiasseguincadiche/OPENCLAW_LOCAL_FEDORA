@@ -107,7 +107,14 @@ def submit(
             raise ValueError("étape guidée active requise")
         if validate_input_integrity(project):
             raise ValueError("intégrité des sources invalide")
-        checkpoint = read_json(checkpoint_path(project, task_id))
+        requested = validate_task_id(task_id)
+        checkpoint = next(
+            (item for item in checkpoints(project) if item.get("task_id") == requested), None
+        )
+        if checkpoint is None:
+            raise ValueError("aucune étape guidée connue pour cette tâche")
+        # The request selects an existing checkpoint; only its managed identity builds paths.
+        task_id = str(checkpoint["task_id"])
         if checkpoint.get("status") != "AWAITING_PRACTICE":
             raise ValueError("aucune pratique en attente pour cette tâche")
         explanation = data.get("explanation")
