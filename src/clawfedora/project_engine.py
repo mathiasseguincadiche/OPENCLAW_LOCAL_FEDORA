@@ -279,6 +279,11 @@ def _validate_plan(tasks: list[dict[str, Any]]) -> None:
         for field in ("depends_on", "expected_outputs", "acceptance_criteria"):
             if not isinstance(task.get(field, []), list):
                 raise ValueError(f"{task_id}: {field} doit être une liste")
+        for field in ("expected_outputs", "acceptance_criteria"):
+            values = task.get(field, [])
+            if not values or any(not isinstance(v, str) or not v.strip() for v in values):
+                raise ValueError(f"{task_id}: {field} non vide requis")
+        _outputs_are_namespaced(task_id, task["expected_outputs"])
         dependencies[task_id] = [str(item) for item in task.get("depends_on", [])]
     for task_id, values in dependencies.items():
         unknown = [value for value in values if value not in ids]
@@ -300,6 +305,26 @@ def _validate_plan(tasks: list[dict[str, Any]]) -> None:
 
     for task_id in dependencies:
         visit(task_id)
+    technical = {
+        task["id"]
+        for task in tasks
+        if task["role"]
+        in {"expert-recherche", "architecte-solutions", "ingenieur-devops", "ingenieur-securite"}
+    }
+    for task in tasks:
+        if task["role"] != "redacteur-pedagogique":
+            continue
+        upstream: set[str] = set()
+        queue = list(dependencies[task["id"]])
+        while queue:
+            value = queue.pop()
+            if value not in upstream:
+                upstream.add(value)
+                queue.extend(dependencies[value])
+        if missing := technical - upstream:
+            raise ValueError(
+                f"{task['id']}: dépendances techniques manquantes: {sorted(missing)}"
+            )
 
 
 def store_plan(repo_root: Path, project: Path, payload: dict[str, Any]) -> Path:
@@ -392,7 +417,8 @@ def ready_tasks(repo_root: Path, project: Path) -> list[dict[str, Any]]:
             raise ValueError("assignments: depends_on invalide")
         if (
             item.get("status") != "PASS"
-            and int(item.get("attempts", 0)) < maximum
+            and item.get("status") != "AWAITING_PRACTICE"
+            and int(item.get("attempts", 0)) - int(item.get("revision_attempt_base", 0)) < maximum
             and all(
                 by_id.get(str(dependency), {}).get("status") == "PASS" for dependency in dependencies
             )
@@ -457,7 +483,7 @@ def record_task_result(
         raise ValueError(f"{normalized_task_id}: dépendances non PASS")
     maximum = int(dict(_policy(repo_root)["execution"])["max_task_attempts"])
     attempt = int(task.get("attempts", 0)) + 1
-    if attempt > maximum:
+    if attempt - int(task.get("revision_attempt_base", 0)) > maximum:
         raise ValueError(f"{normalized_task_id}: limite de tentatives atteinte")
     _outputs_are_namespaced(normalized_task_id, outputs)
     for output in outputs:

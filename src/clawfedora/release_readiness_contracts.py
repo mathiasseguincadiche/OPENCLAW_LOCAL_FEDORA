@@ -108,8 +108,8 @@ def validate_release_readiness_contracts(
     l4 = _mapping(evidence.get("l4"), "evidence.l4")
     if l4.get("required_backend") != "ollama-vulkan":
         failures.append("L8: L4 doit rester qualifié sur la baseline Ollama Vulkan")
-    if int(l4.get("required_agent_smokes", 0)) != 6:
-        failures.append("L8: L4 doit conserver 6 smokes agents")
+    if int(l4.get("required_agent_smokes", 0)) != 7:
+        failures.append("L8: L4 doit conserver 7 smokes agents")
     if int(l4.get("required_stability_runs", 0)) != 3:
         failures.append("L8: L4 doit conserver 3 runs de stabilité")
 

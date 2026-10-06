@@ -1,6 +1,6 @@
 # Qualification Fedora
 
-> Profil quotidien : six rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
 
 ## Repères de progression
 
@@ -24,7 +24,7 @@ L2 Fedora/hardware
         ↓
 L3 B580 xe + Mesa/Vulkan
         ↓
-L4 OpenClaw + 6 agents + outils
+L4 OpenClaw + 7 agents + outils
         ↓
 L5 HARD-40M Ollama Vulkan
         ↓
@@ -114,8 +114,8 @@ L4 vérifie :
 - version OpenClaw verrouillée ;
 - configuration valide ;
 - Gateway RPC réellement disponible ;
-- exactement 6 agents ;
-- smoke déterministe des 6 agents ;
+- exactement 7 agents ;
+- smoke déterministe des 7 agents ;
 - preuve du provider local attendu ;
 - transport Gateway sans fallback embedded ;
 - écriture de fichier par outil ;

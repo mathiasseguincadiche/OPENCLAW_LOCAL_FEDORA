@@ -1,6 +1,6 @@
 # Cycle de vie du produit
 
-> Profil quotidien : six rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
 
 ## Repères de progression
 
@@ -38,7 +38,7 @@ Le chemin d'installation exécute, dans cet ordre :
 3. installation/convergence d'Ollama vers la version verrouillée par `config/runtime_versions.yaml` ;
 4. installation/convergence d'OpenClaw `2026.9.8` via l'installateur CLI officiel ;
 5. provisionnement explicite des un modèle quotidien et deux candidats optionnels Architecture V2 ;
-6. déploiement des huit workspaces ;
+6. déploiement des sept workspaces ;
 7. rendu, dry-run puis application de la configuration OpenClaw ;
 8. installation du Gateway comme service utilisateur systemd ;
 9. health-check final.
@@ -81,7 +81,7 @@ Cette action ne modifie jamais le routage et n'effectue aucune promotion automat
 ./menu.sh --action health
 ```
 
-Le health-check couvre : contrats du dépôt, runtime root, CLI OpenClaw, Gateway, Ollama, inventaire exact des trois modèles et huit workspaces gérés.
+Le health-check couvre : contrats du dépôt, runtime root, CLI OpenClaw, Gateway, Ollama, inventaire exact des trois modèles et sept workspaces gérés.
 
 ## Sauvegarde et restauration
 

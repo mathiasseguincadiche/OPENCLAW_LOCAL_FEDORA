@@ -107,7 +107,7 @@ def test_openclaw_agent_inventory_accepts_supported_json_shapes() -> None:
     assert 'type == "array" then length' in text
     assert '(.agents? | type) == "array"' in text
     assert '(.list? | type) == "array"' in text
-    assert '[[ "$AGENT_COUNT" -eq 6 ]]' in text
+    assert '[[ "$AGENT_COUNT" -eq 7 ]]' in text
 
 
 def test_long_gates_block_suspend_with_systemd_inhibit() -> None:

@@ -1,6 +1,6 @@
 # Profil quotidien adapté à la B580
 
-La cible reste Ryzen 7 7700, 48 Gio de RAM, Arc B580 12 Gio, Fedora 44, `xe` et Mesa/Vulkan. Le dépôt propose désormais six rôles sur **un seul modèle obligatoire**, Qwen 3.5 9B Q4_K_M. Aucun gain en tokens/s, température ou stabilité matérielle n'est annoncé sans mesure sur la machine.
+La cible reste Ryzen 7 7700, 48 Gio de RAM, Arc B580 12 Gio, Fedora 44, `xe` et Mesa/Vulkan. Le dépôt propose désormais sept rôles sur **un seul modèle obligatoire**, Qwen 3.5 9B Q4_K_M. Aucun gain en tokens/s, température ou stabilité matérielle n'est annoncé sans mesure sur la machine.
 
 | Limite | Application |
 |---|---|
@@ -21,16 +21,17 @@ Les limites Ollama concernent les clients de **ce serveur**. Un autre serveur d�
 
 Les sauvegardes utilisent l’API SQLite pour inclure les transactions validées encore dans le journal WAL. Elles restent des instantanés par fichier ; arrêter les écritures et le worker avant une sauvegarde complète garantit la cohérence entre projets et sessions.
 
-## Six spécialités, pas six modèles
+## Sept spécialités sur un modèle
 
 - Chef : cadrage, analyse et plan avec dépendances explicites.
 - Recherche : faits, sources et actualité via Internet.
-- Architecte : architecture, décisions, schémas et documentation.
+- Architecte : architecture, décisions et schémas.
 - DevOps : code proposé, exploitation et préparation des livraisons.
 - Sécurité : risques, contrôles et revue, sans exécution système automatique.
+- Rédacteur pédagogique : explications progressives et synthèse fidèle des contributions actuelles.
 - Qualité : validation des critères dans une nouvelle session en lecture.
 
-L'architecte reprend la rédaction technique, le DevOps reprend les releases. Leurs anciens dossiers déjà déployés restent sur disque pour préserver les données ; leurs entrées OpenClaw sont retirées explicitement via le SDK public OpenClaw après application du patch, sans effacer les fichiers. L'auditeur utilise le même modèle mais une session distincte. Cela réduit les échanges et changements de modèle ; cela ne garantit pas une indépendance de raisonnement équivalente à deux familles de modèles.
+Le DevOps conserve les responsabilités de release; le rédacteur pédagogique est un rôle dédié. Leurs anciens dossiers restent sur disque lors de la migration. Les anciennes entrées `redacteur-technique`, `ingenieur-release-forges` et `main` sont retirées via le SDK, sans effacer les données. Le nouveau `redacteur-pedagogique` est déployé avec le même Qwen. L’auditeur utilise une session distincte, ce qui sépare les contextes sans garantir une indépendance de raisonnement équivalente à deux familles de modèles.
 
 Le **worker est l'unique ordonnanceur** des projets : le chef prépare le plan et le worker appelle ses spécialistes. Les outils natifs `sessions_spawn`, `sessions_send` et `subagents` sont désactivés. Il n'y a donc pas deux niveaux concurrents de délégation.
 

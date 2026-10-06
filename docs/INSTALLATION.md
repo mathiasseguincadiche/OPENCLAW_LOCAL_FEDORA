@@ -1,6 +1,6 @@
 # Installation Fedora 44
 
-> Profil quotidien : six rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
 
 ## Repères de progression
 
@@ -93,7 +93,7 @@ Le dry-run affiche le plan sans effectuer l'installation. Le chemin nominal est 
 3. installation/convergence Ollama ;
 4. installation/convergence OpenClaw **exactement `2026.9.8`** ;
 5. provisionnement explicite des un modèle quotidien et deux candidats optionnels ;
-6. déploiement des huit workspaces ;
+6. déploiement des sept workspaces ;
 7. configuration OpenClaw ;
 8. installation du Gateway `systemd --user` ;
 9. health-check final.
@@ -170,7 +170,7 @@ Le health-check couvre notamment :
 - Gateway ;
 - Ollama ;
 - inventaire des un modèle quotidien et deux candidats optionnels ;
-- huit workspaces agents gérés.
+- sept workspaces agents gérés.
 
 Pour la vérification opérateur détaillée, voir [`OPERATIONS.md`](OPERATIONS.md).
 

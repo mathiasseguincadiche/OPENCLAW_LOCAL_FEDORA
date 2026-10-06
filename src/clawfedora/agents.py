@@ -60,8 +60,8 @@ def validate_agent_assets(repo_root: Path) -> tuple[str, ...]:
     except (FileNotFoundError, ValueError) as exc:
         return (str(exc),)
 
-    if len(specs) != 6 or tuple(spec.agent_id for spec in specs) != AGENT_IDS:
-        failures.append("agents: les six rôles attendus ne sont pas exactement présents")
+    if tuple(spec.agent_id for spec in specs) != AGENT_IDS:
+        failures.append("agents: les rôles attendus ne sont pas exactement présents")
 
     for spec in specs:
         if not spec.name or not spec.model or not spec.fallback or not spec.mission:
@@ -70,6 +70,11 @@ def validate_agent_assets(repo_root: Path) -> tuple[str, ...]:
         for filename in ROLE_FILES:
             if not (role_root / filename).is_file():
                 failures.append(f"agents: {spec.agent_id}/{filename} absent")
+        prompt = role_root / "AGENTS.md"
+        if prompt.is_file() and (shared / "PEDAGOGY.md").is_file():
+            effective = (shared / "PEDAGOGY.md").read_text() + prompt.read_text()
+            if len(effective) > 3000:
+                failures.append(f"agents: pédagogie et rôle trop longs: {spec.agent_id}")
     toolkit = repo_root / "plugins/clawfedora-toolkit"
     for filename in ("package.json", "openclaw.plugin.json", "index.mjs"):
         if not (toolkit / filename).is_file():
@@ -119,6 +124,13 @@ def deploy_workspaces(repo_root: Path, runtime_root: Path) -> tuple[Path, ...]:
 
         for filename in ROLE_FILES:
             _copy_policy_file(repo_root / "agents" / spec.agent_id / filename, workspace / filename)
+        # AGENTS is injected by OpenClaw. A separate Markdown file alone is not a guarantee.
+        (workspace / "AGENTS.md").write_text(
+            (shared_root / "PEDAGOGY.md").read_text()
+            + "\n\n"
+            + (repo_root / "agents" / spec.agent_id / "AGENTS.md").read_text(),
+            encoding="utf-8",
+        )
         for filename in SHARED_FILES:
             _copy_policy_file(shared_root / filename, workspace / filename)
 

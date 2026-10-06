@@ -85,14 +85,14 @@ else
 fi
 
 PACKAGES=(
-  git curl wget rsync jq tar unzip pciutils usbutils lm_sensors poppler-utils
+  git curl wget rsync jq tar unzip pciutils usbutils lm_sensors poppler-utils shellcheck gitleaks
   python3 python3-pip python3-virtualenv
   vulkan-tools mesa-vulkan-drivers igt-gpu-tools
   firewalld policycoreutils-python-utils acl openssl lsof procps-ng util-linux
 )
 
 if ((WITH_DEV == 1)); then
-  PACKAGES+=(gcc gcc-c++ make cmake ninja-build pkgconf-pkg-config shellcheck podman)
+  PACKAGES+=(gcc gcc-c++ make cmake ninja-build pkgconf-pkg-config podman)
 fi
 if ((WITH_KVM == 1)); then
   PACKAGES+=(qemu-kvm libvirt virt-install virt-manager edk2-ovmf)
@@ -102,6 +102,7 @@ printf 'BOOTSTRAP_PLAN Fedora=%s runtime=%s user=%s group=%s\n' \
   "$VERSION_ID" "$RUNTIME_ROOT" "$TARGET_USER" "$TARGET_GROUP"
 printf '  package manager: %s\n' "${DNF[*]}"
 printf '  packages: %s\n' "${PACKAGES[*]}"
+printf '  diagrams: graphviz without optional weak dependencies\n'
 printf '  groups: render video libvirt\n'
 printf '  managed venv: %s/runtime/venv\n' "$RUNTIME_ROOT"
 printf '  runtime dirs: models workspaces projects proofs benchmarks state backups\n'
@@ -124,6 +125,7 @@ if [[ "$(getenforce 2>/dev/null || true)" != "Enforcing" ]]; then
 fi
 
 as_root "${DNF[@]}" install -y "${PACKAGES[@]}"
+as_root "${DNF[@]}" --setopt=install_weak_deps=False install -y graphviz
 
 GROUPS_TO_ADD=(render video)
 ((WITH_KVM == 0)) || GROUPS_TO_ADD+=(libvirt)

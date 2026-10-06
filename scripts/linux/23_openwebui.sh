@@ -42,7 +42,7 @@ if [[ "$ACTION" == install ]]; then
 [Desktop Entry]
 Type=Application
 Name=Atelier IA Fedora
-Comment=Projets et discussions avec les six spécialités locales
+Comment=Projets et discussions avec les sept spécialités locales
 Exec=xdg-open http://127.0.0.1:18890
 Icon=applications-development
 Terminal=false

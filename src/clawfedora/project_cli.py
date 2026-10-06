@@ -8,6 +8,7 @@ from typing import Any
 
 from clawfedora.core_config import resolve_runtime_root
 from clawfedora.knowledge import build_index, search, store_note
+from clawfedora.learning import submit
 from clawfedora.project_common import project_path, read_json
 from clawfedora.project_control import request_pause
 from clawfedora.project_engine import (
@@ -24,6 +25,7 @@ from clawfedora.project_engine import (
     transition_project,
 )
 from clawfedora.project_intake import create_project
+from clawfedora.project_revision import impact, revise
 from clawfedora.project_worker import review_project, run_project_tasks, worker_lock
 
 
@@ -47,6 +49,22 @@ def add_project_parser(
     create.add_argument("--intake", action="append", default=[])
     create.add_argument("--source", action="append", default=[])
     create.add_argument("--deliverable", action="append", default=[])
+    create.add_argument("--learning-mode", choices=("guided", "direct"), default="guided")
+    create.add_argument("--learning-goal", action="append", default=[])
+
+    practice = commands.add_parser("practice", help="soumettre le travail d’une étape guidée")
+    practice.add_argument("--runtime-root")
+    practice.add_argument("--project-id", required=True)
+    practice.add_argument("--task-id", required=True)
+    practice.add_argument("--file", required=True, help="JSON files/explanation/observations")
+    practice.add_argument("--human-approved", action="store_true")
+
+    revision = commands.add_parser("revise", help="prévoir ou approuver une reprise des dépendances")
+    revision.add_argument("--runtime-root")
+    revision.add_argument("--project-id", required=True)
+    revision.add_argument("--task-id", required=True)
+    revision.add_argument("--reason", required=True)
+    revision.add_argument("--human-approved", action="store_true")
 
     status = commands.add_parser("status")
     status.add_argument("--runtime-root")
@@ -312,8 +330,27 @@ def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
                 intake_items=[Path(value) for value in args.intake],
                 source_items=[Path(value) for value in args.source],
                 expected_deliverables=list(args.deliverable),
+                learning_mode=str(args.learning_mode),
+                learning_goals=list(args.learning_goal),
             )
             print(f"PROJECT_CREATE_RESULT=PASS path={project}")
+        elif command == "practice":
+            data = _load_object(args.file)
+            data["human_approved"] = args.human_approved
+            print(
+                json.dumps(
+                    submit(repo_root, _runtime(args), _project(args), args.task_id, data),
+                    ensure_ascii=False,
+                )
+            )
+        elif command == "revise":
+            with worker_lock(_runtime(args), allow_gaming=True):
+                value = (
+                    revise(_project(args), args.task_id, args.reason, human_approved=True)
+                    if args.human_approved
+                    else {"affected_tasks": impact(_project(args), args.task_id), "applied": False}
+                )
+                print(json.dumps(value, ensure_ascii=False))
         elif command == "status":
             project_manifest = read_json(_project(args) / "project.json")
             print(json.dumps(project_manifest, indent=2, ensure_ascii=False))

@@ -12,6 +12,7 @@ AGENT_IDS = (
     "architecte-solutions",
     "ingenieur-devops",
     "ingenieur-securite",
+    "redacteur-pedagogique",
     "auditeur-qualite",
 )
 

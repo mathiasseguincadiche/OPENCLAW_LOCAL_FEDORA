@@ -34,6 +34,7 @@ agents:
     - view_image
     - clawfedora_search
     - clawfedora_outline
+    - clawfedora_tool_status
     deny:
     - apply_patch
     - edit
@@ -56,6 +57,7 @@ agents:
     - view_image
     - clawfedora_search
     - clawfedora_outline
+    - clawfedora_tool_status
     deny:
     - apply_patch
     - edit
@@ -79,6 +81,7 @@ agents:
     - clawfedora_search
     - clawfedora_outline
     - clawfedora_diagram
+    - clawfedora_tool_status
     deny:
     - apply_patch
     - edit
@@ -102,6 +105,8 @@ agents:
     - clawfedora_search
     - clawfedora_outline
     - clawfedora_check
+    - clawfedora_tool_status
+    - clawfedora_lint
     deny:
     - apply_patch
     - edit
@@ -125,6 +130,8 @@ agents:
     - clawfedora_search
     - clawfedora_outline
     - clawfedora_check
+    - clawfedora_tool_status
+    - clawfedora_lint
     deny:
     - apply_patch
     - edit
@@ -148,6 +155,32 @@ agents:
     - clawfedora_search
     - clawfedora_outline
     - clawfedora_check
+    - clawfedora_tool_status
+    - clawfedora_lint
+    deny:
+    - apply_patch
+    - edit
+    - exec
+    - process
+    - write
+    collect_scopes:
+    - work
+    - deliverables
+    - evidence
+    - diagrams
+  redacteur-pedagogique:
+    profile: minimal
+    also_allow:
+    - read
+    - web_search
+    - web_fetch
+    - session_status
+    - pdf
+    - view_image
+    - clawfedora_search
+    - clawfedora_outline
+    - clawfedora_lint
+    - clawfedora_tool_status
     deny:
     - apply_patch
     - edit
@@ -160,7 +193,7 @@ agents:
     - evidence
     - diagrams
 notes:
-- Les six rôles rendent leurs livrables sous forme JSON au worker; seul le collecteur
+- Les sept rôles rendent leurs livrables sous forme JSON au worker; seul le collecteur
   écrit les chemins attendus.
 - Les outils exec/process et les écritures natives sont désactivés dans le profil
   quotidien.

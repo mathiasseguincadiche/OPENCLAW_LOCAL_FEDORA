@@ -13,11 +13,50 @@ from test_dashboard import server as server
 
 from clawfedora import dashboard, project_ui
 from clawfedora.dashboard import DashboardHandler, DashboardServer
+from clawfedora.learning import awaiting, initialize
 from clawfedora.project_common import read_json
 from clawfedora.project_engine import ANALYSIS_FIELDS, current_status
 from clawfedora.project_worker import review_project, run_project_tasks, worker_lock
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_guided_submission_and_revision_api_require_local_explicit_human_action(
+    server: DashboardServer,
+) -> None:
+    project = server.runtime / "projects/daily-project"
+    initialize(project)
+
+    def guide(_role: str, prompt: str, _session: str) -> dict[str, Any]:
+        task = json.loads(prompt.split("\n", 1)[1])
+        return {
+            "files": {path: "# Amorce\n\nTODO: choisir.\n" for path in task["expected_outputs"]},
+            "summary": "Comparer, choisir et vérifier.",
+        }
+
+    run_project_tasks(ROOT, server.runtime, project, runner=guide)
+    item = awaiting(project)[0]
+    body = {
+        "project_id": project.name,
+        "task_id": item["task_id"],
+        "files": {path: "# Mon choix\n\nComparaison motivée." for path in item["files"]},
+        "explanation": "J’ai comparé les compromis.",
+        "human_approved": True,
+    }
+    assert request(server, "/api/practice", body, origin=False)[0] == 403
+    assert request(server, "/api/practice", {**body, "human_approved": False})[0] == 400
+    assert awaiting(project)
+    assert request(server, "/api/practice", body)[0] == 202
+    assert not awaiting(project)
+    change = {"project_id": project.name, "task_id": item["task_id"], "reason": "Revoir le choix"}
+    assert request(server, "/api/revision-impact", change)[1]["affected_tasks"] == [
+        "design-choice",
+        "research-check",
+    ]
+    assert request(server, "/api/revise", change)[0] == 400
+    assert request(server, "/api/revise", {**change, "human_approved": True})[0] == 200
+    assert current_status(project) == "IN_PROGRESS"
+    assert not (project / "deliverables/design-choice/report.md").exists()
 
 
 def analysis(project: Path) -> dict[str, Any]:
@@ -38,6 +77,7 @@ def test_browser_workflow_uses_real_gates_and_collector_with_simulated_models(
         "/api/create",
         {
             "title": "Sauvegarde OPS",
+            "learning_mode": "direct",
             "brief": "Comparer deux stratégies; fournir critères, mécanismes et rollback.",
             "files": [
                 {"name": "besoin.txt", "content": base64.b64encode(b"Fedora personnel").decode()}

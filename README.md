@@ -1,10 +1,10 @@
 # OPENCLAW_LOCAL_FEDORA
 
 <p align="center">
-  <img src=".github/social-preview.svg" alt="OPENCLAW_LOCAL_FEDORA — Fedora 44, Local AI, 6 agents, Intel Arc B580, Vulkan" width="100%">
+  <img src=".github/social-preview.svg" alt="OPENCLAW_LOCAL_FEDORA — Fedora 44, Local AI, 7 agents, Intel Arc B580, Vulkan" width="100%">
 </p>
 
-**Fedora 44 · Local AI · 6 agents · Intel Arc B580 · Vulkan · Fail-closed**
+**Fedora 44 · Local AI · 7 agents · Intel Arc B580 · Vulkan · Fail-closed**
 
 [![CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml)
@@ -22,7 +22,7 @@ Plateforme **Linux-native, LLM local-only et multi-agents** pour exécuter OpenC
 `OPENCLAW_LOCAL_FEDORA` vise plus loin qu'une simple démonstration « un LLM tourne en local ». Le dépôt fournit une plateforme complète où **installation, sécurité, routage, agents, exploitation, preuves et qualification** sont traités comme des contrats vérifiables.
 
 - **100 % local pour le routage LLM nominal** — aucun fallback cloud silencieux.
-- **6 agents spécialisés** — mêmes missions, workspaces et garde-fous reproductibles.
+- **7 agents spécialisés** — mêmes missions, workspaces et garde-fous reproductibles.
 - **1 modèle quotidien Q4_K_M** — flotte nominale explicite, challenger séparé.
 - **Interfaces locales** — Open WebUI slim pour discuter, atelier pour importer, cadrer, approuver, exécuter et livrer les projets; [installation](docs/OPENWEBUI.md).
 - **Outils et apprentissage OPS** — recherche bornée, trames métier, schémas et contrôles statiques; [rôles et outils effectifs](docs/AGENT_TOOLS.md).
@@ -41,7 +41,7 @@ Plateforme **Linux-native, LLM local-only et multi-agents** pour exécuter OpenC
 | Parallel | **`2026.9.8` exact, verrouillé** |
 | Ollama | **`0.35.1` exact, verrouillé** |
 | Flotte nominale | **1 modèle quotidien Q4_K_M** |
-| Agents | **6 rôles spécialisés avec outils locaux** |
+| Agents | **7 rôles spécialisés avec outils locaux** |
 | Interface de discussion | **Open WebUI v0.11.4-slim, option personnelle** |
 | Runtime GPU | **Vulkan** |
 | Sécurité | **SELinux Enforcing + firewalld + loopback + fail-closed** |
@@ -56,7 +56,7 @@ Détail de l'état réel : [`STATUS.md`](STATUS.md).
 flowchart TD
     U[Plan validé par utilisateur] --> W1[Worker séquentiel]
     W1 --> G[OpenClaw Gateway 2026.9.8]
-    G --> A[6 rôles en sessions successives]
+    G --> A[7 rôles en sessions successives]
     A --> M[Qwen 9B Q4_K_M]
     M --> O[Ollama / Vulkan]
     M -. candidat qualifié séparément .-> L[llama.cpp / Vulkan]
@@ -80,9 +80,11 @@ Le chemin supporté est **Fedora 44 → `xe` → Mesa/Vulkan → runtime local**
 | `gemma-deep` | `gemma4:12b-it-q4_K_M`, revue alternative expérimentale |
 | `devstral-devops` | Ministral 3 14B Reasoning Q4_K_M, comparaison expérimentale |
 
-Les six rôles sont `chef-operations`, `expert-recherche`, `architecte-solutions`, `ingenieur-devops`, `ingenieur-securite` et `auditeur-qualite`. Ce sont des sessions spécialisées sur le même modèle, exécutées successivement.
+Les sept rôles sont `chef-operations`, `expert-recherche`, `architecte-solutions`, `ingenieur-devops`, `ingenieur-securite`, `redacteur-pedagogique` et `auditeur-qualite`. Ce sont des sessions spécialisées sur le même modèle, exécutées successivement.
 
 `granite4.2:8b-q4_K_M` reste un challenger hors routage. [Profil quotidien et migration](docs/DAILY_PROFILE.md) décrit les limites mémoire, le mode jeux, le collecteur et les tests réels.
+
+[Apprendre en construisant](docs/LEARNING_WORKFLOW.md) décrit le parcours guidé, les étapes humaines et les modifications cohérentes. [Plugins métier](docs/SPECIALIST_TOOLING.md) détaille les contrôles réellement disponibles.
 
 Sources de vérité : [`config/model_catalog.yaml`](config/model_catalog.yaml) et [`docs/MULTI_AGENT_CORE.md`](docs/MULTI_AGENT_CORE.md).
 
@@ -147,7 +149,7 @@ Ces liens sont des raccourcis de consultation ; ils ne créent pas de parcours s
 ```text
 L2 Fedora / hardware
 → L3 B580 / xe / Mesa-Vulkan
-→ L4 OpenClaw 2026.9.8 / 6 agents / outils
+→ L4 OpenClaw 2026.9.8 / 7 agents / outils
 → L5 HARD-40M
 → L6 runtime Vulkan / kernel / challenger
 → L7 Golden Projects

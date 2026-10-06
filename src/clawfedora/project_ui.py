@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.core_config import AGENT_IDS
+from clawfedora.learning import checkpoints, contract
 from clawfedora.project_common import assert_no_symlinks, read_json, write_json
 from clawfedora.project_control import write_progress
 from clawfedora.project_engine import (
@@ -76,7 +77,13 @@ def create_from_browser(repo: Path, runtime: Path, data: dict[str, Any]) -> Path
             labels[target.name] = name
         with worker_lock(runtime, allow_gaming=True):
             project = create_project(
-                repo, runtime, "projet-" + uuid.uuid4().hex[:12], title, intake_items=inputs
+                repo,
+                runtime,
+                "projet-" + uuid.uuid4().hex[:12],
+                title,
+                intake_items=inputs,
+                learning_mode=str(data.get("learning_mode", "guided")),
+                learning_goals=data.get("learning_goals", []),
             )
             write_json(project / "context/upload_labels.json", labels)
             return project
@@ -108,6 +115,11 @@ def details(project: Path) -> dict[str, Any]:
         "manifest": read_json(project / "project.json"),
         "files": files,
         "documents": read_json(project / "context/ingestion/index.json")["documents"],
+        "learning": contract(project),
+        "checkpoints": checkpoints(project),
+        "tasks": read_json(project / "context/task_assignments.json").get("tasks", [])
+        if (project / "context/task_assignments.json").is_file()
+        else [],
         **optional,
     }
 
@@ -168,8 +180,11 @@ def propose(
                 "courtes, spécialistes uniquement si utiles, dépendances explicites, chemins "
                 "deliverables/<id>/fichier.md ou diagrams/<id>/fichier.svg; "
                 "sorties au plus 1024 tokens "
-                "par tâche. Prévoir la synthèse finale pédagogique de l’architecte après les tâches "
-                "techniques. Aucun code n’est exécuté dans ce profil. Rôles autorisés: "
+                "par tâche. Lire context/learning/contract.json: chaque tâche explique un mécanisme "
+                "et laisse une action à l’apprenant en mode guidé. Ne pas proposer une livraison "
+                "entière d’un coup. Une tâche de rédaction, si utile, revient au rédacteur "
+                "pédagogique après les contributions techniques, avec dépendances explicites. "
+                "L’architecte conçoit flux et schémas. Aucun code proposé n’est exécuté. Rôles: "
                 + ", ".join(AGENT_IDS)
             )
         prompt = (

@@ -26,7 +26,7 @@ def test_role_tools_policy_matches_callable_helpers_and_prompt_budget(tmp_path: 
     for role in AGENT_IDS:
         workspace = tmp_path / "workspaces" / role
         injected = ["AGENTS.md", "SOUL.md", "IDENTITY.md", "TOOLS.md"]
-        assert all(len((workspace / name).read_text()) <= 2500 for name in injected)
+        assert all(len((workspace / name).read_text()) <= 3000 for name in injected)
         assert sum(len((workspace / name).read_text()) for name in injected) <= 8000
         assert "infrastructure/OPS" in (workspace / "AGENTS.md").read_text()
         for tool, roles in TOOL_ROLES.items():

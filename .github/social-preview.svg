@@ -13,7 +13,7 @@
   </g>
 
   <text x="280" y="156" fill="#f8fafc" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="54" font-weight="700">OPENCLAW_LOCAL_FEDORA</text>
-  <text x="282" y="211" fill="#cbd5e1" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="27">Fedora 44 · Local AI · 6 agents · Intel Arc B580 · Vulkan</text>
+  <text x="282" y="211" fill="#cbd5e1" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="27">Fedora 44 · Local AI · 7 agents · Intel Arc B580 · Vulkan</text>
 
   <line x1="92" y1="278" x2="1188" y2="278" stroke="#334155" stroke-width="2"/>
 
@@ -28,7 +28,7 @@
     <text x="335" y="501" text-anchor="middle" fill="#e2e8f0">Vulkan</text>
 
     <rect x="424" y="468" width="176" height="52" rx="26" fill="#1e293b" stroke="#475569"/>
-    <text x="512" y="501" text-anchor="middle" fill="#e2e8f0">6 agents</text>
+    <text x="512" y="501" text-anchor="middle" fill="#e2e8f0">7 agents</text>
 
     <rect x="618" y="468" width="220" height="52" rx="26" fill="#1e293b" stroke="#475569"/>
     <text x="728" y="501" text-anchor="middle" fill="#e2e8f0">Intel Arc B580</text>

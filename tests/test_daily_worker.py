@@ -6,6 +6,7 @@ from typing import Any
 
 import pytest
 
+from clawfedora.agent_tools import invoke
 from clawfedora.agents import deploy_workspaces
 from clawfedora.openclaw_config import build_openclaw_patch
 from clawfedora.project_common import read_json
@@ -29,7 +30,9 @@ def planned(tmp_path: Path) -> tuple[Path, Path]:
     deploy_workspaces(ROOT, runtime)
     source = tmp_path / "request.md"
     source.write_text("Comparer deux architectures puis documenter le choix.")
-    project = create_project(ROOT, runtime, "daily-project", "Daily", intake_items=[source])
+    project = create_project(
+        ROOT, runtime, "daily-project", "Daily", intake_items=[source], learning_mode="direct"
+    )
     documents = read_json(project / "context/ingestion/index.json")["documents"]
     analysis = {
         key: []
@@ -121,6 +124,35 @@ def test_worker_executes_dependency_order_then_requires_real_review(
     assert read_json(verdict)["verdict"] == "FAIL"
     with pytest.raises(ValueError, match="validation PASS"):
         transition_project(ROOT, project, "REVIEW", actor="auditeur-qualite", reason="review")
+
+
+def test_worker_collects_actual_tool_receipts_into_project_evidence(
+    planned: tuple[Path, Path],
+) -> None:
+    runtime, project = planned
+
+    def runner(role: str, prompt: str, _session: str) -> dict[str, Any]:
+        task = json.loads(prompt.split("\n", 1)[1])
+        if role == "architecte-solutions":
+            invoke(
+                runtime,
+                role,
+                runtime / "workspaces" / role,
+                "clawfedora_diagram",
+                {"nodes": ["Git", "CI"], "edges": [[0, 1]]},
+            )
+        return {
+            "files": {task["expected_outputs"][0]: "Deux options et choix motivé."},
+            "summary": "Choix et preuve du schéma",
+        }
+
+    results = run_project_tasks(ROOT, runtime, project, runner=runner)
+    assert [item["status"] for item in results] == ["PASS", "PASS"]
+    receipts = list((project / "evidence/design-choice").glob("tool-*.json"))
+    assert len(receipts) == 1
+    assert read_json(receipts[0])["tool"] == "clawfedora_diagram"
+    assert receipts[0].relative_to(project).as_posix() in results[0]["outputs"]
+    assert read_json(project / "project.json")["status"] == "VALIDATING"
 
 
 def test_worker_refuses_concurrent_jobs_and_gaming(tmp_path: Path) -> None:

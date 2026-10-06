@@ -19,7 +19,7 @@ Après migration, vérifier les rôles, la recherche Web, les outils documentair
 
 Le [guide de l'atelier local](LOCAL_ASSISTANT.md) décrit le tableau de bord, l'index documentaire, les notes et la pause/reprise.
 
-> Profil quotidien : six rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
 
 ## Repères de progression
 

@@ -14,19 +14,21 @@ import yaml
 
 from clawfedora.core_config import AGENT_IDS
 from clawfedora.project_common import assert_no_symlinks, read_json
+from clawfedora.specialist_tools import FORMATS, available, lint, receipt, run_fixed
 
 TOOL_ROLES = {
     "clawfedora_search": set(AGENT_IDS),
     "clawfedora_outline": set(AGENT_IDS),
     "clawfedora_diagram": {"architecte-solutions"},
     "clawfedora_check": {"ingenieur-devops", "ingenieur-securite", "auditeur-qualite"},
+    "clawfedora_lint": set(FORMATS),
+    "clawfedora_tool_status": set(AGENT_IDS),
 }
 OUTLINES = {
     "chef-operations": {"brief": ["Objectif", "Contraintes", "Livrables", "Critères de fin"]},
     "expert-recherche": {"sources": ["Question", "Source et date", "Preuve", "Limites"]},
     "architecte-solutions": {
         "adr": ["Contexte", "Options", "Décision et compromis", "Conséquences", "Réversibilité"],
-        "guide": ["Comprendre", "Prérequis", "Utiliser", "Vérifier", "Diagnostiquer", "Approfondir"],
     },
     "ingenieur-devops": {
         "runbook": [
@@ -43,6 +45,23 @@ OUTLINES = {
         "threats": ["Actifs", "Scénario", "Contrôles", "Validation", "Risque résiduel"]
     },
     "auditeur-qualite": {"audit": ["Critère", "Preuve observée", "Limite", "Verdict", "Action"]},
+    "redacteur-pedagogique": {
+        "guide": [
+            "Le problème",
+            "Le mécanisme",
+            "Un petit exemple",
+            "À vous de pratiquer",
+            "Vérifier",
+            "Diagnostiquer",
+        ],
+        "explanation": [
+            "Idée principale",
+            "Vocabulaire utile",
+            "Pourquoi ce choix",
+            "Limites",
+            "Prochaine étape",
+        ],
+    },
 }
 
 
@@ -99,7 +118,7 @@ def _search(workspace: Path, data: dict[str, Any]) -> dict[str, Any]:
     return {"hits": hits, "scanned": scanned, "bounded": True}
 
 
-def diagram(data: dict[str, Any]) -> dict[str, str]:
+def diagram(data: dict[str, Any]) -> dict[str, Any]:
     """Render escaped labels as inert SVG and Mermaid; no HTML, URLs or scripts."""
     nodes, edges = data.get("nodes"), data.get("edges", [])
     if not isinstance(nodes, list) or not 1 <= len(nodes) <= 8:
@@ -137,9 +156,26 @@ def diagram(data: dict[str, Any]) -> dict[str, str]:
             'stroke="#367a93" stroke-width="2" fill="none"/>'
         )
         mermaid.append(f"  n{a} --> n{b}")
+    rendered = "".join(svg) + "</svg>"
+    renderer = "builtin"
+    warning = "Graphviz absent: rendu simple embarqué utilisé."
+    if Path("/usr/bin/dot").is_file():
+        # Only structured labels/edges become DOT; arbitrary DOT attributes are never accepted.
+        dot = ["digraph G { rankdir=TB; node [shape=box];"]
+        dot.extend(
+            f"n{i} [label={json.dumps(label, ensure_ascii=False)}];" for i, label in enumerate(labels)
+        )
+        dot.extend(f"n{a} -> n{b};" for a, b in edges)
+        dot.append("}")
+        result = run_fixed(["/usr/bin/dot", "-Tsvg"], "\n".join(dot))
+        if result.returncode or len(result.stdout.encode()) > 16000:
+            raise ValueError("rendu Graphviz échoué ou trop volumineux")
+        rendered, renderer, warning = result.stdout, "graphviz", ""
     return {
-        "svg": "".join(svg) + "</svg>",
+        "svg": rendered,
         "mermaid": "\n".join(mermaid),
+        "renderer": renderer,
+        "warning": warning,
         "scope": "schéma proposé, aucune architecture déployée",
     }
 
@@ -190,9 +226,21 @@ def invoke(
     if tool == "clawfedora_search":
         return _search(root, data)
     if tool == "clawfedora_diagram":
-        return diagram(data)
+        result = diagram(data)
+        svg = result.pop("svg")
+        result["receipt"] = receipt(root, tool, result, svg=svg)
+        result["instruction"] = (
+            "Sortie .svg: utiliser svg_reference comme contenu JSON; le worker collecte le rendu."
+        )
+        return result
     if tool == "clawfedora_check":
         return check(data)
+    if tool == "clawfedora_tool_status":
+        return {"available": available(), "lint_formats": sorted(FORMATS.get(role, set()))}
+    if tool == "clawfedora_lint":
+        result = lint(role, data)
+        result["receipt"] = receipt(root, tool, result)
+        return result
     kind = str(data.get("kind", ""))
     if kind not in OUTLINES[role]:
         raise ValueError("type de document interdit pour ce rôle")

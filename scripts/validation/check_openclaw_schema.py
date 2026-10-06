@@ -126,7 +126,7 @@ for backend in ("ollama-vulkan", "llama-cpp-vulkan"):
         if preserved.read_text() != "historical user data":
             raise SystemExit("Native migration altered workspace history")
         if set(roster.get("entries", {})) != set(config["agents"]["entries"]):
-            raise SystemExit("Native migration did not converge to the six requested agents")
+            raise SystemExit("Native migration did not converge to the seven requested agents")
     print(
         f"NATIVE_SCHEMA=PASS backend={backend} retired_pdf_key=rejected migration=PASS version={pin}"
     )
