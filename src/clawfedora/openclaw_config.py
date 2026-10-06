@@ -20,7 +20,8 @@ def _mapping(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
-def _env_secret_ref(env_name: str) -> dict[str, str]:
+def _environment_reference(env_name: str) -> dict[str, str]:
+    """Return an environment identifier; never read or persist its credential value."""
     return {"source": "env", "provider": "default", "id": env_name}
 
 
@@ -103,7 +104,7 @@ def _ollama_provider(catalog: dict[str, Any]) -> dict[str, Any]:
         )
     return {
         "baseUrl": "http://127.0.0.1:11434",
-        "apiKey": _env_secret_ref(PROVIDER_ENV_KEYS["ollama"]),
+        "apiKey": _environment_reference(PROVIDER_ENV_KEYS["ollama"]),
         "api": "ollama",
         "timeoutSeconds": 300,
         "models": models,
@@ -136,7 +137,7 @@ def _llamacpp_provider(
         )
     return {
         "baseUrl": str(backend["endpoint"]),
-        "apiKey": _env_secret_ref(PROVIDER_ENV_KEYS[provider_id]),
+        "apiKey": _environment_reference(PROVIDER_ENV_KEYS[provider_id]),
         "api": "openai-completions",
         "timeoutSeconds": 300,
         "models": models,

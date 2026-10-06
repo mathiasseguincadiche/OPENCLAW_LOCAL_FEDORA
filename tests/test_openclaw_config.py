@@ -128,3 +128,16 @@ def test_patch_writer_is_atomic_json(tmp_path: Path) -> None:
     output = write_openclaw_patch(tmp_path / "generated" / "openclaw.patch.json", patch)
     assert json.loads(output.read_text(encoding="utf-8")) == patch
     assert not output.with_suffix(output.suffix + ".tmp").exists()
+
+
+def test_generated_configuration_contains_references_without_credential_values(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    value = "test-sensitive-value-must-never-be-persisted"
+    monkeypatch.setenv("OLLAMA_API_KEY", value)
+    monkeypatch.setenv("INTEL_VULKAN_API_KEY", value)
+    patch = build_openclaw_patch(ROOT, tmp_path, "llama-cpp-vulkan")
+    assert value not in json.dumps(patch)
+    providers = patch["models"]["providers"]
+    assert providers["ollama"]["apiKey"]["id"] == "OLLAMA_API_KEY"
+    assert providers["intel-vulkan"]["apiKey"]["id"] == "INTEL_VULKAN_API_KEY"
