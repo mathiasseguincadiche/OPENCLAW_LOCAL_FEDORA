@@ -99,6 +99,13 @@ def test_artifact_references_bind_role_task_source_and_real_bytes(tmp_path: Path
         with pytest.raises(ValueError):
             _resolve_tool_files(workspace, before, {"role": role_name}, {"files": files})
     identifier = reference.split(":")[1]
+    for role_name, requested_id, extension in (
+        (role, "../" + identifier, "pdf"),
+        ("../redacteur-pedagogique", identifier, "pdf"),
+        (role, identifier, "../../etc/passwd"),
+    ):
+        with pytest.raises(ValueError):
+            read_artifact(workspace, role_name, requested_id, extension)
     path, _ = read_artifact(workspace, role, identifier, "pdf")
     path.chmod(0o640)
     path.write_bytes(b"fake")

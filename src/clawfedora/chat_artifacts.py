@@ -8,6 +8,7 @@ import time
 from pathlib import Path
 from urllib.parse import urlencode
 
+from clawfedora.core_config import AGENT_IDS
 from clawfedora.file_artifacts import read_artifact
 from clawfedora.project_common import read_json
 
@@ -56,7 +57,11 @@ def download(runtime: Path, secret: str, path: str, expires: str, supplied: str)
         raise ValueError("lien expiré")
     if not hmac.compare_digest(supplied, signature(secret, role, identifier, extension, expiry)):
         raise ValueError("signature invalide")
-    target, proof = read_artifact(runtime / "workspaces" / role, role, identifier, extension)
+    # Select a contract-owned workspace; the URL never contributes a filesystem path.
+    workspaces = {name: runtime / "workspaces" / name for name in AGENT_IDS}
+    if role not in workspaces:
+        raise ValueError("rôle inconnu")
+    target, proof = read_artifact(workspaces[role], role, identifier, extension)
     name = proof["artifacts"][extension]["download_name"]
     import re
 

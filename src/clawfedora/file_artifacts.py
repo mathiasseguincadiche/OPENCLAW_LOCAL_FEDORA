@@ -157,7 +157,12 @@ def read_artifact(
             raise ValueError("workspace lié interdit")
     directory = workspace / ".clawfedora-tool-evidence"
     assert_no_symlinks(directory, label="artefact")
-    proof = read_json(directory / f"{identifier}.json")
+    # Select existing managed files by name instead of building paths from download input.
+    managed = {path.name: path for path in directory.iterdir() if path.is_file()}
+    receipt = managed.get(f"{identifier}.json")
+    if receipt is None:
+        raise ValueError("reçu d’artefact absent")
+    proof = read_json(receipt)
     records = proof.get("artifacts", {})
     if (
         proof.get("origin") != "managed-tool-runner"
@@ -170,7 +175,7 @@ def read_artifact(
     expected = f"{identifier}.artifact.{extension}.data"
     if record.get("name") != expected or extension not in {*formats(role).values(), "pdf", "docx"}:
         raise ValueError("format ou chemin d’artefact invalide")
-    path = directory / expected
-    if not path.is_file() or path.stat().st_size > 2_000_000 or sha256_file(path) != record["sha256"]:
+    path = managed.get(expected)
+    if path is None or path.stat().st_size > 2_000_000 or sha256_file(path) != record["sha256"]:
         raise ValueError("artefact modifié ou absent")
     return path, proof
