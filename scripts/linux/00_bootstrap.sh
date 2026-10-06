@@ -102,7 +102,7 @@ printf 'BOOTSTRAP_PLAN Fedora=%s runtime=%s user=%s group=%s\n' \
   "$VERSION_ID" "$RUNTIME_ROOT" "$TARGET_USER" "$TARGET_GROUP"
 printf '  package manager: %s\n' "${DNF[*]}"
 printf '  packages: %s\n' "${PACKAGES[*]}"
-printf '  diagrams: graphviz without optional weak dependencies\n'
+printf '  diagrams: native editable Draw.io XML and local SVG; no extra package\n'
 printf '  groups: render video libvirt\n'
 printf '  managed venv: %s/runtime/venv\n' "$RUNTIME_ROOT"
 printf '  runtime dirs: models workspaces projects proofs benchmarks state backups\n'
@@ -125,7 +125,6 @@ if [[ "$(getenforce 2>/dev/null || true)" != "Enforcing" ]]; then
 fi
 
 as_root "${DNF[@]}" install -y "${PACKAGES[@]}"
-as_root "${DNF[@]}" --setopt=install_weak_deps=False install -y graphviz
 
 GROUPS_TO_ADD=(render video)
 ((WITH_KVM == 0)) || GROUPS_TO_ADD+=(libvirt)

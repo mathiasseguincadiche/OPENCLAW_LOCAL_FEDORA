@@ -102,6 +102,8 @@ def test_diagrams_escape_untrusted_labels_and_validate_graphs() -> None:
     for data in [
         {"nodes": []},
         {"nodes": ["x" * 61]},
+        {"nodes": [None]},
+        {"nodes": ["bad\x00XML"]},
         {"nodes": ["x"], "edges": [[0, 1]]},
         {"nodes": ["x"], "edges": [[True, 0]]},
         {"nodes": ["x"], "edges": [[0]]},

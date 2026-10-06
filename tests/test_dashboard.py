@@ -80,6 +80,34 @@ def test_reading_dashboard_never_runs_a_model(
     assert request(server, "/api/status", host="evil.example")[0] == 403
 
 
+def test_diagram_download_preserves_extension_with_encoded_filename(server: DashboardServer) -> None:
+    from urllib.parse import quote, urlencode
+
+    project = server.runtime / "projects/daily-project"
+    name = 'schéma "réseau".drawio'
+    file = project / "diagrams/design-choice" / name
+    file.parent.mkdir(exist_ok=True)
+    file.write_text("<mxfile/>")
+    client = HTTPConnection("127.0.0.1", server.server_port, timeout=5)
+    client.request(
+        "GET",
+        "/api/artifact?"
+        + urlencode(
+            {
+                "project": project.name,
+                "path": file.relative_to(project).as_posix(),
+            }
+        ),
+    )
+    response = client.getresponse()
+    assert response.status == 200
+    assert response.getheader("Content-Disposition") == "attachment; filename*=UTF-8''" + quote(
+        name, safe=""
+    )
+    assert response.read() == b"<mxfile/>"
+    client.close()
+
+
 def test_pause_notes_and_search_are_usable_through_local_api(server: DashboardServer) -> None:
     project = server.runtime / "projects/daily-project"
     data = {"project_id": "daily-project"}

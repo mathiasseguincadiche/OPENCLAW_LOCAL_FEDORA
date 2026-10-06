@@ -9,7 +9,7 @@ from contextlib import suppress
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, quote, urlsplit
 from urllib.request import urlopen
 
 from clawfedora import project_ui
@@ -141,7 +141,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         value: Any,
         content_type: str = "application/json",
         *,
-        attachment: bool = False,
+        attachment: str = "",
     ) -> None:
         body = (
             json.dumps(value, ensure_ascii=False).encode()
@@ -153,7 +153,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
         if attachment:
-            self.send_header("Content-Disposition", "attachment; filename=livrable")
+            self.send_header(
+                "Content-Disposition", "attachment; filename*=UTF-8''" + quote(attachment, safe="")
+            )
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header(
             "Content-Security-Policy",
@@ -328,7 +330,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 if path.is_file() and path.relative_to(project).as_posix() == relative:
                     if path.stat().st_size > 8_000_000:
                         raise ValueError("fichier trop volumineux pour le téléchargement web")
-                    self._send(200, path.read_bytes(), "application/octet-stream", attachment=True)
+                    self._send(
+                        200, path.read_bytes(), "application/octet-stream", attachment=path.name
+                    )
                     return
         raise ValueError("fichier absent du projet")
 

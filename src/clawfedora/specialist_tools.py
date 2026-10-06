@@ -31,6 +31,7 @@ def available() -> dict[str, Any]:
     return {
         "shellcheck": Path("/usr/bin/shellcheck").is_file(),
         "graphviz": Path("/usr/bin/dot").is_file(),
+        "drawio_xml": True,
         "gitleaks": Path("/usr/bin/gitleaks").is_file(),
         "yamllint": _version("yamllint"),
         "pymarkdownlnt": _version("pymarkdownlnt"),
@@ -181,7 +182,13 @@ def _gitleaks(content: str, digest: str) -> dict[str, Any]:
         }
 
 
-def receipt(workspace: Path, tool: str, result: dict[str, Any], svg: str | None = None) -> str:
+def receipt(
+    workspace: Path,
+    tool: str,
+    result: dict[str, Any],
+    svg: str | None = None,
+    drawio: str | None = None,
+) -> str:
     from uuid import uuid4
 
     from clawfedora.project_common import assert_no_symlinks, now, write_json
@@ -198,6 +205,12 @@ def receipt(workspace: Path, tool: str, result: dict[str, Any], svg: str | None 
         artifact.chmod(0o440)
         result["artifact_sha256"] = hashlib.sha256(svg.encode()).hexdigest()
         result["svg_reference"] = f"@tool-svg:{identifier}"
+    if drawio is not None:
+        artifact = directory / f"{identifier}.drawio"
+        artifact.write_text(drawio)
+        artifact.chmod(0o440)
+        result["drawio_sha256"] = hashlib.sha256(drawio.encode()).hexdigest()
+        result["drawio_reference"] = f"@tool-drawio:{identifier}"
     write_json(path, {"origin": "managed-tool-runner", "at": now(), "tool": tool, **result})
     path.chmod(0o440)
     return path.relative_to(workspace).as_posix()

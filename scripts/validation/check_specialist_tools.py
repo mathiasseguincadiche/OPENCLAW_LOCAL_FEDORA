@@ -13,7 +13,7 @@ from clawfedora.specialist_tools import available
 repo = Path(__file__).resolve().parents[2]
 tools = available()
 if not all(
-    tools[name] for name in ("shellcheck", "graphviz", "gitleaks", "yamllint", "pymarkdownlnt")
+    tools[name] for name in ("shellcheck", "gitleaks", "yamllint", "pymarkdownlnt")
 ):
     raise SystemExit("Fedora specialist packages and managed Python dependencies required")
 with tempfile.TemporaryDirectory(prefix="clawfedora-specialist-check-") as temporary:
@@ -51,9 +51,11 @@ with tempfile.TemporaryDirectory(prefix="clawfedora-specialist-check-") as tempo
         "clawfedora_diagram",
         {"nodes": ["Dépôt", "CI", "Service"], "edges": [[0, 1], [1, 2]]},
     )
-    if result["renderer"] != "graphviz" or "svg_reference" not in result:
-        raise SystemExit("Real Graphviz renderer unavailable")
+    if result["renderer"] != "drawio-xml" or "drawio_reference" not in result:
+        raise SystemExit("Native Draw.io generator unavailable")
     proof = runtime / "workspaces" / role / result["receipt"]
     if sha256_file(proof.with_suffix(".svg")) != read_json(proof)["artifact_sha256"]:
-        raise SystemExit("Graphviz artifact hash mismatch")
-    print("SPECIALIST_TOOL=PASS renderer=graphviz artifact_reference=verified")
+        raise SystemExit("SVG artifact hash mismatch")
+    if sha256_file(proof.with_suffix(".drawio")) != read_json(proof)["drawio_sha256"]:
+        raise SystemExit("Draw.io artifact hash mismatch")
+    print("SPECIALIST_TOOL=PASS renderer=drawio-xml artifact_references=verified")

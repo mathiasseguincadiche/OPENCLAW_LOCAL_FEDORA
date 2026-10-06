@@ -14,8 +14,9 @@ import yaml
 
 from clawfedora.ci_reports import summarize
 from clawfedora.core_config import AGENT_IDS
+from clawfedora.drawio import native_diagram
 from clawfedora.project_common import assert_no_symlinks, read_json
-from clawfedora.specialist_tools import FORMATS, available, lint, receipt, run_fixed
+from clawfedora.specialist_tools import FORMATS, available, lint, receipt
 
 TOOL_ROLES = {
     "clawfedora_search": set(AGENT_IDS),
@@ -121,18 +122,20 @@ def _search(workspace: Path, data: dict[str, Any]) -> dict[str, Any]:
 
 
 def diagram(data: dict[str, Any]) -> dict[str, Any]:
-    """Render escaped labels as inert SVG and Mermaid; no HTML, URLs or scripts."""
+    """Render native editable Draw.io cells and an inert preview from the same graph."""
     nodes, edges = data.get("nodes"), data.get("edges", [])
     if not isinstance(nodes, list) or not 1 <= len(nodes) <= 8:
         raise ValueError("1 à 8 nœuds requis")
     if not isinstance(edges, list) or len(edges) > 12:
         raise ValueError("12 liens maximum")
-    labels = [str(item) for item in nodes]
-    if any(not label.strip() or len(label) > 60 for label in labels):
+    labels = nodes
+    if any(not isinstance(label, str) or not label.strip() or len(label) > 60 for label in labels):
         raise ValueError("libellés courts requis")
     width, height = 620, len(labels) * 70 + 40
     svg = [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}">',
+        '<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" '
+        'orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#367a93"/></marker></defs>',
         '<rect width="100%" height="100%" fill="#f3f6fa"/>',
     ]
     mermaid = ["flowchart TD"]
@@ -145,7 +148,7 @@ def diagram(data: dict[str, Any]) -> dict[str, Any]:
         ]
         safe = "".join(c if c.isalnum() or c in " -_.,/" else " " for c in label)
         mermaid.append(f'  n{index}["{safe}"]')
-    for edge in edges:
+    for index, edge in enumerate(edges):
         if (
             not isinstance(edge, list)
             or len(edge) != 2
@@ -154,30 +157,17 @@ def diagram(data: dict[str, Any]) -> dict[str, Any]:
             raise ValueError("liens [index source, index destination] requis")
         a, b = edge
         svg.append(
-            f'<path d="M 170 {a * 70 + 44} H 80 V {b * 70 + 44} H 170" '
-            'stroke="#367a93" stroke-width="2" fill="none"/>'
+            f'<path d="M 170 {a * 70 + 44} H {80 + index * 5} V {b * 70 + 44} H 170" '
+            'stroke="#367a93" stroke-width="2" fill="none" marker-end="url(#arrow)"/>'
         )
         mermaid.append(f"  n{a} --> n{b}")
     rendered = "".join(svg) + "</svg>"
-    renderer = "builtin"
-    warning = "Graphviz absent: rendu simple embarqué utilisé."
-    if Path("/usr/bin/dot").is_file():
-        # Only structured labels/edges become DOT; arbitrary DOT attributes are never accepted.
-        dot = ["digraph G { rankdir=TB; node [shape=box];"]
-        dot.extend(
-            f"n{i} [label={json.dumps(label, ensure_ascii=False)}];" for i, label in enumerate(labels)
-        )
-        dot.extend(f"n{a} -> n{b};" for a, b in edges)
-        dot.append("}")
-        result = run_fixed(["/usr/bin/dot", "-Tsvg"], "\n".join(dot))
-        if result.returncode or len(result.stdout.encode()) > 16000:
-            raise ValueError("rendu Graphviz échoué ou trop volumineux")
-        rendered, renderer, warning = result.stdout, "graphviz", ""
     return {
+        "drawio": native_diagram(labels, edges),
         "svg": rendered,
         "mermaid": "\n".join(mermaid),
-        "renderer": renderer,
-        "warning": warning,
+        "renderer": "drawio-xml",
+        "warning": "Réexporter le SVG après édition dans Draw.io; aucune synchronisation.",
         "scope": "schéma proposé, aucune architecture déployée",
     }
 
@@ -230,9 +220,11 @@ def invoke(
     if tool == "clawfedora_diagram":
         result = diagram(data)
         svg = result.pop("svg")
-        result["receipt"] = receipt(root, tool, result, svg=svg)
+        drawio = result.pop("drawio")
+        result["receipt"] = receipt(root, tool, result, svg=svg, drawio=drawio)
         result["instruction"] = (
-            "Sortie .svg: utiliser svg_reference comme contenu JSON; le worker collecte le rendu."
+            "Sortie .drawio: drawio_reference; aperçu .svg: svg_reference, comme contenus JSON "
+            "des chemins attendus. Le worker collecte les fichiers sans réécrire leur XML."
         )
         return result
     if tool == "clawfedora_check":

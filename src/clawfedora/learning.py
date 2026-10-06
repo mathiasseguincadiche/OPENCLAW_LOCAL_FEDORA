@@ -6,6 +6,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+from clawfedora.drawio import normalize_diagram
 from clawfedora.project_common import now, read_json, validate_task_id, write_json
 
 
@@ -142,6 +143,14 @@ def submit(
         if sum(len(v.encode()) for v in files.values()) > 60000:
             raise ValueError("soumission limitée à 60000 octets")
         task = read_json(project / "context/tasks" / f"{validate_task_id(task_id)}.json")["task"]
+        if set(files) != set(task["expected_outputs"]):
+            raise ValueError("sorties différentes des chemins attendus")
+        files = {
+            path: normalize_diagram(content) if path.lower().endswith(".drawio") else content
+            for path, content in files.items()
+        }
+        if sum(len(v.encode()) for v in files.values()) > 60000:
+            raise ValueError("soumission décompressée limitée à 60000 octets")
         _collection_targets(repo, project, task, {"files": files})
         # Keep drafts out of published artifacts and dependency bundles until feedback.
         previous = checkpoint.get("submissions", [])

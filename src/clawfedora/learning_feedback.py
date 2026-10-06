@@ -8,6 +8,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+from clawfedora.drawio import inspect_diagram
 from clawfedora.learning import checkpoint_path
 from clawfedora.mentor import copy_profile
 from clawfedora.project_common import (
@@ -70,6 +71,8 @@ def review_submission(
         path = snapshot / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content)
+        if path.suffix.lower() == ".drawio":
+            checks.append({"path": relative, "format": "drawio", **inspect_diagram(content)})
         kind = {".sh": "shell", ".yaml": "yaml", ".yml": "yaml", ".md": "markdown"}.get(
             path.suffix.lower()
         )

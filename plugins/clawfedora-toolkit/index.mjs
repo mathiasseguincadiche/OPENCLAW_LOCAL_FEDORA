@@ -4,7 +4,7 @@ const string = { type: "string", maxLength: 12000 };
 const definitions = [
   ["clawfedora_search", "Chercher au maximum quatre passages texte dans le snapshot de ton rôle. Aucun embedding.", { query: string, scope: string }, ["query"]],
   ["clawfedora_outline", "Préparer une trame de document OPS; ne crée pas de fichier ni de preuve.", { kind: string, title: string }, ["kind"]],
-  ["clawfedora_diagram", "Architecte: proposer un schéma SVG inerte et Mermaid, huit nœuds maximum; retourner svg_reference comme contenu JSON de la sortie .svg attendue.", { nodes: { type: "array", items: { type: "string", maxLength: 60 }, minItems: 1, maxItems: 8 }, edges: { type: "array", maxItems: 12, items: { type: "array", items: { type: "integer", minimum: 0, maximum: 7 }, minItems: 2, maxItems: 2 } } }, ["nodes"]],
+  ["clawfedora_diagram", "Architecte: source Draw.io native éditable et aperçu SVG, huit nœuds maximum. Retourner drawio_reference pour la sortie .drawio attendue, svg_reference pour son aperçu .svg facultatif; ne pas réécrire le XML.", { nodes: { type: "array", items: { type: "string", maxLength: 60 }, minItems: 1, maxItems: 8 }, edges: { type: "array", maxItems: 12, items: { type: "array", items: { type: "integer", minimum: 0, maximum: 7 }, minItems: 2, maxItems: 2 } } }, ["nodes"]],
   ["clawfedora_check", "DevOps/sécurité/audit: syntaxe JSON/YAML/Python et alertes OPS statiques; aucune exécution.", { format: { type: "string", enum: ["json", "yaml", "python", "text"] }, content: string }, ["format", "content"]],
 ];
 definitions.push(
