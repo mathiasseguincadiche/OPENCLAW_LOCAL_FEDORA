@@ -1,6 +1,6 @@
 schema_version: 1
 repository:
-  description: "Fedora 44 native local-AI platform for an 8-agent OpenClaw 2026.9.2 fleet on Intel Arc B580 with Vulkan, fail-closed security and reproducible qualification."
+  description: "Atelier IA local — Infrastructure & OPS : apprendre et pratiquer sur Fedora 44, avec Qwen partagé par sept rôles OpenClaw, Open WebUI et Draw.io. Qualification Arc B580/Vulkan à produire."
   homepage: null
   topics:
     - fedora

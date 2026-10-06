@@ -14,7 +14,7 @@ PURGE_DATA=0
 
 usage() {
   cat <<'EOF'
-OPENCLAW_LOCAL_FEDORA — centre de contrôle
+Atelier IA local — Infrastructure & OPS · centre de contrôle
 
 Usage: ./menu.sh --action ACTION [--apply] [--backend BACKEND] [--purge-data]
 
@@ -45,7 +45,7 @@ Plateforme et qualification:
   hardware-l3            Gate L3 B580/xe/Mesa/Vulkan + preuve JSON
   gpu                    Alias historique du gate B580
   performance            Profil performance; dry-run, --apply pour l'activer
-  agents                 Déploie les 6 workspaces agents gérés
+  agents                 Déploie les 7 workspaces agents gérés
   configure-openclaw     Configure OpenClaw; dry-run, --apply pour appliquer
   project-selftest       Cycle projet synthétique complet hors matériel
   e2e-dry-run            Plan du gate L4 OpenClaw sans appel modèle

@@ -10,11 +10,11 @@ Depuis le dépôt installé sur Fedora :
 ./menu.sh --action dashboard
 ```
 
-Ouvrir l'adresse affichée, normalement `http://127.0.0.1:18890`. Garder le terminal ouvert ; Ctrl+C arrête le tableau de bord. Aucun service permanent supplémentaire n'est installé. L'interface reste locale et ne démarre ni modèle ni travail à son ouverture.
+Ouvrir l'adresse affichée, normalement `http://127.0.0.1:18890`. Garder le terminal ouvert ; Ctrl+C arrête le tableau de bord. Cette commande ne crée pas de service permanent. L’option Open WebUI, elle, installe un service de tableau de bord : dans ce cas ouvrir directement l’adresse, sans démarrer un second serveur. L'interface reste locale et ne démarre ni modèle ni travail à son ouverture.
 
 Elle affiche le mode quotidien/jeu, la RAM du système, les modèles chargés, leur mémoire vidéo déclarée par Ollama et l'avancement des projets. La mémoire vidéo affichée n'inclut pas les jeux ou l'affichage. Les versions affichées sont celles prévues par le dépôt ; `clawfedora-ops health` vérifie les versions réellement installées. Un port OpenClaw accessible ne remplace pas sa vérification RPC.
 
-Les boutons Démarrer/reprendre exigent un projet déjà analysé, planifié et assigné. Ils ne fabriquent pas un plan et ne passent pas les gates de validation, revue ou livraison. Préparer le projet avec le [moteur de projets](PROJECT_ENGINE.md). Les écritures natives et les commandes des agents demeurent désactivées.
+L’atelier permet de créer un projet, importer ses documents, demander un cadrage au mentor et proposer un plan court. Ces propositions doivent être relues et approuvées avant leur enregistrement. «Préparer la prochaine étape» démarre ensuite une tâche du plan assigné; «Demander le retour» relit un brouillon soumis. Les audits et l’approbation de livraison restent séparés. Voir [le parcours utilisateur](GUIDE_UTILISATEUR.md), [l’accompagnement adaptatif](LEARNING_WORKFLOW.md) et le [moteur de projets](PROJECT_ENGINE.md). Les écritures natives et les commandes des agents demeurent désactivées.
 
 ## Rechercher dans les documents
 

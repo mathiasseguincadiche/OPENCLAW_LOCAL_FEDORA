@@ -39,9 +39,9 @@ Approbation humaine explicite
 
 Aucun gate matériel n'est déclaré PASS par la CI. La CI valide le protocole, les contrats, les tests, les dry-runs et le comportement fail-closed. Les verdicts L2 à L6 nécessitent des preuves produites sur la machine Fedora 44 cible. L7 est vérifiable logiciellement en CI mais doit être rejoué sur l'installation finale avant L8.
 
-## Flotte Architecture V2 qualifiée
+## Modèles de la qualification expérimentale
 
-La flotte routée doit rester exactement composée de trois alias :
+Le quotidien route uniquement `qwen-max` vers `qwen3.5:9b-q4_K_M`, pour les sept rôles. La matrice HARD-40M compare séparément trois alias, sans imposer leur installation ni leur routage dans le profil quotidien :
 
 - `qwen-max` → `qwen3.5:9b-q4_K_M` ;
 - `gemma-deep` → `gemma4:12b-it-q4_K_M` ;
@@ -128,8 +128,8 @@ Le run réel est protégé contre la suspension par `systemd-inhibit`. L'entrée
 
 Contrat :
 
-- 3 modèles obligatoires ;
-- exactement 10 cas ;
+- 3 modèles requis pour cette campagne expérimentale ;
+- exactement 30 cas au total, soit 10 par modèle ;
 - 24 cas à 8K ;
 - 6 cas à 16K ;
 - 12 scénarios couverts collectivement à 8K ;
@@ -145,7 +145,7 @@ Contrat :
 - kernel, Mesa et version Ollama enregistrés ;
 - aucune promotion automatique.
 
-Le spécialiste `devstral-devops` conserve sa famille Ministral Reasoning propre. Il ne reçoit pas artificiellement les probes natifs Qwen.
+L’alias expérimental `devstral-devops` désigne Ministral Reasoning dans le benchmark. Il ne reçoit pas les probes natifs Qwen. Le rôle quotidien `ingenieur-devops`, lui, utilise Qwen comme les six autres rôles.
 
 ### Dry-run
 
@@ -228,7 +228,7 @@ Le kernel Fedora officiel reste un rollback bootable obligatoire.
 
 ### Challenger Granite — hors routage
 
-Le provisionnement nominal `models` reste limité aux trois modèles routés. Granite utilise un chemin distinct :
+Le provisionnement quotidien `models` installe uniquement Qwen. Les trois modèles de la matrice HARD-40M doivent être provisionnés explicitement pour cette expérience séparée; ils ne sont pas trois modèles routés au quotidien. Granite utilise un chemin distinct :
 
 ```bash
 ./menu.sh --action challenger-model
@@ -281,7 +281,7 @@ clawfedora-l6 compare-challenger \
   --output /srv/openclaw-local/proofs/l6/decisions/granite.json
 ```
 
-Un résultat `ELIGIBLE_FOR_HUMAN_PROMOTION` n'effectue aucune promotion. Il signifie uniquement que Granite peut être présenté à une revue humaine comme candidat de remplacement du spécialiste DevOps. Tant qu'aucune décision humaine distincte n'est prise, Ministral reste le modèle nominal routé.
+Un résultat `ELIGIBLE_FOR_HUMAN_PROMOTION` n'effectue aucune promotion. Il signifie uniquement que Granite peut être présenté à une revue humaine comme candidat de remplacement de Ministral dans le slot DevOps expérimental. Le rôle DevOps quotidien reste sur Qwen; toute évolution de ce profil demande une décision distincte et une mise à jour de son contrat.
 
 ## L7 — Golden Projects
 

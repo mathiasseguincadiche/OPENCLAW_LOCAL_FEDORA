@@ -179,7 +179,7 @@ C'est un changement d'architecture, même si l'alias logique reste identique.
 1. définir le nouveau runtime ID et la quantification ;
 2. vérifier licence, source et capacité ;
 3. mettre à jour `config/model_catalog.yaml` ;
-4. conserver exactement trois alias routés ;
+4. conserver un seul modèle quotidien partagé par les sept rôles, ou faire approuver une évolution explicite de ce contrat ;
 5. adapter qualification et tests spécifiques ;
 6. CI ;
 7. provisionnement explicite ;
