@@ -246,3 +246,11 @@ footer {
     padding: 16px;
   }
 }
+
+nav { display:flex; flex-wrap:wrap; gap:1rem; margin:1rem 0; }
+fieldset { border:1px solid #bdd1d8; border-radius:12px; margin:1rem 0; padding:1rem; }
+legend { font-weight:700; }
+label input[type=checkbox] { width:auto; margin-right:.6rem; }
+[hidden] { display:none !important; }
+#artifacts a { overflow-wrap:anywhere; }
+form + form { margin-top:1rem; }

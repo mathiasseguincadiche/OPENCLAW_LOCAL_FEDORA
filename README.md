@@ -24,7 +24,8 @@ Plateforme **Linux-native, LLM local-only et multi-agents** pour exécuter OpenC
 - **100 % local pour le routage LLM nominal** — aucun fallback cloud silencieux.
 - **6 agents spécialisés** — mêmes missions, workspaces et garde-fous reproductibles.
 - **1 modèle quotidien Q4_K_M** — flotte nominale explicite, challenger séparé.
-- **Atelier local** — tableau de bord, recherche documentaire sur CPU, décisions conservées et pause/reprise ; [guide pratique](docs/LOCAL_ASSISTANT.md).
+- **Interfaces locales** — Open WebUI slim pour discuter, atelier pour importer, cadrer, approuver, exécuter et livrer les projets; [installation](docs/OPENWEBUI.md).
+- **Outils et apprentissage OPS** — recherche bornée, trames métier, schémas et contrôles statiques; [rôles et outils effectifs](docs/AGENT_TOOLS.md).
 - **Fedora-native** — `systemd`, SELinux, firewalld et `xe` ; développement et KVM optionnels.
 - **Vulkan uniquement pour le GPU** — Ollama/Vulkan baseline, llama.cpp/Vulkan candidat L6.
 - **Fail-closed** — les incohérences de versions, contrats ou preuves bloquent la progression.
@@ -40,7 +41,8 @@ Plateforme **Linux-native, LLM local-only et multi-agents** pour exécuter OpenC
 | Parallel | **`2026.9.8` exact, verrouillé** |
 | Ollama | **`0.35.1` exact, verrouillé** |
 | Flotte nominale | **1 modèle quotidien Q4_K_M** |
-| Agents | **6 rôles spécialisés** |
+| Agents | **6 rôles spécialisés avec outils locaux** |
+| Interface de discussion | **Open WebUI v0.11.4-slim, option personnelle** |
 | Runtime GPU | **Vulkan** |
 | Sécurité | **SELinux Enforcing + firewalld + loopback + fail-closed** |
 | Qualification B580 L2–L6 | **À exécuter sur la machine réelle** |

@@ -6,18 +6,20 @@ import json
 import socket
 import threading
 from contextlib import suppress
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlsplit
 from urllib.request import urlopen
 
+from clawfedora import project_ui
 from clawfedora.core_config import root_contract
 from clawfedora.knowledge import build_index, search, store_note
+from clawfedora.local_http import LocalServer
 from clawfedora.project_common import read_json
 from clawfedora.project_control import is_paused, progress, request_pause, worker_active
-from clawfedora.project_engine import current_status
-from clawfedora.project_worker import run_project_tasks, worker_lock
+from clawfedora.project_engine import current_status, transition_project
+from clawfedora.project_worker import review_project, run_project_tasks, worker_lock
 
 
 def snapshot(repo_root: Path, runtime: Path) -> dict[str, Any]:
@@ -85,6 +87,7 @@ def snapshot(repo_root: Path, runtime: Path) -> dict[str, Any]:
         "gateway_available": gateway_available,
         "worker": progress(runtime),
         "projects": projects,
+        "webui_installed": (runtime / "state/webui/enabled").is_file(),
         "versions": {
             "openclaw": versions["openclaw"]["version"],
             "ollama": versions["ollama"]["version"],
@@ -92,7 +95,7 @@ def snapshot(repo_root: Path, runtime: Path) -> dict[str, Any]:
     }
 
 
-class DashboardServer(HTTPServer):
+class DashboardServer(LocalServer):
     repo_root: Path
     runtime: Path
     errors: dict[str, str]
@@ -126,7 +129,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
     def _valid_host(self) -> bool:
         return self.headers.get("Host") == f"127.0.0.1:{self.server.server_port}"
 
-    def _send(self, status: int, value: Any, content_type: str = "application/json") -> None:
+    def _send(
+        self,
+        status: int,
+        value: Any,
+        content_type: str = "application/json",
+        *,
+        attachment: bool = False,
+    ) -> None:
         body = (
             json.dumps(value, ensure_ascii=False).encode()
             if content_type == "application/json"
@@ -136,6 +146,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", content_type + "; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
+        if attachment:
+            self.send_header("Content-Disposition", "attachment; filename=livrable")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header(
             "Content-Security-Policy",
@@ -167,6 +179,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 value = snapshot(self.server.repo_root, self.server.runtime)
                 value["errors"] = dict(self.server.errors)
                 self._send(200, value)
+            elif url.path in {"/api/project", "/api/artifact"}:
+                query = parse_qs(url.query)
+                project = self._project(query["project"][0])
+                if url.path == "/api/project":
+                    self._send(200, project_ui.details(project))
+                else:
+                    self._artifact(project, query.get("path", [""])[0])
             elif url.path == "/api/search":
                 query = parse_qs(url.query)
                 project = self._project(query["project"][0])
@@ -182,11 +201,62 @@ class DashboardHandler(BaseHTTPRequestHandler):
             return
         try:
             length = int(self.headers.get("Content-Length", "0"))
-            if self.headers.get("Content-Type") != "application/json" or not 0 < length <= 20000:
+            limit = 11_000_000 if self.path == "/api/create" else 40000
+            if (
+                self.headers.get("Content-Type") != "application/json"
+                or not 0 < length <= limit
+                or self.headers.get("Transfer-Encoding")
+            ):
                 raise ValueError("requête JSON bornée requise")
             data = json.loads(self.rfile.read(length))
+            if not isinstance(data, dict):
+                raise ValueError("objet JSON requis")
+            if self.path == "/api/create":
+                project = project_ui.create_from_browser(
+                    self.server.repo_root, self.server.runtime, data
+                )
+                self._send(201, {"project_id": project.name})
+                return
             project = self._project(str(data["project_id"]))
-            if self.path == "/api/pause":
+            if self.path in {"/api/propose-analysis", "/api/propose-plan", "/api/audit"}:
+                if worker_active(self.server.runtime):
+                    raise ValueError("Une tâche ou discussion est active; attendre sa fin.")
+                kind = (
+                    str(data.get("kind", ""))
+                    if self.path == "/api/audit"
+                    else self.path.removeprefix("/api/propose-")
+                )
+                if self.path == "/api/audit" and kind not in {"validation", "review"}:
+                    raise ValueError("audit validation ou review requis")
+                if (self.server.runtime / "state/gaming-mode").exists():
+                    raise ValueError("Reprendre le profil quotidien avant une génération.")
+                self.server.errors.pop(project.name, None)
+                threading.Thread(target=self._prepare, args=(project, kind), daemon=False).start()
+            elif self.path == "/api/approve":
+                if data.get("human_approved") is not True or not isinstance(
+                    data.get("proposal"), dict
+                ):
+                    raise ValueError("approbation humaine explicite et proposition requises")
+                project_ui.approve(
+                    self.server.repo_root,
+                    self.server.runtime,
+                    project,
+                    str(data["kind"]),
+                    data["proposal"],
+                )
+            elif self.path == "/api/clarify":
+                project_ui.clarify(
+                    self.server.repo_root,
+                    self.server.runtime,
+                    project,
+                    str(data["id"]),
+                    str(data["answer"]),
+                )
+            elif self.path == "/api/complete":
+                if data.get("human_approved") is not True:
+                    raise ValueError("approbation finale humaine requise")
+                project_ui.complete(self.server.repo_root, self.server.runtime, project)
+            elif self.path == "/api/pause":
                 request_pause(self.server.runtime, project)
             elif self.path == "/api/resume":
                 if worker_active(self.server.runtime):
@@ -212,6 +282,38 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self._send(202, {"accepted": True})
         except (OSError, ValueError, KeyError, TypeError) as exc:
             self._send(400, {"error": str(exc)})
+
+    def _artifact(self, project: Path, relative: str) -> None:
+        from clawfedora.project_common import assert_no_symlinks
+
+        assert_no_symlinks(project, label="livrable")
+        for scope in ("intake", "deliverables", "diagrams", "evidence"):
+            for path in (project / scope).rglob("*"):
+                if path.is_file() and path.relative_to(project).as_posix() == relative:
+                    if path.stat().st_size > 8_000_000:
+                        raise ValueError("fichier trop volumineux pour le téléchargement web")
+                    self._send(200, path.read_bytes(), "application/octet-stream", attachment=True)
+                    return
+        raise ValueError("fichier absent du projet")
+
+    def _prepare(self, project: Path, kind: str) -> None:
+        try:
+            if kind in {"analysis", "plan"}:
+                project_ui.propose(self.server.repo_root, self.server.runtime, project, kind)
+            else:
+                path = review_project(self.server.repo_root, self.server.runtime, project, kind)
+                if read_json(path)["verdict"] != "PASS":
+                    raise ValueError("Audit FAIL: consulter les constats avant reprise.")
+                with worker_lock(self.server.runtime):
+                    transition_project(
+                        self.server.repo_root,
+                        project,
+                        "REVIEW" if kind == "validation" else "PACKAGING",
+                        actor="auditeur-qualite",
+                        reason="web_audit_passed",
+                    )
+        except (OSError, ValueError, KeyError, RuntimeError) as exc:
+            self.server.errors[project.name] = str(exc)
 
     def _run(self, project: Path) -> None:
         try:

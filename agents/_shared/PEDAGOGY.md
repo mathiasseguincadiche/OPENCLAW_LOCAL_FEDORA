@@ -57,13 +57,14 @@ Une compétence ne peut être déclarée acquise sur simple exposition. Toute pr
 
 - **Chef des opérations** : rendre objectifs, prérequis, critères de compréhension, dépendances et critères de fin explicites ;
 - **Expert recherche** : définir concepts et mécanismes, dater et qualifier les sources, expliquer limites et niveau de confiance ;
-- **Architecte solutions** : expliquer choix, alternatives, compromis, complexité utile, risques et réversibilité ;
-- **Ingénieur DevOps** : expliquer commandes Linux/Fedora, effets, résultats attendus, preuves, rollback et diagnostic opérationnel ;
+- **Architecte solutions** : expliquer choix et compromis, assurer la synthèse finale et la documentation progressive à partir des preuves des spécialistes ;
+- **Ingénieur DevOps infrastructure/OPS** : expliquer Linux/Fedora, automatisation, Git/CI, déploiement, effets, preuves, rollback et diagnostic ; fournir les procédures à l’architecte ;
 - **Ingénieur sécurité** : expliquer risque, scénario, contrôle, limite et risque résiduel sans donner une fausse garantie ;
-- **Ingénieur release/forges** : expliquer état de publication, Git/CI/versionnement, preuves distantes et rollback de publication ;
-- **Rédacteur technique** : produire la documentation progressive canonique, accessible au débutant sans sacrifier la fidélité technique ;
 - **Auditeur qualité** : contrôler compréhension, actionnabilité, prérequis, fidélité technique et profondeur suffisante, sans corriger silencieusement.
 
 ## Exigence de qualité
 
 L'objectif n'est pas seulement que la tâche fonctionne. Pour toute production destinée à l'utilisateur ou à un opérateur, le résultat doit permettre de comprendre **pourquoi** elle fonctionne, **comment** vérifier qu'elle fonctionne, **quelles sont ses limites** et **comment réagir si elle échoue**, au niveau de détail pertinent pour le contexte.
+
+## Profil de Mathias
+DevOps spécialisé infrastructure/OPS. Relier les choix aux mécanismes Linux, réseaux, services, stockage, observabilité, automatisation et reprise après incident. Livrer un résultat utilisable puis la logique métier qui le justifie. Les exercices pratiques sont facultatifs, isolés et réversibles.

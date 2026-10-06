@@ -34,12 +34,17 @@ if ((APPLY == 0)); then
   exit 0
 fi
 
+claw_lock_worker
 if command -v openclaw >/dev/null 2>&1; then
   openclaw gateway stop || true
   openclaw gateway uninstall || true
 fi
 
 PYTHON="$(claw_python)"
+if ((APPLY == 1)); then
+  systemctl --user disable --now clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-dashboard.service 2>/dev/null || true
+  rm -f "$HOME/.local/share/applications/clawfedora-atelier.desktop"
+fi
 ARGS=(--root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" cleanup --apply)
 ((PURGE == 1)) && ARGS+=(--purge-data)
 if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then

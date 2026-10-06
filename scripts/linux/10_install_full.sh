@@ -8,11 +8,13 @@ source "$LINUX/lib/runtime.sh"
 
 APPLY=0
 ENABLE_LINGER=0
+WITH_WEBUI=0
 for arg in "$@"; do
   case "$arg" in
     --apply) APPLY=1 ;;
     --enable-linger) ENABLE_LINGER=1 ;;
-    *) echo "Usage: 10_install_full.sh [--apply] [--enable-linger]" >&2; exit 2 ;;
+    --with-webui) WITH_WEBUI=1 ;;
+    *) echo "Usage: 10_install_full.sh [--apply] [--enable-linger] [--with-webui]" >&2; exit 2 ;;
   esac
 done
 OPENCLAW_PIN="$(claw_pin openclaw version)"
@@ -107,6 +109,9 @@ else
     "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" health --probe
 fi
 
+if ((WITH_WEBUI == 1)) || [[ -f "$RUNTIME_ROOT/state/webui/enabled" ]]; then
+  "$LINUX/23_openwebui.sh" install --apply
+fi
 echo "INSTALL_RESULT=PASS"
 echo "OLLAMA_VERSION=$ollama_version"
 echo "OPENCLAW_VERSION=$OPENCLAW_VERSION"

@@ -73,7 +73,7 @@ def _guard(root: Path) -> dict[str, str]:
     }
 
 
-def openclaw_runner(runtime: Path, repo_root: Path) -> AgentRunner:
+def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False) -> AgentRunner:
     checked = False
 
     def run(role: str, prompt: str, session: str) -> dict[str, Any]:
@@ -164,6 +164,8 @@ def openclaw_runner(runtime: Path, repo_root: Path) -> AgentRunner:
 
         _assert_agent_success(envelope, "ollama")
         text = _visible_text(envelope)
+        if plain_text:
+            return {"text": text}
         schema = response_schema(prompt)
         try:
             value = parse_response(text, schema)

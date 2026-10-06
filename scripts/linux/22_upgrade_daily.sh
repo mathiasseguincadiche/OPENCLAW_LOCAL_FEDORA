@@ -23,12 +23,13 @@ flock -n 9 || { echo "ERREUR: worker actif; demander une pause et attendre la fi
 finish() {
   local result=$?
   if ((result != 0)); then
-    systemctl --user stop openclaw-gateway.service 2>/dev/null || true
+    systemctl --user stop clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-dashboard.service openclaw-gateway.service 2>/dev/null || true
     sudo systemctl stop ollama.service 2>/dev/null || true
     printf 'UPGRADE_RESULT=FAIL services arrêtés; sauvegardes: %s/backups; suivre docs/UPGRADE.md\n' "$RUNTIME_ROOT" >&2
   fi
 }
 trap finish EXIT
+systemctl --user stop clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-dashboard.service 2>/dev/null || true
 systemctl --user stop openclaw-gateway.service
 sudo systemctl stop ollama.service
 "$SCRIPT_DIR/12_backup_restore.sh" backup

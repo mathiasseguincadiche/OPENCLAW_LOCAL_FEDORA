@@ -1,0 +1,20 @@
+schema_version: 1.0.0
+platform_version: 0.1.0
+release: v0.11.4
+image: ghcr.io/open-webui/open-webui@sha256:0487ad4a5a4b986062dedace806c3ef1e88fec38c10d1e64d6a5501c66671e5e
+variant: slim
+web_port: 3000
+bridge_port: 18891
+dashboard_port: 18890
+memory_limit: 3g
+cpu_limit: 2
+workers: 1
+deployment: podman-rootless
+scope: personal-loopback
+shared_worker_lock: true
+max_history_bytes: 6000
+max_response_tokens: 1024
+notes:
+  - Budget initial à mesurer sur Fedora; ce plafond ne prédit pas la consommation.
+  - Réponses mises en tampon; aucun streaming token par token dans cette version.
+  - Documents de projet importés dans l’atelier, jamais via une seconde chaîne RAG.

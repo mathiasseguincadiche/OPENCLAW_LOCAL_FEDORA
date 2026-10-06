@@ -40,7 +40,13 @@ def clear_pause(runtime: Path, project: Path) -> None:
 
 
 def write_progress(
-    runtime: Path, project: Path, phase: str, *, task: str = "", role: str = "", session: str = ""
+    runtime: Path,
+    project: Path | None,
+    phase: str,
+    *,
+    task: str = "",
+    role: str = "",
+    session: str = "",
 ) -> None:
     path = runtime / "state/worker-status.json"
     if path.is_symlink():
@@ -49,7 +55,7 @@ def write_progress(
     write_json(
         path,
         {
-            "project_id": read_json(project / "project.json")["project_id"],
+            "project_id": read_json(project / "project.json")["project_id"] if project else "",
             "phase": phase,
             "task_id": task,
             "role": role,
@@ -81,6 +87,6 @@ def progress(runtime: Path) -> dict[str, Any]:
     path = runtime / "state/worker-status.json"
     value = read_json(path) if path.is_file() and not path.is_symlink() else {}
     value["active"] = worker_active(runtime)
-    if not value["active"] and value.get("phase") in {"running", "reviewing", "preparing"}:
+    if not value["active"] and value.get("phase") in {"running", "reviewing", "preparing", "chat"}:
         value["phase"] = "interrupted"
     return value

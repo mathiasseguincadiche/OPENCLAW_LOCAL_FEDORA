@@ -19,6 +19,7 @@
         </div>
         <span id="profile" class="badge">Connexion…</span>
       </header>
+      <nav aria-label="Espaces de travail"><a id="discussions" href="http://127.0.0.1:3000" target="_blank" rel="noopener" hidden>Ouvrir les discussions Open WebUI</a><a href="#create-heading">Créer un projet</a></nav>
       <section class="resources" aria-label="Ressources de l’ordinateur">
         <article>
           <span>Mémoire de l’ordinateur</span><strong id="ram">—</strong>
@@ -34,9 +35,26 @@
         Chargement de l’état…
       </p>
       <p id="message" role="status"></p>
+      <section aria-labelledby="create-heading">
+        <h2 id="create-heading">Créer un projet</h2>
+        <form id="create-form">
+          <label for="project-title">Titre</label><input id="project-title" maxlength="200" required>
+          <label for="project-brief">Demande, contraintes et résultats attendus</label><textarea id="project-brief" rows="4" maxlength="12000" required placeholder="Ex. Comparer deux stratégies de sauvegarde Fedora, puis documenter le choix, la restauration et les preuves à collecter."></textarea>
+          <label for="project-files">Documents facultatifs (3 maximum, 8 Mo au total)</label><input id="project-files" type="file" multiple accept=".txt,.md,.pdf,.png,.jpg,.jpeg,.docx,.yaml,.yml,.json">
+          <p>Les documents deviennent des entrées protégées. Leur import ne prouve pas qu’un agent les a lus.</p>
+          <button type="submit">Créer dans l’atelier</button>
+        </form>
+      </section>
       <section aria-labelledby="projects-heading">
         <h2 id="projects-heading">Mes projets</h2>
         <div id="projects"></div>
+      </section>
+      <section id="project-editor" hidden aria-labelledby="editor-heading">
+        <h2 id="editor-heading">Piloter le projet</h2><p id="editor-state"></p>
+        <div id="editor-actions" class="buttons"></div>
+        <p>Les propositions restent à vérifier et à approuver. Une discussion Open WebUI ne change pas l’état du projet. Les audits distinguent vérifications statiques et tests réellement exécutés.</p>
+        <div id="proposal"></div><div id="clarifications"></div>
+        <h3>Documents, livrables et preuves</h3><div id="artifacts"></div>
       </section>
       <section class="knowledge" aria-labelledby="knowledge-heading">
         <h2 id="knowledge-heading">Retrouver et conserver</h2>
