@@ -199,7 +199,15 @@ def build_openclaw_patch(
             "bind": "loopback",
             "controlUi": {"newSessionModelDefaults": "configured"},
         },
-        "plugins": {"slots": {"memory": "none"}, "entries": {"memory-core": {"enabled": False}}},
+        "plugins": {
+            "allow": ["parallel", "clawfedora-toolkit", "memory-core"],
+            "slots": {"memory": "none"},
+            "load": {"paths": [str(runtime_root / "runtime/extensions/clawfedora-toolkit")]},
+            "entries": {
+                "memory-core": {"enabled": False},
+                "clawfedora-toolkit": {"enabled": True},
+            },
+        },
         "models": {"mode": "replace", "providers": providers},
         "agents": {
             "defaults": {

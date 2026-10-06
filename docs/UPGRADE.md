@@ -309,3 +309,5 @@ Un upgrade autorisé est accepté lorsque le dépôt, la machine cible et les pr
 Pour OpenClaw et Parallel, le contrat courant ne définit **aucune promotion automatique ni upgrade opérateur courant** : `2026.9.8` reste la valeur obligatoire jusqu'à décision explicite de migration.
 
 « Plus récent » n'est jamais un critère suffisant de promotion.
+
+Le module Open WebUI est arrêté avant la sauvegarde lors de la migration quotidienne, puis reconvergé s’il était installé. `state/webui` contient sa base, ses fichiers, son jeton d’intégration et sa clé de session; conserver ces éléments ensemble. Voir [OPENWEBUI.md](OPENWEBUI.md).

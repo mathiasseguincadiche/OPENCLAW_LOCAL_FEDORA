@@ -27,11 +27,16 @@ if not (plugin / "openclaw.plugin.json").is_file():
 for backend in ("ollama-vulkan", "llama-cpp-vulkan"):
     with tempfile.TemporaryDirectory(prefix="clawfedora-native-schema-") as temporary:
         state = Path(temporary)
+        toolkit = state / "runtime/extensions/clawfedora-toolkit"
+        shutil.copytree(repo / "plugins/clawfedora-toolkit", toolkit)
+        toolkit.chmod(0o750)
+        for asset in toolkit.iterdir():
+            asset.chmod(0o640)
         config = build_openclaw_patch(repo, state, backend)
         config["plugins"] = {
             **config["plugins"],
-            "allow": ["parallel", "memory-core"],
-            "load": {"paths": [str(plugin)]},
+            "allow": ["parallel", "memory-core", "clawfedora-toolkit"],
+            "load": {"paths": [str(plugin), str(toolkit)]},
             "entries": {**config["plugins"]["entries"], "parallel": {"enabled": True}},
         }
         path = state / "openclaw.json"

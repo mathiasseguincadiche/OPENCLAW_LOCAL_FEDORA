@@ -70,6 +70,23 @@ def validate_agent_assets(repo_root: Path) -> tuple[str, ...]:
         for filename in ROLE_FILES:
             if not (role_root / filename).is_file():
                 failures.append(f"agents: {spec.agent_id}/{filename} absent")
+    toolkit = repo_root / "plugins/clawfedora-toolkit"
+    for filename in ("package.json", "openclaw.plugin.json", "index.mjs"):
+        if not (toolkit / filename).is_file():
+            failures.append(f"agents: asset toolkit absent: {filename}")
+    try:
+        from clawfedora.agent_tools import TOOL_ROLES
+
+        manifest = json.loads((toolkit / "openclaw.plugin.json").read_text())
+        package = json.loads((toolkit / "package.json").read_text())
+        if (
+            manifest.get("id") != "clawfedora-toolkit"
+            or set(manifest.get("contracts", {}).get("tools", [])) != set(TOOL_ROLES)
+            or package.get("openclaw", {}).get("extensions") != ["./index.mjs"]
+        ):
+            failures.append("agents: manifeste ou entrée du toolkit divergent")
+    except (OSError, ValueError, TypeError, AttributeError):
+        failures.append("agents: manifeste toolkit illisible")
     return tuple(failures)
 
 

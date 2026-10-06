@@ -13,6 +13,8 @@ const states = {
   COMPLETE: "Terminé",
 };
 const phases = {
+  chat: "Une discussion utilise le modèle local",
+  proposed: "Proposition prête à vérifier et approuver",
   preparing: "Préparation et recherche documentaire",
   running: "Une spécialité travaille",
   paused: "Travail en pause",
@@ -59,10 +61,13 @@ async function action(path, data) {
     return null;
   }
 }
+let refreshSequence = 0;
 async function refresh() {
   if (document.hidden) return;
   try {
+    const sequence = ++refreshSequence;
     const data = await api("/api/status");
+    if (sequence !== refreshSequence) return;
     $("profile").textContent =
       data.profile === "gaming" ? "Mode jeu" : "Profil quotidien";
     $("ram").textContent = data.memory.MemTotal
@@ -75,6 +80,7 @@ async function refresh() {
       : "Ollama arrêté";
     $("model").textContent =
       data.models.map((m) => m.name).join(", ") || "Aucun modèle chargé";
+    $("discussions").hidden = !data.webui_installed;
     const worker = data.worker;
     $("activity").textContent =
       (phases[worker.phase] || "Aucun travail actif") +
@@ -137,7 +143,9 @@ async function refresh() {
       resume.addEventListener("click", () =>
         action("/api/resume", { project_id: project.project_id }),
       );
-      buttons.append(pause, resume);
+      const manage = node("button", "Ouvrir le projet", "secondary");
+      manage.addEventListener("click", () => loadProject(project.project_id));
+      buttons.append(manage, pause, resume);
       row.append(detail, buttons);
       $("projects").append(row);
     }
@@ -247,3 +255,128 @@ document.addEventListener("visibilitychange", () => {
 });
 refresh();
 setInterval(refresh, 5000);
+
+let openedProject = null;
+function field(form, label, value, multiline = false) {
+  const wrap = node("label", label), input = node(multiline ? "textarea" : "input");
+  input.value = value || "";
+  input.maxLength = 12000;
+  if (multiline) input.rows = 3;
+  wrap.append(input); form.append(wrap);
+  return input;
+}
+async function loadProject(id) {
+  try {
+    const data = await api("/api/project?" + new URLSearchParams({ project: id }));
+    openedProject = id;
+    $("project-editor").hidden = false;
+    $("editor-heading").textContent = data.manifest.title;
+    $("editor-state").textContent = states[data.manifest.status] || data.manifest.status;
+    $("editor-actions").replaceChildren();
+    const addAction = (label, path, extra = {}) => {
+      const button = node("button", label);
+      button.addEventListener("click", async () => {
+        const result = await action(path, { project_id: id, ...extra });
+        if (result) { tell("Action reçue. Actualisez le dossier pour consulter le résultat."); await loadProject(id); }
+      });
+      $("editor-actions").append(button);
+    };
+    const reload = node("button", "Actualiser le dossier", "secondary");
+    reload.addEventListener("click", () => loadProject(id));
+    $("editor-actions").append(reload);
+    if (["INTAKE_READY", "ANALYZED", "CLARIFICATION_REQUIRED"].includes(data.manifest.status))
+      addAction("Proposer le cadrage avec le chef", "/api/propose-analysis");
+    if (data.manifest.status === "ANALYZED") addAction("Proposer un plan court", "/api/propose-plan");
+    if (data.manifest.status === "VALIDATING") addAction("Lancer la validation", "/api/audit", { kind: "validation" });
+    if (data.manifest.status === "REVIEW") addAction("Lancer la relecture", "/api/audit", { kind: "review" });
+    if (data.manifest.status === "PACKAGING") addAction("J’approuve la livraison finale", "/api/complete", { human_approved: true });
+    $("artifacts").replaceChildren();
+    for (const file of data.files) {
+      const link = node("a", file.path + " · " + file.size + " octets");
+      link.href = "/api/artifact?" + new URLSearchParams({ project: id, path: file.path });
+      link.download = file.path.split("/").pop();
+      const row = node("p"); row.append(link); $("artifacts").append(row);
+    }
+    $("clarifications").replaceChildren();
+    for (const item of data.clarifications?.items || []) {
+      const form = node("form"), answer = field(form, item.question, item.answer || "", true);
+      if (item.status !== "OPEN") { answer.disabled = true; }
+      else {
+        const submit = node("button", "Enregistrer ma réponse"); submit.type = "submit"; form.append(submit);
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const result = await action("/api/clarify", { project_id: id, id: item.id, answer: answer.value });
+          if (result) await loadProject(id);
+        });
+      }
+      $("clarifications").append(form);
+    }
+    $("proposal").replaceChildren();
+    if (data.draft && !data.draft.approved) renderProposal(id, data.draft);
+  } catch (error) { tell(error.message, true); }
+}
+function renderProposal(id, draft) {
+  const form = node("form"), proposal = structuredClone(draft.proposal), inputs = {};
+  form.append(node("h3", draft.kind === "analysis" ? "Cadrage proposé" : "Plan proposé"));
+  const tasks = [];
+  if (draft.kind === "analysis") {
+    const labels = { summary: "Résumé", objectives: "Objectifs", constraints: "Contraintes", deliverables: "Livrables", ambiguities: "Ambiguïtés", missing_information: "Informations manquantes", risks: "Risques", decisions_required: "Décisions à prendre" };
+    for (const [key, label] of Object.entries(labels)) {
+      const value = key === "summary" ? proposal[key] : (proposal[key] || []).map(x => typeof x === "string" ? x : x.question || x.description || JSON.stringify(x)).join("\n");
+      inputs[key] = field(form, label + (key === "summary" ? "" : " (une ligne par élément)"), value, true);
+    }
+    form.append(node("p", "Couverture déclarée par l’IA : vérifiez les sources et toute lecture partielle. Ne marquez pas un PDF comme lu sans lecture effective avec l’outil indiqué."));
+    for (const doc of proposal.source_coverage || []) {
+      const label = node("label", doc.document_id + " · " + doc.method), select = node("select");
+      for (const status of ["READ", "PARTIAL", "UNREADABLE"]) { const option = node("option", status); option.value = status; select.append(option); }
+      select.value = doc.status; select.addEventListener("change", () => { doc.status = select.value; });
+      label.append(select); form.append(label);
+    }
+  } else {
+    for (const task of proposal.tasks || []) {
+      const group = node("fieldset"); group.append(node("legend", task.title));
+      const values = {};
+      for (const key of ["id", "title", "objective", "depends_on", "expected_outputs", "acceptance_criteria"]) {
+        const labels = { id: "Identifiant de tâche", title: "Titre", objective: "Objectif", depends_on: "Dépendances (une par ligne)", expected_outputs: "Fichiers attendus (deliverables/identifiant/fichier.md)", acceptance_criteria: "Critères vérifiables (un par ligne)" };
+        values[key] = field(group, labels[key], Array.isArray(task[key]) ? task[key].join("\n") : task[key], key !== "id" && key !== "title");
+      }
+      const label = node("label", "Spécialité"), role = node("select");
+      for (const name of ["chef-operations", "expert-recherche", "architecte-solutions", "ingenieur-devops", "ingenieur-securite", "auditeur-qualite"]) { const option = node("option", name); option.value = name; role.append(option); }
+      role.value = task.role; label.append(role); group.append(label); form.append(group);
+      tasks.push({ task, values, role });
+    }
+  }
+  const confirm = node("label"), checkbox = node("input"); checkbox.type = "checkbox"; checkbox.required = true;
+  confirm.append(checkbox, document.createTextNode(" J’ai vérifié la proposition et les limites; j’approuve ce cadrage ou ce plan."));
+  form.append(confirm);
+  const submit = node("button", "Approuver et enregistrer"); submit.type = "submit"; form.append(submit);
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!checkbox.checked) return;
+    const lines = value => value.split("\n").map(s => s.trim()).filter(Boolean);
+    for (const [key, input] of Object.entries(inputs)) proposal[key] = key === "summary" ? input.value : lines(input.value);
+    for (const { task, values, role } of tasks) {
+      for (const [key, input] of Object.entries(values)) task[key] = ["depends_on", "expected_outputs", "acceptance_criteria"].includes(key) ? lines(input.value) : input.value;
+      task.role = role.value;
+    }
+    const result = await action("/api/approve", { project_id: id, kind: draft.kind, proposal, human_approved: true });
+    if (result) await loadProject(id);
+  });
+  $("proposal").append(form);
+}
+$("create-form").addEventListener("submit", async event => {
+  event.preventDefault();
+  try {
+    const uploads = [...$("project-files").files];
+    if (uploads.length > 3 || uploads.reduce((n, f) => n + f.size, 0) > 8000000) throw new Error("Trois documents et 8 Mo maximum.");
+    const files = [];
+    for (const file of uploads) {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      let raw = "";
+      for (let offset = 0; offset < bytes.length; offset += 8192) raw += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
+      files.push({ name: file.name, content: btoa(raw) });
+    }
+    const result = await action("/api/create", { title: $("project-title").value, brief: $("project-brief").value, files });
+    if (result) { $("create-form").reset(); await loadProject(result.project_id); tell("Projet créé; préparez son cadrage."); }
+  } catch (error) { tell(error.message, true); }
+});

@@ -32,6 +32,8 @@ agents:
     - session_status
     - pdf
     - view_image
+    - clawfedora_search
+    - clawfedora_outline
     deny:
     - apply_patch
     - edit
@@ -52,6 +54,8 @@ agents:
     - session_status
     - pdf
     - view_image
+    - clawfedora_search
+    - clawfedora_outline
     deny:
     - apply_patch
     - edit
@@ -72,6 +76,9 @@ agents:
     - session_status
     - pdf
     - view_image
+    - clawfedora_search
+    - clawfedora_outline
+    - clawfedora_diagram
     deny:
     - apply_patch
     - edit
@@ -92,6 +99,9 @@ agents:
     - session_status
     - pdf
     - view_image
+    - clawfedora_search
+    - clawfedora_outline
+    - clawfedora_check
     deny:
     - apply_patch
     - edit
@@ -112,6 +122,9 @@ agents:
     - session_status
     - pdf
     - view_image
+    - clawfedora_search
+    - clawfedora_outline
+    - clawfedora_check
     deny:
     - apply_patch
     - edit
@@ -132,6 +145,9 @@ agents:
     - session_status
     - pdf
     - view_image
+    - clawfedora_search
+    - clawfedora_outline
+    - clawfedora_check
     deny:
     - apply_patch
     - edit

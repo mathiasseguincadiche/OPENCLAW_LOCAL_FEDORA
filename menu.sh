@@ -25,6 +25,10 @@ Cycle de vie:
   gaming                 Libérer le GPU pour jouer; --apply pour arrêter les services
   daily                  Reprendre les services IA; --apply obligatoire
   health                 Santé produit complète
+  webui-install          Installer Open WebUI slim personnel; --apply requis
+  webui-start|webui-stop  Démarrer/arrêter les discussions; --apply requis
+  webui-seal             Fermer les inscriptions après le premier compte; --apply requis
+  webui-status           État des interfaces locales
   dashboard              Tableau de bord local : projets, recherche et ressources
   backup                 Sauvegarde state/projects/proofs/workspaces
   repair                 Backup + doctor + reconfiguration + health
@@ -166,6 +170,11 @@ case "$ACTION" in
     ;;
   health) "$LINUX/11_health.sh" ;;
   dashboard) run_cli dashboard --serve ;;
+  webui-install|webui-start|webui-stop|webui-seal|webui-status)
+    args=("${ACTION#webui-}")
+    ((APPLY == 1)) && args+=(--apply)
+    "$LINUX/23_openwebui.sh" "${args[@]}"
+    ;;
   backup) "$LINUX/12_backup_restore.sh" backup ;;
   repair)
     if ((APPLY == 1)); then

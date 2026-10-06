@@ -138,6 +138,23 @@ if [[ "$(jq -r '.plugins[]? | select(.id == "parallel") | .enabled' <<<"$PLUGIN_
 fi
 "$OPENCLAW" plugins inspect parallel --runtime --json | jq -e . >/dev/null
 
+# Deploy only our reviewed, dependency-free plugin to a private managed path.
+"$PYTHON" - "$REPO_ROOT" "$RUNTIME_ROOT" <<'PYCODE'
+import shutil, sys
+from pathlib import Path
+source = Path(sys.argv[1]) / "plugins/clawfedora-toolkit"
+destination = Path(sys.argv[2]) / "runtime/extensions/clawfedora-toolkit"
+for path in [destination, *destination.parents]:
+    if path.is_symlink(): raise SystemExit("Plugin lié interdit")
+destination.mkdir(parents=True, exist_ok=True)
+destination.chmod(0o750)
+for name in ("package.json", "openclaw.plugin.json", "index.mjs"):
+    target = destination / name
+    if target.is_symlink(): raise SystemExit("Fichier plugin lié interdit")
+    shutil.copyfile(source / name, target)
+    target.chmod(0o640)
+PYCODE
+
 "$OPENCLAW" config schema | tee "$SCHEMA_PATH" | jq -e . >/dev/null
 "$PYTHON" -m clawfedora.cli --root "$REPO_ROOT" agents deploy --runtime-root "$RUNTIME_ROOT"
 "$PYTHON" -m clawfedora.cli --root "$REPO_ROOT" openclaw render \
@@ -167,6 +184,11 @@ fi
 "$OPENCLAW" config patch --file "$PATCH_PATH"
 node "$REPO_ROOT/scripts/linux/retire_managed_agents.mjs" "$OPENCLAW"
 "$OPENCLAW" config validate --json | jq -e . >/dev/null
+"$OPENCLAW" plugins inspect clawfedora-toolkit --runtime --json | jq -e '
+  .plugin.enabled == true and .plugin.status == "loaded" and
+  (.plugin.toolNames | sort) ==
+  (["clawfedora_search", "clawfedora_outline", "clawfedora_diagram", "clawfedora_check"] | sort)
+' >/dev/null
 AGENTS_JSON="$($OPENCLAW agents list --json)"
 AGENT_COUNT="$(
   jq -r '

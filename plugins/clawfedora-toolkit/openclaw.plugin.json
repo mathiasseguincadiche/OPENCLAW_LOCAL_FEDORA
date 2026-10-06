@@ -1,0 +1,35 @@
+{
+  "id": "clawfedora-toolkit",
+  "name": "ClawFedora OPS Toolkit",
+  "version": "0.1.0",
+  "activation": {
+    "onStartup": false
+  },
+  "toolMetadata": {
+    "clawfedora_search": {
+      "optional": true
+    },
+    "clawfedora_outline": {
+      "optional": true
+    },
+    "clawfedora_diagram": {
+      "optional": true
+    },
+    "clawfedora_check": {
+      "optional": true
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  },
+  "contracts": {
+    "tools": [
+      "clawfedora_search",
+      "clawfedora_outline",
+      "clawfedora_diagram",
+      "clawfedora_check"
+    ]
+  }
+}

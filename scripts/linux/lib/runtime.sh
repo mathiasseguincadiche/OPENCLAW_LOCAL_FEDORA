@@ -72,3 +72,20 @@ if match is None:
 print(match[1])
 PY
 }
+
+claw_lock_worker() {
+  local runtime_root lock_path expected_identity inherited_identity
+  runtime_root="$(claw_runtime_root)"
+  lock_path="$runtime_root/state/worker.lock"
+  [[ -f "$runtime_root/.openclaw-fedora-runtime" ]] || { echo "ERREUR: runtime géré requis" >&2; return 2; }
+  [[ ! -L "$runtime_root" && ! -L "$runtime_root/state" && ! -L "$lock_path" ]] || { echo "ERREUR: verrou lié interdit" >&2; return 2; }
+  mkdir -p "$runtime_root/state"
+  expected_identity="$(stat -Lc '%d:%i' "$lock_path" 2>/dev/null || true)"
+  inherited_identity="$(stat -Lc '%d:%i' "/proc/$$/fd/9" 2>/dev/null || true)"
+  # A migration passes the already-locked descriptor to child installers.
+  # flock on that same open description verifies/reuses ownership without deadlock.
+  if [[ -z "$expected_identity" || "$expected_identity" != "$inherited_identity" ]]; then
+    exec 9>"$lock_path"
+  fi
+  flock -n 9 || { echo "ERREUR: tâche ou discussion active; attendre sa fin avant la maintenance" >&2; return 2; }
+}

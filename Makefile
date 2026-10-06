@@ -1,4 +1,4 @@
-.PHONY: install validate test lint shellcheck ci native-schema
+.PHONY: install validate test lint shellcheck ci native-schema native-tools
 
 install:
 	python3 -m venv .venv
@@ -23,3 +23,6 @@ ci: validate lint shellcheck test
 
 native-schema:
 	.venv/bin/python scripts/validation/check_openclaw_schema.py
+
+native-tools:
+	.venv/bin/python scripts/validation/check_agent_toolkit.py
