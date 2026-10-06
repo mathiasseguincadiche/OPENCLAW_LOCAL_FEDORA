@@ -1,6 +1,6 @@
 # Architecture cible
 
-> Profil quotidien : six rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
 
 ## Repères de progression
 
@@ -70,7 +70,7 @@ Le kernel candidat ne peut être promu que s'il passe boot, GNOME/Wayland, B580/
 
 Le projet doit fournir nativement :
 
-- 6 rôles agents ;
+- 7 rôles agents ;
 - Project Intake ;
 - Project Orchestrator ;
 - Artifact Exchange ;

@@ -187,7 +187,7 @@ node "$REPO_ROOT/scripts/linux/retire_managed_agents.mjs" "$OPENCLAW"
 "$OPENCLAW" plugins inspect clawfedora-toolkit --runtime --json | jq -e '
   .plugin.enabled == true and .plugin.status == "loaded" and
   (.plugin.toolNames | sort) ==
-  (["clawfedora_search", "clawfedora_outline", "clawfedora_diagram", "clawfedora_check"] | sort)
+  (["clawfedora_search", "clawfedora_outline", "clawfedora_diagram", "clawfedora_check", "clawfedora_lint", "clawfedora_tool_status"] | sort)
 ' >/dev/null
 AGENTS_JSON="$($OPENCLAW agents list --json)"
 AGENT_COUNT="$(
@@ -199,9 +199,9 @@ AGENT_COUNT="$(
     end
   ' <<<"$AGENTS_JSON"
 )"
-[[ "$AGENT_COUNT" -eq 6 ]] || {
-  echo "ERREUR: OpenClaw n'expose pas exactement 6 agents après application (count=$AGENT_COUNT)." >&2
+[[ "$AGENT_COUNT" -eq 7 ]] || {
+  echo "ERREUR: OpenClaw n'expose pas exactement 7 agents après application (count=$AGENT_COUNT)." >&2
   exit 2
 }
 
-echo "OPENCLAW_CONFIG_RESULT=PASS backend=$BACKEND agents=6 openclaw=$OPENCLAW_VERSION"
+echo "OPENCLAW_CONFIG_RESULT=PASS backend=$BACKEND agents=7 openclaw=$OPENCLAW_VERSION"

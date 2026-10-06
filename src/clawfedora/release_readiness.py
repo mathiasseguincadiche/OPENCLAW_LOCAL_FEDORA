@@ -195,13 +195,13 @@ def _validate_l4(
         failures.append("L4: transport Gateway requis")
     smokes = payload.get("agent_smokes", [])
     if not isinstance(smokes, list) or len(smokes) != int(cfg["required_agent_smokes"]):
-        failures.append("L4: exactement 6 smokes agents requis")
+        failures.append("L4: exactement 7 smokes agents requis")
     else:
         observed = {
             str(item.get("agent")) for item in smokes if isinstance(item, dict) and item.get("agent")
         }
         if observed != set(AGENT_IDS):
-            failures.append("L4: inventaire des 6 agents divergent")
+            failures.append("L4: inventaire des 7 agents divergent")
     if not isinstance(payload.get("tool_call"), dict):
         failures.append("L4: preuve tool-calling absente")
     if not isinstance(payload.get("repair"), dict):

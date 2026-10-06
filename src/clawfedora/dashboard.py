@@ -15,10 +15,12 @@ from urllib.request import urlopen
 from clawfedora import project_ui
 from clawfedora.core_config import root_contract
 from clawfedora.knowledge import build_index, search, store_note
+from clawfedora.learning import awaiting, submit
 from clawfedora.local_http import LocalServer
 from clawfedora.project_common import read_json
 from clawfedora.project_control import is_paused, progress, request_pause, worker_active
 from clawfedora.project_engine import current_status, transition_project
+from clawfedora.project_revision import impact, revise
 from clawfedora.project_worker import review_project, run_project_tasks, worker_lock
 
 
@@ -46,6 +48,7 @@ def snapshot(repo_root: Path, runtime: Path) -> dict[str, Any]:
                     "tasks": tasks,
                     "completed": sum(t.get("status") == "PASS" for t in tasks),
                     "total": len(tasks),
+                    "awaiting_practice": bool(awaiting(path.parent)),
                 }
             )
         except (OSError, ValueError, KeyError):
@@ -201,7 +204,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
             return
         try:
             length = int(self.headers.get("Content-Length", "0"))
-            limit = 11_000_000 if self.path == "/api/create" else 40000
+            limit = (
+                11_000_000
+                if self.path == "/api/create"
+                else 150000
+                if self.path == "/api/practice"
+                else 40000
+            )
             if (
                 self.headers.get("Content-Type") != "application/json"
                 or not 0 < length <= limit
@@ -256,6 +265,25 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 if data.get("human_approved") is not True:
                     raise ValueError("approbation finale humaine requise")
                 project_ui.complete(self.server.repo_root, self.server.runtime, project)
+            elif self.path == "/api/practice":
+                submit(
+                    self.server.repo_root, self.server.runtime, project, str(data["task_id"]), data
+                )
+            elif self.path == "/api/revision-impact":
+                self._send(200, {"affected_tasks": impact(project, str(data["task_id"]))})
+                return
+            elif self.path == "/api/revise":
+                with worker_lock(self.server.runtime, allow_gaming=True):
+                    self._send(
+                        200,
+                        revise(
+                            project,
+                            str(data["task_id"]),
+                            str(data["reason"]),
+                            human_approved=data.get("human_approved") is True,
+                        ),
+                    )
+                return
             elif self.path == "/api/pause":
                 request_pause(self.server.runtime, project)
             elif self.path == "/api/resume":

@@ -133,7 +133,7 @@ def _project_failures(raw: Any, *, representative: bool) -> list[str]:
         missing_roles = sorted(set(AGENT_IDS) - roles)
         if missing_roles:
             failures.append(
-                f"{project_id}: les six rôles doivent être exercés, absents={missing_roles}"
+                f"{project_id}: les sept rôles doivent être exercés, absents={missing_roles}"
             )
     return failures
 

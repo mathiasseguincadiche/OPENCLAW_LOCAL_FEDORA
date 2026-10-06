@@ -181,10 +181,10 @@ def validate_core_contracts(
     agents = _mapping(contracts["agents.yaml"].get("agents"))
     expected = set(AGENT_IDS)
     if set(agents) != expected:
-        failures.append("core/agents: exactement six rôles sont requis")
+        failures.append("core/agents: roster des spécialistes divergent")
     policy = _mapping(contracts["agents.yaml"].get("policy"))
-    if int(policy.get("exact_agent_count", 0)) != 6:
-        failures.append("core/agents: exact_agent_count doit rester à 6")
+    if int(policy.get("exact_agent_count", 0)) != len(AGENT_IDS):
+        failures.append("core/agents: exact_agent_count divergent du roster")
     if policy.get("default_agent") != "chef-operations":
         failures.append("core/agents: chef-operations doit rester l'agent par défaut")
 
@@ -193,7 +193,7 @@ def validate_core_contracts(
     routing = _mapping(contracts["model_routing.yaml"].get("agents"))
     tools = _mapping(contracts["tool_policy.yaml"].get("agents"))
     if set(routing) != expected or set(tools) != expected:
-        failures.append("core: routage et politique outils doivent couvrir les six agents")
+        failures.append("core: routage et politique outils doivent couvrir tous les agents")
 
     for agent_id, raw in agents.items():
         entry = _mapping(raw)

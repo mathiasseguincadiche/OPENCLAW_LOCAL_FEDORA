@@ -42,7 +42,7 @@ evidence:
     glob: proofs/openclaw-e2e/l4_*.json
     required_verdict: PASS
     required_backend: ollama-vulkan
-    required_agent_smokes: 6
+    required_agent_smokes: 7
     required_stability_runs: 3
   l5:
     gate: L5

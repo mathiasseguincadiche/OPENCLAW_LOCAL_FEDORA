@@ -107,7 +107,7 @@ golden_projects:
         expected_outputs: ["deliverables/forge-package/package-notes.md"]
         acceptance_criteria: ["publication distante absente"]
       - id: document-release
-        role: architecte-solutions
+        role: redacteur-pedagogique
         title: "Documenter la release"
         objective: "Produire les notes finales d'exploitation."
         depends_on: [forge-package]
@@ -116,7 +116,7 @@ golden_projects:
 representative_project:
   id: representative-devops-delivery
   title: "Projet représentatif — Livraison DevOps multi-agent"
-  objective: "Exécuter le moteur projet complet avec les huit rôles, dépendances, Artifact Exchange, validation, review, packaging, télémétrie et FinOps."
+  objective: "Exécuter le moteur projet complet avec les sept rôles, dépendances, Artifact Exchange, validation, review, packaging, télémétrie et FinOps."
   sources:
     - "Concevoir une plateforme de déploiement applicatif locale avec CI/CD, sécurité, packaging, documentation et rollback."
     - "Contraintes : local-first, aucun cloud implicite, aucune publication distante, preuves traçables et approbation humaine finale."
@@ -164,7 +164,7 @@ representative_project:
       expected_outputs: ["deliverables/release-platform/release.md"]
       acceptance_criteria: ["package local uniquement"]
     - id: document-platform
-      role: architecte-solutions
+      role: redacteur-pedagogique
       title: "Produire la documentation"
       objective: "Rédiger les instructions d'exploitation finales."
       depends_on: [release-platform]

@@ -8,7 +8,7 @@ const sdk = requireFromCli.resolve("openclaw/plugin-sdk/config-mutation");
 const { mutateConfigFile } = await import(pathToFileURL(sdk).href);
 const retired = ["main", "redacteur-technique", "ingenieur-release-forges"];
 const active = ["chef-operations", "expert-recherche", "architecte-solutions",
-  "ingenieur-devops", "ingenieur-securite", "auditeur-qualite"];
+  "ingenieur-devops", "ingenieur-securite", "redacteur-pedagogique", "auditeur-qualite"];
 await mutateConfigFile({
   base: "source",
   writeOptions: {

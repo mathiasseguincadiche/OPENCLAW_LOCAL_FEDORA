@@ -116,7 +116,7 @@ def test_l7_contract_is_fail_closed_on_policy_and_project_drift(
     assert "required_golden_projects" in joined
     assert "trois limites documentées" in joined
     assert "exactement cinq Golden Projects" in joined
-    assert "les six rôles doivent être exercés" in joined
+    assert "les sept rôles doivent être exercés" in joined
 
 
 def test_l7_contract_rejects_unsafe_outputs_dependencies_and_cycles(

@@ -253,4 +253,6 @@ legend { font-weight:700; }
 label input[type=checkbox] { width:auto; margin-right:.6rem; }
 [hidden] { display:none !important; }
 #artifacts a { overflow-wrap:anywhere; }
+#learning pre { white-space:pre-wrap; overflow-wrap:anywhere; }
+fieldset { min-width:0; }
 form + form { margin-top:1rem; }

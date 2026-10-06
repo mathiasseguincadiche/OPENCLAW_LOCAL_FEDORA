@@ -23,7 +23,7 @@ def _agents_by_id(patch: dict[str, object]) -> dict[str, dict[str, object]]:
     return {key: dict(value) for key, value in entries.items() if isinstance(value, dict)}
 
 
-def test_ollama_patch_has_six_agents_and_strict_tools(tmp_path: Path) -> None:
+def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
     patch = build_openclaw_patch(ROOT, tmp_path, "ollama-vulkan")
     assert patch["gateway"] == {
         "mode": "local",
@@ -60,7 +60,7 @@ def test_ollama_patch_has_six_agents_and_strict_tools(tmp_path: Path) -> None:
     assert by_id["qwen3.5:9b-q4_K_M"]["input"] == ["text", "image"]
 
     agents = _agents_by_id(patch)
-    assert len(agents) == 6
+    assert len(agents) == 7
     assert agents["chef-operations"]["default"] is True
     assert agents["ingenieur-devops"]["model"] == {
         "primary": "ollama/qwen3.5:9b-q4_K_M",

@@ -1,6 +1,6 @@
 # Premiers pas
 
-> Profil quotidien : six rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
 
 ## Repères de progression
 
@@ -57,7 +57,7 @@ Les identités runtime exactes sont définies uniquement dans `config/model_cata
 
 Le challenger Granite appartient à L6 et reste hors routage tant qu'aucune décision humaine post-qualification n'a modifié les contrats.
 
-## 4. Connaître les six agents
+## 4. Connaître les sept agents
 
 Les rôles sont :
 
@@ -66,15 +66,14 @@ Les rôles sont :
 - `architecte-solutions` ;
 - `ingenieur-devops` ;
 - `ingenieur-securite` ;
-- `ingenieur-devops` ;
-- `architecte-solutions` ;
+- `redacteur-pedagogique` ;
 - `auditeur-qualite`.
 
 Leurs missions sont décrites dans [`MULTI_AGENT_CORE.md`](MULTI_AGENT_CORE.md) et leurs contrats détaillés sont versionnés sous `agents/`.
 
 ## 5. Vérifier les workspaces
 
-Pour déployer ou remettre en cohérence les six workspaces gérés :
+Pour déployer ou remettre en cohérence les sept workspaces gérés :
 
 ```bash
 ./menu.sh --action agents

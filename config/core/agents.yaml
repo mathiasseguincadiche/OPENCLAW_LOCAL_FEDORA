@@ -1,7 +1,7 @@
-schema_version: 1.0.0
+schema_version: 1.1.0
 platform_version: 0.1.0
 policy:
-  exact_agent_count: 6
+  exact_agent_count: 7
   default_agent: chef-operations
   workspace_root: workspaces
   managed_marker: .openclaw-fedora-managed
@@ -22,7 +22,7 @@ agents:
     name: Architecte solutions
     model: qwen-max
     fallback: qwen-max
-    mission: concevoir l'architecture, rédiger les ADR et la documentation
+    mission: concevoir l’infrastructure, les flux, les schémas et les décisions d’architecture
   ingenieur-devops:
     name: Ingénieur DevOps
     model: qwen-max
@@ -38,3 +38,9 @@ agents:
     model: qwen-max
     fallback: qwen-max
     mission: évaluer sans corriger silencieusement le livrable audité
+  redacteur-pedagogique:
+    name: Rédacteur pédagogique
+    model: qwen-max
+    fallback: qwen-max
+    mission: rendre les contributions validées compréhensibles et cohérentes, sans
+      faire l’exercice à la place de l’apprenant

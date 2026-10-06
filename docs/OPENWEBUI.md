@@ -1,6 +1,6 @@
 # Open WebUI et atelier Projets
 
-Intégration personnelle pour Fedora 44, Ryzen 7 7700, 48 Gio RAM et Arc B580 12 Gio. Open WebUI est une interface de discussion; l’atelier garde la gestion des documents, plans, tâches, audits et livraisons. Les six spécialités utilisent toujours un seul Qwen 9B. Le choix de spécialiste ne charge pas six modèles.
+Intégration personnelle pour Fedora 44, Ryzen 7 7700, 48 Gio RAM et Arc B580 12 Gio. Open WebUI est une interface de discussion; l’atelier garde la gestion des documents, plans, tâches, audits et livraisons. Les sept spécialités utilisent toujours un seul Qwen 9B. Le choix de spécialiste charge le même modèle pour chaque rôle.
 
 ## Installer et ouvrir
 
@@ -37,7 +37,7 @@ flowchart TD
     P[Atelier Projets :18890] --> W[Worker et moteur de projets]
     B --> L[Verrou partagé : une génération]
     W --> L
-    L --> O[OpenClaw : six rôles et leurs outils]
+    L --> O[OpenClaw : sept rôles et leurs outils]
     O --> Q[Un Qwen local via Ollama Vulkan]
     W --> D[Intake protégé, livrables et preuves]
 ```
@@ -54,9 +54,11 @@ Les réponses sont **mises en tampon**: Open WebUI attend la fin de la générat
 2. Ouvrir le projet et demander le cadrage au chef. Il reçoit un snapshot et doit lire les sources, y compris avec `pdf` ou `view_image` lorsque nécessaire. Aucun statut ne progresse à partir d’une simple proposition.
 3. Actualiser le dossier, corriger le formulaire, contrôler la couverture déclarée des sources et approuver. Une extraction, un nom de fichier ou une déclaration IA ne prouvent pas à eux seuls une lecture complète. Les limites doivent rester dans les informations manquantes et l’auditeur doit vérifier les sources. Répondre aux questions bloquantes.
 4. Demander un plan court, corriger rôles, objectifs, dépendances, sorties et critères; approuver explicitement. Le moteur vérifie la couverture, les clarifications et les dépendances. La proposition devient le plan assigné.
-5. Démarrer les tâches, une à la fois. Le collecteur seul écrit les sorties attendues. Demander une pause pour arrêter après la tâche active.
+5. Préparer la prochaine étape. Le mode guidé est proposé à la création: l’agent explique et prépare une amorce; compléter les fichiers, expliquer son raisonnement et indiquer le résultat observé ou l’absence d’exécution, puis soumettre. Aucune tâche ne devient PASS sur cette seule proposition IA. Le mode direct doit être choisi explicitement. Le collecteur seul écrit les sorties finales; les audits restent requis.
 6. Lancer séparément validation puis relecture. Un FAIL ne livre pas le projet; consulter les constats et reprendre par le moteur existant. Les audits ne lancent pas les scripts proposés sur l’hôte. L’exécution réelle reste à l’opérateur ou à un environnement qualifié.
 7. Télécharger documents, livrables et preuves; approuver la livraison finale seulement après les audits PASS et la vérification du package.
+
+Une modification approuvée dans le dossier archive les livrables concernés et invalide les tâches dépendantes, les audits et le package. Reprendre les étapes, vérifier à nouveau puis approuver la livraison. Voir [LEARNING_WORKFLOW.md](LEARNING_WORKFLOW.md).
 
 Les pièces jointes d’un chat ne deviennent pas automatiquement des sources de projet. Utiliser l’import de l’atelier pour conserver hashes, provenance et gates. Une discussion n’a aucun pouvoir de transition sur les projets. Les gros dossiers, archives et opérations de reprise avancées gardent l’intake/moteur CLI existant.
 

@@ -49,7 +49,7 @@ def test_bridge_preserves_admission_and_never_exposes_gateway_auth(tmp_path: Pat
             "messages": [{"role": "user", "content": "Comment diagnostiquer ?"}],
         }
         assert request(server, "/v1/models", token="wrong")[0] == 401
-        assert len(json.loads(request(server, "/v1/models")[1])["data"]) == 6
+        assert len(json.loads(request(server, "/v1/models")[1])["data"]) == 7
         assert not called
         assert request(server, "/unknown")[0] == 404
         assert request(server, "/unknown", payload)[0] == 404

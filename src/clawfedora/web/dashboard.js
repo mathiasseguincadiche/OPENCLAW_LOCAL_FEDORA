@@ -23,6 +23,8 @@ const phases = {
   reviewing: "L’auditeur examine les livrables",
   reviewed: "Audit enregistré",
   interrupted: "Travail interrompu — reprise possible",
+  awaiting_practice: "À vous de compléter et vérifier cette étape",
+  awaiting_next_step: "Étape soumise — préparez la suivante",
 };
 const gib = (n) =>
   (n / 1073741824).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) +
@@ -69,7 +71,7 @@ async function refresh() {
     const data = await api("/api/status");
     if (sequence !== refreshSequence) return;
     $("profile").textContent =
-      data.profile === "gaming" ? "Mode jeu" : "Profil quotidien";
+      data.profile === "gaming" ? "IA suspendue · GPU libéré" : "IA locale";
     $("ram").textContent = data.memory.MemTotal
       ? gib(data.memory.MemTotal - data.memory.MemAvailable) +
         " / " +
@@ -114,7 +116,8 @@ async function refresh() {
             " / " +
             project.total +
             " tâches" +
-            (project.paused ? " · Pause demandée" : ""),
+            (project.paused ? " · Pause demandée" : "") +
+            (project.awaiting_practice ? " · À vous de pratiquer" : ""),
         ),
       );
       if (project.total) {
@@ -129,12 +132,13 @@ async function refresh() {
       const pause = node("button", "Mettre en pause", "secondary"),
         resume = node(
           "button",
-          project.paused ? "Reprendre" : "Démarrer / reprendre",
+          project.paused ? "Reprendre" : "Préparer la prochaine étape",
         );
       pause.disabled =
         !["ASSIGNED", "IN_PROGRESS"].includes(project.status) || project.paused;
       resume.disabled =
         worker.active ||
+        project.awaiting_practice ||
         data.profile === "gaming" ||
         !["ASSIGNED", "IN_PROGRESS"].includes(project.status);
       pause.addEventListener("click", () =>
@@ -257,6 +261,7 @@ refresh();
 setInterval(refresh, 5000);
 
 let openedProject = null;
+let editorSequence = 0;
 function field(form, label, value, multiline = false) {
   const wrap = node("label", label), input = node(multiline ? "textarea" : "input");
   input.value = value || "";
@@ -267,7 +272,9 @@ function field(form, label, value, multiline = false) {
 }
 async function loadProject(id) {
   try {
+    const sequence = ++editorSequence;
     const data = await api("/api/project?" + new URLSearchParams({ project: id }));
+    if (sequence !== editorSequence) return;
     openedProject = id;
     $("project-editor").hidden = false;
     $("editor-heading").textContent = data.manifest.title;
@@ -276,8 +283,11 @@ async function loadProject(id) {
     const addAction = (label, path, extra = {}) => {
       const button = node("button", label);
       button.addEventListener("click", async () => {
+        const sequence = editorSequence;
+        button.disabled = true;
         const result = await action(path, { project_id: id, ...extra });
-        if (result) { tell("Action reçue. Actualisez le dossier pour consulter le résultat."); await loadProject(id); }
+        if (result && sequence === editorSequence) { tell("Action reçue. Actualisez le dossier pour consulter le résultat."); await loadProject(id); }
+        button.disabled = false;
       });
       $("editor-actions").append(button);
     };
@@ -313,6 +323,8 @@ async function loadProject(id) {
     }
     $("proposal").replaceChildren();
     if (data.draft && !data.draft.approved) renderProposal(id, data.draft);
+    renderLearning(id, data);
+    renderRevision(id, data);
   } catch (error) { tell(error.message, true); }
 }
 function renderProposal(id, draft) {
@@ -341,7 +353,7 @@ function renderProposal(id, draft) {
         values[key] = field(group, labels[key], Array.isArray(task[key]) ? task[key].join("\n") : task[key], key !== "id" && key !== "title");
       }
       const label = node("label", "Spécialité"), role = node("select");
-      for (const name of ["chef-operations", "expert-recherche", "architecte-solutions", "ingenieur-devops", "ingenieur-securite", "auditeur-qualite"]) { const option = node("option", name); option.value = name; role.append(option); }
+      for (const name of ["chef-operations", "expert-recherche", "architecte-solutions", "ingenieur-devops", "ingenieur-securite", "redacteur-pedagogique", "auditeur-qualite"]) { const option = node("option", name); option.value = name; role.append(option); }
       role.value = task.role; label.append(role); group.append(label); form.append(group);
       tasks.push({ task, values, role });
     }
@@ -376,7 +388,65 @@ $("create-form").addEventListener("submit", async event => {
       for (let offset = 0; offset < bytes.length; offset += 8192) raw += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
       files.push({ name: file.name, content: btoa(raw) });
     }
-    const result = await action("/api/create", { title: $("project-title").value, brief: $("project-brief").value, files });
+    const result = await action("/api/create", { title: $("project-title").value, brief: $("project-brief").value, files, learning_mode: $("learning-mode").value, learning_goals: $("learning-goals").value.split("\n").map(s => s.trim()).filter(Boolean) });
     if (result) { $("create-form").reset(); await loadProject(result.project_id); tell("Projet créé; préparez son cadrage."); }
   } catch (error) { tell(error.message, true); }
 });
+
+function renderLearning(id, data) {
+  const area = $("learning"); area.replaceChildren();
+  area.append(node("h3", data.learning.mode === "guided" ? "Apprendre en construisant" : "Propositions directes"));
+  area.append(node("p", "Une soumission conserve votre travail et vos observations. Les audits restent requis; aucune compétence n’est déclarée acquise automatiquement."));
+  for (const item of data.checkpoints || []) {
+    if (item.status !== "AWAITING_PRACTICE") continue;
+    const form = node("form"), inputs = {};
+    form.append(node("h4", item.task_id + " · " + item.role), node("pre", item.guidance));
+    form.append(node("p", "Complétez l’amorce, puis indiquez ce que vous avez compris et vérifié. Aucun code n’est exécuté par ce formulaire."));
+    for (const [path, content] of Object.entries(item.files)) {
+      const input = field(form, path, content, true); input.maxLength = 60000; input.rows = 8;
+      inputs[path] = input;
+    }
+    const explanation = field(form, "Mon raisonnement et le travail effectué", "", true);
+    explanation.required = true; explanation.maxLength = 2000;
+    const observations = field(form, "Résultat observé, preuve ou limite (ex. pas encore exécuté)", "", true);
+    observations.maxLength = 4000;
+    const label = node("label"), approved = node("input"); approved.type = "checkbox"; approved.required = true;
+    label.append(approved, document.createTextNode(" Je soumets mon travail; les observations sont exactes et les limites explicites."));
+    form.append(label);
+    const button = node("button", "Soumettre mon étape"); button.type = "submit"; form.append(button);
+    form.addEventListener("submit", async event => {
+      event.preventDefault(); if (!approved.checked) return;
+      const files = Object.fromEntries(Object.entries(inputs).map(([path, input]) => [path, input.value]));
+      const result = await action("/api/practice", { project_id: id, task_id: item.task_id, files, explanation: explanation.value, observations: observations.value, human_approved: true });
+      if (result) { await loadProject(id); tell("Étape soumise. Vous pouvez préparer la suivante ou consulter l’audit."); }
+    });
+    area.append(form);
+  }
+}
+
+function renderRevision(id, data) {
+  const area = $("revision"); area.replaceChildren();
+  if (!["IN_PROGRESS", "VALIDATING", "REVIEW", "PACKAGING", "COMPLETE"].includes(data.manifest.status)) return;
+  const details = node("details"), form = node("form"), select = node("select");
+  details.append(node("summary", "Demander une modification cohérente du projet"));
+  const label = node("label", "Contribution à reprendre");
+  for (const task of data.tasks) { const option = node("option", task.task_id); option.value = task.task_id; select.append(option); }
+  label.append(select); form.append(label);
+  const reason = field(form, "Modification demandée et raison", "", true); reason.required = true; reason.maxLength = 2000;
+  const preview = node("button", "Voir les tâches concernées", "secondary"); preview.type = "button";
+  const affected = node("p"), confirmation = node("label"), approved = node("input"); approved.type = "checkbox"; approved.required = true;
+  confirmation.append(approved, document.createTextNode(" J’approuve cette reprise. Les anciens livrables et audits seront archivés, puis les étapes concernées devront être reprises."));
+  const submit = node("button", "Approuver la modification"); submit.type = "submit"; submit.disabled = true;
+  const clear = () => { submit.disabled = true; approved.checked = false; affected.textContent = ""; };
+  select.addEventListener("change", clear);
+  preview.addEventListener("click", async () => {
+    const result = await action("/api/revision-impact", { project_id: id, task_id: select.value });
+    if (result) { affected.textContent = "À reprendre : " + result.affected_tasks.join(" → "); submit.disabled = false; }
+  });
+  form.addEventListener("submit", async event => {
+    event.preventDefault(); if (!approved.checked || submit.disabled) return;
+    const result = await action("/api/revise", { project_id: id, task_id: select.value, reason: reason.value, human_approved: true });
+    if (result) { await loadProject(id); tell("Reprise approuvée. Les contributions dépendantes et leurs audits doivent être renouvelés."); }
+  });
+  form.append(preview, affected, confirmation, submit); details.append(form); area.append(details);
+}

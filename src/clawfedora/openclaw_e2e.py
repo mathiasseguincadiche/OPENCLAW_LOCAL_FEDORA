@@ -31,8 +31,8 @@ def dry_run(backend: str) -> dict[str, Any]:
             "openclaw-version",
             "config-validate",
             "gateway-rpc-readiness",
-            "agents-list-exactly-6",
-            "six-agent-smokes",
+            "agents-list-exactly-7",
+            "specialist-smokes",
             "tool-read-proof",
             "tool-error-repair",
             "stability-3-runs",
@@ -103,7 +103,7 @@ def _agent_entries(config: dict[str, Any]) -> dict[str, dict[str, Any]]:
             raise ValueError("openclaw.json: roster invalide")
         result = {str(raw["id"]): raw for raw in entries if isinstance(raw, dict) and raw.get("id")}
     if set(result) != set(AGENT_IDS):
-        raise ValueError(f"OpenClaw doit exposer exactement 6 agents: {sorted(result)}")
+        raise ValueError(f"OpenClaw doit exposer exactement 7 agents: {sorted(result)}")
     return result
 
 
@@ -283,8 +283,8 @@ def run_e2e(
         entries = _agent_entries(config)
         listed = _run_json([openclaw, "agents", "list", "--json"], timeout=30, runtime_root=runtime)
         raw_list = listed.get("list") or listed.get("agents")
-        if not isinstance(raw_list, list) or len(raw_list) != 6:
-            raise ValueError("OpenClaw agents list doit contenir exactement 6 agents")
+        if not isinstance(raw_list, list) or len(raw_list) != len(AGENT_IDS):
+            raise ValueError("OpenClaw agents list doit contenir exactement 7 agents")
     except (FileNotFoundError, RuntimeError, ValueError, TimeoutError) as exc:
         print(f"L4_RESULT=FAIL preflight={exc}")
         return 2, None

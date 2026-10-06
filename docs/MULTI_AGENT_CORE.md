@@ -1,15 +1,15 @@
 # Cœur multi-agents Linux-native
 
-> Profil quotidien : six rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
 
 ## Repères de progression
 
 | Repère | Valeur |
 |---|---|
-| **Pour qui** | Toute personne qui suit le parcours et veut comprendre comment les six rôles collaborent dans l’architecture. |
+| **Pour qui** | Toute personne qui suit le parcours et veut comprendre comment les sept rôles collaborent dans l’architecture. |
 | **Position dans le parcours** | 6/14 |
 | **Prérequis** | Avoir lu [`ARCHITECTURE.md`](ARCHITECTURE.md). |
-| **Objectif** | Comprendre les six agents, leur routage, leurs workspaces et la façon dont OpenClaw les configure sous Fedora. |
+| **Objectif** | Comprendre les sept agents, leur routage, leurs workspaces et la façon dont OpenClaw les configure sous Fedora. |
 | **Résultat attendu** | Savoir distinguer identité, modèle nominal, workspace, outils et responsabilités de chaque rôle. |
 | **Critère d’arrêt** | Si les notions de couche plateforme, runtime ou contrat restent floues, revenir à l’architecture avant de poursuivre. |
 | **Continuer avec** | [`PROJECT_ENGINE.md`](PROJECT_ENGINE.md) |
@@ -17,22 +17,21 @@
 
 ## Objectif
 
-La couche L1 matérialise six rôles OpenClaw sous Fedora sans dépendre d'un autre système d'exploitation. Les contrats sont versionnés dans Git ; les workspaces réels restent sous la racine runtime locale.
+La couche L1 matérialise sept rôles OpenClaw sous Fedora sans dépendre d'un autre système d'exploitation. Les contrats sont versionnés dans Git ; les workspaces réels restent sous la racine runtime locale.
 
-## Huit rôles
+## Sept rôles sur un seul modèle
 
-| Agent | Modèle nominal | Fallback local | Responsabilité |
-|---|---|---|---|
-| `chef-operations` | `qwen-max` | `gemma-deep` | cadrage, planification, coordination |
-| `expert-recherche` | `qwen-max` | `gemma-deep` | recherche et vérification |
-| `architecte-solutions` | `gemma-deep` | `qwen-max` | architecture et compromis |
-| `ingenieur-devops` | `devstral-devops` | `qwen-max` | implémentation et automatisation |
-| `ingenieur-securite` | `qwen-max` | `gemma-deep` | sécurité et risques |
-| `ingenieur-devops` | `qwen-max` | `devstral-devops` | packaging et publication |
-| `architecte-solutions` | `gemma-deep` | `qwen-max` | documentation technique |
-| `auditeur-qualite` | `gemma-deep` | `qwen-max` | audit indépendant |
+| Agent | Responsabilité |
+|---|---|
+| `chef-operations` | cadrage, plan court et dépendances |
+| `expert-recherche` | faits datés, sources et mécanismes |
+| `architecte-solutions` | infrastructure, flux, schémas et décisions |
+| `ingenieur-devops` | automatisation, CI/CD, exploitation et rollback |
+| `ingenieur-securite` | menaces, droits, secrets et contrôles |
+| `redacteur-pedagogique` | clarté et cohérence des contributions actuelles |
+| `auditeur-qualite` | preuves, critères et qualité des explications |
 
-Le routage reste borné aux trois alias locaux qualifiables. Aucun modèle supplémentaire n'est introduit comme secours implicite.
+Chaque rôle utilise `qwen-max` (`qwen3.5:9b-q4_K_M`) sans fallback vers un autre modèle. Les autres alias sont des expériences séparées. Le rédacteur ne remplace pas la pédagogie des spécialistes et n’est appelé que lorsqu’une synthèse est utile. Voir [le parcours guidé](LEARNING_WORKFLOW.md) et [les plugins métier](SPECIALIST_TOOLING.md).
 
 ## Workspaces
 
@@ -90,7 +89,7 @@ Le configurateur applique une séquence fail-closed :
 1. initialise la baseline OpenClaw si nécessaire ;
 2. vérifie/active le plugin officiel requis par `parallel-free` ;
 3. capture `openclaw config schema` ;
-4. déploie les six workspaces ;
+4. déploie les sept workspaces ;
 5. génère un patch déterministe depuis les contrats ;
 6. vérifie le backend local sélectionné ;
 7. exécute `openclaw config patch --dry-run` ;
@@ -119,4 +118,4 @@ clawfedora openclaw render \
 
 ## Limite actuelle
 
-Cette couche prépare L4 mais ne prouve pas encore le fonctionnement réel sur la machine Fedora/B580. Le passage de L4 exige une exécution matérielle des six agents et du tool-calling, avec preuves enregistrées hors Git.
+Cette couche prépare L4 mais ne prouve pas encore le fonctionnement réel sur la machine Fedora/B580. Le passage de L4 exige une exécution matérielle des sept agents et du tool-calling, avec preuves enregistrées hors Git.

@@ -31,7 +31,7 @@ def test_l4_dry_run_is_linux_local_and_complete() -> None:
     assert payload["verdict"] == "PASS"
     assert payload["gate"] == "L4"
     assert payload["cloud_enabled"] is False
-    assert "six-agent-smokes" in payload["sequence"]
+    assert "specialist-smokes" in payload["sequence"]
     assert "tool-error-repair" in payload["sequence"]
     with pytest.raises(ValueError, match="backend L4 invalide"):
         openclaw_e2e.dry_run("invalid")
@@ -92,7 +92,7 @@ def test_agent_helpers_reject_invalid_shapes_and_failed_runtime(tmp_path: Path) 
         openclaw_e2e._agent_entries({"agents": []})
     with pytest.raises(ValueError, match="roster invalide"):
         openclaw_e2e._agent_entries({"agents": {"list": {}}})
-    with pytest.raises(ValueError, match="exactement 6 agents"):
+    with pytest.raises(ValueError, match="exactement 7 agents"):
         openclaw_e2e._agent_entries({"agents": {"list": []}})
     with pytest.raises(ValueError, match="model invalide"):
         openclaw_e2e._model_ref({"model": "bad"})

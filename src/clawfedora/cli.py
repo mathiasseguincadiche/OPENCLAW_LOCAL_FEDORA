@@ -272,7 +272,7 @@ def _e2e(
             print(json.dumps(payload, indent=2, ensure_ascii=False))
         else:
             print(
-                f"L4_DRY_RUN=PASS backend={backend} agents=6 "
+                f"L4_DRY_RUN=PASS backend={backend} agents=7 "
                 "tool_call=true repair=true stability=3 gateway=true"
             )
         return 0
@@ -317,7 +317,7 @@ def build_parser() -> argparse.ArgumentParser:
     e2e.add_argument("--dry-run", action="store_true")
     e2e.add_argument("--json", action="store_true")
 
-    agents = subparsers.add_parser("agents", help="valider ou déployer les six workspaces")
+    agents = subparsers.add_parser("agents", help="valider ou déployer les sept workspaces")
     agent_commands = agents.add_subparsers(dest="agents_command", required=True)
     agents_validate = agent_commands.add_parser("validate")
     agents_validate.add_argument("--json", action="store_true")

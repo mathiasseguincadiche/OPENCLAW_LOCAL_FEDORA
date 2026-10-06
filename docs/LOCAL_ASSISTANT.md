@@ -1,6 +1,6 @@
 # Un atelier local simple à utiliser
 
-Six spécialités partagent toujours Qwen 3.5 9B Q4_K_M, une seule génération à la fois, 8192 tokens de contexte et 1024 tokens de sortie. La recherche documentaire utilise le processeur et SQLite FTS5, sans embeddings, modèle supplémentaire ou compte externe. Le plugin mémoire natif d'OpenClaw est désactivé ; seules les notes explicites du projet sont indexées.
+Sept spécialités partagent toujours Qwen 3.5 9B Q4_K_M, une seule génération à la fois, 8192 tokens de contexte et 1024 tokens de sortie. La recherche documentaire utilise le processeur et SQLite FTS5, sans embeddings, modèle supplémentaire ou compte externe. Le plugin mémoire natif d'OpenClaw est désactivé ; seules les notes explicites du projet sont indexées.
 
 ## Ouvrir le tableau de bord
 

@@ -13,7 +13,7 @@ SOCIAL_PREVIEW = ROOT / ".github/social-preview.svg"
 def test_repository_landing_page_has_clear_identity_and_status() -> None:
     text = README.read_text(encoding="utf-8")
     for marker in (
-        "Fedora 44 · Local AI · 6 agents · Intel Arc B580 · Vulkan · Fail-closed",
+        "Fedora 44 · Local AI · 7 agents · Intel Arc B580 · Vulkan · Fail-closed",
         ".github/social-preview.svg",
         "## Pourquoi ce projet ?",
         "## État en un coup d'œil",
@@ -104,7 +104,7 @@ def test_social_preview_source_matches_project_invariants() -> None:
         "OPENCLAW_LOCAL_FEDORA",
         "Fedora 44",
         "OpenClaw 2026.9.8",
-        "6 agents",
+        "7 agents",
         "Intel Arc B580",
         "Vulkan",
         "hardware qualification pending",

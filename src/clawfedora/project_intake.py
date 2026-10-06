@@ -58,10 +58,7 @@ def _validate_source(path: Path, *, label: str) -> Path:
         raise ValueError(f"{label}: type de source non supporté: {source}")
     assert_no_symlinks(source, label=label)
     for item in _files(source):
-        if (
-            item.name.casefold() in _BLOCKED_NAMES
-            or item.suffix.casefold() in _BLOCKED_SUFFIXES
-        ):
+        if item.name.casefold() in _BLOCKED_NAMES or item.suffix.casefold() in _BLOCKED_SUFFIXES:
             raise ValueError(f"{label}: fichier secret potentiel interdit: {item.name}")
         with item.open("rb") as handle:
             head = handle.read(4096)
@@ -209,9 +206,7 @@ def _checked_zip_members(
             raise ValueError("archive: limites de taille dépassées")
         denominator = max(info.compress_size, 1)
         if info.file_size / denominator > max_ratio:
-            raise ValueError(
-                f"archive: ratio de compression excessif: {info.filename}"
-            )
+            raise ValueError(f"archive: ratio de compression excessif: {info.filename}")
         checked.append((info, member))
     return checked
 
@@ -362,6 +357,8 @@ def create_project(
     intake_items: Iterable[Path] = (),
     source_items: Iterable[Path] = (),
     expected_deliverables: Iterable[str] = (),
+    learning_mode: str = "guided",
+    learning_goals: list[str] | None = None,
 ) -> Path:
     policy = core_contract(repo_root, "intake_policy.yaml")
     limits = dict(policy["limits"])
@@ -401,9 +398,7 @@ def create_project(
             sources_inventory,
         )
         build_ingestion_index(project, repo_root)
-        deliverables = [
-            item.strip() for item in expected_deliverables if item.strip()
-        ]
+        deliverables = [item.strip() for item in expected_deliverables if item.strip()]
         manifest = {
             "schema_version": "1.0.0",
             "project_id": project.name,
@@ -417,6 +412,9 @@ def create_project(
             "orchestration": {"history": []},
         }
         write_json(project / "project.json", manifest)
+        from clawfedora.learning import initialize
+
+        initialize(project, learning_mode, learning_goals)
         chmod_read_only_files(project / "intake")
         chmod_read_only_files(project / "sources")
         return project

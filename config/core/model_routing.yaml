@@ -51,3 +51,9 @@ agents:
     phase_preferences:
       execute: primary
     independence_rule: separate_session_and_no_write_access; alternative_family_requires_explicit_qualification
+  redacteur-pedagogique:
+    local_primary: qwen-max
+    local_fallback: qwen-max
+    preferred_tier: primary
+    phase_preferences:
+      execute: primary

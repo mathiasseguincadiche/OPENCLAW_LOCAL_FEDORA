@@ -266,6 +266,7 @@ def _run_project(
             str(spec["title"]),
             intake_items=sources,
             expected_deliverables=_expected_deliverables(spec),
+            learning_mode="direct",  # Qualification harness, not a learner session.
         )
         store_analysis(repo_root, project, _analysis_payload(spec, _coverage(project)))
         create_clarifications(repo_root, project)

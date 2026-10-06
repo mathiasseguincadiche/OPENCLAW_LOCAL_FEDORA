@@ -28,7 +28,7 @@ MODEL_IDS = tuple(f"openclaw/{role}" for role in AGENT_IDS)
 def chat_prompt(data: dict[str, Any]) -> tuple[str, str]:
     model = data.get("model")
     if model not in MODEL_IDS:
-        raise ValueError("seuls les six rôles locaux sont disponibles")
+        raise ValueError("seuls les sept rôles locaux sont disponibles")
     # Open WebUI sends its built-in tool catalog even for a plain chat. Discard it:
     # only the validated model id and text history become an OpenClaw prompt.
     # No caller-supplied tool, URL, header, user/session id or model override is forwarded.

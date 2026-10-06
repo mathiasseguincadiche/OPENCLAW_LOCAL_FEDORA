@@ -1,51 +1,33 @@
-# Six rôles, outils effectifs et apprentissage DevOps infrastructure/OPS
+# Sept spécialistes, outils effectifs et pédagogie transversale
 
-L’architecte assure la synthèse finale et la pédagogie d’ensemble. Le DevOps rédige procédures, configurations, stratégies d’exploitation et rollback; l’expert recherche fournit les sources et mécanismes; la sécurité explique les risques; l’auditeur vérifie preuves, cohérence et actionnabilité. Le chef cadre et ordonne le travail. Cette répartition évite un septième rédacteur permanent et une duplication de chaque livrable.
+L’architecte conçoit les composants, les flux et les schémas. Le rédacteur pédagogique assure la cohérence éditoriale des contributions actuelles. Chaque spécialiste reste responsable d’expliquer son raisonnement à l’apprenant; personne ne délègue toute la pédagogie au rédacteur.
 
-| Rôle | Responsabilité et production | Outils spécifiques |
-|---|---|---|
-| Chef des opérations | Cadrage, questions, plan court et critères de fin | Trame `brief`; inventaire et historique des sessions autorisées |
-| Expert recherche | Sources primaires datées, mécanismes, alternatives et limites | Trame `sources`; recherche et lecture web |
-| Architecte solutions | ADR, architecture, flux, schémas et rédaction finale progressive | Trames `adr`/`guide`; schéma SVG et Mermaid |
-| Ingénieur DevOps infrastructure/OPS | Runbooks, scripts proposés, configuration, diagnostic, déploiement et Git/CI | Trames `runbook`/`incident`; contrôles statiques JSON/YAML/Python/texte |
-| Ingénieur sécurité | Scénarios de menace, droits, exposition, contrôles et risque résiduel | Trame `threats`; contrôles statiques et alertes OPS |
-| Auditeur qualité | Critères, sources, intégrité, preuves et pertinence pédagogique | Trame `audit`; contrôles statiques; lecture directe des originaux |
+| Rôle | Contribution et accompagnement |
+|---|---|
+| Chef des opérations | problème, périmètre, prérequis, petites étapes, critères et dépendances |
+| Expert recherche | vocabulaire, mécanismes, sources datées, alternatives et incertitudes |
+| Architecte | infrastructure, ADR, schémas et compromis liés aux limites matérielles |
+| DevOps infrastructure/OPS | méthodes, scripts/configurations proposés, CI, vérification, incident et rollback |
+| Sécurité | risques concrets, droits, exposition, secrets et limites des contrôles |
+| Rédacteur pédagogique | explications progressives, exemples, liens entre notions et synthèse fidèle |
+| Auditeur qualité | sources, critères, intégrité, preuves, clarté et actionnabilité |
 
-Tous ont `read`, `pdf`, `view_image`, `session_status`, les outils web autorisés, `clawfedora_search` et `clawfedora_outline`. Les habilitations effectives sont dans `config/core/tool_policy.yaml`; le helper vérifie aussi le rôle et le workspace géré. Le schéma est réservé à l’architecte; les contrôles de code à DevOps/sécurité/audit. L’IA ne choisit ni l’exécutable ni le module Python appelé.
+```mermaid
+flowchart TD
+    U[Apprenant : objectif et validation] --> C[Chef : plan court]
+    C --> S[Spécialistes utiles : recherche, architecture, DevOps, sécurité]
+    S --> E[Explication et amorce]
+    E --> P[Apprenant : travail, raisonnement, observations]
+    P --> D[Contributions actuelles et preuves]
+    D --> R[Rédacteur : relier et clarifier si utile]
+    R --> A[Auditeur : critères et preuves]
+    A --> F[Apprenant : approbation de livraison]
+    M[Modification approuvée] --> I[Archiver et reprendre les tâches dépendantes]
+    I --> S
+```
 
-## Ce qui fonctionne réellement
+Ce schéma décrit un parcours possible, pas sept générations obligatoires. Le worker séquentiel appelle OpenClaw, qui utilise le même Qwen pour chaque spécialité. Le rédacteur applique aussi le mode guidé: sa proposition attend le travail de l’apprenant. Si aucune synthèse n’est nécessaire, les contributions vont directement aux audits.
 
-Le plugin local `plugins/clawfedora-toolkit` est chargé par OpenClaw; les outils sont optionnels et explicitement autorisés par rôle. Il appelle un module Python fixe de la venv gérée, sans shell, avec délai 10 secondes et entrées/sorties bornées. Il n’ajoute ni service ni modèle.
+Tous disposent de lecture, PDF/images et outils web autorisés, recherche locale bornée et trames métier. Les outils effectifs et leurs restrictions sont détaillés dans [SPECIALIST_TOOLING.md](SPECIALIST_TOOLING.md). L’architecte seul dispose du rendu de diagramme; DevOps/sécurité/audit des contrôles techniques; le rédacteur du lint Markdown. Les prompts déployés injectent le contrat commun, restent sous 3000 caractères et les fichiers normalement injectés sous 8000 caractères cumulés. Ce budget ne confond pas caractères et tokens: le contexte reste 8192 tokens pour système, outils et échanges.
 
-- `clawfedora_search(query, scope)`: au plus quatre passages de fichiers texte du workspace, avec chemin et numéro de ligne. Choisir le snapshot de la tâche comme scope. Scan borné (200 fichiers, 2 Mo), pas d’embeddings ni promesse d’exhaustivité. Aucun accès aux dossiers d’un autre rôle.
-- `clawfedora_outline(kind, title)`: trame spécifique au métier, avec rubriques et emplacements à compléter. Ce n’est ni une documentation achevée ni une preuve.
-- `clawfedora_diagram(nodes, edges)`: jusqu’à huit composants et douze liens, libellés échappés, SVG inerte et source Mermaid. Aucun navigateur, script, URL externe ou Graphviz. Pour le budget de sortie, préférer des schémas très courts ou la source Mermaid.
-- `clawfedora_check(format, content)`: parsing JSON/YAML/Python et quelques alertes sur des propositions OPS. Aucun code exécuté. `runtime_tested=false` reste explicite; aucune garantie de sécurité, conformité métier, type checking, syntaxe shell ou fonctionnement Terraform/Kubernetes. Pour ces besoins, prévoir une exécution qualifiée séparément.
-
-Les outils retournent leurs résultats. Pour un projet, l’agent inclut les documents dans le JSON `files` demandé; **seul le collecteur écrit les chemins attendus** `deliverables/<task-id>/...`, `diagrams/<task-id>/...`, etc. La capacité d’écriture fictive `architecture_scoped` a été supprimée des prompts. Les écritures natives et `exec/process` restent interdites. Dans un chat libre, le résultat peut être présenté dans la réponse mais n’est pas livré automatiquement dans un projet.
-
-## Un exemple de plan proportionné
-
-Pour choisir et documenter une stratégie de sauvegarde Fedora:
-
-1. Recherche seulement si les informations nécessaires sont absentes ou doivent être actualisées.
-2. Architecte: comparer deux options et proposer un ADR court.
-3. DevOps: proposer une procédure de sauvegarde/restauration et les résultats à vérifier; dépend du choix d’architecture.
-4. Architecte: synthèse finale pédagogique, réutilisant ADR et procédure. Ajouter un contrôle sécurité si les données ou l’exposition le justifient.
-
-La validation et la relecture sont des étapes séparées du moteur. L’auditeur vérifie une preuve réelle de restauration si elle est requise: une procédure écrite ou un contrôle statique ne suffit pas. Une session neuve du même Qwen apporte une séparation de contexte, pas une famille de raisonnement indépendante.
-
-## Apprendre la logique du métier
-
-Chaque prompt charge l’essentiel de l’accompagnement OPS dans son budget de bootstrap. L’ensemble des rôles doit expliquer, selon le besoin:
-
-- **Pourquoi**: problème, mécanisme, stratégie choisie et compromis.
-- **Avant d’agir**: dépendances, permissions, état initial et hypothèses.
-- **Comment vérifier**: résultat attendu, mesure ou preuve observable, limite d’un contrôle statique.
-- **Comment diagnostiquer**: symptôme, hypothèse, vérification, correction et rollback.
-
-Le guide final progresse de comprendre à utiliser, approfondir et diagnostiquer. Les exercices sont facultatifs, isolés et réversibles; aucun quiz automatique. Une compétence n’est pas déclarée acquise sans pratique vérifiée. Les prompts `AGENTS.md` restent sous 2500 caractères par rôle et les fichiers normalement injectés sous 8000 caractères au total; cela protège le contexte de 8192 tokens sans confondre caractères et tokens.
-
-L’optimisation porte sur **le travail demandé**, pas sur le nombre d’étiquettes: six spécialités ne consomment pas six VRAM. N’appeler que les rôles nécessaires, réutiliser les contributions, couper les documents longs en petites tâches et éviter les générateurs de titres ou un second système RAG. Le gain de vitesse doit être mesuré sur Fedora; conserver six rôles ne supprime pas le coût des tâches et audits réellement lancés.
-
-Source SDK: [outils plugin OpenClaw](https://docs.openclaw.ai/plugins/tool-plugins).
+[LEARNING_WORKFLOW.md](LEARNING_WORKFLOW.md) décrit la pratique guidée, les soumissions humaines et les reprises de dépendances. Six ou sept profils ne signifient pas autant de modèles en VRAM. Un seul Qwen, une génération à la fois, spécialistes sollicités uniquement s’ils sont utiles. Une synthèse peut coûter un appel supplémentaire: utiliser le rédacteur pour un livrable qui a besoin de cohérence, pas pour reformater chaque réponse triviale.

@@ -120,4 +120,4 @@ def test_openclaw_render_cli_writes_patch(tmp_path: Path) -> None:
     )
     payload = json.loads(output.read_text(encoding="utf-8"))
     assert payload["gateway"]["bind"] == "loopback"
-    assert len(payload["agents"]["entries"]) == 6
+    assert len(payload["agents"]["entries"]) == 7
