@@ -96,8 +96,20 @@ def test_pause_notes_and_search_are_usable_through_local_api(server: DashboardSe
     assert status == 200 and hits[0]["kind"] == "decision"
     assert request(server, "/api/index", data)[0] == 200
     assert request(server, "/api/search?project=../escape&q=secret")[0] == 400
+    assert request(server, "/api/index", {"project_id": "../escape"})[0] == 400
+    assert request(server, "/api/index", {"project_id": "absent-project"})[0] == 400
+    assert request(server, "/../pyproject.toml")[0] == 404
     assert request(server, "/api/unknown", data)[0] == 404
     assert request(server, "/api/remember", {**data, "title": "", "text": "bad"})[0] == 400
+
+
+def test_dashboard_rejects_existing_project_symlink(server: DashboardServer, tmp_path: Path) -> None:
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "project.json").write_text("{}")
+    (server.runtime / "projects/linked-project").symlink_to(outside, target_is_directory=True)
+    assert request(server, "/api/search?project=linked-project&q=secret")[0] == 400
+    assert request(server, "/api/index", {"project_id": "linked-project"})[0] == 400
 
 
 def test_resume_requires_click_assigned_plan_and_daily_profile(

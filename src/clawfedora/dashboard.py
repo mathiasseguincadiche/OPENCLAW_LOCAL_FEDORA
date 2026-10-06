@@ -14,7 +14,7 @@ from urllib.request import urlopen
 
 from clawfedora.core_config import root_contract
 from clawfedora.knowledge import build_index, search, store_note
-from clawfedora.project_common import project_path, read_json
+from clawfedora.project_common import read_json
 from clawfedora.project_control import is_paused, progress, request_pause, worker_active
 from clawfedora.project_engine import current_status
 from clawfedora.project_worker import run_project_tasks, worker_lock
@@ -101,6 +101,22 @@ class DashboardServer(HTTPServer):
 class DashboardHandler(BaseHTTPRequestHandler):
     server: DashboardServer
 
+    def _project(self, project_id: str) -> Path:
+        # Select a path found on disk; request values never form filesystem paths.
+        root = self.server.runtime / "projects"
+        if root.is_symlink():
+            raise ValueError("racine de projets liée interdite")
+        for manifest in root.glob("*/project.json"):
+            project = manifest.parent
+            if project.name != project_id:
+                continue
+            if project.is_symlink() or manifest.is_symlink():
+                raise ValueError("projet lié interdit")
+            if project.resolve().parent != root.resolve():
+                raise ValueError("projet hors runtime")
+            return project
+        raise ValueError("projet existant requis")
+
     def log_message(self, format: str, *args: Any) -> None:
         pass
 
@@ -136,7 +152,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
         url = urlsplit(self.path)
         try:
             if url.path in {"/", "/dashboard.js", "/dashboard.css"}:
-                name = "dashboard.html" if url.path == "/" else url.path[1:]
+                name = {
+                    "/": "dashboard.html",
+                    "/dashboard.js": "dashboard.js",
+                    "/dashboard.css": "dashboard.css",
+                }[url.path]
                 kind = {
                     "dashboard.html": "text/html",
                     "dashboard.js": "text/javascript",
@@ -149,7 +169,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 self._send(200, value)
             elif url.path == "/api/search":
                 query = parse_qs(url.query)
-                project = project_path(self.server.runtime, query["project"][0])
+                project = self._project(query["project"][0])
                 self._send(200, search(self.server.repo_root, project, query.get("q", [""])[0]))
             else:
                 self._send(404, {"error": "page absente"})
@@ -165,7 +185,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             if self.headers.get("Content-Type") != "application/json" or not 0 < length <= 20000:
                 raise ValueError("requête JSON bornée requise")
             data = json.loads(self.rfile.read(length))
-            project = project_path(self.server.runtime, str(data["project_id"]))
+            project = self._project(str(data["project_id"]))
             if self.path == "/api/pause":
                 request_pause(self.server.runtime, project)
             elif self.path == "/api/resume":
