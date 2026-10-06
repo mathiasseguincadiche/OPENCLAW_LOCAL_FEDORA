@@ -29,7 +29,18 @@ from clawfedora.project_engine import (
 from clawfedora.project_intake import create_project, validate_input_integrity
 from clawfedora.project_worker import AgentRunner, _guard, openclaw_runner, worker_lock
 
-SUFFIXES = {".txt", ".md", ".pdf", ".png", ".jpg", ".jpeg", ".docx", ".yaml", ".yml", ".json"}
+UPLOAD_FORMATS = {
+    ".txt": ".txt",
+    ".md": ".md",
+    ".pdf": ".pdf",
+    ".png": ".png",
+    ".jpg": ".jpg",
+    ".jpeg": ".jpeg",
+    ".docx": ".docx",
+    ".yaml": ".yaml",
+    ".yml": ".yml",
+    ".json": ".json",
+}
 
 
 def create_from_browser(repo: Path, runtime: Path, data: dict[str, Any]) -> Path:
@@ -48,8 +59,8 @@ def create_from_browser(repo: Path, runtime: Path, data: dict[str, Any]) -> Path
         total = len(brief.encode())
         for index, upload in enumerate(uploads):
             name = str(upload["name"])
-            suffix = Path(name).suffix.lower()
-            if suffix not in SUFFIXES or len(name) > 200:
+            suffix = UPLOAD_FORMATS.get(Path(name).suffix.lower())
+            if suffix is None or len(name) > 200:
                 raise ValueError("format de document non pris en charge par l’import web")
             try:
                 content = base64.b64decode(upload["content"], validate=True)

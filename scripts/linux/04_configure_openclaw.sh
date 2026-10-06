@@ -184,7 +184,11 @@ fi
 "$OPENCLAW" config patch --file "$PATCH_PATH"
 node "$REPO_ROOT/scripts/linux/retire_managed_agents.mjs" "$OPENCLAW"
 "$OPENCLAW" config validate --json | jq -e . >/dev/null
-"$OPENCLAW" plugins inspect clawfedora-toolkit --runtime --json | jq -e . >/dev/null
+"$OPENCLAW" plugins inspect clawfedora-toolkit --runtime --json | jq -e '
+  .plugin.enabled == true and .plugin.status == "loaded" and
+  (.plugin.toolNames | sort) ==
+  (["clawfedora_search", "clawfedora_outline", "clawfedora_diagram", "clawfedora_check"] | sort)
+' >/dev/null
 AGENTS_JSON="$($OPENCLAW agents list --json)"
 AGENT_COUNT="$(
   jq -r '

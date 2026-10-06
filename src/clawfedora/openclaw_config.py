@@ -200,6 +200,7 @@ def build_openclaw_patch(
             "controlUi": {"newSessionModelDefaults": "configured"},
         },
         "plugins": {
+            "allow": ["parallel", "clawfedora-toolkit", "memory-core"],
             "slots": {"memory": "none"},
             "load": {"paths": [str(runtime_root / "runtime/extensions/clawfedora-toolkit")]},
             "entries": {

@@ -10,12 +10,18 @@ import pytest
 from clawfedora.agent_tools import OUTLINES, TOOL_ROLES, check, diagram, invoke
 from clawfedora.agents import deploy_workspaces
 from clawfedora.core_config import AGENT_IDS, core_contract
+from clawfedora.openclaw_config import build_openclaw_patch
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_role_tools_policy_matches_callable_helpers_and_prompt_budget(tmp_path: Path) -> None:
     deploy_workspaces(ROOT, tmp_path)
+    assert set(build_openclaw_patch(ROOT, tmp_path)["plugins"]["allow"]) == {
+        "parallel",
+        "clawfedora-toolkit",
+        "memory-core",
+    }
     policy = core_contract(ROOT, "tool_policy.yaml")
     for role in AGENT_IDS:
         workspace = tmp_path / "workspaces" / role
