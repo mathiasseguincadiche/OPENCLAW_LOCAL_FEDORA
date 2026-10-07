@@ -240,64 +240,11 @@ def test_daily_patch_really_bounds_memory_and_disables_unsafe_tools(tmp_path: Pa
     models = patch["models"]["providers"]["ollama"]["models"]
     assert len(models) == 1
     assert models[0]["params"] == {
-        "num_ctx": 8192,
-        "num_predict": 1024,
+        "num_ctx": 32768,
+        "num_predict": 4096,
         "keep_alive": "3m",
         "think": False,
     }
-
-
-def test_live_golden_projects_invoke_real_worker_and_auditor_paths(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    from clawfedora import project_worker, qualification
-    from clawfedora.golden_projects import run_golden_suite
-    from clawfedora.project_common import write_json
-
-    deploy_workspaces(ROOT, tmp_path)
-    model = "qwen3.5:9b-q4_K_M"
-    tags = {
-        "models": [{"name": model, "digest": "a" * 64, "details": {"quantization_level": "Q4_K_M"}}]
-    }
-    monkeypatch.setattr(qualification, "_request_json", lambda _url: tags)
-    write_json(
-        tmp_path / "state/model-identities.json",
-        {"models": {model: {"digest": "a" * 64, "quantization_level": "Q4_K_M"}}},
-    )
-    roles: list[str] = []
-    sessions: set[str] = set()
-
-    def runner(role: str, prompt: str, session: str) -> dict[str, Any]:
-        roles.append(role)
-        assert session not in sessions
-        sessions.add(session)
-        request = json.loads(prompt.split("\n", 1)[1])
-        if prompt.startswith("Session indépendante"):
-            return {
-                "verdict": "PASS",
-                "findings": [],
-                "criteria": {
-                    task: [
-                        {"passed": True, "evidence": "report.md: justification contrôlée"}
-                        for _criterion in criteria
-                    ]
-                    for task, criteria in request.items()
-                },
-            }
-        return {
-            "files": {
-                relative: "Deux options, décision, limites et rollback."
-                for relative in request["expected_outputs"]
-            },
-            "summary": "collecté",
-        }
-
-    monkeypatch.setattr(project_worker, "openclaw_runner", lambda _runtime, _repo: runner)
-    code, report_path = run_golden_suite(ROOT, tmp_path, live=True)
-    report = read_json(report_path)
-    assert code == 0, report["failures"]
-    assert report["execution_mode"] == "live-openclaw"
-    assert report["ai_runtime_exercised"] is True
-    assert roles.count("auditeur-qualite") >= 12
-    assert len(sessions) == len(roles)
-    assert report["final_human_completion"] is False
+    # The model must never be able to update OpenClaw or chain a three-step tool search.
+    assert {"gateway", "presence"} <= set(patch["tools"]["deny"])
+    assert patch["tools"]["toolSearch"] is False

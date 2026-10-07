@@ -41,6 +41,35 @@ def root_contract(repo_root: Path, name: str) -> dict[str, Any]:
     return load_yaml(path)
 
 
+def daily_limits(repo_root: Path) -> dict[str, Any]:
+    """Daily limits: the single source for context, answer length and injected prompts."""
+    agents = core_contract(repo_root, "openclaw_policy.yaml").get("agents")
+    webui = root_contract(repo_root, "webui_policy.yaml")
+    if not isinstance(agents, dict):
+        raise ValueError("openclaw_policy.yaml: agents doit être un mapping")
+    limits: dict[str, Any] = {
+        "context_tokens": int(agents.get("context_tokens", 0) or 0),
+        "max_output_tokens": int(agents.get("max_output_tokens", 0) or 0),
+        "keep_alive": str(agents.get("keep_alive", "")),
+        "bootstrap_max_chars": int(agents.get("bootstrap_max_chars", 0) or 0),
+        "bootstrap_total_max_chars": int(agents.get("bootstrap_total_max_chars", 0) or 0),
+        "max_history_bytes": int(webui.get("max_history_bytes", 0) or 0),
+    }
+    if not all(limits.values()):
+        raise ValueError("limites quotidiennes incomplètes: openclaw_policy.yaml / webui_policy.yaml")
+    if int(webui.get("max_response_tokens", 0) or 0) != limits["max_output_tokens"]:
+        raise ValueError("webui_policy.yaml: max_response_tokens doit égaler max_output_tokens")
+    fleet = root_contract(repo_root, "model_catalog.yaml").get("fleet_policy")
+    declared = fleet.get("openclaw_agent_context_tokens") if isinstance(fleet, dict) else None
+    if declared != limits["context_tokens"]:
+        raise ValueError(
+            "model_catalog.yaml: openclaw_agent_context_tokens doit égaler le contexte quotidien"
+        )
+    if limits["max_output_tokens"] * 2 > limits["context_tokens"]:
+        raise ValueError("limites quotidiennes: la sortie ne peut dépasser la moitié du contexte")
+    return limits
+
+
 def resolve_runtime_root(explicit: str | Path | None = None) -> Path:
     if explicit is not None:
         return Path(explicit).expanduser().resolve()
@@ -63,8 +92,6 @@ def openclaw_environment(runtime: Path | None = None) -> dict[str, str]:
         ),
         OPENCLAW_STATE_DIR=str(root / "state/openclaw"),
         OPENCLAW_LOCAL_FEDORA_ROOT=str(root),
-        OPENCLAW_LOCAL_CLOUD_ENABLED="false",
         OLLAMA_API_KEY="ollama-local",
-        INTEL_VULKAN_API_KEY="intel-vulkan-local",
     )
     return env

@@ -1,6 +1,5 @@
-schema_version: "1.0.0"
-platform_version: "0.1.0"
-
+schema_version: 1.0.0
+platform_version: 0.1.0
 host:
   cpu:
     vendor: AMD
@@ -10,7 +9,6 @@ host:
   memory:
     installed_gib: 48
     minimum_supported_gib: 48
-    upgrade_target_gib: 96
   gpu:
     vendor: Intel
     family: Arc B-Series
@@ -27,14 +25,7 @@ host:
       model: Crucial T705
       interface: PCIe 5.0 NVMe
       preferred_mount: /srv/openclaw-local
-
 firmware:
   uefi_required: true
   iommu_recommended: true
-  secure_boot_policy: supported-not-required-for-upstream-kernel-candidate
-
-performance:
-  cpu_governor_preferred_during_benchmark: performance
-  require_ac_power: true
-  require_no_suspend_during_benchmark: true
-  require_gpu_telemetry: true
+  secure_boot_policy: supported

@@ -14,7 +14,13 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
-from clawfedora.core_config import AGENT_IDS, core_contract, openclaw_environment, root_contract
+from clawfedora.core_config import (
+    AGENT_IDS,
+    core_contract,
+    daily_limits,
+    openclaw_environment,
+    root_contract,
+)
 from clawfedora.knowledge import build_index, search
 from clawfedora.learning import awaiting, instructions, pending_feedback, stage, task_mode
 from clawfedora.mentor import copy_profile
@@ -76,23 +82,38 @@ def _guard(root: Path) -> dict[str, str]:
 
 
 def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False) -> AgentRunner:
-    checked = False
+    checked_binary: tuple[str, int, int] | None = None
+    roster_stamp: tuple[int, int] | None = None
 
     def run(role: str, prompt: str, session: str) -> dict[str, Any]:
-        nonlocal checked
+        nonlocal checked_binary, roster_stamp
+        from clawfedora import ollama_api
         from clawfedora.lifecycle import model_plan
         from clawfedora.model_identity import verify_model_lock
-        from clawfedora.qualification import _model_inventory, _request_json
         from clawfedora.version_lock import extract_openclaw_version
 
         env = openclaw_environment(runtime)
-        if not checked:
-            pins = root_contract(repo_root, "runtime_versions.yaml")
-            if (
-                _request_json("http://127.0.0.1:11434/api/version").get("version")
-                != pins["ollama"]["version"]
-            ):
-                raise ValueError("Ollama divergent du contrat: migration requise avant le travail")
+        # Versions are rechecked when the CLI binary changes, not on every message:
+        # each check is a full process start.
+        binary = shutil.which("openclaw", path=env.get("PATH"))
+        try:
+            resolved = Path(binary).resolve() if binary else None
+            binary_stat = resolved.stat() if resolved else None
+            binary_stamp = (
+                (str(resolved), binary_stat.st_mtime_ns, binary_stat.st_size)
+                if binary_stat
+                else None
+            )
+        except OSError:
+            binary_stamp = None
+        pins = root_contract(repo_root, "runtime_versions.yaml")
+        # A local HTTP call is cheap: the Ollama version is verified on every message.
+        if (
+            ollama_api.request_json("http://127.0.0.1:11434/api/version").get("version")
+            != pins["ollama"]["version"]
+        ):
+            raise ValueError("Ollama divergent du contrat: migration requise avant le travail")
+        if binary_stamp is None or binary_stamp != checked_binary:
             version = subprocess.run(
                 ["openclaw", "--version"],
                 env=env,
@@ -106,39 +127,51 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
                 or extract_openclaw_version(version.stdout) != pins["openclaw"]["version"]
             ):
                 raise ValueError("OpenClaw divergent du contrat: migration requise avant le travail")
-            checked = True
+            checked_binary = binary_stamp
 
-        identities = _model_inventory(
-            _request_json("http://127.0.0.1:11434/api/tags"), model_plan(repo_root)
+        plan = model_plan(repo_root)
+        daily_model = str(plan[0]["runtime_id"])
+        identities = ollama_api.model_inventory(
+            ollama_api.request_json("http://127.0.0.1:11434/api/tags"), plan
         )
         verify_model_lock(runtime, identities)
-        roster_result = subprocess.run(
-            ["openclaw", "config", "get", "agents", "--json"],
-            env=env,
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=30,
-        )
-        if roster_result.returncode != 0:
-            raise ValueError("configuration agents non vérifiable")
-        from clawfedora.openclaw_e2e import _agent_entries
+        # The roster check starts a full CLI process. Repeat it only when the
+        # configuration file changed, not before every single message.
+        config_file = runtime / "state/openclaw/openclaw.json"
+        try:
+            stat = config_file.stat()
+            stamp: tuple[int, int] | None = (stat.st_mtime_ns, stat.st_size)
+        except OSError:
+            stamp = None
+        if stamp is None or stamp != roster_stamp:
+            roster_result = subprocess.run(
+                ["openclaw", "config", "get", "agents", "--json"],
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=30,
+            )
+            if roster_result.returncode != 0:
+                raise ValueError("configuration agents non vérifiable")
+            from clawfedora.openclaw_reply import agent_entries
 
-        entries = _agent_entries({"agents": json.loads(roster_result.stdout)})
-        if set(entries) != set(AGENT_IDS):
-            raise ValueError("configuration agents: sept rôles quotidiens exacts requis")
-        for agent_id, entry in entries.items():
-            denied = set(entry.get("tools", {}).get("deny", []))
-            expected = {"exec", "process", "write", "edit", "apply_patch"}
-            if not expected.issubset(denied):
-                raise ValueError(f"profil quotidien en lecture divergent: {agent_id}")
-            if (
-                Path(entry.get("workspace", "")).resolve()
-                != (runtime / "workspaces" / agent_id).resolve()
-            ):
-                raise ValueError(f"workspace divergent: {agent_id}")
-            if entry.get("model") != {"primary": "ollama/qwen3.5:9b-q4_K_M", "fallbacks": []}:
-                raise ValueError(f"routage quotidien divergent: {agent_id}")
+            entries = agent_entries({"agents": json.loads(roster_result.stdout)})
+            if set(entries) != set(AGENT_IDS):
+                raise ValueError("configuration agents: sept rôles quotidiens exacts requis")
+            for agent_id, entry in entries.items():
+                denied = set(entry.get("tools", {}).get("deny", []))
+                expected = {"exec", "process", "write", "edit", "apply_patch"}
+                if not expected.issubset(denied):
+                    raise ValueError(f"profil quotidien en lecture divergent: {agent_id}")
+                if (
+                    Path(entry.get("workspace", "")).resolve()
+                    != (runtime / "workspaces" / agent_id).resolve()
+                ):
+                    raise ValueError(f"workspace divergent: {agent_id}")
+                if entry.get("model") != {"primary": f"ollama/{daily_model}", "fallbacks": []}:
+                    raise ValueError(f"routage quotidien divergent: {agent_id}")
+            roster_stamp = stamp
         completed = subprocess.run(
             [
                 "openclaw",
@@ -151,21 +184,21 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
                 prompt,
                 "--json",
                 "--timeout",
-                "300",
+                "600",
             ],
             env=env,
             capture_output=True,
             text=True,
             check=False,
-            timeout=330,
+            timeout=630,
         )
         if completed.returncode != 0:
             raise ValueError(f"OpenClaw a échoué (code={completed.returncode})")
         envelope = json.loads(completed.stdout)
-        from clawfedora.openclaw_e2e import _assert_agent_success, _visible_text
+        from clawfedora.openclaw_reply import assert_agent_success, visible_text
 
-        _assert_agent_success(envelope, "ollama")
-        text = _visible_text(envelope)
+        assert_agent_success(envelope, "ollama")
+        text = visible_text(envelope)
         if plain_text:
             return {"text": text}
         schema = response_schema(prompt)
@@ -173,14 +206,21 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
             value = parse_response(text, schema)
         except json.JSONDecodeError:
             # Syntax-only repair; missing fields in a valid JSON object fail closed.
-            value = repair_response(text, schema)
+            limits = daily_limits(repo_root)
+            value = repair_response(
+                text,
+                schema,
+                model=daily_model,
+                context_tokens=int(limits["context_tokens"]),
+                max_output_tokens=int(limits["max_output_tokens"]),
+            )
             write_json(
                 runtime / "state/response-repairs" / f"{session}.json",
                 {
                     "session_id": session,
                     "attempts": 1,
                     "input_sha256": hashlib.sha256(text.encode()).hexdigest(),
-                    "model": "qwen3.5:9b-q4_K_M",
+                    "model": daily_model,
                     "schema": schema,
                 },
             )
@@ -397,12 +437,12 @@ def run_project_tasks(
         if current_status(project) != "IN_PROGRESS":
             raise ValueError("worker: projet ASSIGNED ou IN_PROGRESS requis")
         if runner is None:
+            from clawfedora import ollama_api
             from clawfedora.lifecycle import model_plan
             from clawfedora.model_identity import verify_model_lock
-            from clawfedora.qualification import _model_inventory, _request_json
 
-            identities = _model_inventory(
-                _request_json("http://127.0.0.1:11434/api/tags"), model_plan(repo_root)
+            identities = ollama_api.model_inventory(
+                ollama_api.request_json("http://127.0.0.1:11434/api/tags"), model_plan(repo_root)
             )
             verify_model_lock(runtime, identities)
         invoke = runner or openclaw_runner(runtime, repo_root)

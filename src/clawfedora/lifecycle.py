@@ -14,11 +14,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from clawfedora import ollama_api
 from clawfedora.agents import load_agent_specs
 from clawfedora.contracts import validate_repository
-from clawfedora.core_config import openclaw_environment, root_contract
+from clawfedora.core_config import daily_limits, openclaw_environment, root_contract
 from clawfedora.hardware_gate import collect_hardware_gate
-from clawfedora.qualification import _model_inventory, _request_json
 from clawfedora.version_lock import extract_openclaw_version
 
 MANAGED_MARKER = ".openclaw-fedora-managed"
@@ -47,24 +47,23 @@ class HealthReport:
         }
 
 
-def model_plan(repo_root: Path, *, experimental: bool = False) -> list[dict[str, Any]]:
+def model_plan(repo_root: Path) -> list[dict[str, Any]]:
     catalog = root_contract(repo_root, "model_catalog.yaml")
     models = catalog.get("models", {})
     if not isinstance(models, dict):
         raise ValueError("model_catalog.yaml: models invalide")
     result: list[dict[str, Any]] = []
     for alias, raw in models.items():
-        if not isinstance(raw, dict) or (not experimental and raw.get("required") is not True):
+        if not isinstance(raw, dict) or raw.get("required") is not True:
             continue
         result.append(
             {
                 "alias": str(alias),
                 "runtime_id": str(raw.get("runtime_id", "")),
                 "approximate_weight_gib": float(raw.get("approximate_weight_gib", 0.0)),
-                "nominal_context_tokens": int(raw.get("nominal_context_tokens", 0)),
             }
         )
-    if len(result) != (3 if experimental else 1) or any(not item["runtime_id"] for item in result):
+    if len(result) != 1 or any(not item["runtime_id"] for item in result):
         raise ValueError("lifecycle: flotte nominale invalide")
     return result
 
@@ -170,7 +169,7 @@ def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) 
         checks.append(HealthCheck("openclaw-version", "FAIL", "version non confirmée"))
     endpoint = "http://127.0.0.1:11434"
     try:
-        version = _request_json(endpoint + "/api/version")
+        version = ollama_api.request_json(endpoint + "/api/version")
         expected_version = str(versions["ollama"]["version"])
         version_ok = version.get("version") == expected_version
         checks.append(
@@ -178,8 +177,8 @@ def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) 
                 "ollama-version", "PASS" if version_ok else "FAIL", str(version.get("version"))
             )
         )
-        tags = _request_json(endpoint + "/api/tags")
-        identities = _model_inventory(tags, model_plan(repo_root))
+        tags = ollama_api.request_json(endpoint + "/api/tags")
+        identities = ollama_api.model_inventory(tags, model_plan(repo_root))
         from clawfedora.model_identity import verify_model_lock
 
         verify_model_lock(runtime_root, identities)
@@ -188,19 +187,22 @@ def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) 
         )
         if probe:
             model = str(model_plan(repo_root)[0]["runtime_id"])
-            answer = _request_json(
+            answer = ollama_api.request_json(
                 endpoint + "/api/generate",
                 payload={
                     "model": model,
                     "prompt": "Réponds OK",
                     "stream": False,
                     "think": False,
-                    "options": {"num_ctx": 8192, "num_predict": 8},
+                    "options": {
+                        "num_ctx": int(daily_limits(repo_root)["context_tokens"]),
+                        "num_predict": 8,
+                    },
                     "keep_alive": "3m",
                 },
                 timeout=60,
             )
-            runners = _request_json(endpoint + "/api/ps").get("models", [])
+            runners = ollama_api.request_json(endpoint + "/api/ps").get("models", [])
             offloaded = any(
                 isinstance(item, dict)
                 and item.get("name") == model
@@ -212,7 +214,7 @@ def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) 
                 HealthCheck(
                     "model-gpu-probe",
                     "PASS" if ok else "FAIL",
-                    "inférence courte et VRAM observées; qualification complète distincte",
+                    "inférence courte et VRAM observées",
                 )
             )
     except (OSError, ValueError, KeyError, TypeError) as exc:
@@ -225,7 +227,7 @@ def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) 
         checks.append(
             HealthCheck(check_id, "PASS" if ok and output == expected_value else "FAIL", output)
         )
-    gpu = collect_hardware_gate(repo_root, "l3")
+    gpu = collect_hardware_gate(repo_root, "gpu")
     checks.append(
         HealthCheck(
             "b580-vulkan",
@@ -416,7 +418,7 @@ def cleanup_managed(runtime_root: Path, *, purge_data: bool = False) -> list[Pat
         shutil.rmtree(venv)
         removed.append(venv)
     if purge_data:
-        for name in ("projects", "proofs", "state", "models", "benchmarks"):
+        for name in ("projects", "proofs", "state", "models"):
             path = runtime / name
             if path.is_dir():
                 shutil.rmtree(path)

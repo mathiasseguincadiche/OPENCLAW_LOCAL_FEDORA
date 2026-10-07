@@ -5,15 +5,9 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.agents import load_agent_specs
-from clawfedora.core_config import core_contract, root_contract
+from clawfedora.core_config import core_contract, daily_limits, root_contract
 
-PROVIDER_IDS = {
-    "llama-cpp-vulkan": "intel-vulkan",
-}
-PROVIDER_ENV_KEYS = {
-    "ollama": "OLLAMA_API_KEY",
-    "intel-vulkan": "INTEL_VULKAN_API_KEY",
-}
+OLLAMA_KEY_ENV = "OLLAMA_API_KEY"
 
 
 def _mapping(value: Any) -> dict[str, Any]:
@@ -25,37 +19,14 @@ def _environment_reference(env_name: str) -> dict[str, str]:
     return {"source": "env", "provider": "default", "id": env_name}
 
 
-def _runtime_id(model: dict[str, Any], backend_id: str, *, alias: str) -> str:
-    field = {
-        "ollama-vulkan": "runtime_id",
-        "llama-cpp-vulkan": "vulkan_runtime_id",
-    }.get(backend_id)
-    if field is None:
-        raise ValueError(f"backend OpenClaw non supporté: {backend_id}")
-    value = str(model.get(field, ""))
-    if not value:
-        raise ValueError(f"{field} absent pour le modèle {alias}")
-    return value
-
-
-def _nominal_context_tokens(model: dict[str, Any], *, alias: str) -> int:
-    value = int(model.get("nominal_context_tokens", 0) or 0)
-    if value <= 0:
-        raise ValueError(f"nominal_context_tokens absent pour le modèle {alias}")
-    return value
-
-
-def _backend_ref(alias: str, catalog: dict[str, Any], backend_id: str) -> str:
+def _model_ref(alias: str, catalog: dict[str, Any]) -> str:
     models = _mapping(catalog.get("models"))
     if alias not in models:
         raise ValueError(f"alias modèle absent du catalogue: {alias}")
-    model = _mapping(models[alias])
-    if backend_id == "ollama-vulkan":
-        return f"ollama/{_runtime_id(model, backend_id, alias=alias)}"
-    provider = PROVIDER_IDS.get(backend_id)
-    if provider is None:
-        raise ValueError(f"backend OpenClaw non supporté: {backend_id}")
-    return f"{provider}/{_runtime_id(model, backend_id, alias=alias)}"
+    runtime_id = str(_mapping(models[alias]).get("runtime_id", ""))
+    if not runtime_id:
+        raise ValueError(f"runtime_id absent pour le modèle {alias}")
+    return f"ollama/{runtime_id}"
 
 
 def _agent_tools(agent_id: str, policy: dict[str, Any]) -> dict[str, Any]:
@@ -76,96 +47,49 @@ def _agent_tools(agent_id: str, policy: dict[str, Any]) -> dict[str, Any]:
     return tools
 
 
-def _ollama_provider(catalog: dict[str, Any]) -> dict[str, Any]:
+def _ollama_provider(catalog: dict[str, Any], limits: dict[str, Any]) -> dict[str, Any]:
     models: list[dict[str, Any]] = []
     for alias, raw in _mapping(catalog.get("models")).items():
         model = _mapping(raw)
         if model.get("provider") != "ollama" or model.get("required") is not True:
             continue
-        alias_text = str(alias)
-        runtime_id = _runtime_id(model, "ollama-vulkan", alias=alias_text)
-        context_tokens = _nominal_context_tokens(model, alias=alias_text)
+        runtime_id = _model_ref(str(alias), catalog).removeprefix("ollama/")
+        context_tokens = int(limits["context_tokens"])
+        output_tokens = int(limits["max_output_tokens"])
         model_input = model.get("input", ["text"])
-        inputs = list(model_input) if isinstance(model_input, list) else ["text"]
         models.append(
             {
                 "id": runtime_id,
                 "name": runtime_id,
-                "input": inputs,
+                "input": list(model_input) if isinstance(model_input, list) else ["text"],
                 "contextTokens": context_tokens,
-                "maxTokens": 1024,
+                "maxTokens": output_tokens,
                 "params": {
                     "num_ctx": context_tokens,
-                    "num_predict": 1024,
-                    "keep_alive": "3m",
+                    "num_predict": output_tokens,
+                    "keep_alive": str(limits["keep_alive"]),
                     "think": False,
                 },
             }
         )
     return {
         "baseUrl": "http://127.0.0.1:11434",
-        "apiKey": _environment_reference(PROVIDER_ENV_KEYS["ollama"]),
+        "apiKey": _environment_reference(OLLAMA_KEY_ENV),
         "api": "ollama",
-        "timeoutSeconds": 300,
+        # A full answer after a long prompt can exceed five minutes.
+        "timeoutSeconds": 600,
         "models": models,
     }
 
 
-def _llamacpp_provider(
-    catalog: dict[str, Any], backend_id: str, backend: dict[str, Any]
-) -> dict[str, Any]:
-    provider_id = PROVIDER_IDS[backend_id]
-    router = _mapping(backend.get("router"))
-    context_tokens = int(router.get("context_tokens", 8192))
-    models: list[dict[str, Any]] = []
-    for alias, raw in _mapping(catalog.get("models")).items():
-        model = _mapping(raw)
-        if model.get("required") is not True:
-            continue
-        runtime_id = _runtime_id(model, backend_id, alias=str(alias))
-        models.append(
-            {
-                "id": runtime_id,
-                "name": runtime_id,
-                "input": ["text"],
-                "contextWindow": context_tokens,
-                "contextTokens": context_tokens,
-                "maxTokens": 2048,
-                "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
-                "compat": {"supportsTools": True, "toolSchemaProfile": "llamacpp"},
-            }
-        )
-    return {
-        "baseUrl": str(backend["endpoint"]),
-        "apiKey": _environment_reference(PROVIDER_ENV_KEYS[provider_id]),
-        "api": "openai-completions",
-        "timeoutSeconds": 300,
-        "models": models,
-    }
-
-
-def build_openclaw_patch(
-    repo_root: Path, runtime_root: Path, backend_id: str = "ollama-vulkan"
-) -> dict[str, Any]:
+def build_openclaw_patch(repo_root: Path, runtime_root: Path) -> dict[str, Any]:
     catalog = root_contract(repo_root, "model_catalog.yaml")
-    backends = root_contract(repo_root, "runtime_backends.yaml")
-    configured = _mapping(backends.get("backends"))
-    if backend_id not in configured:
-        raise ValueError(f"backend absent de runtime_backends.yaml: {backend_id}")
-
     routing = core_contract(repo_root, "model_routing.yaml")
     tools = core_contract(repo_root, "tool_policy.yaml")
     web_policy = core_contract(repo_root, "web_policy.yaml")
     openclaw_policy = core_contract(repo_root, "openclaw_policy.yaml")
-
-    providers: dict[str, Any] = {"ollama": _ollama_provider(catalog)}
-    if backend_id != "ollama-vulkan":
-        provider_id = PROVIDER_IDS.get(backend_id)
-        if provider_id is None:
-            raise ValueError(f"backend OpenClaw non supporté: {backend_id}")
-        providers[provider_id] = _llamacpp_provider(
-            catalog, backend_id, _mapping(configured[backend_id])
-        )
+    limits = daily_limits(repo_root)
+    providers: dict[str, Any] = {"ollama": _ollama_provider(catalog, limits)}
 
     routes = _mapping(routing.get("agents"))
     agent_list: list[dict[str, Any]] = []
@@ -179,7 +103,7 @@ def build_openclaw_patch(
                 "name": spec.name,
                 "workspace": str(runtime_root / "workspaces" / spec.agent_id),
                 "model": {
-                    "primary": _backend_ref(primary_alias, catalog, backend_id),
+                    "primary": _model_ref(primary_alias, catalog),
                     "fallbacks": [],
                 },
                 "experimental": {"localModelLean": False},
@@ -188,7 +112,7 @@ def build_openclaw_patch(
             }
         )
 
-    qwen_ollama = _backend_ref("qwen-max", catalog, "ollama-vulkan")
+    daily_model = _model_ref("qwen-max", catalog)
     defaults = _mapping(openclaw_policy.get("agents"))
     web = _mapping(web_policy.get("nominal_path"))
     global_tools = _mapping(tools.get("security_defaults"))
@@ -212,8 +136,8 @@ def build_openclaw_patch(
         "agents": {
             "defaults": {
                 "skipBootstrap": bool(defaults.get("skip_bootstrap", True)),
-                "bootstrapMaxChars": 2500,
-                "bootstrapTotalMaxChars": 8000,
+                "bootstrapMaxChars": int(limits["bootstrap_max_chars"]),
+                "bootstrapTotalMaxChars": int(limits["bootstrap_total_max_chars"]),
                 "maxConcurrent": 1,
                 "thinkingDefault": "off",
                 "heartbeat": {"every": "0m"},
@@ -224,15 +148,12 @@ def build_openclaw_patch(
                     "allowAgents": [],
                 },
                 "compaction": {
-                    "keepRecentTokens": int(defaults.get("compaction_reserve_tokens", 1024)),
+                    "keepRecentTokens": int(defaults["compaction_reserve_tokens"]),
                     "memoryFlush": {"enabled": False},
                 },
-                "model": {
-                    "primary": _backend_ref("qwen-max", catalog, backend_id),
-                    "fallbacks": [],
-                },
-                "imageModel": {"primary": qwen_ollama, "fallbacks": []},
-                "pdfModel": {"primary": qwen_ollama, "fallbacks": []},
+                "model": {"primary": daily_model, "fallbacks": []},
+                "imageModel": {"primary": daily_model, "fallbacks": []},
+                "pdfModel": {"primary": daily_model, "fallbacks": []},
                 "pdfMaxMb": int(defaults.get("pdf_max_bytes_mb", 50)),
                 "pdfMaxPages": int(defaults.get("pdf_max_pages", 20)),
             },
@@ -243,6 +164,9 @@ def build_openclaw_patch(
         },
         "tools": {
             "profile": str(global_tools.get("profile", "minimal")),
+            # Direct schemas: one tool call instead of search -> describe -> call,
+            # which a 9B model rarely chains reliably. Affordable with the daily context.
+            "toolSearch": False,
             "deny": [
                 "exec",
                 "process",
@@ -253,6 +177,9 @@ def build_openclaw_patch(
                 "sessions_send",
                 "subagents",
                 "browser",
+                # "gateway" can run an OpenClaw update: forbidden by the exact version lock.
+                "gateway",
+                "presence",
             ],
             "fs": {"workspaceOnly": bool(global_tools.get("fs_workspace_only", True))},
             "exec": {
@@ -287,7 +214,7 @@ def write_openclaw_patch(path: Path, patch: dict[str, Any]) -> Path:
     return path
 
 
-def prepare_migration_patch(patch: dict[str, Any], backend_id: str) -> dict[str, Any]:
+def prepare_migration_patch(patch: dict[str, Any]) -> dict[str, Any]:
     """Stage managed settings; retire roster entries separately through the native SDK."""
     result: dict[str, Any] = json.loads(json.dumps(patch))
     result["agents"]["ownership"] = "explicit"
@@ -296,8 +223,8 @@ def prepare_migration_patch(patch: dict[str, Any], backend_id: str) -> dict[str,
     result["talk"] = {"agentId": "chef-operations"}
     defaults["pdfMaxBytesMb"] = None
     defaults["compaction"].update(reserveTokens=None, reserveTokensFloor=None)
-    if backend_id == "ollama-vulkan":
-        result["models"]["providers"]["intel-vulkan"] = None
+    # Remove the provider of the former llama.cpp experiment from older installations.
+    result["models"]["providers"]["intel-vulkan"] = None
     for entry in result["agents"]["entries"].values():
         entry["default"] = None
     for retired in ("main", "redacteur-technique", "ingenieur-release-forges"):

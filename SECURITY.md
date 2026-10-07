@@ -1,19 +1,20 @@
-# Security Policy
+# Sécurité
 
-## Principes obligatoires
+## Ce que le projet garantit
 
-- SELinux reste **Enforcing**.
-- Les providers modèles locaux écoutent uniquement sur loopback par défaut.
-- Aucun fallback cloud implicite.
-- Une escalade cloud exige une action explicite et un budget/gate humain quand elle sera réintroduite.
-- Les secrets et preuves de runtime ne sont jamais committés.
-- Aucun script d'installation ne peut utiliser `--nogpgcheck`, désactiver SELinux ou ouvrir le firewall globalement.
-- Les promotions kernel/backend sont manuelles après preuves.
+- Tous les services écoutent sur `127.0.0.1` ; aucun port du pare-feu n'est ouvert.
+- SELinux reste en mode `Enforcing` ; aucun script ne le désactive.
+- Le modèle est local et aucun service cloud de secours n'est configuré.
+- Les rôles ne peuvent ni exécuter de commande, ni écrire directement un fichier, ni ouvrir un navigateur, ni mettre à jour OpenClaw.
+- Les secrets et les données de l'atelier (`/srv/openclaw-local`) ne sont jamais dans Git.
+- Les versions d'OpenClaw et d'Ollama sont fixées et vérifiées ; rien ne se met à jour seul.
 
-## Signalement
+## Ce qu'il ne garantit pas
 
-Ne publiez pas de secret, token, dump de mémoire modèle ou preuve contenant des données privées dans une issue publique. Utilisez les mécanismes privés de sécurité GitHub lorsqu'ils sont disponibles.
+L'atelier est prévu pour une seule personne sur son propre PC. Il n'est pas conçu pour être exposé sur un réseau ni partagé entre plusieurs utilisateurs. Les sauvegardes ne sont pas chiffrées.
 
-## Périmètre actuel
+Un texte lu par le modèle (document, page Web) peut chercher à le manipuler. Les consignes lui demandent de traiter ces contenus comme des données, et il n'a aucun outil d'exécution ; cela réduit le risque sans le supprimer.
 
-La version 0.1.x est un socle de migration. Les fonctionnalités encore absentes ne doivent pas être présentées comme sécurisées ou qualifiées avant leur gate correspondant.
+## Signaler un problème
+
+Ne publie pas de secret ni de donnée privée dans une issue publique. Utilise le signalement privé de vulnérabilité de GitHub sur ce dépôt.

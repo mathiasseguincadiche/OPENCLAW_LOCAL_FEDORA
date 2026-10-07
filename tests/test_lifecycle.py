@@ -11,7 +11,6 @@ import pytest
 from clawfedora import lifecycle
 
 ROOT = Path(__file__).resolve().parents[1]
-SPECIALIST = "hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M"
 
 
 def _mark_runtime(runtime: Path) -> None:
@@ -24,7 +23,6 @@ def test_model_plan_is_exact_rightsized_fleet() -> None:
     assert [item["runtime_id"] for item in plan] == [
         "qwen3.5:9b-q4_K_M",
     ]
-    assert all(item["nominal_context_tokens"] == 8192 for item in plan)
 
 
 def test_backup_restore_roundtrip_excludes_models_and_venv(tmp_path: Path) -> None:
@@ -101,7 +99,7 @@ def test_cleanup_only_removes_managed_by_default(tmp_path: Path) -> None:
     foreign.mkdir(parents=True)
     (foreign / "keep").write_text("yes", encoding="utf-8")
     (runtime / "runtime/venv").mkdir(parents=True)
-    for name in ("projects", "proofs", "state", "models", "benchmarks"):
+    for name in ("projects", "proofs", "state", "models"):
         (runtime / name).mkdir(parents=True)
     removed = lifecycle.cleanup_managed(runtime)
     assert managed in removed
@@ -114,12 +112,12 @@ def test_cleanup_only_removes_managed_by_default(tmp_path: Path) -> None:
 def test_cleanup_purge_is_explicit(tmp_path: Path) -> None:
     runtime = tmp_path / "runtime"
     _mark_runtime(runtime)
-    for name in ("projects", "proofs", "state", "models", "benchmarks"):
+    for name in ("projects", "proofs", "state", "models"):
         path = runtime / name
         path.mkdir(parents=True)
         (path / "x").write_text("x", encoding="utf-8")
     lifecycle.cleanup_managed(runtime, purge_data=True)
-    for name in ("projects", "proofs", "state", "models", "benchmarks"):
+    for name in ("projects", "proofs", "state", "models"):
         assert not (runtime / name).exists()
 
 
@@ -166,9 +164,9 @@ def test_health_reports_all_components(monkeypatch: pytest.MonkeyPatch, tmp_path
             ]
         }
 
-    monkeypatch.setattr(lifecycle, "_request_json", request)
+    monkeypatch.setattr(lifecycle.ollama_api, "request_json", request)
     monkeypatch.setattr(
-        lifecycle, "collect_hardware_gate", lambda *_args: HardwareGateReport("L3", (), "now")
+        lifecycle, "collect_hardware_gate", lambda *_args: HardwareGateReport("gpu", (), "now")
     )
 
     def run(command: list[str], **_kwargs: object) -> SimpleNamespace:

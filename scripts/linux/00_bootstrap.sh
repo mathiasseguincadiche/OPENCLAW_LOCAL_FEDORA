@@ -87,7 +87,7 @@ fi
 PACKAGES=(
   git curl wget rsync jq tar unzip pciutils usbutils lm_sensors poppler-utils shellcheck gitleaks
   python3 python3-pip python3-virtualenv
-  vulkan-tools mesa-vulkan-drivers igt-gpu-tools
+  vulkan-tools mesa-vulkan-drivers
   firewalld policycoreutils-python-utils acl openssl lsof procps-ng util-linux
 )
 
@@ -105,14 +105,14 @@ printf '  packages: %s\n' "${PACKAGES[*]}"
 printf '  diagrams: native editable Draw.io XML and local SVG; no extra package\n'
 printf '  groups: render video libvirt\n'
 printf '  managed venv: %s/runtime/venv\n' "$RUNTIME_ROOT"
-printf '  runtime dirs: models workspaces projects proofs benchmarks state backups\n'
+printf '  runtime dirs: models workspaces projects proofs state backups\n'
 printf '  managed marker: %s/%s\n' "$RUNTIME_ROOT" "$RUNTIME_MARKER"
 printf '  GPU stack: xe + Mesa/Vulkan\n'
 printf '  SELinux: must remain Enforcing\n'
 printf '  firewalld: installed and enabled; LLM/Gateway remain loopback\n'
 printf '  development/Podman: optional with-dev=%s\n' "$WITH_DEV"
 printf '  virtualization: optional with-kvm=%s\n' "$WITH_KVM"
-printf '  kernel: Fedora package stays baseline; 7.2.3 is NOT installed here\n'
+printf '  kernel: distribution kernel kept as is; this project never builds or installs one\n'
 
 if ((APPLY == 0)); then
   echo "DRY_RUN=PASS -- aucune modification effectuée; relancer avec --apply pour appliquer."
@@ -141,7 +141,6 @@ as_target install -d -m 0750 \
   "$RUNTIME_ROOT/workspaces" \
   "$RUNTIME_ROOT/projects" \
   "$RUNTIME_ROOT/proofs" \
-  "$RUNTIME_ROOT/benchmarks" \
   "$RUNTIME_ROOT/state" \
   "$RUNTIME_ROOT/backups"
 as_target touch "$RUNTIME_ROOT/$RUNTIME_MARKER"

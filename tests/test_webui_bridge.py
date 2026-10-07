@@ -75,18 +75,32 @@ def test_bridge_preserves_admission_and_never_exposes_gateway_auth(tmp_path: Pat
     "patch",
     [
         {"model": "ollama/other"},
-        {"max_tokens": 2048},
+        {"max_tokens": 4097},
         {"stream": "true"},
         {"messages": []},
         {"messages": [{"role": "tool", "content": "x"}]},
         {"messages": [{"role": "user", "content": [{"type": "image_url"}]}]},
-        {"messages": [{"role": "user", "content": "x" * 6001}]},
+        {"messages": [{"role": "user", "content": "x" * 32001}]},
     ],
 )
 def test_bridge_rejects_bypass_and_oversized_context(patch: dict[str, Any]) -> None:
     payload = {"model": MODEL_IDS[0], "messages": [{"role": "user", "content": "x"}], **patch}
     with pytest.raises(ValueError):
         chat_prompt(payload)
+
+
+def test_bridge_defaults_match_the_daily_limits_contract() -> None:
+    from clawfedora import webui_bridge
+    from clawfedora.core_config import daily_limits
+
+    budget = daily_limits(ROOT)
+    assert webui_bridge.DEFAULT_MAX_TOKENS == budget["max_output_tokens"] == 4096
+    assert budget["max_history_bytes"] == webui_bridge.DEFAULT_HISTORY_BYTES
+    assert budget["context_tokens"] == 32768
+    role, _prompt = chat_prompt(
+        {"model": MODEL_IDS[0], "max_tokens": 4096, "messages": [{"role": "user", "content": "x"}]}
+    )
+    assert role == "chef-operations"
 
 
 def test_read_endpoint_remains_responsive_while_chat_is_running(tmp_path: Path) -> None:
@@ -220,7 +234,7 @@ def test_chat_uses_approved_notes_and_displays_history_omission(tmp_path: Path) 
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         messages = [
-            {"role": "user", "content": "old" + "x" * 5990},
+            {"role": "user", "content": "old" + "x" * 31990},
             {"role": "user", "content": "Question actuelle"},
         ]
         status, raw = request(

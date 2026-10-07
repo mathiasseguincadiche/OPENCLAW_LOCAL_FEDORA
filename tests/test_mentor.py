@@ -84,15 +84,18 @@ def test_notes_endpoint_requires_origin_approval_and_worker_lock(server: Dashboa
 
 def test_long_history_keeps_recent_context_and_declares_omissions() -> None:
     messages = [
-        {"role": "user", "content": "OLD-MESSAGE" + "é" * 1500},
-        {"role": "assistant", "content": "SECOND" + "é" * 1500},
+        {"role": "user", "content": "OLD-MESSAGE" + "é" * 8000},
+        {"role": "assistant", "content": "SECOND" + "é" * 8000},
         {"role": "user", "content": "LATEST-QUESTION"},
     ]
     _role, prompt = chat_prompt({"model": MODEL_IDS[0], "messages": messages})
     assert "OLD-MESSAGE" not in prompt and "LATEST-QUESTION" in prompt
     assert "1 anciens messages" in prompt
+    # A very long conversation is trimmed, never refused.
+    _role, prompt = chat_prompt({"model": MODEL_IDS[0], "messages": messages * 100})
+    assert "LATEST-QUESTION" in prompt and "298 anciens messages" in prompt
     with pytest.raises(ValueError):
-        chat_prompt({"model": MODEL_IDS[0], "messages": messages * 100})
+        chat_prompt({"model": MODEL_IDS[0], "messages": messages * 2000})
 
 
 @pytest.mark.parametrize("root_link", [False, True])

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
 from clawfedora.agents import validate_agent_assets
-from clawfedora.core_config import AGENT_IDS, core_contract, root_contract
+from clawfedora.core_config import AGENT_IDS, core_contract, daily_limits, root_contract
 
 CORE_FILES = (
     "agents.yaml",
@@ -16,12 +17,9 @@ CORE_FILES = (
     "document_ingestion_policy.yaml",
     "orchestration_policy.yaml",
     "artifact_exchange_policy.yaml",
-    "budget_policy.yaml",
-    "telemetry_policy.yaml",
     "knowledge_policy.yaml",
 )
 
-LOCKED_OPENCLAW_VERSION = "2026.9.8"
 
 
 def _mapping(value: Any) -> dict[str, Any]:
@@ -135,26 +133,6 @@ def _validate_project_contracts(
         if principles.get(key) is not True:
             failures.append(f"core/exchange: {key}=true requis")
 
-    budget = contracts["budget_policy.yaml"]
-    if budget.get("cloud_enabled_by_default") is not False:
-        failures.append("core/budget: cloud désactivé par défaut requis")
-    if _mapping(budget.get("behavior")).get("on_limit") != "deny":
-        failures.append("core/budget: dépassement doit être refusé")
-
-    telemetry = contracts["telemetry_policy.yaml"]
-    if telemetry.get("local_only") is not True:
-        failures.append("core/telemetry: stockage local requis")
-    forbidden = set(telemetry.get("forbidden_content", []))
-    required_forbidden = {
-        "prompt",
-        "response",
-        "document_content",
-        "secret",
-        "api_key",
-        "token",
-    }
-    if not required_forbidden <= forbidden:
-        failures.append("core/telemetry: contenu sensible insuffisamment interdit")
 
 
 def validate_core_contracts(
@@ -229,24 +207,26 @@ def validate_core_contracts(
     parallel_version = _mapping(_mapping(version_contract.get("plugins")).get("parallel"))
     upgrade_policy = _mapping(runtime_versions.get("upgrade_policy"))
 
-    if version_contract.get("version") != LOCKED_OPENCLAW_VERSION:
-        failures.append("core/openclaw: version verrouillée doit rester 2026.9.8")
+    # config/runtime_versions.yaml is the single place where the version is written.
+    locked = str(version_contract.get("version", ""))
+    if not re.fullmatch(r"\d{4}\.\d+\.\d+", locked):
+        failures.append("core/openclaw: version exacte attendue dans runtime_versions.yaml")
     if version_contract.get("lock") != "exact":
         failures.append("core/openclaw: verrou de version exact requis")
     if version_contract.get("automatic_update") is not False:
         failures.append("core/openclaw: mise à jour automatique interdite")
-    if openclaw_runtime.get("required_version") != LOCKED_OPENCLAW_VERSION:
-        failures.append("core/openclaw: required_version doit rester 2026.9.8")
+    if openclaw_runtime.get("required_version") != locked:
+        failures.append("core/openclaw: required_version diffère de runtime_versions.yaml")
     if openclaw_runtime.get("version_lock") != "exact":
         failures.append("core/openclaw: version_lock=exact requis")
     if openclaw_runtime.get("automatic_update_allowed") is not False:
         failures.append("core/openclaw: automatic_update_allowed=false requis")
-    if parallel_version.get("version") != LOCKED_OPENCLAW_VERSION:
-        failures.append("core/openclaw: plugin Parallel doit rester en 2026.9.8")
+    if parallel_version.get("version") != locked:
+        failures.append("core/openclaw: plugin Parallel doit suivre la version d'OpenClaw")
     if parallel_version.get("lock") != "exact":
         failures.append("core/openclaw: plugin Parallel doit être verrouillé exactement")
-    if parallel_policy.get("version") != LOCKED_OPENCLAW_VERSION:
-        failures.append("core/openclaw: politique Parallel doit rester en 2026.9.8")
+    if parallel_policy.get("version") != locked:
+        failures.append("core/openclaw: politique Parallel diffère de runtime_versions.yaml")
     if parallel_policy.get("version_lock") != "exact":
         failures.append("core/openclaw: politique Parallel exige version_lock=exact")
     if parallel_policy.get("automatic_update_allowed") is not False:
@@ -268,17 +248,12 @@ def validate_core_contracts(
     if security.get("exec_mode") != "ask" or security.get("elevated_enabled") is not False:
         failures.append("core/openclaw: exec=ask et elevated=false requis")
 
-    backends = root_contract(repo_root, "runtime_backends.yaml")
-    for backend_id, raw in _mapping(backends.get("backends")).items():
-        entry = _mapping(raw)
-        endpoint = str(entry.get("endpoint", ""))
-        if endpoint and not _loopback(endpoint):
-            failures.append(f"core/backends: endpoint non loopback pour {backend_id}")
-
     _validate_project_contracts(contracts, failures)
     failures.extend(validate_agent_assets(repo_root))
-    if not failures:
-        warnings.append(
-            "L1 runtime: configuration générée à valider contre le schéma OpenClaw vivant"
-        )
+    # One set of daily limits for OpenClaw, Ollama, the chat bridge and the catalog.
+    try:
+        daily_limits(repo_root)
+    except (FileNotFoundError, ValueError) as exc:
+        failures.append(f"core/limites: {exc}")
+
     return tuple(failures), tuple(warnings)

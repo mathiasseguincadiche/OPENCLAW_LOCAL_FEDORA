@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "openclaw-local-fedora"
 version = "0.1.0"
-description = "Fedora-native local-first OpenClaw multi-agent platform for Intel Arc B580"
+description = "Local AI workshop on Fedora: chat, DevOps mentor and multi-role projects with OpenClaw and Ollama"
 readme = "README.md"
 requires-python = ">=3.12"
 license = {text = "MIT"}
@@ -23,9 +23,6 @@ dependencies = [
 [project.scripts]
 clawfedora = "clawfedora.cli:main"
 clawfedora-ops = "clawfedora.ops_cli:main"
-clawfedora-l6 = "clawfedora.optimization_cli:main"
-clawfedora-golden = "clawfedora.golden_cli:main"
-clawfedora-l8 = "clawfedora.release_readiness_cli:main"
 
 [project.optional-dependencies]
 dev = [

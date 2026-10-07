@@ -3,8 +3,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from clawfedora import cli
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,64 +14,6 @@ def test_validate_cli_passes() -> None:
 
 def test_audit_non_strict_is_portable() -> None:
     assert cli.main(["--root", str(ROOT), "audit", "--json"]) == 0
-
-
-def test_qualification_dry_run_cli_passes() -> None:
-    assert cli.main(["--root", str(ROOT), "qualification", "--dry-run", "--json"]) == 0
-
-
-def test_l4_dry_run_cli_passes() -> None:
-    assert (
-        cli.main(
-            [
-                "--root",
-                str(ROOT),
-                "e2e",
-                "--backend",
-                "ollama-vulkan",
-                "--dry-run",
-                "--json",
-            ]
-        )
-        == 0
-    )
-
-
-def test_real_long_gates_refuse_without_sleep_inhibitor(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.delenv(cli.SLEEP_INHIBIT_MARKER, raising=False)
-    assert cli.main(["--root", str(ROOT), "qualification"]) == 2
-    assert cli.main(["--root", str(ROOT), "e2e"]) == 2
-
-
-def test_real_qualification_validates_contracts_before_runner(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv(cli.SLEEP_INHIBIT_MARKER, "1")
-    monkeypatch.setattr(
-        cli,
-        "validate_qualification_contracts",
-        lambda _root: (("suite hors contrat",), ()),
-    )
-
-    def forbidden_runner(*_args: object, **_kwargs: object) -> tuple[int, None]:
-        pytest.fail("run_qualification ne doit pas démarrer avec un contrat invalide")
-
-    monkeypatch.setattr(cli, "run_qualification", forbidden_runner)
-    assert (
-        cli.main(
-            [
-                "--root",
-                str(ROOT),
-                "qualification",
-                "--runtime-root",
-                str(tmp_path),
-            ]
-        )
-        == 2
-    )
 
 
 def test_agents_validate_cli_passes() -> None:
@@ -109,8 +49,6 @@ def test_openclaw_render_cli_writes_patch(tmp_path: Path) -> None:
                 "render",
                 "--runtime-root",
                 str(tmp_path),
-                "--backend",
-                "ollama-vulkan",
                 "--output",
                 str(output),
                 "--json",

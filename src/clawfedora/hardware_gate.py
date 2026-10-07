@@ -155,7 +155,7 @@ def _rebar_enabled() -> tuple[bool, str]:
     return ok, f"B580={slot} current_BAR_MiB={size}; cible>=12288 (permissions requises si inconnu)"
 
 
-def _check_l2(repo_root: Path) -> list[GateCheck]:
+def _check_system(repo_root: Path) -> list[GateCheck]:
     hardware = root_contract(repo_root, "hardware.yaml")
     host = dict(hardware["host"])
     expected_cpu = str(dict(host["cpu"])["model"])
@@ -249,7 +249,7 @@ def _check_l2(repo_root: Path) -> list[GateCheck]:
     return checks
 
 
-def _check_l3() -> list[GateCheck]:
+def _check_gpu() -> list[GateCheck]:
     checks: list[GateCheck] = []
     b580, gpu_detail = _b580_lspci()
     checks.append(GateCheck("gpu-b580", "PASS" if b580 else "FAIL", gpu_detail))
@@ -310,27 +310,21 @@ def _check_l3() -> list[GateCheck]:
 
 def collect_hardware_gate(repo_root: Path, gate: str) -> HardwareGateReport:
     normalized = gate.strip().casefold()
-    if normalized == "l2":
-        checks = _check_l2(repo_root)
-    elif normalized == "l3":
-        checks = _check_l3()
+    if normalized == "system":
+        checks = _check_system(repo_root)
+    elif normalized == "gpu":
+        checks = _check_gpu()
     else:
-        raise ValueError("gate matériel attendu: l2 ou l3")
+        raise ValueError("contrôle matériel attendu: system ou gpu")
     return HardwareGateReport(
-        gate=normalized.upper(),
+        gate=normalized,
         checks=tuple(checks),
         collected_at=datetime.now(UTC).isoformat(),
     )
 
 
-def _canonical_evidence_directory(directory: Path) -> Path:
-    if directory.name == "qualification" and directory.parent.name == "proofs":
-        return directory.parent / "hardware"
-    return directory
-
-
 def write_hardware_evidence(report: HardwareGateReport, directory: Path) -> Path:
-    canonical = _canonical_evidence_directory(directory)
+    canonical = directory
     canonical.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     path = canonical / f"hardware_{report.gate.casefold()}_{stamp}.json"

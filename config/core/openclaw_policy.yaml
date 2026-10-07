@@ -27,12 +27,14 @@ gateway:
 agents:
   default_agent: chef-operations
   skip_bootstrap: true
-  context_tokens: 8192
-  compaction_reserve_tokens: 1024
+  context_tokens: 32768
+  compaction_reserve_tokens: 8192
+  bootstrap_max_chars: 12000
+  bootstrap_total_max_chars: 24000
   pdf_max_bytes_mb: 50
   pdf_max_pages: 20
   max_concurrent: 1
-  max_output_tokens: 1024
+  max_output_tokens: 4096
   keep_alive: 3m
 workspace:
   managed_marker: .openclaw-fedora-managed

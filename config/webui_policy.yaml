@@ -12,9 +12,9 @@ workers: 1
 deployment: podman-rootless
 scope: personal-loopback
 shared_worker_lock: true
-max_history_bytes: 6000
-max_response_tokens: 1024
+max_history_bytes: 32000
+max_response_tokens: 4096
 notes:
-  - Budget initial à mesurer sur Fedora; ce plafond ne prédit pas la consommation.
+  - Limite mémoire de départ, à ajuster après mesure sur le PC.
   - Réponses mises en tampon; aucun streaming token par token dans cette version.
   - Documents de projet importés dans l’atelier, jamais via une seconde chaîne RAG.
