@@ -11,14 +11,17 @@ make ci
 
 ## Contrôles avec le vrai OpenClaw
 
-Les tests de `make ci` utilisent des réponses de modèle simulées. Deux contrôles exécutent le vrai OpenClaw, sans modèle ni carte graphique :
+Les tests de `make ci` utilisent des réponses de modèle simulées. Trois contrôles exécutent le vrai OpenClaw, sans modèle ni carte graphique :
 
 ```bash
 make native-schema   # la configuration générée est acceptée par OpenClaw
 make native-prompt   # les consignes ne sont pas tronquées et le prompt tient dans le contexte
+make native-tools    # les huit outils du plugin géré sont chargés et invocables
 ```
 
-Ils demandent `openclaw` dans le `PATH` et la variable `OPENCLAW_SCHEMA_PARALLEL_PATH` pointant vers le plugin Parallel de la même version. GitHub les lance sur chaque pull request. Ils sont nécessaires dès qu'on touche aux fichiers `agents/`, aux outils autorisés ou aux limites de `config/core/openclaw_policy.yaml`.
+`make native-tools` vérifie le registre natif du plugin géré et ses helpers, sans modèle ni carte graphique. Il demande `openclaw` dans le `PATH`.
+
+Les contrôles `native-schema` et `native-prompt` demandent `openclaw` dans le `PATH` et la variable `OPENCLAW_SCHEMA_PARALLEL_PATH` pointant vers le plugin Parallel de la même version. GitHub les lance sur chaque pull request. Ils sont nécessaires dès qu'on touche aux fichiers `agents/`, aux outils autorisés ou aux limites de `config/core/openclaw_policy.yaml`.
 
 ## Règles
 

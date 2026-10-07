@@ -18,7 +18,8 @@ if [[ "$ACTION" == status ]]; then
   echo "Discussions: http://127.0.0.1:3000 ; Projets: http://127.0.0.1:18890"
   exit 0
 fi
-printf 'OPENWEBUI_PLAN action=%s release=v0.11.4 variant=slim cpu=2 memory=3g loopback=1\n' "$ACTION"
+RELEASE="$("$PYTHON" -c 'from pathlib import Path; from clawfedora.core_config import root_contract; import sys; print(root_contract(Path(sys.argv[1]), "webui_policy.yaml")["release"])' "$REPO_ROOT")"
+printf 'OPENWEBUI_PLAN action=%s release=%s variant=slim cpu=2 memory=3g loopback=1\n' "$ACTION" "$RELEASE"
 ((APPLY == 1)) || { echo "DRY_RUN=PASS"; exit 0; }
 ((EUID != 0)) || { echo "ERREUR: lancer avec le compte Fedora habituel" >&2; exit 2; }
 [[ -f "$RUNTIME_ROOT/.openclaw-fedora-runtime" ]] || { echo "ERREUR: runtime géré absent" >&2; exit 2; }

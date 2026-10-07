@@ -13,7 +13,6 @@ venv/
 runtime/
 state/
 proofs/
-benchmarks/results/
 models/
 workspaces/
 projects/runtime/
