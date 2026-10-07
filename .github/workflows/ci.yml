@@ -31,11 +31,44 @@ jobs:
       - name: Repository contracts
         run: clawfedora validate
       - name: Ruff
-        run: ruff check src tests
+        run: ruff check src tests scripts/validation
       - name: Mypy
         run: mypy src
       - name: Tests with coverage
         run: pytest -q --cov=clawfedora --cov-report=term-missing --cov-fail-under=80
+
+  native-openclaw:
+    name: native-openclaw
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+      - name: Install repository
+        run: python -m pip install -e .
+      - name: Install pinned OpenClaw and Parallel plugin
+        shell: bash
+        run: |
+          OPENCLAW_VERSION="$(python -c 'from pathlib import Path; from clawfedora.core_config import root_contract; print(root_contract(Path.cwd(), "runtime_versions.yaml")["openclaw"]["version"])')"
+          PARALLEL_VERSION="$(python -c 'from pathlib import Path; from clawfedora.core_config import root_contract; print(root_contract(Path.cwd(), "runtime_versions.yaml")["openclaw"]["plugins"]["parallel"]["version"])')"
+          NATIVE_ROOT="$RUNNER_TEMP/native-openclaw"
+          mkdir -p "$NATIVE_ROOT"
+          npm install --ignore-scripts --prefix "$NATIVE_ROOT" "openclaw@$OPENCLAW_VERSION" "@openclaw/parallel-plugin@$PARALLEL_VERSION"
+          echo "$NATIVE_ROOT/node_modules/.bin" >> "$GITHUB_PATH"
+          echo "OPENCLAW_SCHEMA_PARALLEL_PATH=$NATIVE_ROOT/node_modules/@openclaw/parallel-plugin" >> "$GITHUB_ENV"
+      - name: Native schema validation
+        run: python scripts/validation/check_openclaw_schema.py
+      - name: Native prompt limits
+        run: python scripts/validation/check_prompt_size.py
 
   python:
     name: python-${{ matrix.python-version }}

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
   <title id="title">Atelier IA local — Infrastructure &amp; OPS</title>
-  <desc id="desc">Un modèle Qwen local partagé par sept rôles spécialisés via OpenClaw 2026.9.8 pour apprendre, concevoir et vérifier des projets d’infrastructure sur Fedora 44. Qualification matérielle Intel Arc B580/Vulkan à produire.</desc>
+  <desc id="desc">Atelier IA local — Infrastructure &amp; OPS : une IA sur son PC pour discuter, apprendre le DevOps et mener des projets, avec Qwen partagé par sept rôles OpenClaw sur Fedora 44.</desc>
   <rect width="1280" height="640" fill="#102e42"/>
   <path d="M1050 0H1280V640H1130L980 440Z" fill="#14394c"/>
   <rect x="68" y="60" width="68" height="68" rx="16" fill="none" stroke="#8de1d7" stroke-width="2"/>
