@@ -1,0 +1,24 @@
+name: Appliquer le patch
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/appliquer-patch.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  appliquer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - run: |
+          git config user.name "Mathias SEGUIN-CADICHE"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git checkout -b remise-en-ordre
+          git am --exclude='.github/workflows/*' remise-en-ordre.patch
+          git rm -q remise-en-ordre.patch
+          git commit -q -m "Retirer le fichier patch une fois appliqué"
+          git push origin remise-en-ordre
