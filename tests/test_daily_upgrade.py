@@ -32,7 +32,7 @@ def test_ollama_pin_never_accepts_a_neighbor_version() -> None:
 def test_upgrade_dry_run_makes_no_runtime_changes(tmp_path: Path) -> None:
     runtime = tmp_path / "absent"
     result = subprocess.run(
-        ["bash", str(ROOT / "scripts/linux/22_upgrade_daily.sh")],
+        ["bash", str(ROOT / "scripts/linux/12_upgrade.sh")],
         env={**os.environ, "OPENCLAW_LOCAL_FEDORA_ROOT": str(runtime)},
         capture_output=True,
         text=True,
@@ -49,7 +49,7 @@ def test_upgrade_refuses_to_interrupt_worker(tmp_path: Path) -> None:
     with (runtime / "state/worker.lock").open("w") as handle:
         fcntl.flock(handle, fcntl.LOCK_EX)
         result = subprocess.run(
-            ["bash", str(ROOT / "scripts/linux/22_upgrade_daily.sh"), "--apply"],
+            ["bash", str(ROOT / "scripts/linux/12_upgrade.sh"), "--apply"],
             env={**os.environ, "OPENCLAW_LOCAL_FEDORA_ROOT": str(runtime)},
             capture_output=True,
             text=True,
@@ -63,13 +63,13 @@ def test_upgrade_backs_up_before_install_and_stops_on_failure(tmp_path: Path) ->
     scripts = repo / "scripts/linux"
     (scripts / "lib").mkdir(parents=True)
     (repo / "config").mkdir()
-    for name in ("22_upgrade_daily.sh", "lib/runtime.sh"):
+    for name in ("12_upgrade.sh", "lib/runtime.sh"):
         shutil.copy2(ROOT / "scripts/linux" / name, scripts / name)
     shutil.copy2(ROOT / "config/runtime_versions.yaml", repo / "config/runtime_versions.yaml")
     log = tmp_path / "events"
     for name, text in {
-        "12_backup_restore.sh": 'echo backup >> "$UPGRADE_TEST_LOG"',
-        "10_install_full.sh": 'echo install >> "$UPGRADE_TEST_LOG"; exit 7',
+        "08_backup_restore.sh": 'echo backup >> "$UPGRADE_TEST_LOG"',
+        "06_install.sh": 'echo install >> "$UPGRADE_TEST_LOG"; exit 7',
     }.items():
         path = scripts / name
         path.write_text("#!/bin/bash\n" + text + "\n")
@@ -84,7 +84,7 @@ def test_upgrade_backs_up_before_install_and_stops_on_failure(tmp_path: Path) ->
     runtime.mkdir()
     (runtime / ".openclaw-fedora-runtime").touch()
     result = subprocess.run(
-        ["bash", str(scripts / "22_upgrade_daily.sh"), "--apply"],
+        ["bash", str(scripts / "12_upgrade.sh"), "--apply"],
         env={
             **os.environ,
             "PATH": str(bin_dir) + ":" + os.environ["PATH"],

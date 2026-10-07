@@ -1,6 +1,6 @@
 schema_version: 1
 repository:
-  description: "Atelier IA local — Infrastructure & OPS : apprendre et pratiquer sur Fedora 44, avec Qwen partagé par sept rôles OpenClaw, Open WebUI et Draw.io. Qualification Arc B580/Vulkan à produire."
+  description: "Atelier IA local — Infrastructure & OPS : une IA sur son PC pour discuter, apprendre le DevOps et mener des projets, avec Qwen partagé par sept rôles OpenClaw sur Fedora 44."
   homepage: null
   topics:
     - fedora
@@ -13,7 +13,6 @@ repository:
     - intel-arc
     - intel-arc-b580
     - ollama
-    - llama-cpp
     - devops
     - python
     - systemd

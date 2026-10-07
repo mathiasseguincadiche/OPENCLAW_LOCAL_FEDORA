@@ -15,7 +15,6 @@ installation:
   - workspaces
   - projects
   - proofs
-  - benchmarks
   - state
   - backups
 service:
@@ -77,8 +76,3 @@ uninstall:
   preserve_proofs: true
   purge_data_requires_explicit_flag: true
   never_delete_outside_runtime_root: true
-telemetry:
-  local_only: true
-  event_file: state/telemetry/events.jsonl
-  max_events: 10000
-  fsync_each_event: false

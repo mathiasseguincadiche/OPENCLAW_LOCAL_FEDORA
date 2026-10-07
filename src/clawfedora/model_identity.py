@@ -6,8 +6,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from clawfedora import ollama_api
 from clawfedora.project_common import read_json, write_json
-from clawfedora.qualification import _model_inventory, _request_json
 
 
 def verify_model_lock(runtime: Path, identities: list[dict[str, Any]]) -> None:
@@ -25,7 +25,8 @@ def verify_model_lock(runtime: Path, identities: list[dict[str, Any]]) -> None:
 
 
 def adopt_model_lock(runtime: Path, required: list[dict[str, Any]]) -> Path:
-    identities = _model_inventory(_request_json("http://127.0.0.1:11434/api/tags"), required)
+    tags = ollama_api.request_json(ollama_api.ENDPOINT + "/api/tags")
+    identities = ollama_api.model_inventory(tags, required)
     for model in identities:
         if not re.fullmatch(r"(?:sha256:)?[0-9a-f]{64}", str(model["digest"])):
             raise ValueError("digest SHA-256 invalide")
@@ -39,9 +40,9 @@ def adopt_model_lock(runtime: Path, required: list[dict[str, Any]]) -> Path:
         ):
             raise ValueError(
                 f"digest déjà adopté divergent: {item['runtime_id']}; "
-                "requalification explicite requise"
+                "adoption explicite requise après vérification"
             )
         existing[item["runtime_id"]] = item
-    write_json(path, {"schema_version": "1.0.0", "qualification": "PENDING", "models": existing})
+    write_json(path, {"schema_version": "1.0.0", "models": existing})
     path.chmod(0o600)
     return path

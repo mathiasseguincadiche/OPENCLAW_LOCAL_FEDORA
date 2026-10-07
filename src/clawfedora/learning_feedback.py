@@ -90,7 +90,7 @@ def review_submission(
                     "path": relative,
                     "format": kind,
                     "status": "UNAVAILABLE",
-                    "reason": "fichier au-delà du budget de contrôle statique",
+                    "reason": "fichier trop volumineux pour le contrôle statique",
                     "runtime_tested": False,
                 }
             )

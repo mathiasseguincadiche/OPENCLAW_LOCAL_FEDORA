@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.agents import load_agent_specs
-from clawfedora.core_config import AGENT_IDS, daily_budget
+from clawfedora.core_config import AGENT_IDS, daily_limits
 from clawfedora.local_http import LocalServer
 from clawfedora.mentor import context as mentor_context
 from clawfedora.project_control import write_progress
@@ -67,7 +67,7 @@ def chat_prompt(
         omitted += 1
         encoded = json.dumps(history, ensure_ascii=False)
     if len(encoded.encode()) > max_history_bytes:
-        raise ValueError(f"dernier message supérieur au budget de {max_history_bytes} octets")
+        raise ValueError(f"dernier message supérieur à la limite de {max_history_bytes} octets")
     return str(model).split("/", 1)[1], (
         "Discussion pédagogique DevOps infrastructure/OPS, aucun changement d’état de projet. "
         "Répondre en français. Comprendre: réponse directe et exemple utile. Débloquer: "
@@ -87,7 +87,7 @@ class BridgeServer(LocalServer):
     token: str
     runner: AgentRunner
     model_names: dict[str, str]
-    budget: dict[str, Any]
+    limits: dict[str, Any]
 
 
 class BridgeHandler(BaseHTTPRequestHandler):
@@ -189,8 +189,8 @@ class BridgeHandler(BaseHTTPRequestHandler):
                 raise ValueError("objet JSON requis")
             role, prompt = chat_prompt(
                 data,
-                max_tokens=int(self.server.budget["max_output_tokens"]),
-                max_history_bytes=int(self.server.budget["max_history_bytes"]),
+                max_tokens=int(self.server.limits["max_output_tokens"]),
+                max_history_bytes=int(self.server.limits["max_history_bytes"]),
             )
             omitted = len(data["messages"]) - len(json.loads(prompt.split("\n", 1)[1]))
         except (ValueError, TypeError) as exc:
@@ -277,7 +277,7 @@ def make_server(
         raise ValueError("jeton d’intégration privé requis")
     server = BridgeServer(("127.0.0.1", port), BridgeHandler)
     server.runtime, server.token = runtime, token
-    server.budget = daily_budget(repo_root)
+    server.limits = daily_limits(repo_root)
     server.model_names = {
         f"openclaw/{spec.agent_id}": spec.name for spec in load_agent_specs(repo_root)
     }

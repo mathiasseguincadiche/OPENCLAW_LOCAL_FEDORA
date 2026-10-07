@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import subprocess
 from pathlib import Path
 
@@ -15,19 +16,18 @@ def test_shell_entrypoints_are_strict() -> None:
         "menu.sh",
         "scripts/linux/00_bootstrap.sh",
         "scripts/linux/01_audit_host.sh",
-        "scripts/linux/02_verify_gpu.sh",
-        "scripts/linux/03_deploy_agents.sh",
-        "scripts/linux/04_configure_openclaw.sh",
-        "scripts/linux/05_hardware_gates.sh",
-        "scripts/linux/06_openclaw_e2e.sh",
-        "scripts/linux/07_run_qualification.sh",
-        "scripts/linux/08_power_profile.sh",
-        "scripts/linux/09_provision_models.sh",
-        "scripts/linux/10_install_full.sh",
-        "scripts/linux/11_health.sh",
-        "scripts/linux/12_backup_restore.sh",
-        "scripts/linux/13_repair.sh",
-        "scripts/linux/14_uninstall.sh",
+        "scripts/linux/02_deploy_agents.sh",
+        "scripts/linux/03_configure_openclaw.sh",
+        "scripts/linux/04_check_hardware.sh",
+        "scripts/linux/05_provision_models.sh",
+        "scripts/linux/06_install.sh",
+        "scripts/linux/07_health.sh",
+        "scripts/linux/08_backup_restore.sh",
+        "scripts/linux/09_repair.sh",
+        "scripts/linux/10_uninstall.sh",
+        "scripts/linux/11_daily_profile.sh",
+        "scripts/linux/12_upgrade.sh",
+        "scripts/linux/13_openwebui.sh",
         "scripts/linux/lib/runtime.sh",
     ):
         text = _read(path)
@@ -71,13 +71,6 @@ def test_upstream_kernel_is_not_installed_by_bootstrap() -> None:
     assert "kernel.org" not in text
 
 
-def test_baseline_gpu_stack_is_vulkan() -> None:
-    bootstrap = _read("scripts/linux/00_bootstrap.sh")
-    gpu_gate = _read("scripts/linux/02_verify_gpu.sh")
-    assert "mesa-vulkan-drivers" in bootstrap
-    assert "vulkaninfo" in gpu_gate
-
-
 def test_runtime_python_fails_with_explicit_message_when_missing() -> None:
     text = _read("scripts/linux/lib/runtime.sh")
     assert "aucun Python géré ni python3 système disponible" in text
@@ -85,7 +78,7 @@ def test_runtime_python_fails_with_explicit_message_when_missing() -> None:
 
 
 def test_openclaw_config_is_dry_run_by_default_and_fail_closed() -> None:
-    text = _read("scripts/linux/04_configure_openclaw.sh")
+    text = _read("scripts/linux/03_configure_openclaw.sh")
     assert "APPLY=0" in text
     assert "DRY_RUN=PASS" in text
     assert 'OPENCLAW_PIN="$(claw_pin openclaw version)"' in text
@@ -93,54 +86,26 @@ def test_openclaw_config_is_dry_run_by_default_and_fail_closed() -> None:
     assert "OpenClaw exactement $OPENCLAW_PIN requis" in text
     assert '[[ "$OPENCLAW_VERSION" == "$OPENCLAW_PIN" ]]' in text
     assert '[[ "$OPENCLAW_VERSION" == *"$OPENCLAW_PIN"* ]]' not in text
-    assert "require_backend_models" in text
+    assert "require_daily_model" in text
+    assert "--backend" not in text
     assert "exactement un modèle quotidien" in text
     assert 'config patch --file "$PATCH_PATH" --dry-run' in text
     assert "config validate --json" in text
     assert "agents list --json" in text
     assert "plugins inspect parallel --runtime --json" in text
     assert "plugins update" in text
-    assert 'OPENCLAW_LOCAL_CLOUD_ENABLED="false"' in text
 
 
 def test_openclaw_agent_inventory_accepts_supported_json_shapes() -> None:
-    text = _read("scripts/linux/04_configure_openclaw.sh")
+    text = _read("scripts/linux/03_configure_openclaw.sh")
     assert 'type == "array" then length' in text
     assert '(.agents? | type) == "array"' in text
     assert '(.list? | type) == "array"' in text
     assert '[[ "$AGENT_COUNT" -eq 7 ]]' in text
 
 
-def test_long_gates_block_suspend_with_systemd_inhibit() -> None:
-    for path in (
-        "scripts/linux/06_openclaw_e2e.sh",
-        "scripts/linux/07_run_qualification.sh",
-    ):
-        text = _read(path)
-        assert "systemd-inhibit" in text
-        assert "--what=sleep" in text
-        assert "--mode=block" in text
-        assert "OPENCLAW_LOCAL_FEDORA_SLEEP_INHIBITED=1" in text
-
-
-def test_qualification_launcher_is_local_only_and_has_dry_run() -> None:
-    text = _read("scripts/linux/07_run_qualification.sh")
-    assert "--dry-run" in text
-    assert 'ENDPOINT="http://127.0.0.1:11434"' in text
-    assert "OPENCLAW_LOCAL_CLOUD_ENABLED=false" in text
-    assert "QUALIFICATION_CLOUD=false" in text
-
-
-def test_power_profile_requires_explicit_apply() -> None:
-    text = _read("scripts/linux/08_power_profile.sh")
-    assert "APPLY=0" in text
-    assert "DRY_RUN=PASS" in text
-    assert "powerprofilesctl set" in text
-    assert "--apply" in text
-
-
 def test_full_install_is_explicit_and_pinned() -> None:
-    text = _read("scripts/linux/10_install_full.sh")
+    text = _read("scripts/linux/06_install.sh")
     assert "APPLY=0" in text
     assert 'OPENCLAW_PIN="$(claw_pin openclaw version)"' in text
     assert 'OLLAMA_PIN="$(claw_pin ollama version)"' in text
@@ -148,14 +113,14 @@ def test_full_install_is_explicit_and_pinned() -> None:
     assert '--install-method npm --version "$OPENCLAW_PIN"' in text
     assert '[[ "$OPENCLAW_VERSION" == "$OPENCLAW_PIN" ]]' in text
     assert '[[ "$OPENCLAW_VERSION" == *"$OPENCLAW_PIN"* ]]' not in text
-    assert "09_provision_models.sh" in text
-    assert "04_configure_openclaw.sh" in text
+    assert "05_provision_models.sh" in text
+    assert "03_configure_openclaw.sh" in text
     assert "openclaw gateway install" in text
     assert "systemctl --user enable --now openclaw-gateway.service" in text
 
 
 def test_uninstall_preserves_data_without_explicit_purge() -> None:
-    text = _read("scripts/linux/14_uninstall.sh")
+    text = _read("scripts/linux/10_uninstall.sh")
     assert "APPLY=0" in text
     assert "PURGE=0" in text
     assert "--purge-data" in text
@@ -164,50 +129,43 @@ def test_uninstall_preserves_data_without_explicit_purge() -> None:
 
 
 def test_repair_backups_before_reconfiguration() -> None:
-    text = _read("scripts/linux/13_repair.sh")
-    backup_index = text.index('"$LINUX/12_backup_restore.sh" backup')
-    configure_index = text.index('"$LINUX/04_configure_openclaw.sh" --apply')
+    text = _read("scripts/linux/09_repair.sh")
+    backup_index = text.index('"$LINUX/08_backup_restore.sh" backup')
+    configure_index = text.index('"$LINUX/03_configure_openclaw.sh" --apply')
     assert backup_index < configure_index
     assert "gateway restart --preserve-definition" in text
 
 
-def test_menu_exposes_implemented_linux_gates_and_lifecycle() -> None:
+def test_menu_exposes_daily_actions_and_no_retired_machinery() -> None:
     text = _read("menu.sh")
     for action in (
-        "status",
-        "validate",
-        "lifecycle-validate",
         "install",
-        "models",
         "health",
+        "context-probe",
+        "webui-install",
+        "dashboard",
+        "gaming",
+        "daily",
         "backup",
+        "upgrade",
         "repair",
         "uninstall",
-        "bootstrap",
+        "status",
+        "validate",
         "audit",
-        "audit-strict",
-        "hardware-l2",
-        "hardware-l3",
-        "gpu",
-        "performance",
+        "check-system",
+        "check-gpu",
+        "bootstrap",
+        "models",
         "agents",
         "configure-openclaw",
-        "project-selftest",
-        "e2e-dry-run",
-        "e2e",
-        "qualification-dry-run",
-        "qualification",
-        "challenger-model",
-        "golden-dry-run",
-        "golden",
-        "release-readiness-dry-run",
-        "release-readiness",
     ):
-        assert action in text
-    assert "golden) run_golden" in text
-    assert "release-readiness) run_l8 check" in text
-    assert "clawfedora-l8 approve" in text
-    assert "approve)" not in text
+        assert f"  {action})" in text or f"|{action}" in text or f"{action}|" in text, action
+    for retired in ("qualification", "golden", "release-readiness", "llama", "kernel", "e2e"):
+        assert retired not in text.casefold(), retired
+    # Every script the menu calls exists.
+    for name in set(re.findall(r"\b(\d\d_[a-z_]+\.sh)\b", text)):
+        assert (ROOT / "scripts/linux" / name).is_file(), name
 
 
 def test_installer_reads_exact_pins_without_third_party_python_packages() -> None:

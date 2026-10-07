@@ -89,11 +89,11 @@ def test_bridge_rejects_bypass_and_oversized_context(patch: dict[str, Any]) -> N
         chat_prompt(payload)
 
 
-def test_bridge_defaults_match_the_daily_budget_contract() -> None:
+def test_bridge_defaults_match_the_daily_limits_contract() -> None:
     from clawfedora import webui_bridge
-    from clawfedora.core_config import daily_budget
+    from clawfedora.core_config import daily_limits
 
-    budget = daily_budget(ROOT)
+    budget = daily_limits(ROOT)
     assert webui_bridge.DEFAULT_MAX_TOKENS == budget["max_output_tokens"] == 4096
     assert budget["max_history_bytes"] == webui_bridge.DEFAULT_HISTORY_BYTES
     assert budget["context_tokens"] == 32768

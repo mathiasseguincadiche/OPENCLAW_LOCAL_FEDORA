@@ -1,4 +1,4 @@
-.PHONY: install validate test lint shellcheck ci native-schema native-tools native-budget
+.PHONY: install validate test lint shellcheck ci native-schema native-tools native-prompt
 
 install:
 	python3 -m venv .venv
@@ -27,5 +27,5 @@ native-schema:
 native-tools:
 	.venv/bin/python scripts/validation/check_agent_toolkit.py
 
-native-budget:
-	.venv/bin/python scripts/validation/check_prompt_budget.py
+native-prompt:
+	.venv/bin/python scripts/validation/check_prompt_size.py

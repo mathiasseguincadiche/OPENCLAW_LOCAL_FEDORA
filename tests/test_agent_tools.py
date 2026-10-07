@@ -9,7 +9,7 @@ import pytest
 
 from clawfedora.agent_tools import OUTLINES, TOOL_ROLES, check, diagram, invoke
 from clawfedora.agents import deploy_workspaces, effective_instructions, validate_agent_assets
-from clawfedora.core_config import AGENT_IDS, core_contract, daily_budget
+from clawfedora.core_config import AGENT_IDS, core_contract, daily_limits
 from clawfedora.openclaw_config import build_openclaw_patch
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,7 +26,7 @@ def test_role_tools_policy_matches_callable_helpers_and_prompt_budget(tmp_path: 
     for role in AGENT_IDS:
         workspace = tmp_path / "workspaces" / role
         # Limits come from the contract: above them OpenClaw truncates silently.
-        budget = daily_budget(ROOT)
+        budget = daily_limits(ROOT)
         injected = ["AGENTS.md", "SOUL.md", "IDENTITY.md"]
         assert all(
             len((workspace / name).read_text()) <= budget["bootstrap_max_chars"]
@@ -55,7 +55,7 @@ def test_instructions_above_the_injection_limit_are_rejected(tmp_path: Path) -> 
     for folder in ("agents", "config", "plugins"):
         shutil.copytree(ROOT / folder, tmp_path / folder)
     assert validate_agent_assets(tmp_path) == ()
-    limit = daily_budget(tmp_path)["bootstrap_max_chars"]
+    limit = daily_limits(tmp_path)["bootstrap_max_chars"]
     role_file = tmp_path / "agents/ingenieur-devops/AGENTS.md"
     role_file.write_text(role_file.read_text() + "x" * limit)
     failures = validate_agent_assets(tmp_path)

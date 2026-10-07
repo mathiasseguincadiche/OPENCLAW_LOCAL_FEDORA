@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
+LINUX="$REPO_ROOT/scripts/linux"
+# shellcheck source=scripts/linux/lib/runtime.sh
+source "$LINUX/lib/runtime.sh"
+
+APPLY=0
+ENABLE_LINGER=0
+WITH_WEBUI=0
+for arg in "$@"; do
+  case "$arg" in
+    --apply) APPLY=1 ;;
+    --enable-linger) ENABLE_LINGER=1 ;;
+    --with-webui) WITH_WEBUI=1 ;;
+    *) echo "Usage: 06_install.sh [--apply] [--enable-linger] [--with-webui]" >&2; exit 2 ;;
+  esac
+done
+OPENCLAW_PIN="$(claw_pin openclaw version)"
+OLLAMA_PIN="$(claw_pin ollama version)"
+RUNTIME_ROOT="$(claw_runtime_root)"
+
+cat <<EOF
+INSTALL_PLAN Fedora=44 runtime=$RUNTIME_ROOT
+  1. paquets Fedora, dossier de données et environnement Python
+  2. Ollama $OLLAMA_PIN, configuré pour la B580 en Vulkan
+  3. OpenClaw $OPENCLAW_PIN exactement
+  4. téléchargement du modèle Qwen
+  5. consignes des sept rôles et configuration OpenClaw
+  6. service OpenClaw (Gateway) du compte utilisateur
+  7. contrôle de santé avec une courte génération
+EOF
+
+if ((APPLY == 0)); then
+  echo "INSTALL_DRY_RUN=PASS"
+  exit 0
+fi
+
+if ((EUID == 0)); then
+  echo "INSTALL_RESULT=FAIL run as the Fedora desktop user, not root" >&2
+  exit 2
+fi
+
+BOOTSTRAP_ARGS=(--apply --runtime-root "$RUNTIME_ROOT")
+((ENABLE_LINGER == 0)) || BOOTSTRAP_ARGS+=(--enable-linger)
+"$LINUX/00_bootstrap.sh" "${BOOTSTRAP_ARGS[@]}"
+
+OLLAMA_VERSION_TEXT="$(ollama --version 2>/dev/null || true)"
+ollama_version="$(claw_extract_ollama_version "$OLLAMA_VERSION_TEXT" || true)"
+if [[ "$ollama_version" != "$OLLAMA_PIN" ]]; then
+  tmp_ollama="$(mktemp)"
+  trap 'rm -f "$tmp_ollama" "${tmp_openclaw:-}"' EXIT
+  curl -fsSL --proto '=https' --tlsv1.2 https://ollama.com/install.sh -o "$tmp_ollama"
+  OLLAMA_VERSION="$OLLAMA_PIN" sh "$tmp_ollama"
+fi
+OLLAMA_VERSION_TEXT="$(ollama --version 2>/dev/null || true)"
+ollama_version="$(claw_extract_ollama_version "$OLLAMA_VERSION_TEXT" || true)"
+[[ "$ollama_version" == "$OLLAMA_PIN" ]] || {
+  echo "INSTALL_RESULT=FAIL Ollama pin mismatch: ${OLLAMA_VERSION_TEXT:-absent}" >&2
+  exit 2
+}
+if systemctl list-unit-files ollama.service >/dev/null 2>&1; then
+  "$LINUX/11_daily_profile.sh" configure-ollama --apply
+  sudo systemctl enable --now ollama.service
+fi
+
+export PATH="$HOME/.openclaw/bin:$HOME/.local/bin:$PATH"
+OPENCLAW_VERSION_TEXT="$(openclaw --version 2>/dev/null | head -n1 || true)"
+OPENCLAW_VERSION="$(claw_extract_openclaw_version "$OPENCLAW_VERSION_TEXT" || true)"
+if [[ "$OPENCLAW_VERSION" != "$OPENCLAW_PIN" ]]; then
+  tmp_openclaw="$(mktemp)"
+  trap 'rm -f "${tmp_ollama:-}" "$tmp_openclaw"' EXIT
+  curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install-cli.sh -o "$tmp_openclaw"
+  bash "$tmp_openclaw" --install-method npm --version "$OPENCLAW_PIN" --no-onboard
+  export PATH="$HOME/.openclaw/bin:$HOME/.local/bin:$PATH"
+fi
+
+OPENCLAW_VERSION_TEXT="$(openclaw --version 2>/dev/null | head -n1 || true)"
+OPENCLAW_VERSION="$(claw_extract_openclaw_version "$OPENCLAW_VERSION_TEXT" || true)"
+[[ "$OPENCLAW_VERSION" == "$OPENCLAW_PIN" ]] || {
+  echo "INSTALL_RESULT=FAIL OpenClaw exact pin mismatch: ${OPENCLAW_VERSION_TEXT:-absent}" >&2
+  exit 2
+}
+
+unset OPENCLAW_CONFIG_PATH
+PYTHON="$(claw_python)"
+LEGACY_STATE="${XDG_STATE_HOME:-$HOME/.local/state}/openclaw-local"
+if [[ -d "$LEGACY_STATE" && ! -e "$RUNTIME_ROOT/state/openclaw" ]]; then
+  "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" migrate-state --source "$LEGACY_STATE" --apply
+fi
+"$LINUX/05_provision_models.sh" --apply
+"$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" models-lock --apply
+"$LINUX/03_configure_openclaw.sh" --apply
+
+OPENCLAW_STATE_DIR="$(claw_openclaw_state)"
+export OPENCLAW_STATE_DIR
+openclaw gateway install
+"$LINUX/11_daily_profile.sh" configure-gateway --apply
+systemctl --user enable --now openclaw-gateway.service
+openclaw gateway status --json >/dev/null
+
+PYTHON="$(claw_python)"
+if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then
+  "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" health --probe
+else
+  PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
+    "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" health --probe
+fi
+
+if ((WITH_WEBUI == 1)) || [[ -f "$RUNTIME_ROOT/state/webui/enabled" ]]; then
+  "$LINUX/13_openwebui.sh" install --apply
+fi
+echo "INSTALL_RESULT=PASS"
+echo "OLLAMA_VERSION=$ollama_version"
+echo "OPENCLAW_VERSION=$OPENCLAW_VERSION"

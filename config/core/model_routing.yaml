@@ -1,59 +1,31 @@
 schema_version: 2.0.0
 platform_version: 0.1.0
 policy:
-  local_first: true
   local_only: true
   cloud_models_supported: false
-  cloud_enabled_by_default: false
   supported_local_aliases:
   - qwen-max
-  - gemma-deep
-  - devstral-devops
-  local_fallbacks_must_stay_in_supported_fleet: true
-  routing_order:
-  - local_primary
   no_hidden_small_model_fallback: true
 agents:
   chef-operations:
     local_primary: qwen-max
     local_fallback: qwen-max
-    preferred_tier: primary
-    phase_preferences:
-      execute: primary
   expert-recherche:
     local_primary: qwen-max
     local_fallback: qwen-max
-    preferred_tier: primary
-    phase_preferences:
-      execute: primary
   architecte-solutions:
     local_primary: qwen-max
     local_fallback: qwen-max
-    preferred_tier: primary
-    phase_preferences:
-      execute: primary
   ingenieur-devops:
     local_primary: qwen-max
     local_fallback: qwen-max
-    preferred_tier: primary
-    phase_preferences:
-      execute: primary
   ingenieur-securite:
     local_primary: qwen-max
     local_fallback: qwen-max
-    preferred_tier: primary
-    phase_preferences:
-      execute: primary
   auditeur-qualite:
     local_primary: qwen-max
     local_fallback: qwen-max
-    preferred_tier: primary
-    phase_preferences:
-      execute: primary
-    independence_rule: separate_session_and_no_write_access; alternative_family_requires_explicit_qualification
+    independence_rule: separate_session_and_no_write_access
   redacteur-pedagogique:
     local_primary: qwen-max
     local_fallback: qwen-max
-    preferred_tier: primary
-    phase_preferences:
-      execute: primary

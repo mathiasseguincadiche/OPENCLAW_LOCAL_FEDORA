@@ -4,7 +4,6 @@ import shutil
 from pathlib import Path
 
 import pytest
-import yaml
 
 from clawfedora.contracts import validate_repository
 
@@ -39,85 +38,3 @@ def test_invalid_yaml_is_fail_closed(tmp_path: Path) -> None:
     path.write_text("platform: [broken\n", encoding="utf-8")
     with pytest.raises(ValueError, match="contrat illisible"):
         validate_repository(root)
-
-
-def test_cloud_during_qualification_is_rejected(tmp_path: Path) -> None:
-    root = _sandbox(tmp_path)
-    path = root / "config" / "qualification_policy.yaml"
-    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
-    payload["safety"]["cloud_calls_allowed"] = True
-    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
-    report = validate_repository(root)
-    assert not report.ok
-    assert any("appel cloud" in failure for failure in report.failures)
-
-
-def test_hard_40m_budget_cannot_be_silently_extended(tmp_path: Path) -> None:
-    root = _sandbox(tmp_path)
-    path = root / "config" / "qualification_policy.yaml"
-    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
-    payload["full_gate"]["max_wall_seconds"] = 3600
-    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
-    report = validate_repository(root)
-    assert not report.ok
-    assert any("2400" in failure for failure in report.failures)
-
-
-def test_non_loopback_backend_is_rejected(tmp_path: Path) -> None:
-    root = _sandbox(tmp_path)
-    path = root / "config" / "runtime_backends.yaml"
-    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
-    payload["backends"]["ollama-vulkan"]["endpoint"] = "http://0.0.0.0:11434"
-    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
-    report = validate_repository(root)
-    assert not report.ok
-    assert any("non loopback" in failure for failure in report.failures)
-
-
-def test_nominal_vulkan_runtime_cannot_be_changed_silently(tmp_path: Path) -> None:
-    root = _sandbox(tmp_path)
-    path = root / "config" / "runtime_backends.yaml"
-    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
-    payload["backends"]["ollama-vulkan"]["accelerator"] = "cpu"
-    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
-    report = validate_repository(root)
-    assert not report.ok
-    assert any("Vulkan" in failure for failure in report.failures)
-
-
-def test_extra_runtime_backend_is_rejected(tmp_path: Path) -> None:
-    root = _sandbox(tmp_path)
-    path = root / "config" / "runtime_backends.yaml"
-    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
-    payload["backends"]["legacy-backend"] = {
-        "provider": "llama_cpp_http",
-        "linux_native": True,
-        "endpoint": "http://127.0.0.1:8080/v1",
-        "accelerator": "other",
-    }
-    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
-    report = validate_repository(root)
-    assert not report.ok
-    assert any("strictement Vulkan" in failure for failure in report.failures)
-
-
-def test_roadmap_identity_is_linux_native(tmp_path: Path) -> None:
-    root = _sandbox(tmp_path)
-    path = root / "config" / "roadmap_policy.yaml"
-    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
-    payload["project"]["identity"] = "generic"
-    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
-    report = validate_repository(root)
-    assert not report.ok
-    assert any("identité Linux native" in failure for failure in report.failures)
-
-
-def test_roadmap_must_remain_l0_to_l8(tmp_path: Path) -> None:
-    root = _sandbox(tmp_path)
-    path = root / "config" / "roadmap_policy.yaml"
-    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
-    del payload["roadmap_gates"]["L8"]
-    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
-    report = validate_repository(root)
-    assert not report.ok
-    assert any("L0..L8" in failure for failure in report.failures)

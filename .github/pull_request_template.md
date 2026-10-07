@@ -1,27 +1,10 @@
-## Objectif
+## Ce que change cette modification
 
-Décrire le problème réel et le résultat attendu.
+Le problème réel et le résultat attendu, en quelques lignes.
 
-## Type de changement
+## Vérifications
 
-- [ ] cœur multi-agents Linux-native
-- [ ] Fedora / Bash / systemd
-- [ ] GPU / Mesa / Vulkan
-- [ ] qualification / benchmark
-- [ ] documentation / gouvernance
-
-## Invariants
-
-- [ ] aucun fallback cloud silencieux
-- [ ] SELinux reste Enforcing
-- [ ] aucun noyau construit ou installé par le projet
-- [ ] aucune promotion automatique de backend
-- [ ] aucun seuil abaissé pour forcer un PASS
-- [ ] la pile nominale reste Fedora + xe + Mesa/Vulkan
-
-## Preuves
-
-- [ ] `make ci`
-- [ ] CI GitHub verte
-- [ ] preuve matérielle jointe si le changement revendique une performance
-- [ ] documentation synchronisée avec le contrat exécutable
+- [ ] `make ci` passe
+- [ ] si les fichiers `agents/`, les outils ou les limites ont changé : `make native-schema` et `make native-prompt` passent
+- [ ] la fiche concernée dans `docs/fiches/` est à jour
+- [ ] rien n'ouvre un port réseau, ne désactive SELinux ou le pare-feu, ni ne donne au modèle un outil d'exécution

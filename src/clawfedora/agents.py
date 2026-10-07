@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from clawfedora.core_config import AGENT_IDS, core_contract, daily_budget
+from clawfedora.core_config import AGENT_IDS, core_contract, daily_limits
 
 ROLE_FILES = ("AGENTS.md", "IDENTITY.md", "SOUL.md")
 SHARED_FILES = ("CONTRACT.md", "TOOLS.md", "HEARTBEAT.md", "PEDAGOGY.md")
@@ -89,9 +89,9 @@ def validate_agent_assets(repo_root: Path) -> tuple[str, ...]:
         if prompt.is_file() and all((shared / name).is_file() for name in INJECTED_SHARED):
             # OpenClaw silently truncates an injected file above bootstrapMaxChars.
             try:
-                limit = int(daily_budget(repo_root)["bootstrap_max_chars"])
+                limit = int(daily_limits(repo_root)["bootstrap_max_chars"])
             except (FileNotFoundError, ValueError) as exc:
-                failures.append(f"agents: budget quotidien invalide: {exc}")
+                failures.append(f"agents: limites quotidiennes invalides: {exc}")
                 break
             if len(effective_instructions(repo_root, spec.agent_id)) > limit:
                 failures.append(

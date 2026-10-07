@@ -192,7 +192,7 @@ def build_index(repo_root: Path, project: Path) -> dict[str, Any]:
                 skipped.append({"path": relative, "reason": str(exc)})
                 continue
             if not text.strip() or total + len(text) > int(limits["max_total_chars"]):
-                skipped.append({"path": relative, "reason": "texte vide ou budget total atteint"})
+                skipped.append({"path": relative, "reason": "texte vide ou limite totale atteinte"})
                 continue
             total += len(text)
             citation = {key: value for key, value in metadata.items() if key != "text"}
@@ -213,7 +213,7 @@ def build_index(repo_root: Path, project: Path) -> dict[str, Any]:
                         )
                     )
             if chunks + len(rows) > int(limits["max_chunks"]):
-                skipped.append({"path": relative, "reason": "budget de passages atteint"})
+                skipped.append({"path": relative, "reason": "limite de passages atteinte"})
                 continue
             chunks += len(rows)
             seen.add(relative)

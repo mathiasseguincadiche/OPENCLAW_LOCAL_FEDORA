@@ -1,6 +1,6 @@
 """Measure whether a context size really fits the GPU on this machine.
 
-The daily budget (32768 tokens) is a software contract. Only this measurement, run on
+The daily context (32768 tokens) is a software setting. Only this measurement, run on
 the target PC, tells whether the model stays fully on the GPU and how fast it answers
 once the context is actually filled.
 """
@@ -11,9 +11,9 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from clawfedora.core_config import daily_budget
+from clawfedora import ollama_api
+from clawfedora.core_config import daily_limits
 from clawfedora.lifecycle import model_plan
-from clawfedora.qualification import _request_json
 
 ENDPOINT = "http://127.0.0.1:11434"
 ALLOWED_CONTEXTS = (8192, 16384, 32768)
@@ -37,11 +37,11 @@ def probe_context(
     context_tokens: int | None = None,
     *,
     fill_ratio: float = 0.6,
-    request: Request = _request_json,
+    request: Request = ollama_api.request_json,
 ) -> dict[str, Any]:
     """Fill a share of the context, generate a short answer and read the GPU share."""
-    budget = daily_budget(repo_root)
-    context = int(context_tokens or budget["context_tokens"])
+    limits = daily_limits(repo_root)
+    context = int(context_tokens or limits["context_tokens"])
     if context not in ALLOWED_CONTEXTS:
         raise ValueError(f"contexte autorisé: {', '.join(map(str, ALLOWED_CONTEXTS))}")
     if not 0.1 <= fill_ratio <= 0.8:
@@ -56,7 +56,7 @@ def probe_context(
             "stream": False,
             "think": False,
             "options": {"num_ctx": context, "num_predict": 128, "temperature": 0},
-            "keep_alive": str(budget["keep_alive"]),
+            "keep_alive": str(limits["keep_alive"]),
         },
         timeout=600,
     )
@@ -100,7 +100,7 @@ def probe_context(
         "load_seconds": round(int(answer.get("load_duration", 0)) / 1_000_000_000, 1),
         "prompt_tokens_per_second": _rate(prompt_tokens, answer.get("prompt_eval_duration")),
         "output_tokens_per_second": _rate(answer.get("eval_count"), answer.get("eval_duration")),
-        "daily_context_tokens": budget["context_tokens"],
+        "daily_context_tokens": limits["context_tokens"],
         "note": (
             "FULL_GPU: le contexte tient entièrement sur la carte. PARTIAL_CPU_OFFLOAD: "
             "une partie du modèle passe sur le processeur, la vitesse chute; réduire "

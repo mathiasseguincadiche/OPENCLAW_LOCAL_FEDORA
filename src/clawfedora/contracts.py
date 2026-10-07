@@ -27,10 +27,6 @@ def _load_yaml(path: Path) -> dict[str, Any]:
     return payload
 
 
-def _loopback(endpoint: str) -> bool:
-    return endpoint.startswith("http://127.0.0.1:") or endpoint.startswith("http://localhost:")
-
-
 def validate_repository(root: Path) -> ContractReport:
     failures: list[str] = []
     warnings: list[str] = []
@@ -43,9 +39,6 @@ def validate_repository(root: Path) -> ContractReport:
         "platform": root / "config" / "platform.yaml",
         "hardware": root / "config" / "hardware.yaml",
         "models": root / "config" / "model_catalog.yaml",
-        "backends": root / "config" / "runtime_backends.yaml",
-        "qualification": root / "config" / "qualification_policy.yaml",
-        "roadmap": root / "config" / "roadmap_policy.yaml",
     }
     missing = [str(path.relative_to(root)) for path in required.values() if not path.is_file()]
     if missing:
@@ -76,8 +69,6 @@ def validate_repository(root: Path) -> ContractReport:
         failures.append("platform: providers locaux doivent rester loopback-only")
     if security.get("cloud_enabled_by_default") is not False:
         failures.append("platform: cloud doit être désactivé par défaut")
-    if security.get("cloud_escalation_explicit_only") is not True:
-        failures.append("platform: escalade cloud explicite uniquement")
 
     hardware = contracts["hardware"].get("host", {})
     cpu = hardware.get("cpu", {})
@@ -97,7 +88,6 @@ def validate_repository(root: Path) -> ContractReport:
     models = contracts["models"]
     model_map = models.get("models", {})
     required_models = {key for key, value in model_map.items() if value.get("required") is True}
-    expected_models = {"qwen-max", "gemma-deep", "devstral-devops"}
     if required_models != {"qwen-max"}:
         failures.append("models: seul qwen-max est requis pour le profil quotidien")
     runtime_ids = [str(value.get("runtime_id", "")) for value in model_map.values()]
@@ -110,74 +100,5 @@ def validate_repository(root: Path) -> ContractReport:
         failures.append("models: exactement un modèle quotidien requis")
     if fleet_policy.get("cloud_model_as_local_fallback") is not False:
         failures.append("models: fallback cloud interdit")
-
-    backends = contracts["backends"]
-    backend_map = backends.get("backends", {})
-    expected_backends = {"ollama-vulkan", "llama-cpp-vulkan"}
-    if set(backend_map) != expected_backends:
-        failures.append("backends: matrice runtime doit rester strictement Vulkan")
-    for backend_id, backend in backend_map.items():
-        if backend.get("linux_native") is not True:
-            failures.append(f"backends: {backend_id} doit être Linux natif")
-        endpoint = str(backend.get("endpoint", ""))
-        if endpoint and not _loopback(endpoint):
-            failures.append(f"backends: {backend_id} endpoint non loopback")
-        if backend.get("accelerator") != "vulkan":
-            failures.append(f"backends: {backend_id} doit utiliser Vulkan")
-    selection = backends.get("selection", {})
-    if selection.get("initial_baseline") != "ollama-vulkan":
-        failures.append("backends: baseline initiale Ollama Vulkan requise")
-    if selection.get("automatic_promotion") is not False:
-        failures.append("backends: promotion automatique interdite")
-    if selection.get("no_cloud_fallback") is not True:
-        failures.append("backends: aucun fallback cloud doit rester garanti")
-
-    qualification = contracts["qualification"]
-    full = qualification.get("full_gate", {})
-    if full.get("name") != "HARD-40M" or int(full.get("max_wall_seconds", 0)) != 2400:
-        failures.append("qualification: HARD-40M doit rester à 2400 s")
-    if int(full.get("total_cases", 0)) != 30:
-        failures.append("qualification: matrice complète doit rester à 30 cas")
-    if full.get("contexts") != {8192: 24, 16384: 6}:
-        failures.append("qualification: répartition 24 cas 8K + 6 cas 16K requise")
-    if int(full.get("qwen_native_max_output_tokens", 0)) != 768:
-        failures.append("qualification: probes Qwen natifs doivent rester bornés à 768 tokens")
-    if int(full.get("case_timeout_seconds", 0)) != 210:
-        failures.append("qualification: timeout/cas doit rester à 210 s")
-    if set(qualification.get("required_models", [])) != expected_models:
-        failures.append("qualification: les trois modèles doivent être obligatoires")
-    safety = qualification.get("safety", {})
-    if safety.get("cloud_calls_allowed") is not False:
-        failures.append("qualification: aucun appel cloud autorisé")
-    target = qualification.get("linux_performance_target", {})
-    if target.get("baseline") != "fedora-stock-kernel-plus-ollama-vulkan":
-        failures.append("qualification: baseline Linux Fedora stock attendue")
-    promotion = qualification.get("promotion", {})
-    promotion_keys = (
-        "automatic_backend_promotion",
-        "automatic_kernel_promotion",
-        "automatic_v1_release",
-    )
-    if any(promotion.get(key) is not False for key in promotion_keys):
-        failures.append("qualification: aucune promotion automatique autorisée")
-    if promotion.get("final_human_approval_required") is not True:
-        failures.append("qualification: approbation humaine finale requise")
-
-    roadmap = contracts["roadmap"]
-    project = roadmap.get("project", {})
-    if project.get("identity") != "linux-native":
-        failures.append("roadmap: identité Linux native requise")
-    linux_stack = roadmap.get("linux_stack", {})
-    if linux_stack.get("gpu_kernel_driver") != "xe":
-        failures.append("roadmap: driver GPU xe requis")
-    if linux_stack.get("nominal_gpu_api") != "vulkan":
-        failures.append("roadmap: Vulkan doit rester l'API GPU nominale")
-    if linux_stack.get("nominal_gpu_userspace") != "mesa":
-        failures.append("roadmap: Mesa doit rester la pile GPU nominale")
-    if linux_stack.get("performance_candidates") != ["llama-cpp-vulkan"]:
-        failures.append("roadmap: llama.cpp Vulkan doit rester l'unique candidat runtime")
-    gates = roadmap.get("roadmap_gates", {})
-    if list(gates) != [f"L{i}" for i in range(9)]:
-        failures.append("roadmap: gates L0..L8 incomplets ou désordonnés")
 
     return ContractReport(tuple(failures), tuple(warnings))

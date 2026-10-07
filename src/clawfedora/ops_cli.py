@@ -16,7 +16,6 @@ from clawfedora.lifecycle import (
     restore_backup,
 )
 from clawfedora.lifecycle_contracts import validate_lifecycle_contracts
-from clawfedora.telemetry import emit_event, read_events
 
 
 def _root(value: str | None) -> Path:
@@ -28,8 +27,8 @@ def _root(value: str | None) -> Path:
     return Path(__file__).resolve().parents[2]
 
 
-def _models(repo_root: Path, apply: bool, *, experimental: bool = False) -> int:
-    plan = model_plan(repo_root, experimental=experimental)
+def _models(repo_root: Path, apply: bool) -> int:
+    plan = model_plan(repo_root)
     if not apply:
         print(json.dumps({"verdict": "PLAN", "models": plan}, indent=2, ensure_ascii=False))
         return 0
@@ -54,16 +53,14 @@ def build_parser() -> argparse.ArgumentParser:
     health = sub.add_parser("health")
     health.add_argument("--probe", action="store_true")
     lock = sub.add_parser(
-        "models-lock", help="adopter les digests locaux sans qualifier la performance"
+        "models-lock", help="enregistrer l'empreinte du modèle installé pour détecter tout changement"
     )
     lock.add_argument("--apply", action="store_true")
-    lock.add_argument("--experimental", action="store_true")
     migration = sub.add_parser("migrate-state")
     migration.add_argument("--source", required=True)
     migration.add_argument("--apply", action="store_true")
     models = sub.add_parser("models")
     models.add_argument("--apply", action="store_true")
-    models.add_argument("--experimental", action="store_true")
     backup = sub.add_parser("backup")
     backup.add_argument("--output-dir")
     restore = sub.add_parser("restore")
@@ -77,12 +74,6 @@ def build_parser() -> argparse.ArgumentParser:
     )
     probe.add_argument("--context", type=int, choices=(8192, 16384, 32768))
     probe.add_argument("--apply", action="store_true")
-    telemetry = sub.add_parser("telemetry")
-    telemetry.add_argument("--event")
-    telemetry.add_argument("--agent-id")
-    telemetry.add_argument("--project-id")
-    telemetry.add_argument("--status")
-    telemetry.add_argument("--show", action="store_true")
     return parser
 
 
@@ -106,12 +97,12 @@ def main(argv: list[str] | None = None) -> int:
         from clawfedora.model_identity import adopt_model_lock
 
         if not args.apply:
-            print("MODEL_LOCK_PLAN=explicit-adoption qualification=PENDING")
+            print("MODEL_LOCK_PLAN=explicit-adoption")
             return 0
         path = adopt_model_lock(
-            runtime_root, model_plan(repo_root, experimental=bool(args.experimental))
+            runtime_root, model_plan(repo_root)
         )
-        print(f"MODEL_LOCK_RESULT=PASS path={path} qualification=PENDING")
+        print(f"MODEL_LOCK_RESULT=PASS path={path}")
         return 0
     if args.command == "migrate-state":
         if not args.apply:
@@ -121,7 +112,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"STATE_MIGRATION_RESULT=PASS path={path}")
         return 0
     if args.command == "models":
-        return _models(repo_root, bool(args.apply), experimental=bool(args.experimental))
+        return _models(repo_root, bool(args.apply))
     if args.command == "backup":
         output = Path(args.output_dir).expanduser() if args.output_dir else None
         path = create_backup(runtime_root, output)
@@ -144,10 +135,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "context-probe":
         from clawfedora.context_probe import probe_context
-        from clawfedora.core_config import daily_budget
+        from clawfedora.core_config import daily_limits
         from clawfedora.project_worker import worker_lock
 
-        context = int(args.context or daily_budget(repo_root)["context_tokens"])
+        context = int(args.context or daily_limits(repo_root)["context_tokens"])
         if not args.apply:
             print(f"CONTEXT_PROBE_PLAN context={context} generation=1 model_reload=possible")
             return 0
@@ -157,24 +148,6 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(measure, indent=2, ensure_ascii=False))
         print(f"CONTEXT_PROBE_RESULT={measure['verdict']} context={context}")
         return 0 if measure["verdict"] == "FULL_GPU" else 1
-    if args.command == "telemetry":
-        if args.show:
-            print(json.dumps(read_events(repo_root, runtime_root), indent=2, ensure_ascii=False))
-            return 0
-        if not args.event:
-            raise SystemExit("telemetry: --event requis hors --show")
-        fields = {
-            key: value
-            for key, value in {
-                "agent_id": args.agent_id,
-                "project_id": args.project_id,
-                "status": args.status,
-            }.items()
-            if value is not None
-        }
-        path = emit_event(repo_root, runtime_root, args.event, **fields)
-        print(f"TELEMETRY_RESULT=PASS path={path}")
-        return 0
     return 2
 
 

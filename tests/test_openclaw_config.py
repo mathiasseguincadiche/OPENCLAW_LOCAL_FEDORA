@@ -6,13 +6,12 @@ from pathlib import Path
 import pytest
 
 from clawfedora.openclaw_config import (
-    _backend_ref,
+    _model_ref,
     build_openclaw_patch,
     write_openclaw_patch,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-SPECIALIST = "hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M"
 
 
 def _agents_by_id(patch: dict[str, object]) -> dict[str, dict[str, object]]:
@@ -24,7 +23,7 @@ def _agents_by_id(patch: dict[str, object]) -> dict[str, dict[str, object]]:
 
 
 def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
-    patch = build_openclaw_patch(ROOT, tmp_path, "ollama-vulkan")
+    patch = build_openclaw_patch(ROOT, tmp_path)
     assert patch["gateway"] == {
         "mode": "local",
         "bind": "loopback",
@@ -88,50 +87,13 @@ def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
     assert search["provider"] == "parallel-free"
 
 
-def test_vulkan_candidate_keeps_multimodal_on_ollama(tmp_path: Path) -> None:
-    patch = build_openclaw_patch(ROOT, tmp_path, "llama-cpp-vulkan")
-    models = patch["models"]
-    assert isinstance(models, dict)
-    providers = models["providers"]
-    assert isinstance(providers, dict)
-    assert set(providers) == {"ollama", "intel-vulkan"}
-    vulkan = providers["intel-vulkan"]
-    assert isinstance(vulkan, dict)
-    assert vulkan["apiKey"] == {
-        "source": "env",
-        "provider": "default",
-        "id": "INTEL_VULKAN_API_KEY",
-    }
-    assert "intel-vulkan-local" not in json.dumps(patch)
-    vulkan_models = vulkan["models"]
-    assert isinstance(vulkan_models, list)
-    assert all(isinstance(entry, dict) and entry["contextTokens"] == 8192 for entry in vulkan_models)
-    agents = _agents_by_id(patch)
-    devops_model = agents["ingenieur-devops"]["model"]
-    assert isinstance(devops_model, dict)
-    assert devops_model["primary"] == "intel-vulkan/qwen3.5:9b-q4_K_M"
-    defaults = patch["agents"]
-    assert isinstance(defaults, dict)
-    agent_defaults = defaults["defaults"]
-    assert isinstance(agent_defaults, dict)
-    image_model = agent_defaults["imageModel"]
-    assert isinstance(image_model, dict)
-    assert image_model["primary"] == "ollama/qwen3.5:9b-q4_K_M"
-    assert image_model["fallbacks"] == []
-
-
-def test_unknown_backend_is_rejected(tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="backend absent"):
-        build_openclaw_patch(ROOT, tmp_path, "unknown")
-
-
 def test_unknown_model_alias_is_contextualized() -> None:
     with pytest.raises(ValueError, match="missing-alias"):
-        _backend_ref("missing-alias", {"models": {}}, "ollama-vulkan")
+        _model_ref("missing-alias", {"models": {}})
 
 
 def test_patch_writer_is_atomic_json(tmp_path: Path) -> None:
-    patch = build_openclaw_patch(ROOT, tmp_path, "ollama-vulkan")
+    patch = build_openclaw_patch(ROOT, tmp_path)
     output = write_openclaw_patch(tmp_path / "generated" / "openclaw.patch.json", patch)
     assert json.loads(output.read_text(encoding="utf-8")) == patch
     assert not output.with_suffix(output.suffix + ".tmp").exists()
@@ -142,9 +104,8 @@ def test_generated_configuration_contains_references_without_credential_values(
 ) -> None:
     value = "test-sensitive-value-must-never-be-persisted"
     monkeypatch.setenv("OLLAMA_API_KEY", value)
-    monkeypatch.setenv("INTEL_VULKAN_API_KEY", value)
-    patch = build_openclaw_patch(ROOT, tmp_path, "llama-cpp-vulkan")
+    patch = build_openclaw_patch(ROOT, tmp_path)
     assert value not in json.dumps(patch)
     providers = patch["models"]["providers"]
     assert providers["ollama"]["apiKey"]["id"] == "OLLAMA_API_KEY"
-    assert providers["intel-vulkan"]["apiKey"]["id"] == "INTEL_VULKAN_API_KEY"
+    assert set(providers) == {"ollama"}

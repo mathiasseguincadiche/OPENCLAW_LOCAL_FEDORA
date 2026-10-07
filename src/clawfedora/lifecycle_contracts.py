@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from clawfedora.core_config import core_contract, root_contract
+from clawfedora.core_config import root_contract
 
 
 def _mapping(value: Any) -> dict[str, Any]:
@@ -15,7 +15,6 @@ def validate_lifecycle_contracts(repo_root: Path) -> tuple[tuple[str, ...], tupl
     warnings: list[str] = []
     try:
         policy = root_contract(repo_root, "lifecycle_policy.yaml")
-        telemetry_policy = core_contract(repo_root, "telemetry_policy.yaml")
     except (FileNotFoundError, ValueError) as exc:
         return (f"lifecycle: {exc}",), ()
 
@@ -58,18 +57,4 @@ def validate_lifecycle_contracts(repo_root: Path) -> tuple[tuple[str, ...], tupl
     if uninstall.get("never_delete_outside_runtime_root") is not True:
         failures.append("lifecycle: suppression hors runtime interdite")
 
-    telemetry = _mapping(policy.get("telemetry"))
-    if telemetry.get("local_only") is not True:
-        failures.append("lifecycle: télémétrie locale uniquement")
-    retention = _mapping(telemetry_policy.get("retention"))
-    if telemetry.get("event_file") != retention.get("relative_path"):
-        failures.append("lifecycle: drift telemetry.event_file/retention.relative_path")
-    if telemetry_policy.get("local_only") is not True:
-        failures.append("lifecycle: telemetry_policy.local_only=true requis")
-
-    if "finops" in policy:
-        failures.append("lifecycle: le suivi de coûts cloud est retiré (LLM local uniquement)")
-
-    if not failures:
-        warnings.append("cycle de vie logiciel prêt; aucune validation matérielle implicite")
     return tuple(failures), tuple(warnings)

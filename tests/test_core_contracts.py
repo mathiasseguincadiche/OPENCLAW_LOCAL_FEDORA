@@ -29,7 +29,7 @@ def _mutate_yaml(root: Path, relative: str, mutate: object) -> None:
 def test_core_contracts_pass() -> None:
     failures, warnings = validate_core_contracts(ROOT)
     assert failures == ()
-    assert warnings
+    assert warnings == ()
 
 
 def test_default_agent_cannot_change_silently(tmp_path: Path) -> None:
@@ -49,7 +49,7 @@ def test_agent_routing_must_match_declared_model(tmp_path: Path) -> None:
         root,
         "config/core/model_routing.yaml",
         lambda payload: payload["agents"]["ingenieur-devops"].__setitem__(
-            "local_primary", "gemma-deep"
+            "local_primary", "autre-modele"
         ),
     )
     failures, _ = validate_core_contracts(root)
@@ -67,19 +67,6 @@ def test_exec_mode_cannot_be_weakened(tmp_path: Path) -> None:
     assert any("exec.mode=ask" in failure for failure in failures)
 
 
-def test_non_loopback_backend_is_rejected(tmp_path: Path) -> None:
-    root = _sandbox(tmp_path)
-    _mutate_yaml(
-        root,
-        "config/runtime_backends.yaml",
-        lambda payload: payload["backends"]["llama-cpp-vulkan"].__setitem__(
-            "endpoint", "http://0.0.0.0:8081/v1"
-        ),
-    )
-    failures, _ = validate_core_contracts(root)
-    assert any("non loopback" in failure for failure in failures)
-
-
 def test_missing_agent_asset_is_rejected(tmp_path: Path) -> None:
     root = _sandbox(tmp_path)
     (root / "agents" / "auditeur-qualite" / "SOUL.md").unlink()
@@ -87,7 +74,7 @@ def test_missing_agent_asset_is_rejected(tmp_path: Path) -> None:
     assert any("auditeur-qualite/SOUL.md" in failure for failure in failures)
 
 
-def test_daily_budget_drift_between_contracts_is_rejected(tmp_path: Path) -> None:
+def test_daily_limits_drift_between_contracts_is_rejected(tmp_path: Path) -> None:
     (tmp_path / "first").mkdir()
     (tmp_path / "second").mkdir()
     root = _sandbox(tmp_path / "first")

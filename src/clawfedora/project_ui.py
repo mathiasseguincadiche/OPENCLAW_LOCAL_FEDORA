@@ -11,7 +11,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from clawfedora.core_config import AGENT_IDS, daily_budget
+from clawfedora.core_config import AGENT_IDS, daily_limits
 from clawfedora.learning import checkpoints, contract
 from clawfedora.mentor import copy_profile
 from clawfedora.project_common import assert_no_symlinks, read_json, write_json
@@ -131,7 +131,7 @@ def propose(
     """Model drafts only. User approval is a separate HTTP action and state gate."""
     if kind not in {"analysis", "plan"}:
         raise ValueError("proposition inconnue")
-    output_tokens = int(daily_budget(repo)["max_output_tokens"])
+    output_tokens = int(daily_limits(repo)["max_output_tokens"])
     with worker_lock(runtime):
         expected = (
             {"INTAKE_READY", "ANALYZED", "CLARIFICATION_REQUIRED"}

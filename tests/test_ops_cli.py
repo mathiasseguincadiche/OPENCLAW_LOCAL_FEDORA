@@ -7,7 +7,6 @@ import pytest
 from clawfedora import ops_cli
 
 ROOT = Path(__file__).resolve().parents[1]
-SPECIALIST = "hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M"
 
 
 def test_validate_lifecycle_command(capsys: pytest.CaptureFixture[str]) -> None:
@@ -31,15 +30,13 @@ def test_explicit_root_wins_over_environment(
     assert ops_cli._root(str(ROOT)) == ROOT.resolve()
 
 
-def test_models_dry_run_lists_three_models(capsys: pytest.CaptureFixture[str]) -> None:
+def test_models_dry_run_lists_the_single_daily_model(capsys: pytest.CaptureFixture[str]) -> None:
     code = ops_cli.main(["--root", str(ROOT), "models"])
     assert code == 0
     output = capsys.readouterr().out
     assert '"verdict": "PLAN"' in output
     assert "qwen3.5:9b-q4_K_M" in output
-    assert "gemma4:12b-it-q4_K_M" not in output
-    assert SPECIALIST not in output
-    assert "granite4.2:8b-q4_K_M" not in output
+    assert output.count("runtime_id") == 1
 
 
 def test_cleanup_dry_run_never_deletes(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -49,26 +46,3 @@ def test_cleanup_dry_run_never_deletes(tmp_path: Path, capsys: pytest.CaptureFix
     assert code == 0
     assert project.exists()
     assert "CLEANUP_PLAN=" in capsys.readouterr().out
-
-
-def test_telemetry_cli_roundtrip(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    code = ops_cli.main(
-        [
-            "--root",
-            str(ROOT),
-            "--runtime-root",
-            str(tmp_path),
-            "telemetry",
-            "--event",
-            "project.status",
-            "--project-id",
-            "p1",
-            "--status",
-            "PASS",
-        ]
-    )
-    assert code == 0
-    assert "TELEMETRY_RESULT=PASS" in capsys.readouterr().out
-    code = ops_cli.main(["--root", str(ROOT), "--runtime-root", str(tmp_path), "telemetry", "--show"])
-    assert code == 0
-    assert '"event": "project.status"' in capsys.readouterr().out

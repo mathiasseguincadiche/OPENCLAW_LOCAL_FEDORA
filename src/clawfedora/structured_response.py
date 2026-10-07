@@ -133,6 +133,7 @@ def repair_response(
     text: str,
     schema: dict[str, Any],
     *,
+    model: str = "qwen3.5:9b-q4_K_M",
     context_tokens: int = 32768,
     max_output_tokens: int = 4096,
 ) -> dict[str, Any]:
@@ -140,7 +141,7 @@ def repair_response(
     if len(text) > 24000:
         raise ValueError("réponse trop longue pour une réparation locale bornée")
     payload = {
-        "model": "qwen3.5:9b-q4_K_M",
+        "model": model,
         "stream": False,
         "think": False,
         "keep_alive": "3m",

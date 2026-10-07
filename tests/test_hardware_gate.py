@@ -9,7 +9,7 @@ from clawfedora import hardware_gate
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_l2_gate_passes_expected_fedora_host(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_system_check_passes_expected_fedora_host(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         hardware_gate,
         "_os_release",
@@ -42,9 +42,9 @@ def test_l2_gate_passes_expected_fedora_host(monkeypatch: pytest.MonkeyPatch) ->
         return original_is_dir(path)
 
     monkeypatch.setattr(Path, "is_dir", is_dir)
-    report = hardware_gate.collect_hardware_gate(ROOT, "l2")
+    report = hardware_gate.collect_hardware_gate(ROOT, "system")
     assert report.ok is True
-    assert report.gate == "L2"
+    assert report.gate == "system"
     assert {item.id for item in report.checks} >= {
         "fedora-44",
         "gnome-50",
@@ -57,7 +57,7 @@ def test_l2_gate_passes_expected_fedora_host(monkeypatch: pytest.MonkeyPatch) ->
     }
 
 
-def test_l3_gate_requires_xe_render_mesa_and_vulkan(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_gpu_check_requires_xe_render_mesa_and_vulkan(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         hardware_gate, "_b580_lspci", lambda: (True, "Intel Arc B580\n Kernel driver in use: xe")
     )
@@ -83,15 +83,15 @@ def test_l3_gate_requires_xe_render_mesa_and_vulkan(monkeypatch: pytest.MonkeyPa
         return original_glob(path, pattern)
 
     monkeypatch.setattr(Path, "glob", glob)
-    report = hardware_gate.collect_hardware_gate(ROOT, "l3")
+    report = hardware_gate.collect_hardware_gate(ROOT, "gpu")
     assert report.ok is True
-    assert report.gate == "L3"
+    assert report.gate == "gpu"
     assert all(item.status == "PASS" for item in report.checks)
 
 
 def test_hardware_evidence_is_written(tmp_path: Path) -> None:
     report = hardware_gate.HardwareGateReport(
-        gate="L3",
+        gate="gpu",
         checks=(hardware_gate.GateCheck("vulkan", "PASS", "ok"),),
         collected_at="2026-09-03T00:00:00+00:00",
     )
@@ -100,18 +100,18 @@ def test_hardware_evidence_is_written(tmp_path: Path) -> None:
     assert '"verdict": "PASS"' in path.read_text(encoding="utf-8")
 
 
-def test_qualification_hardware_snapshot_uses_canonical_directory(tmp_path: Path) -> None:
+def test_hardware_snapshot_uses_canonical_directory(tmp_path: Path) -> None:
     report = hardware_gate.HardwareGateReport(
-        gate="L2",
+        gate="system",
         checks=(),
         collected_at="2026-09-03T00:00:00+00:00",
     )
-    requested = tmp_path / "proofs" / "qualification"
+    requested = tmp_path / "proofs" / "hardware"
     path = hardware_gate.write_hardware_evidence(report, requested)
     assert path.parent == tmp_path / "proofs" / "hardware"
     assert path.is_file()
 
 
 def test_unknown_hardware_gate_is_rejected() -> None:
-    with pytest.raises(ValueError, match="l2 ou l3"):
+    with pytest.raises(ValueError, match="system ou gpu"):
         hardware_gate.collect_hardware_gate(ROOT, "l9")

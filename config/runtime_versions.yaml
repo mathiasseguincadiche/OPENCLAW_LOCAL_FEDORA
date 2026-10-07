@@ -1,13 +1,10 @@
 schema_version: "1.1.0"
 platform_version: "0.1.0"
 
+# Versions exactes installées et vérifiées. Pour en changer : docs/fiches/08-reglages.md
 openclaw:
   version: "2026.9.8"
-  initial_qualification_pin: "2026.9.8"  # compatibility alias; must equal version
   lock: exact
-  integrity: "sha512-G+JkNUhtpDE3cXR4AEi2NyyG9fqI/T2WUSl8ZnR8AATH8Dh1kC3qYFL7wwPoZtgHiP/cszA86PEiE0PDysxb9Q=="
-  release_sha: "fc23bc864e4553c2d215e479eeec47b67a0bf943"
-  policy: exact-version-locked
   automatic_update: false
   plugins:
     parallel:
@@ -16,33 +13,10 @@ openclaw:
       lock: exact
       provider: parallel-free
 
-node:
-  minimum_supported:
-    - "24.16.0"
-    - "26.1.0"
-  preferred_major: 26
-  installer_managed_runtime_allowed: true
-
-fedora_gpu_stack:
-  mesa_vulkan_reference: "26.1.8"
-  exact_versions_must_be_recorded_at_qualification: true
-
-llama_cpp:
-  source: upstream
-  tag: "b10516"
-  commit: "b95502ba9aa0eb73a2f4fc8878d7fbe6a847a0b9"
-  policy: exact-pinned-release-for-l6
-
 ollama:
   version: "0.35.1"
-  tag: "v0.35.1"
-  commit: "b0c1ca4f7549d7acdfa52a7dcffc934bc63a43ce"
-  policy: exact-stable-pin-for-l6
 
 upgrade_policy:
-  one_variable_at_a_time: true
-  require_requalification_after_runtime_change: true
-  never_upgrade_during_active_qualification: true
   openclaw_version_locked: true
   openclaw_update_requires_explicit_contract_change: true
   parallel_plugin_version_locked: true

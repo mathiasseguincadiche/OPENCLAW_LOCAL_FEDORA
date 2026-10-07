@@ -9,64 +9,49 @@ source "$LINUX/lib/runtime.sh"
 
 ACTION="status"
 APPLY=0
-BACKEND="ollama-vulkan"
 PURGE_DATA=0
+CONTEXT=""
 
 usage() {
-  cat <<'EOF'
+  cat <<'EOF_USAGE'
 Atelier IA local — Infrastructure & OPS · centre de contrôle
 
-Usage: ./menu.sh --action ACTION [--apply] [--backend BACKEND] [--purge-data]
+Usage: ./menu.sh --action ACTION [--apply] [--purge-data] [--context N]
 
-Usage quotidien:
-  install                Installation complète; dry-run, --apply pour appliquer
-  health                 Santé produit complète
-  context-probe          Mesurer si le contexte quotidien tient sur le GPU; --apply requis
-  gaming                 Libérer le GPU pour jouer; --apply pour arrêter les services
-  daily                  Reprendre les services IA; --apply obligatoire
-  dashboard              Tableau de bord local : projets, recherche et ressources
-  webui-install          Installer Open WebUI slim personnel; --apply requis
-  webui-start|webui-stop  Démarrer/arrêter les discussions; --apply requis
-  webui-seal             Fermer les inscriptions après le premier compte; --apply requis
-  webui-status           État des interfaces locales
-  backup                 Sauvegarde state/projects/proofs/workspaces
-  upgrade                Migration sauvegardée vers les versions du dépôt; --apply requis
-  repair                 Backup + doctor + reconfiguration + health
-  uninstall              Désinstallation conservatrice; --apply requis
+Sans --apply, une action qui modifie le système affiche seulement ce qu'elle ferait.
 
-Diagnostic:
-  status                 Contrats + cycle de vie + audit non bloquant
-  validate               Valide tous les contrats + cycle de vie
-  audit                  Audit Fedora/B580 non bloquant
-  audit-strict           Audit historique strict
-  hardware-l2            Contrôle Fedora/GNOME/matériel + preuve JSON
-  hardware-l3            Contrôle B580/xe/Mesa/Vulkan + preuve JSON
-  gpu                    Alias historique du contrôle B580
-  models                 Plan/provision de Qwen quotidien; --apply pour télécharger
-  bootstrap              Prépare Fedora; dry-run par défaut
-  agents                 Déploie les 7 workspaces agents gérés
-  configure-openclaw     Configure OpenClaw; dry-run, --apply pour appliquer
-  lifecycle-validate     Valide le contrat de cycle de vie
-  project-selftest       Cycle projet synthétique complet hors matériel
+Installer et utiliser:
+  install                Installation complète
+  health                 Vérifier que tout fonctionne
+  context-probe          Mesurer si le contexte tient sur le GPU, et la vitesse
+                         (--context 8192|16384|32768 pour comparer une autre taille)
+  webui-install          Installer le chat Open WebUI
+  webui-seal             Fermer les inscriptions après le premier compte
+  webui-start|webui-stop Démarrer ou arrêter le chat
+  webui-status           État du chat et de l'atelier
+  dashboard              Ouvrir l'atelier Projets dans ce terminal
+  gaming                 Libérer le GPU pour jouer
+  daily                  Reprendre les services IA
 
-Expérimental — facultatif, inutile pour se servir de l'atelier au quotidien:
-  performance            Profil performance; dry-run, --apply pour l'activer
-  e2e-dry-run            Plan du gate L4 OpenClaw sans appel modèle
-  e2e                    Gate L4 réel
-  qualification-dry-run  Valide le plan HARD-40M
-  qualification          Gate L5 réel HARD-40M
-  challenger-model       Plan/provision Granite challenger hors routage; --apply explicite
-  golden-dry-run         Valide le plan L7 sans exécuter les projets
-  golden                 Exécute les 5 Golden Projects + projet représentatif
-  release-readiness-dry-run  Valide le framework L8 sans lire les preuves réelles
-  release-readiness      Agrège et revalide les preuves L0-L7; jamais d'approbation automatique
-  L'approbation L8 n'est volontairement pas exposée comme action menu.
-  Utiliser clawfedora-l8 approve avec --report, --approver et --acknowledge-v1.
+Entretenir:
+  backup                 Sauvegarder l'état, les projets et les workspaces
+  upgrade                Passer aux versions prévues par le dépôt
+  repair                 Sauvegarde, reconfiguration et vérification
+  uninstall              Désinstaller; --purge-data supprime aussi les données
 
-Backends OpenClaw:
-  ollama-vulkan          baseline
-  llama-cpp-vulkan       candidat Linux expérimental
-EOF
+Diagnostiquer:
+  status                 Fichiers de configuration + audit du poste
+  validate               Vérifier la cohérence des fichiers de configuration
+  audit                  Audit Fedora et B580, non bloquant
+  check-system           Contrôle Fedora, GNOME et matériel
+  check-gpu              Contrôle B580, pilote xe et Vulkan
+
+Étapes d'installation, utiles séparément pour dépanner:
+  bootstrap              Paquets Fedora, dossiers et environnement Python
+  models                 Télécharger le modèle Qwen
+  agents                 Déployer les consignes des sept rôles
+  configure-openclaw     Appliquer la configuration OpenClaw
+EOF_USAGE
 }
 
 while (($#)); do
@@ -78,10 +63,10 @@ while (($#)); do
       ;;
     --apply) APPLY=1 ;;
     --purge-data) PURGE_DATA=1 ;;
-    --backend)
+    --context)
       shift
-      [[ $# -gt 0 ]] || { echo "ERREUR: --backend exige une valeur" >&2; exit 2; }
-      BACKEND="$1"
+      [[ $# -gt 0 ]] || { echo "ERREUR: --context exige une valeur" >&2; exit 2; }
+      CONTEXT="$1"
       ;;
     -h|--help) usage; exit 0 ;;
     *) echo "ERREUR: argument inconnu: $1" >&2; usage >&2; exit 2 ;;
@@ -90,153 +75,66 @@ while (($#)); do
 done
 
 PYTHON="$(claw_python)"
-run_cli() {
+run_module() {
+  local module="$1"
+  shift
   if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then
-    "$PYTHON" -m clawfedora.cli --root "$REPO_ROOT" "$@"
+    "$PYTHON" -m "clawfedora.$module" --root "$REPO_ROOT" "$@"
   else
     PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
-      "$PYTHON" -m clawfedora.cli --root "$REPO_ROOT" "$@"
+      "$PYTHON" -m "clawfedora.$module" --root "$REPO_ROOT" "$@"
   fi
 }
-run_ops() {
-  if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then
-    "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" "$@"
-  else
-    PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
-      "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" "$@"
-  fi
-}
-run_golden() {
-  if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then
-    "$PYTHON" -m clawfedora.golden_cli --root "$REPO_ROOT" "$@"
-  else
-    PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
-      "$PYTHON" -m clawfedora.golden_cli --root "$REPO_ROOT" "$@"
-  fi
-}
-run_l6() {
-  if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then
-    "$PYTHON" -m clawfedora.optimization_cli --root "$REPO_ROOT" "$@"
-  else
-    PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
-      "$PYTHON" -m clawfedora.optimization_cli --root "$REPO_ROOT" "$@"
-  fi
-}
-run_l8() {
-  if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then
-    "$PYTHON" -m clawfedora.release_readiness_cli --root "$REPO_ROOT" "$@"
-  else
-    PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
-      "$PYTHON" -m clawfedora.release_readiness_cli --root "$REPO_ROOT" "$@"
-  fi
-}
+run_cli() { run_module cli "$@"; }
+run_ops() { run_module ops_cli "$@"; }
 
-printf '%s\n' '=============================================================================='
-printf '%s\n' ' OPENCLAW_LOCAL_FEDORA — FEDORA 44 / GNOME 50 / INTEL ARC B580'
-printf '%s\n' '=============================================================================='
-printf '%s\n' ' Noyau           : celui de la distribution, jamais modifié par ce projet'
-printf '%s\n' ' GPU nominal     : xe + Mesa/Vulkan'
-printf '%s\n' ' Runtime baseline: Ollama Vulkan'
-printf '%s\n' ' Modèle quotidien: Qwen 3.5 9B (exactement 1), contexte 32768, sortie 4096'
-printf '%s\n' ' Expérimental    : Gemma 4 12B / Ministral 3 14B Reasoning / Granite 4.2 8B hors routage'
-printf '%s\n' ' Cloud           : aucun routage LLM cloud nominal, jamais fallback silencieux'
+# Run a script, adding --apply only when it was requested.
+with_apply() {
+  local script="$1"
+  shift
+  local -a args=("$@")
+  ((APPLY == 1)) && args+=(--apply)
+  "$LINUX/$script" "${args[@]}"
+}
 
 case "$ACTION" in
-  lifecycle-validate) run_ops validate-lifecycle ;;
-  install)
-    if ((APPLY == 1)); then
-      "$LINUX/10_install_full.sh" --apply
-    else
-      "$LINUX/10_install_full.sh"
-    fi
-    ;;
-  models)
-    if ((APPLY == 1)); then
-      "$LINUX/09_provision_models.sh" --apply
-    else
-      "$LINUX/09_provision_models.sh"
-    fi
-    ;;
-  upgrade)
-    if ((APPLY == 1)); then "$LINUX/22_upgrade_daily.sh" --apply; else "$LINUX/22_upgrade_daily.sh"; fi
-    ;;
-  gaming)
-    if ((APPLY == 1)); then "$LINUX/21_daily_profile.sh" gaming --apply; else "$LINUX/21_daily_profile.sh" gaming; fi
-    ;;
-  daily)
-    if ((APPLY == 1)); then "$LINUX/21_daily_profile.sh" daily --apply; else "$LINUX/21_daily_profile.sh" daily; fi
-    ;;
-  health) "$LINUX/11_health.sh" ;;
+  install) with_apply 06_install.sh ;;
+  health) "$LINUX/07_health.sh" ;;
   context-probe)
     args=(--runtime-root "$(claw_runtime_root)" context-probe)
+    [[ -z "$CONTEXT" ]] || args+=(--context "$CONTEXT")
     ((APPLY == 1)) && args+=(--apply)
     run_ops "${args[@]}"
     ;;
-  dashboard) run_cli dashboard --serve ;;
   webui-install|webui-start|webui-stop|webui-seal|webui-status)
-    args=("${ACTION#webui-}")
-    ((APPLY == 1)) && args+=(--apply)
-    "$LINUX/23_openwebui.sh" "${args[@]}"
+    with_apply 13_openwebui.sh "${ACTION#webui-}"
     ;;
-  backup) "$LINUX/12_backup_restore.sh" backup ;;
-  repair)
-    if ((APPLY == 1)); then
-      "$LINUX/13_repair.sh" --apply
-    else
-      "$LINUX/13_repair.sh"
-    fi
-    ;;
+  dashboard) run_cli dashboard --serve ;;
+  gaming) with_apply 11_daily_profile.sh gaming ;;
+  daily) with_apply 11_daily_profile.sh daily ;;
+  backup) "$LINUX/08_backup_restore.sh" backup ;;
+  upgrade) with_apply 12_upgrade.sh ;;
+  repair) with_apply 09_repair.sh ;;
   uninstall)
     args=()
-    ((APPLY == 1)) && args+=(--apply)
     ((PURGE_DATA == 1)) && args+=(--purge-data)
-    "$LINUX/14_uninstall.sh" "${args[@]}"
-    ;;
-  validate)
-    run_cli validate
-    run_ops validate-lifecycle
-    ;;
-  audit) "$LINUX/01_audit_host.sh" ;;
-  audit-strict) "$LINUX/01_audit_host.sh" --strict ;;
-  hardware-l2) "$LINUX/05_hardware_gates.sh" l2 ;;
-  hardware-l3) "$LINUX/05_hardware_gates.sh" l3 ;;
-  gpu) "$LINUX/02_verify_gpu.sh" ;;
-  performance)
-    args=(--profile performance)
-    ((APPLY == 1)) && args+=(--apply)
-    "$LINUX/08_power_profile.sh" "${args[@]}"
-    ;;
-  agents) "$LINUX/03_deploy_agents.sh" ;;
-  project-selftest) run_cli project selftest ;;
-  e2e-dry-run) "$LINUX/06_openclaw_e2e.sh" --backend "$BACKEND" --dry-run ;;
-  e2e) "$LINUX/06_openclaw_e2e.sh" --backend "$BACKEND" ;;
-  qualification-dry-run) "$LINUX/07_run_qualification.sh" --dry-run ;;
-  qualification) "$LINUX/07_run_qualification.sh" ;;
-  challenger-model)
-    args=(provision-challenger)
-    ((APPLY == 1)) && args+=(--apply)
-    run_l6 "${args[@]}"
-    ;;
-  golden-dry-run) run_golden --dry-run ;;
-  golden) run_golden ;;
-  release-readiness-dry-run) run_l8 dry-run ;;
-  release-readiness) run_l8 check ;;
-  configure-openclaw)
-    args=(--backend "$BACKEND")
-    ((APPLY == 1)) && args+=(--apply)
-    "$LINUX/04_configure_openclaw.sh" "${args[@]}"
-    ;;
-  bootstrap)
-    if ((APPLY == 1)); then
-      "$LINUX/00_bootstrap.sh" --apply
-    else
-      "$LINUX/00_bootstrap.sh"
-    fi
+    with_apply 10_uninstall.sh "${args[@]}"
     ;;
   status)
     run_cli validate
     run_ops validate-lifecycle
     "$LINUX/01_audit_host.sh"
     ;;
+  validate)
+    run_cli validate
+    run_ops validate-lifecycle
+    ;;
+  audit) "$LINUX/01_audit_host.sh" ;;
+  check-system) "$LINUX/04_check_hardware.sh" system ;;
+  check-gpu) "$LINUX/04_check_hardware.sh" gpu ;;
+  bootstrap) with_apply 00_bootstrap.sh ;;
+  models) with_apply 05_provision_models.sh ;;
+  agents) "$LINUX/02_deploy_agents.sh" ;;
+  configure-openclaw) with_apply 03_configure_openclaw.sh ;;
   *) echo "ERREUR: action inconnue: $ACTION" >&2; usage >&2; exit 2 ;;
 esac

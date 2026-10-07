@@ -17,7 +17,7 @@ from typing import Any
 from clawfedora.core_config import (
     AGENT_IDS,
     core_contract,
-    daily_budget,
+    daily_limits,
     openclaw_environment,
     root_contract,
 )
@@ -87,9 +87,9 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
 
     def run(role: str, prompt: str, session: str) -> dict[str, Any]:
         nonlocal checked_binary, roster_stamp
+        from clawfedora import ollama_api
         from clawfedora.lifecycle import model_plan
         from clawfedora.model_identity import verify_model_lock
-        from clawfedora.qualification import _model_inventory, _request_json
         from clawfedora.version_lock import extract_openclaw_version
 
         env = openclaw_environment(runtime)
@@ -109,7 +109,7 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
         pins = root_contract(repo_root, "runtime_versions.yaml")
         # A local HTTP call is cheap: the Ollama version is verified on every message.
         if (
-            _request_json("http://127.0.0.1:11434/api/version").get("version")
+            ollama_api.request_json("http://127.0.0.1:11434/api/version").get("version")
             != pins["ollama"]["version"]
         ):
             raise ValueError("Ollama divergent du contrat: migration requise avant le travail")
@@ -129,8 +129,10 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
                 raise ValueError("OpenClaw divergent du contrat: migration requise avant le travail")
             checked_binary = binary_stamp
 
-        identities = _model_inventory(
-            _request_json("http://127.0.0.1:11434/api/tags"), model_plan(repo_root)
+        plan = model_plan(repo_root)
+        daily_model = str(plan[0]["runtime_id"])
+        identities = ollama_api.model_inventory(
+            ollama_api.request_json("http://127.0.0.1:11434/api/tags"), plan
         )
         verify_model_lock(runtime, identities)
         # The roster check starts a full CLI process. Repeat it only when the
@@ -152,9 +154,9 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
             )
             if roster_result.returncode != 0:
                 raise ValueError("configuration agents non vérifiable")
-            from clawfedora.openclaw_e2e import _agent_entries
+            from clawfedora.openclaw_reply import agent_entries
 
-            entries = _agent_entries({"agents": json.loads(roster_result.stdout)})
+            entries = agent_entries({"agents": json.loads(roster_result.stdout)})
             if set(entries) != set(AGENT_IDS):
                 raise ValueError("configuration agents: sept rôles quotidiens exacts requis")
             for agent_id, entry in entries.items():
@@ -167,7 +169,7 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
                     != (runtime / "workspaces" / agent_id).resolve()
                 ):
                     raise ValueError(f"workspace divergent: {agent_id}")
-                if entry.get("model") != {"primary": "ollama/qwen3.5:9b-q4_K_M", "fallbacks": []}:
+                if entry.get("model") != {"primary": f"ollama/{daily_model}", "fallbacks": []}:
                     raise ValueError(f"routage quotidien divergent: {agent_id}")
             roster_stamp = stamp
         completed = subprocess.run(
@@ -193,10 +195,10 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
         if completed.returncode != 0:
             raise ValueError(f"OpenClaw a échoué (code={completed.returncode})")
         envelope = json.loads(completed.stdout)
-        from clawfedora.openclaw_e2e import _assert_agent_success, _visible_text
+        from clawfedora.openclaw_reply import assert_agent_success, visible_text
 
-        _assert_agent_success(envelope, "ollama")
-        text = _visible_text(envelope)
+        assert_agent_success(envelope, "ollama")
+        text = visible_text(envelope)
         if plain_text:
             return {"text": text}
         schema = response_schema(prompt)
@@ -204,12 +206,13 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
             value = parse_response(text, schema)
         except json.JSONDecodeError:
             # Syntax-only repair; missing fields in a valid JSON object fail closed.
-            budget = daily_budget(repo_root)
+            limits = daily_limits(repo_root)
             value = repair_response(
                 text,
                 schema,
-                context_tokens=int(budget["context_tokens"]),
-                max_output_tokens=int(budget["max_output_tokens"]),
+                model=daily_model,
+                context_tokens=int(limits["context_tokens"]),
+                max_output_tokens=int(limits["max_output_tokens"]),
             )
             write_json(
                 runtime / "state/response-repairs" / f"{session}.json",
@@ -217,7 +220,7 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
                     "session_id": session,
                     "attempts": 1,
                     "input_sha256": hashlib.sha256(text.encode()).hexdigest(),
-                    "model": "qwen3.5:9b-q4_K_M",
+                    "model": daily_model,
                     "schema": schema,
                 },
             )
@@ -434,12 +437,12 @@ def run_project_tasks(
         if current_status(project) != "IN_PROGRESS":
             raise ValueError("worker: projet ASSIGNED ou IN_PROGRESS requis")
         if runner is None:
+            from clawfedora import ollama_api
             from clawfedora.lifecycle import model_plan
             from clawfedora.model_identity import verify_model_lock
-            from clawfedora.qualification import _model_inventory, _request_json
 
-            identities = _model_inventory(
-                _request_json("http://127.0.0.1:11434/api/tags"), model_plan(repo_root)
+            identities = ollama_api.model_inventory(
+                ollama_api.request_json("http://127.0.0.1:11434/api/tags"), model_plan(repo_root)
             )
             verify_model_lock(runtime, identities)
         invoke = runner or openclaw_runner(runtime, repo_root)

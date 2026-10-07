@@ -5,7 +5,6 @@ security_defaults:
   fs_workspace_only: true
   exec_mode: ask
   elevated_enabled: false
-  cloud_tools_without_explicit_escalation: false
   document_tools:
   - pdf
   - view_image
@@ -213,4 +212,4 @@ notes:
   quotidien.
 - Le worker est le seul ordonnanceur; pas de délégation native imbriquée.
 - Internet fournit des sources non fiables; aucun modèle cloud de secours.
-- Un navigateur ou une exécution de code exigent un profil isolé qualifié séparément.
+- Pas de navigateur ni d'exécution de code dans ce profil.
