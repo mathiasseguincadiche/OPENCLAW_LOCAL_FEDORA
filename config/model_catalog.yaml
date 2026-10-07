@@ -110,7 +110,7 @@ fleet_policy:
   exact_required_model_count: 1
   nominal_context_tokens: 8192
   maximum_qualified_context_tokens: 16384
-  openclaw_agent_context_tokens: 8192
+  openclaw_agent_context_tokens: 32768
   openclaw_agent_context_is_benchmark_promotion: false
   target_gpu_vram_gib: 12
   implicit_model_download_during_benchmark: false

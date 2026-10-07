@@ -1,13 +1,13 @@
 # Moteur de projets Linux-native
 
-> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, contexte 32K, sortie 4096, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles (8K/16K) sont expérimentales et facultatives.
 
 ## Repères de progression
 
 | Repère | Valeur |
 |---|---|
 | **Pour qui** | Toute personne qui veut comprendre comment une demande devient un projet traçable, sans prérequis de développement avancé. |
-| **Position dans le parcours** | 7/14 |
+| **Position dans le parcours** | 7/13 |
 | **Prérequis** | Avoir lu [`MULTI_AGENT_CORE.md`](MULTI_AGENT_CORE.md). |
 | **Objectif** | Comprendre Intake, planification, exécution, Artifact Exchange, validation et packaging. |
 | **Résultat attendu** | Savoir suivre le cycle d’un projet et comprendre pourquoi chaque transition et chaque artefact est contrôlé. |

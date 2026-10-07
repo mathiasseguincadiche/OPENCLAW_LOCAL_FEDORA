@@ -194,7 +194,6 @@ def test_synthetic_golden_report_cannot_authorize_release() -> None:
         "golden_projects_pass": 5,
         "representative_projects_pass": 1,
         "telemetry": {"local_only": True, "events": 6},
-        "finops": {"net_exposure_eur": 0},
     }
     assert any("synthétique" in failure for failure in _validate_l7(payload, cfg))
 

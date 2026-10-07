@@ -33,7 +33,7 @@ deliverables/guide/guide.docx
 deliverables/guide/guide.txt
 ```
 
-Le rédacteur fournit le Markdown une fois au plugin, avec les exports demandés. Le plugin retourne des références courtes; les PDF/DOCX ne passent pas en base64 dans les 1024 tokens de réponse. Le worker vérifie rôle, appel courant, formats et hashes, puis collecte les fichiers attendus. Une exportation réussie ne valide pas le contenu du document.
+Le rédacteur fournit le Markdown une fois au plugin, avec les exports demandés. Le plugin retourne des références courtes; les PDF/DOCX ne passent pas en base64 dans les 4 096 tokens de réponse. Le worker vérifie rôle, appel courant, formats et hashes, puis collecte les fichiers attendus. Une exportation réussie ne valide pas le contenu du document.
 
 En guidé, la source Markdown reste modifiable dans le formulaire. Les exports indiquent la source à modifier; ils ne sont pas des champs de texte binaire. Après soumission, le spécialiste relit le brouillon et les exports réels dans un snapshot protégé. Ils sont publiés après le retour PASS, avec des hashes correspondant exactement aux fichiers relus. Les tâches dépendantes reçoivent aussi la source; une révision approuvée les reprend comme les autres livrables. Télécharger les fichiers publiés depuis la liste de documents du projet.
 

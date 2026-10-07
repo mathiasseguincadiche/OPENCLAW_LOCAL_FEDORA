@@ -18,36 +18,39 @@ Atelier IA local — Infrastructure & OPS · centre de contrôle
 
 Usage: ./menu.sh --action ACTION [--apply] [--backend BACKEND] [--purge-data]
 
-Cycle de vie:
+Usage quotidien:
   install                Installation complète; dry-run, --apply pour appliquer
-  upgrade                Migration sauvegardée vers les versions du dépôt; --apply requis
-  models                 Plan/provision de Qwen quotidien; --apply pour télécharger
+  health                 Santé produit complète
+  context-probe          Mesurer si le contexte quotidien tient sur le GPU; --apply requis
   gaming                 Libérer le GPU pour jouer; --apply pour arrêter les services
   daily                  Reprendre les services IA; --apply obligatoire
-  health                 Santé produit complète
+  dashboard              Tableau de bord local : projets, recherche et ressources
   webui-install          Installer Open WebUI slim personnel; --apply requis
   webui-start|webui-stop  Démarrer/arrêter les discussions; --apply requis
   webui-seal             Fermer les inscriptions après le premier compte; --apply requis
   webui-status           État des interfaces locales
-  dashboard              Tableau de bord local : projets, recherche et ressources
   backup                 Sauvegarde state/projects/proofs/workspaces
+  upgrade                Migration sauvegardée vers les versions du dépôt; --apply requis
   repair                 Backup + doctor + reconfiguration + health
   uninstall              Désinstallation conservatrice; --apply requis
-  lifecycle-validate     Valide le contrat de cycle de vie
 
-Plateforme et qualification:
+Diagnostic:
   status                 Contrats + cycle de vie + audit non bloquant
-  validate               Valide tous les contrats L0-L8 + cycle de vie
-  bootstrap              Prépare Fedora; dry-run par défaut
+  validate               Valide tous les contrats + cycle de vie
   audit                  Audit Fedora/B580 non bloquant
   audit-strict           Audit historique strict
-  hardware-l2            Gate L2 Fedora/GNOME/hardware + preuve JSON
-  hardware-l3            Gate L3 B580/xe/Mesa/Vulkan + preuve JSON
-  gpu                    Alias historique du gate B580
-  performance            Profil performance; dry-run, --apply pour l'activer
+  hardware-l2            Contrôle Fedora/GNOME/matériel + preuve JSON
+  hardware-l3            Contrôle B580/xe/Mesa/Vulkan + preuve JSON
+  gpu                    Alias historique du contrôle B580
+  models                 Plan/provision de Qwen quotidien; --apply pour télécharger
+  bootstrap              Prépare Fedora; dry-run par défaut
   agents                 Déploie les 7 workspaces agents gérés
   configure-openclaw     Configure OpenClaw; dry-run, --apply pour appliquer
+  lifecycle-validate     Valide le contrat de cycle de vie
   project-selftest       Cycle projet synthétique complet hors matériel
+
+Expérimental — facultatif, inutile pour se servir de l'atelier au quotidien:
+  performance            Profil performance; dry-run, --apply pour l'activer
   e2e-dry-run            Plan du gate L4 OpenClaw sans appel modèle
   e2e                    Gate L4 réel
   qualification-dry-run  Valide le plan HARD-40M
@@ -57,14 +60,12 @@ Plateforme et qualification:
   golden                 Exécute les 5 Golden Projects + projet représentatif
   release-readiness-dry-run  Valide le framework L8 sans lire les preuves réelles
   release-readiness      Agrège et revalide les preuves L0-L7; jamais d'approbation automatique
-
-Approbation V1:
   L'approbation L8 n'est volontairement pas exposée comme action menu.
   Utiliser clawfedora-l8 approve avec --report, --approver et --acknowledge-v1.
 
 Backends OpenClaw:
   ollama-vulkan          baseline
-  llama-cpp-vulkan       candidat Linux
+  llama-cpp-vulkan       candidat Linux expérimental
 EOF
 }
 
@@ -133,14 +134,11 @@ run_l8() {
 printf '%s\n' '=============================================================================='
 printf '%s\n' ' OPENCLAW_LOCAL_FEDORA — FEDORA 44 / GNOME 50 / INTEL ARC B580'
 printf '%s\n' '=============================================================================='
-printf '%s\n' ' Kernel baseline : Fedora officiel'
-printf '%s\n' ' Kernel 7.2.3    : candidat uniquement, jamais promotion automatique'
+printf '%s\n' ' Noyau           : celui de la distribution, jamais modifié par ce projet'
 printf '%s\n' ' GPU nominal     : xe + Mesa/Vulkan'
 printf '%s\n' ' Runtime baseline: Ollama Vulkan'
-printf '%s\n' ' Modèle quotidien: Qwen 3.5 9B (exactement 1), contexte 8192'
-printf '%s\n' ' Optionnels      : Gemma 4 12B / Ministral 3 14B Reasoning, qualification séparée'
-printf '%s\n' ' Challenger      : Granite 4.2 8B hors routage, benchmark uniquement'
-printf '%s\n' ' Qualification   : HARD-40M / 30 cas / suspension inhibée'
+printf '%s\n' ' Modèle quotidien: Qwen 3.5 9B (exactement 1), contexte 32768, sortie 4096'
+printf '%s\n' ' Expérimental    : Gemma 4 12B / Ministral 3 14B Reasoning / Granite 4.2 8B hors routage'
 printf '%s\n' ' Cloud           : aucun routage LLM cloud nominal, jamais fallback silencieux'
 
 case "$ACTION" in
@@ -169,6 +167,11 @@ case "$ACTION" in
     if ((APPLY == 1)); then "$LINUX/21_daily_profile.sh" daily --apply; else "$LINUX/21_daily_profile.sh" daily; fi
     ;;
   health) "$LINUX/11_health.sh" ;;
+  context-probe)
+    args=(--runtime-root "$(claw_runtime_root)" context-probe)
+    ((APPLY == 1)) && args+=(--apply)
+    run_ops "${args[@]}"
+    ;;
   dashboard) run_cli dashboard --serve ;;
   webui-install|webui-start|webui-stop|webui-seal|webui-status)
     args=("${ACTION#webui-}")

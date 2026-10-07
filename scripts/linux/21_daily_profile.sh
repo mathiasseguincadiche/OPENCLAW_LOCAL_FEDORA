@@ -18,7 +18,7 @@ if [[ "$ACTION" == "status" ]]; then
   [[ ! -e "$RUNTIME_ROOT/state/gaming-mode" ]] && echo "PROFILE=daily" || echo "PROFILE=gaming"
   exit 0
 fi
-printf 'DAILY_PROFILE_PLAN action=%s root=%s one_model=1 parallel=1 queue=4\n' "$ACTION" "$RUNTIME_ROOT"
+printf 'DAILY_PROFILE_PLAN action=%s root=%s one_model=1 parallel=1 queue=4 context=contract\n' "$ACTION" "$RUNTIME_ROOT"
 ((APPLY == 1)) || { echo "DRY_RUN=PASS"; exit 0; }
 [[ -f "$RUNTIME_ROOT/.openclaw-fedora-runtime" ]] || { echo "ERREUR: runtime non géré" >&2; exit 2; }
 mkdir -p "$RUNTIME_ROOT/state"
@@ -33,6 +33,14 @@ indices=[blocks[i] for i in range(1,len(blocks),2) if "B580" in blocks[i+1] and 
 if len(indices)!=1: raise SystemExit("B580 Vulkan unique non observée")
 print(indices[0])
 ')"
+    # Same context as the OpenClaw agents: a different value makes Ollama reload the model.
+    CONTEXT_TOKENS="$(PYTHONPATH="$(claw_repo_root)/src${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON" -c '
+import sys
+from pathlib import Path
+from clawfedora.core_config import daily_budget
+print(daily_budget(Path(sys.argv[1]))["context_tokens"])
+' "$(claw_repo_root)")"
+    [[ "$CONTEXT_TOKENS" =~ ^[0-9]+$ ]] || { echo "ERREUR: contexte quotidien illisible" >&2; exit 2; }
     # Models belong to the service user; preserve SELinux protections.
     sudo install -d -m 0750 -o ollama -g ollama "$RUNTIME_ROOT/models/ollama"
     sudo restorecon -RF "$RUNTIME_ROOT/models/ollama"
@@ -46,11 +54,18 @@ Environment="GGML_VK_VISIBLE_DEVICES=$GPU_INDEX"
 Environment="OLLAMA_NUM_PARALLEL=1"
 Environment="OLLAMA_MAX_LOADED_MODELS=1"
 Environment="OLLAMA_MAX_QUEUE=4"
-Environment="OLLAMA_CONTEXT_LENGTH=8192"
+Environment="OLLAMA_CONTEXT_LENGTH=$CONTEXT_TOKENS"
 Environment="OLLAMA_KEEP_ALIVE=3m"
 EOF
     # Grant directory traversal only, not access to user projects or secrets.
     sudo setfacl -m u:ollama:--x "$RUNTIME_ROOT" "$RUNTIME_ROOT/models"
+    # Vulkan: without this capability Ollama cannot read free VRAM and only estimates it.
+    # A file capability is lost when the binary is replaced: reapplied on every configure.
+    OLLAMA_BIN="$(readlink -f "$(command -v ollama)")"
+    if [[ -x "$OLLAMA_BIN" && ! -L "$OLLAMA_BIN" ]]; then
+      sudo setcap cap_perfmon+ep "$OLLAMA_BIN"
+      getcap "$OLLAMA_BIN" | grep -q cap_perfmon || echo "WARN: cap_perfmon non appliquée; VRAM estimée" >&2
+    fi
     sudo systemctl daemon-reload
     sudo systemctl restart ollama.service
     ;;

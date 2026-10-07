@@ -1,13 +1,13 @@
 # Cœur multi-agents Linux-native
 
-> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, contexte 32K, sortie 4096, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles (8K/16K) sont expérimentales et facultatives.
 
 ## Repères de progression
 
 | Repère | Valeur |
 |---|---|
 | **Pour qui** | Toute personne qui suit le parcours et veut comprendre comment les sept rôles collaborent dans l’architecture. |
-| **Position dans le parcours** | 6/14 |
+| **Position dans le parcours** | 6/13 |
 | **Prérequis** | Avoir lu [`ARCHITECTURE.md`](ARCHITECTURE.md). |
 | **Objectif** | Comprendre les sept agents, leur routage, leurs workspaces et la façon dont OpenClaw les configure sous Fedora. |
 | **Résultat attendu** | Savoir distinguer identité, modèle nominal, workspace, outils et responsabilités de chaque rôle. |

@@ -13,7 +13,7 @@ OUTPUT=""
 
 usage() {
   cat <<'EOF'
-Usage: 18_l6_snapshot.sh --backend BACKEND --kind runtime|kernel \
+Usage: 18_l6_snapshot.sh --backend BACKEND --kind runtime \
        --candidate-id ID [--output FILE]
 
 BACKEND: ollama-vulkan | llama-cpp-vulkan
@@ -38,7 +38,7 @@ case "$BACKEND" in
   llama-cpp-vulkan) ENDPOINT="http://127.0.0.1:8081/v1" ;;
   *) echo "ERREUR: backend invalide: $BACKEND" >&2; exit 2 ;;
 esac
-case "$KIND" in runtime|kernel) ;; *) echo "ERREUR: kind invalide: $KIND" >&2; exit 2 ;; esac
+case "$KIND" in runtime) ;; *) echo "ERREUR: kind invalide: $KIND" >&2; exit 2 ;; esac
 
 RUNTIME_ROOT="$(claw_runtime_root)"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"

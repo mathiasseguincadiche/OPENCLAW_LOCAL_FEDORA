@@ -59,8 +59,7 @@ def main(argv: list[str] | None = None) -> int:
                 f"L7_RESULT={report['verdict']} "
                 f"golden={report['golden_projects_pass']}/5 "
                 f"representative={report['representative_projects_pass']}/1 "
-                f"telemetry={report['telemetry']['events']} "
-                f"finops_exposure_eur={report['finops']['net_exposure_eur']}"
+                f"telemetry={report['telemetry']['events']}"
             )
         return code
     except (FileNotFoundError, KeyError, OSError, PermissionError, ValueError) as exc:

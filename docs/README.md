@@ -35,13 +35,11 @@ README racine
    ↓
 10. FEDORA_B580.md          comprendre B580 → xe → Mesa/Vulkan → runtime
    ↓
-11. KERNEL_POLICY.md        comprendre baseline, candidat et rollback kernel
+11. UPGRADE.md              apprendre à changer une seule variable à la fois
    ↓
-12. UPGRADE.md              apprendre à changer une seule variable à la fois
+12. QUALIFICATION.md        comprendre et exécuter les preuves L2 à L8
    ↓
-13. QUALIFICATION.md        comprendre et exécuter les preuves L2 à L8
-   ↓
-14. ROADMAP.md              relire l'ensemble du projet comme une progression
+13. ROADMAP.md              relire l'ensemble du projet comme une progression
    ↓
 STATUS.md                   vérifier l'état réellement atteint aujourd'hui
 ```
@@ -53,7 +51,7 @@ La technicité augmente progressivement, mais le vocabulaire et les prérequis s
 Chaque guide du parcours commence par une section **Repères de progression** avec les mêmes huit informations :
 
 1. **Pour qui** — toujours toute personne suivant le parcours ;
-2. **Position dans le parcours** — par exemple `5/14` ;
+2. **Position dans le parcours** — par exemple `5/13` ;
 3. **Prérequis** — ce qui doit déjà avoir été lu ou compris ;
 4. **Objectif** — ce que la page enseigne ;
 5. **Résultat attendu** — ce que le lecteur doit savoir faire ou expliquer après lecture ;
@@ -78,6 +76,7 @@ Le parcours ci-dessus reste la référence pour apprendre le projet de bout en b
 | relier les rapports CI aux vérifications OPS | [`INFRASTRUCTURE_CHECKS.md`](INFRASTRUCTURE_CHECKS.md) |
 | comprendre les premières commandes et les états | [`GETTING_STARTED.md`](GETTING_STARTED.md) |
 | installer la plateforme | [`INSTALLATION.md`](INSTALLATION.md) |
+| faire le premier essai réel sur le PC (GPU, contexte 32K, vitesse) | [`PREMIER_ESSAI.md`](PREMIER_ESSAI.md) |
 | exploiter la plateforme au quotidien | [`OPERATIONS.md`](OPERATIONS.md) |
 | diagnostiquer une anomalie | [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) |
 | comprendre l'architecture Linux | [`ARCHITECTURE.md`](ARCHITECTURE.md) |
@@ -86,8 +85,7 @@ Le parcours ci-dessus reste la référence pour apprendre le projet de bout en b
 | comprendre le Gateway `systemd --user` | [`OPENCLAW_SYSTEMD.md`](OPENCLAW_SYSTEMD.md) |
 | comprendre le cycle de vie complet | [`LIFECYCLE.md`](LIFECYCLE.md) |
 | comprendre la pile B580 / `xe` / Vulkan | [`FEDORA_B580.md`](FEDORA_B580.md) |
-| comprendre la politique kernel | [`KERNEL_POLICY.md`](KERNEL_POLICY.md) |
-| mettre à jour OpenClaw, Ollama, modèles, Mesa ou kernel | [`UPGRADE.md`](UPGRADE.md) |
+| mettre à jour OpenClaw, Ollama, modèles ou Mesa | [`UPGRADE.md`](UPGRADE.md) |
 | qualifier Fedora et l'Intel Arc B580 | [`QUALIFICATION.md`](QUALIFICATION.md) |
 | consulter les étapes L0–L8 | [`ROADMAP.md`](ROADMAP.md) |
 | connaître l'état réel du dépôt | [`../STATUS.md`](../STATUS.md) |

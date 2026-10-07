@@ -8,7 +8,7 @@
 - Une escalade cloud exige une action explicite et un budget/gate humain quand elle sera réintroduite.
 - Les secrets et preuves de runtime ne sont jamais committés.
 - Aucun script d'installation ne peut utiliser `--nogpgcheck`, désactiver SELinux ou ouvrir le firewall globalement.
-- Les promotions kernel/backend sont manuelles après preuves.
+- Les promotions de backend sont manuelles après preuves. Le projet ne construit et n’installe aucun noyau.
 
 ## Signalement
 

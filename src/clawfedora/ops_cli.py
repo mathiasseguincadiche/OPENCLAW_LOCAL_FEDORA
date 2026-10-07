@@ -7,7 +7,6 @@ import subprocess
 from pathlib import Path
 
 from clawfedora.core_config import resolve_runtime_root
-from clawfedora.finops import append_cost_event, summarize
 from clawfedora.lifecycle import (
     cleanup_managed,
     collect_health,
@@ -73,19 +72,17 @@ def build_parser() -> argparse.ArgumentParser:
     cleanup = sub.add_parser("cleanup")
     cleanup.add_argument("--apply", action="store_true")
     cleanup.add_argument("--purge-data", action="store_true")
+    probe = sub.add_parser(
+        "context-probe", help="mesurer si un contexte tient entièrement sur le GPU"
+    )
+    probe.add_argument("--context", type=int, choices=(8192, 16384, 32768))
+    probe.add_argument("--apply", action="store_true")
     telemetry = sub.add_parser("telemetry")
     telemetry.add_argument("--event")
     telemetry.add_argument("--agent-id")
     telemetry.add_argument("--project-id")
     telemetry.add_argument("--status")
     telemetry.add_argument("--show", action="store_true")
-    finops = sub.add_parser("finops")
-    finops.add_argument("--event", choices=("reservation", "charge", "release", "refund"))
-    finops.add_argument("--amount-eur", type=float, default=0.0)
-    finops.add_argument("--reason")
-    finops.add_argument("--provider")
-    finops.add_argument("--project-id")
-    finops.add_argument("--show", action="store_true")
     return parser
 
 
@@ -145,6 +142,21 @@ def main(argv: list[str] | None = None) -> int:
         removed = cleanup_managed(runtime_root, purge_data=bool(args.purge_data))
         print(f"CLEANUP_RESULT=PASS removed={len(removed)}")
         return 0
+    if args.command == "context-probe":
+        from clawfedora.context_probe import probe_context
+        from clawfedora.core_config import daily_budget
+        from clawfedora.project_worker import worker_lock
+
+        context = int(args.context or daily_budget(repo_root)["context_tokens"])
+        if not args.apply:
+            print(f"CONTEXT_PROBE_PLAN context={context} generation=1 model_reload=possible")
+            return 0
+        # Same lock as chats and projects: one generation at a time on the GPU.
+        with worker_lock(runtime_root):
+            measure = probe_context(repo_root, context)
+        print(json.dumps(measure, indent=2, ensure_ascii=False))
+        print(f"CONTEXT_PROBE_RESULT={measure['verdict']} context={context}")
+        return 0 if measure["verdict"] == "FULL_GPU" else 1
     if args.command == "telemetry":
         if args.show:
             print(json.dumps(read_events(repo_root, runtime_root), indent=2, ensure_ascii=False))
@@ -162,23 +174,6 @@ def main(argv: list[str] | None = None) -> int:
         }
         path = emit_event(repo_root, runtime_root, args.event, **fields)
         print(f"TELEMETRY_RESULT=PASS path={path}")
-        return 0
-    if args.command == "finops":
-        if args.show:
-            print(json.dumps(summarize(repo_root, runtime_root), indent=2, ensure_ascii=False))
-            return 0
-        if not args.event or not args.reason or not args.provider:
-            raise SystemExit("finops: --event --reason --provider requis hors --show")
-        payload = append_cost_event(
-            repo_root,
-            runtime_root,
-            event=args.event,
-            amount_eur=float(args.amount_eur),
-            reason=args.reason,
-            provider=args.provider,
-            project_id=args.project_id,
-        )
-        print(json.dumps(payload, indent=2, ensure_ascii=False))
         return 0
     return 2
 

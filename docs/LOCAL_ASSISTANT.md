@@ -1,6 +1,6 @@
 # Un atelier local simple à utiliser
 
-Sept spécialités partagent toujours Qwen 3.5 9B Q4_K_M, une seule génération à la fois, 8192 tokens de contexte et 1024 tokens de sortie. La recherche documentaire utilise le processeur et SQLite FTS5, sans embeddings, modèle supplémentaire ou compte externe. Le plugin mémoire natif d'OpenClaw est désactivé ; seules les notes explicites du projet sont indexées.
+Sept spécialités partagent toujours Qwen 3.5 9B Q4_K_M, une seule génération à la fois, 32 768 tokens de contexte et 4 096 tokens de sortie. La recherche documentaire utilise le processeur et SQLite FTS5, sans embeddings, modèle supplémentaire ou compte externe. Le plugin mémoire natif d'OpenClaw est désactivé ; seules les notes explicites du projet sont indexées.
 
 ## Ouvrir le tableau de bord
 
@@ -39,7 +39,7 @@ Le formulaire **Conserver une décision** sauvegarde le titre et les raisons dan
 
 ```bash
 clawfedora project remember --project-id mon-projet \
-  --title "Profil quotidien" --text "Une seule inférence et contexte 8192."
+  --title "Profil quotidien" --text "Une seule inférence et contexte 32768."
 ```
 
 Pour conserver une recherche, créer un fichier JSON avec les extraits utiles et les URL/date de consultation :
@@ -78,7 +78,7 @@ Les tâches dont les artefacts ont été collectés ne sont pas recalculées. Un
 
 Le worker donne au modèle un schéma des sorties attendues, puis vérifie les clés, types, contenus et chemins avant la collecte. Une réponse JSON valide mais incomplète est refusée.
 
-En cas d'erreur de syntaxe JSON seulement, une réparation peut utiliser Ollama avec le même Qwen, un schéma imposé via `format`, `think=false`, température zéro et aucun outil. Une seule tentative est permise : 24 000 caractères d'entrée maximum, 1024 tokens de sortie et 120 secondes. Une réponse conforme ne provoque aucune génération supplémentaire. Session et hash de l'entrée réparée sont tracés dans `state/response-repairs`.
+En cas d'erreur de syntaxe JSON seulement, une réparation peut utiliser Ollama avec le même Qwen, un schéma imposé via `format`, `think=false`, température zéro et aucun outil. Une seule tentative est permise : 24 000 caractères d'entrée maximum, le budget quotidien de contexte et de sortie, et 120 secondes. Une réponse conforme ne provoque aucune génération supplémentaire. Session et hash de l'entrée réparée sont tracés dans `state/response-repairs`.
 
 Un schéma ne prouve pas que le contenu est juste. Le garde des entrées, le collecteur, l'audit critère par critère et la revue indépendante restent obligatoires. Une réparation peut échouer et n'autorise jamais une promotion automatique.
 

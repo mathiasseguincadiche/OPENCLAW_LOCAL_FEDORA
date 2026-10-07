@@ -13,7 +13,7 @@ CANDIDATE=()
 
 usage() {
   cat <<'EOF'
-Usage: 19_l6_compare.sh --kind runtime|kernel|challenger \
+Usage: 19_l6_compare.sh --kind runtime|challenger \
        --baseline FILE --baseline FILE --baseline FILE \
        --candidate FILE --candidate FILE --candidate FILE \
        --output DECISION.json
@@ -36,7 +36,6 @@ done
 
 case "$KIND" in
   runtime) COMMAND="compare-runtime" ;;
-  kernel) COMMAND="compare-kernel" ;;
   challenger) COMMAND="compare-challenger" ;;
   *) echo "ERREUR: --kind requis" >&2; exit 2 ;;
 esac

@@ -1,13 +1,13 @@
 # OpenClaw sous Fedora : cycle de vie systemd
 
-> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, contexte 32K, sortie 4096, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles (8K/16K) sont expérimentales et facultatives.
 
 ## Repères de progression
 
 | Repère | Valeur |
 |---|---|
 | **Pour qui** | Toute personne qui suit le parcours et veut comprendre comment OpenClaw vit réellement comme service Linux. |
-| **Position dans le parcours** | 8/14 |
+| **Position dans le parcours** | 8/13 |
 | **Prérequis** | Avoir lu [`PROJECT_ENGINE.md`](PROJECT_ENGINE.md) et connaître le rôle du Gateway. |
 | **Objectif** | Comprendre `systemd --user`, le cycle de vie du Gateway, les logs et les choix explicites comme le lingering. |
 | **Résultat attendu** | Savoir relier les commandes OpenClaw aux primitives systemd et diagnostiquer un service utilisateur. |

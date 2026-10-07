@@ -1,13 +1,13 @@
 # Roadmap Linux-native
 
-> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, contexte 32K, sortie 4096, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles (8K/16K) sont expérimentales et facultatives.
 
 ## Repères de progression
 
 | Repère | Valeur |
 |---|---|
 | **Pour qui** | Toute personne qui a suivi le parcours et veut relire le projet comme une progression complète de L0 à L8. |
-| **Position dans le parcours** | 14/14 |
+| **Position dans le parcours** | 13/13 |
 | **Prérequis** | Avoir lu [`QUALIFICATION.md`](QUALIFICATION.md). |
 | **Objectif** | Replacer architecture, exploitation, matériel, qualification et release readiness dans une seule progression de maturité. |
 | **Résultat attendu** | Savoir situer chaque composant, chaque gate et l’état actuel du projet dans la trajectoire globale. |
@@ -17,7 +17,7 @@
 
 ## Objectif
 
-Construire OPENCLAW_LOCAL_FEDORA comme plateforme autonome Fedora 44 pour OpenClaw et Intel Arc B580, avec des gates reproductibles avant toute promotion de runtime, kernel, modèle challenger ou V1.
+Construire OPENCLAW_LOCAL_FEDORA comme plateforme autonome Fedora 44 pour OpenClaw et Intel Arc B580, avec des gates reproductibles avant toute promotion de runtime, modèle challenger ou V1.
 
 ## L0 — Fondation
 
@@ -41,7 +41,6 @@ Implémenter nativement :
 - Artifact Exchange ;
 - Golden Projects ;
 - télémétrie ;
-- FinOps ;
 - identité et routage des modèles ;
 - readiness V1.
 
@@ -114,12 +113,11 @@ Comparer à la baseline Fedora officielle + Ollama/Vulkan :
 
 - llama.cpp/Vulkan comme unique candidat runtime ;
 - réglages runtime qualifiés ;
-- kernel 7.2.3 contre kernel Fedora officiel ;
 - `granite4.2:8b-q4_K_M` contre le spécialiste nominal Ministral sur le slot `devstral-devops`.
 
 La comparaison modèle mesure des capacités correspondant réellement à la mission DevOps : plan systemd utilisateur, tool-calling natif, réparation après feedback outil, sécurité et performance. Elle n'impose pas de test vision à un modèle text-only.
 
-Une variable change à la fois. Le kernel Fedora reste bootable.
+Une variable change à la fois, sur le même noyau.
 
 La campagne expérimentale compare les trois alias du catalogue; le quotidien conserve Qwen seul. Granite est provisionné explicitement pour L6, reste hors routage et ne peut jamais être promu automatiquement.
 
@@ -131,7 +129,7 @@ La campagne expérimentale compare les trois alias du catalogue; le quotidien co
 - projet représentatif ;
 - preuves ;
 - limites documentées ;
-- télémétrie et FinOps validés.
+- télémétrie validée.
 
 L7 s'arrête à `PACKAGING` et préserve le gate humain final.
 
@@ -146,7 +144,7 @@ Conditions cumulatives :
 - L0 à L7 PASS ;
 - preuves L2 à L7 présentes sous la racine runtime gérée ;
 - preuves identifiées et hashées en SHA-256 ;
-- décisions L6 runtime, kernel et Ministral ↔ Granite recalculables avec les contrats courants ;
+- décisions L6 runtime et Ministral ↔ Granite recalculables avec les contrats courants ;
 - documentation cohérente ;
 - aucun seuil abaissé pour forcer un PASS ;
 - aucun fallback cloud ni promotion automatique.
@@ -173,7 +171,7 @@ Elle écrit un enregistrement immuable `APPROVED_FOR_V1_PREPARATION` sous `proof
 Cette action ne :
 
 - modifie pas le routage ;
-- ne promeut ni runtime, ni kernel, ni modèle ;
+- ne promeut ni runtime, ni modèle ;
 - ne passe aucun projet à `COMPLETE` ;
 - ne crée ni tag ni release GitHub ;
 - ne publie rien automatiquement.

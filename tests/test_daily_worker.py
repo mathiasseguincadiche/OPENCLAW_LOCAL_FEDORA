@@ -240,11 +240,14 @@ def test_daily_patch_really_bounds_memory_and_disables_unsafe_tools(tmp_path: Pa
     models = patch["models"]["providers"]["ollama"]["models"]
     assert len(models) == 1
     assert models[0]["params"] == {
-        "num_ctx": 8192,
-        "num_predict": 1024,
+        "num_ctx": 32768,
+        "num_predict": 4096,
         "keep_alive": "3m",
         "think": False,
     }
+    # The model must never be able to update OpenClaw or chain a three-step tool search.
+    assert {"gateway", "presence"} <= set(patch["tools"]["deny"])
+    assert patch["tools"]["toolSearch"] is False
 
 
 def test_live_golden_projects_invoke_real_worker_and_auditor_paths(

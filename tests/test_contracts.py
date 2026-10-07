@@ -22,7 +22,7 @@ def _sandbox(tmp_path: Path) -> Path:
 def test_repository_contracts_pass() -> None:
     report = validate_repository(ROOT)
     assert report.ok, report.failures
-    assert report.warnings
+    assert not (ROOT / "config/kernel_policy.yaml").exists()
 
 
 def test_missing_required_contract_is_rejected(tmp_path: Path) -> None:
@@ -39,17 +39,6 @@ def test_invalid_yaml_is_fail_closed(tmp_path: Path) -> None:
     path.write_text("platform: [broken\n", encoding="utf-8")
     with pytest.raises(ValueError, match="contrat illisible"):
         validate_repository(root)
-
-
-def test_kernel_automatic_promotion_is_rejected(tmp_path: Path) -> None:
-    root = _sandbox(tmp_path)
-    path = root / "config" / "kernel_policy.yaml"
-    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
-    payload["candidate"]["automatic_promotion"] = True
-    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
-    report = validate_repository(root)
-    assert not report.ok
-    assert any("promotion automatique" in failure for failure in report.failures)
 
 
 def test_cloud_during_qualification_is_rejected(tmp_path: Path) -> None:

@@ -1,13 +1,13 @@
 # Dépannage par symptôme
 
-> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, contexte 32K, sortie 4096, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles (8K/16K) sont expérimentales et facultatives.
 
 ## Repères de progression
 
 | Repère | Valeur |
 |---|---|
 | **Pour qui** | Toute personne qui suit le projet et veut apprendre à diagnostiquer sans masquer les causes. |
-| **Position dans le parcours** | 4/14 |
+| **Position dans le parcours** | 4/13 |
 | **Prérequis** | Avoir lu [`OPERATIONS.md`](OPERATIONS.md) et connaître la routine `validate` / `health`. |
 | **Objectif** | Apprendre une méthode de diagnostic reproductible : observer, isoler, corriger au minimum, vérifier et rollback si nécessaire. |
 | **Résultat attendu** | Savoir relier un symptôme à la bonne couche Fedora, GPU, Ollama, OpenClaw, modèle ou projet. |
@@ -189,7 +189,7 @@ Puis :
 journalctl -k -b | grep -Ei 'xe|drm|intel'
 ```
 
-Ne pas installer un kernel candidat avant d'avoir compris l'état du kernel Fedora nominal.
+Ce projet n’installe aucun noyau : comprendre d’abord l’état du noyau de la distribution.
 
 ## `/dev/dri/renderD*` absent
 

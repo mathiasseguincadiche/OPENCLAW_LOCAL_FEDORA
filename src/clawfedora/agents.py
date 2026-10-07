@@ -6,10 +6,25 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from clawfedora.core_config import AGENT_IDS, core_contract
+from clawfedora.core_config import AGENT_IDS, core_contract, daily_budget
 
 ROLE_FILES = ("AGENTS.md", "IDENTITY.md", "SOUL.md")
 SHARED_FILES = ("CONTRACT.md", "TOOLS.md", "HEARTBEAT.md", "PEDAGOGY.md")
+# OpenClaw injects AGENTS.md, not arbitrary Markdown files: the shared pedagogy and
+# tool guide and contract must be part of it to reach the model without an extra read call.
+INJECTED_SHARED = ("PEDAGOGY.md", "TOOLS.md", "CONTRACT.md")
+
+
+def effective_instructions(repo_root: Path, agent_id: str) -> str:
+    """Exact AGENTS.md deployed to a workspace and injected in every prompt."""
+    shared = repo_root / "agents" / "_shared"
+    parts = [
+        (shared / "PEDAGOGY.md").read_text(encoding="utf-8"),
+        (repo_root / "agents" / agent_id / "AGENTS.md").read_text(encoding="utf-8"),
+        (shared / "TOOLS.md").read_text(encoding="utf-8"),
+        (shared / "CONTRACT.md").read_text(encoding="utf-8"),
+    ]
+    return "\n\n".join(part.strip() for part in parts) + "\n"
 
 
 @dataclass(frozen=True)
@@ -71,10 +86,17 @@ def validate_agent_assets(repo_root: Path) -> tuple[str, ...]:
             if not (role_root / filename).is_file():
                 failures.append(f"agents: {spec.agent_id}/{filename} absent")
         prompt = role_root / "AGENTS.md"
-        if prompt.is_file() and (shared / "PEDAGOGY.md").is_file():
-            effective = (shared / "PEDAGOGY.md").read_text() + prompt.read_text()
-            if len(effective) > 3000:
-                failures.append(f"agents: pédagogie et rôle trop longs: {spec.agent_id}")
+        if prompt.is_file() and all((shared / name).is_file() for name in INJECTED_SHARED):
+            # OpenClaw silently truncates an injected file above bootstrapMaxChars.
+            try:
+                limit = int(daily_budget(repo_root)["bootstrap_max_chars"])
+            except (FileNotFoundError, ValueError) as exc:
+                failures.append(f"agents: budget quotidien invalide: {exc}")
+                break
+            if len(effective_instructions(repo_root, spec.agent_id)) > limit:
+                failures.append(
+                    f"agents: consignes injectées au-delà de bootstrap_max_chars: {spec.agent_id}"
+                )
     toolkit = repo_root / "plugins/clawfedora-toolkit"
     for filename in ("package.json", "openclaw.plugin.json", "index.mjs"):
         if not (toolkit / filename).is_file():
@@ -126,10 +148,7 @@ def deploy_workspaces(repo_root: Path, runtime_root: Path) -> tuple[Path, ...]:
             _copy_policy_file(repo_root / "agents" / spec.agent_id / filename, workspace / filename)
         # AGENTS is injected by OpenClaw. A separate Markdown file alone is not a guarantee.
         (workspace / "AGENTS.md").write_text(
-            (shared_root / "PEDAGOGY.md").read_text()
-            + "\n\n"
-            + (repo_root / "agents" / spec.agent_id / "AGENTS.md").read_text(),
-            encoding="utf-8",
+            effective_instructions(repo_root, spec.agent_id), encoding="utf-8"
         )
         for filename in SHARED_FILES:
             _copy_policy_file(shared_root / filename, workspace / filename)

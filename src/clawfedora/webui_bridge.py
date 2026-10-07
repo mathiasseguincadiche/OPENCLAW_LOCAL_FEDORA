@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.agents import load_agent_specs
-from clawfedora.core_config import AGENT_IDS
+from clawfedora.core_config import AGENT_IDS, daily_budget
 from clawfedora.local_http import LocalServer
 from clawfedora.mentor import context as mentor_context
 from clawfedora.project_control import write_progress
@@ -26,21 +26,31 @@ from clawfedora.project_worker import AgentRunner, openclaw_runner, worker_lock
 MODEL_IDS = tuple(f"openclaw/{role}" for role in AGENT_IDS)
 
 
-def chat_prompt(data: dict[str, Any]) -> tuple[str, str]:
+DEFAULT_MAX_TOKENS = 4096
+DEFAULT_HISTORY_BYTES = 32000
+
+
+def chat_prompt(
+    data: dict[str, Any],
+    *,
+    max_tokens: int = DEFAULT_MAX_TOKENS,
+    max_history_bytes: int = DEFAULT_HISTORY_BYTES,
+) -> tuple[str, str]:
     model = data.get("model")
     if model not in MODEL_IDS:
         raise ValueError("seuls les sept rôles locaux sont disponibles")
     # Open WebUI sends its built-in tool catalog even for a plain chat. Discard it:
     # only the validated model id and text history become an OpenClaw prompt.
     # No caller-supplied tool, URL, header, user/session id or model override is forwarded.
-    maximum = data.get("max_tokens", data.get("max_completion_tokens", 1024))
-    if type(maximum) is not int or not 1 <= maximum <= 1024:
-        raise ValueError("réponse maximale: 1024 tokens")
+    maximum = data.get("max_tokens", data.get("max_completion_tokens", max_tokens))
+    if type(maximum) is not int or not 1 <= maximum <= max_tokens:
+        raise ValueError(f"réponse maximale: {max_tokens} tokens")
     if type(data.get("stream", False)) is not bool:
         raise ValueError("stream doit être booléen")
     messages = data.get("messages")
-    if not isinstance(messages, list) or not 1 <= len(messages) <= 200:
-        raise ValueError("1 à 200 messages texte requis")
+    # A long conversation is trimmed below, oldest first; it is never refused for its length.
+    if not isinstance(messages, list) or not 1 <= len(messages) <= 5000:
+        raise ValueError("1 à 5000 messages texte requis")
     history = []
     for item in messages:
         if (
@@ -52,12 +62,12 @@ def chat_prompt(data: dict[str, Any]) -> tuple[str, str]:
         history.append({"role": item["role"], "content": item["content"]})
     encoded = json.dumps(history, ensure_ascii=False)
     omitted = 0
-    while len(encoded.encode()) > 6000 and len(history) > 1:
+    while len(encoded.encode()) > max_history_bytes and len(history) > 1:
         history.pop(0)
         omitted += 1
         encoded = json.dumps(history, ensure_ascii=False)
-    if len(encoded.encode()) > 6000:
-        raise ValueError("dernier message supérieur au budget de 6000 octets")
+    if len(encoded.encode()) > max_history_bytes:
+        raise ValueError(f"dernier message supérieur au budget de {max_history_bytes} octets")
     return str(model).split("/", 1)[1], (
         "Discussion pédagogique DevOps infrastructure/OPS, aucun changement d’état de projet. "
         "Répondre en français. Comprendre: réponse directe et exemple utile. Débloquer: "
@@ -77,6 +87,7 @@ class BridgeServer(LocalServer):
     token: str
     runner: AgentRunner
     model_names: dict[str, str]
+    budget: dict[str, Any]
 
 
 class BridgeHandler(BaseHTTPRequestHandler):
@@ -168,7 +179,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
         try:
             length = int(self.headers.get("Content-Length", "0"))
             if (
-                not 0 < length <= 65536
+                not 0 < length <= 1_048_576
                 or self.headers.get("Transfer-Encoding")
                 or self.headers.get_content_type() != "application/json"
             ):
@@ -176,7 +187,11 @@ class BridgeHandler(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length))
             if not isinstance(data, dict):
                 raise ValueError("objet JSON requis")
-            role, prompt = chat_prompt(data)
+            role, prompt = chat_prompt(
+                data,
+                max_tokens=int(self.server.budget["max_output_tokens"]),
+                max_history_bytes=int(self.server.budget["max_history_bytes"]),
+            )
             omitted = len(data["messages"]) - len(json.loads(prompt.split("\n", 1)[1]))
         except (ValueError, TypeError) as exc:
             self._send(400, {"error": {"message": str(exc)}})
@@ -202,7 +217,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
             text = response["text"]
             if isinstance(text, str):
                 text += attachments
-            if not isinstance(text, str) or len(text.encode()) > 32000:
+            if not isinstance(text, str) or len(text.encode()) > 64000:
                 raise ValueError("réponse locale invalide")
         except (OSError, ValueError, KeyError, RuntimeError) as exc:
             self._send(409, {"error": {"message": str(exc)}})
@@ -262,15 +277,14 @@ def make_server(
         raise ValueError("jeton d’intégration privé requis")
     server = BridgeServer(("127.0.0.1", port), BridgeHandler)
     server.runtime, server.token = runtime, token
+    server.budget = daily_budget(repo_root)
     server.model_names = {
         f"openclaw/{spec.agent_id}": spec.name for spec in load_agent_specs(repo_root)
     }
 
-    def native_chat(role: str, prompt: str, session: str) -> dict[str, Any]:
-        # New chat admission also rechecks software versions, not just model identity.
-        return openclaw_runner(runtime, repo_root, plain_text=True)(role, prompt, session)
-
-    server.runner = runner or native_chat
+    # One runner for the service: model identity is verified on every message; software
+    # versions and the roster are rechecked when the CLI or its configuration change.
+    server.runner = runner or openclaw_runner(runtime, repo_root, plain_text=True)
     return server
 
 

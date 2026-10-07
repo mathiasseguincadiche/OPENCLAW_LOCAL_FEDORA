@@ -7,7 +7,6 @@ Décrire le problème réel et le résultat attendu.
 - [ ] cœur multi-agents Linux-native
 - [ ] Fedora / Bash / systemd
 - [ ] GPU / Mesa / Vulkan
-- [ ] kernel
 - [ ] qualification / benchmark
 - [ ] documentation / gouvernance
 
@@ -15,8 +14,8 @@ Décrire le problème réel et le résultat attendu.
 
 - [ ] aucun fallback cloud silencieux
 - [ ] SELinux reste Enforcing
-- [ ] kernel Fedora rollback conservé
-- [ ] aucune promotion automatique kernel/backend
+- [ ] aucun noyau construit ou installé par le projet
+- [ ] aucune promotion automatique de backend
 - [ ] aucun seuil abaissé pour forcer un PASS
 - [ ] la pile nominale reste Fedora + xe + Mesa/Vulkan
 

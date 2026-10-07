@@ -1,13 +1,13 @@
 # Runbook d'exploitation Fedora
 
-> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, contexte 32K, sortie 4096, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles (8K/16K) sont expérimentales et facultatives.
 
 ## Repères de progression
 
 | Repère | Valeur |
 |---|---|
 | **Pour qui** | Toute personne qui exploite le projet après l’installation, même si elle découvre encore les pratiques d’exploitation Linux. |
-| **Position dans le parcours** | 3/14 |
+| **Position dans le parcours** | 3/13 |
 | **Prérequis** | Avoir lu [`GETTING_STARTED.md`](GETTING_STARTED.md) puis [`INSTALLATION.md`](INSTALLATION.md). |
 | **Objectif** | Apprendre à observer, maintenir, sauvegarder, restaurer et réparer la plateforme sans contourner les contrats. |
 | **Résultat attendu** | Savoir effectuer la routine quotidienne, collecter un état utile et choisir une correction minimale avec rollback. |
@@ -349,7 +349,6 @@ Le rollback dépend de la variable modifiée :
 
 - configuration OpenClaw → réappliquer la baseline contractuelle ;
 - runtime candidat → revenir à `ollama-vulkan` ;
-- kernel candidat → booter le kernel Fedora officiel ;
 - état applicatif → restaurer un backup validé ;
 - version runtime → rétablir le pin précédent et revalider.
 

@@ -239,7 +239,6 @@ def test_snapshot_cli_success_and_failure(
     ("command", "attribute", "kind"),
     [
         ("compare-runtime", "compare_runtime", "runtime"),
-        ("compare-kernel", "compare_kernel", "kernel"),
         ("compare-challenger", "compare_model_challenger", "model-challenger"),
     ],
 )

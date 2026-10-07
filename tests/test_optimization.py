@@ -19,7 +19,6 @@ MODELS = {
 
 def _policy() -> dict[str, object]:
     return {
-        "pins": {"kernel_candidate": {"version": "7.2.3"}},
         "paths": {"llama_models": "models/llama-router"},
         "artifact_staging": {"network_downloads_allowed": False},
         "runtime_comparison": {
@@ -28,13 +27,6 @@ def _policy() -> dict[str, object]:
             "minimum_repeated_runs": 3,
             "aggregate_improvement_target_pct": 10.0,
             "maximum_single_model_regression_pct": 5.0,
-        },
-        "kernel_comparison": {
-            "baseline": "fedora-official",
-            "candidate": "upstream-7.2.3",
-            "minimum_repeated_runs": 3,
-            "minimum_aggregate_improvement_pct": 3.0,
-            "maximum_single_model_regression_pct": 2.0,
         },
         "model_challenger": {
             "slot": "devstral-devops",
@@ -297,79 +289,6 @@ def test_runtime_comparison_rejects_mixed_series(
     )
     with pytest.raises(ValueError, match="mélange kind/candidate"):
         optimization.compare_runtime(tmp_path, mixed, mixed)
-
-
-def test_kernel_comparison_and_wrong_kernel(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(optimization, "root_contract", _root_contract)
-    baseline = _series(
-        tmp_path,
-        "kernel-base",
-        [
-            _evidence(
-                f"b{i}",
-                "kernel",
-                "fedora-official",
-                "6.17-fedora",
-                "ollama-vulkan",
-            )
-            for i in range(3)
-        ],
-    )
-    candidate = _series(
-        tmp_path,
-        "kernel-candidate",
-        [
-            _evidence(
-                f"c{i}",
-                "kernel",
-                "upstream-7.2.3",
-                "7.2.3-openclaw-l6",
-                "ollama-vulkan",
-                tps=10.5,
-            )
-            for i in range(3)
-        ],
-    )
-    report = optimization.compare_kernel(tmp_path, baseline, candidate)
-    assert report.verdict == "ELIGIBLE_FOR_HUMAN_PROMOTION"
-    assert report.candidate_id == "upstream-7.2.3"
-
-    wrong = _series(
-        tmp_path,
-        "kernel-wrong",
-        [
-            _evidence(
-                f"w{i}",
-                "kernel",
-                "upstream-7.2.3",
-                "7.2.2",
-                "ollama-vulkan",
-            )
-            for i in range(3)
-        ],
-    )
-    with pytest.raises(ValueError, match="candidat kernel doit dériver de 7.2.3"):
-        optimization.compare_kernel(tmp_path, baseline, wrong)
-
-    wrong_id = _series(
-        tmp_path,
-        "kernel-wrong-id",
-        [
-            _evidence(
-                f"x{i}",
-                "kernel",
-                "untrusted-candidate",
-                "7.2.3-openclaw-l6",
-                "ollama-vulkan",
-            )
-            for i in range(3)
-        ],
-    )
-    with pytest.raises(ValueError, match="candidate_id candidat kernel invalide"):
-        optimization.compare_kernel(tmp_path, baseline, wrong_id)
 
 
 def test_model_challenger_comparison(

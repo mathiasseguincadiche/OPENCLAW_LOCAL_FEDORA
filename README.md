@@ -28,7 +28,7 @@ La cible est **Fedora 44, Ryzen 7 7700, 48 Go de RAM et Intel Arc B580 12 Go**, 
 - **Des outils locaux ciblés** : recherche documentaire, schémas Draw.io, documents Markdown/PDF/DOCX/TXT, fichiers techniques, contrôles statiques et rapports CI.
 - **Une validation humaine** : les commandes proposées sont exécutées par l’apprenant dans son exercice; les fichiers sont relus avant publication.
 
-Le contexte reste à 8192 tokens et la réponse à 1024 tokens. Les grandes demandes sont découpées. Gemma, Ministral et Granite servent à des expériences séparées; ils ne sont pas installés ou routés par défaut. [Profil quotidien](docs/DAILY_PROFILE.md) · [Choix du modèle](docs/MODEL_SELECTION_2026_10.md).
+Contexte de 32 768 tokens et réponse de 4 096 tokens, à mesurer sur la carte : [premier essai sur la machine](docs/PREMIER_ESSAI.md). Gemma, Ministral et Granite servent à des expériences séparées; ils ne sont pas installés ou routés par défaut. [Profil quotidien](docs/DAILY_PROFILE.md) · [Choix du modèle](docs/MODEL_SELECTION_2026_10.md).
 
 > **État : socle logiciel validé par CI; qualification sur la machine Fedora/B580 à produire.** Les tests logiciels ne prouvent pas la vitesse, la stabilité GPU ni la qualité pédagogique du modèle réel. [État détaillé](STATUS.md). V1 reste non approuvée.
 

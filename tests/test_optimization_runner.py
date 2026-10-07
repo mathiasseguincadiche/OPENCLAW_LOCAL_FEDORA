@@ -313,8 +313,8 @@ def test_run_performance_snapshot_records_case_errors(
         tmp_path / "runtime",
         backend="llama-cpp-vulkan",
         endpoint="http://127.0.0.1:8081/v1",
-        kind="kernel",
-        candidate_id="upstream-7.2.3",
+        kind="runtime",
+        candidate_id="llama-cpp-vulkan",
         output=output,
     )
     payload = json.loads(output.read_text(encoding="utf-8"))

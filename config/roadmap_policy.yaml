@@ -19,7 +19,6 @@ capabilities:
     - artifact_exchange
     - golden_projects
     - telemetry
-    - finops
     - qualification_hard_40m
     - model_identity_lock
     - release_readiness

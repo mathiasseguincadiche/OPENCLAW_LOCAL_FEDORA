@@ -31,7 +31,7 @@ host:
 firmware:
   uefi_required: true
   iommu_recommended: true
-  secure_boot_policy: supported-not-required-for-upstream-kernel-candidate
+  secure_boot_policy: supported
 
 performance:
   cpu_governor_preferred_during_benchmark: performance

@@ -9,8 +9,6 @@ EXPECTED_OLLAMA_VERSION = "0.35.1"
 EXPECTED_OLLAMA_COMMIT = "b0c1ca4f7549d7acdfa52a7dcffc934bc63a43ce"
 EXPECTED_LLAMA_TAG = "b10516"
 EXPECTED_LLAMA_COMMIT = "b95502ba9aa0eb73a2f4fc8878d7fbe6a847a0b9"
-EXPECTED_KERNEL = "7.2.3"
-EXPECTED_KERNEL_SHA256 = "8ba259e8e7b13ec6ef0941c8a39ad90b24bd4a4d6c0010ba6bafb794550ecd03"
 EXPECTED_SPECIALIST = "hf.co/mistralai/Ministral-3-14B-Reasoning-2512-GGUF:Q4_K_M"
 EXPECTED_CHALLENGER = "granite4.2:8b-q4_K_M"
 
@@ -28,7 +26,6 @@ def validate_optimization_contracts(
         policy = root_contract(repo_root, "optimization_policy.yaml")
         versions = root_contract(repo_root, "runtime_versions.yaml")
         backends = root_contract(repo_root, "runtime_backends.yaml")
-        kernel = root_contract(repo_root, "kernel_policy.yaml")
         models = root_contract(repo_root, "model_catalog.yaml")
     except (FileNotFoundError, ValueError) as exc:
         return (f"l6: {exc}",), ()
@@ -39,7 +36,6 @@ def validate_optimization_contracts(
     pins = _mapping(policy.get("pins"))
     ollama_pin = _mapping(pins.get("ollama"))
     llama_pin = _mapping(pins.get("llama_cpp"))
-    kernel_pin = _mapping(pins.get("kernel_candidate"))
     if ollama_pin.get("version") != EXPECTED_OLLAMA_VERSION:
         failures.append("l6: pin Ollama exact invalide")
     if ollama_pin.get("commit") != EXPECTED_OLLAMA_COMMIT:
@@ -48,22 +44,15 @@ def validate_optimization_contracts(
         failures.append("l6: tag llama.cpp exact invalide")
     if llama_pin.get("commit") != EXPECTED_LLAMA_COMMIT:
         failures.append("l6: commit llama.cpp exact invalide")
-    if kernel_pin.get("version") != EXPECTED_KERNEL:
-        failures.append("l6: version kernel candidate invalide")
-    if kernel_pin.get("sha256") != EXPECTED_KERNEL_SHA256:
-        failures.append("l6: SHA-256 kernel candidate invalide")
+    if "kernel_candidate" in pins or "kernel_comparison" in policy or "kernel" in versions:
+        failures.append("l6: le noyau candidat est retiré; le noyau reste celui de la distribution")
 
     version_llama = _mapping(versions.get("llama_cpp"))
     version_ollama = _mapping(versions.get("ollama"))
-    version_kernel = _mapping(versions.get("kernel"))
     if version_llama.get("commit") != llama_pin.get("commit"):
         failures.append("l6: drift runtime_versions/optimization llama.cpp")
     if version_ollama.get("version") != ollama_pin.get("version"):
         failures.append("l6: drift runtime_versions/optimization Ollama")
-    if version_kernel.get("upstream_candidate") != kernel_pin.get("version"):
-        failures.append("l6: drift runtime_versions/optimization kernel")
-    if version_kernel.get("upstream_candidate_sha256") != kernel_pin.get("sha256"):
-        failures.append("l6: drift SHA-256 kernel")
 
     backend_map = _mapping(backends.get("backends"))
     expected_backend_ids = {"ollama-vulkan", "llama-cpp-vulkan"}
@@ -97,24 +86,6 @@ def validate_optimization_contracts(
         failures.append("l6: au moins 3 runs runtime requis")
     if runtime_cmp.get("automatic_promotion") is not False:
         failures.append("l6: promotion runtime automatique interdite")
-
-    kernel_cmp = _mapping(policy.get("kernel_comparison"))
-    kernel_candidate = _mapping(kernel.get("candidate"))
-    kernel_perf = _mapping(kernel.get("performance_policy"))
-    if kernel_candidate.get("version") != EXPECTED_KERNEL:
-        failures.append("l6: kernel_policy candidate divergent")
-    if kernel_candidate.get("automatic_promotion") is not False:
-        failures.append("l6: promotion kernel automatique interdite")
-    if float(kernel_cmp.get("minimum_aggregate_improvement_pct", 0)) != float(
-        kernel_perf.get("minimum_aggregate_improvement_pct", -1)
-    ):
-        failures.append("l6: seuil agrégé kernel divergent")
-    if float(kernel_cmp.get("maximum_single_model_regression_pct", 999)) != float(
-        kernel_perf.get("maximum_single_model_regression_pct", -1)
-    ):
-        failures.append("l6: seuil régression kernel divergent")
-    if int(kernel_cmp.get("minimum_repeated_runs", 0)) < 3:
-        failures.append("l6: au moins 3 runs kernel requis")
 
     challenger_policy = _mapping(policy.get("model_challenger"))
     challengers = _mapping(models.get("challengers"))
@@ -162,5 +133,5 @@ def validate_optimization_contracts(
         failures.append("l6: mutation automatique de config interdite")
 
     if not failures:
-        warnings.append("L6 logiciel prêt; aucun gagnant runtime/kernel/modèle n'est revendiqué")
+        warnings.append("L6 logiciel prêt; aucun gagnant runtime/modèle n'est revendiqué")
     return tuple(failures), tuple(warnings)

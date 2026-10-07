@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.agents import validate_agent_assets
-from clawfedora.core_config import AGENT_IDS, core_contract, root_contract
+from clawfedora.core_config import AGENT_IDS, core_contract, daily_budget, root_contract
 
 CORE_FILES = (
     "agents.yaml",
@@ -16,7 +16,6 @@ CORE_FILES = (
     "document_ingestion_policy.yaml",
     "orchestration_policy.yaml",
     "artifact_exchange_policy.yaml",
-    "budget_policy.yaml",
     "telemetry_policy.yaml",
     "knowledge_policy.yaml",
 )
@@ -134,12 +133,6 @@ def _validate_project_contracts(
     ):
         if principles.get(key) is not True:
             failures.append(f"core/exchange: {key}=true requis")
-
-    budget = contracts["budget_policy.yaml"]
-    if budget.get("cloud_enabled_by_default") is not False:
-        failures.append("core/budget: cloud désactivé par défaut requis")
-    if _mapping(budget.get("behavior")).get("on_limit") != "deny":
-        failures.append("core/budget: dépassement doit être refusé")
 
     telemetry = contracts["telemetry_policy.yaml"]
     if telemetry.get("local_only") is not True:
@@ -281,4 +274,10 @@ def validate_core_contracts(
         warnings.append(
             "L1 runtime: configuration générée à valider contre le schéma OpenClaw vivant"
         )
+    # One daily budget for OpenClaw, Ollama, the chat bridge and the catalog.
+    try:
+        daily_budget(repo_root)
+    except (FileNotFoundError, ValueError) as exc:
+        failures.append(f"core/budget: {exc}")
+
     return tuple(failures), tuple(warnings)

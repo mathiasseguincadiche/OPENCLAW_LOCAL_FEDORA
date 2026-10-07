@@ -28,10 +28,26 @@ Le dépôt porte le nom public **Atelier IA local — Infrastructure & OPS**. Il
 | L2/L3 gates matériels | IMPLÉMENTÉS — preuves réelles à produire |
 | L4 E2E OpenClaw | IMPLÉMENTÉ — preuve réelle à produire |
 | L5 HARD-40M | IMPLÉMENTÉ — preuve réelle à produire |
-| L6 runtime Vulkan/kernel/challenger DevOps | IMPLÉMENTÉ — mesures réelles requises avant toute promotion |
+| L6 runtime Vulkan/challenger DevOps | IMPLÉMENTÉ — mesures réelles requises avant toute promotion |
 | L7 Golden Projects + projet représentatif | PASS logiciel — gate humain préservé |
 | L8 release readiness | PASS framework logiciel — preuves réelles L2-L7 requises |
 | L8 approbation humaine | IMPLÉMENTÉE mais NON EXÉCUTÉE |
+
+## Corrections issues de l’audit du 6 octobre 2026
+
+| Défaut constaté | Correction |
+|---|---|
+| Contexte 8192 saturé par le prompt d’OpenClaw avant le premier message | Contexte 32 768, sortie 4 096, historique de chat 32 000 octets; un seul contrat de budget |
+| Consignes des rôles tronquées, contrat et guide d’outils jamais injectés | `AGENTS.md` déployé = pédagogie + rôle + outils + contrat; dépassement refusé par `validate` |
+| Tests uniquement simulés | `scripts/validation/check_prompt_budget.py` exécute le vrai OpenClaw épinglé, en CI |
+| Outil `gateway` (mise à jour d’OpenClaw) accessible au modèle | Interdit, comme `presence` |
+| Recherche web en trois appels enchaînés | Outils exposés directement (`toolSearch` désactivé) |
+| Conversation de plus de 200 messages ou 64 Kio refusée | Historique rogné par les plus anciens messages, jamais refusé |
+| Deux à trois démarrages de CLI par message | Versions et rôles revérifiés seulement quand le binaire ou la configuration changent |
+| VRAM estimée au jugé en Vulkan | `cap_perfmon` appliquée au binaire Ollama à chaque configuration |
+| Noyau 7.2.3 candidat, suivi de coûts cloud inutilisé | Supprimés |
+
+Ce qui reste à faire ne peut l’être que sur le PC : suivre [PREMIER_ESSAI.md](docs/PREMIER_ESSAI.md).
 
 ## Atelier local quotidien
 
@@ -49,13 +65,13 @@ Le tableau de bord a été exercé dans Chromium avec recherche et conservation 
 | L3 | B580 `xe` + Mesa/Vulkan | PENDING — B580 réelle requise |
 | L4 | OpenClaw 2026.9.8 exact + 7 agents + E2E | PENDING — E2E réel requis |
 | L5 | Qualification HARD-40M | PENDING — flotte V2 à mesurer |
-| L6 | Ollama/Vulkan, llama.cpp/Vulkan, kernel 7.2.3, Granite challenger | PENDING matériel — contrats logiciels PASS |
+| L6 | Ollama/Vulkan, llama.cpp/Vulkan, Granite challenger | PENDING matériel — contrats logiciels PASS |
 | L7 | Golden Projects + projet représentatif | PASS logiciel — replay installation finale requis avant L8 réel |
 | L8 | Release Readiness / approbation humaine | BLOQUÉ jusqu'aux preuves L2-L7 réelles puis approbation explicite |
 
 ## Modèle quotidien et comparaisons expérimentales
 
-Les sept rôles quotidiens utilisent uniquement `qwen3.5:9b-q4_K_M`, avec 8192 tokens de contexte, 1024 tokens de sortie et une génération à la fois. Les trois alias suivants sont conservés pour les campagnes de comparaison expérimentales :
+Les sept rôles quotidiens utilisent uniquement `qwen3.5:9b-q4_K_M`, avec 32 768 tokens de contexte, 4 096 tokens de sortie et une génération à la fois. Ce budget vient de `config/core/openclaw_policy.yaml`; il tient dans le prompt réel d’OpenClaw (contrôle natif en CI) mais sa tenue en VRAM sur la B580 reste à mesurer avec `context-probe`. Les trois alias suivants sont conservés pour les campagnes de comparaison expérimentales :
 
 - `qwen-max` → `qwen3.5:9b-q4_K_M` — Q4_K_M, multimodal ;
 - `gemma-deep` → `gemma4:12b-it-q4_K_M` — Q4_K_M, multimodal ;
@@ -63,7 +79,7 @@ Les sept rôles quotidiens utilisent uniquement `qwen3.5:9b-q4_K_M`, avec 8192 t
 
 `devstral-devops` est un alias historique du benchmark DevOps. Le rôle quotidien `ingenieur-devops` utilise Qwen comme les six autres profils.
 
-Le benchmark de référence reste à **8192 tokens**. Les comparaisons à 16K et les modèles supplémentaires ne modifient pas automatiquement le profil quotidien.
+Les benchmarks expérimentaux gardent leurs contextes 8192/16384. Ils sont facultatifs et ne modifient pas le profil quotidien.
 
 `granite-devops` → `granite4.2:8b-q4_K_M` est le challenger du slot `devstral-devops`. Il reste hors routage et ne compte jamais comme quatrième modèle nominal. Son protocole L6 vérifie coding, tool-calling natif, réparation après retour d'outil, sécurité et performance sur runs répétés.
 
@@ -75,7 +91,7 @@ Le benchmark de référence reste à **8192 tokens**. Les comparaisons à 16K et
 - firewalld est conservé et les providers/Gateway restent loopback-only.
 - Les services OpenClaw applicatifs utilisent `systemd --user` lorsqu'ils ne nécessitent pas de privilèges système.
 - Podman est le runtime conteneur Linux privilégié ; KVM/libvirt/OVMF fournit la virtualisation native.
-- Le kernel Fedora officiel reste toujours un rollback bootable ; Linux 7.2.3 est un candidat L6 seulement.
+- Le noyau est celui de la distribution : le projet n’en construit et n’en installe aucun.
 - Ollama/Vulkan est la baseline runtime ; llama.cpp/Vulkan est l'unique candidat runtime L6.
 - **OpenClaw 2026.9.8 est l'unique version OpenClaw supportée par ce contrat.** Une version voisine, plus récente ou plus ancienne doit être refusée ; aucun canal `latest`, upgrade automatique ou convergence implicite vers une autre version n'est autorisé.
 - Le plugin Parallel reste lui aussi verrouillé exactement en `2026.9.8`.
@@ -114,7 +130,7 @@ Les scénarios Fedora couvrent systemd, SELinux, Kubernetes, Terraform, Ansible,
 
 Le framework L8 agrège les contrats logiciels et les preuves réelles L2-L7. Un check L8 produit uniquement `BLOCKED` ou `READY_FOR_HUMAN_REVIEW` et écrit un manifeste SHA-256 des preuves.
 
-Même en état READY, `human_approval.status` reste `PENDING` et `v1_approved` reste `false`. L'approbation exige une action humaine séparée et ne modifie ni le routage, ni le kernel, ni un backend, ni les modèles, ni `COMPLETE`, ni une release.
+Même en état READY, `human_approval.status` reste `PENDING` et `v1_approved` reste `false`. L'approbation exige une action humaine séparée et ne modifie ni le routage, ni un backend, ni les modèles, ni `COMPLETE`, ni une release.
 
 **État actuel : CI logicielle Fedora V2 validée ; aucune qualification matérielle B580, aucun nouveau verdict de performance et aucune approbation V1 ne sont déclarés par la CI.**
 

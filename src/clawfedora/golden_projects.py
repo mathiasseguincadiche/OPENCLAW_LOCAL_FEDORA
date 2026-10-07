@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.core_config import root_contract
-from clawfedora.finops import append_cost_event, summarize
 from clawfedora.golden_contracts import validate_golden_contracts
 from clawfedora.project_common import read_json, validate_project_id, validate_task_id
 from clawfedora.project_engine import (
@@ -495,24 +494,6 @@ def _record_local_accounting(
         status=result.verdict,
         duration_ms=result.duration_ms,
     )
-    append_cost_event(
-        repo_root,
-        run_root,
-        event="reservation",
-        amount_eur=0.0,
-        reason="L7 local-only project verification",
-        provider="local",
-        project_id=result.project_id,
-    )
-    append_cost_event(
-        repo_root,
-        run_root,
-        event="release",
-        amount_eur=0.0,
-        reason="L7 local-only project verification complete",
-        provider="local",
-        project_id=result.project_id,
-    )
 
 
 def run_golden_suite(repo_root: Path, runtime_root: Path, *, live: bool = False) -> tuple[int, Path]:
@@ -553,7 +534,6 @@ def run_golden_suite(repo_root: Path, runtime_root: Path, *, live: bool = False)
     _record_local_accounting(repo_root, run_root, representative_result)
 
     telemetry = read_events(repo_root, run_root, limit=100)
-    finops = summarize(repo_root, run_root)
     result_failures = [
         f"{result.project_id}: {result.failure or result.verdict}"
         for result in results
@@ -574,10 +554,6 @@ def run_golden_suite(repo_root: Path, runtime_root: Path, *, live: bool = False)
         )
     if len(telemetry) != len(results):
         result_failures.append(f"telemetry_events={len(telemetry)} expected={len(results)}")
-    if int(finops.get("events", 0)) != len(results) * 2:
-        result_failures.append(f"finops_events={finops.get('events')} expected={len(results) * 2}")
-    if float(finops.get("net_exposure_eur", 0.0)) != 0.0:
-        result_failures.append("finops net exposure must remain 0 EUR")
     if any(not result.human_gate_preserved for result in results):
         result_failures.append("final human gate not preserved for every project")
 
@@ -598,7 +574,6 @@ def run_golden_suite(repo_root: Path, runtime_root: Path, *, live: bool = False)
             "local_only": True,
             "raw_prompt_or_response_persisted": False,
         },
-        "finops": finops,
         "limitations": list(contract.get("limitations", [])),
         "cloud_calls_allowed": False,
         "remote_publication_allowed": False,

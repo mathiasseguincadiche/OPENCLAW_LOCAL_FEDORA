@@ -66,7 +66,8 @@ def test_bootstrap_targets_calling_user_even_when_elevated() -> None:
 
 def test_upstream_kernel_is_not_installed_by_bootstrap() -> None:
     text = _read("scripts/linux/00_bootstrap.sh")
-    assert "7.2.3 is NOT installed here" in text
+    assert "never builds or installs one" in text
+    assert not (ROOT / "scripts/linux/20_kernel_candidate.sh").exists()
     assert "kernel.org" not in text
 
 

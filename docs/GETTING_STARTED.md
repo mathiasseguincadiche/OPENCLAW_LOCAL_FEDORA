@@ -1,13 +1,13 @@
 # Premiers pas
 
-> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, contexte 32K, sortie 4096, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles (8K/16K) sont expérimentales et facultatives.
 
 ## Repères de progression
 
 | Repère | Valeur |
 |---|---|
 | **Pour qui** | Toute personne qui découvre le projet, y compris sans expérience préalable de Fedora, OpenClaw ou DevOps. |
-| **Position dans le parcours** | 1/14 |
+| **Position dans le parcours** | 1/13 |
 | **Prérequis** | Aucun prérequis technique ; commencer par le README racine puis ce guide. |
 | **Objectif** | Comprendre l’état du dépôt, les commandes de base, les modèles, les agents et la différence entre validation logicielle et qualification réelle. |
 | **Résultat attendu** | Savoir lancer les contrôles non destructifs et comprendre ce que chaque état prouve réellement. |

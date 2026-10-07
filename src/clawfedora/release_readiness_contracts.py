@@ -144,19 +144,14 @@ def validate_release_readiness_contracts(
         }
         expected = {
             ("runtime", "llama-cpp-vulkan"),
-            ("kernel", "upstream-7.2.3"),
             ("model-challenger", "granite4.2:8b-q4_K_M"),
         }
         if normalized != expected:
-            failures.append("L8: les trois décisions L6 obligatoires ont dérivé")
+            failures.append("L8: les deux décisions L6 obligatoires ont dérivé")
 
     runtime_cfg = _mapping(
         optimization.get("runtime_comparison"),
         "optimization.runtime_comparison",
-    )
-    kernel_cfg = _mapping(
-        optimization.get("kernel_comparison"),
-        "optimization.kernel_comparison",
     )
     challenger_cfg = _mapping(
         optimization.get("model_challenger"),
@@ -164,8 +159,6 @@ def validate_release_readiness_contracts(
     )
     if runtime_cfg.get("automatic_promotion") is not False:
         failures.append("L8: promotion automatique runtime interdite")
-    if kernel_cfg.get("automatic_promotion") is not False:
-        failures.append("L8: promotion automatique kernel interdite")
     if challenger_cfg.get("automatic_promotion") is not False:
         failures.append("L8: promotion automatique challenger interdite")
     if challenger_cfg.get("slot") != "devstral-devops":

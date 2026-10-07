@@ -58,8 +58,6 @@ evidence:
     required_decisions:
       - kind: runtime
         candidate_id: llama-cpp-vulkan
-      - kind: kernel
-        candidate_id: upstream-7.2.3
       - kind: model-challenger
         candidate_id: granite4.2:8b-q4_K_M
     automatic_promotion_required: false

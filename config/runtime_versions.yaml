@@ -39,11 +39,6 @@ ollama:
   commit: "b0c1ca4f7549d7acdfa52a7dcffc934bc63a43ce"
   policy: exact-stable-pin-for-l6
 
-kernel:
-  fedora_baseline: observed-at-install
-  upstream_candidate: "7.2.3"
-  upstream_candidate_sha256: "8ba259e8e7b13ec6ef0941c8a39ad90b24bd4a4d6c0010ba6bafb794550ecd03"
-
 upgrade_policy:
   one_variable_at_a_time: true
   require_requalification_after_runtime_change: true
@@ -52,4 +47,3 @@ upgrade_policy:
   openclaw_update_requires_explicit_contract_change: true
   parallel_plugin_version_locked: true
   automatic_runtime_upgrade: false
-  automatic_kernel_upgrade: false

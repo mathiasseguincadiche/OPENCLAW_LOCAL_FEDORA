@@ -16,7 +16,7 @@ from typing import Any
 
 from clawfedora.agents import load_agent_specs
 from clawfedora.contracts import validate_repository
-from clawfedora.core_config import openclaw_environment, root_contract
+from clawfedora.core_config import daily_budget, openclaw_environment, root_contract
 from clawfedora.hardware_gate import collect_hardware_gate
 from clawfedora.qualification import _model_inventory, _request_json
 from clawfedora.version_lock import extract_openclaw_version
@@ -195,7 +195,10 @@ def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) 
                     "prompt": "Réponds OK",
                     "stream": False,
                     "think": False,
-                    "options": {"num_ctx": 8192, "num_predict": 8},
+                    "options": {
+                        "num_ctx": int(daily_budget(repo_root)["context_tokens"]),
+                        "num_predict": 8,
+                    },
                     "keep_alive": "3m",
                 },
                 timeout=60,

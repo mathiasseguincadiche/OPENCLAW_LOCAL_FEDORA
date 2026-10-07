@@ -129,7 +129,14 @@ def parse_response(text: str, schema: dict[str, Any]) -> dict[str, Any]:
     return value
 
 
-def repair_response(text: str, schema: dict[str, Any]) -> dict[str, Any]:
+def repair_response(
+    text: str,
+    schema: dict[str, Any],
+    *,
+    context_tokens: int = 32768,
+    max_output_tokens: int = 4096,
+) -> dict[str, Any]:
+    # Same num_ctx as the daily profile: another value makes Ollama reload the model.
     if len(text) > 24000:
         raise ValueError("réponse trop longue pour une réparation locale bornée")
     payload = {
@@ -138,7 +145,11 @@ def repair_response(text: str, schema: dict[str, Any]) -> dict[str, Any]:
         "think": False,
         "keep_alive": "3m",
         "format": schema,
-        "options": {"num_ctx": 8192, "num_predict": 1024, "temperature": 0},
+        "options": {
+            "num_ctx": context_tokens,
+            "num_predict": max_output_tokens,
+            "temperature": 0,
+        },
         "messages": [
             {
                 "role": "system",

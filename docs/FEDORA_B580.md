@@ -1,18 +1,18 @@
 # Fedora 44 + Intel Arc B580
 
-> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, contexte 32K, sortie 4096, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles (8K/16K) sont expérimentales et facultatives.
 
 ## Repères de progression
 
 | Repère | Valeur |
 |---|---|
 | **Pour qui** | Toute personne qui suit le parcours et veut comprendre la pile matérielle utilisée par le projet. |
-| **Position dans le parcours** | 10/14 |
+| **Position dans le parcours** | 10/13 |
 | **Prérequis** | Avoir lu [`LIFECYCLE.md`](LIFECYCLE.md) et comprendre où commencent les preuves matérielles. |
 | **Objectif** | Comprendre le chemin B580 → `xe` → DRM → Mesa/Vulkan → Ollama/llama.cpp et les mesures utiles. |
 | **Résultat attendu** | Savoir vérifier chaque couche sans confondre détection, fonctionnement et qualification. |
 | **Critère d’arrêt** | Si la B580, `xe` ou Vulkan n’est pas observable, résoudre d’abord la couche concernée avant de parler performance. |
-| **Continuer avec** | [`KERNEL_POLICY.md`](KERNEL_POLICY.md) |
+| **Continuer avec** | [`UPGRADE.md`](UPGRADE.md) |
 | **Source de vérité** | L’état réel de la machine, `config/qualification_policy.yaml` et les preuves L2/L3. |
 
 ## Références de pile au 2026-09-03
@@ -21,12 +21,10 @@ Ces versions sont des **références observées**, pas des pins éternels. La qu
 
 - Fedora 44 : GNOME 50.
 - Kernel Fedora 44 stable observé : 7.1.12-200.fc44.
-- Linux upstream stable : 7.2.3, publié le 2026-09-02.
 - Mesa Vulkan Fedora 44 updates : 26.1.8.
 
 Sources :
 
-- https://www.kernel.org/
 - https://packages.fedoraproject.org/pkgs/kernel/kernel-devel-matched/fedora-44-updates.html
 - https://packages.fedoraproject.org/pkgs/mesa/mesa-vulkan-drivers/fedora-44-updates.html
 
@@ -66,7 +64,7 @@ Resizable BAR est un prérequis de la cible matérielle. Le gate GPU tente de l'
 
 ## Mesures à enregistrer
 
-Pour chaque runtime et chaque kernel :
+Pour chaque runtime (le noyau en service est noté avec la mesure) :
 
 - first token ;
 - TTFT réponse ;

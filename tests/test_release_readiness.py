@@ -6,7 +6,6 @@ from typing import Any
 
 from clawfedora.core_config import AGENT_IDS, root_contract
 from clawfedora.optimization import (
-    compare_kernel,
     compare_model_challenger,
     compare_runtime,
     write_decision,
@@ -236,34 +235,6 @@ def _l6(runtime: Path) -> None:
     runtime_report = compare_runtime(ROOT, runtime_base, runtime_candidate)
     write_decision(runtime_report, runtime / "proofs/l6/decisions/runtime-vulkan.json")
 
-    kernel_base: list[Path] = []
-    kernel_candidate: list[Path] = []
-    for index in range(3):
-        kernel_base.append(
-            _snapshot(
-                runtime,
-                run_id=f"kernel-base-{index}",
-                kind="kernel",
-                candidate_id="fedora-official",
-                kernel="6.17.0-fedora",
-                backend="llama-cpp-vulkan",
-                models=_nominal_models(12.0),
-            )
-        )
-        kernel_candidate.append(
-            _snapshot(
-                runtime,
-                run_id=f"kernel-723-{index}",
-                kind="kernel",
-                candidate_id="upstream-7.2.3",
-                kernel="7.2.3-test",
-                backend="llama-cpp-vulkan",
-                models=_nominal_models(12.6),
-            )
-        )
-    kernel_report = compare_kernel(ROOT, kernel_base, kernel_candidate)
-    write_decision(kernel_report, runtime / "proofs/l6/decisions/kernel-723.json")
-
     challenger_cfg = root_contract(ROOT, "optimization_policy.yaml")["model_challenger"]
     assert isinstance(challenger_cfg, dict)
     incumbent: list[Path] = []
@@ -344,7 +315,6 @@ def _l7(runtime: Path) -> Path:
                 "local_only": True,
                 "raw_prompt_or_response_persisted": False,
             },
-            "finops": {"events": 12, "net_exposure_eur": 0.0},
             "limitations": [],
             "cloud_calls_allowed": False,
             "remote_publication_allowed": False,
@@ -372,7 +342,7 @@ def test_l8_dry_run_never_claims_human_approval() -> None:
     assert payload["automatic_human_approval"] is False
     assert payload["automatic_config_mutation"] is False
     assert payload["automatic_release_publication"] is False
-    assert len(payload["required_l6_decisions"]) == 3
+    assert len(payload["required_l6_decisions"]) == 2
 
 
 def test_l8_collects_and_recomputes_all_required_evidence(tmp_path: Path) -> None:
@@ -384,7 +354,7 @@ def test_l8_collects_and_recomputes_all_required_evidence(tmp_path: Path) -> Non
         payload["gates"][gate]["status"] == "PASS"
         for gate in ["L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7"]
     )
-    assert len(payload["gates"]["L6"]["decisions"]) == 3
+    assert len(payload["gates"]["L6"]["decisions"]) == 2
     assert all(item["recomputed"] is True for item in payload["gates"]["L6"]["decisions"])
     assert len(payload["evidence_set_sha256"]) == 64
     assert payload["human_approval"] == {

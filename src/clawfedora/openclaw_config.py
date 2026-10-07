@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.agents import load_agent_specs
-from clawfedora.core_config import core_contract, root_contract
+from clawfedora.core_config import core_contract, daily_budget, root_contract
 
 PROVIDER_IDS = {
     "llama-cpp-vulkan": "intel-vulkan",
@@ -76,7 +76,7 @@ def _agent_tools(agent_id: str, policy: dict[str, Any]) -> dict[str, Any]:
     return tools
 
 
-def _ollama_provider(catalog: dict[str, Any]) -> dict[str, Any]:
+def _ollama_provider(catalog: dict[str, Any], budget: dict[str, Any]) -> dict[str, Any]:
     models: list[dict[str, Any]] = []
     for alias, raw in _mapping(catalog.get("models")).items():
         model = _mapping(raw)
@@ -84,7 +84,9 @@ def _ollama_provider(catalog: dict[str, Any]) -> dict[str, Any]:
             continue
         alias_text = str(alias)
         runtime_id = _runtime_id(model, "ollama-vulkan", alias=alias_text)
-        context_tokens = _nominal_context_tokens(model, alias=alias_text)
+        _nominal_context_tokens(model, alias=alias_text)
+        context_tokens = int(budget["context_tokens"])
+        output_tokens = int(budget["max_output_tokens"])
         model_input = model.get("input", ["text"])
         inputs = list(model_input) if isinstance(model_input, list) else ["text"]
         models.append(
@@ -93,11 +95,11 @@ def _ollama_provider(catalog: dict[str, Any]) -> dict[str, Any]:
                 "name": runtime_id,
                 "input": inputs,
                 "contextTokens": context_tokens,
-                "maxTokens": 1024,
+                "maxTokens": output_tokens,
                 "params": {
                     "num_ctx": context_tokens,
-                    "num_predict": 1024,
-                    "keep_alive": "3m",
+                    "num_predict": output_tokens,
+                    "keep_alive": str(budget["keep_alive"]),
                     "think": False,
                 },
             }
@@ -106,7 +108,8 @@ def _ollama_provider(catalog: dict[str, Any]) -> dict[str, Any]:
         "baseUrl": "http://127.0.0.1:11434",
         "apiKey": _environment_reference(PROVIDER_ENV_KEYS["ollama"]),
         "api": "ollama",
-        "timeoutSeconds": 300,
+        # A full 4096-token answer after a long prompt can exceed five minutes.
+        "timeoutSeconds": 600,
         "models": models,
     }
 
@@ -158,7 +161,8 @@ def build_openclaw_patch(
     web_policy = core_contract(repo_root, "web_policy.yaml")
     openclaw_policy = core_contract(repo_root, "openclaw_policy.yaml")
 
-    providers: dict[str, Any] = {"ollama": _ollama_provider(catalog)}
+    budget = daily_budget(repo_root)
+    providers: dict[str, Any] = {"ollama": _ollama_provider(catalog, budget)}
     if backend_id != "ollama-vulkan":
         provider_id = PROVIDER_IDS.get(backend_id)
         if provider_id is None:
@@ -212,8 +216,8 @@ def build_openclaw_patch(
         "agents": {
             "defaults": {
                 "skipBootstrap": bool(defaults.get("skip_bootstrap", True)),
-                "bootstrapMaxChars": 2500,
-                "bootstrapTotalMaxChars": 8000,
+                "bootstrapMaxChars": int(budget["bootstrap_max_chars"]),
+                "bootstrapTotalMaxChars": int(budget["bootstrap_total_max_chars"]),
                 "maxConcurrent": 1,
                 "thinkingDefault": "off",
                 "heartbeat": {"every": "0m"},
@@ -224,7 +228,7 @@ def build_openclaw_patch(
                     "allowAgents": [],
                 },
                 "compaction": {
-                    "keepRecentTokens": int(defaults.get("compaction_reserve_tokens", 1024)),
+                    "keepRecentTokens": int(defaults["compaction_reserve_tokens"]),
                     "memoryFlush": {"enabled": False},
                 },
                 "model": {
@@ -243,6 +247,9 @@ def build_openclaw_patch(
         },
         "tools": {
             "profile": str(global_tools.get("profile", "minimal")),
+            # Direct schemas: one tool call instead of search -> describe -> call,
+            # which a 9B model rarely chains reliably. Affordable with the daily context.
+            "toolSearch": False,
             "deny": [
                 "exec",
                 "process",
@@ -253,6 +260,9 @@ def build_openclaw_patch(
                 "sessions_send",
                 "subagents",
                 "browser",
+                # "gateway" can run an OpenClaw update: forbidden by the exact version lock.
+                "gateway",
+                "presence",
             ],
             "fs": {"workspaceOnly": bool(global_tools.get("fs_workspace_only", True))},
             "exec": {

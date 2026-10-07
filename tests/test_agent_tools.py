@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 
 from clawfedora.agent_tools import OUTLINES, TOOL_ROLES, check, diagram, invoke
-from clawfedora.agents import deploy_workspaces
-from clawfedora.core_config import AGENT_IDS, core_contract
+from clawfedora.agents import deploy_workspaces, effective_instructions, validate_agent_assets
+from clawfedora.core_config import AGENT_IDS, core_contract, daily_budget
 from clawfedora.openclaw_config import build_openclaw_patch
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,16 +25,41 @@ def test_role_tools_policy_matches_callable_helpers_and_prompt_budget(tmp_path: 
     policy = core_contract(ROOT, "tool_policy.yaml")
     for role in AGENT_IDS:
         workspace = tmp_path / "workspaces" / role
-        injected = ["AGENTS.md", "SOUL.md", "IDENTITY.md", "TOOLS.md"]
-        assert all(len((workspace / name).read_text()) <= 3000 for name in injected)
-        assert sum(len((workspace / name).read_text()) for name in injected) <= 8000
-        assert "infrastructure/OPS" in (workspace / "AGENTS.md").read_text()
+        # Limits come from the contract: above them OpenClaw truncates silently.
+        budget = daily_budget(ROOT)
+        injected = ["AGENTS.md", "SOUL.md", "IDENTITY.md"]
+        assert all(
+            len((workspace / name).read_text()) <= budget["bootstrap_max_chars"]
+            for name in injected
+        )
+        assert (
+            sum(len((workspace / name).read_text()) for name in injected)
+            <= budget["bootstrap_total_max_chars"]
+        )
+        instructions = (workspace / "AGENTS.md").read_text()
+        assert instructions == effective_instructions(ROOT, role)
+        for marker in ("infrastructure/OPS", "Outils et livrables", "Contrat partagé"):
+            assert marker in instructions
+        assert "contexte 32768, sortie 4096" in instructions
         for tool, roles in TOOL_ROLES.items():
             assert (tool in policy["agents"][role]["also_allow"]) == (role in roles)
         for kind in OUTLINES[role]:
             value = invoke(tmp_path, role, workspace, "clawfedora_outline", {"kind": kind})
             assert "preuve" in value["outline"].lower()
     assert "Rédacteur technique" not in (ROOT / "agents/_shared/PEDAGOGY.md").read_text()
+
+
+def test_instructions_above_the_injection_limit_are_rejected(tmp_path: Path) -> None:
+    import shutil
+
+    for folder in ("agents", "config", "plugins"):
+        shutil.copytree(ROOT / folder, tmp_path / folder)
+    assert validate_agent_assets(tmp_path) == ()
+    limit = daily_budget(tmp_path)["bootstrap_max_chars"]
+    role_file = tmp_path / "agents/ingenieur-devops/AGENTS.md"
+    role_file.write_text(role_file.read_text() + "x" * limit)
+    failures = validate_agent_assets(tmp_path)
+    assert any("bootstrap_max_chars: ingenieur-devops" in failure for failure in failures)
 
 
 def test_tools_fail_closed_on_role_workspace_symlinks_and_input_size(tmp_path: Path) -> None:

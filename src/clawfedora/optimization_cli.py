@@ -12,7 +12,6 @@ from clawfedora.challenger_runner import (
 )
 from clawfedora.core_config import resolve_runtime_root
 from clawfedora.optimization import (
-    compare_kernel,
     compare_model_challenger,
     compare_runtime,
     stage_ollama_artifacts,
@@ -71,7 +70,7 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
     )
     snapshot.add_argument("--endpoint", required=True)
-    snapshot.add_argument("--kind", choices=("runtime", "kernel"), required=True)
+    snapshot.add_argument("--kind", choices=("runtime",), required=True)
     snapshot.add_argument("--candidate-id", required=True)
     snapshot.add_argument("--output", required=True)
 
@@ -86,8 +85,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     runtime = sub.add_parser("compare-runtime")
     _add_compare_args(runtime)
-    kernel = sub.add_parser("compare-kernel")
-    _add_compare_args(kernel)
     challenger = sub.add_parser("compare-challenger")
     _add_compare_args(challenger)
     return parser
@@ -225,8 +222,6 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "compare-runtime":
             report = compare_runtime(repo_root, baseline, candidate)
-        elif args.command == "compare-kernel":
-            report = compare_kernel(repo_root, baseline, candidate)
         elif args.command == "compare-challenger":
             report = compare_model_challenger(repo_root, baseline, candidate)
         else:

@@ -1,15 +1,15 @@
 # Cycle de vie du produit
 
-> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, contexte 32K, sortie 4096, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles (8K/16K) sont expérimentales et facultatives.
 
 ## Repères de progression
 
 | Repère | Valeur |
 |---|---|
 | **Pour qui** | Toute personne qui veut comprendre comment le produit s’installe, se maintient, se sauvegarde, se répare et se retire proprement. |
-| **Position dans le parcours** | 9/14 |
+| **Position dans le parcours** | 9/13 |
 | **Prérequis** | Avoir lu [`OPENCLAW_SYSTEMD.md`](OPENCLAW_SYSTEMD.md). |
-| **Objectif** | Relier installation, santé, sauvegarde, restauration, réparation, désinstallation, télémétrie et FinOps dans un cycle de vie cohérent. |
+| **Objectif** | Relier installation, santé, sauvegarde, restauration, réparation, désinstallation, et télémétrie dans un cycle de vie cohérent. |
 | **Résultat attendu** | Savoir identifier l’état géré du produit et les opérations autorisées à chaque étape. |
 | **Critère d’arrêt** | Si une opération destructive ou une réparation n’est pas comprise, rester en dry-run et revenir aux guides d’exploitation/dépannage. |
 | **Continuer avec** | [`FEDORA_B580.md`](FEDORA_B580.md) |
@@ -152,13 +152,6 @@ clawfedora-ops --runtime-root /srv/openclaw-local telemetry \
   --event task.completed --project-id p1 --status PASS
 ```
 
-## FinOps
+## Coûts cloud
 
-Le cloud reste désactivé par défaut. FinOps sert uniquement à enregistrer les escalades cloud explicitement approuvées lorsqu'une politique de projet les autorise ; aucune route LLM cloud ne fait partie de la flotte nominale Fedora.
-
-```bash
-clawfedora-ops --runtime-root /srv/openclaw-local finops \
-  --event reservation --amount-eur 0.25 --reason "approved escalation" --provider example
-```
-
-Le ledger est append-only et hors Git.
+Aucun : le LLM est local uniquement. L’ancien suivi de coûts cloud a été retiré, faute d’usage.

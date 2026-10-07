@@ -19,16 +19,16 @@ Après migration, vérifier les rôles, la recherche Web, les outils documentair
 
 Le [guide de l'atelier local](LOCAL_ASSISTANT.md) décrit le tableau de bord, l'index documentaire, les notes et la pause/reprise.
 
-> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, contexte 32K, sortie 4096, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles (8K/16K) sont expérimentales et facultatives.
 
 ## Repères de progression
 
 | Repère | Valeur |
 |---|---|
 | **Pour qui** | Toute personne qui suit le parcours et veut apprendre à faire évoluer la plateforme sans perdre la capacité d’expliquer ou de rollback un changement. |
-| **Position dans le parcours** | 12/14 |
-| **Prérequis** | Avoir lu [`KERNEL_POLICY.md`](KERNEL_POLICY.md) et compris la règle « une variable à la fois ». |
-| **Objectif** | Apprendre à préparer, appliquer, vérifier et annuler un changement de modèle, quantification, Mesa, kernel ou runtime candidat, tout en respectant les composants explicitement verrouillés. |
+| **Position dans le parcours** | 11/13 |
+| **Prérequis** | Avoir lu [`FEDORA_B580.md`](FEDORA_B580.md) et compris la règle « une variable à la fois ». |
+| **Objectif** | Apprendre à préparer, appliquer, vérifier et annuler un changement de modèle, quantification, Mesa, noyau de la distribution ou runtime candidat, tout en respectant les composants explicitement verrouillés. |
 | **Résultat attendu** | Savoir construire une comparaison avant/après attribuable à une seule variable et identifier les gates à rejouer. |
 | **Critère d’arrêt** | Ne pas appliquer un upgrade si la baseline, le backup, le rollback ou les preuves à invalider ne sont pas identifiés. |
 | **Continuer avec** | [`QUALIFICATION.md`](QUALIFICATION.md) |
@@ -217,9 +217,9 @@ vulkaninfo --summary
 
 Une évolution Mesa susceptible d'affecter la B580 doit conduire à de nouvelles mesures avant de comparer des performances.
 
-## Kernel Fedora officiel
+## Noyau de la distribution
 
-Les mises à jour du kernel Fedora nominal restent distinctes du candidat upstream L6.
+Le projet n’installe aucun noyau : il suit celui de la distribution.
 
 Après une mise à jour Fedora :
 
@@ -230,13 +230,7 @@ vulkaninfo --summary
 ./menu.sh --action hardware-l3
 ```
 
-Conserver au moins un kernel Fedora fonctionnel permettant le rollback.
-
-## Kernel upstream candidat
-
-Le candidat défini par la politique kernel ne devient jamais le default automatiquement.
-
-Pour le promouvoir, il doit être comparé au kernel Fedora officiel avec les mêmes conditions de runtime, modèles, prompts et contextes, puis satisfaire les gates de `KERNEL_POLICY.md` et `QUALIFICATION.md`.
+Conserver au moins un noyau précédent fonctionnel dans le menu de démarrage pour pouvoir revenir en arrière.
 
 ## Upgrade llama.cpp/Vulkan
 
@@ -297,8 +291,7 @@ Mettre à jour `STATUS.md` uniquement avec des états réellement observés.
 | modèle nominal | L4 + L5 + L7 + revue humaine |
 | quantification | L4 + L5 + L6 + L7 |
 | Mesa/Vulkan | L3 + L4 + performance concernée |
-| kernel Fedora | L3 + L4 + L5 selon impact |
-| kernel candidat | protocole L6 complet |
+| noyau de la distribution | L3 + L4 + L5 selon impact |
 | backend llama.cpp/Vulkan | protocole L6 complet |
 | Fedora majeure | requalification plateforme complète |
 

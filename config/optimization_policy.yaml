@@ -10,10 +10,6 @@ pins:
   llama_cpp:
     tag: "b10516"
     commit: "b95502ba9aa0eb73a2f4fc8878d7fbe6a847a0b9"
-  kernel_candidate:
-    version: "7.2.3"
-    source_url: "https://www.kernel.org/pub/linux/kernel/v7.x/linux-7.2.3.tar.xz"
-    sha256: "8ba259e8e7b13ec6ef0941c8a39ad90b24bd4a4d6c0010ba6bafb794550ecd03"
 
 paths:
   llama_source: runtime/src/llama.cpp
@@ -55,22 +51,6 @@ runtime_comparison:
   require_functional_pass: true
   require_security_pass: true
   automatic_promotion: false
-
-kernel_comparison:
-  baseline: fedora-official
-  candidate: upstream-7.2.3
-  minimum_repeated_runs: 3
-  minimum_aggregate_improvement_pct: 3.0
-  maximum_single_model_regression_pct: 2.0
-  require_same_backend: true
-  require_same_model_digest: true
-  require_same_quantization: true
-  require_same_contexts: true
-  require_same_prompt_hashes: true
-  require_l2_l5_pass: true
-  automatic_promotion: false
-  keep_minimum_bootable_kernels: 2
-  baseline_must_remain_bootable: true
 
 model_challenger:
   slot: devstral-devops

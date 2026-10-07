@@ -69,7 +69,6 @@ def _valid_contract() -> dict[str, Any]:
             "remote_publication_allowed": False,
             "final_human_completion_allowed": False,
             "telemetry_required": True,
-            "finops_required": True,
             "required_golden_projects": 5,
             "required_representative_projects": 1,
             "required_terminal_status": "PACKAGING",

@@ -112,7 +112,7 @@ printf '  SELinux: must remain Enforcing\n'
 printf '  firewalld: installed and enabled; LLM/Gateway remain loopback\n'
 printf '  development/Podman: optional with-dev=%s\n' "$WITH_DEV"
 printf '  virtualization: optional with-kvm=%s\n' "$WITH_KVM"
-printf '  kernel: Fedora package stays baseline; 7.2.3 is NOT installed here\n'
+printf '  kernel: distribution kernel kept as is; this project never builds or installs one\n'
 
 if ((APPLY == 0)); then
   echo "DRY_RUN=PASS -- aucune modification effectuée; relancer avec --apply pour appliquer."

@@ -14,7 +14,6 @@ from clawfedora.golden_contracts import validate_golden_contracts
 from clawfedora.lifecycle_contracts import validate_lifecycle_contracts
 from clawfedora.optimization import (
     ComparisonReport,
-    compare_kernel,
     compare_model_challenger,
     compare_runtime,
     load_evidence,
@@ -336,8 +335,6 @@ def _recompute_decision(
 ) -> ComparisonReport:
     if kind == "runtime":
         return compare_runtime(repo_root, baseline, candidate)
-    if kind == "kernel":
-        return compare_kernel(repo_root, baseline, candidate)
     if kind == "model-challenger":
         return compare_model_challenger(repo_root, baseline, candidate)
     raise ValueError(f"L8: kind L6 inconnu: {kind}")
@@ -368,7 +365,6 @@ def _validate_l6_decision(
     kind = str(decision.get("kind", ""))
     section = {
         "runtime": "runtime_comparison",
-        "kernel": "kernel_comparison",
         "model-challenger": "model_challenger",
     }.get(kind)
     if section is None:
@@ -459,9 +455,6 @@ def _validate_l7(payload: dict[str, Any], cfg: dict[str, Any]) -> list[str]:
     telemetry = _mapping(payload.get("telemetry"), "L7.telemetry")
     if telemetry.get("local_only") is not True or int(telemetry.get("events", 0)) != 6:
         failures.append("L7: télémétrie locale des 6 projets requise")
-    finops = _mapping(payload.get("finops"), "L7.finops")
-    if float(finops.get("net_exposure_eur", 0.0)) != 0.0:
-        failures.append("L7: exposition FinOps doit rester à 0 EUR")
     return failures
 
 

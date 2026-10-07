@@ -62,7 +62,7 @@ def test_l8_rejects_missing_mandatory_ministral_decision(tmp_path: Path) -> None
     ]
     _save(path, payload)
     failures, _ = validate_release_readiness_contracts(root)
-    assert any("trois décisions L6 obligatoires" in failure for failure in failures)
+    assert any("deux décisions L6 obligatoires" in failure for failure in failures)
 
 
 def test_l8_rejects_challenger_counting_as_fourth_nominal_model(tmp_path: Path) -> None:

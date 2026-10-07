@@ -42,8 +42,7 @@ def test_l7_full_suite_runs_real_project_engine_locally(tmp_path: Path) -> None:
     assert report["telemetry"]["events"] == 6
     assert report["telemetry"]["local_only"] is True
     assert report["telemetry"]["raw_prompt_or_response_persisted"] is False
-    assert report["finops"]["events"] == 12
-    assert report["finops"]["net_exposure_eur"] == 0.0
+    assert "finops" not in report
     assert report["cloud_calls_allowed"] is False
     assert report["remote_publication_allowed"] is False
     assert report["automatic_human_approval"] is False

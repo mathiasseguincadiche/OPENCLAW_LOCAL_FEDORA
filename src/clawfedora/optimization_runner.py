@@ -331,7 +331,7 @@ def run_performance_snapshot(
 ) -> Path:
     if backend not in {"ollama-vulkan", "llama-cpp-vulkan"}:
         raise ValueError(f"L6 runner: backend invalide: {backend}")
-    if kind not in {"runtime", "kernel"}:
+    if kind != "runtime":
         raise ValueError(f"L6 runner: kind invalide: {kind}")
     if not _loopback(endpoint):
         raise ValueError("L6 runner: endpoint loopback obligatoire")

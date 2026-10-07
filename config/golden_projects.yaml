@@ -7,7 +7,6 @@ policy:
   remote_publication_allowed: false
   final_human_completion_allowed: false
   telemetry_required: true
-  finops_required: true
   required_golden_projects: 5
   required_representative_projects: 1
   required_terminal_status: PACKAGING
@@ -116,7 +115,7 @@ golden_projects:
 representative_project:
   id: representative-devops-delivery
   title: "Projet représentatif — Livraison DevOps multi-agent"
-  objective: "Exécuter le moteur projet complet avec les sept rôles, dépendances, Artifact Exchange, validation, review, packaging, télémétrie et FinOps."
+  objective: "Exécuter le moteur projet complet avec les sept rôles, dépendances, Artifact Exchange, validation, review, packaging et télémétrie."
   sources:
     - "Concevoir une plateforme de déploiement applicatif locale avec CI/CD, sécurité, packaging, documentation et rollback."
     - "Contraintes : local-first, aucun cloud implicite, aucune publication distante, preuves traçables et approbation humaine finale."

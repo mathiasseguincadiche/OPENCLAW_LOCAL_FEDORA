@@ -92,7 +92,7 @@ def environment(repo_root: Path, token: str, secret: str, *, sealed: bool) -> di
             ],
             ensure_ascii=False,
         ),
-        "AIOHTTP_CLIENT_TIMEOUT": "360",
+        "AIOHTTP_CLIENT_TIMEOUT": "660",
     }
 
 

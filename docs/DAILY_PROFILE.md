@@ -8,8 +8,9 @@ La cible reste Ryzen 7 7700, 48 Gio de RAM, Arc B580 12 Gio, Fedora 44, `xe` et 
 | Une inférence par modèle | `OLLAMA_NUM_PARALLEL=1` ; un seul modèle autorisé en production |
 | File de quatre requêtes maximum | `OLLAMA_MAX_QUEUE=4`, refus des requêtes supplémentaires |
 | Une tâche projet à la fois | Verrou Linux partagé entre tous les projets du runtime |
-| Contexte 8192 | Catalogue, options Ollama et modèles exposés à OpenClaw |
-| Sortie 1024 tokens | Options de génération et plafond déclaré du modèle |
+| Contexte 32 768 | `config/core/openclaw_policy.yaml` → OpenClaw, service Ollama, réparation JSON et sonde de santé |
+| Sortie 4 096 tokens | Même contrat; plafond du chat et des tâches |
+| Historique de chat 32 000 octets | `config/webui_policy.yaml`; les plus anciens messages sont retirés |
 | Veille du modèle après trois minutes | `keep_alive=3m` |
 | Pas de raisonnement long par défaut | `think=false`, `thinkingDefault=off` |
 | Recherche concise | Quatre résultats, pages limitées à 4000 caractères |
@@ -20,6 +21,21 @@ Le [tableau de bord et la recherche documentaire](LOCAL_ASSISTANT.md) ajoutent u
 Les limites Ollama concernent les clients de **ce serveur**. Un autre serveur démarré manuellement ou un candidat llama.cpp consomme aussi le GPU. Ne pas les démarrer simultanément en usage quotidien. Le verrou Python sérialise le worker et ses revues ; les commandes manuelles de modification des projets doivent être exécutées quand le worker est arrêté.
 
 Les sauvegardes utilisent l’API SQLite pour inclure les transactions validées encore dans le journal WAL. Elles restent des instantanés par fichier ; arrêter les écritures et le worker avant une sauvegarde complète garantit la cohérence entre projets et sessions.
+
+## Pourquoi 32K, et comment le vérifier
+
+OpenClaw ajoute à chaque message ses propres consignes, les consignes du rôle et la description des outils : environ 10 000 à 11 500 tokens selon le rôle. À 8192, il ne restait donc rien pour la conversation. À 32 768, un chat à son historique maximal est estimé à environ 21 000 tokens pour un budget de 24 576, la réponse étant réservée à part.
+
+Ces chiffres viennent du vrai OpenClaw épinglé, pas d’une estimation : `make native-budget` les recalcule et échoue si une consigne est tronquée ou si le prompt déborde. Le contrôle tourne aussi en CI.
+
+Ce que la CI ne peut pas dire, c’est si 32K tient entièrement dans les 12 Gio de la B580. Sur le PC :
+
+```bash
+./menu.sh --action context-probe          # aperçu
+./menu.sh --action context-probe --apply  # une génération réelle, contexte rempli à 60 %
+```
+
+`FULL_GPU` : garder 32K. `PARTIAL_CPU_OFFLOAD` : une partie du modèle passe sur le processeur et la vitesse chute; mettre `context_tokens: 16384` et `compaction_reserve_tokens: 4096` dans `config/core/openclaw_policy.yaml`, `max_history_bytes: 12000` dans `config/webui_policy.yaml`, lancer `make native-budget`, puis `./menu.sh --action install --apply`. Toutes les générations quotidiennes utilisent le même contexte : une valeur différente obligerait Ollama à recharger le modèle.
 
 ## Sept spécialités sur un modèle
 
@@ -33,7 +49,7 @@ Les sauvegardes utilisent l’API SQLite pour inclure les transactions validées
 
 Le DevOps conserve les responsabilités de release; le rédacteur pédagogique est un rôle dédié. Leurs anciens dossiers restent sur disque lors de la migration. Les anciennes entrées `redacteur-technique`, `ingenieur-release-forges` et `main` sont retirées via le SDK, sans effacer les données. Le nouveau `redacteur-pedagogique` est déployé avec le même Qwen. L’auditeur utilise une session distincte, ce qui sépare les contextes sans garantir une indépendance de raisonnement équivalente à deux familles de modèles.
 
-Le **worker est l'unique ordonnanceur** des projets : le chef prépare le plan et le worker appelle ses spécialistes. Les outils natifs `sessions_spawn`, `sessions_send` et `subagents` sont désactivés. Il n'y a donc pas deux niveaux concurrents de délégation.
+Le **worker est l'unique ordonnanceur** des projets : le chef prépare le plan et le worker appelle ses spécialistes. Les outils natifs `sessions_spawn`, `sessions_send` et `subagents` sont désactivés, de même que `gateway` (il permettrait au modèle de mettre à jour OpenClaw) et `presence`. Les outils autorisés sont exposés directement : une recherche web est un seul appel d’outil. Il n'y a donc pas deux niveaux concurrents de délégation.
 
 ## Installation et état sauvegardé
 
@@ -46,7 +62,7 @@ L'installation reste explicite et propose un aperçu avant application :
 
 Le bootstrap quotidien évite compilateurs, outils de développement, Podman et KVM. Ils restent disponibles avec `00_bootstrap.sh --with-dev --with-kvm --apply`. Les candidats compilés demandent ces dépendances. Le lingering requiert `10_install_full.sh --apply --enable-linger` ; sans cette option, les services utilisateur suivent la session. Ollama reste un service système.
 
-Les modèles sont stockés dans `models/ollama`, appartenant au compte service Ollama. Le sélecteur Vulkan est dérivé de l'énumération de la **B580**, sans présumer qu'elle est GPU0. Vérifier les logs après activation pour confirmer le périphérique utilisé : un index seul ne constitue pas une qualification.
+Les modèles sont stockés dans `models/ollama`, appartenant au compte service Ollama. La configuration donne au binaire Ollama la capacité `cap_perfmon` : sans elle, en Vulkan, Ollama ne lit pas la VRAM libre et l’estime seulement. Une capacité de fichier disparaît quand le binaire est remplacé; elle est donc réappliquée à chaque installation ou mise à niveau. Le sélecteur Vulkan est dérivé de l'énumération de la **B580**, sans présumer qu'elle est GPU0. Vérifier les logs après activation pour confirmer le périphérique utilisé : un index seul ne constitue pas une qualification.
 
 L'état OpenClaw est regroupé dans `<runtime>/state/openclaw`, avec les versions, digests et preuves dans le runtime. L'installation détecte l'ancien `~/.local/state/openclaw-local`, le copie sans supprimer l'original, vérifie les hashes et crée une sauvegarde. Les sauvegardes incluent l'état du gateway et les configurations générées, excluent les poids et le virtualenv, et sont privées (0600). Le dossier historique reste sensible et ne doit pas être publié.
 
@@ -67,7 +83,7 @@ clawfedora project review --project-id mon-projet --kind review --apply
 clawfedora project package --project-id mon-projet
 ```
 
-Le worker fournit un snapshot de la tâche et une session neuve. Les entrées et le projet central sont contrôlés par hashes avant la collecte. Prévoir des tâches courtes : 1024 tokens de sortie ne permettent pas de produire plusieurs longs fichiers dans une seule réponse. Les justifications de chaque critère, les hashes du snapshot et la session de revue sont conservés dans le verdict. Le modèle répond en JSON avec les contenus des fichiers ; le collecteur accepte uniquement les chemins attendus, les scopes du rôle et le namespace de la tâche. Les fichiers vides, trop volumineux, liés ou sortant du projet sont refusés. En pratique guidée, la soumission reste AWAITING_FEEDBACK jusqu’à un retour ciblé; aucune dépendance n’avance sur le brouillon. Après revue cohérente, un PASS signifie **contribution collectée et critères relus**, sans preuve de déploiement ni de compétence. En mode direct, PASS reste une collecte. Le projet doit ensuite passer validation et revue. Une erreur de génération reste une tentative FAIL traçable, sans promotion automatique.
+Le worker fournit un snapshot de la tâche et une session neuve. Les entrées et le projet central sont contrôlés par hashes avant la collecte. Prévoir des tâches ciblées : 4 096 tokens de sortie suffisent pour un fichier complet de taille courante, pas pour toute une livraison en une réponse. Les justifications de chaque critère, les hashes du snapshot et la session de revue sont conservés dans le verdict. Le modèle répond en JSON avec les contenus des fichiers ; le collecteur accepte uniquement les chemins attendus, les scopes du rôle et le namespace de la tâche. Les fichiers vides, trop volumineux, liés ou sortant du projet sont refusés. En pratique guidée, la soumission reste AWAITING_FEEDBACK jusqu’à un retour ciblé; aucune dépendance n’avance sur le brouillon. Après revue cohérente, un PASS signifie **contribution collectée et critères relus**, sans preuve de déploiement ni de compétence. En mode direct, PASS reste une collecte. Le projet doit ensuite passer validation et revue. Une erreur de génération reste une tentative FAIL traçable, sans promotion automatique.
 
 Les agents ont `read`, les outils documents et les outils web utiles. Les écritures natives, `exec` et `process` sont désactivés. `workspaceOnly` n'est pas présenté comme un sandbox de commandes. Le profil quotidien propose du code et des scripts ; leur exécution sur l'hôte reste une action opérateur. Un futur profil d'exécution isolée devra être qualifié avant activation.
 

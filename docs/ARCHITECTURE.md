@@ -1,13 +1,13 @@
 # Architecture cible
 
-> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, contexte 32K, sortie 4096, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles (8K/16K) sont expérimentales et facultatives.
 
 ## Repères de progression
 
 | Repère | Valeur |
 |---|---|
 | **Pour qui** | Toute personne qui veut comprendre comment les composants déjà manipulés s’assemblent, sans expertise préalable en architecture. |
-| **Position dans le parcours** | 5/14 |
+| **Position dans le parcours** | 5/13 |
 | **Prérequis** | Avoir suivi les étapes pratiques jusqu’à [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md). |
 | **Objectif** | Relier Fedora, systemd, sécurité, GPU, runtimes LLM, OpenClaw et le cœur fonctionnel dans une vue cohérente. |
 | **Résultat attendu** | Savoir expliquer les grandes couches du système et où se trouvent état attendu, données runtime et preuves. |
@@ -57,14 +57,9 @@ La pile GPU supportée est **`xe` + Mesa/Vulkan**.
 
 Les comparaisons utilisent le même modèle, la même quantification, les mêmes prompts et les mêmes contextes. Aucun backend n'est promu automatiquement.
 
-## Kernel
+## Noyau
 
-Deux lignes sont conservées :
-
-1. kernel Fedora officiel : baseline supportée et rollback obligatoire ;
-2. Linux 7.2.3 upstream : candidat performance.
-
-Le kernel candidat ne peut être promu que s'il passe boot, GNOME/Wayland, B580/xe, Vulkan, OpenClaw, HARD-40M, E2E et stabilité, sans régression.
+Le projet utilise le noyau installé par la distribution et ne construit ni n’installe aucun noyau. Le noyau en service est seulement enregistré dans les preuves, pour que deux mesures restent comparables.
 
 ## Cœur fonctionnel
 
@@ -75,7 +70,6 @@ Le projet doit fournir nativement :
 - Project Orchestrator ;
 - Artifact Exchange ;
 - Golden Projects ;
-- FinOps ;
 - télémétrie ;
 - verrou d'identité modèles ;
 - sécurité local-first ;
@@ -98,4 +92,4 @@ Git ne contient que l'état attendu. Les données de runtime restent hors dépô
 └── benchmarks/
 ```
 
-Toute promotion de kernel ou backend doit pointer vers des preuves locales identifiées et reproductibles.
+Toute promotion de backend doit pointer vers des preuves locales identifiées et reproductibles.

@@ -11,7 +11,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from clawfedora.core_config import AGENT_IDS
+from clawfedora.core_config import AGENT_IDS, daily_budget
 from clawfedora.learning import checkpoints, contract
 from clawfedora.mentor import copy_profile
 from clawfedora.project_common import assert_no_symlinks, read_json, write_json
@@ -131,6 +131,7 @@ def propose(
     """Model drafts only. User approval is a separate HTTP action and state gate."""
     if kind not in {"analysis", "plan"}:
         raise ValueError("proposition inconnue")
+    output_tokens = int(daily_budget(repo)["max_output_tokens"])
     with worker_lock(runtime):
         expected = (
             {"INTAKE_READY", "ANALYZED", "CLARIFICATION_REQUIRED"}
@@ -182,10 +183,10 @@ def propose(
                 "livrables au format demandé: .md/.txt, .yaml/.yml, .tf, .sh, Dockerfile, .j2, "
                 ".json/.ini/.toml/.xml/.py selon le rôle; PDF/DOCX avec source .md de même nom "
                 "obligatoire dans le même dossier. Le plugin clawfedora_artifact génère les fichiers "
-                "et leurs références sans dupliquer le contenu dans les 1024 tokens. "
+                f"et leurs références sans dupliquer le contenu dans les {output_tokens} tokens. "
                 "Schémas: diagrams/<id>/fichier.drawio (source éditable), "
                 "avec aperçu .svg facultatif du même outil; "
-                "sorties au plus 1024 tokens "
+                f"sorties au plus {output_tokens} tokens "
                 "par tâche. Lire context/learning/contract.json et mentor.json s’il existe. "
                 "Mode adaptive: learning_mode guided pour une compétence nouvelle à pratiquer, "
                 "direct pour une aide maîtrisée, recherche ou rédaction. Plan approuvé par l’humain. "
@@ -200,7 +201,7 @@ def propose(
             )
         prompt = (
             f"Proposer {kind}; ne modifier aucun fichier ni statut. Snapshot: {snapshot}. "
-            f"{instructions} Répondre uniquement en JSON, concis (1024 tokens), forme: "
+            f"{instructions} Répondre uniquement en JSON, concis ({output_tokens} tokens), forme: "
             + json.dumps(shape)
         )
         copy_profile(runtime, snapshot)

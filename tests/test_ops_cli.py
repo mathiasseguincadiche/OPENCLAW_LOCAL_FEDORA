@@ -72,28 +72,3 @@ def test_telemetry_cli_roundtrip(tmp_path: Path, capsys: pytest.CaptureFixture[s
     code = ops_cli.main(["--root", str(ROOT), "--runtime-root", str(tmp_path), "telemetry", "--show"])
     assert code == 0
     assert '"event": "project.status"' in capsys.readouterr().out
-
-
-def test_finops_cli_summary(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    code = ops_cli.main(
-        [
-            "--root",
-            str(ROOT),
-            "--runtime-root",
-            str(tmp_path),
-            "finops",
-            "--event",
-            "reservation",
-            "--amount-eur",
-            "0.25",
-            "--reason",
-            "explicit",
-            "--provider",
-            "example",
-        ]
-    )
-    assert code == 0
-    capsys.readouterr()
-    code = ops_cli.main(["--root", str(ROOT), "--runtime-root", str(tmp_path), "finops", "--show"])
-    assert code == 0
-    assert '"reservations_eur": 0.25' in capsys.readouterr().out

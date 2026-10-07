@@ -52,7 +52,6 @@ def test_full_run_text_and_json(
         "golden_projects_pass": 5,
         "representative_projects_pass": 1,
         "telemetry": {"events": 6},
-        "finops": {"net_exposure_eur": 0.0},
     }
     report_path.write_text(json.dumps(report), encoding="utf-8")
     monkeypatch.setattr(golden_cli, "resolve_runtime_root", lambda _value: tmp_path)
@@ -66,7 +65,7 @@ def test_full_run_text_and_json(
     output = capsys.readouterr().out
     assert f"L7_REPORT={report_path}" in output
     assert "L7_RESULT=PASS golden=5/5 representative=1/1" in output
-    assert "finops_exposure_eur=0.0" in output
+    assert "finops" not in output
 
     assert golden_cli.main(["--root", str(ROOT), "--runtime-root", str(tmp_path), "--json"]) == 0
     assert json.loads(capsys.readouterr().out)["verdict"] == "PASS"

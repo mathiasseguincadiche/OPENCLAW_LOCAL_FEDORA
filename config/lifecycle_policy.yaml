@@ -82,9 +82,3 @@ telemetry:
   event_file: state/telemetry/events.jsonl
   max_events: 10000
   fsync_each_event: false
-finops:
-  local_only: true
-  ledger_file: state/finops/cloud-costs.jsonl
-  explicit_cloud_only: true
-  default_reservation_eur: 0.25
-  manual_override: false

@@ -42,7 +42,6 @@ def validate_repository(root: Path) -> ContractReport:
     required = {
         "platform": root / "config" / "platform.yaml",
         "hardware": root / "config" / "hardware.yaml",
-        "kernel": root / "config" / "kernel_policy.yaml",
         "models": root / "config" / "model_catalog.yaml",
         "backends": root / "config" / "runtime_backends.yaml",
         "qualification": root / "config" / "qualification_policy.yaml",
@@ -94,21 +93,6 @@ def validate_repository(root: Path) -> ContractReport:
         failures.append("hardware: driver kernel xe requis")
     if gpu.get("require_resizable_bar") is not True:
         failures.append("hardware: Resizable BAR doit rester requis")
-
-    kernel = contracts["kernel"]
-    baseline = kernel.get("baseline", {})
-    candidate = kernel.get("candidate", {})
-    boot = kernel.get("boot_policy", {})
-    if baseline.get("source") != "fedora-official" or baseline.get("removable") is not False:
-        failures.append("kernel: baseline Fedora officielle et non supprimable requise")
-    if candidate.get("version") != "7.2.3" or candidate.get("source") != "kernel.org":
-        failures.append("kernel: candidat Linux 7.2.3 kernel.org attendu")
-    if candidate.get("automatic_promotion") is not False:
-        failures.append("kernel: promotion automatique interdite")
-    if int(boot.get("keep_minimum_bootable_kernels", 0)) < 2:
-        failures.append("kernel: au moins deux kernels bootables requis")
-    if boot.get("baseline_must_remain_bootable") is not True:
-        failures.append("kernel: baseline Fedora doit rester bootable")
 
     models = contracts["models"]
     model_map = models.get("models", {})
@@ -195,10 +179,5 @@ def validate_repository(root: Path) -> ContractReport:
     gates = roadmap.get("roadmap_gates", {})
     if list(gates) != [f"L{i}" for i in range(9)]:
         failures.append("roadmap: gates L0..L8 incomplets ou désordonnés")
-
-    if candidate.get("version") == "7.2.3":
-        warnings.append(
-            "Linux 7.2.3 reste un candidat: conserver le kernel Fedora officiel comme rollback"
-        )
 
     return ContractReport(tuple(failures), tuple(warnings))

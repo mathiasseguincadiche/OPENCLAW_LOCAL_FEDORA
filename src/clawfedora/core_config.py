@@ -41,6 +41,38 @@ def root_contract(repo_root: Path, name: str) -> dict[str, Any]:
     return load_yaml(path)
 
 
+def daily_budget(repo_root: Path) -> dict[str, Any]:
+    """Daily agent budget: the single source for context, output and prompt limits.
+
+    Benchmark contexts in the model catalog are a separate, experimental contract.
+    """
+    agents = core_contract(repo_root, "openclaw_policy.yaml").get("agents")
+    webui = root_contract(repo_root, "webui_policy.yaml")
+    if not isinstance(agents, dict):
+        raise ValueError("openclaw_policy.yaml: agents doit être un mapping")
+    budget: dict[str, Any] = {
+        "context_tokens": int(agents.get("context_tokens", 0) or 0),
+        "max_output_tokens": int(agents.get("max_output_tokens", 0) or 0),
+        "keep_alive": str(agents.get("keep_alive", "")),
+        "bootstrap_max_chars": int(agents.get("bootstrap_max_chars", 0) or 0),
+        "bootstrap_total_max_chars": int(agents.get("bootstrap_total_max_chars", 0) or 0),
+        "max_history_bytes": int(webui.get("max_history_bytes", 0) or 0),
+    }
+    if not all(budget.values()):
+        raise ValueError("budget quotidien incomplet: openclaw_policy.yaml / webui_policy.yaml")
+    if int(webui.get("max_response_tokens", 0) or 0) != budget["max_output_tokens"]:
+        raise ValueError("webui_policy.yaml: max_response_tokens doit égaler max_output_tokens")
+    fleet = root_contract(repo_root, "model_catalog.yaml").get("fleet_policy")
+    declared = fleet.get("openclaw_agent_context_tokens") if isinstance(fleet, dict) else None
+    if declared != budget["context_tokens"]:
+        raise ValueError(
+            "model_catalog.yaml: openclaw_agent_context_tokens doit égaler le contexte quotidien"
+        )
+    if budget["max_output_tokens"] * 2 > budget["context_tokens"]:
+        raise ValueError("budget quotidien: la sortie ne peut dépasser la moitié du contexte")
+    return budget
+
+
 def resolve_runtime_root(explicit: str | Path | None = None) -> Path:
     if explicit is not None:
         return Path(explicit).expanduser().resolve()

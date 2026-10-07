@@ -1,13 +1,13 @@
 # Qualification Fedora
 
-> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, contexte 32K, sortie 4096, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles (8K/16K) sont expérimentales et facultatives.
 
 ## Repères de progression
 
 | Repère | Valeur |
 |---|---|
 | **Pour qui** | Toute personne qui a suivi le parcours et veut comprendre comment le projet transforme des observations en preuves reproductibles. |
-| **Position dans le parcours** | 13/14 |
+| **Position dans le parcours** | 12/13 |
 | **Prérequis** | Avoir lu [`UPGRADE.md`](UPGRADE.md) et compris baseline, changement unique, rollback et preuves runtime. |
 | **Objectif** | Comprendre puis exécuter correctement les gates L2 à L8, HARD-40M, L6 et l’approbation humaine. |
 | **Résultat attendu** | Savoir ce que chaque gate prouve, où les preuves sont stockées et pourquoi aucune CI ne remplace la machine réelle. |
@@ -28,7 +28,7 @@ L4 OpenClaw + 7 agents + outils
         ↓
 L5 HARD-40M Ollama Vulkan
         ↓
-L6 runtime Vulkan + kernel + Ministral ↔ Granite (slot DevOps)
+L6 runtime Vulkan + Ministral ↔ Granite (slot DevOps)
         ↓
 L7 Golden Projects + projet représentatif
         ↓
@@ -218,13 +218,12 @@ Les preuves HARD-40M et L6 ne stockent pas la sortie brute des modèles : elles 
 
 Après une baseline L5 PASS sur matériel réel, L6 compare une seule variable à la fois :
 
-1. kernel Fedora officiel + Ollama/Vulkan — baseline ;
-2. kernel Fedora officiel + llama.cpp/Vulkan — unique candidat runtime ;
-3. kernel 7.2.3 + runtime retenu pour la comparaison ;
-4. Ministral 3 14B Reasoning vs Granite 4.2 8B sur le même slot `devstral-devops` ;
-5. trois runs minimum par série avant toute décision.
+1. Ollama/Vulkan — baseline ;
+2. llama.cpp/Vulkan — unique candidat runtime ;
+3. Ministral 3 14B Reasoning vs Granite 4.2 8B sur le même slot `devstral-devops` ;
+4. trois runs minimum par série avant toute décision.
 
-Le kernel Fedora officiel reste un rollback bootable obligatoire.
+Les deux séries d’une comparaison tournent sur le même noyau. Le projet ne compare plus de noyau candidat.
 
 ### Challenger Granite — hors routage
 
@@ -319,7 +318,7 @@ L8 :
 - exige les preuves réelles L2-L7 ;
 - lie L2/L3 aux preuves référencées par L5 ;
 - refuse un HARD-40M dont les seuils, timeouts ou matrice diffèrent du contrat courant ;
-- exige les trois décisions L6 obligatoires : llama.cpp/Vulkan, kernel 7.2.3 et Ministral ↔ Granite ;
+- exige les deux décisions L6 obligatoires : llama.cpp/Vulkan et Ministral ↔ Granite ;
 - recharge les snapshots et **recalcule** les décisions L6 avec les contrats courants ;
 - exige L7 PASS avec six projets en `PACKAGING` et gate humain préservé ;
 - produit un manifeste SHA-256 de toutes les preuves retenues.
@@ -344,10 +343,10 @@ Le record `APPROVED_FOR_V1_PREPARATION` :
 - est immuable ;
 - atteste une approbation humaine explicite ;
 - n'altère aucun fichier de configuration runtime ;
-- ne promeut ni runtime, ni kernel, ni modèle ;
+- ne promeut ni runtime, ni modèle ;
 - ne passe aucun projet à `COMPLETE` ;
 - ne crée aucun tag/release GitHub.
 
 ## Promotion
 
-Aucune promotion automatique de backend, kernel, modèle challenger ou V1. Une preuve PASS rend seulement la configuration éligible à la revue humaine et aux gates suivants. L'approbation L8 autorise uniquement la préparation de V1 ; la publication effective reste une opération séparée et explicite.
+Aucune promotion automatique de backend, modèle challenger ou V1. Une preuve PASS rend seulement la configuration éligible à la revue humaine et aux gates suivants. L'approbation L8 autorise uniquement la préparation de V1 ; la publication effective reste une opération séparée et explicite.

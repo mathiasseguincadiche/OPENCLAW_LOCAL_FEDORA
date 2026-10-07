@@ -1,13 +1,13 @@
 # Installation Fedora 44
 
-> Profil quotidien : sept rôles, Qwen seul, 8K, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles et 16K sont expérimentales.
+> Profil quotidien : sept rôles, Qwen seul, contexte 32K, sortie 4096, worker séquentiel et outils en lecture. Voir [DAILY_PROFILE.md](DAILY_PROFILE.md). Les comparaisons de trois modèles (8K/16K) sont expérimentales et facultatives.
 
 ## Repères de progression
 
 | Repère | Valeur |
 |---|---|
 | **Pour qui** | Toute personne qui suit le parcours du projet, y compris lors d’une première installation Linux/IA locale. |
-| **Position dans le parcours** | 2/14 |
+| **Position dans le parcours** | 2/13 |
 | **Prérequis** | Avoir lu [`GETTING_STARTED.md`](GETTING_STARTED.md) et compris la différence entre dry-run, health-check et qualification. |
 | **Objectif** | Installer la plateforme Fedora proprement, en comprenant chaque étape et sans contourner les garde-fous. |
 | **Résultat attendu** | Obtenir une installation cohérente dont `health` et `status` sont interprétables. |
@@ -44,9 +44,7 @@ Vérifier dans l'UEFI/BIOS :
 - boot UEFI ;
 - Resizable BAR activé pour la B580 ;
 - le disque prévu pour la racine runtime est visible ;
-- le kernel Fedora officiel reste la voie de démarrage et de rollback.
-
-Aucun kernel upstream candidat ne doit être installé pendant le bootstrap initial.
+- le noyau reste celui de la distribution : ce projet n’en construit et n’en installe aucun.
 
 ### Session Fedora
 

@@ -56,7 +56,8 @@ def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
     assert set(by_id) == {
         "qwen3.5:9b-q4_K_M",
     }
-    assert all(entry["contextTokens"] == 8192 for entry in by_id.values())
+    assert all(entry["contextTokens"] == 32768 for entry in by_id.values())
+    assert all(entry["maxTokens"] == 4096 for entry in by_id.values())
     assert by_id["qwen3.5:9b-q4_K_M"]["input"] == ["text", "image"]
 
     agents = _agents_by_id(patch)

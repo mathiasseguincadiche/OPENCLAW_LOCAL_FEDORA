@@ -85,3 +85,25 @@ def test_missing_agent_asset_is_rejected(tmp_path: Path) -> None:
     (root / "agents" / "auditeur-qualite" / "SOUL.md").unlink()
     failures, _ = validate_core_contracts(root)
     assert any("auditeur-qualite/SOUL.md" in failure for failure in failures)
+
+
+def test_daily_budget_drift_between_contracts_is_rejected(tmp_path: Path) -> None:
+    (tmp_path / "first").mkdir()
+    (tmp_path / "second").mkdir()
+    root = _sandbox(tmp_path / "first")
+    _mutate_yaml(
+        root,
+        "config/webui_policy.yaml",
+        lambda payload: payload.__setitem__("max_response_tokens", 1024),
+    )
+    failures, _ = validate_core_contracts(root)
+    assert any("max_response_tokens" in failure for failure in failures)
+
+    root = _sandbox(tmp_path / "second")
+    _mutate_yaml(
+        root,
+        "config/core/openclaw_policy.yaml",
+        lambda payload: payload["agents"].__setitem__("context_tokens", 8192),
+    )
+    failures, _ = validate_core_contracts(root)
+    assert any("openclaw_agent_context_tokens" in failure for failure in failures)
