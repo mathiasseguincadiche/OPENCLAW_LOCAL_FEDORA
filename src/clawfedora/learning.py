@@ -10,7 +10,7 @@ from clawfedora.drawio import normalize_diagram
 from clawfedora.project_common import now, read_json, validate_task_id, write_json
 
 
-def initialize(project: Path, mode: str = "adaptive", goals: list[str] | None = None) -> None:
+def initialize(project: Path, mode: str = "direct", goals: list[str] | None = None) -> None:
     if mode not in {"adaptive", "guided", "direct"}:
         raise ValueError("accompagnement adaptive, guided ou direct requis")
     goals = goals or []
@@ -25,6 +25,7 @@ def initialize(project: Path, mode: str = "adaptive", goals: list[str] | None = 
         {
             "schema_version": "1.0.0",
             "mode": mode,
+            "practice_opt_in_required": True,
             "goals": goals,
             "specialty": "DevOps infrastructure/OPS",
             "instruction": "Une étape à la fois; l’apprenant produit et vérifie son travail.",
@@ -57,9 +58,15 @@ def awaiting(project: Path) -> list[dict[str, Any]]:
 
 
 def task_mode(project: Path, task: dict[str, Any]) -> str:
-    mode = contract(project)["mode"]
+    policy = contract(project)
+    mode = policy["mode"]
     if mode != "adaptive":
         return str(mode)
+    # Existing approved v1.0 contracts retain their original behaviour.
+    # New adaptive projects need an affirmative choice to create a practice gate.
+    if policy.get("practice_opt_in_required") is True:
+        return ("guided" if task.get("learning_mode") == "guided"
+                and task.get("practice_opt_in") is True else "direct")
     # Only the approved plan can choose task-level support; no model-selected runtime gate.
     return str(
         task.get(
@@ -76,7 +83,11 @@ def pending_feedback(project: Path) -> list[dict[str, Any]]:
 def instructions(project: Path, task: dict[str, Any] | None = None) -> str:
     value = contract(project)
     goals = "; ".join(value.get("goals", [])) or "comprendre le mécanisme et apprendre à vérifier"
-    if (task_mode(project, task) if task else value["mode"]) == "direct":
+    selected = task_mode(project, task) if task is not None else (
+        "direct" if value["mode"] == "adaptive"
+        and value.get("practice_opt_in_required") is True else value["mode"]
+    )
+    if selected == "direct":
         return f"Mode direct choisi: résultat complet autorisé, expliquer l’utile. {goals}. "
     return (
         f"Mode guidé. Objectifs: {goals}. Ne fais pas l’exercice à la place de l’apprenant. "
