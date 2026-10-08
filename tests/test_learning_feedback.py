@@ -151,7 +151,13 @@ def test_adaptive_support_uses_approved_plan_and_global_override(planned: tuple[
     assert task_mode(project, {"role": "architecte-solutions"}) == "direct"
     assert task_mode(project, {"role": "redacteur-pedagogique"}) == "direct"
     assert task_mode(project, {"role": "architecte-solutions", "learning_mode": "guided"}) == "direct"
-    assert task_mode(project, {"role": "architecte-solutions", "learning_mode": "guided", "practice_opt_in": "true"}) == "direct"
-    assert task_mode(project, {"role": "architecte-solutions", "learning_mode": "guided", "practice_opt_in": True}) == "guided"
+    assert task_mode(
+        project,
+        {"role": "architecte-solutions", "learning_mode": "guided", "practice_opt_in": "true"},
+    ) == "direct"
+    assert task_mode(
+        project,
+        {"role": "architecte-solutions", "learning_mode": "guided", "practice_opt_in": True},
+    ) == "guided"
     initialize(project, mode="guided")
     assert task_mode(project, {"role": "expert-recherche", "learning_mode": "direct"}) == "guided"
