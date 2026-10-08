@@ -41,7 +41,7 @@
           <label for="project-title">Titre</label><input id="project-title" maxlength="200" required>
           <label for="project-brief">Demande, contraintes et résultats attendus</label><textarea id="project-brief" rows="4" maxlength="12000" required placeholder="Ex. Comparer deux stratégies de sauvegarde Fedora, puis documenter le choix, la restauration et les preuves à collecter."></textarea>
           <label for="project-files">Documents facultatifs (3 maximum, 8 Mo au total)</label><input id="project-files" type="file" multiple accept=".txt,.md,.pdf,.png,.jpg,.jpeg,.docx,.yaml,.yml,.json">
-          <label for="learning-mode">Accompagnement</label><select id="learning-mode"><option value="adaptive">Adaptatif : une aide selon chaque étape</option><option value="guided">Guidé : je construis, l’IA m’aide à apprendre</option><option value="direct">Direct : je demande une proposition complète</option></select>
+          <label for="learning-mode">Accompagnement</label><select id="learning-mode"><option value="direct">Explications complètes (sans exercice)</option><option value="adaptive">Adaptatif : pratique seulement si je la choisis</option><option value="guided">Guidé : je choisis de pratiquer</option></select>
           <label for="learning-goals">Ce que je veux comprendre (facultatif, 3 objectifs maximum)</label><textarea id="learning-goals" rows="3" maxlength="480" placeholder="Ex. Comprendre le rôle d’une image Docker et vérifier une étape de CI."></textarea>
           <p>Les documents deviennent des entrées protégées. Leur import ne prouve pas qu’un agent les a lus.</p>
           <button type="submit">Créer dans l’atelier</button>
