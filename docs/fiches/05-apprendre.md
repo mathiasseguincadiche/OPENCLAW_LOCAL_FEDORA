@@ -2,7 +2,7 @@
 
 [← Guide](../GUIDE.md)
 
-Recevoir une réponse claire aide à comprendre. Cela ne suffit pas pour savoir faire. L'atelier est donc réglé pour t'expliquer, te laisser pratiquer, puis relire ce que tu as produit.
+Recevoir une réponse claire aide à comprendre. Cela ne suffit pas pour savoir faire. L'atelier t'explique d'abord, sans imposer d'exercice. Si tu choisis de pratiquer, il te laisse agir puis relit ton travail.
 
 ## Le mentor
 
@@ -21,13 +21,15 @@ Une bonne façon de l'utiliser : demande un indice plutôt que la solution, part
 
 ## Guidé ou direct
 
+Par défaut, les nouveaux projets sont en mode **direct** : tu reçois l'explication ou la proposition complète, sans exercice bloquant. Le mode guidé est un choix. Les contrats déjà approuvés des anciens projets sont préservés.
+
 Dans un projet, chaque tâche suit l'un de ces modes :
 
 | Mode | Ce qui se passe | Quand |
 |---|---|---|
 | **Guidé** | Le rôle explique un exemple, te donne une amorce à compléter, puis relit ton travail | Tu découvres une compétence |
 | **Direct** | Le rôle propose le résultat complet | Tu maîtrises le sujet, ou c'est une recherche ou une rédaction |
-| **Adaptatif** | Le plan choisit pour chaque tâche : architecture et DevOps en guidé, le reste en direct | Choix proposé à la création |
+| **Adaptatif** | Aide directe par défaut ; exercice guidé uniquement si tu le sélectionnes pour cette tâche | Si tu veux choisir étape par étape |
 
 ## La boucle de pratique
 
