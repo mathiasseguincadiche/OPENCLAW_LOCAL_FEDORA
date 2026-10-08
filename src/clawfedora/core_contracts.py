@@ -169,6 +169,12 @@ def validate_core_contracts(
     catalog = root_contract(repo_root, "model_catalog.yaml")
     model_aliases = set(_mapping(catalog.get("models")))
     routing = _mapping(contracts["model_routing.yaml"].get("agents"))
+    routing_policy = _mapping(contracts["model_routing.yaml"].get("policy"))
+    if (
+        routing_policy.get("local_only") is not True
+        or routing_policy.get("cloud_models_supported") is not False
+    ):
+        failures.append("core/routing: local_only=true et cloud_models_supported=false requis")
     tools = _mapping(contracts["tool_policy.yaml"].get("agents"))
     if set(routing) != expected or set(tools) != expected:
         failures.append("core: routage et politique outils doivent couvrir tous les agents")
@@ -190,6 +196,38 @@ def validate_core_contracts(
         failures.append("core/tools: exec.mode=ask requis")
     if defaults.get("elevated_enabled") is not False:
         failures.append("core/tools: elevated doit rester désactivé")
+
+    from clawfedora.agent_tools import TOOL_ROLES
+
+    forbidden = {
+        "exec", "process", "write", "edit", "apply_patch", "gateway", "browser",
+        "sessions_spawn", "sessions_send", "subagents", "presence",
+    }
+    native_allowed = {
+        "read", "web_search", "web_fetch", "session_status", "pdf", "view_image",
+    }
+    mentor_allowed = {"agents_list", "sessions_list", "sessions_history", "sessions_search"}
+    for agent_id, raw_tools in tools.items():
+        tool_entry = _mapping(raw_tools)
+        allow = tool_entry.get("also_allow")
+        deny = tool_entry.get("deny")
+        expected_tools = native_allowed | {
+            tool for tool, roles in TOOL_ROLES.items() if agent_id in roles
+        }
+        if agent_id == "chef-operations":
+            expected_tools |= mentor_allowed
+        if (
+            tool_entry.get("profile") != "minimal"
+            or not isinstance(allow, list)
+            or any(not isinstance(tool, str) for tool in allow)
+            or set(allow) != expected_tools
+            or len(allow) != len(set(allow))
+            or not isinstance(deny, list)
+            or any(not isinstance(tool, str) for tool in deny)
+            or not {"exec", "process", "write", "edit", "apply_patch"} <= set(deny)
+            or bool(set(allow) & (set(deny) | forbidden))
+        ):
+            failures.append(f"core/tools: permissions divergentes pour {agent_id}")
 
     web = _mapping(contracts["web_policy.yaml"].get("nominal_path"))
     if web.get("reasoning") != "local_model":

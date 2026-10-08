@@ -61,3 +61,25 @@ def test_auditor_schema_requires_every_criterion() -> None:
 def test_overlong_repair_is_rejected_without_inference() -> None:
     with pytest.raises(ValueError, match="trop longue"):
         repair_response("x" * 24001, task_schema())
+
+
+@pytest.mark.parametrize("text", [
+    '{"files":{},"files":{"deliverables/task-one/file.md":"x"},"summary":"ok"}',
+    '{"files":{"deliverables/task-one/file.md":"a","deliverables/task-one/file.md":"b"},'
+    '"summary":"ok"}',
+    '{"files":{"deliverables/task-one/file.md":"x"},"summary":"ok","summary":"changed"}',
+])
+def test_duplicate_json_keys_fail_closed(text: str) -> None:
+    with pytest.raises(ValueError, match="dupliquée"):
+        parse_response(text, task_schema())
+
+
+@pytest.mark.parametrize("constant", ["NaN", "Infinity", "-Infinity"])
+def test_non_json_constants_cannot_hide_in_audit_findings(constant: str) -> None:
+    schema = response_schema('Session indépendante\n{"task-one":["a"]}')
+    text = (
+        '{"verdict":"PASS","findings":[{"value":' + constant + '}],'
+        '"criteria":{"task-one":[{"passed":true,"evidence":"x"}]}}'
+    )
+    with pytest.raises(ValueError, match="constante non JSON"):
+        parse_response(text, schema)

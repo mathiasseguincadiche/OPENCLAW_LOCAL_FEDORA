@@ -121,8 +121,21 @@ def validate_response(value: Any, schema: dict[str, Any]) -> None:
         raise ValueError("réponse structurée: valeur hors enum")
 
 
+def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    value: dict[str, Any] = {}
+    for key, child in pairs:
+        if key in value:
+            raise ValueError("réponse structurée: clé JSON dupliquée")
+        value[key] = child
+    return value
+
+
+def _reject_constant(_constant: str) -> Any:
+    raise ValueError("réponse structurée: constante non JSON")
+
+
 def parse_response(text: str, schema: dict[str, Any]) -> dict[str, Any]:
-    value = json.loads(text)
+    value = json.loads(text, object_pairs_hook=_unique_object, parse_constant=_reject_constant)
     validate_response(value, schema)
     if not isinstance(value, dict):
         raise ValueError("réponse structurée: objet requis")
