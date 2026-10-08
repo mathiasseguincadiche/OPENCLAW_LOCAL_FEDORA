@@ -326,14 +326,14 @@ async function loadProject(id) {
       $("clarifications").append(form);
     }
     $("proposal").replaceChildren();
-    if (data.draft && !data.draft.approved) renderProposal(id, data.draft);
+    if (data.draft && !data.draft.approved) renderProposal(id, data.draft, data.learning);
     await renderMentor(id);
     if (sequence !== editorSequence) return;
     renderLearning(id, data);
     renderRevision(id, data);
   } catch (error) { tell(error.message, true); }
 }
-function renderProposal(id, draft) {
+function renderProposal(id, draft, learning) {
   const form = node("form"), proposal = structuredClone(draft.proposal), inputs = {};
   form.append(node("h3", draft.kind === "analysis" ? "Cadrage proposé" : "Plan proposé"));
   const tasks = [];
@@ -362,10 +362,16 @@ function renderProposal(id, draft) {
       for (const name of ["chef-operations", "expert-recherche", "architecte-solutions", "ingenieur-devops", "ingenieur-securite", "redacteur-pedagogique", "auditeur-qualite"]) { const option = node("option", name); option.value = name; role.append(option); }
       role.value = task.role; label.append(role); group.append(label); form.append(group);
       const support = node("select"), supportLabel = node("label", "Aide pour cette étape");
-      for (const [value, text] of [["guided", "Je pratique avec des indices"], ["direct", "Aide directe"]]) { const option = node("option", text); option.value = value; support.append(option); }
-      support.value = task.learning_mode || (["architecte-solutions", "ingenieur-devops"].includes(task.role) ? "guided" : "direct");
-      support.addEventListener("change", () => { task.learning_mode = support.value; });
-      task.learning_mode = support.value; supportLabel.append(support); group.append(supportLabel);
+      for (const [value, text] of [["direct", "Explication et livrable complet"], ["guided", "Je choisis de pratiquer avec des indices"]]) { const option = node("option", text); option.value = value; support.append(option); }
+      // AI suggestions never opt the human into mandatory practice.
+      support.value = learning?.mode === "guided" ? "guided" : "direct";
+      task.learning_mode = support.value;
+      task.practice_opt_in = support.value === "guided";
+      support.addEventListener("change", () => {
+        task.learning_mode = support.value;
+        task.practice_opt_in = support.value === "guided";
+      });
+      supportLabel.append(support); group.append(supportLabel);
       if (task.role === "redacteur-pedagogique") {
         const scope = node("select"), scopeLabel = node("label", "Portée de la rédaction");
         for (const [value, text] of [["final", "Synthèse finale : toutes les tâches techniques"], ["intermediate", "Document intermédiaire : ses seules sources"]]) { const option = node("option", text); option.value = value; scope.append(option); }
