@@ -42,5 +42,5 @@ agents:
     name: Rédacteur pédagogique
     model: qwen-max
     fallback: qwen-max
-    mission: rendre les contributions validées compréhensibles et cohérentes, sans
-      faire l’exercice à la place de l’apprenant
+    mission: rendre les contributions validées compréhensibles et cohérentes; en
+      guidé consenti, ne pas faire l’exercice à la place de l’apprenant

@@ -23,6 +23,10 @@ make native-tools    # les huit outils du plugin géré sont chargés et invocab
 
 Les contrôles `native-schema` et `native-prompt` demandent `openclaw` dans le `PATH` et la variable `OPENCLAW_SCHEMA_PARALLEL_PATH` pointant vers le plugin Parallel de la même version. GitHub les lance sur chaque pull request. Ils sont nécessaires dès qu'on touche aux fichiers `agents/`, aux outils autorisés ou aux limites de `config/core/openclaw_policy.yaml`.
 
+L'[assemblage des prompts et ses critères de validation](docs/PROMPTS.md) précise
+le budget de 12000 caractères, les sorties JSON, les permissions et les documents
+encore nécessaires pour terminer la confrontation aux références V2.3/V1.5.
+
 ## Règles
 
 - Le modèle reste local : pas de service cloud.

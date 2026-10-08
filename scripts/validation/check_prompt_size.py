@@ -19,8 +19,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
-from clawfedora.agents import deploy_workspaces
-from clawfedora.core_config import AGENT_IDS, daily_limits, root_contract
+from clawfedora.agents import bootstrap_chars, deploy_workspaces, effective_instructions
+from clawfedora.core_config import AGENT_IDS, core_contract, daily_limits, root_contract
 from clawfedora.openclaw_config import build_openclaw_patch
 from clawfedora.version_lock import extract_openclaw_version
 from clawfedora.webui_bridge import chat_prompt
@@ -83,6 +83,7 @@ def main() -> None:
     if not (plugin / "openclaw.plugin.json").is_file():
         raise SystemExit("Pinned Parallel plugin absent")
     limits = daily_limits(repo)
+    tool_policy = core_contract(repo, "tool_policy.yaml")["agents"]
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), FakeOllama)
     threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -179,17 +180,27 @@ def main() -> None:
                 ):
                     _fail(f"{label}: options Ollama divergentes: {options}")
                 system = str(request["messages"][0]["content"])
+                instructions = effective_instructions(repo, agent)
+                if instructions not in system:
+                    _fail(f"{label}: AGENTS.md assemblé absent ou altéré dans le prompt natif")
                 for marker in ("Accompagnement commun", "Outils et livrables", "Contrat partagé"):
                     if marker not in system:
                         _fail(f"{label}: consigne non injectée: {marker}")
                 tools = {item["function"]["name"] for item in request.get("tools", [])}
-                forbidden = tools & {"exec", "process", "write", "edit", "apply_patch", "gateway"}
+                forbidden = tools & set(config["tools"]["deny"])
                 if forbidden:
                     _fail(f"{label}: outils interdits exposés: {sorted(forbidden)}")
                 if not {"read", "web_search", "web_fetch"} <= tools:
                     _fail(f"{label}: outils directs attendus absents: {sorted(tools)}")
+                unexpected = tools - set(tool_policy[agent]["also_allow"])
+                if unexpected:
+                    _fail(f"{label}: outils hors permissions du rôle: {sorted(unexpected)}")
                 estimate = text.split('"estimatedPromptTokens": ')[1].split(",")[0]
-                print(f"  {label}: prompt estimé {estimate} tokens, {len(tools)} outils directs")
+                print(
+                    f"  {label}: AGENTS {len(instructions)} caractères "
+                    f"({bootstrap_chars(instructions)} unités UTF-16), "
+                    f"prompt estimé {estimate} tokens, {len(tools)} outils directs"
+                )
     finally:
         server.shutdown()
     print(
