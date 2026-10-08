@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def prepare(runtime: Path, project: Path) -> dict[str, Any]:
-    initialize(project)
+    initialize(project, mode="guided")
     run_project_tasks(ROOT, runtime, project, runner=starter)
     item = awaiting(project)[0]
     submit(ROOT, runtime, project, item["task_id"], payload(item))
@@ -147,9 +147,11 @@ def test_feedback_retry_budget_resets_only_on_human_resubmission(planned: tuple[
 
 def test_adaptive_support_uses_approved_plan_and_global_override(planned: tuple[Path, Path]) -> None:
     _runtime, project = planned
-    initialize(project)
-    assert task_mode(project, {"role": "architecte-solutions"}) == "guided"
+    initialize(project, mode="adaptive")
+    assert task_mode(project, {"role": "architecte-solutions"}) == "direct"
     assert task_mode(project, {"role": "redacteur-pedagogique"}) == "direct"
-    assert task_mode(project, {"role": "architecte-solutions", "learning_mode": "direct"}) == "direct"
+    assert task_mode(project, {"role": "architecte-solutions", "learning_mode": "guided"}) == "direct"
+    assert task_mode(project, {"role": "architecte-solutions", "learning_mode": "guided", "practice_opt_in": "true"}) == "direct"
+    assert task_mode(project, {"role": "architecte-solutions", "learning_mode": "guided", "practice_opt_in": True}) == "guided"
     initialize(project, mode="guided")
     assert task_mode(project, {"role": "expert-recherche", "learning_mode": "direct"}) == "guided"
