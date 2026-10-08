@@ -54,11 +54,12 @@ def payload(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def test_new_projects_default_to_adaptive_and_all_roles_receive_common_context(
+def test_new_projects_default_to_direct_and_all_roles_receive_common_context(
     tmp_path: Path,
 ) -> None:
     project = create_project(ROOT, tmp_path, "guided-project", "Guidé")
-    assert contract(project)["mode"] == "adaptive"
+    assert contract(project)["mode"] == "direct"
+    assert contract(project)["practice_opt_in_required"] is True
     shared = (ROOT / "agents/_shared/PEDAGOGY.md").read_text()
     assert "huit agents" not in shared and "Gemma" not in shared
     deploy_workspaces(ROOT, tmp_path)
@@ -123,7 +124,7 @@ def test_invalid_practice_does_not_promote_or_write(
     invalid: dict[str, Any],
 ) -> None:
     runtime, project = planned
-    initialize(project)
+    initialize(project, mode="guided")
     run_project_tasks(ROOT, runtime, project, runner=starter)
     item = awaiting(project)[0]
     with pytest.raises(ValueError):
@@ -151,7 +152,7 @@ def test_submitted_task_only_selects_an_existing_waiting_checkpoint(
     identifier: str,
 ) -> None:
     runtime, project = planned
-    initialize(project)
+    initialize(project, mode="guided")
     run_project_tasks(ROOT, runtime, project, runner=starter)
     item = awaiting(project)[0]
     with pytest.raises(ValueError):
@@ -162,7 +163,7 @@ def test_submitted_task_only_selects_an_existing_waiting_checkpoint(
 
 def test_guided_plan_cannot_be_audited_before_practice(planned: tuple[Path, Path]) -> None:
     runtime, project = planned
-    initialize(project)
+    initialize(project, mode="guided")
     run_project_tasks(ROOT, runtime, project, runner=starter)
     with pytest.raises(ValueError, match="toutes les tâches"):
         transition_project(ROOT, project, "VALIDATING", actor="auditeur-qualite", reason="skip")
