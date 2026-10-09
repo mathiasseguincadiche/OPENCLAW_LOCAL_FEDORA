@@ -70,6 +70,11 @@ Le chat peut lire tes projets, **en lecture seule**. Des commandes, comprises pa
 | `!projet daily` | sélectionne le projet (un morceau d'identifiant ou de titre suffit s'il est unique) |
 | `!etat` | tâches, pause, cloud, modèle utilisé, traitement en cours |
 | `!quitter` | n'utilise plus de projet |
+| `!garder [titre]` | garde la dernière réponse du rôle comme **proposition** du projet |
+| `!propositions` | liste les propositions (numéro, titre, état, origine) |
+| `!voir 2` | affiche la proposition 2 |
+| `!accepter 2` | demande l'acceptation : le pont donne une **phrase à taper** pour confirmer |
+| `!refuser 2` | écarte la proposition 2 (elle reste consultable) |
 | `!aide` | rappelle ces commandes |
 
 Une fois un projet sélectionné, pose tes questions normalement : le rôle reçoit un résumé du projet, son plan, la liste de ses livrables et les passages de tes documents qui répondent à la question (la recherche locale doit avoir été actualisée dans l'atelier). Chaque réponse commence par `📁 Projet : <id>` : c'est ce qui rappelle le projet choisi d'un message à l'autre.
@@ -78,11 +83,30 @@ Une fois un projet sélectionné, pose tes questions normalement : le rôle reç
 - Les réponses du pont (liste, état) ne sont jamais envoyées au modèle.
 - **Cloud** : avec le modèle « · cloud », le contexte d'un projet ne part que si ce projet a un [accord cloud valide](12-cloud.md). Sinon rien n'est envoyé et le pont le dit. Une fois qu'un fil a touché un projet, il garde cette règle même après `!quitter` : ouvre une nouvelle conversation pour une question sans rapport.
 - Le préfixe `/` est aussi accepté pour ces cinq commandes, mais Open WebUI utilise `/` et `@` pour ses propres raccourcis : `!` est le plus sûr.
-- **Pour l'instant**, le chat ne crée, n'approuve et n'écrit rien dans un projet : tout cela reste dans l'atelier. La suite est décrite dans le [plan d'intégration](../PLAN_INTEGRATION_WEBUI.md).
+- Le chat ne crée pas encore de projet et ne lance aucun traitement : tout cela reste dans l'atelier. La suite est décrite dans le [plan d'intégration](../PLAN_INTEGRATION_WEBUI.md).
+
+### Garder un document écrit dans le chat
+
+1. Demande le document au rôle (« écris le runbook de déploiement »).
+2. `!garder Runbook de déploiement` : la réponse devient la **proposition** n° 1 du projet. Elle n'est pas encore acceptée.
+3. `!voir 1` pour la relire, `!accepter 1` pour la valider. Le pont répond avec une phrase du type :
+
+   ```
+   approuver proposition K7Q2
+   ```
+
+4. Tape cette phrase **exactement, comme message à part**. Elle ne marche qu'une fois, pendant 15 minutes, si la proposition n'a pas changé, et seulement comme **dernier message** de la conversation. La proposition est alors ajoutée aux **notes** du projet.
+
+Ce qu'il faut savoir :
+
+- Le code est fabriqué par le pont, pas par le modèle, et la réponse qui le contient n'est **jamais** envoyée au modèle : un document ou une consigne cachée ne peut donc pas approuver à ta place. Après cinq codes faux, les codes en attente sont annulés.
+- Une note acceptée est un **texte écrit par un modèle, non vérifié**. Ce n'est **pas un livrable** : elle n'entre pas dans le paquet final et n'est pas auditée. Les livrables passent toujours par une tâche et l'audit de l'atelier.
+- Les rôles et le chat lisent les notes comme des données du projet, avec leur origine (local ou cloud).
+- Tout cela s'écrit dans le dossier `context/chat/` du projet ; rien d'autre n'est modifié. Si une génération est en cours, le pont répond « occupé » et le code reste valable.
 
 ## Chat ou atelier ?
 
-Le chat explique, oriente et peut interroger un projet en lecture seule. Il ne modifie pas encore un projet, et les fichiers joints à une conversation ne deviennent pas des sources de projet. Pour un travail avec des documents, plusieurs étapes et des livrables relus, utilise l'[atelier Projets](04-atelier-projets.md).
+Le chat explique, oriente et peut interroger un projet en lecture seule. Il n'écrit dans un projet que des propositions acceptées par phrase de confirmation (des notes), et les fichiers joints à une conversation ne deviennent pas des sources de projet. Pour un travail avec des documents, plusieurs étapes et des livrables relus, utilise l'[atelier Projets](04-atelier-projets.md).
 
 ## Démarrer et arrêter
 

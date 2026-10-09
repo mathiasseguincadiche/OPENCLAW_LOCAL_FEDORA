@@ -3,7 +3,10 @@
 Commands (``!projets``, ``!projet <id>``, ``!etat``, ``!quitter``) are understood by this code,
 not by the model, and answer without calling it. The selected project is remembered by a marker
 at the head of the bridge's replies, read back from the thread because the bridge keeps no state.
-A selected project gives the role a read-only context, as data. Nothing here writes to a project.
+A selected project gives the role a read-only context, as data.
+
+The only things written to a project from the chat are proposals (``!garder``) and their
+acceptance, which needs a single-use phrase (``chat_approvals``) and the worker lock.
 """
 
 from __future__ import annotations
@@ -12,13 +15,15 @@ import json
 import os
 import re
 import unicodedata
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from clawfedora import project_cloud
+from clawfedora import chat_approvals, chat_proposals, project_cloud
 from clawfedora.knowledge import search
 from clawfedora.project_common import assert_no_symlinks, project_path, read_json
 from clawfedora.project_control import progress
+from clawfedora.project_worker import worker_lock
 
 PROJECT_MARKER = "📁 Projet : "
 NO_PROJECT = "📁 Aucun projet"
@@ -26,7 +31,10 @@ BRIDGE_SUFFIX = " · pont"
 BRIDGE_PLACEHOLDER = "(réponse du pont, non transmise au modèle)"
 MAX_CONTEXT_BYTES = 7000
 MAX_LISTED = 50
-COMMANDS = ("aide", "projets", "projet", "etat", "quitter")
+COMMANDS = (
+    "aide", "projets", "projet", "etat", "quitter",
+    "garder", "propositions", "voir", "accepter", "refuser",
+)
 
 _MARKER = re.compile(
     r"^" + re.escape(PROJECT_MARKER) + r"([a-z0-9][a-z0-9-]{1,62}[a-z0-9])(" + BRIDGE_SUFFIX + r")?$"
@@ -231,11 +239,26 @@ def status_text(repo_root: Path, runtime: Path, project: Path) -> str:
         pause = view.get("pause")
         if isinstance(pause, dict):
             lines.append(f"**Pause cloud** : {_cell(pause.get('message', ''), 300)}")
+    try:
+        rows = chat_proposals.load_all(runtime, project)
+    except (OSError, ValueError):
+        rows = []
+    if rows:
+        waiting = sum(r["status"] == "pending" for r in rows)
+        notes = sum(r["status"] == "accepted" for r in rows)
+        lines.append(f"Propositions : {waiting} en attente, {notes} acceptée(s) comme notes")
     working = progress(runtime)
     if working.get("active") and working.get("project_id") == project.name:
         lines.append(f"Un traitement est en cours : {_cell(working.get('phase', ''), 30)} "
                      f"{_cell(working.get('task_id', ''), 40)}".rstrip())
     return "\n".join(lines)
+
+
+def _notes(runtime: Path, project: Path) -> list[dict[str, Any]]:
+    try:
+        return chat_proposals.accepted_notes(runtime, project)
+    except (OSError, ValueError):
+        return []
 
 
 def _deliverables(runtime: Path, project: Path) -> list[str]:
@@ -275,6 +298,7 @@ def project_context(repo_root: Path, runtime: Path, project: Path, question: str
             "summary": summary[:600],
         },
         "tasks": _tasks(project)[:12],
+        "notes_acceptees": _notes(runtime, project),
         "deliverables": deliverables,
         "passages": [
             {"path": h["path"], "page": h["page"], "kind": h["kind"], "text": str(h["text"])[:700],
@@ -283,7 +307,7 @@ def project_context(repo_root: Path, runtime: Path, project: Path, question: str
         ],
     }
     # Drop passages, then tasks, until it fits: the context is bounded, never cut mid-JSON.
-    for key in ("passages", "tasks", "deliverables"):
+    for key in ("passages", "notes_acceptees", "tasks", "deliverables"):
         while len(json.dumps(value, ensure_ascii=False).encode()) > MAX_CONTEXT_BYTES and value[key]:
             value[key] = value[key][:-1]
     return (
@@ -296,16 +320,183 @@ def project_context(repo_root: Path, runtime: Path, project: Path, question: str
 
 
 # -- command answers ------------------------------------------------------------------
+PROPOSAL_COMMANDS = ("garder", "propositions", "voir", "accepter", "refuser")
+BUSY = "Une génération est en cours : réessayez dans un instant (`!etat` donne l'avancement)."
+PREVIEW_CHARS = 600
+VIEW_CHARS = 6000
+PROPOSAL_ICONS = {"pending": "⏳ en attente", "accepted": "✅ acceptée", "refused": "🚫 refusée"}
+
+
+def _number(args: str) -> int | None:
+    word = args.strip().lstrip("#")
+    return int(word) if word.isdecimal() and len(word) <= 3 and int(word) >= 1 else None
+
+
+def _proposal_command(
+    runtime: Path, name: str, args: str, current: str | None, answer: Answer | None
+) -> str:
+    project = open_project(runtime, current) if current else None
+    if project is None or current is None:
+        return bridge_reply(None, "Aucun projet sélectionné. Faites `!projets`, puis `!projet <id>`.")
+    if name == "propositions":
+        rows = chat_proposals.load_all(runtime, project)
+        if not rows:
+            return bridge_reply(
+                current, "Aucune proposition. Demandez un document au rôle, puis `!garder`."
+            )
+        table = ["| N° | Titre | État | Origine | Taille |", "|---|---|---|---|---|"]
+        table += [
+            f"| {r['number']} | {_cell(r['title'])} | {PROPOSAL_ICONS[r['status']]} | "
+            f"{'☁️ cloud' if r.get('route') == 'cloud' else '💻 local'} | "
+            f"{r['size'] // 1000 + 1} Ko |"
+            for r in rows[-30:]
+        ]
+        hint = "\n\n`!voir <n>`, `!accepter <n>` ou `!refuser <n>`."
+        return bridge_reply(current, "\n".join(table) + hint)
+    if name == "garder":
+        if answer is None:
+            return bridge_reply(
+                current, "Aucune réponse du rôle à garder. Demandez d'abord le document."
+            )
+        try:
+            with worker_lock(runtime, allow_gaming=True):
+                _assert_open(project)
+                record = chat_proposals.save(
+                    runtime, project, answer.text, args, answer.route, answer.model
+                )
+        except ValueError as exc:
+            return bridge_reply(current, BUSY if _is_busy(exc) else f"Rien n'est gardé : {exc}.")
+        return bridge_reply(
+            current,
+            f"Proposition **{record['number']}** gardée : « {_cell(record['title'])} » "
+            f"({record['size'] // 1000 + 1} Ko). Elle n'est **pas encore acceptée** : "
+            f"`!voir {record['number']}` pour la relire, `!accepter {record['number']}` "
+            "pour la valider.",
+        )
+    number = _number(args)
+    if number is None:
+        return bridge_reply(current, f"Précisez le numéro : `!{name} <n>` (voir `!propositions`).")
+    try:
+        record = chat_proposals.get(runtime, project, number)
+        if name == "voir":
+            shown = record["text"][:VIEW_CHARS]
+            cut = (
+                "\n\n*(texte coupé à l'affichage; l'original est conservé dans le projet)*"
+                if len(record["text"]) > VIEW_CHARS
+                else ""
+            )
+            state = PROPOSAL_ICONS[record["status"]]
+            return bridge_reply(
+                current,
+                f"**Proposition {number}** : {_cell(record['title'])} — {state}\n\n"
+                f"---\n\n{shown}{cut}",
+            )
+        if name == "refuser":
+            with worker_lock(runtime, allow_gaming=True):
+                _assert_open(project)
+                chat_proposals.refuse(runtime, project, number)
+            return bridge_reply(current, f"Proposition {number} refusée. Elle reste consultable.")
+        # accepter: only issues the code. The acceptance itself happens on the typed phrase.
+        if record["status"] != "pending":
+            raise ValueError(f"la proposition {number} est déjà décidée")
+        sha = chat_proposals.pending_digest(runtime, project, number)
+        if sha is None:
+            raise ValueError("proposition altérée ou illisible")
+        pending = chat_approvals.issue(
+            runtime, current, "proposition", str(number), sha,
+            f"proposition {number} : {record['title']}",
+        )
+    except ValueError as exc:
+        return bridge_reply(current, BUSY if _is_busy(exc) else f"Impossible : {exc}.")
+    preview = record["text"][:PREVIEW_CHARS]
+    more = "…" if len(record["text"]) > PREVIEW_CHARS else ""
+    return bridge_reply(
+        current,
+        f"**Accepter la proposition {number}** : « {_cell(record['title'])} » "
+        f"({record['size'] // 1000 + 1} Ko, empreinte `{sha[:12]}`).\n\n"
+        f"> {preview.replace(chr(10), chr(10) + '> ')}{more}\n\n"
+        "Elle sera ajoutée aux **notes** du projet (pas aux livrables). Pour confirmer, tapez "
+        "exactement, comme message à part (valable 15 minutes, une seule fois) :\n\n"
+        f"```\n{pending.phrase()}\n```",
+    )
+
+
+def _is_busy(exc: ValueError) -> bool:
+    return "worker" in str(exc)
+
+
+def _assert_open(project: Path) -> None:
+    if _manifest(project).get("status") == "COMPLETE":
+        raise ValueError("projet terminé: il n'accepte plus de propositions")
+
+
+def apply_approval(
+    runtime: Path, action: str, code: str, current: str | None
+) -> str:
+    """The user typed an approval phrase as the last message. Returns the bridge's answer."""
+    project = open_project(runtime, current) if current else None
+    if project is None or current is None:
+        return bridge_reply(
+            None, "Aucun projet sélectionné : cette confirmation ne correspond à rien. "
+            "Faites `!projet <id>`, puis `!accepter <n>`."
+        )
+    try:
+        # The lock comes first: when busy, the code is not spent and can be typed again.
+        with worker_lock(runtime, allow_gaming=True):
+            _assert_open(project)
+            outcome = chat_approvals.consume(
+                runtime, current, action, code,
+                lambda p: chat_proposals.pending_digest(runtime, project, int(p.target)),
+            )
+            if outcome.ok and outcome.pending is not None:
+                record = chat_proposals.accept(
+                    runtime, project, int(outcome.pending.target), outcome.pending.digest
+                )
+                return bridge_reply(
+                    current,
+                    f"✅ Proposition **{record['number']}** acceptée : « {_cell(record['title'])} ». "
+                    f"Elle est dans les notes du projet (`{record['note']}`). Ce n'est pas un "
+                    "livrable : rien n'est audité ni livré par cette étape.",
+                )
+    except ValueError as exc:
+        return bridge_reply(current, BUSY if _is_busy(exc) else f"Impossible : {exc}.")
+    reasons = {
+        "unknown": "Code inconnu, expiré ou déjà utilisé. Refaites `!accepter <n>` pour en "
+        "obtenir un.",
+        "changed": "Le contenu a changé depuis la génération du code : rien n'est accepté. "
+        "Refaites `!accepter <n>`.",
+        "blocked": "Trop d'essais invalides : les codes en attente sont annulés. Attendez "
+        "quelques minutes puis refaites `!accepter <n>`.",
+    }
+    return bridge_reply(current, "⛔ " + reasons.get(outcome.reason, "Confirmation refusée."))
+
+
 HELP = """Commandes du pont (comprises par le programme, jamais par le modèle) :
 
 - `!projets` : liste vos projets, avec leur état
 - `!projet <id>` : sélectionne un projet (un morceau d'identifiant ou de titre suffit s'il est unique)
 - `!etat` : état du projet sélectionné (tâches, pause, cloud, traitement en cours)
 - `!quitter` : n'utilise plus de projet
+- `!garder [titre]` : garde la dernière réponse du rôle comme **proposition** du projet
+- `!propositions` : liste les propositions ; `!voir <n>` en affiche une
+- `!accepter <n>` : demande l'acceptation ; le pont donne alors une phrase à taper pour confirmer
+- `!refuser <n>` : écarte une proposition
 - `!aide` : cette aide
 
-Avec un projet sélectionné, posez vos questions normalement : le rôle choisi lit le projet en
-**lecture seule**. Rien n'est modifié depuis le chat pour l'instant."""
+Avec un projet sélectionné, posez vos questions normalement : le rôle lit le projet en
+**lecture seule**. Seules les propositions sont écrites dans le projet, et une proposition
+acceptée devient une **note** (jamais un livrable : les livrables passent par l'audit de l'atelier).
+La phrase de confirmation est générée par le pont, à usage unique, valable 15 minutes :
+le modèle ne la voit jamais."""
+
+
+@dataclass(frozen=True)
+class Answer:
+    """The last model answer of the thread, as the bridge read it (banners removed)."""
+
+    text: str
+    route: str
+    model: str
 
 
 def _resolve(runtime: Path, repo_root: Path, wanted: str) -> tuple[str | None, str]:
@@ -324,8 +515,15 @@ def _resolve(runtime: Path, repo_root: Path, wanted: str) -> tuple[str | None, s
 
 
 def run_command(
-    repo_root: Path, runtime: Path, name: str, args: str, current: str | None
+    repo_root: Path,
+    runtime: Path,
+    name: str,
+    args: str,
+    current: str | None,
+    answer: Answer | None = None,
 ) -> str:
+    if name in PROPOSAL_COMMANDS:
+        return _proposal_command(runtime, name, args, current, answer)
     if name == "aide":
         return bridge_reply(current, HELP)
     if name == "projets":

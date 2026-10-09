@@ -18,7 +18,7 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
 
-from clawfedora import chat_projects, project_cloud
+from clawfedora import chat_approvals, chat_projects, project_cloud
 from clawfedora.agents import load_agent_specs
 from clawfedora.cloud_budget import BudgetRefused, load_ledger
 from clawfedora.cloud_privacy import LABELS, PrivacyFilter, describe
@@ -44,6 +44,7 @@ STICKY_MARKER = "🔒 Conversation passée en local"
 CONTEXT_NOTE = "*Contexte allégé"
 # Paragraphs the bridge puts at the head of an answer: they are never fed back to the model.
 BANNER_PREFIXES = ("☁️ *", "💻 *", STICKY_MARKER, "📁", CONTEXT_NOTE)
+ATTACHMENTS_MARK = "\n\nFichiers produits localement (liens valables 24 h) :"
 
 
 DEFAULT_MAX_TOKENS = 4096
@@ -66,6 +67,32 @@ def strip_banners(content: str) -> str:
     for banner in leading_banners(content):
         content = content[len(banner) + 2 :]
     return content
+
+
+def defang(text: str) -> str:
+    """Model text never starts like a bridge banner: the thread state is read from those heads.
+
+    Without this, an answer beginning with ``📁 Projet : autre-projet`` would select that project
+    in the next request, and a write command would then act on it.
+    """
+    body = text.lstrip("\n")
+    if body.partition("\n\n")[0].startswith(BANNER_PREFIXES):
+        return "\u200b" + body
+    return text
+
+
+def last_answer(messages: list[dict[str, Any]], model: str) -> chat_projects.Answer | None:
+    """The last model answer before the user's last message, without the bridge's own heads."""
+    for item in reversed(messages[:-1]):
+        content = item.get("content") if isinstance(item, dict) else None
+        if item.get("role") != "assistant" or not isinstance(content, str):
+            continue
+        if chat_projects.is_bridge_reply(content):
+            continue
+        route = "cloud" if any(b.startswith("☁️ *") for b in leading_banners(content)) else "local"
+        text = strip_banners(content).partition(ATTACHMENTS_MARK)[0].strip()
+        return chat_projects.Answer(text, route, model.rsplit("/", 1)[-1])
+    return None
 
 
 def local_sticky(messages: list[dict[str, Any]]) -> bool:
@@ -399,12 +426,30 @@ class BridgeHandler(BaseHTTPRequestHandler):
         current, referenced = chat_projects.thread_state(messages)
         last = messages[-1] if messages[-1].get("role") == "user" else {}
         # Commands come from the user's last message only, and are understood by this code.
-        command = chat_projects.parse_command(str(last.get("content", ""))) if last else None
+        typed = str(last.get("content", "")) if last else ""
+        # An approval phrase counts only as the whole last message of the user, never from the
+        # model or from earlier in the thread; the code is checked against the bridge's own record.
+        approval = chat_approvals.parse_phrase(typed)
+        if approval is not None:
+            try:
+                reply = chat_projects.apply_approval(
+                    self.server.runtime, approval[0], approval[1], current
+                )
+            except (OSError, ValueError, KeyError) as exc:
+                reply = chat_projects.bridge_reply(current, f"Confirmation impossible : {exc}")
+            self._completion(data, reply)
+            return
+        command = chat_projects.parse_command(typed) if last else None
         if command is not None:
             name, args = command
             try:
                 reply = chat_projects.run_command(
-                    self.server.repo_root, self.server.runtime, name, args, current
+                    self.server.repo_root,
+                    self.server.runtime,
+                    name,
+                    args,
+                    current,
+                    last_answer(messages, str(data["model"])),
                 )
             except (OSError, ValueError, KeyError) as exc:
                 reply = chat_projects.bridge_reply(current, f"Commande impossible : {exc}")
@@ -460,7 +505,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
                     write_progress(self.server.runtime, None, "idle")
             text = response["text"]
             if isinstance(text, str):
-                text += attachments
+                text = defang(text) + attachments
                 if omitted:
                     text = (
                         f"{CONTEXT_NOTE} : {omitted} anciens messages ne sont plus transmis au "
