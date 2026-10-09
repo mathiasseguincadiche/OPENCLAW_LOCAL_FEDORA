@@ -53,7 +53,9 @@ def visible_text(payload: dict[str, Any]) -> str:
     return ""
 
 
-def assert_agent_success(payload: dict[str, Any], expected_provider: str) -> None:
+def assert_agent_success(
+    payload: dict[str, Any], expected_provider: str, expected_model: str | None = None
+) -> None:
     result = payload.get("result")
     if not isinstance(result, dict):
         raise ValueError("résultat agent absent")
@@ -76,6 +78,12 @@ def assert_agent_success(payload: dict[str, Any], expected_provider: str) -> Non
     )
     if observed_provider != expected_provider:
         raise RuntimeError(f"preuve provider={expected_provider} absente")
+    if expected_model is not None:
+        observed_model = meta.get("model") or (
+            agent_meta.get("model") if isinstance(agent_meta, dict) else None
+        )
+        if observed_model != expected_model:
+            raise RuntimeError(f"preuve model={expected_model} absente")
     if '"transport":"embedded"' in serialized.replace(" ", ""):
         raise RuntimeError("transport embedded interdit: passer par le Gateway")
     if '"fallbackFrom":"gateway"' in serialized.replace(" ", ""):

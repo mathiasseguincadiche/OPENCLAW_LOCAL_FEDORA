@@ -17,9 +17,21 @@ models:
     - research
     approximate_weight_gib: 6.15
     required: true
+  cloud-main:
+    provider: cloud-gateway
+    runtime_id: z-ai/glm-5.3-flash
+    family: glm
+    input:
+    - text
+    capabilities:
+    - tools
+    - research
+    - orchestration
+    required: false
 fleet_policy:
-  local_only: true
-  cloud_models_supported: false
+  local_only: false
+  cloud_models_supported: true
+  cloud_enabled_by_default: false
   cloud_model_as_local_fallback: false
   exact_required_model_count: 1
   openclaw_agent_context_tokens: 32768

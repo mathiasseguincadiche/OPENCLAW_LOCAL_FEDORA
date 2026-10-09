@@ -1,0 +1,62 @@
+schema_version: 1.0.0
+platform_version: 0.1.0
+# Le cloud est une option, jamais un état par défaut. Sa mise en service est une décision
+# d'exécution (état local, hors dépôt) qui exige que le filtre de confidentialité et le contrôle
+# du budget soient opérationnels ensemble.
+policy:
+  enabled_by_default: false
+  requires:
+  - privacy_filter
+  - budget_guard
+  local_to_cloud_fallback: forbidden
+  cloud_to_local_fallback: visible_only
+  provider_id: cloudgw
+  upstream: openrouter
+# OpenClaw ne parle jamais à OpenRouter : il parle à cette passerelle locale, qui détient seule
+# la clé, filtre tout le contenu sortant et compte chaque appel facturé.
+gateway:
+  host: 127.0.0.1
+  port: 18892
+  path_prefix: /v1
+  api: openai-completions
+  # Jeton local entre OpenClaw et la passerelle : ce n'est pas la clé du fournisseur.
+  token_env: CLAWFEDORA_CLOUD_GATEWAY_TOKEN
+  # Chemin relatif à l'état d'exécution ; lu uniquement par la passerelle, droits 0600.
+  upstream_key_file: cloud/upstream.key
+  timeout_seconds: 300
+# Plafond mensuel en euros réellement payés. Trois couches indépendantes : crédits prépayés
+# (le vrai plafond d'achat), limite de la clé chez le fournisseur, et ce journal local.
+# `eur_per_usd` convertit 1 $ d'usage en euros payés de façon pessimiste (change, frais d'achat
+# de crédits, TVA) : à relire avec les relevés réels (commande de rapprochement).
+budget:
+  monthly_cap_eur: 25
+  alert_ratio: 0.8
+  eur_per_usd: 1.3
+  recommended_key_limit_usd: 12
+  ledger_file: cloud/ledger-{month}.jsonl
+# Seul point de sortie réseau vers le fournisseur. L'hôte est figé : la passerelle ne suit
+# aucune adresse reçue dans une requête.
+upstream:
+  base_url: https://openrouter.ai/api/v1
+  timeout_seconds: 300
+limits:
+  max_request_bytes: 1048576
+  max_messages: 500
+  max_tools: 64
+model:
+  alias: cloud-main
+  upstream_id: z-ai/glm-5.3-flash
+  display_name: GLM-5.3 Flash (cloud, via passerelle locale)
+  context_tokens: 32768
+  max_output_tokens: 4096
+  # Tarifs de référence prudents en USD par million de tokens, à relire sur OpenRouter à l'achat.
+  pricing_usd_per_million:
+    input: 0.15
+    output: 0.5
+# Réglages imposés par la passerelle à chaque requête (pas par OpenClaw).
+upstream_params:
+  provider:
+    data_collection: deny
+    require_parameters: true
+  reasoning:
+    effort: low
