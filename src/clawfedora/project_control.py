@@ -23,6 +23,11 @@ def _marker(runtime: Path, project: Path) -> Path:
     return state / f"{project_id}.pause"
 
 
+def cloud_pause_path(runtime: Path, project: Path) -> Path:
+    """Why the cloud paused this project (content-free), next to the pause marker."""
+    return _marker(runtime, project).with_suffix(".cloud-pause.json")
+
+
 def is_paused(runtime: Path, project: Path) -> bool:
     return _marker(runtime, project).exists()
 
@@ -37,6 +42,7 @@ def request_pause(runtime: Path, project: Path) -> None:
 
 def clear_pause(runtime: Path, project: Path) -> None:
     _marker(runtime, project).unlink(missing_ok=True)
+    cloud_pause_path(runtime, project).unlink(missing_ok=True)
 
 
 def write_progress(

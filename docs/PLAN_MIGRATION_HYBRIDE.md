@@ -86,14 +86,16 @@ Une branche et une PR en brouillon par lot ; aucune fusion automatique. Chaque P
 
 | Lot | Contenu | État |
 |---|---|---|
-| 1 | Correctif des 8 outils + ce plan | [ ] |
-| 2 | Prompts V2.3 réconciliés avec les contrôles de la PR #32 (reprise tracée) | [ ] |
-| 3 | Fondation : catalogue, config OpenClaw (fournisseur OpenRouter via la passerelle locale), invariants `local_only`, démarrage hors ligne | [ ] |
-| 4 | Exécuteur multi-modèles : `--model`/`--thinking`, vérifications Ollama réservées au local, identité du modèle réellement utilisé, réparation JSON sur la même route | [ ] |
-| 5 | Passerelle cloud locale et filtre (couvre prompt, historique, contexte, résultats d'outils) ; modes Apprendre/Travail dans Open WebUI | [ ] |
-| 6 | Budget : réservation, journal de tous les appels, plafonds, 402, auto-contrôles d'activation | [ ] |
-| 7 | Atelier : accord explicite par projet, pause visible, affichage du modèle et du coût | [ ] |
+| 1 | Correctif des 8 outils + ce plan | [x] #33 |
+| 2 | Prompts V2.3 réconciliés avec les contrôles de la PR #32 (reprise tracée) | [x] #34 |
+| 3 | Fondation : catalogue, config OpenClaw (fournisseur OpenRouter via la passerelle locale), invariants `local_only`, démarrage hors ligne | [x] #35, repris sur `main` par #39 |
+| 4 | Exécuteur multi-modèles : `--model`/`--thinking`, vérifications Ollama réservées au local, identité du modèle réellement utilisé, réparation JSON sur la même route | [x] #36 (déviation : la réparation JSON reste toujours locale) |
+| 5 | Passerelle cloud locale et filtre (couvre prompt, historique, contexte, résultats d'outils) ; modes Apprendre/Travail dans Open WebUI | [x] #37 (déviation : un blocage du filtre répond 451, pas 403) |
+| 6 | Budget : réservation, journal de tous les appels, plafonds, 402, auto-contrôles d'activation | [x] #38 |
+| 7 | Atelier : accord explicite par projet, pause visible, affichage du modèle et du coût | [x] cette PR |
 | 8 | Documentation (README, STATUS, fiches) | [ ] |
+
+Déviations par rapport au plan initial : le raisonnement du modèle est borné par la passerelle (`--thinking` est refusé pour un fournisseur personnalisé) ; la réparation d'un JSON malformé reste locale ; un blocage du filtre répond 451 car 401/402/403/429 déclenchent la pause d'une minute du fournisseur côté OpenClaw.
 
 Le cloud ne peut s'activer qu'après les lots 5 et 6 réunis. Hors périmètre pour l'instant, chacun sur nouvel accord : validateurs comme outils d'agent, contrôle des citations par extrait, Mistral Large 4 (avec sous-plafond), registre de compétences et révisions espacées, laboratoire d'exécution.
 

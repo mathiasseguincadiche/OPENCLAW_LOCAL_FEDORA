@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from clawfedora import project_cloud
 from clawfedora.core_config import resolve_runtime_root
 from clawfedora.knowledge import build_index, search, store_note
 from clawfedora.learning import submit
@@ -85,6 +86,19 @@ def add_project_parser(
             command.add_argument("--file", required=True)
         elif name == "resume":
             command.add_argument("--apply", action="store_true")
+
+    for name, text in (
+        ("cloud-status", "accord cloud, pause, modèles et coût du projet"),
+        ("cloud-approve", "autoriser le cloud pour ce projet (texte d'accord à accepter)"),
+        ("cloud-revoke", "retirer l'accord cloud: la suite du projet tourne en local"),
+    ):
+        cloud = commands.add_parser(name, help=text)
+        cloud.add_argument("--runtime-root")
+        cloud.add_argument("--project-id", required=True)
+        if name == "cloud-approve":
+            cloud.add_argument(
+                "--acknowledge", action="store_true", help="j'ai lu et j'accepte le texte d'accord"
+            )
 
     analysis = commands.add_parser("analysis")
     analysis.add_argument("--runtime-root")
@@ -367,6 +381,28 @@ def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
                 print(json.dumps(results, ensure_ascii=False))
                 if any(result["status"] == "FAIL" for result in results):
                     return 2
+                if any(result["status"] == "PAUSED" for result in results):
+                    return 3
+        elif command == "cloud-status":
+            print(
+                json.dumps(
+                    project_cloud.view(repo_root, _runtime(args), _project(args)),
+                    indent=2,
+                    ensure_ascii=False,
+                )
+            )
+        elif command == "cloud-approve":
+            if not args.acknowledge:
+                print(project_cloud.CONSENT_TEXT)
+                print("PROJECT_CLOUD_APPROVE=refusé: relire puis relancer avec --acknowledge")
+                return 2
+            with worker_lock(_runtime(args), allow_gaming=True):
+                project_cloud.grant(repo_root, _runtime(args), _project(args), acknowledged=True)
+            print("PROJECT_CLOUD_APPROVE=PASS les prochaines étapes de ce projet iront au cloud")
+        elif command == "cloud-revoke":
+            with worker_lock(_runtime(args), allow_gaming=True):
+                existed = project_cloud.revoke(_runtime(args), _project(args))
+            print(f"PROJECT_CLOUD_REVOKE=PASS existed={int(existed)} la suite tourne en local")
         elif command == "search":
             print(json.dumps(search(repo_root, _project(args), args.query), ensure_ascii=False))
         elif command in {"index", "remember", "research"}:
@@ -437,6 +473,8 @@ def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
                 print(json.dumps(results, ensure_ascii=False))
                 if any(result["status"] == "FAIL" for result in results):
                     return 2
+                if any(result["status"] == "PAUSED" for result in results):
+                    return 3
         elif command == "result":
             result = record_task_result(
                 repo_root,

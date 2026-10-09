@@ -14,6 +14,7 @@ from typing import Any
 from clawfedora.core_config import AGENT_IDS, daily_limits
 from clawfedora.learning import checkpoints, contract
 from clawfedora.mentor import copy_profile
+from clawfedora.project_cloud import project_runner
 from clawfedora.project_common import assert_no_symlinks, read_json, write_json
 from clawfedora.project_control import write_progress
 from clawfedora.project_engine import (
@@ -207,7 +208,9 @@ def propose(
         )
         copy_profile(runtime, snapshot)
         snapshot_guard, central_guard = _guard(snapshot), _guard(project)
-        invoke = runner or openclaw_runner(runtime, repo, plain_text=True)
+        invoke = runner or project_runner(
+            repo, runtime, project, base=openclaw_runner(runtime, repo, plain_text=True)
+        )
         session = str(uuid.uuid4())
         write_progress(runtime, project, "preparing", role="chef-operations", session=session)
         raw = invoke("chef-operations", prompt, session)["text"]

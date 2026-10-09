@@ -29,6 +29,18 @@ const phases = {
   feedback_ready: "Retour disponible : lire puis poursuivre",
   awaiting_next_step: "Étape soumise — préparez la suivante",
 };
+const eur = (n) => Number(n).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + " €";
+function cloudLine(cloud) {
+  if (!cloud) return "";
+  const parts = [];
+  if (cloud.state === "granted") parts.push("☁️ cloud autorisé");
+  else if (cloud.state === "stale") parts.push("☁️ accord à renouveler (sources modifiées)");
+  else if (cloud.state === "inactive") parts.push("☁️ accord en attente (cloud désactivé)");
+  else parts.push("💻 local");
+  if (cloud.last && cloud.last.model) parts.push("dernier modèle : " + cloud.last.model + " (" + (cloud.last.route === "cloud" ? "cloud" : "local") + ")");
+  if (cloud.calls_cloud) parts.push("coût estimé : " + eur(cloud.cost_eur));
+  return parts.join(" · ");
+}
 const gib = (n) =>
   (n / 1073741824).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) +
   " Go";
@@ -90,6 +102,13 @@ async function refresh() {
     $("activity").textContent =
       (phases[worker.phase] || "Aucun travail actif") +
       (worker.active && worker.task_id ? " · " + worker.task_id : "");
+    const cloud = data.cloud || {};
+    $("cloud-budget").textContent = !cloud.ready
+      ? "Cloud : désactivé (tout reste en local)"
+      : cloud.budget && cloud.budget.error
+        ? "Cloud : budget illisible, appels refusés"
+        : "Cloud : " + eur(cloud.budget.spent_eur) + " / " + eur(cloud.budget.cap_eur) + " ce mois-ci" +
+          (cloud.budget.level === "warning" ? " · seuil d’alerte dépassé" : cloud.budget.level === "exhausted" ? " · plafond atteint" : "");
     $("services").textContent =
       "Ollama : " +
       (data.ollama_available ? "disponible" : "arrêté") +
@@ -124,6 +143,9 @@ async function refresh() {
             (project.awaiting_feedback ? " · Retour à demander" : ""),
         ),
       );
+      detail.append(node("p", cloudLine(project.cloud), "cloud-line"));
+      if (project.cloud && project.cloud.pause)
+        detail.append(node("p", "⏸ Pause cloud : " + project.cloud.pause.message, "error"));
       if (project.total) {
         const bar = node("progress");
         bar.max = project.total;
@@ -304,6 +326,7 @@ async function loadProject(id) {
     if (data.manifest.status === "VALIDATING") addAction("Lancer la validation", "/api/audit", { kind: "validation" });
     if (data.manifest.status === "REVIEW") addAction("Lancer la relecture", "/api/audit", { kind: "review" });
     if (data.manifest.status === "PACKAGING") addAction("J’approuve la livraison finale", "/api/complete", { human_approved: true });
+    renderCloud(id);
     $("artifacts").replaceChildren();
     for (const file of data.files) {
       const link = node("a", file.path + " · " + file.size + " octets");
@@ -543,4 +566,54 @@ function renderRevision(id, data) {
     if (result) { await loadProject(id); tell("Reprise approuvée. Les contributions dépendantes et leurs audits doivent être renouvelés."); }
   });
   form.append(preview, affected, confirmation, submit); details.append(form); area.append(details);
+}
+
+async function renderCloud(id) {
+  const box = $("cloud");
+  box.replaceChildren();
+  let info;
+  try {
+    info = await api("/api/cloud?" + new URLSearchParams({ project: id }));
+  } catch (error) {
+    box.append(node("p", "État cloud indisponible : " + error.message, "error"));
+    return;
+  }
+  box.append(node("h3", "Cloud pour ce projet"), node("p", cloudLine(info)));
+  const models = Object.entries(info.models || {});
+  if (models.length)
+    box.append(node("p", "Modèles utilisés : " + models.map(([name, n]) => name + " ×" + n).join(" · ")));
+  if (info.pause) {
+    box.append(node("p", "⏸ Le projet est en pause : " + info.pause.message, "error"));
+    box.append(node("p", "Rien n’a été refait en local. Pour poursuivre en local, retirez l’accord cloud puis reprenez ; pour rester au cloud, corrigez la cause puis reprenez."));
+  }
+  const revoke = async () => {
+    if (await action("/api/cloud-revoke", { project_id: id })) {
+      tell("Accord cloud retiré : la suite de ce projet tourne en local.");
+      await renderCloud(id);
+    }
+  };
+  if (info.state === "none") {
+    const details = node("details");
+    details.append(node("summary", "Autoriser le cloud pour ce projet…"), node("p", info.consent_text));
+    const check = document.createElement("input");
+    check.type = "checkbox";
+    check.id = "cloud-ack";
+    const label = node("label", " J’ai lu ce texte et j’autorise le cloud pour ce projet uniquement");
+    label.prepend(check);
+    const approve = node("button", "Autoriser le cloud pour ce projet");
+    approve.disabled = true;
+    check.addEventListener("change", () => { approve.disabled = !check.checked; });
+    approve.addEventListener("click", async () => {
+      if (await action("/api/cloud-approve", { project_id: id, human_approved: true, acknowledged: true })) {
+        tell("Accord enregistré : les prochaines étapes de ce projet iront au cloud.");
+        await renderCloud(id);
+      }
+    });
+    details.append(label, approve);
+    box.append(details);
+  } else {
+    const button = node("button", "Retirer l’accord cloud (poursuivre en local)", "secondary");
+    button.addEventListener("click", revoke);
+    box.append(button);
+  }
 }

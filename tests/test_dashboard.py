@@ -188,3 +188,56 @@ def test_missing_ollama_is_reported_and_does_not_load_anything(
     assert value["ollama_available"] is False and value["models"] == []
     monkeypatch.setattr(dashboard, "urlopen", lambda *_args, **_kwargs: io.BytesIO(b"x" * 64001))
     assert snapshot(ROOT, runtime)["ollama_available"] is False
+
+
+def test_workshop_shows_cloud_state_pause_models_and_budget(
+    server: DashboardServer, planned: tuple[Path, Path]
+) -> None:
+    from clawfedora import project_cloud
+    from clawfedora.cloud_state import write_activation
+
+    runtime, project = planned
+    (runtime / "state").mkdir(exist_ok=True)
+    _, data = request(server, "/api/status")
+    assert data["cloud"] == {"ready": False, "reason": "cloud non activé"}
+    assert data["projects"][0]["cloud"]["state"] == "none"
+    write_activation(runtime, {"privacy_filter": "x", "budget_guard": "x"})
+    project_cloud.grant(ROOT, runtime, project, acknowledged=True)
+    project_cloud.write_pause(runtime, project, "budget_refused", "plafond atteint", "design-choice")
+    _, data = request(server, "/api/status")
+    assert data["cloud"]["ready"] and data["cloud"]["budget"]["cap_eur"] == 25
+    brief = data["projects"][0]["cloud"]
+    assert brief["state"] == "granted" and brief["pause"]["code"] == "budget_refused"
+    status, detail = request(server, "/api/cloud?project=daily-project")
+    assert status == 200 and detail["pause"]["message"] == "plafond atteint"
+    assert "ne repasse jamais en local" in detail["consent_text"]
+
+
+def test_cloud_approval_through_the_api_needs_both_explicit_flags_and_a_local_origin(
+    server: DashboardServer, planned: tuple[Path, Path]
+) -> None:
+    from clawfedora import project_cloud
+    from clawfedora.cloud_state import write_activation
+
+    runtime, project = planned
+    (runtime / "state").mkdir(exist_ok=True)
+    body = {"project_id": "daily-project", "human_approved": True, "acknowledged": True}
+    assert request(server, "/api/cloud-approve", body, origin=False)[0] == 403
+    for partial in ({"human_approved": True}, {"acknowledged": True}, {}):
+        status, _ = request(server, "/api/cloud-approve", {"project_id": "daily-project", **partial})
+        assert status == 400
+    # The cloud is not activated: even a complete request is refused.
+    status, answer = request(server, "/api/cloud-approve", body)
+    assert status == 400 and "cloud indisponible" in answer["error"]
+    write_activation(runtime, {"privacy_filter": "x", "budget_guard": "x"})
+    assert request(server, "/api/cloud-approve", body)[0] == 202
+    assert project_cloud.consent_state(ROOT, runtime, project)["state"] == "granted"
+    assert request(server, "/api/cloud-revoke", {"project_id": "daily-project"})[0] == 202
+    assert project_cloud.consent_state(ROOT, runtime, project)["state"] == "none"
+
+
+def test_dashboard_page_has_the_cloud_panels(server: DashboardServer) -> None:
+    _, page = request(server, "/")
+    assert 'id="cloud-budget"' in page and 'id="cloud"' in page
+    _, script = request(server, "/dashboard.js")
+    assert "/api/cloud-approve" in script and "/api/cloud-revoke" in script
