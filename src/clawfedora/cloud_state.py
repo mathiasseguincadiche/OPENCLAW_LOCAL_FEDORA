@@ -61,7 +61,9 @@ def read_activation(runtime: Path) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
-def write_activation(runtime: Path, verified: Mapping[str, str]) -> Path:
+def write_activation(
+    runtime: Path, verified: Mapping[str, str], declared: Mapping[str, Any] | None = None
+) -> Path:
     """Record an activation. Only the activation command, after its self-tests, calls this."""
     directory = _directory(runtime)
     directory.mkdir(parents=True, exist_ok=True)
@@ -74,6 +76,7 @@ def write_activation(runtime: Path, verified: Mapping[str, str]) -> Path:
                 "schema_version": "1.0.0",
                 "enabled": True,
                 "verified": dict(verified),
+                "declared": dict(declared or {}),
                 "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             },
             indent=2,

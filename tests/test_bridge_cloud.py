@@ -257,3 +257,33 @@ def test_banners_are_not_fed_back_to_the_model() -> None:
 def test_only_the_assistant_can_carry_the_marker() -> None:
     assert not local_sticky([{"role": "user", "content": STICKY_MARKER + " pour rire"}])
     assert not local_sticky([{"role": "assistant", "content": "texte " + STICKY_MARKER}])
+
+
+def test_the_cloud_banner_warns_once_the_monthly_budget_is_nearly_spent(
+    cloud: tuple[Any, Runner], tmp_path: Path
+) -> None:
+    from clawfedora.cloud_budget import load_ledger
+
+    server, _ = cloud
+    _, answer = ask(server, CLOUD_MODEL_IDS[0], ("user", "Explique terraform plan"))
+    assert "Budget cloud" not in content(answer)
+    load_ledger(tmp_path, ROOT).record_invoice(21.0)
+    _, answer = ask(server, CLOUD_MODEL_IDS[0], ("user", "Explique terraform plan"))
+    head = content(answer).split("\n\n")[0]
+    assert head.startswith(CLOUD_BANNER) and "21.00 € sur 25 €" in head and "4.00 €" in head
+    # The note is part of the banner: it is not fed back to the model on the next turn.
+    assert strip_banners(content(answer)) == "Réponse GLM."
+
+
+def test_an_unreadable_budget_journal_is_announced_not_ignored(
+    cloud: tuple[Any, Runner], tmp_path: Path
+) -> None:
+    from clawfedora.cloud_budget import load_ledger
+
+    server, _ = cloud
+    ledger = load_ledger(tmp_path, ROOT)
+    ledger.record_invoice(1.0)
+    path = next((tmp_path / "state" / "cloud").glob("ledger-*.jsonl"))
+    path.write_text("pas du json\n{\"k\": \"invoice\", \"eur\": 1}\n")
+    _, answer = ask(server, CLOUD_MODEL_IDS[0], ("user", "Bonjour"))
+    assert "journal du budget cloud est illisible" in content(answer).split("\n\n")[0]

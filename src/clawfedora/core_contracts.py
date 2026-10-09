@@ -14,6 +14,9 @@ from clawfedora.core_config import (
     root_contract,
 )
 
+# The user's real monthly budget: a configuration can never raise it.
+MAX_MONTHLY_CAP_EUR = 25
+
 CORE_FILES = (
     "agents.yaml",
     "model_routing.yaml",
@@ -206,6 +209,28 @@ def _validate_cloud_contracts(
         for key in ("max_request_bytes", "max_messages", "max_tools")
     ) or int(upstream.get("timeout_seconds", 0) or 0) <= 0:
         failures.append("core/cloud: limites de requête et délai du fournisseur requis")
+
+    budget = _mapping(cloud.get("budget"))
+    cap = budget.get("monthly_cap_eur")
+    factor = budget.get("eur_per_usd")
+    ratio = budget.get("alert_ratio")
+    hint = budget.get("recommended_key_limit_usd")
+    numbers = all(isinstance(v, int | float) and not isinstance(v, bool)
+                  for v in (cap, factor, ratio, hint))
+    if not numbers or not 0 < float(cap) <= MAX_MONTHLY_CAP_EUR:  # type: ignore[arg-type]
+        failures.append(f"core/cloud: plafond mensuel entre 0 et {MAX_MONTHLY_CAP_EUR} € requis")
+    elif (
+        float(factor) < 1.0  # type: ignore[arg-type]
+        or not 0 < float(ratio) < 1  # type: ignore[arg-type]
+        or float(hint) * float(factor) > float(cap)  # type: ignore[arg-type]
+    ):
+        failures.append(
+            "core/cloud: eur_per_usd >= 1, alert_ratio entre 0 et 1, "
+            "limite de clé recommandée compatible avec le plafond"
+        )
+    ledger = str(budget.get("ledger_file", ""))
+    if "{month}" not in ledger or ledger.startswith(("/", "~")) or ".." in Path(ledger).parts:
+        failures.append("core/cloud: journal de budget relatif à l'état, avec {month}")
 
     alias = str(model.get("alias", ""))
     entry = _mapping(models.get(alias))

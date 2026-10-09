@@ -77,6 +77,46 @@ Les bandeaux sont retirés de l'historique renvoyé au modèle. Un test de repli
 - **Les statuts 401, 402, 403 et 429 de la passerelle sont interprétés comme un échec d'authentification ou de facturation du fournisseur** : OpenClaw met alors le fournisseur en pause environ une minute (« Inline API key … temporarily disabled »). Un blocage du filtre est propre à une requête : il répond donc **451**, qui ne déclenche pas cette pause, pour que la requête saine suivante passe. Le budget épuisé reste en 402 : s'arrêter est justement l'effet voulu.
 - Un tour cloud de bout en bout (vraie Gateway, vraie passerelle, faux fournisseur) : deux appels comptés pour un tour avec un outil, un secret dans le message bloqué avant tout envoi, un secret n'apparaissant que dans un résultat d'outil (fichier lu par l'agent) bloqué avant tout envoi, la clé du fournisseur absente de tout fichier hors de la passerelle.
 
+## Budget et activation (lot 6)
+
+### Trois couches pour tenir 25 € réels
+
+| Couche | Rôle | Qui la tient |
+|---|---|---|
+| Crédits **prépayés**, sans rechargement automatique | Plafond d'achat réel : au pire, ce qui est dans le compte | OpenRouter, vous |
+| Limite de crédit posée **sur la clé** | Le fournisseur coupe lui-même la clé | OpenRouter |
+| Journal local (`state/cloud/ledger-AAAA-MM.jsonl`) | Refuse avant l'envoi, compte chaque appel | la passerelle |
+
+Le journal compte en euros avec un facteur pessimiste `eur_per_usd: 1.3` (change, frais d'achat de crédits, TVA). Le plafond est borné en code à 25 € : aucun fichier de configuration ne peut le relever. La limite de clé déclarée ne peut pas dépasser `25 / 1,3 ≈ 19,2 $` (12 $ recommandés).
+
+### Règle de comptage
+
+Un appel = deux lignes : une **réservation** du pire coût (toute l'entrée, sortie au maximum), écrite avant l'envoi, et un **règlement** après.
+
+| Situation | Compté |
+|---|---|
+| Réponse avec coût fourni par le fournisseur | le coût réel |
+| Réponse sans coût mais avec les jetons | jetons × tarif de référence |
+| Réponse sans usage, flux coupé, client parti, fournisseur injoignable, plantage avant règlement | **le pire cas réservé** |
+| Refus net du fournisseur (4xx/5xx avec réponse) | rien (réservation libérée) |
+| Filtre de confidentialité | rien : rien n'a été réservé ni envoyé |
+
+Un tour d'agent avec un outil fait deux appels facturés ; les deux passent par la passerelle donc les deux sont comptés. Le journal est protégé par un verrou de fichier et un verrou de thread, écrit avec `fsync`, en 0600 ; une dernière ligne tronquée par un plantage est ignorée, toute autre ligne illisible **arrête le cloud** (refus 402) plutôt que de deviner.
+
+### Rapprochement avec la facture
+
+`./menu.sh --action cloud-reconcile --value 18.40 --apply` enregistre le montant réellement facturé ce mois-ci par OpenRouter. Le plafond applique **le plus élevé** de l'estimation locale et du montant déclaré. Les relevés d'OpenRouter restent la référence : le journal est une protection, pas une facture.
+
+### Activation : `./menu.sh --action cloud-enable --value 12 --apply`
+
+1. `cloud-set-key` : la clé est saisie masquée, jamais en argument, écrite en 0600 dans le seul fichier lu par la passerelle.
+2. `cloud-enable` lance les contrôles sans réseau ni clé réelle, puis, si vous avez confirmé les crédits prépayés, interroge `GET /key` chez OpenRouter pour lire la limite réelle de la clé (la seule requête réseau de la commande).
+3. Le contrôle décisif démarre la **vraie** passerelle, le **vrai** filtre et le **vrai** journal devant un faux fournisseur : jeton faux refusé, secret bloqué avant toute réservation, appel sain relayé avec la clé du fournisseur seule et compté, appel au-delà du plafond refusé avant l'envoi.
+4. Seulement si tout passe **et** avec `--apply`, `activation.json` est écrit, le service systemd utilisateur `clawfedora-cloud-gateway` démarre, la configuration OpenClaw est régénérée avec le fournisseur `cloudgw` et le pont du chat est redémarré.
+5. `cloud-disable --apply` fait le chemin inverse : activation retirée, service arrêté, `cloudgw` retiré de la configuration.
+
+Sans `--apply`, rien n'est activé et aucun service n'est touché. Le pont ajoute sous le bandeau cloud une ligne de budget à partir de 80 % du plafond.
+
 ## Contrats imposés par `clawfedora validate`
 
 - Cloud désactivé par défaut (`enabled_by_default: false`) ; l'activation est une décision d'exécution, hors dépôt.
@@ -91,9 +131,13 @@ Les bandeaux sont retirés de l'historique renvoyé au modèle. Un test de repli
 
 | Lot | Contenu |
 |---|---|
-| 6 | Réservation et journal de **tous** les appels (y compris interrompus), plafond de 25 € réels, commande d'activation avec auto-contrôles |
 | 7 | Atelier : accord explicite par projet, pause visible |
 
 ## Ce que ce lot ne prouve pas
+
+- Les tarifs de référence sont ceux du dépôt, pas ceux affichés par OpenRouter aujourd'hui ; le coût réel renvoyé dans `usage.cost` prime, mais si le fournisseur ne le renvoie pas, le comptage retombe sur ces tarifs.
+- Le facteur 1,3 est une marge, pas un taux mesuré. Seul le relevé OpenRouter dit ce qui est réellement prélevé : d'où le rapprochement manuel.
+- La vérification en ligne de la limite de clé n'a pas été exécutée contre le vrai fournisseur (pas de clé ici) : elle est testée avec un faux, sur la forme de réponse que je connais de `GET /api/v1/key` (`data.limit`), **non vérifiée** ici faute d'accès à la documentation du fournisseur : si la forme diffère, le contrôle échoue et l'activation reste refusée.
+- Le service systemd et le script d'activation n'ont pas tourné sur Fedora ; les contrôles couvrent leur syntaxe et leur ordre, pas leur exécution.
 
 Aucun appel réel vers OpenRouter, aucun comportement de GLM, aucun essai sur le PC Fedora. Les tests utilisent une passerelle factice.

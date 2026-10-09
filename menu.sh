@@ -11,12 +11,13 @@ ACTION="status"
 APPLY=0
 PURGE_DATA=0
 CONTEXT=""
+VALUE=""
 
 usage() {
   cat <<'EOF_USAGE'
 Atelier IA local — Infrastructure & OPS · centre de contrôle
 
-Usage: ./menu.sh --action ACTION [--apply] [--purge-data] [--context N]
+Usage: ./menu.sh --action ACTION [--apply] [--purge-data] [--context N] [--value N]
 
 Sans --apply, une action qui modifie le système affiche seulement ce qu'elle ferait.
 
@@ -29,6 +30,11 @@ Installer et utiliser:
   webui-seal             Fermer les inscriptions après le premier compte
   webui-start|webui-stop Démarrer ou arrêter le chat
   webui-status           État du chat et de l'atelier
+  cloud-status           État du cloud optionnel, de la clé et du budget du mois
+  cloud-set-key          Enregistrer la clé OpenRouter (saisie masquée)
+  cloud-enable           Contrôler puis activer le cloud (--value = limite de la clé en $)
+  cloud-disable          Désactiver le cloud et arrêter la passerelle
+  cloud-reconcile        Enregistrer le montant réellement facturé (--value = euros)
   dashboard              Ouvrir l'atelier Projets dans ce terminal
   gaming                 Libérer le GPU pour jouer
   daily                  Reprendre les services IA
@@ -67,6 +73,11 @@ while (($#)); do
       shift
       [[ $# -gt 0 ]] || { echo "ERREUR: --context exige une valeur" >&2; exit 2; }
       CONTEXT="$1"
+      ;;
+    --value)
+      shift
+      [[ $# -gt 0 ]] || { echo "ERREUR: --value exige une valeur" >&2; exit 2; }
+      VALUE="$1"
       ;;
     -h|--help) usage; exit 0 ;;
     *) echo "ERREUR: argument inconnu: $1" >&2; usage >&2; exit 2 ;;
@@ -108,6 +119,11 @@ case "$ACTION" in
     ;;
   webui-install|webui-start|webui-stop|webui-seal|webui-status)
     with_apply 13_openwebui.sh "${ACTION#webui-}"
+    ;;
+  cloud-status|cloud-set-key|cloud-enable|cloud-disable|cloud-reconcile)
+    args=()
+    [[ -z "$VALUE" ]] || args+=(--value "$VALUE")
+    with_apply 14_cloud.sh "${ACTION#cloud-}" "${args[@]}"
     ;;
   dashboard) run_cli dashboard --serve ;;
   gaming) with_apply 11_daily_profile.sh gaming ;;
