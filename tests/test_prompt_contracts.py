@@ -53,9 +53,13 @@ def test_all_roles_receive_ordered_complete_instructions(tmp_path: Path) -> None
         for instruction in (
             "Mode direct par défaut", "consentement explicite", "practice_opt_in=true",
             "Terraform/Ansible/CI/CD", "documentation officielle", "files/summary",
-            "migration OpenRouter n'est pas implémentée",
+            "NON VÉRIFIÉ ACTUELLEMENT", "À EXÉCUTER", "co-construction",
+            "sans le reproduire", "relèvent de l'application",
         ):
             assert instruction in deployed
+        # The prompts must stay true whichever model answers: no claim about the backend.
+        for claim in ("Qwen", "OpenRouter", "GLM", "25 EUR", "Le modèle est local"):
+            assert claim not in deployed
 
 
 @pytest.mark.parametrize("character", ["é", "🧰"])

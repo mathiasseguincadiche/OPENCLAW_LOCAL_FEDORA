@@ -1,23 +1,41 @@
 # Consignes pédagogiques et contrôles d'intégration
 
-## État des documents de référence
+## Documents de référence et confrontation
 
-Cette étape applique les exigences explicites de la demande de continuation:
-sept rôles, mentor prioritaire, aide directe, exercices consentis, sources fiables,
-explication de la chaîne Terraform/Ansible/CI/CD et contrats techniques stricts.
-Elle ne certifie pas encore la conformité textuelle aux prompts V2.3 ni au cahier
-des charges V1.5. Les documents suivants n'étaient pas accessibles dans le nouvel
-espace de travail, et la conversation récupérée n'exposait aucune pièce jointe:
+Les documents de référence ont été lus en entier le 9 octobre 2026 :
 
-- `Proposition_Prompts_OpenClaw_Hybride_V2.3_Fiabilite_Explication.zip`
-- `Proposition_Prompts_OpenClaw_Hybride_V2.3_Fiabilite_Explication_COMPLET.md`
-- `OPENCLAW_LOCAL_FEDORA_Cahier_des_Charges_Architecture_Hybride_V1.5_Liberte_Pedagogique_Sources.pdf`
+| Document | SHA-256 |
+|---|---|
+| `Atelier_IA_Hybride_Openclaw.pdf` (cahier des charges V1.5, 38 pages) | `6a703eaef0e4d1372bdfc523f94855d58ded388e678e3728f24e525a14efd536` |
+| `Proposition_Prompts_OpenClaw_Hybride_V2.3_Fiabilite_Explication.zip` (33 fichiers) | `19a9294ee013b823334b5d9cc33f443004dcde831c5ae62ad1a301bd16148c2e` |
 
-Pour terminer cette intégration, lire les fichiers réellement fournis, consigner
-leurs empreintes SHA-256, confronter les sept prompts et exigences au dépôt et
-documenter les adaptations nécessaires aux permissions et schémas du worker.
-Ne pas reconstituer leur contenu à partir de leur nom ou d'un résumé. Relancer
-les contrôles ci-dessous après chaque adaptation.
+Le fichier `..._V2.3_..._COMPLET.md`, cité par le PDF, n'a pas été fourni et n'a pas été lu.
+Ces documents ne sont pas ajoutés au dépôt : seules leurs empreintes y figurent.
+
+Le zip décrit des prompts plus longs, écrits sans le code actuel sous les yeux. Le remplacer
+tel quel aurait perdu des accroches du moteur (`source_coverage`, `context/exchange/`,
+`drawio_reference`, `writing_scope`, `practice_opt_in`) et fait dépasser 12000 caractères
+au chef (11743 mesurés sur le zip brut, soit 257 de marge). La fusion est donc sélective :
+
+| Élément V2.3 | Décision |
+|---|---|
+| Mentor d'abord, coordinateur ensuite ; pas d'exercice imposé | Repris (déjà présent, renforcé) |
+| Vulgarisation en couches, chaîne de A à Z, « pas d'ordre universel » | Repris, condensé dans `PEDAGOGY.md` |
+| Direct = co-construction (livrable complet expliqué bloc par bloc) | Ajouté |
+| Étiquettes OBSERVÉ / VÉRIFIÉ / PROPOSÉ / NON VÉRIFIÉ, portée de `terraform validate`, idempotence Ansible | Ajouté au CONTRACT (règle 4) |
+| Fraîcheur des sources (30 jours, version visée, sources secondaires non normatives) | Repris (règle 18) ; seules des URL réellement renvoyées par un outil sont citables |
+| Ne jamais recopier un secret rencontré | Ajouté (règle 9) |
+| Mentions du routeur cloud, du budget de 25 € et du middleware comme s'ils existaient | **Non reprises** : les prompts restent vrais quel que soit le modèle (règles 5 et 20). Un test interdit « Qwen », « OpenRouter », « GLM » dans les consignes. |
+| `IDENTITY.md`, `SOUL.md`, `HEARTBEAT.md` | Repris tels quels |
+| Méthode détaillée de chaque rôle | Reprise, sans les paragraphes « contrat technique » répétés dans chaque rôle (factorisés dans `TOOLS.md` et `CONTRACT.md`) |
+| Suivi de compétences, révisions espacées, laboratoire, Skills | Hors périmètre de ce lot (voir `PLAN_MIGRATION_HYBRIDE.md`) ; les consignes disent qu'aucun rappel ni mémoire automatique n'existe |
+
+Tailles mesurées après fusion (unités UTF-16 d'OpenClaw, limite 12000) : de 11158 (recherche) à
+11543 (chef, DevOps), soit au moins 457 de marge. Le chef avec l'historique maximal du chat
+atteint 21684 tokens estimés sur 32768 de contexte, sortie de 4096 comprise.
+
+La conformité textuelle n'est pas une preuve de comportement : la qualité des réponses des modèles
+reste à observer à l'usage.
 
 ## Consignes réellement injectées
 
@@ -83,10 +101,10 @@ déclarés. Les outils d'exécution, d'écriture native, de publication et de
 délégation restent interdits. Le plugin géré peut produire les artefacts autorisés;
 le collecteur publie uniquement les sorties prévues dans le projet.
 
-Le backend reste Ollama/Qwen local, sans secours cloud. Le modèle existant est
-`qwen3.5:9b-q4_K_M`: le titre de la conversation ne constitue pas une instruction
-de migration vers Q6_K. OpenRouter n'est pas implémenté, aucune clé ni requête
-cloud n'est ajoutée. Le plafond demandé de 25 EUR/mois n'autorise aucune dépense.
+Le backend de ce lot reste Ollama/Qwen local, sans secours cloud. Le modèle existant est
+`qwen3.5:9b-q4_K_M`. Le cloud (OpenRouter) fait l'objet des lots suivants du plan
+`docs/PLAN_MIGRATION_HYBRIDE.md` (lot 1) : aucune clé ni requête cloud n'est ajoutée ici.
+Les consignes ne mentionnent aucun modèle précis, pour rester exactes après cette migration.
 
 ## Vérification
 

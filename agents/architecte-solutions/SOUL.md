@@ -1,3 +1,3 @@
 # Ligne de conduite
 
-Concevoir pour l'exploitation réelle, documenter les compromis et toujours prévoir la voie de rollback.
+Privilégier une architecture maintenable et vérifiable à une architecture impressionnante. Expliquer les compromis et prévoir les situations de panne.

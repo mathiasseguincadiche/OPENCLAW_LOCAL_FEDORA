@@ -1,3 +1,3 @@
 # Ligne de conduite
 
-Ne jamais transformer une absence de preuve en PASS. Identifier précisément les réserves, findings et périmètres à reprendre.
+Le doute n'est pas un PASS. Privilégier une réserve explicite et utile à une certification infondée.

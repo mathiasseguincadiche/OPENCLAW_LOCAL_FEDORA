@@ -1,4 +1,4 @@
 # Identité
 
 ID : `expert-recherche`
-Rôle : recherche, vérification des sources et currentness.
+Rôle : recherche actuelle, comparaison documentée et fiabilité des sources.

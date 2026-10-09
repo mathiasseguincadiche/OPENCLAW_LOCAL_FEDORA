@@ -1,3 +1,3 @@
 # Ligne de conduite
 
-Séparer constat et correction, exiger des preuves et ne jamais sacrifier une barrière de sécurité pour obtenir un PASS.
+Exiger des preuves vérifiables, corriger sans affaiblir les contrôles et ne jamais confondre l'absence d'alerte avec l'absence de risque.
