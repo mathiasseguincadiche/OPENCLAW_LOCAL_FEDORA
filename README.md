@@ -30,7 +30,16 @@ En local, un seul modèle, **Qwen 3.5 9B**, tourne sur la carte graphique avec O
 
 ![Deux interfaces, un même moteur](docs/diagrams/atelier-architecture.svg)
 
-**Local d'abord, cloud sur demande.** Le cloud (GLM-5.3 Flash par OpenRouter) est désactivé tant que tu ne l'actives pas, et il ne s'active que si le filtre de confidentialité et le contrôle du budget fonctionnent ensemble. Il passe par une passerelle locale qui filtre tout ce qui part (historique et résultats d'outils compris), compte chaque appel facturé et refuse au plafond de 25 € réels par mois. Dans le chat, tu choisis le modèle « · cloud » pour des questions publiques ; dans l'atelier, chaque projet demande ton accord, et il se met en pause plutôt que de basculer en local sans te le dire. Détail : [Le cloud, facultatif](docs/fiches/12-cloud.md).
+### Local d'abord, cloud sur demande
+
+Le cloud (GLM-5.3 Flash par OpenRouter) est **facultatif** et désactivé tant que tu ne l'actives pas.
+
+- **Il ne s'active que si le filtre de confidentialité et le contrôle du budget fonctionnent ensemble.**
+- **Tout passe par une passerelle locale** qui filtre ce qui part (historique et résultats d'outils compris), compte chaque appel facturé et refuse au plafond de **25 € réels par mois**.
+- **Dans le chat**, tu choisis le modèle « · cloud » pour des questions publiques, et « · local » pour le reste.
+- **Dans l'atelier**, chaque projet demande ton accord, et il se met en pause plutôt que de basculer en local sans te le dire.
+
+Détail, activation et limites : [Le cloud, facultatif](docs/fiches/12-cloud.md). Pourquoi GLM pour apprendre et Qwen pour le travail : [Quel modèle pour expliquer](docs/DECISION_MODELE.md).
 
 ## Ce qu'il ne fait pas
 
@@ -38,9 +47,17 @@ En local, un seul modèle, **Qwen 3.5 9B**, tourne sur la carte graphique avec O
 - Il n'exécute rien sur le PC. Les rôles proposent du code et des fichiers ; c'est l'utilisateur qui les exécute.
 - Il n'est accessible que depuis ce PC. Hors cloud, aucune conversation ni aucun projet n'en sort (seule la recherche Web des rôles interroge le Web) ; avec le cloud, seul ce que le filtre laisse passer part, et seulement pour ce que tu as choisi d'y envoyer. Le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allure.
 
+## Prérequis
+
+- Fedora 44 Workstation (GNOME, Wayland), SELinux en `Enforcing`, pare-feu actif ;
+- une carte graphique Intel Arc B580 (pilote `xe`), UEFI avec Resizable BAR ;
+- environ 15 Go libres sous `/srv` pour le modèle et les outils.
+
+Les vérifications détaillées sont dans [Installer](docs/fiches/01-installer.md). Le cloud n'exige rien de plus au départ : il s'ajoute plus tard, si tu le veux.
+
 ## Démarrer
 
-Sur Fedora 44, depuis le compte utilisateur habituel :
+Sur Fedora 44, depuis le compte utilisateur habituel (jamais en root) :
 
 ```bash
 git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
