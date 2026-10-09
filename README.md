@@ -30,6 +30,24 @@ En local, un seul modèle, **Qwen 3.5 9B**, tourne sur la carte graphique avec O
 
 ![Deux interfaces, un même moteur](docs/diagrams/atelier-architecture.svg)
 
+## Aperçu
+
+L'atelier Projets, à `http://127.0.0.1:18890`. **Ces captures montrent des projets, un budget et un modèle d'exemple** : elles servent à comprendre ce qui t'attend, pas à montrer des résultats réels.
+
+![Atelier Projets : liste des projets, avec leur état, l'accord cloud, le dernier modèle utilisé et la dépense du mois](docs/images/atelier-projets.png)
+
+*La liste des projets : un projet local, un projet autorisé au cloud (avec le dernier modèle utilisé et un coût estimé), un projet en pause cloud avec la raison. La dépense du mois sur 25 € est affichée sous l'état d'activité.*
+
+![Un projet en pause cloud : la raison s'affiche et le bouton permet de poursuivre en local](docs/images/atelier-pause-cloud.png)
+
+*Un projet en pause : le filtre a bloqué un envoi. Rien n'a été refait en local ; c'est toi qui décides de retirer l'accord cloud ou de corriger la cause.*
+
+![Le texte d'accord cloud d'un projet, avec sa case à cocher](docs/images/atelier-accord-cloud.png)
+
+*L'accord cloud d'un projet : le texte dit ce qui part, ce que le filtre ne reconnaît pas, et que le projet se met en pause plutôt que de basculer en local sans ton avis.*
+
+Le chat Open WebUI n'est pas illustré : c'est l'interface standard d'Open WebUI, où chaque rôle est proposé en « · local » et, si tu actives le cloud, en « · cloud (GLM) ».
+
 ### Local d'abord, cloud sur demande
 
 Le cloud (GLM-5.3 Flash par OpenRouter) est **facultatif** et désactivé tant que tu ne l'actives pas.
@@ -82,12 +100,14 @@ cd OPENCLAW_LOCAL_FEDORA
 | [Atelier Projets](docs/fiches/04-atelier-projets.md) | [Dépanner](docs/fiches/10-depanner.md) |
 | [Apprendre](docs/fiches/05-apprendre.md) | [Comment ça marche](docs/fiches/11-comment-ca-marche.md) |
 | [Fichiers et schémas](docs/fiches/06-fichiers-et-schemas.md) | [Le cloud, facultatif](docs/fiches/12-cloud.md) |
-| [Présentation illustrée (PDF, version avant le cloud)](docs/guide-utilisateur.pdf) | |
+| [Présentation illustrée (PDF, 17 pages)](docs/guide-utilisateur.pdf) | [Quel modèle pour expliquer](docs/DECISION_MODELE.md) |
 
 ## État
 
 Le logiciel passe ses tests automatiques, y compris avec le vrai OpenClaw. Il n'a pas encore tourné sur le PC cible : la vitesse, la tenue en mémoire vidéo et la qualité des réponses restent à mesurer. Le cloud n'a jamais été essayé avec le vrai OpenRouter : seul un faux fournisseur a servi aux tests. Détail dans [STATUS.md](STATUS.md).
 
 Versions utilisées : OpenClaw 2026.9.8, Ollama 0.35.1, Open WebUI v0.11.4 (image slim). Elles sont fixées dans `config/` et ne se mettent pas à jour seules.
+
+Historique des versions : [CHANGELOG](CHANGELOG.md). Règles de conduite : [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md). Contribuer : [CONTRIBUTING](CONTRIBUTING.md). Sécurité : [SECURITY](SECURITY.md).
 
 Licence [MIT](LICENSE). Le nom technique du dépôt reste `OPENCLAW_LOCAL_FEDORA`.

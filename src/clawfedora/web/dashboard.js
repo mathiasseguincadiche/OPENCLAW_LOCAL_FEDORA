@@ -145,7 +145,7 @@ async function refresh() {
       );
       detail.append(node("p", cloudLine(project.cloud), "cloud-line"));
       if (project.cloud && project.cloud.pause)
-        detail.append(node("p", "⏸ Pause cloud : " + project.cloud.pause.message, "error"));
+        detail.append(node("p", "Pause cloud : " + project.cloud.pause.message, "error"));
       if (project.total) {
         const bar = node("progress");
         bar.max = project.total;
@@ -583,7 +583,7 @@ async function renderCloud(id) {
   if (models.length)
     box.append(node("p", "Modèles utilisés : " + models.map(([name, n]) => name + " ×" + n).join(" · ")));
   if (info.pause) {
-    box.append(node("p", "⏸ Le projet est en pause : " + info.pause.message, "error"));
+    box.append(node("p", "Le projet est en pause : " + info.pause.message, "error"));
     box.append(node("p", "Rien n’a été refait en local. Pour poursuivre en local, retirez l’accord cloud puis reprenez ; pour rester au cloud, corrigez la cause puis reprenez."));
   }
   const revoke = async () => {

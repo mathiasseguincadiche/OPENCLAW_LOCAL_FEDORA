@@ -28,6 +28,10 @@ L'[assemblage des prompts et ses critères de validation](docs/PROMPTS.md) préc
 le budget de 12000 caractères, les sorties JSON, les permissions et les documents
 encore nécessaires pour terminer la confrontation aux références V2.3/V1.5.
 
+## Conduite
+
+En contribuant, tu acceptes le [code de conduite](CODE_OF_CONDUCT.md).
+
 ## Règles
 
 - Le modèle reste local par défaut. Le cloud est une option désactivée par défaut, joignable uniquement par la passerelle locale en boucle locale, qui seule détient la clé du fournisseur. Aucun repli du local vers le cloud.
