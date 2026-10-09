@@ -54,7 +54,7 @@ Lecture des résultats et quoi faire selon le cas : [Premier essai](fiches/02-pr
 
 Ensuite, ouvre `http://127.0.0.1:3000` pour discuter et `http://127.0.0.1:18890` pour l'atelier.
 
-- Une question, une notion, un blocage : [Discuter](fiches/03-discuter.md).
+- Une question, une notion, un blocage : [Discuter](fiches/03-discuter.md). Le chat peut aussi interroger un projet (`!projets`, `!projet`) et y garder un document (`!garder`, puis `!accepter` avec une phrase de confirmation) : même fiche.
 - Un travail avec des documents, un plan et des livrables : [Atelier Projets](fiches/04-atelier-projets.md).
 - Progresser en DevOps plutôt que recevoir une réponse toute faite : [Apprendre](fiches/05-apprendre.md).
 - Récupérer des fichiers et modifier un schéma dans Draw.io : [Fichiers et schémas](fiches/06-fichiers-et-schemas.md).

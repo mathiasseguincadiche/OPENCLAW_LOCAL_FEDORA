@@ -24,6 +24,7 @@ Il accompagne aussi un parcours : passer de l'administration systèmes et résea
 | Discuter et poser n'importe quelle question | Open WebUI, `http://127.0.0.1:3000` |
 | Apprendre avec un mentor qui part des acquis de l'utilisateur | Open WebUI ou l'atelier |
 | Mener un projet avec sept rôles spécialisés | Atelier Projets, `http://127.0.0.1:18890` |
+| Interroger un projet et garder un document écrit dans le chat (accepté par une phrase de confirmation) | Open WebUI, avec les commandes `!projets`, `!projet`, `!garder`… |
 | Obtenir de vrais fichiers : Markdown, PDF, DOCX, YAML, Terraform, schémas Draw.io | Les deux |
 
 En local, un seul modèle, **Qwen 3.5 9B**, tourne sur la carte graphique avec Ollama. **OpenClaw** lui donne sept rôles : mentor, recherche, architecte, DevOps, sécurité, rédacteur et auditeur. Ce sont sept jeux de consignes pour le même modèle, pas sept IA en mémoire.
@@ -46,7 +47,7 @@ L'atelier Projets, à `http://127.0.0.1:18890`. **Ces captures montrent des proj
 
 *L'accord cloud d'un projet : le texte dit ce qui part, ce que le filtre ne reconnaît pas, et que le projet se met en pause plutôt que de basculer en local sans ton avis.*
 
-Le chat Open WebUI n'est pas illustré : c'est l'interface standard d'Open WebUI, où chaque rôle est proposé en « · local » et, si tu actives le cloud, en « · cloud (GLM) ».
+La présentation illustrée (PDF) date d'avant le lien entre le chat et les projets : elle sera refaite une fois l'intégration terminée. Le chat Open WebUI n'est pas illustré : c'est l'interface standard d'Open WebUI, où chaque rôle est proposé en « · local » et, si tu actives le cloud, en « · cloud (GLM) ».
 
 ### Local d'abord, cloud sur demande
 
@@ -61,6 +62,7 @@ Détail, activation et limites : [Le cloud, facultatif](docs/fiches/12-cloud.md)
 
 ## Ce qu'il ne fait pas
 
+- **Le chat n'est pas encore complet** : il lit un projet et y garde des documents, mais il ne crée pas encore de projet, ne lance aucun traitement et ne reçoit ni fichier, ni image, ni voix. Ces étapes sont planifiées, avec leurs limites, dans le [plan d'intégration d'Open WebUI](docs/PLAN_INTEGRATION_WEBUI.md).
 - En local, il n'égale pas un grand modèle cloud. Un modèle de cette taille explique, relit et rédige bien ; il se trompe plus souvent sur les tâches longues. Le cloud facultatif existe pour ces moments. L'atelier compense par de petites étapes, des sources et de la relecture.
 - Il n'exécute rien sur le PC. Les rôles proposent du code et des fichiers ; c'est l'utilisateur qui les exécute.
 - Il n'est accessible que depuis ce PC. Hors cloud, aucune conversation ni aucun projet n'en sort (seule la recherche Web des rôles interroge le Web) ; avec le cloud, seul ce que le filtre laisse passer part, et seulement pour ce que tu as choisi d'y envoyer. Le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allure.
@@ -101,6 +103,7 @@ cd OPENCLAW_LOCAL_FEDORA
 | [Apprendre](docs/fiches/05-apprendre.md) | [Comment ça marche](docs/fiches/11-comment-ca-marche.md) |
 | [Fichiers et schémas](docs/fiches/06-fichiers-et-schemas.md) | [Le cloud, facultatif](docs/fiches/12-cloud.md) |
 | [Présentation illustrée (PDF, 17 pages)](docs/guide-utilisateur.pdf) | [Quel modèle pour expliquer](docs/DECISION_MODELE.md) |
+| [Plan : tout faire depuis Open WebUI](docs/PLAN_INTEGRATION_WEBUI.md) | |
 
 ## État
 
