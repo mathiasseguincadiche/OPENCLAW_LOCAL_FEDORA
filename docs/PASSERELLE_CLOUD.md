@@ -1,12 +1,12 @@
 # Passerelle cloud locale : conception et faits vérifiés
 
-**Statut : fondation (lot 3), exécuteur (lot 4), passerelle, filtre de confidentialité et modes Apprendre/Travail (lot 5) sont en place. Le contrôle du budget n'est pas encore écrit (lot 6) : la passerelle refuse donc tout appel et le cloud ne peut pas être activé.**
+**Statut : tout est en place (lots 3 à 8) : fondation, exécuteur, passerelle et filtre, modes Apprendre/Travail, budget et activation contrôlée, accord par projet dans l'atelier. Le cloud reste désactivé tant qu'il n'est pas activé par `cloud-enable --apply`. Il n'a jamais été essayé avec le vrai OpenRouter.**
 
-Ce document complète `docs/PLAN_MIGRATION_HYBRIDE.md` (lot 1). Il fixe le contrat que les lots suivants doivent respecter et consigne ce qui a été **vérifié avec le vrai OpenClaw 2026.9.8** (`make native-cloud`, `make native-schema`, `make native-prompt`).
+Ce document décrit la conception, fixe le contrat que le code respecte (imposé par `clawfedora validate`) et consigne ce qui a été **vérifié avec le vrai OpenClaw 2026.9.8** (`make native-cloud`, `make native-schema`, `make native-prompt`).
 
 ## Principe
 
-OpenClaw ne parle jamais à OpenRouter. Il parle à une passerelle en boucle locale (`127.0.0.1:18892`, `config/core/cloud_policy.yaml`), qui seule lira la clé du fournisseur, filtrera tout le contenu sortant, réservera et comptera chaque appel facturé, puis transmettra à OpenRouter.
+OpenClaw ne parle jamais à OpenRouter. Il parle à une passerelle en boucle locale (`127.0.0.1:18892`, `config/core/cloud_policy.yaml`), qui seule lit la clé du fournisseur, filtre tout le contenu sortant, réserve et compte chaque appel facturé, puis transmet à OpenRouter.
 
 ```
 OpenClaw ──► fournisseur "cloudgw" (127.0.0.1:18892/v1) ──► [filtre + budget] ──► OpenRouter
@@ -21,7 +21,7 @@ OpenClaw ──► fournisseur "cloudgw" (127.0.0.1:18892/v1) ──► [filtre 
 | Qui voit quoi ? | La passerelle reçoit le prompt système, l'historique et, au second appel d'une boucle d'outil, **les résultats d'outils**. Un tour avec un outil fait **deux appels facturables**. |
 | Quel jeton circule ? | Un jeton **local** (`Authorization: Bearer <jeton local>`), lu dans la variable `CLAWFEDORA_CLOUD_GATEWAY_TOKEN`. La clé du fournisseur n'atteint jamais OpenClaw : le contrôle fait échouer toute fuite. |
 | Usage en streaming ? | OpenClaw envoie `stream: true` et `stream_options.include_usage: true` ; l'usage et le coût peuvent donc être lus dans le dernier fragment. |
-| Peut-on limiter le raisonnement avec `--thinking` ? | **Non** pour un fournisseur personnalisé (`low` refusé, seuls `off` et `ultra` sont acceptés). La limite sera donc **imposée par la passerelle**, qui injecte `reasoning` dans chaque requête (`upstream_params`). |
+| Peut-on limiter le raisonnement avec `--thinking` ? | **Non** pour un fournisseur personnalisé (`low` refusé, seuls `off` et `ultra` sont acceptés). La limite est donc **imposée par la passerelle**, qui injecte `reasoning` dans chaque requête (`upstream_params`). |
 | Que se passe-t-il si le jeton manque ? | OpenClaw résout les secrets de **tous** les fournisseurs avant un tour : un jeton absent fait échouer **même un tour local**. L'environnement d'exécution doit donc toujours définir ce jeton dès que le fournisseur est configuré (lot 4). Avec le jeton défini et la passerelle arrêtée, les rôles locaux fonctionnent (`make native-prompt`). |
 | Retour arrière | Désactiver le cloud supprime le fournisseur `cloudgw` d'une installation existante (migration vérifiée par `make native-schema`). |
 | Quels modèles `--model` peut-il choisir ? | Seulement ceux de `agents.defaults.modelPolicy.allow` : Qwen, et le modèle cloud uniquement si le cloud est activé. |
@@ -149,7 +149,7 @@ Pour **continuer en local**, il faut le décider : « Retirer l'accord cloud » 
 - Le coût d'un appel est la **différence du journal budgétaire** avant et après (estimation prudente en euros, pire cas compris). Comme une seule tâche ou discussion tourne à la fois (verrou), cette attribution est exacte pour le projet.
 - Le pied de page du tableau de bord montre la dépense du mois sur 25 € et le seuil d'alerte.
 
-### Limites de ce lot
+### Limites de l'atelier
 - Le routage est testé avec un faux exécuteur qui imite le journal de la passerelle ; la lecture de la cause suppose que le journal contient les décisions décrites ci-dessus (c'est testé côté passerelle au lot 5).
 - Si le journal de la passerelle ne contient aucune trace pendant l'échec, la pause est `gateway_unreachable` : une panne d'OpenClaw lui-même avant tout appel est donc présentée comme une panne de la passerelle.
 - Le coût d'une tâche inclut les appels de sa session seulement ; une discussion Open WebUI en cloud n'est pas rattachée à un projet.
@@ -164,13 +164,7 @@ Pour **continuer en local**, il faut le décider : « Retirer l'accord cloud » 
 - `data_collection: deny` et `require_parameters: true` imposés ; tarifs de référence présents.
 - Le modèle cloud est déclaré au catalogue, optionnel, et chaque rôle pointe vers lui.
 
-## Reste à faire (lots suivants)
-
-| Lot | Contenu |
-|---|---|
-| 8 | Documentation (README, STATUS, fiches), mise à jour du plan |
-
-## Ce que ce lot ne prouve pas
+## Ce qui n'est pas prouvé
 
 - Les tarifs de référence sont ceux du dépôt, pas ceux affichés par OpenRouter aujourd'hui ; le coût réel renvoyé dans `usage.cost` prime, mais si le fournisseur ne le renvoie pas, le comptage retombe sur ces tarifs.
 - Le facteur 1,3 est une marge, pas un taux mesuré. Seul le relevé OpenRouter dit ce qui est réellement prélevé : d'où le rapprochement manuel.

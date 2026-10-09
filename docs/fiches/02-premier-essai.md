@@ -51,8 +51,10 @@ Ouvre `http://127.0.0.1:3000` et pose au mentor une vraie question de ta semaine
 
 À observer : la réponse est-elle juste ? Est-elle utile ? Le temps d'attente est-il acceptable ? La réponse arrive d'un bloc, sans s'afficher mot à mot : c'est une limite connue de cette version.
 
+Teste aussi la **recherche Web**, qui sert aux informations récentes (version, option, prix, sécurité). Tous les rôles, mentor compris, peuvent chercher (4 résultats, puis lire une page jusqu'à 4 000 caractères) avec le fournisseur gratuit `parallel-free`. Demande par exemple : « Quelle est la dernière version stable d'Ansible ? Cherche sur le Web et donne tes sources. » À observer : la réponse cite-t-elle une page réellement consultée, avec sa date ? Le mentor écrit-il « NON VÉRIFIÉ ACTUELLEMENT » s'il n'a pas pu l'ouvrir ? Cette recherche n'a jamais été essayée sur ta machine : si elle échoue ou renvoie toujours le même résultat, note-le dans [STATUS](../../STATUS.md), c'est un défaut à corriger. Le fournisseur gratuit peut aussi limiter le nombre de requêtes.
+
 ## 5. Décider
 
 - Réponses utiles et vitesse correcte : l'atelier est prêt pour le quotidien.
-- Réponses trop faibles pour ton besoin : c'est la limite d'un modèle de 9 milliards de paramètres, pas un défaut d'installation. Changer de modèle est décrit dans [Réglages](08-reglages.md#changer-de-modèle).
+- Réponses trop faibles pour ton besoin : c'est la limite d'un modèle de 9 milliards de paramètres, pas un défaut d'installation. Pour une question publique, le cloud facultatif peut mieux expliquer ([Le cloud, facultatif](12-cloud.md)) ; changer de modèle local est décrit dans [Réglages](08-reglages.md#changer-de-modèle).
 - Problème matériel ou d'installation : [Dépanner](10-depanner.md).

@@ -23,6 +23,24 @@ Une bonne façon de l'utiliser : demande un indice plutôt que la solution, part
 
 Pour comprendre une notion publique, le modèle « · cloud (GLM) » du chat peut mieux expliquer que Qwen. Choisis-le pour des questions sans secret ; garde « · local » pour tout ce qui touche ton travail ou ce dont tu n'es pas sûr. Les consignes du mentor sont les mêmes dans les deux modes. Voir [Discuter](03-discuter.md) et [Le cloud, facultatif](12-cloud.md). Un bon réflexe d'apprentissage reste le même quel que soit le modèle : vérifier une version, une commande ou un chiffre dans la documentation officielle.
 
+## Obtenir des explications fiables
+
+Un modèle de 9 milliards de paramètres peut se tromper avec assurance. Le mentor est cadré pour limiter cela, et tu as des moyens de le vérifier.
+
+Ce que les consignes du mentor lui imposent :
+- distinguer ce qui est **observé**, **vérifié**, **proposé** et **non vérifié**, au lieu de tout présenter au même niveau de certitude ;
+- dire la portée exacte d'un contrôle : `terraform validate` ne vérifie que la cohérence interne (pas un `plan` ni un `apply`), un lint n'est ni un test ni un déploiement, l'idempotence Ansible se prouve par deux exécutions ;
+- ne citer que des sources réellement renvoyées par un outil de recherche, avec leur date, et jamais une URL inventée ;
+- ne jamais recopier un secret.
+
+Ce que tu peux faire :
+1. Pour une version, une commande sensible ou un chiffre, demande « avec quelle source ? » : le mentor cherche, ou dit qu'il ne sait pas.
+2. Demande-lui « qu'est-ce qui n'est pas vérifié dans ta réponse ? ».
+3. Vérifie toujours dans la documentation officielle avant d'exécuter.
+4. Pour **apprendre une notion publique**, privilégie le modèle « · cloud (GLM) » : d'après les sources publiques, il invente nettement moins que Qwen 9B quand il ne sait pas (28 % contre 82 %). Garde « · local » pour le travail et le confidentiel. Voir [Quel modèle pour expliquer](../DECISION_MODELE.md) et [Le cloud, facultatif](12-cloud.md). Compare sur tes propres questions : c'est ce qui confirmera ou corrigera cette décision.
+
+La qualité réelle des explications n'a pas encore été mesurée sur ta machine : voir [STATUS](../../STATUS.md).
+
 ## Guidé ou direct
 
 Par défaut, les nouveaux projets sont en mode **direct** : tu reçois l'explication ou la proposition complète, sans exercice bloquant. Le mode guidé est un choix. Les contrats déjà approuvés des anciens projets sont préservés.

@@ -61,7 +61,7 @@ Les versions installées sont écrites dans `config/runtime_versions.yaml`. L'in
 ├── models/       le modèle Qwen
 ├── workspaces/   un espace de travail par rôle
 ├── projects/     tes projets de l'atelier
-├── state/        configuration et conversations
+├── state/        configuration, conversations, et état du cloud (state/cloud, state/project-cloud)
 ├── backups/      sauvegardes
 ├── proofs/       rapports des contrôles matériels
 └── runtime/      environnement Python et fichiers générés
@@ -71,6 +71,7 @@ Rien de tout cela n'est dans Git. Le dépôt contient le code et la configuratio
 
 ## Ce que l'installation ne fait pas
 
+- Elle n'active pas le cloud et ne demande aucune clé : c'est une étape séparée et facultative ([Le cloud, facultatif](12-cloud.md)).
 - Elle n'ouvre aucun port sur le réseau : tout écoute sur `127.0.0.1`, donc uniquement depuis ton PC.
 - Elle ne désactive ni SELinux ni le pare-feu.
 - Elle ne touche pas au noyau.
