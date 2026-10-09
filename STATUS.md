@@ -43,7 +43,6 @@ Rien n'est mesuré sur ta machine. Les sources publiques tranchent déjà pour l
 - Cloud : le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allure. En cas de doute, rester en local.
 - Cloud : le choix par défaut du chat reste local ; rien ne part tant que le modèle « · cloud » n'est pas choisi. Le coût d'une discussion cloud n'est pas rattaché à un projet.
 - Le chat peut lire un projet, y garder des propositions, créer un projet, l'analyser, répondre aux précisions et faire approuver un plan, avec des phrases de confirmation (lots 9 à 11 de l'[intégration d'Open WebUI](docs/PLAN_INTEGRATION_WEBUI.md)) ; il ne lance pas encore le travail des rôles, et il ne reçoit pas encore de fichiers, d'images ni de voix. Le comportement de `!` et `/` dans la vraie interface d'Open WebUI reste à vérifier.
-- Les captures d'écran du README viennent d'un atelier d'exemple (projets, budget et modèles fictifs) : elles montrent l'interface, pas des résultats réels. Le chat Open WebUI n'est pas capturé.
 
 ## Remise en ordre d'octobre 2026
 
