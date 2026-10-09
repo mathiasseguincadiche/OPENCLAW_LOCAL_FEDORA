@@ -9,6 +9,7 @@ A selected project gives the role a read-only context, as data. Nothing here wri
 from __future__ import annotations
 
 import json
+import os
 import re
 import unicodedata
 from pathlib import Path
@@ -237,6 +238,23 @@ def status_text(repo_root: Path, runtime: Path, project: Path) -> str:
     return "\n".join(lines)
 
 
+def _deliverables(runtime: Path, project: Path) -> list[str]:
+    """Up to 20 deliverable paths, listed only inside the projects root (resolved, no escape)."""
+    projects_root = os.path.realpath(runtime / "projects")
+    real = os.path.realpath(project)
+    if not real.startswith(projects_root + os.sep):
+        return []
+    top = os.path.join(real, "deliverables")
+    if not top.startswith(real + os.sep) or not os.path.isdir(top):
+        return []
+    found = sorted(
+        os.path.relpath(os.path.join(folder, name), real).replace(os.sep, "/")
+        for folder, _dirs, names in os.walk(top)
+        for name in names
+    )
+    return found[:20]
+
+
 def project_context(repo_root: Path, runtime: Path, project: Path, question: str) -> str:
     """Read-only context for the role: summary, plan, deliverables and passages for the question."""
     manifest = _manifest(project)
@@ -244,12 +262,7 @@ def project_context(repo_root: Path, runtime: Path, project: Path, question: str
         summary = str(read_json(project / "context/project_analysis.json").get("summary", ""))
     except (OSError, ValueError):
         summary = ""
-    deliverables: list[str] = []
-    root = project / "deliverables"
-    if root.is_dir():
-        deliverables = [
-            p.relative_to(project).as_posix() for p in sorted(root.rglob("*")) if p.is_file()
-        ][:20]
+    deliverables = _deliverables(runtime, project)
     try:
         hits = search(repo_root, project, question)[:4]
     except (OSError, ValueError, KeyError):
