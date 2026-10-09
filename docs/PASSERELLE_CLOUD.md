@@ -1,6 +1,6 @@
 # Passerelle cloud locale : conception et faits vérifiés
 
-**Statut : la fondation (lot 3) et l'exécuteur multi-modèles (lot 4) sont en place. La passerelle elle-même, le filtre de confidentialité et le contrôle du budget ne sont pas encore écrits : le cloud ne peut donc pas être activé.**
+**Statut : fondation (lot 3), exécuteur (lot 4), passerelle, filtre de confidentialité et modes Apprendre/Travail (lot 5) sont en place. Le contrôle du budget n'est pas encore écrit (lot 6) : la passerelle refuse donc tout appel et le cloud ne peut pas être activé.**
 
 Ce document complète `docs/PLAN_MIGRATION_HYBRIDE.md` (lot 1). Il fixe le contrat que les lots suivants doivent respecter et consigne ce qui a été **vérifié avec le vrai OpenClaw 2026.9.8** (`make native-cloud`, `make native-schema`, `make native-prompt`).
 
@@ -39,6 +39,44 @@ OpenClaw ──► fournisseur "cloudgw" (127.0.0.1:18892/v1) ──► [filtre 
 
 Vérifié avec le vrai OpenClaw 2026.9.8 par `make native-cloud` : une vraie Gateway est démarrée, la route cloud est d'abord refusée, puis acceptée après activation ; la passerelle factice voit le jeton local, deux appels pour un tour avec un outil, et l'identité est enregistrée.
 
+## Passerelle, filtre et modes (lot 5)
+
+`python -m clawfedora.cloud_gateway --root … --runtime-root …` lance la passerelle sur `127.0.0.1:18892`. Pour **chaque** requête, dans cet ordre, et avant que quoi que ce soit ne parte :
+
+1. le jeton local est vérifié en temps constant, ainsi que l'en-tête `Host` (401 sinon) ;
+2. le cloud doit être activé (503 sinon) ;
+3. la requête est bornée (taille, nombre de messages et d'outils) et **normalisée sur liste blanche** : `models`, `route`, `provider`, `plugins`, `transforms`, `reasoning`… sont refusés (400), de sorte qu'un client ne peut ni détourner vers un modèle plus cher ni modifier les réglages de la politique ; le modèle est forcé, la sortie bornée ;
+4. le filtre de confidentialité lit **tout le corps** : prompt système, historique, contexte ajouté, arguments d'appels d'outils et **résultats d'outils** (451 sinon) ;
+5. le budget réserve le coût maximal (402 sinon) ;
+6. la passerelle injecte les réglages de la politique (`provider`, `reasoning`, `usage`), appelle le fournisseur avec **sa** clé, relaie la réponse (en flux aussi) et règle l'usage réel.
+
+Un client qui se déconnecte en plein flux n'interrompt pas la lecture : le fournisseur continue de générer et de facturer, l'usage est lu jusqu'au bout. Un appel sans usage connu garde l'estimation maximale (`interrupted`) ; un appel refusé par le fournisseur la libère (`failed`).
+
+`state/cloud/events.jsonl` (0600) journalise chaque décision **sans contenu ni secret** (catégories, estimation, usage, coût).
+
+### Filtre de confidentialité
+
+Bloque : clés privées, identifiants et clés de services cloud (AWS, Google, Azure : clés de stockage, SAS, secrets applicatifs), jetons (GitHub, GitLab, OpenRouter, Anthropic, OpenAI, Slack, JWT), identifiants dans une URL, valeurs d'allure aléatoire affectées à un mot de passe, une clé ou un jeton, identifiants d'abonnement ou de tenant **réels**, tout contenu non textuel, et les termes de `state/cloud/denylist.txt` (un par ligne, ou `re:motif`).
+
+Laisse passer ce qui sert au cours : plages d'adresses de documentation, adresses privées, `example.com`, références (`var.x`, `{{ vault }}`, `${{ secrets.X }}`), mots de passe d'exemple à faible entropie, exemples canoniques des fournisseurs (`…EXAMPLE`, GUID à zéros ou séquentiels), et les sept prompts des rôles (testés).
+
+**Limite assumée** : un filtre ne reconnaît pas ce qui est confidentiel sans ressembler à un secret (configuration d'un employeur, nom d'un serveur interne). C'est le rôle du mode **Travail** et de la liste personnelle.
+
+### Modes dans Open WebUI
+
+Le mode est le choix du modèle. Sans cloud activé, rien ne change : sept rôles locaux. Cloud activé, chaque rôle apparaît deux fois (« · local » et « · cloud (GLM) »). Une réponse cloud porte un bandeau de provenance. Si le cloud ne peut pas répondre, la réponse locale est donnée **avec un bandeau visible** :
+
+- le filtre a détecté quelque chose (sur le message, le contexte ou, par le journal de la passerelle, un résultat d'outil) : la conversation **passe en local et y reste**. La passerelle de chat ne garde aucun état ; chaque réponse suivante répète le marqueur « 🔒 Conversation passée en local », qui est relu dans l'historique ;
+- budget épuisé, fournisseur indisponible : repli local ponctuel, sans verrouiller le fil.
+
+Les bandeaux sont retirés de l'historique renvoyé au modèle. Un test de repli utilise toujours une **nouvelle session** pour ne pas laisser un tour cloud à moitié fait.
+
+### Faits établis avec le vrai OpenClaw (`make native-cloud`)
+
+- **OpenClaw masque lui-même les jetons** dans les résultats d'outils avant de les envoyer au modèle (`ghp_Zq…7Zq7`) : première protection native. Le filtre de la passerelle protège ce qu'OpenClaw ne sait pas reconnaître (identifiant d'abonnement, termes personnels).
+- **Les statuts 401, 402, 403 et 429 de la passerelle sont interprétés comme un échec d'authentification ou de facturation du fournisseur** : OpenClaw met alors le fournisseur en pause environ une minute (« Inline API key … temporarily disabled »). Un blocage du filtre est propre à une requête : il répond donc **451**, qui ne déclenche pas cette pause, pour que la requête saine suivante passe. Le budget épuisé reste en 402 : s'arrêter est justement l'effet voulu.
+- Un tour cloud de bout en bout (vraie Gateway, vraie passerelle, faux fournisseur) : deux appels comptés pour un tour avec un outil, un secret dans le message bloqué avant tout envoi, un secret n'apparaissant que dans un résultat d'outil (fichier lu par l'agent) bloqué avant tout envoi, la clé du fournisseur absente de tout fichier hors de la passerelle.
+
 ## Contrats imposés par `clawfedora validate`
 
 - Cloud désactivé par défaut (`enabled_by_default: false`) ; l'activation est une décision d'exécution, hors dépôt.
@@ -53,7 +91,6 @@ Vérifié avec le vrai OpenClaw 2026.9.8 par `make native-cloud` : une vraie Gat
 
 | Lot | Contenu |
 |---|---|
-| 5 | La passerelle et le filtre sur **tout** le corps de requête ; modes Apprendre et Travail |
 | 6 | Réservation et journal de **tous** les appels (y compris interrompus), plafond de 25 € réels, commande d'activation avec auto-contrôles |
 | 7 | Atelier : accord explicite par projet, pause visible |
 

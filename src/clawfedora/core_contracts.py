@@ -196,6 +196,17 @@ def _validate_cloud_contracts(
     ).startswith("/"):
         failures.append("core/cloud: passerelle openai-completions avec path_prefix requis")
 
+    upstream = _mapping(cloud.get("upstream"))
+    base_url = str(upstream.get("base_url", ""))
+    if not re.fullmatch(r"https://openrouter\.ai(?:/[A-Za-z0-9_./\-]*)?", base_url):
+        failures.append("core/cloud: base_url du fournisseur doit être https://openrouter.ai")
+    cloud_limits = _mapping(cloud.get("limits"))
+    if not all(
+        type(cloud_limits.get(key)) is int and cloud_limits[key] > 0
+        for key in ("max_request_bytes", "max_messages", "max_tools")
+    ) or int(upstream.get("timeout_seconds", 0) or 0) <= 0:
+        failures.append("core/cloud: limites de requête et délai du fournisseur requis")
+
     alias = str(model.get("alias", ""))
     entry = _mapping(models.get(alias))
     if (

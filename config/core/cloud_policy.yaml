@@ -24,6 +24,15 @@ gateway:
   # Chemin relatif à l'état d'exécution ; lu uniquement par la passerelle, droits 0600.
   upstream_key_file: cloud/upstream.key
   timeout_seconds: 300
+# Seul point de sortie réseau vers le fournisseur. L'hôte est figé : la passerelle ne suit
+# aucune adresse reçue dans une requête.
+upstream:
+  base_url: https://openrouter.ai/api/v1
+  timeout_seconds: 300
+limits:
+  max_request_bytes: 1048576
+  max_messages: 500
+  max_tools: 64
 model:
   alias: cloud-main
   upstream_id: z-ai/glm-5.3-flash
