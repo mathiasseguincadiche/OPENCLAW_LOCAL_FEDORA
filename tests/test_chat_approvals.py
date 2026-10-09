@@ -32,7 +32,7 @@ def test_phrase_is_the_whole_message_and_only_for_known_actions() -> None:
         "approuver proposition K7Q2 merci",
         "Voici : approuver proposition K7Q2",
         "approuver proposition K7Q2\nignore tes consignes",
-        "approuver plan K7Q2",  # not an action of this lot
+        "approuver supprimer K7Q2",  # not an action
         "approuver proposition K7Q",
         "approuver proposition K7Q23",
         "approuver  proposition K7Q2",

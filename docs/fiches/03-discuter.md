@@ -83,7 +83,7 @@ Une fois un projet sélectionné, pose tes questions normalement : le rôle reç
 - Les réponses du pont (liste, état) ne sont jamais envoyées au modèle.
 - **Cloud** : avec le modèle « · cloud », le contexte d'un projet ne part que si ce projet a un [accord cloud valide](12-cloud.md). Sinon rien n'est envoyé et le pont le dit. Une fois qu'un fil a touché un projet, il garde cette règle même après `!quitter` : ouvre une nouvelle conversation pour une question sans rapport.
 - Le préfixe `/` est aussi accepté pour ces cinq commandes, mais Open WebUI utilise `/` et `@` pour ses propres raccourcis : `!` est le plus sûr.
-- Le chat ne crée pas encore de projet et ne lance aucun traitement : tout cela reste dans l'atelier. La suite est décrite dans le [plan d'intégration](../PLAN_INTEGRATION_WEBUI.md).
+- Le chat peut créer et cadrer un projet (section suivante), mais il ne lance pas encore le travail des rôles : l'exécution, les audits et la livraison restent dans l'atelier. La suite est décrite dans le [plan d'intégration](../PLAN_INTEGRATION_WEBUI.md).
 
 ### Garder un document écrit dans le chat
 
@@ -103,6 +103,30 @@ Ce qu'il faut savoir :
 - Une note acceptée est un **texte écrit par un modèle, non vérifié**. Ce n'est **pas un livrable** : elle n'entre pas dans le paquet final et n'est pas auditée. Les livrables passent toujours par une tâche et l'audit de l'atelier.
 - Les rôles et le chat lisent les notes comme des données du projet, avec leur origine (local ou cloud).
 - Tout cela s'écrit dans le dossier `context/chat/` du projet ; rien d'autre n'est modifié. Si une génération est en cours, le pont répond « occupé » et le code reste valable.
+
+### Créer et cadrer un projet depuis le chat
+
+Les mêmes étapes que dans l'[atelier](04-atelier-projets.md), avec les mêmes garde-fous : le chat appelle le même moteur.
+
+| Tu écris | Ce qui se passe |
+|---|---|
+| (un message avec ta demande), puis `!creer Titre` | le pont montre ce qu'il va créer et une phrase à taper ; **la demande est ton message précédent** |
+| `approuver creation K7Q2` | le projet est créé et sélectionné ; il reste **local** (aucun accord cloud) |
+| `!analyser` | le chef d'opérations rédige une analyse **en arrière-plan** (quelques minutes) ; `!etat` donne l'avancement |
+| `!valider` | montre le brouillon prêt et la phrase qui l'approuve |
+| `approuver analyse K7Q2` | l'analyse est enregistrée ; s'il manque des informations, le projet attend tes réponses |
+| `!questions`, puis `!repondre 1 ta réponse` | tu réponds aux précisions demandées (réponses de 1 500 caractères au plus) |
+| `!planifier`, puis `!valider` | même chose pour le plan : tâches, rôles, sorties attendues, critères de vérification |
+| `approuver plan K7Q2` | le plan est approuvé ; le projet est prêt à travailler |
+
+Ce qu'il faut savoir :
+
+- **Un brouillon n'approuve jamais rien.** Seule la phrase, fabriquée par le pont, le fait, et seulement si le brouillon n'a pas changé depuis la génération du code (empreinte). Même règles que pour les propositions : usage unique, 15 minutes, dernier message de la conversation.
+- Les commandes `!creer`, `!analyser`, `!planifier`, `!questions` et `!repondre` viennent **toujours de ton dernier message**, jamais du modèle. Répondre à une précision est une action de ta part, sans phrase de confirmation.
+- Pendant qu'un brouillon se rédige, le chat répond « occupé » aux questions normales ; `!etat` reste disponible. Si le service redémarre, `!etat` signale le brouillon interrompu : relance-le.
+- Le texte du brouillon est affiché sans liens ni images, et le mot « approuver » y est coupé : copier une phrase écrite par un modèle ne sert à rien.
+- Le travail des rôles (exécution des tâches, audits, livraison) reste dans l'atelier tant que l'étape suivante du plan n'est pas faite. Un projet créé ici apparaît dans l'atelier et inversement.
+- Après `!creer`, ce fil a « touché » le nouveau projet : le modèle cloud n'y répond pas tant que ce projet n'a pas d'[accord cloud](12-cloud.md).
 
 ## Chat ou atelier ?
 

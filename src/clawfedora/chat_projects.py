@@ -31,10 +31,16 @@ BRIDGE_SUFFIX = " · pont"
 BRIDGE_PLACEHOLDER = "(réponse du pont, non transmise au modèle)"
 MAX_CONTEXT_BYTES = 7000
 MAX_LISTED = 50
+FLOW_COMMANDS = ("creer", "analyser", "planifier", "valider", "questions", "repondre")
 COMMANDS = (
     "aide", "projets", "projet", "etat", "quitter",
     "garder", "propositions", "voir", "accepter", "refuser",
+    *FLOW_COMMANDS,
 )
+# Commands whose argument is a sentence the user writes: a longer single line is accepted.
+LONG_COMMANDS = ("repondre",)
+MAX_COMMAND_CHARS = 200
+MAX_LONG_COMMAND_CHARS = 1700
 
 _MARKER = re.compile(
     r"^" + re.escape(PROJECT_MARKER) + r"([a-z0-9][a-z0-9-]{1,62}[a-z0-9])(" + BRIDGE_SUFFIX + r")?$"
@@ -68,10 +74,17 @@ def _fold(word: str) -> str:
 def parse_command(text: str) -> tuple[str, str] | None:
     """(name, arguments) for a one-line message starting with ``!``, or ``/`` + a known name."""
     stripped = text.strip()
-    if not stripped or len(stripped) > 200 or "\n" in stripped or stripped[0] not in "!/":
+    if (
+        not stripped
+        or len(stripped) > MAX_LONG_COMMAND_CHARS
+        or "\n" in stripped
+        or stripped[0] not in "!/"
+    ):
         return None
     head, _, rest = stripped[1:].partition(" ")
     name = _fold(head)
+    if len(stripped) > MAX_COMMAND_CHARS and name not in LONG_COMMANDS:
+        return None
     if stripped[0] == "/" and name not in COMMANDS:
         return None
     return name, rest.strip()
@@ -142,7 +155,10 @@ def open_project(runtime: Path, project_id: str) -> Path | None:
 
 
 def _cell(value: object, limit: int = 70) -> str:
-    return re.sub(r"[|\r\n`]+", " ", str(value)).strip()[:limit]
+    """Text from a model or a file, made safe to show: no table break, no link or image syntax."""
+    text = re.sub(r"[|\r\n`\[\]<>]+", " ", str(value)).strip()[:limit]
+    # A phrase copied from model text must not work as an approval: break the word.
+    return re.sub(r"(?i)approuver", lambda m: m.group(0) + "\u200b", text)
 
 
 def _tasks(project: Path) -> list[dict[str, str]]:
@@ -247,6 +263,14 @@ def status_text(repo_root: Path, runtime: Path, project: Path) -> str:
         waiting = sum(r["status"] == "pending" for r in rows)
         notes = sum(r["status"] == "accepted" for r in rows)
         lines.append(f"Propositions : {waiting} en attente, {notes} acceptée(s) comme notes")
+    from clawfedora import chat_flow
+
+    job = chat_flow.job_line(runtime, project.name)
+    if job:
+        lines.append(job)
+    step = chat_flow.next_step(runtime, project)
+    if step:
+        lines.append(f"Prochaine étape : {step}")
     working = progress(runtime)
     if working.get("active") and working.get("project_id") == project.name:
         lines.append(f"Un traitement est en cours : {_cell(working.get('phase', ''), 30)} "
@@ -481,11 +505,17 @@ HELP = """Commandes du pont (comprises par le programme, jamais par le modèle) 
 - `!propositions` : liste les propositions ; `!voir <n>` en affiche une
 - `!accepter <n>` : demande l'acceptation ; le pont donne alors une phrase à taper pour confirmer
 - `!refuser <n>` : écarte une proposition
+- `!creer <titre>` : crée un projet dont la demande est **votre message précédent**
+  (confirmation par phrase)
+- `!analyser`, `!planifier` : demandent une analyse ou un plan au chef d'opérations, en arrière-plan
+- `!valider` : montre le brouillon prêt et la phrase qui l'approuve
+- `!questions`, `!repondre <n°> <réponse>` : les précisions demandées par l'analyse
 - `!aide` : cette aide
 
 Avec un projet sélectionné, posez vos questions normalement : le rôle lit le projet en
-**lecture seule**. Seules les propositions sont écrites dans le projet, et une proposition
-acceptée devient une **note** (jamais un livrable : les livrables passent par l'audit de l'atelier).
+**lecture seule**. Ce que le chat écrit dans un projet passe par vos commandes et, pour
+une approbation, par une phrase de confirmation : propositions (qui deviennent des **notes**,
+jamais des livrables), création, analyse et plan.
 La phrase de confirmation est générée par le pont, à usage unique, valable 15 minutes :
 le modèle ne la voit jamais."""
 

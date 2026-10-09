@@ -18,7 +18,7 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
 
-from clawfedora import chat_approvals, chat_projects, project_cloud
+from clawfedora import chat_approvals, chat_flow, chat_projects, project_cloud
 from clawfedora.agents import load_agent_specs
 from clawfedora.cloud_budget import BudgetRefused, load_ledger
 from clawfedora.cloud_privacy import LABELS, PrivacyFilter, describe
@@ -79,6 +79,18 @@ def defang(text: str) -> str:
     if body.partition("\n\n")[0].startswith(BANNER_PREFIXES):
         return "\u200b" + body
     return text
+
+
+def last_brief(messages: list[dict[str, Any]]) -> str | None:
+    """The user's message before the command: the request a new project is made from."""
+    for item in reversed(messages[:-1]):
+        content = item.get("content") if isinstance(item, dict) else None
+        if item.get("role") != "user" or not isinstance(content, str) or not content.strip():
+            continue
+        if chat_projects.parse_command(content) or chat_approvals.parse_phrase(content):
+            continue
+        return content.strip()
+    return None
 
 
 def last_answer(messages: list[dict[str, Any]], model: str) -> chat_projects.Answer | None:
@@ -432,9 +444,14 @@ class BridgeHandler(BaseHTTPRequestHandler):
         approval = chat_approvals.parse_phrase(typed)
         if approval is not None:
             try:
-                reply = chat_projects.apply_approval(
-                    self.server.runtime, approval[0], approval[1], current
-                )
+                if approval[0] == "proposition":
+                    reply = chat_projects.apply_approval(
+                        self.server.runtime, approval[0], approval[1], current
+                    )
+                else:
+                    reply = chat_flow.apply_approval(
+                        self.server.repo_root, self.server.runtime, approval[0], approval[1], current
+                    )
             except (OSError, ValueError, KeyError) as exc:
                 reply = chat_projects.bridge_reply(current, f"Confirmation impossible : {exc}")
             self._completion(data, reply)
@@ -443,14 +460,21 @@ class BridgeHandler(BaseHTTPRequestHandler):
         if command is not None:
             name, args = command
             try:
-                reply = chat_projects.run_command(
-                    self.server.repo_root,
-                    self.server.runtime,
-                    name,
-                    args,
-                    current,
-                    last_answer(messages, str(data["model"])),
-                )
+                if name in chat_projects.FLOW_COMMANDS:
+                    flow = chat_flow.Flow(
+                        self.server.repo_root, self.server.runtime, current,
+                        last_brief(messages), self.server.runner,
+                    )
+                    reply = chat_flow.run_command(flow, name, args)
+                else:
+                    reply = chat_projects.run_command(
+                        self.server.repo_root,
+                        self.server.runtime,
+                        name,
+                        args,
+                        current,
+                        last_answer(messages, str(data["model"])),
+                    )
             except (OSError, ValueError, KeyError) as exc:
                 reply = chat_projects.bridge_reply(current, f"Commande impossible : {exc}")
             self._completion(data, reply)

@@ -28,7 +28,9 @@ MAX_PENDING = 20
 # No 0/O/1/I/L: the code is read on screen and typed by hand.
 ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 CODE_LENGTH = 4
-ACTIONS = ("proposition",)
+ACTIONS = ("proposition", "creation", "analyse", "plan")
+# Scope of an approval that belongs to no project yet (creating one).
+GLOBAL = "_global"
 
 _PHRASE = re.compile(
     rf"approuver ([a-z]{{3,20}}) ([a-z0-9]{{{CODE_LENGTH}}})", re.IGNORECASE
@@ -47,6 +49,7 @@ class Pending:
     digest: str
     summary: str
     expires_at: float
+    payload: dict[str, Any] | None = None
 
     def phrase(self) -> str:
         return phrase(self.action, self.code)
@@ -83,7 +86,8 @@ def _store(runtime: Path) -> Path:
 @contextmanager
 def _locked(runtime: Path, project_id: str) -> Iterator[Path]:
     """The records of one project, under an exclusive lock: a code cannot be used twice."""
-    project_id = validate_project_id(project_id)
+    if project_id != GLOBAL:
+        project_id = validate_project_id(project_id)
     directory = _store(runtime)
     lock = directory / f"{project_id}.lock"
     fd = os.open(lock, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
@@ -127,6 +131,7 @@ def _pending(code: str, item: dict[str, Any]) -> Pending:
         digest=str(item["digest"]),
         summary=str(item.get("summary", "")),
         expires_at=float(item["expires_at"]),
+        payload=item["payload"] if isinstance(item.get("payload"), dict) else None,
     )
 
 
@@ -138,6 +143,7 @@ def issue(
     digest: str,
     summary: str,
     *,
+    payload: dict[str, Any] | None = None,
     now: Callable[[], float] = _clock,
 ) -> Pending:
     """A new code for (project, action, target). An older code for the same target is revoked."""
@@ -162,6 +168,7 @@ def issue(
             "digest": digest,
             "summary": summary[:300],
             "expires_at": moment + TTL_SECONDS,
+            **({"payload": payload} if payload is not None else {}),
         }
         _save(path, {"pending": pending, "failures": state["failures"]})
         return _pending(code, pending[code])

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import contextlib
 import json
 import shutil
 import tempfile
@@ -46,7 +47,10 @@ UPLOAD_FORMATS = {
 }
 
 
-def create_from_browser(repo: Path, runtime: Path, data: dict[str, Any]) -> Path:
+def create_from_browser(
+    repo: Path, runtime: Path, data: dict[str, Any], *, lock: bool = True
+) -> Path:
+    """``lock=False``: the caller already holds the worker lock (the chat approval does)."""
     title, brief = str(data["title"]).strip(), str(data["brief"]).strip()
     uploads = data.get("files", [])
     if not title or len(title) > 200 or not brief or len(brief.encode()) > 12000:
@@ -77,7 +81,7 @@ def create_from_browser(repo: Path, runtime: Path, data: dict[str, Any]) -> Path
             target.write_bytes(content)
             inputs.append(target)
             labels[target.name] = name
-        with worker_lock(runtime, allow_gaming=True):
+        with worker_lock(runtime, allow_gaming=True) if lock else contextlib.nullcontext():
             project = create_project(
                 repo,
                 runtime,
@@ -242,8 +246,16 @@ def propose(
         return draft
 
 
-def approve(repo: Path, runtime: Path, project: Path, kind: str, proposal: dict[str, Any]) -> None:
-    with worker_lock(runtime, allow_gaming=True):
+def approve(
+    repo: Path,
+    runtime: Path,
+    project: Path,
+    kind: str,
+    proposal: dict[str, Any],
+    *,
+    lock: bool = True,
+) -> None:
+    with worker_lock(runtime, allow_gaming=True) if lock else contextlib.nullcontext():
         if kind == "analysis":
             store_analysis(repo, project, proposal)
             create_clarifications(repo, project)
