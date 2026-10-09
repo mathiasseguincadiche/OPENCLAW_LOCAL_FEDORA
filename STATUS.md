@@ -22,7 +22,7 @@ Tant que les lignes « À faire » et « À mesurer » ne sont pas faites, rien 
 
 ## Qualité des explications en local
 
-Rien n'est prouvé sur la justesse des explications de Qwen. Ce qui est en place : des consignes qui imposent les étiquettes observé/vérifié/proposé/non vérifié, des sources réelles uniquement, la portée exacte des contrôles ; et le cloud facultatif pour comparer ou compléter. Pistes à décider **après** le premier essai, selon les défauts réellement observés : activer le raisonnement long pour le mentor (plus lent), enrichir les consignes sur les notions où il se trompe, ou faire du mentor cloud le choix par défaut si GLM est nettement meilleur à un coût tenable. Voir [Apprendre](docs/fiches/05-apprendre.md).
+Rien n'est mesuré sur ta machine. Les sources publiques tranchent déjà pour l'apprentissage : le cloud GLM, pour les questions publiques ; le local Qwen, pour le travail et le confidentiel ([détail et sources](docs/DECISION_MODELE.md)). Ce qui est en place : des consignes qui imposent les étiquettes observé/vérifié/proposé/non vérifié, des sources réelles uniquement, la portée exacte des contrôles ; et le cloud facultatif pour comparer ou compléter. Pistes à décider **après** le premier essai, selon les défauts réellement observés : activer le raisonnement long pour le mentor (plus lent), enrichir les consignes sur les notions où il se trompe, ou faire du mentor cloud le choix par défaut si GLM est nettement meilleur à un coût tenable. Voir [Apprendre](docs/fiches/05-apprendre.md).
 
 ## Mesures sur le PC
 

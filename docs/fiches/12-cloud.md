@@ -142,6 +142,7 @@ Chaque projet affiche le dernier modèle utilisé, le nombre d'appels cloud et u
 | « limite de clé (en ligne) » | La clé n'a pas de limite de crédit, ou son plafond dépasse celui que tu as déclaré : corrige chez OpenRouter |
 | Le modèle « · cloud » n'apparaît pas dans Open WebUI | Le cloud n'est pas activé : `cloud-status` |
 | Chaque appel cloud est refusé en 402 | Plafond atteint, ou journal du budget illisible : `cloud-status` |
+| OpenRouter répond « no endpoints » (404) | Aucun hébergeur du modèle ne remplit `data_collection: deny`. Ne relâche pas ce réglage sans avoir lu la politique de données de l'hébergeur : voir [Quel modèle pour expliquer](../DECISION_MODELE.md) |
 | Un blocage te semble à tort | Le message nomme la catégorie ; vérifie `denylist.txt` |
 | Après une restauration, le cloud ne marche plus | La sauvegarde ne contient pas ta clé : relance `cloud-set-key`, puis `cloud-enable` |
 | Tu veux changer de clé | `cloud-set-key` propose de remplacer la clé existante |
@@ -157,6 +158,8 @@ Vérifié automatiquement : le filtre sur tous les chemins du contenu (y compris
 **Jamais essayé avec le vrai OpenRouter** : la qualité de GLM, le coût réel d'un tour avec outils, la forme exacte de la réponse qui donne la limite de ta clé, le service sur ton Fedora. Fais le test de fumée ci-dessous avant de t'y fier.
 
 ## Test de fumée à faire une fois
+
+À la première réponse cloud, vérifie aussi que le routage fonctionne avec la politique de données de la passerelle (erreur « no endpoints » : voir le tableau ci-dessus).
 
 1. `./menu.sh --action cloud-status` : « ready=1 », budget à 0 €.
 2. Dans Open WebUI, pose une question publique au modèle « · cloud (GLM) » : le bandeau cloud apparaît. Note le coût dans `cloud-status`.

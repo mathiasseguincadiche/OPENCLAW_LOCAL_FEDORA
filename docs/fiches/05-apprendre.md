@@ -37,7 +37,7 @@ Ce que tu peux faire :
 1. Pour une version, une commande sensible ou un chiffre, demande « avec quelle source ? » : le mentor cherche, ou dit qu'il ne sait pas.
 2. Demande-lui « qu'est-ce qui n'est pas vérifié dans ta réponse ? ».
 3. Vérifie toujours dans la documentation officielle avant d'exécuter.
-4. Si l'explication te semble faible ou fausse sur une notion **publique**, repose la même question au modèle « · cloud (GLM) » ([Le cloud, facultatif](12-cloud.md)) et compare. Cette comparaison à l'usage est le meilleur moyen de savoir où le local suffit.
+4. Pour **apprendre une notion publique**, privilégie le modèle « · cloud (GLM) » : d'après les sources publiques, il invente nettement moins que Qwen 9B quand il ne sait pas (28 % contre 82 %). Garde « · local » pour le travail et le confidentiel. Voir [Quel modèle pour expliquer](../DECISION_MODELE.md) et [Le cloud, facultatif](12-cloud.md). Compare sur tes propres questions : c'est ce qui confirmera ou corrigera cette décision.
 
 La qualité réelle des explications n'a pas encore été mesurée sur ta machine : voir [STATUS](../../STATUS.md).
 
