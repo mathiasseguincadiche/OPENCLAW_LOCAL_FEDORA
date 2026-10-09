@@ -72,7 +72,9 @@ def test_invalid_editor_saves_and_decompression_bombs_are_rejected(content: str)
 
 def create_drawio_project(runtime: Path) -> Path:
     deploy_workspaces(ROOT, runtime)
-    project = create_project(ROOT, runtime, "drawio-learning", "Mon schéma Draw.io")
+    project = create_project(
+        ROOT, runtime, "drawio-learning", "Mon schéma Draw.io", learning_mode="guided"
+    )
     store_analysis(
         ROOT,
         project,

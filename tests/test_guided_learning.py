@@ -9,8 +9,8 @@ from test_daily_worker import planned as planned
 
 from clawfedora.agents import deploy_workspaces
 from clawfedora.core_config import AGENT_IDS
-from clawfedora.learning import awaiting, checkpoints, contract, initialize, submit
-from clawfedora.project_common import read_json
+from clawfedora.learning import awaiting, checkpoints, contract, initialize, submit, task_mode
+from clawfedora.project_common import read_json, write_json
 from clawfedora.project_engine import ready_tasks, transition_project
 from clawfedora.project_intake import create_project
 from clawfedora.project_worker import run_project_tasks, worker_lock
@@ -54,11 +54,12 @@ def payload(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def test_new_projects_default_to_adaptive_and_all_roles_receive_common_context(
+def test_new_projects_default_to_direct_and_all_roles_receive_common_context(
     tmp_path: Path,
 ) -> None:
     project = create_project(ROOT, tmp_path, "guided-project", "Guidé")
-    assert contract(project)["mode"] == "adaptive"
+    assert contract(project)["mode"] == "direct"
+    assert contract(project)["practice_opt_in_required"] is True
     shared = (ROOT / "agents/_shared/PEDAGOGY.md").read_text()
     assert "huit agents" not in shared and "Gemma" not in shared
     deploy_workspaces(ROOT, tmp_path)
@@ -67,6 +68,49 @@ def test_new_projects_default_to_adaptive_and_all_roles_receive_common_context(
         assert effective.startswith(shared)
         assert "laisser une action" in effective
         assert "compétence acquise" in effective
+
+
+
+def test_adaptive_explanation_is_not_blocked_by_a_suggested_exercise(
+    planned: tuple[Path, Path],
+) -> None:
+    runtime, project = planned
+    initialize(project, mode="adaptive")
+    packet = project / "context/tasks/design-choice.json"
+    data = read_json(packet)
+    data["task"]["learning_mode"] = "guided"  # Suggested by a model, not accepted.
+    write_json(packet, data)
+    results = run_project_tasks(ROOT, runtime, project, runner=starter)
+    assert len(results) == 2 and all(item["status"] == "PASS" for item in results)
+    assert awaiting(project) == []
+    assert (project / "deliverables/design-choice/report.md").is_file()
+
+
+def test_adaptive_exercise_requires_explicit_task_opt_in(
+    planned: tuple[Path, Path],
+) -> None:
+    runtime, project = planned
+    initialize(project, mode="adaptive")
+    packet = project / "context/tasks/design-choice.json"
+    data = read_json(packet)
+    data["task"].update(learning_mode="guided", practice_opt_in=True)
+    write_json(packet, data)
+    results = run_project_tasks(ROOT, runtime, project, runner=starter)
+    assert results[0]["status"] == "AWAITING_PRACTICE"
+    assert awaiting(project)[0]["task_id"] == "design-choice"
+
+
+def test_old_adaptive_contract_keeps_approved_guided_behaviour(
+    planned: tuple[Path, Path],
+) -> None:
+    _runtime, project = planned
+    initialize(project, mode="adaptive")
+    path = project / "context/learning/contract.json"
+    saved = read_json(path)
+    saved.pop("practice_opt_in_required")
+    write_json(path, saved)
+    assert task_mode(project, {"role": "architecte-solutions"}) == "guided"
+    assert task_mode(project, {"role": "redacteur-pedagogique"}) == "direct"
 
 
 def test_guidance_does_not_publish_or_complete_work_and_resume_waits_for_learner(
@@ -123,7 +167,7 @@ def test_invalid_practice_does_not_promote_or_write(
     invalid: dict[str, Any],
 ) -> None:
     runtime, project = planned
-    initialize(project)
+    initialize(project, mode="guided")
     run_project_tasks(ROOT, runtime, project, runner=starter)
     item = awaiting(project)[0]
     with pytest.raises(ValueError):
@@ -151,7 +195,7 @@ def test_submitted_task_only_selects_an_existing_waiting_checkpoint(
     identifier: str,
 ) -> None:
     runtime, project = planned
-    initialize(project)
+    initialize(project, mode="guided")
     run_project_tasks(ROOT, runtime, project, runner=starter)
     item = awaiting(project)[0]
     with pytest.raises(ValueError):
@@ -162,7 +206,7 @@ def test_submitted_task_only_selects_an_existing_waiting_checkpoint(
 
 def test_guided_plan_cannot_be_audited_before_practice(planned: tuple[Path, Path]) -> None:
     runtime, project = planned
-    initialize(project)
+    initialize(project, mode="guided")
     run_project_tasks(ROOT, runtime, project, runner=starter)
     with pytest.raises(ValueError, match="toutes les tâches"):
         transition_project(ROOT, project, "VALIDATING", actor="auditeur-qualite", reason="skip")

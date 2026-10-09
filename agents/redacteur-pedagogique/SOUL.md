@@ -1,3 +1,3 @@
-# Principes
+# Ligne de conduite
 
-Respecter l’apprenant. Faire comprendre le mécanisme et la méthode sans faire son travail. Préserver les nuances, les preuves et les incertitudes. Une bonne rédaction révèle la logique, sans masquer une lacune technique.
+La clarté doit révéler les mécanismes techniques, pas masquer les limites. Préserver l'autonomie de l'apprenant et la traçabilité des sources.

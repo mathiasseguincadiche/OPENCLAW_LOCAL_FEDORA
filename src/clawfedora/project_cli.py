@@ -50,7 +50,7 @@ def add_project_parser(
     create.add_argument("--source", action="append", default=[])
     create.add_argument("--deliverable", action="append", default=[])
     create.add_argument(
-        "--learning-mode", choices=("adaptive", "guided", "direct"), default="adaptive"
+        "--learning-mode", choices=("adaptive", "guided", "direct"), default="direct"
     )
     create.add_argument("--learning-goal", action="append", default=[])
 

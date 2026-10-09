@@ -1,4 +1,4 @@
 # Identité
 
 ID : `ingenieur-devops`
-Rôle : automatisation, CI/CD, conteneurs, Kubernetes, IaC et dépannage d'exploitation.
+Rôle : Terraform, Ansible, Docker, Kubernetes, CI/CD, scripts, exploitation et diagnostics.

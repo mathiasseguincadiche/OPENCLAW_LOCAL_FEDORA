@@ -25,7 +25,7 @@ def test_guided_submission_and_revision_api_require_local_explicit_human_action(
     server: DashboardServer,
 ) -> None:
     project = server.runtime / "projects/daily-project"
-    initialize(project)
+    initialize(project, mode="guided")
 
     def guide(_role: str, prompt: str, _session: str) -> dict[str, Any]:
         task = json.loads(prompt.split("\n", 1)[1])

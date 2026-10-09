@@ -13,10 +13,20 @@ SHARED_FILES = ("CONTRACT.md", "TOOLS.md", "HEARTBEAT.md", "PEDAGOGY.md")
 # OpenClaw injects AGENTS.md, not arbitrary Markdown files: the shared pedagogy and
 # tool guide and contract must be part of it to reach the model without an extra read call.
 INJECTED_SHARED = ("PEDAGOGY.md", "TOOLS.md", "CONTRACT.md")
+MAX_INSTRUCTION_CHARS = 12000
+# These files are injected separately by OpenClaw as well as the assembled AGENTS.
+BOOTSTRAP_FILES = ("AGENTS.md", "IDENTITY.md", "SOUL.md", "TOOLS.md", "HEARTBEAT.md")
+
+
+def bootstrap_chars(text: str) -> int:
+    """OpenClaw uses JavaScript string length (UTF-16 units), including separators."""
+    return len(text.encode("utf-16-le")) // 2
 
 
 def effective_instructions(repo_root: Path, agent_id: str) -> str:
     """Exact AGENTS.md deployed to a workspace and injected in every prompt."""
+    if agent_id not in AGENT_IDS:
+        raise ValueError(f"agents: rôle inconnu: {agent_id}")
     shared = repo_root / "agents" / "_shared"
     parts = [
         (shared / "PEDAGOGY.md").read_text(encoding="utf-8"),
@@ -89,13 +99,33 @@ def validate_agent_assets(repo_root: Path) -> tuple[str, ...]:
         if prompt.is_file() and all((shared / name).is_file() for name in INJECTED_SHARED):
             # OpenClaw silently truncates an injected file above bootstrapMaxChars.
             try:
-                limit = int(daily_limits(repo_root)["bootstrap_max_chars"])
+                limits = daily_limits(repo_root)
+                limit = int(limits["bootstrap_max_chars"])
+                total_limit = int(limits["bootstrap_total_max_chars"])
             except (FileNotFoundError, ValueError) as exc:
                 failures.append(f"agents: limites quotidiennes invalides: {exc}")
                 break
-            if len(effective_instructions(repo_root, spec.agent_id)) > limit:
+            if not 0 < limit <= MAX_INSTRUCTION_CHARS or total_limit <= 0:
+                failures.append("agents: limites bootstrap invalides (maximum 12000 caractères)")
+                break
+            assembled = effective_instructions(repo_root, spec.agent_id)
+            if bootstrap_chars(assembled) > limit:
                 failures.append(
                     f"agents: consignes injectées au-delà de bootstrap_max_chars: {spec.agent_id}"
+                )
+            injected = [assembled]
+            for filename in BOOTSTRAP_FILES[1:]:
+                source = (role_root if filename in ROLE_FILES else shared) / filename
+                if source.is_file():
+                    content = source.read_text(encoding="utf-8")
+                    injected.append(content)
+                    if bootstrap_chars(content) > limit:
+                        failures.append(
+                            f"agents: {spec.agent_id}/{filename} au-delà de bootstrap_max_chars"
+                        )
+            if sum(bootstrap_chars(content) for content in injected) > total_limit:
+                failures.append(
+                    f"agents: fichiers injectés au-delà de bootstrap_total_max_chars: {spec.agent_id}"
                 )
     toolkit = repo_root / "plugins/clawfedora-toolkit"
     for filename in ("package.json", "openclaw.plugin.json", "index.mjs"):

@@ -275,8 +275,12 @@ def _validate_plan(tasks: list[dict[str, Any]]) -> None:
         role = str(task.get("role", ""))
         if role not in AGENT_IDS:
             raise ValueError(f"{task_id}: rôle inconnu: {role}")
-        if task.get("learning_mode", "guided") not in {"guided", "direct"}:
+        if task.get("learning_mode", "direct") not in {"guided", "direct"}:
             raise ValueError(f"{task_id}: learning_mode guided ou direct requis")
+        if "practice_opt_in" in task and not isinstance(task["practice_opt_in"], bool):
+            raise ValueError(f"{task_id}: practice_opt_in doit être booléen")
+        if task.get("practice_opt_in") is True and task.get("learning_mode") != "guided":
+            raise ValueError(f"{task_id}: practice_opt_in requiert learning_mode guided")
         if task.get("writing_scope", "final") not in {"final", "intermediate"}:
             raise ValueError(f"{task_id}: writing_scope final ou intermediate requis")
         for field in ("title", "objective"):

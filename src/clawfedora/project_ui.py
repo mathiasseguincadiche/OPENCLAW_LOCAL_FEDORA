@@ -83,7 +83,7 @@ def create_from_browser(repo: Path, runtime: Path, data: dict[str, Any]) -> Path
                 "projet-" + uuid.uuid4().hex[:12],
                 title,
                 intake_items=inputs,
-                learning_mode=str(data.get("learning_mode", "adaptive")),
+                learning_mode=str(data.get("learning_mode", "direct")),
                 learning_goals=data.get("learning_goals", []),
             )
             write_json(project / "context/upload_labels.json", labels)
@@ -188,8 +188,9 @@ def propose(
                 "avec aperçu .svg facultatif du même outil; "
                 f"sorties au plus {output_tokens} tokens "
                 "par tâche. Lire context/learning/contract.json et mentor.json s’il existe. "
-                "Mode adaptive: learning_mode guided pour une compétence nouvelle à pratiquer, "
-                "direct pour une aide maîtrisée, recherche ou rédaction. Plan approuvé par l’humain. "
+                "Aide directe et explication complète par défaut. En mode adaptatif, "
+                "une pratique guidée exige un choix positif de l'utilisateur au plan. "
+                "Ne jamais imposer un exercice à partir du rôle de l'agent seul. "
                 "Tenir compte du background Linux/réseau; expliquer l’utile. "
                 "Ne pas proposer une livraison "
                 "entière d’un coup. Une tâche de rédaction, si utile, revient au rédacteur "
@@ -221,6 +222,12 @@ def propose(
             not isinstance(value.get("tasks"), list) or not 1 <= len(value["tasks"]) <= 4
         ):
             raise ValueError("plan proposé: 1 à 4 tâches requises")
+        if kind == "plan":
+            for task in value["tasks"]:
+                if not isinstance(task, dict):
+                    raise ValueError("plan proposé: tâche objet requise")
+                # The model may suggest practice, but cannot consent for the human.
+                task.pop("practice_opt_in", None)
         draft = {
             "kind": kind,
             "proposal": value,

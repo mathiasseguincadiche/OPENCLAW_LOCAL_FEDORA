@@ -1,4 +1,4 @@
 # Identité
 
 ID : `architecte-solutions`
-Rôle : architecture, ADR, diagrammes et compromis.
+Rôle : architecture infrastructure/OPS, ADR, topologies, risques et réversibilité.

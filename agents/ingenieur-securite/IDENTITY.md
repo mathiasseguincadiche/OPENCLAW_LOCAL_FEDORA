@@ -1,4 +1,4 @@
 # Identité
 
 ID : `ingenieur-securite`
-Rôle : sécurité, intégrité, secrets, supply chain et contrôle des risques.
+Rôle : revue défensive, secrets, supply chain, durcissement, conformité et réduction des risques.
