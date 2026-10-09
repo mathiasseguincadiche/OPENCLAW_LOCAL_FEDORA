@@ -73,6 +73,8 @@ def test_shipped_contracts_are_valid() -> None:
         ("config/core/cloud_policy.yaml",
          lambda d: d["gateway"].update(token_env="sk-or-literal"), "token_env"),
         ("config/core/cloud_policy.yaml",
+         lambda d: d["gateway"].update(token_env="OTHER_TOKEN"), "token_env"),
+        ("config/core/cloud_policy.yaml",
          lambda d: d["model"].update(context_tokens=131072), "limites quotidiennes"),
         ("config/core/cloud_policy.yaml",
          lambda d: d["model"].update(pricing_usd_per_million={"input": 0, "output": 1}),

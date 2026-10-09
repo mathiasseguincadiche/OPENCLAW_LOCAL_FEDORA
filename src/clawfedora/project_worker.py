@@ -6,8 +6,10 @@ import fcntl
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
+import time
 import uuid
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
@@ -16,6 +18,8 @@ from typing import Any
 
 from clawfedora.core_config import (
     AGENT_IDS,
+    CLOUD_PROVIDER_ID,
+    CLOUD_TOKEN_ENV,
     core_contract,
     daily_limits,
     openclaw_environment,
@@ -47,7 +51,10 @@ from clawfedora.structured_response import (
     validate_response,
 )
 
-AgentRunner = Callable[[str, str, str], dict[str, Any]]
+# runner(role, prompt, session) runs the local model; a caller that has decided to use the cloud
+# passes route="cloud" explicitly. Nothing falls back from local to cloud.
+AgentRunner = Callable[..., dict[str, Any]]
+ROUTES = ("local", "cloud")
 
 
 @contextmanager
@@ -81,17 +88,86 @@ def _guard(root: Path) -> dict[str, str]:
     }
 
 
+def _verify_cloud_config(
+    repo_root: Path, agents: dict[str, Any], providers: dict[str, Any]
+) -> None:
+    """The cloud provider must still be exactly the loopback gateway of the policy."""
+    cloud = core_contract(repo_root, "cloud_policy.yaml")
+    gateway = cloud["gateway"]
+    expected_url = f"http://{gateway['host']}:{gateway['port']}{gateway['path_prefix']}"
+    provider = providers.get(CLOUD_PROVIDER_ID)
+    if not isinstance(provider, dict) or provider.get("baseUrl") != expected_url:
+        raise ValueError("passerelle cloud divergente du contrat: route cloud refusée")
+    if provider.get("api") != gateway["api"]:
+        raise ValueError("transport de la passerelle cloud divergent: route cloud refusée")
+    listed = provider.get("models")
+    if not isinstance(listed, list) or [
+        item.get("id") for item in listed if isinstance(item, dict)
+    ] != [cloud["model"]["upstream_id"]]:
+        raise ValueError("modèle de la passerelle cloud divergent: route cloud refusée")
+    # `config get` redacts the reference name but keeps its shape: an environment reference is
+    # an object, a literal credential would be a plain string.
+    key = provider.get("apiKey")
+    if not (
+        isinstance(key, dict)
+        and key.get("source") == "env"
+        and key.get("id") in {CLOUD_TOKEN_ENV, "__OPENCLAW_REDACTED__"}
+    ):
+        raise ValueError("la passerelle cloud ne doit référencer que le jeton local (jeton local)")
+    from clawfedora.openclaw_config import cloud_model_ref
+
+    defaults = agents.get("defaults")
+    allowed = defaults.get("modelPolicy", {}).get("allow") if isinstance(defaults, dict) else None
+    if not isinstance(allowed, list) or cloud_model_ref(cloud) not in allowed:
+        raise ValueError("liste d'autorisation des modèles divergente: route cloud refusée")
+
+
+def _record_model_run(
+    runtime: Path, session: str, role: str, route: str, envelope: dict[str, Any]
+) -> dict[str, Any]:
+    """Keep which model really answered. No content is stored."""
+    result = envelope.get("result")
+    meta = result.get("meta", {}) if isinstance(result, dict) else {}
+    agent_meta = meta.get("agentMeta", {}) if isinstance(meta, dict) else {}
+    usage = agent_meta.get("usage") if isinstance(agent_meta, dict) else None
+    record = {
+        "session_id": session,
+        "role": role,
+        "route": route,
+        "provider": agent_meta.get("provider") if isinstance(agent_meta, dict) else None,
+        "model": agent_meta.get("model") if isinstance(agent_meta, dict) else None,
+        "usage": {
+            key: value
+            for key, value in (usage.items() if isinstance(usage, dict) else [])
+            if isinstance(value, int) and not isinstance(value, bool)
+        },
+        "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+    name = re.sub(r"[^A-Za-z0-9_.-]", "_", session)[:120] or "session"
+    write_json(runtime / "state/model-runs" / f"{name}.json", record)
+    return record
+
+
 def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False) -> AgentRunner:
     checked_binary: tuple[str, int, int] | None = None
     roster_stamp: tuple[int, int] | None = None
+    cloud_stamp: tuple[int, int] | None = None
 
-    def run(role: str, prompt: str, session: str) -> dict[str, Any]:
-        nonlocal checked_binary, roster_stamp
+    def run(role: str, prompt: str, session: str, *, route: str = "local") -> dict[str, Any]:
+        nonlocal checked_binary, roster_stamp, cloud_stamp
         from clawfedora import ollama_api
+        from clawfedora.cloud_state import require_cloud_ready
         from clawfedora.lifecycle import model_plan
         from clawfedora.model_identity import verify_model_lock
+        from clawfedora.openclaw_config import cloud_model_ref
         from clawfedora.version_lock import extract_openclaw_version
 
+        if route not in ROUTES:
+            raise ValueError(f"route inconnue: {route}")
+        cloud = route == "cloud"
+        if cloud:
+            # Cheapest check first: no process starts unless filter and budget are verified.
+            require_cloud_ready(runtime, repo_root)
         env = openclaw_environment(runtime)
         # Versions are rechecked when the CLI binary changes, not on every message:
         # each check is a full process start.
@@ -107,8 +183,9 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
         except OSError:
             binary_stamp = None
         pins = root_contract(repo_root, "runtime_versions.yaml")
-        # A local HTTP call is cheap: the Ollama version is verified on every message.
-        if (
+        # A local HTTP call is cheap: the Ollama version is verified on every local message.
+        # A cloud turn does not need Ollama at all.
+        if not cloud and (
             ollama_api.request_json("http://127.0.0.1:11434/api/version").get("version")
             != pins["ollama"]["version"]
         ):
@@ -131,10 +208,11 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
 
         plan = model_plan(repo_root)
         daily_model = str(plan[0]["runtime_id"])
-        identities = ollama_api.model_inventory(
-            ollama_api.request_json("http://127.0.0.1:11434/api/tags"), plan
-        )
-        verify_model_lock(runtime, identities)
+        if not cloud:
+            identities = ollama_api.model_inventory(
+                ollama_api.request_json("http://127.0.0.1:11434/api/tags"), plan
+            )
+            verify_model_lock(runtime, identities)
         # The roster check starts a full CLI process. Repeat it only when the
         # configuration file changed, not before every single message.
         config_file = runtime / "state/openclaw/openclaw.json"
@@ -143,7 +221,8 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
             stamp: tuple[int, int] | None = (stat.st_mtime_ns, stat.st_size)
         except OSError:
             stamp = None
-        if stamp is None or stamp != roster_stamp:
+        roster_payload: dict[str, Any] = {}
+        if stamp is None or stamp != roster_stamp or (cloud and stamp != cloud_stamp):
             roster_result = subprocess.run(
                 ["openclaw", "config", "get", "agents", "--json"],
                 env=env,
@@ -156,7 +235,8 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
                 raise ValueError("configuration agents non vérifiable")
             from clawfedora.openclaw_reply import agent_entries
 
-            entries = agent_entries({"agents": json.loads(roster_result.stdout)})
+            roster_payload = json.loads(roster_result.stdout)
+            entries = agent_entries({"agents": roster_payload})
             if set(entries) != set(AGENT_IDS):
                 raise ValueError("configuration agents: sept rôles quotidiens exacts requis")
             for agent_id, entry in entries.items():
@@ -172,6 +252,20 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
                 if entry.get("model") != {"primary": f"ollama/{daily_model}", "fallbacks": []}:
                     raise ValueError(f"routage quotidien divergent: {agent_id}")
             roster_stamp = stamp
+            if cloud:
+                providers_result = subprocess.run(
+                    ["openclaw", "config", "get", "models.providers", "--json"],
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=30,
+                )
+                if providers_result.returncode != 0:
+                    raise ValueError("fournisseurs cloud non vérifiables: route cloud refusée")
+                _verify_cloud_config(repo_root, roster_payload, json.loads(providers_result.stdout))
+                cloud_stamp = stamp
+        model_args = ["--model", cloud_model_ref(core_contract(repo_root, "cloud_policy.yaml"))]
         completed = subprocess.run(
             [
                 "openclaw",
@@ -182,6 +276,7 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
                 session,
                 "--message",
                 prompt,
+                *(model_args if cloud else []),
                 "--json",
                 "--timeout",
                 "600",
@@ -197,15 +292,38 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
         envelope = json.loads(completed.stdout)
         from clawfedora.openclaw_reply import assert_agent_success, visible_text
 
-        assert_agent_success(envelope, "ollama")
+        if cloud:
+            upstream = str(core_contract(repo_root, "cloud_policy.yaml")["model"]["upstream_id"])
+            assert_agent_success(envelope, CLOUD_PROVIDER_ID, upstream)
+        else:
+            assert_agent_success(envelope, "ollama")
+        _record_model_run(runtime, session, role, route, envelope)
         text = visible_text(envelope)
         if plain_text:
-            return {"text": text}
+            return {"text": text, "route": route}
         schema = response_schema(prompt)
         try:
             value = parse_response(text, schema)
         except json.JSONDecodeError:
-            # Syntax-only repair; missing fields in a valid JSON object fail closed.
+            # Syntax-only repair, always by the local model: the text already came back, so
+            # nothing leaves the machine and nothing is billed. If the local model is not
+            # available the task fails instead of paying for a second cloud call.
+            if cloud:
+                unavailable = ValueError(
+                    "réponse cloud invalide et réparation locale indisponible: relancer la tâche"
+                )
+                try:
+                    local_version = ollama_api.request_json(
+                        "http://127.0.0.1:11434/api/version"
+                    ).get("version")
+                    identities = ollama_api.model_inventory(
+                        ollama_api.request_json("http://127.0.0.1:11434/api/tags"), plan
+                    )
+                except OSError:
+                    raise unavailable from None
+                if local_version != pins["ollama"]["version"]:
+                    raise unavailable from None
+                verify_model_lock(runtime, identities)
             limits = daily_limits(repo_root)
             value = repair_response(
                 text,
@@ -221,6 +339,7 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
                     "attempts": 1,
                     "input_sha256": hashlib.sha256(text.encode()).hexdigest(),
                     "model": daily_model,
+                    "route": route,
                     "schema": schema,
                 },
             )

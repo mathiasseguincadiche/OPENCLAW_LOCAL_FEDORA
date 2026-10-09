@@ -8,6 +8,7 @@ from clawfedora.agents import validate_agent_assets
 from clawfedora.core_config import (
     AGENT_IDS,
     CLOUD_PROVIDER_ID,
+    CLOUD_TOKEN_ENV,
     core_contract,
     daily_limits,
     root_contract,
@@ -183,8 +184,10 @@ def _validate_cloud_contracts(
         failures.append("core/cloud: la passerelle doit écouter sur 127.0.0.1 (port valide)")
     if port in {3000, 11434, 18789, 18890, 18891}:
         failures.append("core/cloud: port de passerelle déjà utilisé par un autre service")
-    if not re.fullmatch(r"[A-Z][A-Z0-9_]{2,63}", str(gateway.get("token_env", ""))):
-        failures.append("core/cloud: token_env doit nommer une variable d'environnement")
+    if gateway.get("token_env") != CLOUD_TOKEN_ENV or not re.fullmatch(
+        r"[A-Z][A-Z0-9_]{2,63}", str(gateway.get("token_env", ""))
+    ):
+        failures.append("core/cloud: token_env doit nommer la variable d'environnement du jeton")
     key_file = str(gateway.get("upstream_key_file", ""))
     if not key_file or key_file.startswith(("/", "~")) or ".." in Path(key_file).parts:
         failures.append("core/cloud: upstream_key_file doit être relatif à l'état d'exécution")
