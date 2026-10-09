@@ -256,3 +256,7 @@ label input[type=checkbox] { width:auto; margin-right:.6rem; }
 #learning pre { white-space:pre-wrap; overflow-wrap:anywhere; }
 fieldset { min-width:0; }
 form + form { margin-top:1rem; }
+.cloud-line {
+  font-size: 0.9em;
+  color: var(--muted, #5b5f66);
+}

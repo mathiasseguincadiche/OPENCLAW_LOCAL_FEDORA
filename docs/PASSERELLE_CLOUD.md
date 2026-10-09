@@ -117,6 +117,43 @@ Un tour d'agent avec un outil fait deux appels facturés ; les deux passent par 
 
 Sans `--apply`, rien n'est activé et aucun service n'est touché. Le pont ajoute sous le bandeau cloud une ligne de budget à partir de 80 % du plafond.
 
+## Atelier Projets (lot 7)
+
+L'Atelier n'envoie rien au cloud par défaut. Un projet n'y passe qu'après **son** accord explicite.
+
+### Accord par projet
+- Depuis le tableau de bord (« Autoriser le cloud pour ce projet… », texte à lire et case à cocher) ou `clawfedora project cloud-approve --acknowledge`.
+- Impossible tant que le cloud n'est pas activé (lot 6). L'accord est un fichier privé (0600) dans `state/project-cloud/`, sans aucun contenu du projet.
+- L'accord est **lié aux sources** : empreinte SHA-256 de `intake/` et `sources/` au moment de l'accord. Si les sources changent, l'état devient « à renouveler » et rien ne part au cloud avant un nouvel accord.
+- Le texte d'accord dit ce qui part (consignes, extraits lus par les agents, résultats d'outils, après filtrage), ce que le filtre ne reconnaît pas (un contenu confidentiel sans allure de secret) et ce qui se passe en cas de blocage.
+- Aller au cloud couvre toutes les étapes du projet : cadrage et plan, tâches, audits, retour sur un travail rendu. La réparation d'un JSON malformé reste toujours locale.
+
+### Pause visible, jamais de bascule silencieuse
+Quand une étape cloud ne peut pas s'exécuter, la tâche **n'est ni échouée ni refaite en local** : le projet passe en pause et la raison s'affiche sur la carte du projet et dans son panneau.
+
+| Cause | Lecture |
+|---|---|
+| `privacy_blocked` | le filtre a bloqué un envoi ; les **catégories** sont nommées, jamais la valeur |
+| `budget_refused` | plafond mensuel atteint (contrôlé aussi avant tout appel) |
+| `provider_unavailable` | erreur du fournisseur, réponse coupée |
+| `gateway_unreachable` | aucune trace de la passerelle (service arrêté ?) |
+| `cloud_inactive` | le cloud a été désactivé après l'accord |
+| `consent_stale` | sources modifiées depuis l'accord |
+
+La cause est lue dans le journal de la passerelle (sans contenu). Une réponse du cloud dont le contenu est mauvais (JSON invalide, critères non remplis) reste un échec de tâche ordinaire, pas une pause.
+
+Pour **continuer en local**, il faut le décider : « Retirer l'accord cloud » (ou `cloud-revoke`), puis reprendre. La tâche repart de zéro en local. Pour **rester au cloud**, corriger la cause puis reprendre ; si elle persiste, le projet se remet en pause au lieu de boucler.
+
+### Modèle et coût affichés
+- Chaque appel est consigné par projet (route, modèle réellement utilisé tel que rapporté par OpenClaw, tâche, coût) dans `state/project-cloud/<projet>.runs.jsonl`.
+- Le coût d'un appel est la **différence du journal budgétaire** avant et après (estimation prudente en euros, pire cas compris). Comme une seule tâche ou discussion tourne à la fois (verrou), cette attribution est exacte pour le projet.
+- Le pied de page du tableau de bord montre la dépense du mois sur 25 € et le seuil d'alerte.
+
+### Limites de ce lot
+- Le routage est testé avec un faux exécuteur qui imite le journal de la passerelle ; la lecture de la cause suppose que le journal contient les décisions décrites ci-dessus (c'est testé côté passerelle au lot 5).
+- Si le journal de la passerelle ne contient aucune trace pendant l'échec, la pause est `gateway_unreachable` : une panne d'OpenClaw lui-même avant tout appel est donc présentée comme une panne de la passerelle.
+- Le coût d'une tâche inclut les appels de sa session seulement ; une discussion Open WebUI en cloud n'est pas rattachée à un projet.
+
 ## Contrats imposés par `clawfedora validate`
 
 - Cloud désactivé par défaut (`enabled_by_default: false`) ; l'activation est une décision d'exécution, hors dépôt.
@@ -131,7 +168,7 @@ Sans `--apply`, rien n'est activé et aucun service n'est touché. Le pont ajout
 
 | Lot | Contenu |
 |---|---|
-| 7 | Atelier : accord explicite par projet, pause visible |
+| 8 | Documentation (README, STATUS, fiches), mise à jour du plan |
 
 ## Ce que ce lot ne prouve pas
 

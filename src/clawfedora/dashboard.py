@@ -12,7 +12,7 @@ from typing import Any
 from urllib.parse import parse_qs, quote, urlsplit
 from urllib.request import urlopen
 
-from clawfedora import project_ui
+from clawfedora import project_cloud, project_ui
 from clawfedora.core_config import root_contract
 from clawfedora.knowledge import build_index, search, store_note
 from clawfedora.learning import awaiting, pending_feedback, submit
@@ -23,6 +23,15 @@ from clawfedora.project_control import is_paused, progress, request_pause, worke
 from clawfedora.project_engine import current_status, transition_project
 from clawfedora.project_revision import impact, revise
 from clawfedora.project_worker import review_project, run_project_tasks, worker_lock
+
+
+def _cloud_brief(repo_root: Path, runtime: Path, project: Path) -> dict[str, Any]:
+    """Short cloud line of a project card: approval, pause reason, cost."""
+    try:
+        full = project_cloud.view(repo_root, runtime, project)
+    except (OSError, ValueError, KeyError):
+        return {"state": "none", "pause": None, "cost_eur": 0.0, "last": None}
+    return {key: full[key] for key in ("state", "pause", "cost_eur", "last", "calls_cloud")}
 
 
 def snapshot(repo_root: Path, runtime: Path) -> dict[str, Any]:
@@ -51,6 +60,7 @@ def snapshot(repo_root: Path, runtime: Path) -> dict[str, Any]:
                     "total": len(tasks),
                     "awaiting_practice": bool(awaiting(path.parent)),
                     "awaiting_feedback": bool(pending_feedback(path.parent)),
+                    "cloud": _cloud_brief(repo_root, runtime, path.parent),
                 }
             )
         except (OSError, ValueError, KeyError):
@@ -91,6 +101,7 @@ def snapshot(repo_root: Path, runtime: Path) -> dict[str, Any]:
         "ollama_available": ollama_available,
         "gateway_available": gateway_available,
         "worker": progress(runtime),
+        "cloud": project_cloud.overview(repo_root, runtime),
         "projects": projects,
         "mentor": profile(runtime),
         "webui_installed": (runtime / "state/webui/enabled").is_file(),
@@ -194,6 +205,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     self._send(200, project_ui.details(project))
                 else:
                     self._artifact(project, query.get("path", [""])[0])
+            elif url.path == "/api/cloud":
+                project = self._project(parse_qs(url.query)["project"][0])
+                self._send(
+                    200, project_cloud.view(self.server.repo_root, self.server.runtime, project)
+                )
             elif url.path == "/api/search":
                 query = parse_qs(url.query)
                 project = self._project(query["project"][0])
@@ -294,6 +310,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
                         ),
                     )
                 return
+            elif self.path == "/api/cloud-approve":
+                if data.get("human_approved") is not True or data.get("acknowledged") is not True:
+                    raise ValueError("accord humain explicite et texte d'accord accepté requis")
+                with worker_lock(self.server.runtime, allow_gaming=True):
+                    project_cloud.grant(
+                        self.server.repo_root, self.server.runtime, project, acknowledged=True
+                    )
+            elif self.path == "/api/cloud-revoke":
+                with worker_lock(self.server.runtime, allow_gaming=True):
+                    project_cloud.revoke(self.server.runtime, project)
             elif self.path == "/api/pause":
                 request_pause(self.server.runtime, project)
             elif self.path == "/api/resume":

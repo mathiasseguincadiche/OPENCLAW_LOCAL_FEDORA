@@ -28,6 +28,7 @@ from clawfedora.core_config import (
 from clawfedora.knowledge import build_index, search
 from clawfedora.learning import awaiting, instructions, pending_feedback, stage, task_mode
 from clawfedora.mentor import copy_profile
+from clawfedora.project_cloud import CloudPause, consent_state, project_runner
 from clawfedora.project_common import (
     assert_no_symlinks,
     read_json,
@@ -35,7 +36,7 @@ from clawfedora.project_common import (
     validate_task_id,
     write_json,
 )
-from clawfedora.project_control import clear_pause, is_paused, write_progress
+from clawfedora.project_control import clear_pause, is_paused, request_pause, write_progress
 from clawfedora.project_engine import (
     all_tasks_pass,
     current_status,
@@ -536,7 +537,7 @@ def run_project_tasks(
                     runtime,
                     project,
                     feedback[0],
-                    runner or openclaw_runner(runtime, repo_root),
+                    runner or project_runner(repo_root, runtime, project),
                 )
             )
             # Let the learner read the correction before generating another task.
@@ -555,7 +556,9 @@ def run_project_tasks(
             )
         if current_status(project) != "IN_PROGRESS":
             raise ValueError("worker: projet ASSIGNED ou IN_PROGRESS requis")
-        if runner is None:
+        # A project approved for the cloud does not need Ollama to start; a project without
+        # approval is verified exactly as before.
+        if runner is None and consent_state(repo_root, runtime, project)["state"] == "none":
             from clawfedora import ollama_api
             from clawfedora.lifecycle import model_plan
             from clawfedora.model_identity import verify_model_lock
@@ -564,7 +567,7 @@ def run_project_tasks(
                 ollama_api.request_json("http://127.0.0.1:11434/api/tags"), model_plan(repo_root)
             )
             verify_model_lock(runtime, identities)
-        invoke = runner or openclaw_runner(runtime, repo_root)
+        invoke = runner or project_runner(repo_root, runtime, project)
         write_progress(runtime, project, "preparing")
         build_index(repo_root, project)
         while tasks := ready_tasks(repo_root, project):
@@ -647,6 +650,8 @@ def run_project_tasks(
             )
             write_progress(runtime, project, "running", task=task_id, role=role, session=session)
             receipts_before = _tool_receipts(workspace)
+            if hasattr(invoke, "task"):
+                invoke.task = task_id
             try:
                 response = invoke(role, prompt, session)
                 observed = _guard(snapshot)
@@ -682,6 +687,16 @@ def run_project_tasks(
                     break
                 outputs = _collect(repo_root, project, task, response) + receipts
                 status, summary = "PASS", str(response.get("summary", "artefacts collectés"))
+            except CloudPause as pause:
+                # The cloud cannot serve this task: stop and say why. The task stays ready and
+                # is neither failed nor silently redone locally; that is a separate decision.
+                request_pause(runtime, project)
+                write_progress(runtime, project, "paused", task=task_id, role=role, session=session)
+                results.append(
+                    {"task_id": task_id, "status": "PAUSED", "code": pause.code,
+                     "summary": pause.message}
+                )
+                break
             except (OSError, ValueError, KeyError, RuntimeError, subprocess.TimeoutExpired) as exc:
                 # A violated guard cannot be repaired by accepting another model answer.
                 if _guard(project) != central_guard:
@@ -763,7 +778,7 @@ def review_project(
             + json.dumps(criteria, ensure_ascii=False)
         )
         write_progress(runtime, project, "reviewing", role=role, session=session)
-        response = (runner or openclaw_runner(runtime, repo_root))(role, prompt, session)
+        response = (runner or project_runner(repo_root, runtime, project))(role, prompt, session)
         if _guard(snapshot) != guard or _guard(project) != central_guard:
             raise ValueError("Workspace Guard: modification pendant l'audit")
         validate_response(response, response_schema(prompt))
