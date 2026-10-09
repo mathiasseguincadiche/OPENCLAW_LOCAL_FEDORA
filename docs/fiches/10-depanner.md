@@ -121,6 +121,25 @@ du -sh /srv/openclaw-local/* | sort -h
 
 Supprime d'anciennes sauvegardes dans `backups/`.
 
+## Le cloud ne répond pas ou se met en pause
+
+Tout est détaillé dans [Le cloud, facultatif](12-cloud.md). Pour commencer :
+
+```bash
+./menu.sh --action cloud-status
+systemctl --user status clawfedora-cloud-gateway
+journalctl --user -u clawfedora-cloud-gateway -n 50
+```
+
+| Symptôme | Piste |
+|---|---|
+| « ready=0 » | Le cloud n'est pas activé, ou un contrôle a échoué : relance `./menu.sh --action cloud-enable --value 12` et lis l'échec |
+| Un projet est en pause, « passerelle injoignable » | Le service est arrêté : `systemctl --user restart clawfedora-cloud-gateway`, puis **Reprendre** |
+| Un projet est en pause, « filtre de confidentialité » | Le message nomme la catégorie. Retire ce contenu des sources, ou **Retirer l'accord cloud** pour poursuivre en local |
+| « plafond atteint » | Le plafond mensuel de 25 € est atteint, ou le journal est illisible (`cloud-status` le dit) |
+| Le coût affiché diffère de la facture | Normal : c'est une estimation prudente. Enregistre la facture avec `cloud-reconcile` |
+| Tu veux tout remettre en local, tout de suite | `./menu.sh --action cloud-disable --apply` |
+
 ## Demander de l'aide
 
 Rassemble ces informations, sans mot de passe ni contenu privé :

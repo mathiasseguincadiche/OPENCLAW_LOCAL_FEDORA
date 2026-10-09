@@ -25,13 +25,22 @@ INTAKE_READY → ANALYZED → PLANNED → ASSIGNED → IN_PROGRESS
 
 ## Pourquoi ces garde-fous
 
-Un modèle local de cette taille fait des erreurs. L'atelier limite leurs conséquences :
+Un modèle de cette taille fait des erreurs, en local comme en cloud. L'atelier limite leurs conséquences :
 
 - **Tes documents d'origine sont en lecture seule.** Les rôles travaillent sur des copies.
 - **Les rôles n'écrivent pas directement.** Ils proposent le contenu des fichiers ; un collecteur vérifie les chemins et les formats avant d'écrire.
 - **Les rôles n'exécutent rien.** Un script proposé n'est jamais lancé sur ton PC : c'est toi qui l'exécutes, dans ton environnement d'exercice.
 - **Une tâche attend celles dont elle dépend.** Elle ne reçoit leur travail qu'une fois relu.
 - **Deux tentatives maximum par tâche**, pour ne pas tourner en rond.
+
+## Le cloud dans un projet
+
+Par défaut, un projet travaille en local. Si tu as activé le cloud ([Le cloud, facultatif](12-cloud.md)), le panneau **Cloud pour ce projet** te laisse l'autoriser pour ce projet seulement, après lecture d'un texte d'accord.
+
+- L'accord couvre tout le projet (cadrage, plan, tâches, audits) et est lié à ses sources : si elles changent, il faut approuver à nouveau.
+- Si une étape cloud ne peut pas s'exécuter (filtre, plafond, fournisseur, passerelle arrêtée), **le projet se met en pause** et la raison s'affiche sur sa carte. Rien n'est refait en local sans ta décision : pour poursuivre en local, clique **Retirer l'accord cloud**, puis **Reprendre**.
+- Chaque projet montre le dernier modèle utilisé, le nombre d'appels cloud et un coût estimé ; le pied de page montre la dépense du mois sur 25 €.
+- En ligne de commande : `clawfedora project cloud-status`, `cloud-approve --acknowledge`, `cloud-revoke`. Un `run` ou un `resume` interrompu par une pause rend le code de sortie 3.
 
 ## Chercher dans tes documents
 

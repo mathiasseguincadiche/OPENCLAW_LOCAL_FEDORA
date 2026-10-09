@@ -1,6 +1,6 @@
 # État du projet
 
-Dernière mise à jour : 7 octobre 2026.
+Dernière mise à jour : 9 octobre 2026.
 
 ## Où en est-on
 
@@ -12,8 +12,12 @@ Dernière mise à jour : 7 octobre 2026.
 | Installation sur le PC Fedora | **À faire** |
 | Carte graphique utilisée, contexte de 32K tenu en mémoire vidéo | **À mesurer** |
 | Vitesse et qualité des réponses de Qwen | **À mesurer** |
+| Cloud : filtre, budget, activation, accord par projet, pause visible | Écrits et testés avec le vrai OpenClaw et un faux fournisseur |
+| Cloud avec le vrai OpenRouter (appel réel, coût réel, limite de clé) | **À faire** |
+| Test de fumée du cloud sur le PC ([fiche 12](docs/fiches/12-cloud.md)) | **À faire** |
+| Qualité de GLM-5.3 Flash sur les usages visés | **À mesurer** à l'usage |
 
-Tant que les trois dernières lignes ne sont pas faites, rien n'est prouvé sur la machine. La marche à suivre est dans [Premier essai](docs/fiches/02-premier-essai.md).
+Tant que les lignes « À faire » et « À mesurer » ne sont pas faites, rien n'est prouvé sur la machine ni avec le vrai fournisseur cloud. La marche à suivre est dans [Premier essai](docs/fiches/02-premier-essai.md).
 
 ## Mesures sur le PC
 
@@ -30,6 +34,10 @@ Tant que les trois dernières lignes ne sont pas faites, rien n'est prouvé sur 
 - Le chat transmet au modèle les 32 000 derniers octets de la conversation.
 - Si le contexte doit être réduit à 16K, le chat ne garde plus qu'environ 500 mots d'historique. Voir [Réglages](docs/fiches/08-reglages.md).
 - Les rôles n'exécutent rien : les scripts proposés sont à lancer soi-même.
+- Cloud : le coût est une estimation prudente (facteur 1,3 € par dollar), pas une facture. Le relevé OpenRouter fait foi : l'enregistrer avec `cloud-reconcile`.
+- Cloud : le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allure. En cas de doute, rester en local.
+- Cloud : le choix par défaut du chat reste local ; rien ne part tant que le modèle « · cloud » n'est pas choisi. Le coût d'une discussion cloud n'est pas rattaché à un projet.
+- Cloud : la présentation illustrée (`docs/guide-utilisateur.pdf`) date d'avant le cloud et ne le mentionne pas.
 
 ## Remise en ordre d'octobre 2026
 
@@ -43,3 +51,20 @@ Le dépôt avait accumulé beaucoup de mécanismes sans rapport avec l'usage vis
 - remplacé 27 documents par un guide et onze fiches.
 
 Le dépôt est passé d'environ 15 500 à 9 200 lignes de Python. Tout ce qui a été retiré reste dans l'historique Git.
+
+## Migration hybride d'octobre 2026
+
+Le plan est dans [PLAN_MIGRATION_HYBRIDE.md](docs/PLAN_MIGRATION_HYBRIDE.md) et la conception dans [PASSERELLE_CLOUD.md](docs/PASSERELLE_CLOUD.md). Une branche et une pull request par lot, sans fusion automatique :
+
+| Lot | Contenu |
+|---|---|
+| 1 | Correctif de l'attente des 8 outils + plan |
+| 2 | Consignes des rôles V2.3, contrôles de taille et de contrat |
+| 3 | Fondation de la passerelle cloud (désactivée par défaut) |
+| 4 | Exécuteur avec route cloud explicite, sans repli du local vers le cloud |
+| 5 | Passerelle locale, filtre de confidentialité, modes Apprendre et Travail |
+| 6 | Budget de 25 € réels, journal de tous les appels, activation contrôlée |
+| 7 | Atelier : accord par projet, pause visible, modèle et coût affichés |
+| 8 | Documentation, et sauvegardes qui n'emportent plus la clé du fournisseur |
+
+Hors périmètre pour l'instant, chacun sur nouvel accord : validateurs comme outils d'agent, contrôle des citations, Mistral Large 4 avec sous-plafond, registre de compétences, laboratoire d'exécution.

@@ -272,6 +272,15 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+# Backups are not encrypted. The provider key and the local gateway token never go into them:
+# after a restore the key is entered again and the token regenerates by itself.
+SECRET_BACKUP_SUFFIXES = {".key", ".token", ".tmp"}
+
+
+def _is_backup_secret(relative: Path) -> bool:
+    return relative.parts[:2] == ("state", "cloud") and relative.suffix in SECRET_BACKUP_SUFFIXES
+
+
 def _backup_sources(runtime_root: Path) -> list[Path]:
     names = ("state", "projects", "proofs", "workspaces", "runtime/generated")
     return [runtime_root / name for name in names if (runtime_root / name).exists()]
@@ -329,6 +338,8 @@ def create_backup(runtime_root: Path, output_dir: Path | None = None) -> Path:
                 if not path.is_file():
                     continue
                 relative = path.relative_to(runtime)
+                if _is_backup_secret(relative):
+                    continue
                 digest = _add_backup_file(tar, path, relative.as_posix())
                 if digest is not None:
                     manifest[relative.as_posix()] = digest

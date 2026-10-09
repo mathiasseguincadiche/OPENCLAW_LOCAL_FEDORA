@@ -9,7 +9,7 @@
 [![Fedora 44](https://img.shields.io/badge/Fedora-44-51A2DA?logo=fedora&logoColor=white)](https://fedoraproject.org/)
 [![Licence MIT](https://img.shields.io/badge/Licence-MIT-green.svg)](LICENSE)
 
-**Une IA qui tourne sur son propre PC, pour discuter, apprendre le DevOps et mener des projets sans abonnement.**
+**Une IA qui tourne sur son propre PC, pour discuter, apprendre le DevOps et mener des projets sans abonnement. Un cloud facultatif, borné à 25 € par mois, peut la compléter.**
 
 ## Pourquoi ce projet
 
@@ -26,15 +26,17 @@ Il accompagne aussi un parcours : passer de l'administration systèmes et résea
 | Mener un projet avec sept rôles spécialisés | Atelier Projets, `http://127.0.0.1:18890` |
 | Obtenir de vrais fichiers : Markdown, PDF, DOCX, YAML, Terraform, schémas Draw.io | Les deux |
 
-Un seul modèle, **Qwen 3.5 9B**, tourne sur la carte graphique avec Ollama. **OpenClaw** lui donne sept rôles : mentor, recherche, architecte, DevOps, sécurité, rédacteur et auditeur. Ce sont sept jeux de consignes pour le même modèle, pas sept IA en mémoire.
+En local, un seul modèle, **Qwen 3.5 9B**, tourne sur la carte graphique avec Ollama. **OpenClaw** lui donne sept rôles : mentor, recherche, architecte, DevOps, sécurité, rédacteur et auditeur. Ce sont sept jeux de consignes pour le même modèle, pas sept IA en mémoire.
 
 ![Deux interfaces, un même moteur](docs/diagrams/atelier-architecture.svg)
+
+**Local d'abord, cloud sur demande.** Le cloud (GLM-5.3 Flash par OpenRouter) est désactivé tant que tu ne l'actives pas, et il ne s'active que si le filtre de confidentialité et le contrôle du budget fonctionnent ensemble. Il passe par une passerelle locale qui filtre tout ce qui part (historique et résultats d'outils compris), compte chaque appel facturé et refuse au plafond de 25 € réels par mois. Dans le chat, tu choisis le modèle « · cloud » pour des questions publiques ; dans l'atelier, chaque projet demande ton accord, et il se met en pause plutôt que de basculer en local sans te le dire. Détail : [Le cloud, facultatif](docs/fiches/12-cloud.md).
 
 ## Ce qu'il ne fait pas
 
 - Il n'égale pas un grand modèle cloud. Un modèle de cette taille explique, relit et rédige bien ; il se trompe plus souvent sur les tâches longues. L'atelier compense par de petites étapes, des sources et de la relecture.
 - Il n'exécute rien sur le PC. Les rôles proposent du code et des fichiers ; c'est l'utilisateur qui les exécute.
-- Il n'est accessible que depuis ce PC.
+- Il n'est accessible que depuis ce PC. Hors cloud, rien n'en sort ; avec le cloud, seul ce que le filtre laisse passer part, et seulement pour ce que tu as choisi d'y envoyer. Le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allure.
 
 ## Démarrer
 
@@ -62,11 +64,12 @@ cd OPENCLAW_LOCAL_FEDORA
 | [Discuter](docs/fiches/03-discuter.md) | [Entretenir](docs/fiches/09-entretenir.md) |
 | [Atelier Projets](docs/fiches/04-atelier-projets.md) | [Dépanner](docs/fiches/10-depanner.md) |
 | [Apprendre](docs/fiches/05-apprendre.md) | [Comment ça marche](docs/fiches/11-comment-ca-marche.md) |
-| [Fichiers et schémas](docs/fiches/06-fichiers-et-schemas.md) | [Présentation illustrée (PDF)](docs/guide-utilisateur.pdf) |
+| [Fichiers et schémas](docs/fiches/06-fichiers-et-schemas.md) | [Le cloud, facultatif](docs/fiches/12-cloud.md) |
+| [Présentation illustrée (PDF, version avant le cloud)](docs/guide-utilisateur.pdf) | |
 
 ## État
 
-Le logiciel passe ses tests automatiques, y compris avec le vrai OpenClaw. Il n'a pas encore tourné sur le PC cible : la vitesse, la tenue en mémoire vidéo et la qualité des réponses restent à mesurer. Détail dans [STATUS.md](STATUS.md).
+Le logiciel passe ses tests automatiques, y compris avec le vrai OpenClaw. Il n'a pas encore tourné sur le PC cible : la vitesse, la tenue en mémoire vidéo et la qualité des réponses restent à mesurer. Le cloud n'a jamais été essayé avec le vrai OpenRouter : seul un faux fournisseur a servi aux tests. Détail dans [STATUS.md](STATUS.md).
 
 Versions utilisées : OpenClaw 2026.9.8, Ollama 0.35.1, Open WebUI v0.11.4 (image slim). Elles sont fixées dans `config/` et ne se mettent pas à jour seules.
 

@@ -19,6 +19,10 @@ Ce que tu peux lui demander dans le chat :
 
 Une bonne façon de l'utiliser : demande un indice plutôt que la solution, partage ton essai, puis demande une correction.
 
+## Apprendre avec le cloud, si tu l'as activé
+
+Pour comprendre une notion publique, le modèle « · cloud (GLM) » du chat peut mieux expliquer que Qwen. Choisis-le pour des questions sans secret ; garde « · local » pour tout ce qui touche ton travail ou ce dont tu n'es pas sûr. Les consignes du mentor sont les mêmes dans les deux modes. Voir [Discuter](03-discuter.md) et [Le cloud, facultatif](12-cloud.md). Un bon réflexe d'apprentissage reste le même quel que soit le modèle : vérifier une version, une commande ou un chiffre dans la documentation officielle.
+
 ## Guidé ou direct
 
 Par défaut, les nouveaux projets sont en mode **direct** : tu reçois l'explication ou la proposition complète, sans exercice bloquant. Le mode guidé est un choix. Les contrats déjà approuvés des anciens projets sont préservés.

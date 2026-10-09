@@ -2,7 +2,7 @@
 
 [← Guide](../GUIDE.md)
 
-## Sept rôles, un seul modèle
+## Sept rôles, un seul modèle local
 
 Un rôle, c'est trois choses autour du même Qwen : des consignes, un espace de travail et une liste d'outils autorisés. Changer de rôle ne charge pas un autre modèle et ne consomme pas plus de mémoire vidéo. Ce qui coûte, c'est chaque appel : un rôle de plus dans un projet, c'est une génération de plus à attendre.
 
@@ -18,7 +18,11 @@ Un rôle, c'est trois choses autour du même Qwen : des consignes, un espace de 
 | **Rédacteur pédagogique** | Relie les contributions et produit une documentation claire. |
 | **Auditeur qualité** | Relit critères, sources et preuves dans une session séparée. Il signale, il ne corrige pas. |
 
-L'auditeur utilise le même Qwen que les autres. Sa session séparée lui évite de reprendre le raisonnement de l'auteur, mais ce n'est pas un second avis indépendant comme le donnerait un autre modèle.
+L'auditeur utilise le même modèle que les autres rôles du projet : Qwen en local, GLM si le projet est autorisé au cloud. Sa session séparée lui évite de reprendre le raisonnement de l'auteur, mais ce n'est pas un second avis indépendant comme le donnerait un autre modèle.
+
+## Avec le cloud
+
+Si le cloud est activé, les mêmes rôles peuvent être servis par GLM-5.3 Flash : dans le chat en choisissant le modèle « · cloud », dans un projet autorisé. Les consignes, les outils et leurs interdictions sont identiques ; seule la route change. Dans les deux cas, ce que le modèle lit par un outil passe par le même filtre avant de partir. Voir [Le cloud, facultatif](12-cloud.md).
 
 ## Ce que tous les rôles peuvent faire
 

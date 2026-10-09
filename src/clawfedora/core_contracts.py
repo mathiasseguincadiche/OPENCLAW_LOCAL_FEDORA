@@ -194,6 +194,11 @@ def _validate_cloud_contracts(
     key_file = str(gateway.get("upstream_key_file", ""))
     if not key_file or key_file.startswith(("/", "~")) or ".." in Path(key_file).parts:
         failures.append("core/cloud: upstream_key_file doit être relatif à l'état d'exécution")
+    elif not key_file.startswith("cloud/") or not key_file.endswith(".key"):
+        # The backup leaves out state/cloud/*.key: the key must stay inside that rule.
+        failures.append(
+            "core/cloud: upstream_key_file doit être cloud/<nom>.key (exclu des sauvegardes)"
+        )
     if gateway.get("api") != "openai-completions" or not str(
         gateway.get("path_prefix", "")
     ).startswith("/"):

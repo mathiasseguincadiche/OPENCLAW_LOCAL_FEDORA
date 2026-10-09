@@ -93,7 +93,7 @@ Une branche et une PR en brouillon par lot ; aucune fusion automatique. Chaque P
 | 5 | Passerelle cloud locale et filtre (couvre prompt, historique, contexte, résultats d'outils) ; modes Apprendre/Travail dans Open WebUI | [x] #37 (déviation : un blocage du filtre répond 451, pas 403) |
 | 6 | Budget : réservation, journal de tous les appels, plafonds, 402, auto-contrôles d'activation | [x] #38 |
 | 7 | Atelier : accord explicite par projet, pause visible, affichage du modèle et du coût | [x] cette PR |
-| 8 | Documentation (README, STATUS, fiches) | [ ] |
+| 8 | Documentation (README, STATUS, fiches, nouvelle fiche 12) ; sauvegardes qui excluent la clé du fournisseur | [x] cette PR |
 
 Déviations par rapport au plan initial : le raisonnement du modèle est borné par la passerelle (`--thinking` est refusé pour un fournisseur personnalisé) ; la réparation d'un JSON malformé reste locale ; un blocage du filtre répond 451 car 401/402/403/429 déclenchent la pause d'une minute du fournisseur côté OpenClaw.
 
@@ -101,7 +101,7 @@ Le cloud ne peut s'activer qu'après les lots 5 et 6 réunis. Hors périmètre p
 
 ## 9. Ce qui ne sera pas prouvé par la CI
 
-Qualité de GLM ou de Qwen, appel réel vers OpenRouter avec outils, comportement sur le PC Fedora et la carte B580. Un test de fumée manuel sera fourni après le lot 7 : réponse cloud avec modèle affiché, bascule en local, plafond atteint, démarrage hors ligne.
+Qualité de GLM ou de Qwen, appel réel vers OpenRouter avec outils, comportement sur le PC Fedora et la carte B580. Le test de fumée manuel est dans la [fiche 12](fiches/12-cloud.md) : réponse cloud avec modèle affiché, bascule en local, plafond atteint, démarrage hors ligne.
 
 ## 10. Étiquettes d'honnêteté pour les livrables
 

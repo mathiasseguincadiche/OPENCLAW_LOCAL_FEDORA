@@ -57,10 +57,16 @@ case "$ACTION" in
   status) cloud status ;;
   set-key)
     require_runtime
+    replace=()
+    if [[ -e "$RUNTIME_ROOT/state/cloud/upstream.key" ]]; then
+      read -r -p "Une clé existe déjà. La remplacer ? [oui/non] " ANSWER
+      [[ "$ANSWER" == oui ]] || { echo "Clé inchangée." >&2; exit 2; }
+      replace=(--replace)
+    fi
     echo "Collez la clé OpenRouter (rien ne s'affiche), puis Entrée."
     read -r -s -p "Clé: " PROVIDER_KEY
     echo
-    printf '%s\n' "$PROVIDER_KEY" | cloud set-key
+    printf '%s\n' "$PROVIDER_KEY" | cloud set-key "${replace[@]}"
     unset PROVIDER_KEY
     ;;
   reconcile)

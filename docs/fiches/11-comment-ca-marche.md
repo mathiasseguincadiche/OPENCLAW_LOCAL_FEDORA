@@ -14,8 +14,9 @@
 | **Open WebUI** | L'interface de discussion | Conteneur Podman, port 3000 |
 | **Atelier Projets** | L'interface des projets et le moteur qui ordonne les tâches | Service de ton compte, port 18890 |
 | **Outils métier** | Fabriquent les fichiers, schémas et contrôles pour les rôles | Plugin `clawfedora-toolkit` chargé par OpenClaw |
+| **Passerelle cloud** (facultative) | Filtre, compte et relaie les appels vers OpenRouter ; seule à connaître la clé | Service de ton compte, port 18892 |
 
-Tous les ports écoutent sur `127.0.0.1` : rien n'est accessible depuis un autre appareil.
+Tous les ports écoutent sur `127.0.0.1` : rien n'est accessible depuis un autre appareil. Hors cloud, aucune connexion ne sort de ton PC, hormis la recherche Web des rôles.
 
 ## Le trajet d'une question
 
@@ -28,6 +29,19 @@ Tous les ports écoutent sur `127.0.0.1` : rien n'est accessible depuis un autre
 7. La réponse finale revient à Open WebUI, avec les liens des fichiers produits.
 
 Un projet de l'atelier suit le même chemin à partir de l'étape 3, tâche après tâche.
+
+## Le trajet d'une question au cloud
+
+Si le cloud est activé et que tu as choisi le modèle « · cloud » (ou autorisé le projet), seule l'étape 5 change : OpenClaw n'interroge pas Ollama mais la **passerelle cloud** sur `127.0.0.1:18892`, avec un jeton local. La passerelle :
+
+1. refuse tout si le cloud n'est pas activé (filtre et budget vérifiés ensemble) ;
+2. scanne **tout le corps** de la demande : consignes, historique, contexte, appels d'outils et leurs résultats ;
+3. si un secret est trouvé, répond 451 et n'envoie rien (le fil de chat passe en local, un projet se met en pause) ;
+4. réserve le coût maximal dans le journal du budget, ou refuse (402) au plafond ;
+5. appelle OpenRouter avec ta clé (lue dans un fichier privé, jamais donnée à OpenClaw) et les réglages imposés ;
+6. note le coût réel, ou garde le pire cas si la réponse n'en donne pas.
+
+Un tour avec un outil fait deux appels, donc deux passages par ces étapes. Il n'y a **aucun repli du local vers le cloud** : seul l'inverse existe dans le chat (avec bandeau), et l'atelier se met en pause.
 
 ## Pourquoi un verrou
 
@@ -56,7 +70,8 @@ docs/                ce guide et ses fiches
 | `config/core/openclaw_policy.yaml` | Contexte, longueur des réponses, taille des consignes |
 | `config/webui_policy.yaml` | Open WebUI : image, ports, mémoire, historique |
 | `config/core/agents.yaml` | La liste des sept rôles |
-| `config/core/model_routing.yaml` | Quel modèle sert chaque rôle (le même pour tous) |
+| `config/core/model_routing.yaml` | Quel modèle sert chaque rôle (le même pour tous ; la route cloud est facultative) |
+| `config/core/cloud_policy.yaml` | Le cloud : passerelle, modèle, budget, garde-fous ([détail](08-reglages.md)) |
 | `config/core/tool_policy.yaml` | Les outils autorisés et interdits par rôle |
 | `config/core/web_policy.yaml` | La recherche Web |
 | `config/core/knowledge_policy.yaml` | La recherche dans les documents d'un projet |
@@ -75,6 +90,8 @@ Tu modifies ces fichiers, puis `./menu.sh --action validate` vérifie qu'ils res
 - **Le modèle ne peut pas se mettre à jour.** L'outil d'OpenClaw qui le permettrait est interdit, et les versions sont vérifiées à chaque message.
 - **Les documents et pages Web sont traités comme des données.** Un texte qui dirait « ignore tes consignes » n'a aucune autorité.
 - **Open WebUI tourne dans un conteneur sans privilèges**, limité à 3 Go de mémoire et 2 cœurs, sans accès à ton dossier personnel.
+- **La clé du cloud n'est lue que par la passerelle**, dans un fichier à droits 0600, et n'est jamais écrite dans la configuration d'OpenClaw, les journaux ni les sauvegardes. OpenClaw ne connaît qu'un jeton local, sans valeur auprès d'OpenRouter.
+- **Le cloud est désactivé tant que le filtre et le budget ne fonctionnent pas ensemble** : l'activation est refusée si un contrôle échoue.
 
 ## Ce qui est testé, et ce qui ne l'est pas
 
@@ -85,5 +102,6 @@ Tu modifies ces fichiers, puis `./menu.sh --action validate` vérifie qu'ils res
 | La cohérence des fichiers de configuration | La vitesse des réponses |
 | La configuration générée est acceptée par le vrai OpenClaw | La qualité des réponses de Qwen |
 | Les consignes ne sont pas tronquées et le prompt tient dans le contexte | L'installation complète sur Fedora |
+| Le filtre, le budget et la pause du cloud, avec le vrai OpenClaw et un faux fournisseur | Le cloud avec le vrai OpenRouter : coût réel, qualité de GLM |
 
 La colonne de droite est l'objet du [premier essai](02-premier-essai.md).
