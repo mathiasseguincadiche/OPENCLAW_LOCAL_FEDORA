@@ -122,7 +122,7 @@ le consentement pédagogique et les sorties JSON. Le contrôle natif emploie le
 vrai OpenClaw verrouillé et un faux endpoint Ollama local; il ne charge aucun
 modèle et ne mesure ni qualité pédagogique, ni GPU, ni déploiement réel.
 
-Cette PR dépend de la branche de la PR #31, sans la fusionner. Les workflows
-acceptent aussi les PR visant `feat/mentor-*` pour tester cette dépendance.
-La fusion et le rapprochement final avec les documents restent à traiter
-explicitement; ni la PR #31 ni `main` ne sont modifiés par une fusion.
+Ces contrôles ont été repris dans `main` par le lot 2 du plan hybride (PR #34).
+Les PR #31 et #32, qui les avaient introduits, ont été fermées sans fusion : leur
+contenu utile est repris et tracé dans ce document. Les workflows ne ciblent plus
+que `main`.
