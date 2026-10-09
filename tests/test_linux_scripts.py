@@ -181,3 +181,15 @@ def test_installer_reads_exact_pins_without_third_party_python_packages() -> Non
         check=True,
     )
     assert result.stdout.splitlines() == ["2026.9.8", "0.35.1"]
+
+
+def test_openclaw_toolkit_inventory_matches_the_plugin() -> None:
+    """The install check must expect exactly the tools the plugin registers."""
+    source = _read("plugins/clawfedora-toolkit/index.mjs")
+    plugin = set(re.findall(r'\["(clawfedora_[a-z_]+)"', source))
+    script = _read("scripts/linux/03_configure_openclaw.sh")
+    expected = re.search(r"\(\[(\"clawfedora_[^\]]+)\] \| sort\)", script)
+    assert expected is not None
+    declared = set(re.findall(r'"(clawfedora_[a-z_]+)"', expected.group(1)))
+    assert len(plugin) == 8
+    assert declared == plugin
