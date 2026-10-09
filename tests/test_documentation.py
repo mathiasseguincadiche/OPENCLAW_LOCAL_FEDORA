@@ -12,6 +12,7 @@ DOCUMENTS = [
     ROOT / "CHANGELOG.md",
     ROOT / "CODE_OF_CONDUCT.md",
     ROOT / "docs/DECISION_MODELE.md",
+    ROOT / "docs/PLAN_INTEGRATION_WEBUI.md",
     ROOT / "docs/GUIDE.md",
     ROOT / "docs/PROMPTS.md",
     *sorted((ROOT / "docs/fiches").glob("*.md")),
