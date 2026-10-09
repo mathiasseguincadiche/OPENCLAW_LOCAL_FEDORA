@@ -19,6 +19,8 @@ AGENT_IDS = (
 
 # Provider id under which OpenClaw sees the local cloud gateway (config/core/cloud_policy.yaml).
 CLOUD_PROVIDER_ID = "cloudgw"
+# Variable holding the local token between OpenClaw and the gateway (never an upstream key).
+CLOUD_TOKEN_ENV = "CLAWFEDORA_CLOUD_GATEWAY_TOKEN"
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
@@ -98,4 +100,9 @@ def openclaw_environment(runtime: Path | None = None) -> dict[str, str]:
         OPENCLAW_LOCAL_FEDORA_ROOT=str(root),
         OLLAMA_API_KEY="ollama-local",
     )
+    # OpenClaw resolves every provider secret before a turn: the local gateway token must
+    # always exist, or a configured cloud provider would also break local turns.
+    from clawfedora.cloud_state import ensure_gateway_token
+
+    env[CLOUD_TOKEN_ENV] = ensure_gateway_token(root)
     return env

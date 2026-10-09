@@ -13,25 +13,36 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import socket
 import subprocess
 import tempfile
 import threading
+import time
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
 from clawfedora.agents import deploy_workspaces
-from clawfedora.core_config import CLOUD_PROVIDER_ID, core_contract, root_contract
+from clawfedora.cloud_state import ensure_gateway_token, write_activation
+from clawfedora.core_config import (
+    CLOUD_PROVIDER_ID,
+    CLOUD_TOKEN_ENV,
+    core_contract,
+    openclaw_environment,
+    root_contract,
+)
 from clawfedora.openclaw_config import build_openclaw_patch, cloud_model_ref
+from clawfedora.project_worker import openclaw_runner
 from clawfedora.version_lock import extract_openclaw_version
 
 repo = Path(__file__).resolve().parents[2]
-TOKEN = "local-gateway-token-for-check"
+TOKEN = ""  # set from the runtime state once it exists
 UPSTREAM_KEY = "sk-or-this-key-must-never-reach-openclaw"
 captured: list[dict[str, Any]] = []
 cloud = core_contract(repo, "cloud_policy.yaml")
 MODEL_ID = str(cloud["model"]["upstream_id"])
+GATEWAY_PORT = 19187  # OpenClaw Gateway of this check, away from the production port
 
 
 class FakeGateway(BaseHTTPRequestHandler):
@@ -91,7 +102,79 @@ def _fail(message: str) -> None:
     raise SystemExit("CLOUD_ROUTE=FAIL " + message)
 
 
+def _start_gateway(runtime: Path) -> subprocess.Popen[bytes]:
+    """A real OpenClaw Gateway: the product runner always goes through it."""
+    environment = openclaw_environment(runtime)
+    environment["HOME"] = str(runtime / "home")
+    log = (runtime / "gateway.log").open("wb")
+    process = subprocess.Popen(
+        ["openclaw", "gateway", "--port", str(GATEWAY_PORT)],
+        env=environment,
+        stdout=log,
+        stderr=subprocess.STDOUT,
+    )
+    deadline = time.monotonic() + 90
+    while time.monotonic() < deadline:
+        if process.poll() is not None:
+            tail = (runtime / "gateway.log").read_text()[-800:]
+            _fail("la Gateway OpenClaw s'est arrêtée: " + tail)
+        with socket.socket() as probe:
+            probe.settimeout(1)
+            if probe.connect_ex(("127.0.0.1", GATEWAY_PORT)) == 0:
+                time.sleep(2)
+                return process
+        time.sleep(1)
+    process.terminate()
+    _fail("la Gateway OpenClaw n'a pas démarré à temps")
+    raise AssertionError  # unreachable
+
+
+def _check_runner(runtime: Path) -> None:
+    """The product runner, with the real CLI: refused until activated, then cloud only."""
+    os.environ["HOME"] = str(runtime / "home")
+    os.environ.pop("OPENCLAW_CONFIG_PATH", None)
+    runner = openclaw_runner(runtime, repo, plain_text=True)
+    try:
+        runner("chef-operations", "Bonjour", "refused", route="cloud")
+    except ValueError:
+        pass
+    else:
+        _fail("la route cloud doit être refusée tant que le cloud n'est pas activé")
+    before = len(captured)
+    if before and any("refused" in str(call) for call in captured):
+        _fail("une route cloud refusée ne doit rien envoyer")
+    write_activation(
+        runtime, {"privacy_filter": "2026-10-09T00:00:00Z", "budget_guard": "2026-10-09T00:00:00Z"}
+    )
+    session = str(uuid.uuid4())
+    gateway = _start_gateway(runtime)
+    try:
+        answer = runner(
+            "chef-operations", "Quels outils sont disponibles ?", session, route="cloud"
+        )
+    finally:
+        gateway.terminate()
+        try:
+            gateway.wait(timeout=20)
+        except subprocess.TimeoutExpired:
+            gateway.kill()
+    calls = captured[before:]
+    if answer != {"text": "Réponse factice.", "route": "cloud"}:
+        _fail(f"réponse inattendue du runner: {answer}")
+    if len(calls) < 2 or any(call["authorization"] != f"Bearer {TOKEN}" for call in calls):
+        _fail("le runner doit passer par la passerelle avec le jeton local, en deux appels")
+    record = json.loads((runtime / f"state/model-runs/{session}.json").read_text())
+    if (record["provider"], record["model"], record["route"]) != (
+        CLOUD_PROVIDER_ID, MODEL_ID, "cloud"
+    ):
+        _fail(f"identité du modèle non enregistrée: {record}")
+    if CLOUD_TOKEN_ENV in json.dumps(record) or TOKEN in json.dumps(record):
+        _fail("l'identité enregistrée ne doit contenir aucun secret")
+    print(f"  runner: route cloud refusée puis acceptée, {len(calls)} appels, identité enregistrée")
+
+
 def main() -> None:
+    global TOKEN
     cli = shutil.which("openclaw")
     if not cli:
         raise SystemExit("OpenClaw CLI absent: install the exact pin and Parallel plugin first")
@@ -103,7 +186,13 @@ def main() -> None:
     if not (plugin / "openclaw.plugin.json").is_file():
         raise SystemExit("Pinned Parallel plugin absent")
 
-    server = ThreadingHTTPServer(("127.0.0.1", 0), FakeGateway)
+    # The runner only accepts the exact gateway of the policy: listen on its real port.
+    try:
+        server = ThreadingHTTPServer(
+            (str(cloud["gateway"]["host"]), int(cloud["gateway"]["port"])), FakeGateway
+        )
+    except OSError as exc:
+        raise SystemExit(f"CLOUD_ROUTE=FAIL port de la passerelle indisponible: {exc}") from exc
     threading.Thread(target=server.serve_forever, daemon=True).start()
     try:
         with tempfile.TemporaryDirectory(prefix="clawfedora-cloud-route-") as temporary:
@@ -111,6 +200,7 @@ def main() -> None:
             state = runtime / "state/openclaw"
             state.mkdir(parents=True)
             deploy_workspaces(repo, runtime)
+            TOKEN = ensure_gateway_token(runtime)
             toolkit = runtime / "runtime/extensions/clawfedora-toolkit"
             shutil.copytree(repo / "plugins/clawfedora-toolkit", toolkit)
             toolkit.chmod(0o750)
@@ -119,9 +209,7 @@ def main() -> None:
             config = build_openclaw_patch(repo, runtime, cloud_enabled=True)
             # Ollama points at a closed port: a cloud run must never touch it.
             config["models"]["providers"]["ollama"]["baseUrl"] = "http://127.0.0.1:9"
-            config["models"]["providers"][CLOUD_PROVIDER_ID]["baseUrl"] = (
-                f"http://127.0.0.1:{server.server_port}{cloud['gateway']['path_prefix']}"
-            )
+            config["gateway"] = {**config["gateway"], "port": GATEWAY_PORT}
             config["plugins"] = {
                 **config["plugins"],
                 "load": {"paths": [str(plugin), str(toolkit)]},
@@ -179,6 +267,7 @@ def main() -> None:
                     f"  {role}: {len(calls)} appels facturables vus par la passerelle, "
                     f"{len(calls[0]['tools'])} outils, résultat d'outil transmis"
                 )
+            _check_runner(runtime)
     finally:
         server.shutdown()
     print(f"CLOUD_ROUTE=PASS provider={CLOUD_PROVIDER_ID} model={MODEL_ID} version={pin}")
