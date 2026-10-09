@@ -60,9 +60,29 @@ Exemple : « Je connais les services systemd. Explique-moi ce qu'un rôle Ansibl
 
 Demande le format explicitement : « Fournis une fiche en Markdown, PDF et DOCX » ou « Génère un `main.tf` commenté ». Des liens de téléchargement s'ajoutent à la réponse. Ils sont valables 24 heures : télécharge les fichiers pour les garder. Voir [Fichiers et schémas](06-fichiers-et-schemas.md).
 
+## Interroger un projet depuis le chat
+
+Le chat peut lire tes projets, **en lecture seule**. Des commandes, comprises par le programme (jamais par le modèle), choisissent le projet :
+
+| Tu écris | Ce qui se passe |
+|---|---|
+| `!projets` | liste tes projets, avec leur état et leur cloud |
+| `!projet daily` | sélectionne le projet (un morceau d'identifiant ou de titre suffit s'il est unique) |
+| `!etat` | tâches, pause, cloud, modèle utilisé, traitement en cours |
+| `!quitter` | n'utilise plus de projet |
+| `!aide` | rappelle ces commandes |
+
+Une fois un projet sélectionné, pose tes questions normalement : le rôle reçoit un résumé du projet, son plan, la liste de ses livrables et les passages de tes documents qui répondent à la question (la recherche locale doit avoir été actualisée dans l'atelier). Chaque réponse commence par `📁 Projet : <id>` : c'est ce qui rappelle le projet choisi d'un message à l'autre.
+
+- Les commandes répondent tout de suite, **même quand une tâche tourne**. Une question au modèle, elle, attend la fin du traitement en cours.
+- Les réponses du pont (liste, état) ne sont jamais envoyées au modèle.
+- **Cloud** : avec le modèle « · cloud », le contexte d'un projet ne part que si ce projet a un [accord cloud valide](12-cloud.md). Sinon rien n'est envoyé et le pont le dit. Une fois qu'un fil a touché un projet, il garde cette règle même après `!quitter` : ouvre une nouvelle conversation pour une question sans rapport.
+- Le préfixe `/` est aussi accepté pour ces cinq commandes, mais Open WebUI utilise `/` et `@` pour ses propres raccourcis : `!` est le plus sûr.
+- **Pour l'instant**, le chat ne crée, n'approuve et n'écrit rien dans un projet : tout cela reste dans l'atelier. La suite est décrite dans le [plan d'intégration](../PLAN_INTEGRATION_WEBUI.md).
+
 ## Chat ou atelier ?
 
-Le chat explique et oriente. Il ne modifie jamais un projet de l'atelier, et les fichiers joints à une conversation ne deviennent pas des sources de projet. Pour un travail avec des documents, plusieurs étapes et des livrables relus, utilise l'[atelier Projets](04-atelier-projets.md).
+Le chat explique, oriente et peut interroger un projet en lecture seule. Il ne modifie pas encore un projet, et les fichiers joints à une conversation ne deviennent pas des sources de projet. Pour un travail avec des documents, plusieurs étapes et des livrables relus, utilise l'[atelier Projets](04-atelier-projets.md).
 
 ## Démarrer et arrêter
 
