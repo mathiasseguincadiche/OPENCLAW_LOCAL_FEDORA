@@ -47,9 +47,9 @@ Open WebUI / Atelier ──► passerelle chat ──► OpenClaw (--model local
 - OpenClaw envoie ses requêtes cloud à la **passerelle cloud locale**, qui seule détient la clé OpenRouter. OpenClaw ne la voit pas.
 - La passerelle inspecte **tout le corps de chaque requête** (prompt, historique, résultats d'outils), applique le filtre, **réserve** le coût maximal avant l'appel, injecte les réglages OpenRouter (`data_collection: deny`, `require_parameters: true`, `max_price`, liste de fournisseurs, `zdr` selon l'évaluation), transmet, puis **journalise** le coût réel de la réponse (y compris interrompue).
 - Fail-closed : filtre ou budget indisponible, plafond atteint, secret détecté, clé absente → refus, jamais un envoi dégradé.
-- À vérifier au lot 3 avec le vrai OpenClaw : pointer le fournisseur vers la passerelle locale (`baseUrl`) est accepté par la validation native. Si ce n'est pas le cas, le plan se réexamine **avant** d'écrire plus de code.
+- Vérifié au lot 3 avec le vrai OpenClaw 2026.9.8 : un fournisseur personnalisé `cloudgw` à URL locale est accepté, `--model` par tour fonctionne, et la passerelle reçoit les résultats d'outils (un tour avec un outil = deux appels facturables). Détails et pièges dans `docs/PASSERELLE_CLOUD.md` (lot 3).
 
-Le choix du modèle par requête utilise `openclaw agent --model <réf>` et `--thinking low` (limite le raisonnement facturé). Les 7 rôles sont conservés : pas d'agents dupliqués. Dans Open WebUI, chaque rôle apparaît en deux entrées (« · local », « · cloud ») : **le mode est le choix du modèle**. Avec `--model`, OpenClaw désactive ses replis configurés : le repli cloud → local est fait par notre code, donc visible.
+Le choix du modèle par requête utilise `openclaw agent --model <réf>`. Le raisonnement facturé est borné **par la passerelle**, qui injecte `reasoning` dans chaque requête : `--thinking low` est refusé pour un fournisseur personnalisé (vérifié avec OpenClaw 2026.9.8). Les 7 rôles sont conservés : pas d'agents dupliqués. Dans Open WebUI, chaque rôle apparaît en deux entrées (« · local », « · cloud ») : **le mode est le choix du modèle**. Avec `--model`, OpenClaw désactive ses replis configurés : le repli cloud → local est fait par notre code, donc visible.
 
 ## 5. Confidentialité
 
