@@ -16,6 +16,8 @@
 | Recherche Web | 4 résultats, 4 000 caractères par page | `config/core/web_policy.yaml` |
 | Versions d'OpenClaw et d'Ollama | exactes, sans mise à jour automatique | `config/runtime_versions.yaml` |
 
+Les réglages du cloud (budget, limite de clé, modèle, garde-fous) sont dans `config/core/cloud_policy.yaml` ; ils sont décrits plus bas.
+
 Un token est un fragment de mot. En français, compte environ 3 caractères par token.
 
 ## Pourquoi 32 768 tokens de contexte
@@ -50,6 +52,24 @@ Puis :
 Toutes les générations utilisent le même contexte. C'est voulu : Ollama recharge le modèle à chaque fois que cette valeur change, ce qui prend plusieurs secondes.
 
 À 16K, l'atelier reste utilisable mais le chat a la mémoire courte : il ne transmet plus que 3 000 octets d'historique, environ 500 mots. La raison : OpenClaw réserve un quart du contexte à la réponse, et les consignes fixes occupent déjà environ 10 000 des 12 000 tokens restants. Ces valeurs sont vérifiées avec le vrai OpenClaw ; `make native-prompt` échoue si tu en choisis de trop grandes.
+
+## Réglages du cloud
+
+Fichier : `config/core/cloud_policy.yaml`. `./menu.sh --action validate` refuse les valeurs dangereuses.
+
+| Réglage | Valeur | Remarque |
+|---|---|---|
+| `budget.monthly_cap_eur` | 25 | Plafond en euros réels. **Borné à 25 dans le code** : un fichier de configuration ne peut pas le relever. |
+| `budget.eur_per_usd` | 1,3 | Facteur prudent (change, frais d'achat de crédits, TVA). Doit rester ≥ 1. |
+| `budget.alert_ratio` | 0,8 | Seuil d'alerte (80 % du plafond). |
+| `budget.recommended_key_limit_usd` | 12 | Limite de clé conseillée. La limite déclarée ne peut pas dépasser `monthly_cap_eur / eur_per_usd` (≈ 19,2 $). |
+| `model` | `z-ai/glm-5.3-flash` | Modèle cloud, avec tarifs de référence en dollars par million de tokens, à relire sur OpenRouter à l'achat. |
+| `upstream_params` | `data_collection: deny`, `require_parameters: true`, raisonnement `low` | Imposés par la passerelle à chaque appel. |
+| `gateway.port` | 18892 | Boucle locale seulement. |
+
+Le raisonnement long du modèle local reste désactivé. Pour le modèle cloud, c'est la passerelle qui borne le raisonnement : OpenClaw refuse l'option `--thinking` pour un fournisseur personnalisé.
+
+Pour changer le plafond, baisse-le : tu ne peux pas dépasser 25 €. Après toute modification : `./menu.sh --action validate`, puis `./menu.sh --action cloud-enable --value 12 --apply` pour revalider.
 
 ## Mode jeu
 

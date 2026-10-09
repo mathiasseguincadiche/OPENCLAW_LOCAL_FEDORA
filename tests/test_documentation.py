@@ -30,7 +30,7 @@ def test_every_local_link_resolves() -> None:
 def test_guide_links_to_every_sheet_and_sheets_link_back() -> None:
     guide = (ROOT / "docs/GUIDE.md").read_text(encoding="utf-8")
     sheets = sorted((ROOT / "docs/fiches").glob("*.md"))
-    assert len(sheets) == 11
+    assert len(sheets) == 12
     for sheet in sheets:
         assert f"fiches/{sheet.name}" in guide, sheet.name
         assert "[← Guide](../GUIDE.md)" in sheet.read_text(encoding="utf-8"), sheet.name

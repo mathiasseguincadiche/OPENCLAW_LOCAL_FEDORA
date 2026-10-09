@@ -26,7 +26,7 @@ Vers un autre disque :
 scripts/linux/08_backup_restore.sh backup --output-dir /chemin/vers/le/disque
 ```
 
-Les sauvegardes ne sont pas chiffrées.
+Les sauvegardes ne sont pas chiffrées. Elles ne contiennent ni la clé OpenRouter ni le jeton local de la passerelle cloud : après une restauration, saisis la clé de nouveau (`./menu.sh --action cloud-set-key`). Elles gardent le journal du budget cloud et ta liste de termes sensibles.
 
 ## Restaurer
 

@@ -204,3 +204,37 @@ def test_health_reports_all_components(monkeypatch: pytest.MonkeyPatch, tmp_path
         "b580-vulkan",
         "effective-inference-limits",
     }
+
+
+def test_backup_never_contains_the_cloud_provider_key_or_gateway_token(tmp_path: Path) -> None:
+    runtime = tmp_path / "runtime"
+    _mark_runtime(runtime)
+    secrets = {
+        "state/cloud/upstream.key": "sk-or-v1-" + "ab12" * 8,
+        "state/cloud/gateway.token": "t" * 43,
+        "state/cloud/upstream.tmp": "sk-or-v1-" + "cd34" * 8,
+    }
+    kept = {
+        "state/cloud/ledger-2026-10.jsonl": '{"k": "invoice", "eur": 1.0}',
+        "state/cloud/activation.json": "{}",
+        "state/cloud/denylist.txt": "mon-employeur",
+        "state/a.json": "state",
+    }
+    for relative, content in {**secrets, **kept}.items():
+        path = runtime / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+    archive = lifecycle.create_backup(runtime)
+    with tarfile.open(archive) as tar:
+        names = set(tar.getnames())
+        blob = b"".join(
+            tar.extractfile(member).read()  # type: ignore[union-attr]
+            for member in tar.getmembers()
+            if member.isfile()
+        )
+    assert names.isdisjoint(secrets) and set(kept) <= names
+    assert b"sk-or-v1-" not in blob
+    restored = tmp_path / "restored"
+    lifecycle.restore_backup(archive, restored)
+    assert not (restored / "state/cloud/upstream.key").exists()
+    assert (restored / "state/cloud/ledger-2026-10.jsonl").is_file()
