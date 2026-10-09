@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.agents import load_agent_specs
+from clawfedora.cloud_budget import BudgetRefused, load_ledger
 from clawfedora.cloud_privacy import LABELS, PrivacyFilter, describe
 from clawfedora.cloud_state import CLOUD_STATE, cloud_status, recent_events
 from clawfedora.core_config import AGENT_IDS, daily_limits
@@ -121,6 +122,7 @@ def chat_prompt(
 
 class BridgeServer(LocalServer):
     runtime: Path
+    repo_root: Path
     token: str
     runner: AgentRunner
     model_names: dict[str, str]
@@ -195,7 +197,8 @@ class BridgeHandler(BaseHTTPRequestHandler):
                 describe(findings)
             )
         try:
-            return runner(role, full_prompt, session, route="cloud"), CLOUD_BANNER
+            answer = runner(role, full_prompt, session, route="cloud")
+            return answer, CLOUD_BANNER + self._budget_note()
         except (ValueError, RuntimeError, OSError, subprocess.SubprocessError):
             events = recent_events(self.server.runtime, started)
             blocked = [e for e in events if e.get("decision") == "blocked"]
@@ -206,6 +209,20 @@ class BridgeHandler(BaseHTTPRequestHandler):
             else:
                 banner = f"💻 *Réponse locale : {self._unavailable_reason(events)}.*"
             return self._local_after(role, full_prompt, runner), banner
+
+    def _budget_note(self) -> str:
+        """One line under the banner once the month's spending passes the alert threshold."""
+        try:
+            ledger = load_ledger(self.server.runtime, self.server.repo_root)
+            summary = ledger.summary()
+        except (BudgetRefused, OSError, ValueError, KeyError):
+            return "\n⚠️ *Le journal du budget cloud est illisible : les appels cloud sont refusés.*"
+        if summary.level(ledger.alert_ratio) == "ok":
+            return ""
+        return (
+            f"\n⚠️ *Budget cloud du mois : {summary.effective_eur:.2f} € sur "
+            f"{summary.cap_eur:.0f} € ; il reste {summary.remaining_eur:.2f} €.*"
+        )
 
     @staticmethod
     def _sticky_banner(summary: str) -> str:
@@ -401,6 +418,7 @@ def make_server(
         raise ValueError("jeton d’intégration privé requis")
     server = BridgeServer(("127.0.0.1", port), BridgeHandler)
     server.runtime, server.token = runtime, token
+    server.repo_root = repo_root
     server.limits = daily_limits(repo_root)
     server.model_names = {
         f"openclaw/{spec.agent_id}": spec.name for spec in load_agent_specs(repo_root)

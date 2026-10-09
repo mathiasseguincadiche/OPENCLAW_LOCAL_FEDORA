@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -28,6 +29,7 @@ def test_shell_entrypoints_are_strict() -> None:
         "scripts/linux/11_daily_profile.sh",
         "scripts/linux/12_upgrade.sh",
         "scripts/linux/13_openwebui.sh",
+        "scripts/linux/14_cloud.sh",
         "scripts/linux/lib/runtime.sh",
     ):
         text = _read(path)
@@ -143,6 +145,11 @@ def test_menu_exposes_daily_actions_and_no_retired_machinery() -> None:
         "health",
         "context-probe",
         "webui-install",
+        "cloud-status",
+        "cloud-set-key",
+        "cloud-enable",
+        "cloud-disable",
+        "cloud-reconcile",
         "dashboard",
         "gaming",
         "daily",
@@ -193,3 +200,32 @@ def test_openclaw_toolkit_inventory_matches_the_plugin() -> None:
     declared = set(re.findall(r'"(clawfedora_[a-z_]+)"', expected.group(1)))
     assert len(plugin) == 8
     assert declared == plugin
+
+
+def test_cloud_script_keeps_the_key_off_the_command_line_and_gates_the_service() -> None:
+    text = _read("scripts/linux/14_cloud.sh")
+    assert "read -r -s" in text and "| cloud set-key" in text
+    assert "--key" not in text.replace("--key-limit-usd", "")
+    enable = text[text.index("  enable)") : text.index("  disable)")]
+    # The activation record is written first and the service only starts if it succeeded.
+    assert enable.index('cloud "${args[@]}" --apply') < enable.index("systemctl --user enable")
+    assert enable.index("systemctl --user enable") < enable.index("03_configure_openclaw.sh")
+    assert "--confirm-prepaid" in enable and "oui" in enable
+    disable = text[text.index("  disable)") :]
+    assert disable.index("cloud disable") < disable.index("03_configure_openclaw.sh")
+
+
+def test_cloud_menu_actions_validate_their_values_before_touching_anything() -> None:
+    env = {**os.environ, "OPENCLAW_LOCAL_FEDORA_ROOT": "/nonexistent-runtime"}
+    for action, extra in (
+        ("cloud-reconcile", []),
+        ("cloud-reconcile", ["--value", "abc"]),
+        ("cloud-enable", []),
+        ("cloud-enable", ["--value", "-3"]),
+    ):
+        result = subprocess.run(
+            [str(ROOT / "menu.sh"), "--action", action, *extra],
+            capture_output=True, text=True, env=env, timeout=60, check=False,
+        )
+        assert result.returncode == 2, (action, extra, result.stdout, result.stderr)
+        assert "--value" in result.stderr

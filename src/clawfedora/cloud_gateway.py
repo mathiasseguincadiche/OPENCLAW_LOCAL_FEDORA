@@ -28,6 +28,7 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any, Protocol
 
+from clawfedora.cloud_budget import BudgetRefused, load_ledger
 from clawfedora.cloud_privacy import PrivacyFilter, describe
 from clawfedora.cloud_state import CLOUD_STATE, ensure_gateway_token, require_cloud_ready
 from clawfedora.core_config import core_contract, daily_limits
@@ -39,10 +40,6 @@ ALLOWED_FIELDS = frozenset({
 })
 EVENTS_FILE = "events.jsonl"
 KEY_FILE_MIN = 20
-
-
-class BudgetRefused(Exception):
-    """The budget guard refuses the call: nothing is sent."""
 
 
 class Reservation(Protocol):
@@ -412,11 +409,11 @@ def main() -> None:
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--runtime-root", type=Path, required=True)
     args = parser.parse_args()
-    # Until the budget guard exists the gateway refuses every call: it can never spend.
+    # The real budget: a call is reserved before it leaves and settled with its real usage.
     server = make_server(
         args.root,
         args.runtime_root,
-        budget=FailClosedBudget(),
+        budget=load_ledger(args.runtime_root, args.root),
         activation_check=lambda: require_cloud_ready(args.runtime_root, args.root),
     )
     with server, suppress(KeyboardInterrupt):

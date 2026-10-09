@@ -7,6 +7,7 @@ from pathlib import Path
 
 from clawfedora.agents import deploy_workspaces, validate_agent_assets
 from clawfedora.audit import collect_audit
+from clawfedora.cloud_state import cloud_status
 from clawfedora.contracts import validate_repository
 from clawfedora.core_config import resolve_runtime_root
 from clawfedora.core_contracts import validate_core_contracts
@@ -164,7 +165,9 @@ def _openclaw_render(
 ) -> int:
     runtime_root = resolve_runtime_root(runtime_value)
     try:
-        patch = build_openclaw_patch(root, runtime_root)
+        patch = build_openclaw_patch(
+            root, runtime_root, cloud_enabled=cloud_status(runtime_root, root)[0]
+        )
         if output:
             path = write_openclaw_patch(Path(output).expanduser().resolve(), patch)
             if as_json:

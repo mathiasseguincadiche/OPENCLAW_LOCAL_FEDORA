@@ -459,3 +459,76 @@ def test_default_wiring_targets_the_policy_and_uses_the_shared_token(tmp_path: P
         assert server.token == ensure_gateway_token(tmp_path)
     finally:
         server.server_close()
+
+
+# -- the real ledger behind the real gateway ----------------------------------------
+@pytest.fixture
+def counted(
+    gateway: tuple[GatewayServer, FakeBudget],
+) -> tuple[GatewayServer, Any]:
+    from clawfedora.cloud_budget import load_ledger
+
+    server, _ = gateway
+    ledger = load_ledger(server.runtime, ROOT)
+    server.budget = ledger
+    return server, ledger
+
+
+def test_every_billed_call_is_counted_with_its_real_cost(
+    counted: tuple[GatewayServer, Any], upstream: tuple[Upstream, int]
+) -> None:
+    server, ledger = counted
+    assert post(server, request())[0] == 200
+    assert post(server, request(stream=True, stream_options={"include_usage": True}))[0] == 200
+    summary = ledger.summary()
+    assert (summary.calls_ok, summary.pending, summary.calls_uncertain) == (2, 0, 0)
+    assert summary.spent_usd == pytest.approx(0.00084)
+    assert summary.spent_eur == pytest.approx(0.00084 * ledger.eur_per_usd)
+
+
+def test_a_call_the_provider_refused_costs_nothing_but_an_unreachable_one_is_kept(
+    counted: tuple[GatewayServer, Any], upstream: tuple[Upstream, int]
+) -> None:
+    server, ledger = counted
+    upstream[0].behaviour = upstream[0].status(500)
+    assert post(server, request())[0] == 502
+    summary = ledger.summary()
+    assert (summary.calls_failed, summary.spent_usd) == (1, 0)
+    server.upstream_base_url = "http://127.0.0.1:9/v1"
+    assert post(server, request())[0] == 504
+    summary = ledger.summary()
+    assert summary.calls_uncertain == 1 and summary.spent_usd > 0
+
+
+def test_once_the_cap_is_reached_nothing_more_leaves(
+    counted: tuple[GatewayServer, Any], upstream: tuple[Upstream, int]
+) -> None:
+    server, ledger = counted
+    ledger.record_invoice(24.999)
+    sent = len(upstream[0].requests)
+    status, body = post(server, request("Bonjour " * 200))
+    assert status == 402 and b"budget_refused" in body
+    assert len(upstream[0].requests) == sent
+    assert events(server)[-1]["decision"] == "budget_refused"
+
+
+def test_a_blocked_secret_never_touches_the_ledger(
+    counted: tuple[GatewayServer, Any], upstream: tuple[Upstream, int]
+) -> None:
+    server, ledger = counted
+    status, _ = post(server, request("mot de passe: " + GITHUB_TOKEN))
+    assert status == 451
+    assert not ledger.path(ledger.summary().month).exists()
+    assert upstream[0].requests == []
+
+
+def test_an_unreadable_journal_stops_the_cloud_instead_of_guessing(
+    counted: tuple[GatewayServer, Any], upstream: tuple[Upstream, int]
+) -> None:
+    server, ledger = counted
+    ledger.record_invoice(1.0)
+    path = ledger.path(ledger.summary().month)
+    path.write_text("{corrompu\n" + path.read_text())
+    status, body = post(server, request())
+    assert status == 402 and b"budget_refused" in body and b"illisible" in body
+    assert upstream[0].requests == []
