@@ -1,6 +1,6 @@
 # Plan : tout faire depuis Open WebUI
 
-**Statut : plan révisé le 9 octobre 2026 (chat complet : fichiers, images, voix). Les lots 9 et 10 sont implémentés ; les lots 11 à 15 ne le sont pas encore.** Ce document est mis à jour à chaque lot : une case n'est cochée que si la preuve annoncée existe.
+**Statut : plan révisé le 9 octobre 2026 (chat complet : fichiers, images, voix). Les lots 9 à 11 sont implémentés ; les lots 12 à 15 ne le sont pas encore.** Ce document est mis à jour à chaque lot : une case n'est cochée que si la preuve annoncée existe.
 
 ## 1. Objectif
 
@@ -33,8 +33,8 @@ Une branche et une pull request en brouillon par lot ; aucune fusion automatique
 | Lot | Contenu | État |
 |---|---|---|
 | 9 | **Lire** : `!projets`, `!projet`, `!état`, `!quitter`. Questions sur un projet : le rôle reçoit un contexte en lecture seule (résumé, plan, décisions, extraits retrouvés par la recherche locale). Accord cloud respecté. | [x] |
-| 10 | **Approuver et produire** : phrase de confirmation à usage unique ; documents générés dans le chat enregistrés comme propositions du projet ; `!propositions`, `!accepter`, `!refuser`. | [x] cette PR |
-| 11 | **Créer et cadrer** : `!créer`, cadrage, clarifications, plan court, approbations par phrase de confirmation. | [ ] |
+| 10 | **Approuver et produire** : phrase de confirmation à usage unique ; documents générés dans le chat enregistrés comme propositions du projet ; `!propositions`, `!accepter`, `!refuser`. | [x] |
+| 11 | **Créer et cadrer** : `!creer` (la demande est le message précédent), `!analyser`, `!questions`/`!repondre`, `!planifier`, `!valider` ; création, analyse et plan approuvés par phrase de confirmation ; brouillons rédigés en arrière-plan. | [x] cette PR |
 | 12 | **Conduire** : exécution en arrière-plan, pause et reprise, audits, pratique guidée et retour, modification cohérente, livraison finale. | [ ] |
 | 13 | **Pièces jointes** : fichiers (texte, PDF, Office, archives, code) enregistrés dans le projet et lus par la chaîne d'ingestion de l'atelier, avec compte rendu de couverture ; images transmises au rôle local ; refus clair des types, tailles et contenus non pris en charge. | [ ] |
 | 14 | **Voix** : dictée locale (Whisper), synthèse vocale locale en option, installation et mesures de mémoire/latence, réglages Open WebUI (appel mains libres désactivé). | [ ] |
