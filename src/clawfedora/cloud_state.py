@@ -113,3 +113,22 @@ def require_cloud_ready(runtime: Path, repo_root: Path) -> None:
     ready, reason = cloud_status(runtime, repo_root)
     if not ready:
         raise ValueError(f"route cloud refusée: {reason}")
+
+
+def recent_events(runtime: Path, since: float) -> list[dict[str, Any]]:
+    """Gateway decisions recorded since ``since`` (epoch seconds). They hold no content."""
+    path = _directory(runtime) / "events.jsonl"
+    cutoff = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(int(since)))
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()[-200:]
+    except OSError:
+        return []
+    result: list[dict[str, Any]] = []
+    for line in lines:
+        try:
+            record = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(record, dict) and str(record.get("at", "")) >= cutoff:
+            result.append(record)
+    return result
