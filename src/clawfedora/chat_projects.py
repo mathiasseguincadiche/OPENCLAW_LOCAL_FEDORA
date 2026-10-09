@@ -240,7 +240,7 @@ def status_text(repo_root: Path, runtime: Path, project: Path) -> str:
         if isinstance(pause, dict):
             lines.append(f"**Pause cloud** : {_cell(pause.get('message', ''), 300)}")
     try:
-        rows = chat_proposals.load_all(project)
+        rows = chat_proposals.load_all(runtime, project)
     except (OSError, ValueError):
         rows = []
     if rows:
@@ -254,9 +254,9 @@ def status_text(repo_root: Path, runtime: Path, project: Path) -> str:
     return "\n".join(lines)
 
 
-def _notes(project: Path) -> list[dict[str, Any]]:
+def _notes(runtime: Path, project: Path) -> list[dict[str, Any]]:
     try:
-        return chat_proposals.accepted_notes(project)
+        return chat_proposals.accepted_notes(runtime, project)
     except (OSError, ValueError):
         return []
 
@@ -298,7 +298,7 @@ def project_context(repo_root: Path, runtime: Path, project: Path, question: str
             "summary": summary[:600],
         },
         "tasks": _tasks(project)[:12],
-        "notes_acceptees": _notes(project),
+        "notes_acceptees": _notes(runtime, project),
         "deliverables": deliverables,
         "passages": [
             {"path": h["path"], "page": h["page"], "kind": h["kind"], "text": str(h["text"])[:700],
@@ -339,7 +339,7 @@ def _proposal_command(
     if project is None or current is None:
         return bridge_reply(None, "Aucun projet sélectionné. Faites `!projets`, puis `!projet <id>`.")
     if name == "propositions":
-        rows = chat_proposals.load_all(project)
+        rows = chat_proposals.load_all(runtime, project)
         if not rows:
             return bridge_reply(
                 current, "Aucune proposition. Demandez un document au rôle, puis `!garder`."
@@ -361,7 +361,9 @@ def _proposal_command(
         try:
             with worker_lock(runtime, allow_gaming=True):
                 _assert_open(project)
-                record = chat_proposals.save(project, answer.text, args, answer.route, answer.model)
+                record = chat_proposals.save(
+                    runtime, project, answer.text, args, answer.route, answer.model
+                )
         except ValueError as exc:
             return bridge_reply(current, BUSY if _is_busy(exc) else f"Rien n'est gardé : {exc}.")
         return bridge_reply(
@@ -375,7 +377,7 @@ def _proposal_command(
     if number is None:
         return bridge_reply(current, f"Précisez le numéro : `!{name} <n>` (voir `!propositions`).")
     try:
-        record = chat_proposals.get(project, number)
+        record = chat_proposals.get(runtime, project, number)
         if name == "voir":
             shown = record["text"][:VIEW_CHARS]
             cut = (
@@ -392,12 +394,12 @@ def _proposal_command(
         if name == "refuser":
             with worker_lock(runtime, allow_gaming=True):
                 _assert_open(project)
-                chat_proposals.refuse(project, number)
+                chat_proposals.refuse(runtime, project, number)
             return bridge_reply(current, f"Proposition {number} refusée. Elle reste consultable.")
         # accepter: only issues the code. The acceptance itself happens on the typed phrase.
         if record["status"] != "pending":
             raise ValueError(f"la proposition {number} est déjà décidée")
-        sha = chat_proposals.pending_digest(project, number)
+        sha = chat_proposals.pending_digest(runtime, project, number)
         if sha is None:
             raise ValueError("proposition altérée ou illisible")
         pending = chat_approvals.issue(
@@ -444,11 +446,11 @@ def apply_approval(
             _assert_open(project)
             outcome = chat_approvals.consume(
                 runtime, current, action, code,
-                lambda p: chat_proposals.pending_digest(project, int(p.target)),
+                lambda p: chat_proposals.pending_digest(runtime, project, int(p.target)),
             )
             if outcome.ok and outcome.pending is not None:
                 record = chat_proposals.accept(
-                    project, int(outcome.pending.target), outcome.pending.digest
+                    runtime, project, int(outcome.pending.target), outcome.pending.digest
                 )
                 return bridge_reply(
                     current,
