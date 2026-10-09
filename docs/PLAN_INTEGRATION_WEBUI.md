@@ -1,6 +1,6 @@
 # Plan : tout faire depuis Open WebUI
 
-**Statut : plan révisé le 9 octobre 2026 (chat complet : fichiers, images, voix). Le lot 9 est implémenté ; les lots 10 à 15 ne le sont pas encore.** Ce document est mis à jour à chaque lot : une case n'est cochée que si la preuve annoncée existe.
+**Statut : plan révisé le 9 octobre 2026 (chat complet : fichiers, images, voix). Les lots 9 et 10 sont implémentés ; les lots 11 à 15 ne le sont pas encore.** Ce document est mis à jour à chaque lot : une case n'est cochée que si la preuve annoncée existe.
 
 ## 1. Objectif
 
@@ -17,14 +17,14 @@ Le chat n'a **aucun état de projet à lui**. Chaque action du chat appelle les 
 | Comment piloter | **Commandes** comprises par le pont lui-même (code déterministe), jamais par le modèle. | Un modèle peut se tromper ou être manipulé par un document ; un changement d'état de projet ne doit pas dépendre de son interprétation. |
 | Préfixe | `!` (ex. `!projets`, `!projet mon-projet`). `/` est accepté si Open WebUI le laisse passer. | Open WebUI utilise `/` et `@` pour ses propres raccourcis. Ce comportement n'a pas pu être vérifié ici : à confirmer au test de fumée. |
 | Projet courant | Rappelé par un **marqueur** en tête des réponses du pont (`📁 Projet : id`), relu dans l'historique du fil. | Le pont est sans mémoire entre deux messages, comme pour le marqueur « conversation passée en local ». |
-| Approbation | **Phrase de confirmation à usage unique**, générée par le pont (pas par le modèle) : `approuver plan K7Q2`. Valable seulement si elle est **le dernier message de l'utilisateur**, que le code correspond à un état enregistré côté serveur, qu'il n'a pas expiré (15 minutes) et que ce qu'on approuve n'a pas changé (empreinte SHA-256). | Le modèle ne peut ni produire ni valider une approbation : une consigne cachée dans un document ne peut pas approuver à sa place. Les décisions restent les vôtres. |
+| Approbation | **Phrase de confirmation à usage unique**, générée par le pont (pas par le modèle) : `approuver proposition K7Q2`. Valable seulement si elle est **le dernier message de l'utilisateur**, que le code correspond à un état enregistré côté serveur, qu'il n'a pas expiré (15 minutes) et que ce qu'on approuve n'a pas changé (empreinte SHA-256). | Le modèle ne peut ni produire ni valider une approbation : une consigne cachée dans un document ne peut pas approuver à sa place. Les décisions restent les vôtres. |
 | Actions longues | Lancées **en arrière-plan** : le chat répond « lancé » et `!état` donne l'avancement. Une seule génération à la fois (verrou existant). | Une tâche prend plusieurs minutes : une requête de chat tiendrait mal. |
 | Fichiers joints | Un fichier joint dans le chat est **enregistré tel quel** dans le projet courant (ou, sans projet, dans une zone d'import du chat), puis lu par la **même chaîne d'ingestion que l'atelier** (types, tailles, archives sûres, couverture de lecture READ/PARTIAL/UNREADABLE). Rien n'est lu « à moitié » en silence : le chat annonce ce qui a été lu et ce qui ne l'a pas été. | Une seule chaîne de lecture, déjà éprouvée ; pas de seconde chaîne RAG dans Open WebUI. |
 | Images | Les images jointes sont transmises au rôle local (Qwen 3.5 est multimodal : entrée image déclarée dans `model_catalog.yaml`), après contrôle du type réel (signature de fichier), de la taille et des dimensions. **Jamais envoyées au cloud** : GLM-5.3 Flash est texte seul et le filtre de confidentialité ne sait pas lire une image. | Le filtre protège tout ce qui part au cloud ; ce qu'il ne peut pas inspecter ne part pas. |
 | Voix | Note vocale = **dictée locale** : l'audio est transcrit sur la machine (Whisper local), jamais par un service du navigateur qui l'enverrait à un tiers. Le texte transcrit arrive dans la zone de saisie, **relu avant l'envoi**. Réponses lues à voix haute par une synthèse vocale **locale** (option). Le mode appel mains libres (envoi sans relecture) reste désactivé. | Vie privée (rien ne sort), et une phrase d'approbation mal entendue ne doit jamais partir sans relecture. |
 | Approbation et voix | Une phrase d'approbation n'est valable que **tapée ou dictée puis envoyée par vous** ; elle est à usage unique et liée à un code que le modèle ne produit pas. | Même sécurité qu'à l'écrit. |
 | Cloud | Le contexte d'un projet n'est envoyé au cloud que si le modèle « · cloud » est choisi **et** que le projet a l'**accord cloud valide** ; sinon le pont le dit et propose le modèle local ou l'accord (par phrase de confirmation). Filtre, budget et pause visible s'appliquent comme dans l'atelier. | Même règle partout. |
-| Documents produits dans le chat | Arrivent dans le projet comme **propositions** ; on les accepte par phrase de confirmation ; l'audit indépendant reste obligatoire. | Le niveau d'autorité du chat n'est pas supérieur à celui de l'atelier. |
+| Documents produits dans le chat | Arrivent dans le projet comme **propositions** (`!garder`) ; acceptées par phrase de confirmation, elles deviennent des **notes** (`context/chat/notes`), jamais des livrables. Un livrable naît d'une tâche du plan et passe l'audit indépendant, comme dans l'atelier (lot 12). | Le niveau d'autorité du chat n'est pas supérieur à celui de l'atelier ; un texte écrit par un modèle n'entre pas dans le paquet final sans audit. |
 
 ## 4. Lots
 
@@ -32,8 +32,8 @@ Une branche et une pull request en brouillon par lot ; aucune fusion automatique
 
 | Lot | Contenu | État |
 |---|---|---|
-| 9 | **Lire** : `!projets`, `!projet`, `!état`, `!quitter`. Questions sur un projet : le rôle reçoit un contexte en lecture seule (résumé, plan, décisions, extraits retrouvés par la recherche locale). Accord cloud respecté. | [x] cette PR |
-| 10 | **Approuver et produire** : phrase de confirmation à usage unique ; documents générés dans le chat enregistrés comme propositions du projet ; `!propositions`, `!accepter`, `!refuser`. | [ ] |
+| 9 | **Lire** : `!projets`, `!projet`, `!état`, `!quitter`. Questions sur un projet : le rôle reçoit un contexte en lecture seule (résumé, plan, décisions, extraits retrouvés par la recherche locale). Accord cloud respecté. | [x] |
+| 10 | **Approuver et produire** : phrase de confirmation à usage unique ; documents générés dans le chat enregistrés comme propositions du projet ; `!propositions`, `!accepter`, `!refuser`. | [x] cette PR |
 | 11 | **Créer et cadrer** : `!créer`, cadrage, clarifications, plan court, approbations par phrase de confirmation. | [ ] |
 | 12 | **Conduire** : exécution en arrière-plan, pause et reprise, audits, pratique guidée et retour, modification cohérente, livraison finale. | [ ] |
 | 13 | **Pièces jointes** : fichiers (texte, PDF, Office, archives, code) enregistrés dans le projet et lus par la chaîne d'ingestion de l'atelier, avec compte rendu de couverture ; images transmises au rôle local ; refus clair des types, tailles et contenus non pris en charge. | [ ] |
