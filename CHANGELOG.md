@@ -4,7 +4,13 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
-Rien pour l'instant. Les corrections viendront des premiers essais sur le PC Fedora.
+### Ajouté
+- **Interroger un projet depuis Open WebUI, en lecture seule** : commandes `!projets`, `!projet`, `!etat`, `!quitter`, `!aide`, comprises par le pont et jamais par le modèle ; le projet sélectionné est rappelé par un marqueur en tête des réponses ; le rôle reçoit un contexte borné en lecture seule. L'accord cloud du projet s'applique à tout le fil.
+
+### Corrigé
+- Le bandeau « contexte allégé » d'un long fil pouvait cacher les marqueurs de provenance et de bascule locale ; il passe maintenant après eux.
+
+Les autres corrections viendront des premiers essais sur le PC Fedora.
 
 ## [0.1.0] - 2026-10-09
 

@@ -18,6 +18,7 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
 
+from clawfedora import chat_projects, project_cloud
 from clawfedora.agents import load_agent_specs
 from clawfedora.cloud_budget import BudgetRefused, load_ledger
 from clawfedora.cloud_privacy import LABELS, PrivacyFilter, describe
@@ -40,24 +41,38 @@ CLOUD_BANNER = (
 # Once a conversation has been moved to local, every later answer repeats this marker, so the
 # conversation stays local even though the chat gateway keeps no state of its own.
 STICKY_MARKER = "🔒 Conversation passée en local"
-BANNER_PREFIXES = ("☁️ *", "💻 *", STICKY_MARKER)
+CONTEXT_NOTE = "*Contexte allégé"
+# Paragraphs the bridge puts at the head of an answer: they are never fed back to the model.
+BANNER_PREFIXES = ("☁️ *", "💻 *", STICKY_MARKER, "📁", CONTEXT_NOTE)
 
 
 DEFAULT_MAX_TOKENS = 4096
 DEFAULT_HISTORY_BYTES = 32000
 
 
+def leading_banners(content: str) -> list[str]:
+    """The bridge's own paragraphs at the head of an answer (project, provenance, notes)."""
+    found: list[str] = []
+    while True:
+        head, sep, rest = content.partition("\n\n")
+        if not (sep and rest and head.startswith(BANNER_PREFIXES)):
+            return found
+        found.append(head)
+        content = rest
+
+
 def strip_banners(content: str) -> str:
-    """Remove the provenance line the gateway added to an earlier answer."""
-    head, _, rest = content.partition("\n\n")
-    return rest if rest and head.startswith(BANNER_PREFIXES) else content
+    """Remove the paragraphs the bridge added to an earlier answer."""
+    for banner in leading_banners(content):
+        content = content[len(banner) + 2 :]
+    return content
 
 
 def local_sticky(messages: list[dict[str, Any]]) -> bool:
     return any(
         item.get("role") == "assistant"
         and isinstance(item.get("content"), str)
-        and item["content"].partition("\n\n")[0].startswith(STICKY_MARKER)
+        and any(b.startswith(STICKY_MARKER) for b in leading_banners(item["content"]))
         for item in messages
         if isinstance(item, dict)
     )
@@ -86,7 +101,7 @@ def chat_prompt(
     if not isinstance(messages, list) or not 1 <= len(messages) <= 5000:
         raise ValueError("1 à 5000 messages texte requis")
     history = []
-    for item in messages:
+    for item in chat_projects.sanitize_history(messages):
         if (
             not isinstance(item, dict)
             or item.get("role") not in {"user", "assistant", "system"}
@@ -301,72 +316,8 @@ class BridgeHandler(BaseHTTPRequestHandler):
         else:
             self._send(404, {"error": {"message": "endpoint absent"}})
 
-    def do_POST(self) -> None:
-        if not self._authorized():
-            self._send(401, {"error": {"message": "authentification locale requise"}})
-            return
-        if self.path != "/v1/chat/completions":
-            self._send(404, {"error": {"message": "endpoint absent"}})
-            return
-        try:
-            length = int(self.headers.get("Content-Length", "0"))
-            if (
-                not 0 < length <= 1_048_576
-                or self.headers.get("Transfer-Encoding")
-                or self.headers.get_content_type() != "application/json"
-            ):
-                raise ValueError("requête JSON texte bornée requise")
-            data = json.loads(self.rfile.read(length))
-            if not isinstance(data, dict):
-                raise ValueError("objet JSON requis")
-            role, prompt = chat_prompt(
-                data,
-                max_tokens=int(self.server.limits["max_output_tokens"]),
-                max_history_bytes=int(self.server.limits["max_history_bytes"]),
-                allow_cloud=self.server.cloud_ready(),
-            )
-            omitted = len(data["messages"]) - len(json.loads(prompt.split("\n", 1)[1]))
-        except (ValueError, TypeError) as exc:
-            self._send(400, {"error": {"message": str(exc)}})
-            return
-        try:
-            with worker_lock(self.server.runtime):
-                session = str(uuid.uuid4())
-                write_progress(self.server.runtime, None, "chat", role=role, session=session)
-                from clawfedora.chat_artifacts import links
-                from clawfedora.project_worker import _tool_receipts
-
-                workspace = self.server.runtime / "workspaces" / role
-                before = _tool_receipts(workspace)
-                try:
-                    response, banner = self._answer(
-                        role,
-                        mentor_context(self.server.runtime),
-                        prompt,
-                        session,
-                        str(data["model"]).startswith(CLOUD_PREFIX),
-                        data["messages"],
-                    )
-                    attachments = links(
-                        self.server.runtime, role, before, self.server.server_port, self.server.token
-                    )
-                finally:
-                    write_progress(self.server.runtime, None, "idle")
-            text = response["text"]
-            if isinstance(text, str):
-                text += attachments
-                if banner:
-                    text = banner + "\n\n" + text
-            if not isinstance(text, str) or len(text.encode()) > 64000:
-                raise ValueError("réponse locale invalide")
-        except (OSError, ValueError, KeyError, RuntimeError) as exc:
-            self._send(409, {"error": {"message": str(exc)}})
-            return
-        if omitted:
-            text = (
-                f"*Contexte allégé : {omitted} anciens messages ne sont plus transmis au "
-                "modèle. Le chat reste conservé; rappelez un détail ancien si nécessaire.*\n\n" + text
-            )
+    def _completion(self, data: dict[str, Any], text: str) -> None:
+        """Send one assistant message, as a plain answer or as a one-chunk stream."""
         identifier = "chatcmpl-" + uuid.uuid4().hex
         base = {"id": identifier, "created": int(time.time()), "model": data["model"]}
         if not data.get("stream", False):
@@ -403,6 +354,130 @@ class BridgeHandler(BaseHTTPRequestHandler):
         self.end_headers()
         with suppress(BrokenPipeError, ConnectionResetError):
             self.wfile.write(raw.encode())
+
+    def _cloud_without_consent(self, referenced: set[str]) -> list[str]:
+        """Projects this thread touched that may not be sent to the cloud."""
+        refused = []
+        for project_id in sorted(referenced):
+            project = chat_projects.open_project(self.server.runtime, project_id)
+            if project is None:
+                continue
+            state = project_cloud.consent_state(self.server.repo_root, self.server.runtime, project)
+            if state["state"] != "granted":
+                refused.append(project_id)
+        return refused
+
+    def do_POST(self) -> None:
+        if not self._authorized():
+            self._send(401, {"error": {"message": "authentification locale requise"}})
+            return
+        if self.path != "/v1/chat/completions":
+            self._send(404, {"error": {"message": "endpoint absent"}})
+            return
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            if (
+                not 0 < length <= 1_048_576
+                or self.headers.get("Transfer-Encoding")
+                or self.headers.get_content_type() != "application/json"
+            ):
+                raise ValueError("requête JSON texte bornée requise")
+            data = json.loads(self.rfile.read(length))
+            if not isinstance(data, dict):
+                raise ValueError("objet JSON requis")
+            role, prompt = chat_prompt(
+                data,
+                max_tokens=int(self.server.limits["max_output_tokens"]),
+                max_history_bytes=int(self.server.limits["max_history_bytes"]),
+                allow_cloud=self.server.cloud_ready(),
+            )
+            omitted = len(data["messages"]) - len(json.loads(prompt.split("\n", 1)[1]))
+        except (ValueError, TypeError) as exc:
+            self._send(400, {"error": {"message": str(exc)}})
+            return
+        messages = data["messages"]
+        current, referenced = chat_projects.thread_state(messages)
+        last = messages[-1] if messages[-1].get("role") == "user" else {}
+        # Commands come from the user's last message only, and are understood by this code.
+        command = chat_projects.parse_command(str(last.get("content", ""))) if last else None
+        if command is not None:
+            name, args = command
+            try:
+                reply = chat_projects.run_command(
+                    self.server.repo_root, self.server.runtime, name, args, current
+                )
+            except (OSError, ValueError, KeyError) as exc:
+                reply = chat_projects.bridge_reply(current, f"Commande impossible : {exc}")
+            self._completion(data, reply)
+            return
+        cloud = str(data["model"]).startswith(CLOUD_PREFIX)
+        if cloud and referenced:
+            refused = self._cloud_without_consent(referenced)
+            if refused:
+                names = ", ".join(f"`{name}`" for name in refused)
+                self._completion(
+                    data,
+                    chat_projects.bridge_reply(
+                        current,
+                        f"Ce fil a touché le projet {names}, qui n'a pas d'accord cloud valide : "
+                        "rien n'est envoyé au cloud. Choisissez le modèle « · local », ou donnez "
+                        "l'accord cloud du projet dans l'atelier, ou ouvrez une nouvelle "
+                        "conversation pour une question sans rapport avec ce projet.",
+                    ),
+                )
+                return
+        context = mentor_context(self.server.runtime)
+        if current:
+            project = chat_projects.open_project(self.server.runtime, current)
+            if project is None:
+                current = None
+            else:
+                context += "\n" + chat_projects.project_context(
+                    self.server.repo_root, self.server.runtime, project, str(last.get("content", ""))
+                )
+        try:
+            with worker_lock(self.server.runtime):
+                session = str(uuid.uuid4())
+                write_progress(self.server.runtime, None, "chat", role=role, session=session)
+                from clawfedora.chat_artifacts import links
+                from clawfedora.project_worker import _tool_receipts
+
+                workspace = self.server.runtime / "workspaces" / role
+                before = _tool_receipts(workspace)
+                try:
+                    response, banner = self._answer(
+                        role,
+                        context,
+                        prompt,
+                        session,
+                        cloud,
+                        chat_projects.sanitize_history(messages),
+                    )
+                    attachments = links(
+                        self.server.runtime, role, before, self.server.server_port, self.server.token
+                    )
+                finally:
+                    write_progress(self.server.runtime, None, "idle")
+            text = response["text"]
+            if isinstance(text, str):
+                text += attachments
+                if omitted:
+                    text = (
+                        f"{CONTEXT_NOTE} : {omitted} anciens messages ne sont plus transmis au "
+                        "modèle. Le chat reste conservé; rappelez un détail ancien si "
+                        "nécessaire.*\n\n" + text
+                    )
+                # Order matters: the thread is read back from the head of each answer.
+                heads = [chat_projects.model_marker(current)] if current else []
+                if banner:
+                    heads.append(banner)
+                text = "\n\n".join([*heads, text])
+            if not isinstance(text, str) or len(text.encode()) > 64000:
+                raise ValueError("réponse locale invalide")
+        except (OSError, ValueError, KeyError, RuntimeError) as exc:
+            self._send(409, {"error": {"message": str(exc)}})
+            return
+        self._completion(data, text)
 
 
 def make_server(

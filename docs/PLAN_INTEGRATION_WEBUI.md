@@ -1,6 +1,6 @@
 # Plan : tout faire depuis Open WebUI
 
-**Statut : plan du 9 octobre 2026, rien n'est encore implémenté.** Ce document est mis à jour à chaque lot : une case n'est cochée que si la preuve annoncée existe.
+**Statut : plan du 9 octobre 2026. Le lot 9 est implémenté ; les autres lots ne le sont pas encore.** Ce document est mis à jour à chaque lot : une case n'est cochée que si la preuve annoncée existe.
 
 ## 1. Objectif
 
@@ -29,7 +29,7 @@ Une branche et une pull request en brouillon par lot ; aucune fusion automatique
 
 | Lot | Contenu | État |
 |---|---|---|
-| 9 | **Lire** : `!projets`, `!projet`, `!état`, `!quitter`. Questions sur un projet : le rôle reçoit un contexte en lecture seule (résumé, plan, décisions, extraits retrouvés par la recherche locale). Accord cloud respecté. | [ ] |
+| 9 | **Lire** : `!projets`, `!projet`, `!état`, `!quitter`. Questions sur un projet : le rôle reçoit un contexte en lecture seule (résumé, plan, décisions, extraits retrouvés par la recherche locale). Accord cloud respecté. | [x] cette PR |
 | 10 | **Approuver et produire** : phrase de confirmation à usage unique ; documents générés dans le chat enregistrés comme propositions du projet ; `!propositions`, `!accepter`, `!refuser`. | [ ] |
 | 11 | **Créer et cadrer** : `!créer`, cadrage, clarifications, plan court, approbations par phrase de confirmation. | [ ] |
 | 12 | **Conduire** : exécution en arrière-plan, pause et reprise, audits, pratique guidée et retour, modification cohérente, livraison finale. | [ ] |

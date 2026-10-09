@@ -42,6 +42,7 @@ Rien n'est mesuré sur ta machine. Les sources publiques tranchent déjà pour l
 - Cloud : le coût est une estimation prudente (facteur 1,3 € par dollar), pas une facture. Le relevé OpenRouter fait foi : l'enregistrer avec `cloud-reconcile`.
 - Cloud : le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allure. En cas de doute, rester en local.
 - Cloud : le choix par défaut du chat reste local ; rien ne part tant que le modèle « · cloud » n'est pas choisi. Le coût d'une discussion cloud n'est pas rattaché à un projet.
+- Le chat peut lire un projet (lot 9 de l'[intégration d'Open WebUI](docs/PLAN_INTEGRATION_WEBUI.md)) mais ne peut pas encore y écrire ni l'approuver. Le comportement de `!` et `/` dans la vraie interface d'Open WebUI reste à vérifier.
 - Les captures d'écran du README viennent d'un atelier d'exemple (projets, budget et modèles fictifs) : elles montrent l'interface, pas des résultats réels. Le chat Open WebUI n'est pas capturé.
 
 ## Remise en ordre d'octobre 2026
