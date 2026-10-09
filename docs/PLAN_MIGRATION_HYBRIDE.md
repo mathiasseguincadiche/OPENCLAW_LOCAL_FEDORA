@@ -1,7 +1,7 @@
 # Plan de migration hybride (OpenRouter + Qwen local)
 
-**Statut : plan validé le 9 octobre 2026. Rien de ce qui suit n'est implémenté, sauf ce que le suivi des lots indique.**
-Le dépôt reste 100 % local tant que le cloud n'est pas activé explicitement (voir « Garde-fou d'activation »).
+**Statut : les 8 lots sont implémentés et fusionnés dans `main` (9 octobre 2026). Ce qui n'est pas prouvé : le vrai OpenRouter, le PC Fedora, la qualité de GLM (voir la section 9 et la [fiche 12](fiches/12-cloud.md)).**
+Le dépôt reste 100 % local tant que le cloud n'est pas activé explicitement (voir « Garde-fou d'activation »). Ce document est le plan d'origine, conservé avec ses déviations (section 8) ; la description à jour du fonctionnement est dans [PASSERELLE_CLOUD.md](PASSERELLE_CLOUD.md) et la [fiche 12](fiches/12-cloud.md).
 
 Ce document fixe les décisions, l'architecture, l'ordre des lots et ce que chaque lot doit prouver. Il se met à jour à chaque lot : une case n'est cochée que si la preuve annoncée existe.
 
@@ -15,7 +15,7 @@ Un atelier hybride qui place GLM là où il aide l'apprentissage et les livrable
 |---|---|
 | Fournisseur | OpenRouter, géré nativement par OpenClaw 2026.9.8 (références `openrouter/<fournisseur>/<modèle>`). |
 | Modèle cloud | GLM-5.3 Flash (`z-ai/glm-5.3-flash`). Mistral Large 4 : hors périmètre. |
-| Mode **Apprendre** (Open WebUI) | GLM par défaut pour le mentor et les explications. |
+| Mode **Apprendre** (Open WebUI) | GLM pour le mentor et les explications. **Déviation :** réalisé comme un choix du modèle « · cloud » ; le choix par défaut reste local (décision de l'utilisateur du 9 octobre 2026, à revoir après le test de fumée et une comparaison à l'usage). |
 | Mode **Travail** (Open WebUI) | Qwen local uniquement. |
 | Atelier Projets | Cloud autorisé **projet par projet**, par accord explicite de l'utilisateur. |
 | Repli | Chat : repli cloud → local avec bandeau visible. Atelier : **pause visible** de la tâche, jamais de bascule silencieuse. |

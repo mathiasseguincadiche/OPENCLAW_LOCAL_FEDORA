@@ -4,13 +4,13 @@
 
 Par défaut, tout reste sur ton PC avec Qwen. Le cloud est une option que tu actives toi-même, pour les moments où un modèle plus puissant aide : expliquer une notion publique, relire un long texte. Le modèle cloud est **GLM-5.3 Flash**, appelé par OpenRouter.
 
-Tant que tu n'as rien activé, rien de cette fiche ne s'applique et rien ne sort de ton PC.
+Tant que tu n'as rien activé, rien de cette fiche ne s'applique : aucune conversation ni aucun projet ne part vers un modèle distant (seule la recherche Web des rôles, quand tu la demandes, sort pour interroger le Web).
 
 ## Le principe : local d'abord, cloud sur demande
 
 | Où | Comportement |
 |---|---|
-| Chat, modèle « · local » | Qwen sur ton PC. Aucune donnée ne sort. C'est le mode **Travail**. |
+| Chat, modèle « · local » | Qwen sur ton PC. Aucun contenu de la conversation ne part vers un modèle distant. C'est le mode **Travail**. |
 | Chat, modèle « · cloud (GLM) » | GLM via la passerelle. C'est le mode **Apprendre**, pour des questions publiques. |
 | Atelier Projets | Local, sauf pour un projet que tu autorises toi-même, un par un. |
 

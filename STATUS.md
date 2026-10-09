@@ -19,6 +19,10 @@ Dernière mise à jour : 9 octobre 2026.
 
 Tant que les lignes « À faire » et « À mesurer » ne sont pas faites, rien n'est prouvé sur la machine ni avec le vrai fournisseur cloud. La marche à suivre est dans [Premier essai](docs/fiches/02-premier-essai.md).
 
+## Qualité des explications en local
+
+Rien n'est prouvé sur la justesse des explications de Qwen. Ce qui est en place : des consignes qui imposent les étiquettes observé/vérifié/proposé/non vérifié, des sources réelles uniquement, la portée exacte des contrôles ; et le cloud facultatif pour comparer ou compléter. Pistes à décider **après** le premier essai, selon les défauts réellement observés : activer le raisonnement long pour le mentor (plus lent), enrichir les consignes sur les notions où il se trompe, ou faire du mentor cloud le choix par défaut si GLM est nettement meilleur à un coût tenable. Voir [Apprendre](docs/fiches/05-apprendre.md).
+
 ## Mesures sur le PC
 
 À remplir après `./menu.sh --action context-probe --apply`.
@@ -47,7 +51,7 @@ Le dépôt avait accumulé beaucoup de mécanismes sans rapport avec l'usage vis
 - fait parvenir aux rôles leurs consignes entières, alors qu'elles étaient tronquées ;
 - ajouté un contrôle qui exécute le vrai OpenClaw, pour que ce type de défaut ne repasse pas inaperçu ;
 - interdit au modèle l'outil qui lui permettait de mettre à jour OpenClaw ;
-- retiré ce qui ne servait pas l'usage quotidien : niveaux de « qualification » L2 à L8, comparaisons de modèles, moteur llama.cpp de rechange, compilation d'un noyau, suivi de coûts cloud, télémétrie ;
+- retiré ce qui ne servait pas l'usage quotidien : niveaux de « qualification » L2 à L8, comparaisons de modèles, moteur llama.cpp de rechange, compilation d'un noyau, ancien suivi de coûts cloud, télémétrie (le cloud revient, borné et facultatif, avec la migration hybride ci-dessous) ;
 - remplacé 27 documents par un guide et onze fiches.
 
 Le dépôt est passé d'environ 15 500 à 9 200 lignes de Python. Tout ce qui a été retiré reste dans l'historique Git.

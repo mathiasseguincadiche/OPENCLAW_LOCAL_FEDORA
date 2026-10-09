@@ -54,5 +54,5 @@ Ouvre `http://127.0.0.1:3000` et pose au mentor une vraie question de ta semaine
 ## 5. Décider
 
 - Réponses utiles et vitesse correcte : l'atelier est prêt pour le quotidien.
-- Réponses trop faibles pour ton besoin : c'est la limite d'un modèle de 9 milliards de paramètres, pas un défaut d'installation. Changer de modèle est décrit dans [Réglages](08-reglages.md#changer-de-modèle).
+- Réponses trop faibles pour ton besoin : c'est la limite d'un modèle de 9 milliards de paramètres, pas un défaut d'installation. Pour une question publique, le cloud facultatif peut mieux expliquer ([Le cloud, facultatif](12-cloud.md)) ; changer de modèle local est décrit dans [Réglages](08-reglages.md#changer-de-modèle).
 - Problème matériel ou d'installation : [Dépanner](10-depanner.md).

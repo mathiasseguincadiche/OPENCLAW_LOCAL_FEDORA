@@ -34,9 +34,9 @@ En local, un seul modèle, **Qwen 3.5 9B**, tourne sur la carte graphique avec O
 
 ## Ce qu'il ne fait pas
 
-- Il n'égale pas un grand modèle cloud. Un modèle de cette taille explique, relit et rédige bien ; il se trompe plus souvent sur les tâches longues. L'atelier compense par de petites étapes, des sources et de la relecture.
+- En local, il n'égale pas un grand modèle cloud. Un modèle de cette taille explique, relit et rédige bien ; il se trompe plus souvent sur les tâches longues. Le cloud facultatif existe pour ces moments. L'atelier compense par de petites étapes, des sources et de la relecture.
 - Il n'exécute rien sur le PC. Les rôles proposent du code et des fichiers ; c'est l'utilisateur qui les exécute.
-- Il n'est accessible que depuis ce PC. Hors cloud, rien n'en sort ; avec le cloud, seul ce que le filtre laisse passer part, et seulement pour ce que tu as choisi d'y envoyer. Le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allure.
+- Il n'est accessible que depuis ce PC. Hors cloud, aucune conversation ni aucun projet n'en sort (seule la recherche Web des rôles interroge le Web) ; avec le cloud, seul ce que le filtre laisse passer part, et seulement pour ce que tu as choisi d'y envoyer. Le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allure.
 
 ## Démarrer
 
