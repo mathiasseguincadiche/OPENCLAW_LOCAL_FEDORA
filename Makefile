@@ -1,4 +1,4 @@
-.PHONY: install validate test lint shellcheck ci native-schema native-tools native-prompt
+.PHONY: install validate test lint shellcheck ci native-schema native-tools native-prompt native-cloud
 
 install:
 	python3 -m venv .venv
@@ -29,3 +29,6 @@ native-tools:
 
 native-prompt:
 	.venv/bin/python scripts/validation/check_prompt_size.py
+
+native-cloud:
+	.venv/bin/python scripts/validation/check_cloud_route.py

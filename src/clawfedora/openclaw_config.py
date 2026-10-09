@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.agents import load_agent_specs
-from clawfedora.core_config import core_contract, daily_limits, root_contract
+from clawfedora.core_config import CLOUD_PROVIDER_ID, core_contract, daily_limits, root_contract
 
 OLLAMA_KEY_ENV = "OLLAMA_API_KEY"
 
@@ -82,7 +82,52 @@ def _ollama_provider(catalog: dict[str, Any], limits: dict[str, Any]) -> dict[st
     }
 
 
-def build_openclaw_patch(repo_root: Path, runtime_root: Path) -> dict[str, Any]:
+def cloud_model_ref(cloud: dict[str, Any]) -> str:
+    """OpenClaw reference of the cloud model, as served by the local gateway."""
+    gateway_policy = _mapping(cloud.get("policy"))
+    model = _mapping(cloud.get("model"))
+    return f"{gateway_policy['provider_id']}/{model['upstream_id']}"
+
+
+def _cloud_provider(cloud: dict[str, Any], limits: dict[str, Any]) -> dict[str, Any]:
+    """The cloud is reached through the loopback gateway only, never directly.
+
+    The provider holds no credential of the upstream service: OpenClaw sends a local token
+    taken from the environment. The gateway alone reads the upstream key.
+    """
+    gateway = _mapping(cloud.get("gateway"))
+    model = _mapping(cloud.get("model"))
+    pricing = _mapping(model.get("pricing_usd_per_million"))
+    context_tokens = int(limits["context_tokens"])
+    return {
+        "baseUrl": f"http://{gateway['host']}:{gateway['port']}{gateway['path_prefix']}",
+        "apiKey": _environment_reference(str(gateway["token_env"])),
+        "api": str(gateway["api"]),
+        "timeoutSeconds": int(gateway["timeout_seconds"]),
+        "models": [
+            {
+                "id": str(model["upstream_id"]),
+                "name": str(model["display_name"]),
+                "reasoning": False,
+                "input": ["text"],
+                "cost": {
+                    "input": float(pricing["input"]),
+                    "output": float(pricing["output"]),
+                    "cacheRead": 0,
+                    "cacheWrite": 0,
+                },
+                "contextWindow": context_tokens,
+                "contextTokens": context_tokens,
+                "maxTokens": int(limits["max_output_tokens"]),
+            }
+        ],
+    }
+
+
+def build_openclaw_patch(
+    repo_root: Path, runtime_root: Path, *, cloud_enabled: bool = False
+) -> dict[str, Any]:
+    """OpenClaw configuration. The cloud provider exists only when explicitly enabled."""
     catalog = root_contract(repo_root, "model_catalog.yaml")
     routing = core_contract(repo_root, "model_routing.yaml")
     tools = core_contract(repo_root, "tool_policy.yaml")
@@ -90,6 +135,11 @@ def build_openclaw_patch(repo_root: Path, runtime_root: Path) -> dict[str, Any]:
     openclaw_policy = core_contract(repo_root, "openclaw_policy.yaml")
     limits = daily_limits(repo_root)
     providers: dict[str, Any] = {"ollama": _ollama_provider(catalog, limits)}
+    cloud = core_contract(repo_root, "cloud_policy.yaml")
+    if cloud_enabled:
+        providers[str(_mapping(cloud.get("policy"))["provider_id"])] = _cloud_provider(
+            cloud, limits
+        )
 
     routes = _mapping(routing.get("agents"))
     agent_list: list[dict[str, Any]] = []
@@ -113,6 +163,8 @@ def build_openclaw_patch(repo_root: Path, runtime_root: Path) -> dict[str, Any]:
         )
 
     daily_model = _model_ref("qwen-max", catalog)
+    # A per-run --model can only select a model declared here, never an arbitrary reference.
+    allowed_models = [daily_model] + ([cloud_model_ref(cloud)] if cloud_enabled else [])
     defaults = _mapping(openclaw_policy.get("agents"))
     web = _mapping(web_policy.get("nominal_path"))
     global_tools = _mapping(tools.get("security_defaults"))
@@ -152,6 +204,7 @@ def build_openclaw_patch(repo_root: Path, runtime_root: Path) -> dict[str, Any]:
                     "memoryFlush": {"enabled": False},
                 },
                 "model": {"primary": daily_model, "fallbacks": []},
+                "modelPolicy": {"allow": allowed_models},
                 "imageModel": {"primary": daily_model, "fallbacks": []},
                 "pdfModel": {"primary": daily_model, "fallbacks": []},
                 "pdfMaxMb": int(defaults.get("pdf_max_bytes_mb", 50)),
@@ -225,6 +278,8 @@ def prepare_migration_patch(patch: dict[str, Any]) -> dict[str, Any]:
     defaults["compaction"].update(reserveTokens=None, reserveTokensFloor=None)
     # Remove the provider of the former llama.cpp experiment from older installations.
     result["models"]["providers"]["intel-vulkan"] = None
+    # Switching the cloud off must remove its provider from an installation that had it on.
+    result["models"]["providers"].setdefault(CLOUD_PROVIDER_ID, None)
     for entry in result["agents"]["entries"].values():
         entry["default"] = None
     for retired in ("main", "redacteur-technique", "ingenieur-release-forges"):

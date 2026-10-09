@@ -53,5 +53,6 @@ security:
   providers_loopback_only: true
   elevated_enabled: false
   exec_mode: ask
-  local_only_llm: true
+  default_llm: local
+  cloud_default_enabled: false
   selinux_must_remain_enforcing: true

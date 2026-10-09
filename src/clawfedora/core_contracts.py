@@ -5,11 +5,18 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.agents import validate_agent_assets
-from clawfedora.core_config import AGENT_IDS, core_contract, daily_limits, root_contract
+from clawfedora.core_config import (
+    AGENT_IDS,
+    CLOUD_PROVIDER_ID,
+    core_contract,
+    daily_limits,
+    root_contract,
+)
 
 CORE_FILES = (
     "agents.yaml",
     "model_routing.yaml",
+    "cloud_policy.yaml",
     "tool_policy.yaml",
     "web_policy.yaml",
     "openclaw_policy.yaml",
@@ -135,6 +142,88 @@ def _validate_project_contracts(
 
 
 
+def _validate_cloud_contracts(
+    repo_root: Path,
+    contracts: dict[str, dict[str, Any]],
+    catalog: dict[str, Any],
+    routing_policy: dict[str, Any],
+    failures: list[str],
+) -> None:
+    """The cloud is an opt-in route through one loopback gateway; it is never a default."""
+    cloud = contracts["cloud_policy.yaml"]
+    policy = _mapping(cloud.get("policy"))
+    gateway = _mapping(cloud.get("gateway"))
+    model = _mapping(cloud.get("model"))
+    models = _mapping(catalog.get("models"))
+    fleet = _mapping(catalog.get("fleet_policy"))
+
+    if (
+        routing_policy.get("cloud_enabled_by_default") is not False
+        or policy.get("enabled_by_default") is not False
+        or fleet.get("cloud_enabled_by_default") is not False
+    ):
+        failures.append("core/cloud: le cloud doit rester désactivé par défaut")
+    if (
+        routing_policy.get("local_to_cloud_fallback") != "forbidden"
+        or policy.get("local_to_cloud_fallback") != "forbidden"
+        or routing_policy.get("no_hidden_small_model_fallback") is not True
+        or fleet.get("cloud_model_as_local_fallback") is not False
+    ):
+        failures.append("core/cloud: aucun repli du local vers le cloud ni vers un modèle caché")
+    if policy.get("cloud_to_local_fallback") != "visible_only":
+        failures.append("core/cloud: le repli cloud vers local doit rester visible")
+    if set(policy.get("requires", [])) != {"privacy_filter", "budget_guard"}:
+        failures.append("core/cloud: confidentialité et budget sont tous deux requis")
+
+    if policy.get("provider_id") != CLOUD_PROVIDER_ID or policy.get("upstream") != "openrouter":
+        failures.append("core/cloud: fournisseur cloudgw vers openrouter requis")
+    host = str(gateway.get("host", ""))
+    port = gateway.get("port")
+    if host != "127.0.0.1" or type(port) is not int or not 1024 <= port <= 65535:
+        failures.append("core/cloud: la passerelle doit écouter sur 127.0.0.1 (port valide)")
+    if port in {3000, 11434, 18789, 18890, 18891}:
+        failures.append("core/cloud: port de passerelle déjà utilisé par un autre service")
+    if not re.fullmatch(r"[A-Z][A-Z0-9_]{2,63}", str(gateway.get("token_env", ""))):
+        failures.append("core/cloud: token_env doit nommer une variable d'environnement")
+    key_file = str(gateway.get("upstream_key_file", ""))
+    if not key_file or key_file.startswith(("/", "~")) or ".." in Path(key_file).parts:
+        failures.append("core/cloud: upstream_key_file doit être relatif à l'état d'exécution")
+    if gateway.get("api") != "openai-completions" or not str(
+        gateway.get("path_prefix", "")
+    ).startswith("/"):
+        failures.append("core/cloud: passerelle openai-completions avec path_prefix requis")
+
+    alias = str(model.get("alias", ""))
+    entry = _mapping(models.get(alias))
+    if (
+        alias != routing_policy.get("cloud_alias")
+        or entry.get("provider") != "cloud-gateway"
+        or entry.get("required") is True
+        or entry.get("runtime_id") != model.get("upstream_id")
+    ):
+        failures.append("core/cloud: le modèle cloud doit être déclaré, optionnel, au catalogue")
+    try:
+        limits = daily_limits(repo_root)
+    except (FileNotFoundError, ValueError):
+        limits = {}
+    if limits and (
+        model.get("context_tokens") != limits["context_tokens"]
+        or model.get("max_output_tokens") != limits["max_output_tokens"]
+    ):
+        failures.append("core/cloud: contexte et sortie doivent égaler les limites quotidiennes")
+    pricing = _mapping(model.get("pricing_usd_per_million"))
+    if not all(
+        isinstance(pricing.get(key), int | float) and pricing[key] > 0
+        for key in ("input", "output")
+    ):
+        failures.append("core/cloud: tarifs de référence requis")
+    provider = _mapping(_mapping(cloud.get("upstream_params")).get("provider"))
+    if provider.get("data_collection") != "deny":
+        failures.append("core/cloud: data_collection=deny requis")
+    if provider.get("require_parameters") is not True:
+        failures.append("core/cloud: require_parameters=true requis")
+
+
 def validate_core_contracts(
     repo_root: Path,
 ) -> tuple[tuple[str, ...], tuple[str, ...]]:
@@ -170,11 +259,7 @@ def validate_core_contracts(
     model_aliases = set(_mapping(catalog.get("models")))
     routing = _mapping(contracts["model_routing.yaml"].get("agents"))
     routing_policy = _mapping(contracts["model_routing.yaml"].get("policy"))
-    if (
-        routing_policy.get("local_only") is not True
-        or routing_policy.get("cloud_models_supported") is not False
-    ):
-        failures.append("core/routing: local_only=true et cloud_models_supported=false requis")
+    _validate_cloud_contracts(repo_root, contracts, catalog, routing_policy, failures)
     tools = _mapping(contracts["tool_policy.yaml"].get("agents"))
     if set(routing) != expected or set(tools) != expected:
         failures.append("core: routage et politique outils doivent couvrir tous les agents")
@@ -188,6 +273,8 @@ def validate_core_contracts(
         route = _mapping(routing.get(agent_id))
         if route.get("local_primary") != model or route.get("local_fallback") != fallback:
             failures.append(f"core/routing: divergence de routage pour {agent_id}")
+        if route.get("cloud_primary") != routing_policy.get("cloud_alias"):
+            failures.append(f"core/routing: route cloud divergente pour {agent_id}")
 
     defaults = _mapping(contracts["tool_policy.yaml"].get("security_defaults"))
     if defaults.get("fs_workspace_only") is not True:

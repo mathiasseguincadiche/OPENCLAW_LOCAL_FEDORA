@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, 'feat/mentor-*']
+    branches: [main, 'feat/mentor-*', 'claude/hybride-*']
 
 permissions:
   contents: read
@@ -69,6 +69,8 @@ jobs:
         run: python scripts/validation/check_openclaw_schema.py
       - name: Native prompt limits
         run: python scripts/validation/check_prompt_size.py
+      - name: Native cloud route
+        run: python scripts/validation/check_cloud_route.py
 
   python:
     name: python-${{ matrix.python-version }}

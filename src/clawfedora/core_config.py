@@ -17,6 +17,10 @@ AGENT_IDS = (
 )
 
 
+# Provider id under which OpenClaw sees the local cloud gateway (config/core/cloud_policy.yaml).
+CLOUD_PROVIDER_ID = "cloudgw"
+
+
 def load_yaml(path: Path) -> dict[str, Any]:
     try:
         payload: object = yaml.safe_load(path.read_text(encoding="utf-8"))
