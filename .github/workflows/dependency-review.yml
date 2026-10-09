@@ -2,7 +2,7 @@ name: Dependency Review
 
 on:
   pull_request:
-    branches: [main, 'feat/mentor-*']
+    branches: [main, 'feat/mentor-*', 'claude/hybride-*']
 
 permissions:
   contents: read
