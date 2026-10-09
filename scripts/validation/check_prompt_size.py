@@ -98,7 +98,11 @@ def main() -> None:
             toolkit.chmod(0o750)
             for asset in toolkit.iterdir():
                 asset.chmod(0o640)
-            config = build_openclaw_patch(repo, runtime)
+            # The cloud provider is configured but its gateway is not running: local roles must
+            # still work, as they do offline. OpenClaw resolves the secrets of every provider
+            # before a turn, so the local gateway token must always be defined (a missing
+            # token breaks local turns too: the runtime environment always provides it).
+            config = build_openclaw_patch(repo, runtime, cloud_enabled=True)
             config["models"]["providers"]["ollama"]["baseUrl"] = (
                 f"http://127.0.0.1:{server.server_port}"
             )
@@ -116,6 +120,7 @@ def main() -> None:
                 OPENCLAW_CONFIG_PATH=str(path),
                 OPENCLAW_LOCAL_FEDORA_ROOT=str(runtime),
                 OLLAMA_API_KEY="ollama-local",
+                CLAWFEDORA_CLOUD_GATEWAY_TOKEN="unused-local-token",
             )
             (runtime / "home").mkdir()
 

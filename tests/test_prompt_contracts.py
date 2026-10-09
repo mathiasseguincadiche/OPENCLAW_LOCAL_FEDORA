@@ -134,18 +134,6 @@ def test_specialist_tool_cannot_cross_roles(prompt_repo: Path) -> None:
     assert any("permissions divergentes pour expert-recherche" in failure for failure in failures)
 
 
-@pytest.mark.parametrize("key,value", [("local_only", False), ("cloud_models_supported", True)])
-def test_local_routing_flags_cannot_change_silently(
-    prompt_repo: Path, key: str, value: bool,
-) -> None:
-    path = prompt_repo / "config/core/model_routing.yaml"
-    data = yaml.safe_load(path.read_text())
-    data["policy"][key] = value
-    path.write_text(yaml.safe_dump(data))
-    failures, _ = validate_core_contracts(prompt_repo)
-    assert any("core/routing: local_only" in failure for failure in failures)
-
-
 def test_unknown_role_cannot_select_an_instruction_path() -> None:
     with pytest.raises(ValueError, match="rôle inconnu"):
         effective_instructions(ROOT, "../_shared")

@@ -75,7 +75,31 @@ with tempfile.TemporaryDirectory(prefix="clawfedora-native-schema-") as temporar
             if blocked:
                 raise SystemExit(f"Plugin validation incomplete: {blocked[:2]}")
     config["agents"]["defaults"].pop("pdfMaxBytesMb", None)
+    # The cloud provider (loopback gateway) must also be accepted by the real schema.
+    cloud_config = build_openclaw_patch(repo, state, cloud_enabled=True)
+    cloud_config["plugins"] = config["plugins"]
+    path.write_text(json.dumps(cloud_config))
+    result = subprocess.run(
+        [cli, "config", "validate", "--json"],
+        env=dict(env, CLAWFEDORA_CLOUD_GATEWAY_TOKEN="local-token"),
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
+    )
+    try:
+        payload = json.loads(result.stdout)
+    except ValueError as exc:
+        raise SystemExit(f"Native schema returned no JSON: {result.stderr[-1000:]}") from exc
+    if result.returncode != 0 or payload.get("valid") is not True:
+        raise SystemExit(f"Native schema rejected the cloud configuration: {payload}")
+    if "cloudgw" not in cloud_config["models"]["providers"] or "cloudgw" in config["models"][
+        "providers"
+    ]:
+        raise SystemExit("Cloud provider must exist only when the cloud is enabled")
     current = json.loads(json.dumps(config))
+    # An installation that had the cloud on must lose its provider when it is switched off.
+    current["models"]["providers"]["cloudgw"] = cloud_config["models"]["providers"]["cloudgw"]
     chief = current["agents"]["entries"]["chef-operations"]
     # An older installation still lists retired roles: the migration must remove them.
     for retired in ("redacteur-technique", "ingenieur-release-forges", "main"):
@@ -119,6 +143,16 @@ with tempfile.TemporaryDirectory(prefix="clawfedora-native-schema-") as temporar
         check=True,
     )
     roster = json.loads(result.stdout)
+    providers = subprocess.run(
+        [cli, "config", "get", "models.providers", "--json"],
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+    if "cloudgw" in json.loads(providers.stdout):
+        raise SystemExit("Native migration kept the cloud provider after the cloud was disabled")
     if preserved.read_text() != "historical user data":
         raise SystemExit("Native migration altered workspace history")
     if set(roster.get("entries", {})) != set(config["agents"]["entries"]):

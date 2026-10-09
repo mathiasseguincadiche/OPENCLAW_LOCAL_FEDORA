@@ -1,31 +1,41 @@
 schema_version: 2.0.0
 platform_version: 0.1.0
 policy:
-  local_only: true
-  cloud_models_supported: false
+  local_only: false
+  cloud_models_supported: true
+  cloud_enabled_by_default: false
+  cloud_alias: cloud-main
   supported_local_aliases:
   - qwen-max
   no_hidden_small_model_fallback: true
+  local_to_cloud_fallback: forbidden
 agents:
   chef-operations:
     local_primary: qwen-max
     local_fallback: qwen-max
+    cloud_primary: cloud-main
   expert-recherche:
     local_primary: qwen-max
     local_fallback: qwen-max
+    cloud_primary: cloud-main
   architecte-solutions:
     local_primary: qwen-max
     local_fallback: qwen-max
+    cloud_primary: cloud-main
   ingenieur-devops:
     local_primary: qwen-max
     local_fallback: qwen-max
+    cloud_primary: cloud-main
   ingenieur-securite:
     local_primary: qwen-max
     local_fallback: qwen-max
+    cloud_primary: cloud-main
   auditeur-qualite:
     local_primary: qwen-max
     local_fallback: qwen-max
+    cloud_primary: cloud-main
     independence_rule: separate_session_and_no_write_access
   redacteur-pedagogique:
     local_primary: qwen-max
     local_fallback: qwen-max
+    cloud_primary: cloud-main
