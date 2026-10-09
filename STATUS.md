@@ -12,6 +12,7 @@ Dernière mise à jour : 9 octobre 2026.
 | Installation sur le PC Fedora | **À faire** |
 | Carte graphique utilisée, contexte de 32K tenu en mémoire vidéo | **À mesurer** |
 | Vitesse et qualité des réponses de Qwen | **À mesurer** |
+| Recherche Web des rôles (fournisseur gratuit `parallel-free`) | Configuration validée avec le vrai OpenClaw ; fonctionnement réel **à vérifier** ([Premier essai](docs/fiches/02-premier-essai.md)) |
 | Cloud : filtre, budget, activation, accord par projet, pause visible | Écrits et testés avec le vrai OpenClaw et un faux fournisseur |
 | Cloud avec le vrai OpenRouter (appel réel, coût réel, limite de clé) | **À faire** |
 | Test de fumée du cloud sur le PC ([fiche 12](docs/fiches/12-cloud.md)) | **À faire** |
