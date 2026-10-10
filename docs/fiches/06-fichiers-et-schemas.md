@@ -16,7 +16,17 @@ Demander un document ou une configuration produit un vrai fichier, téléchargea
 
 ## Dans le chat
 
-Demande le format : « Explique-moi les artefacts d'une CI, puis fournis une fiche en Markdown, PDF et DOCX. » Les liens de téléchargement s'ajoutent à la réponse. Ils sont valables 24 heures.
+Demande le format : « Explique-moi les artefacts d'une CI, puis fournis une fiche en Markdown, PDF
+et DOCX. » Les liens de téléchargement s'ajoutent à la réponse. Ils sont valables 24 heures.
+
+Pour **apporter des sources** à un projet, sélectionne-le puis joins les fichiers avant
+`!analyser`. Open WebUI n'indexe pas ces fichiers dans sa propre RAG : un filtre géré transmet
+la référence du fichier au pont, qui contrôle son propriétaire, son chemin, sa taille et son nom,
+puis l'ajoute à l'ingestion canonique du projet. Les sources sont figées après le début de
+l'analyse.
+
+Plan B : copie le fichier dans
+`/srv/openclaw-local/state/chat-import/inbox/<projet>/` puis tape `!importer`.
 
 ## Dans un projet
 
@@ -30,11 +40,20 @@ deliverables/guide/guide.docx
 
 Le Markdown est la source ; le PDF et le DOCX en sont tirés. Pour modifier le document, modifie le Markdown dans le projet : changer le DOCX dans Word ne met pas à jour les autres formats.
 
+## Travail guidé depuis le chat
+
+Quand une tâche guidée attend ta pratique, `!pratique <tâche>` rappelle la consigne. Joins les
+fichiers **portant les noms attendus**, puis envoie
+`!soumettre <tâche> <ce que tu as fait>`. Ces fichiers sont une soumission humaine, pas de
+nouvelles sources : ils passent au spécialiste pour retour, puis aux audits globaux seulement si
+les critères sont remplis.
+
 ## Limites
 
 - Un appel produit au plus 12 000 octets de contenu et trois exports. Pour un document long, demande-le section par section.
 - Le rendu gère titres, paragraphes, listes, tableaux simples et blocs de code. Les images ne sont pas intégrées.
 - Un fichier généré n'est pas un fichier testé. Les fichiers JSON, YAML, Python, TOML et XML sont vérifiés sur leur syntaxe. Terraform, Dockerfile, shell et Jinja sont produits comme du texte : vérifie-les avec leurs propres outils.
+- Une image est traitée localement. Elle ne part jamais vers DeepSeek tant que le filtre de confidentialité ne sait pas inspecter son contenu.
 
 ## Contrôles disponibles
 
