@@ -224,7 +224,9 @@ class SpeechHandler(BaseHTTPRequestHandler):
         self.wfile.write(audio)
 
 
-def make_server(repo_root: Path, runtime: Path, token: str) -> SpeechServer:
+def make_server(
+    repo_root: Path, runtime: Path, token: str, port: int | None = None
+) -> SpeechServer:
     policy = root_contract(repo_root, "webui_policy.yaml")
     speech = dict(policy["speech"])
     if speech.get("enabled") is not True:
@@ -234,7 +236,7 @@ def make_server(repo_root: Path, runtime: Path, token: str) -> SpeechServer:
     if len(token) < 32:
         raise ValueError("jeton vocal privé requis")
     server = SpeechServer(
-        ("127.0.0.1", int(speech["port"])),
+        ("127.0.0.1", int(speech["port"]) if port is None else port),
         SpeechHandler,
     )
     speech["model_root"] = runtime / "models/whisper"
