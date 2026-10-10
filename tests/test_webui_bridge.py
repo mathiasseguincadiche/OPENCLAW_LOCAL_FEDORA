@@ -265,3 +265,25 @@ def test_chat_uses_approved_notes_and_displays_history_omission(tmp_path: Path) 
         assert models[0]["name"] == "Mentor infrastructure/OPS"
         server.shutdown()
         thread.join(timeout=5)
+
+
+
+def test_project_images_are_sanitized_and_never_forward_media_urls() -> None:
+    image = {
+        "type": "image_url",
+        "image_url": {"url": "data:image/png;base64,PRIVATE_IMAGE_PAYLOAD"},
+    }
+    data = {
+        "model": MODEL_IDS[0],
+        "messages": [
+            {"role": "user", "content": [{"type": "text", "text": "Lis cette capture"}, image]}
+        ],
+    }
+    with pytest.raises(ValueError, match="texte uniquement"):
+        chat_prompt(data)
+    role, prompt = chat_prompt(data, allow_project_media=True)
+    assert role == "chef-operations"
+    assert "Lis cette capture" in prompt
+    assert "image conservée parmi les sources du projet" in prompt
+    assert "PRIVATE_IMAGE_PAYLOAD" not in prompt
+    assert "image_url" not in prompt
