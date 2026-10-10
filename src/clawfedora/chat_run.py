@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import json
 import threading
+from collections.abc import Callable
 from hashlib import sha256
 from pathlib import Path
-from collections.abc import Callable
 from typing import Any
 
 from clawfedora import chat_approvals, chat_files
