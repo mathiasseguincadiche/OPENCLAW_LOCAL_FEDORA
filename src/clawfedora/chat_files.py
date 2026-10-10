@@ -9,7 +9,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from clawfedora.project_common import sha256_file
+from clawfedora.project_common import project_path, sha256_file, validate_task_id
 from clawfedora.project_engine import current_status
 from clawfedora.project_intake import append_intake_items
 from clawfedora.project_worker import worker_lock
@@ -120,7 +120,14 @@ def practice_files(
     """Read human-authored text outputs from Open WebUI without changing project sources."""
     if not isinstance(descriptors, list) or not descriptors:
         raise ValueError("joignez les fichiers demandés par la tâche")
-    task_path = project / "context/tasks" / f"{task_id}.json"
+    task_id = validate_task_id(task_id)
+    verified = project_path(runtime, project.name)
+    if project.is_symlink() or verified != project.resolve(strict=True):
+        raise ValueError("projet hors de la racine autorisée")
+    tasks = (verified / "context/tasks").resolve(strict=True)
+    task_path = (tasks / f"{task_id}.json").resolve(strict=False)
+    if task_path.parent != tasks or task_path.is_symlink():
+        raise ValueError("chemin de tâche hors de la racine autorisée")
     if not task_path.is_file():
         raise ValueError("tâche inconnue")
     from clawfedora.project_common import read_json
