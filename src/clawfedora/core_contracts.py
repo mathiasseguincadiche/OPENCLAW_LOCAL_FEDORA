@@ -289,6 +289,47 @@ def _validate_cloud_contracts(
         failures.append("core/cloud: DeepSeek doit utiliser le raisonnement xhigh")
 
 
+
+def _validate_webui_contracts(repo_root: Path, failures: list[str]) -> None:
+    try:
+        policy = root_contract(repo_root, "webui_policy.yaml")
+    except (FileNotFoundError, ValueError) as exc:
+        failures.append(f"webui: {exc}")
+        return
+    if policy.get("variant") != "slim" or policy.get("deployment") != "podman-rootless":
+        failures.append("webui: image slim et Podman rootless requis")
+    if policy.get("scope") != "personal-loopback" or policy.get("shared_worker_lock") is not True:
+        failures.append("webui: usage personnel loopback avec verrou partagé requis")
+    speech = _mapping(policy.get("speech"))
+    ports = [
+        policy.get("web_port"),
+        policy.get("bridge_port"),
+        policy.get("dashboard_port"),
+        speech.get("port"),
+    ]
+    if (
+        any(type(port) is not int or not 1024 <= port <= 65535 for port in ports)
+        or len(set(ports)) != len(ports)
+        or 11434 in ports
+        or 18789 in ports
+        or 18892 in ports
+    ):
+        failures.append("webui: ports locaux valides, uniques et hors services réservés requis")
+    if (
+        speech.get("enabled") is not True
+        or speech.get("host") != "127.0.0.1"
+        or speech.get("stt_device") != "cpu"
+        or speech.get("stt_compute_type") != "int8"
+        or speech.get("language") != "fr"
+        or not str(speech.get("stt_model", "")).strip()
+        or not str(speech.get("tts_voice", "")).strip()
+        or not 1_000_000 <= int(speech.get("max_audio_bytes", 0)) <= 50_000_000
+    ):
+        failures.append(
+            "webui: voix locale CPU/int8, français, loopback et taille audio bornée requis"
+        )
+
+
 def validate_core_contracts(
     repo_root: Path,
 ) -> tuple[tuple[str, ...], tuple[str, ...]]:
@@ -320,6 +361,7 @@ def validate_core_contracts(
     if policy.get("default_agent") != "chef-operations":
         failures.append("core/agents: chef-operations doit rester l'agent par défaut")
 
+    _validate_webui_contracts(repo_root, failures)
     catalog = root_contract(repo_root, "model_catalog.yaml")
     model_aliases = set(_mapping(catalog.get("models")))
     routing = _mapping(contracts["model_routing.yaml"].get("agents"))
