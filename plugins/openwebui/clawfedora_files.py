@@ -22,7 +22,14 @@ class Filter:
         __user__: Optional[dict] = None,
         **_: object,
     ) -> dict:
-        refs = body.get("files") or (body.get("metadata") or {}).get("files") or []
+        metadata = body.get("metadata") if isinstance(body.get("metadata"), dict) else {}
+        message = metadata.get("user_message") if isinstance(metadata.get("user_message"), dict) else {}
+        # Prefer the latest user message, never re-import a whole thread\u0027s older attachments.
+        refs = (
+            message.get("files") or []
+            if "files" in message
+            else body.get("files") or metadata.get("files") or []
+        )
         if not isinstance(refs, list) or not refs:
             return body
         user_id = str((__user__ or {}).get("id", ""))
