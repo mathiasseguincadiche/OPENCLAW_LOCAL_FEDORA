@@ -55,7 +55,7 @@ class Filter:
                     "id": item.id,
                     "filename": item.filename,
                     "path": item.path,
-                    "sha256": item.hash,
+                    "sha256": meta.get("file_hash") or item.hash,
                     "content_type": meta.get("content_type"),
                     "size": meta.get("size"),
                     "kind": ref.get("type", "file"),
