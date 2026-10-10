@@ -60,5 +60,19 @@ jobs:
                           or rule.get("properties", {}).get("problem.severity")
                           or level
                       )
-                      print(f"CODEQL_FINDING {severity} {rule_id} {uri}:{line} {message[:280]}")
+                      traces = result.get("codeFlows") or []
+                      origin = "unknown"
+                      if traces:
+                          flows = traces[0].get("threadFlows") or []
+                          if flows:
+                              points = flows[0].get("locations") or []
+                              if points:
+                                  loc = points[0].get("location", {}).get("physicalLocation", {})
+                                  origin_uri = loc.get("artifactLocation", {}).get("uri", "?")
+                                  origin_line = loc.get("region", {}).get("startLine", "?")
+                                  origin = f"{origin_uri}:{origin_line}"
+                      print(
+                          f"CODEQL_FINDING {severity} {rule_id} "
+                          f"{uri}:{line} ORIGIN={origin} {message[:200]}"
+                      )
           PY
