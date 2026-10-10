@@ -145,20 +145,38 @@ def test_setup_pins_limits_preserves_secrets_and_closes_registration(tmp_path: P
     assert "ENABLE_OLLAMA_API=false" in (state / "webui.env").read_text()
     assert value["sealed"] is False
     with closing(sqlite3.connect(state / "data/webui.db")) as db, db:
-        db.execute('CREATE TABLE "user" (role TEXT)')
-        db.execute('INSERT INTO "user" VALUES ("pending")')
+        db.execute('CREATE TABLE "user" (id TEXT, role TEXT)')
+        db.execute(
+            'CREATE TABLE "function" ('
+            'id TEXT PRIMARY KEY, user_id TEXT, name TEXT, type TEXT, content TEXT, '
+            'meta TEXT, valves TEXT, is_active INTEGER, is_global INTEGER, '
+            'updated_at INTEGER, created_at INTEGER)'
+        )
+        db.execute('INSERT INTO "user" VALUES ("admin-id", "pending")')
     with (
         pytest.raises(ValueError, match="un seul compte"),
         sqlite3.connect(state / "data/webui.db") as db,
     ):
-        seal(runtime)
+        seal(ROOT, runtime)
     with closing(sqlite3.connect(state / "data/webui.db")) as db, db:
         db.execute('UPDATE "user" SET role="admin"')
-    seal(runtime)
+    seal(ROOT, runtime)
     assert render(ROOT, runtime, units)["sealed"] is True
     assert "ENABLE_SIGNUP=false" in (state / "webui.env").read_text()
-    settings = environment(ROOT, TOKEN, "b" * 64, sealed=True)
+    settings = environment(ROOT, TOKEN, "b" * 64, "c" * 64, sealed=True)
     assert settings["HOST"] == "127.0.0.1"
+    assert settings["USER_PERMISSIONS_CHAT_FILE_UPLOAD"] == "true"
+    assert settings["USER_PERMISSIONS_CHAT_STT"] == "true"
+    assert settings["USER_PERMISSIONS_CHAT_TTS"] == "true"
+    assert settings["USER_PERMISSIONS_CHAT_CALL"] == "false"
+    assert settings["AUDIO_STT_OPENAI_API_BASE_URL"] == "http://127.0.0.1:18893/v1"
+    assert settings["AUDIO_TTS_OPENAI_API_BASE_URL"] == "http://127.0.0.1:18893/v1"
+    assert "clawfedora-speech.service" in (units / "clawfedora-webui.service").read_text()
+    with closing(sqlite3.connect(state / "data/webui.db")) as db:
+        row = db.execute(
+            'SELECT type, is_active, is_global FROM "function" WHERE id="clawfedora_files"'
+        ).fetchone()
+    assert row == ("filter", 1, 1)
     assert all(
         settings[key] == "false"
         for key in (
