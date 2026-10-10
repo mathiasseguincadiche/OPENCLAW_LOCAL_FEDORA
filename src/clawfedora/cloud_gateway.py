@@ -390,7 +390,7 @@ def make_server(
     server.budget = budget
     server.activation_check = activation_check
     server.privacy = privacy or PrivacyFilter(runtime / CLOUD_STATE / "denylist.txt")
-    server.output_cap = int(daily_limits(repo_root)["max_output_tokens"])
+    server.output_cap = int(policy["model"]["max_output_tokens"])
     if upstream_base_url is not None:
         # Only a loopback test double may replace the provider: never an arbitrary address.
         if not upstream_base_url.startswith("http://127.0.0.1:"):
