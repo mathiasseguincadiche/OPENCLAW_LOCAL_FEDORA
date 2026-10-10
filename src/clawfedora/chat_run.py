@@ -30,7 +30,7 @@ from clawfedora.project_worker import (
 
 COMMANDS = (
     "lancer", "pause", "reprendre", "auditer", "relire", "livrer", "modifier",
-    "pratique", "soumettre",
+    "pratique", "soumettre", "importer",
 )
 _threads: dict[str, threading.Thread] = {}
 _guard = threading.Lock()
@@ -215,6 +215,13 @@ def run_command(
         return _start(runtime, project, "review", lambda: _audit(repo, runtime, project, "review"))
     if name == "pratique":
         return _practice(project, args.strip())
+    if name == "importer":
+        names = chat_files.import_inbox(repo, runtime, project)
+        return (
+            f"✅ {len(names)} fichier(s) importé(s) depuis le dossier de secours : "
+            + ", ".join(names)
+            + ". Lancez !analyser quand les sources sont complètes."
+        )
     if name == "soumettre":
         task_id, _, explanation = args.strip().partition(" ")
         if not task_id or not explanation.strip():
