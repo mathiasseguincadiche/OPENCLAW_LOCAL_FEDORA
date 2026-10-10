@@ -18,12 +18,12 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
 
-from clawfedora import chat_approvals, chat_flow, chat_projects, chat_run, project_cloud
+from clawfedora import chat_approvals, chat_files, chat_flow, chat_projects, chat_run, project_cloud
 from clawfedora.agents import load_agent_specs
 from clawfedora.cloud_budget import BudgetRefused, load_ledger
 from clawfedora.cloud_privacy import LABELS, PrivacyFilter, describe
 from clawfedora.cloud_state import CLOUD_STATE, cloud_status, recent_events
-from clawfedora.core_config import AGENT_IDS, daily_limits
+from clawfedora.core_config import AGENT_IDS, core_contract, daily_limits
 from clawfedora.local_http import LocalServer
 from clawfedora.mentor import context as mentor_context
 from clawfedora.project_control import write_progress
@@ -424,10 +424,19 @@ class BridgeHandler(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length))
             if not isinstance(data, dict):
                 raise ValueError("objet JSON requis")
+            cloud_request = str(data.get("model", "")).startswith(CLOUD_PREFIX)
             role, prompt = chat_prompt(
                 data,
-                max_tokens=int(self.server.limits["max_output_tokens"]),
-                max_history_bytes=int(self.server.limits["max_history_bytes"]),
+                max_tokens=(
+                    int(self.server.cloud_limits["max_output_tokens"])
+                    if cloud_request
+                    else int(self.server.limits["max_output_tokens"])
+                ),
+                max_history_bytes=(
+                    int(self.server.cloud_limits["max_history_bytes"])
+                    if cloud_request
+                    else int(self.server.limits["max_history_bytes"])
+                ),
                 allow_cloud=self.server.cloud_ready(),
             )
             omitted = len(data["messages"]) - len(json.loads(prompt.split("\n", 1)[1]))
@@ -437,11 +446,59 @@ class BridgeHandler(BaseHTTPRequestHandler):
         messages = data["messages"]
         current, referenced = chat_projects.thread_state(messages)
         last = messages[-1] if messages[-1].get("role") == "user" else {}
+        file_descriptors = data.get("clawfedora_files")
         # Commands come from the user's last message only, and are understood by this code.
         typed = str(last.get("content", "")) if last else ""
         # An approval phrase counts only as the whole last message of the user, never from the
         # model or from earlier in the thread; the code is checked against the bridge's own record.
         approval = chat_approvals.parse_phrase(typed)
+        if approval is not None and file_descriptors:
+            self._completion(
+                data,
+                chat_projects.bridge_reply(
+                    current, "Une confirmation ne peut pas transporter de pièce jointe. "
+                    "Renvoyez la phrase seule."
+                ),
+            )
+            return
+        command = chat_projects.parse_command(typed) if last else None
+        if file_descriptors:
+            project = chat_projects.open_project(self.server.runtime, current) if current else None
+            if project is None:
+                self._completion(
+                    data,
+                    chat_projects.bridge_reply(
+                        current,
+                        "Sélectionnez ou créez d'abord un projet, puis joignez les fichiers. "
+                        "Les uploads ne sont jamais envoyés directement au modèle."
+                    ),
+                )
+                return
+            try:
+                imported = chat_files.import_files(
+                    self.server.repo_root,
+                    self.server.runtime,
+                    project,
+                    file_descriptors,
+                )
+            except (OSError, ValueError, KeyError) as exc:
+                self._completion(
+                    data,
+                    chat_projects.bridge_reply(current, f"Pièces jointes refusées : {exc}."),
+                )
+                return
+            if command is None:
+                names = ", ".join(f"`{name}`" for name in imported)
+                self._completion(
+                    data,
+                    chat_projects.bridge_reply(
+                        current,
+                        f"✅ {len(imported)} pièce(s) jointe(s) ajoutée(s) aux sources : {names}. "
+                        "La chaîne d'ingestion canonique a été reconstruite. Lancez `!analyser` "
+                        "pour les lire avec les outils requis."
+                    ),
+                )
+                return
         if approval is not None:
             try:
                 if approval[0] == "proposition":
@@ -471,7 +528,6 @@ class BridgeHandler(BaseHTTPRequestHandler):
                 reply = chat_projects.bridge_reply(current, f"Confirmation impossible : {exc}")
             self._completion(data, reply)
             return
-        command = chat_projects.parse_command(typed) if last else None
         if command is not None:
             name, args = command
             try:
@@ -590,6 +646,13 @@ def make_server(
     server.runtime, server.token = runtime, token
     server.repo_root = repo_root
     server.limits = daily_limits(repo_root)
+    cloud_model = dict(core_contract(repo_root, "cloud_policy.yaml")["model"])
+    # The body itself stays under 1 MiB; ~3 bytes/token gives DeepSeek much more useful
+    # conversation history than Qwen without pretending the transport can fill its whole context.
+    server.cloud_limits = {
+        "max_output_tokens": int(cloud_model["max_output_tokens"]),
+        "max_history_bytes": min(786432, int(cloud_model["context_tokens"]) * 3),
+    }
     server.model_names = {
         f"openclaw/{spec.agent_id}": spec.name for spec in load_agent_specs(repo_root)
     }
