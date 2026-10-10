@@ -180,3 +180,16 @@ def test_append_intake_rebuilds_inventory_and_freezes_after_analysis(tmp_path: P
     with pytest.raises(ValueError, match="figées"):
         append_intake_items(ROOT, runtime, project, [third])
     assert not (project / "intake/late.txt").exists()
+
+
+def test_append_intake_requires_same_runtime_root(tmp_path: Path) -> None:
+    brief = tmp_path / "brief.md"
+    brief.write_text("source", encoding="utf-8")
+    legitimate = tmp_path / "runtime"
+    other = tmp_path / "other-runtime"
+    project = create_project(ROOT, legitimate, "valid-project", "Safe", intake_items=[brief])
+    new_source = tmp_path / "new.md"
+    new_source.write_text("nouveau", encoding="utf-8")
+    with pytest.raises((ValueError, FileNotFoundError)):
+        append_intake_items(ROOT, other, project, [new_source])
+    assert not (project / "intake/new.md").exists()
