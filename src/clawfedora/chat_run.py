@@ -18,7 +18,13 @@ from clawfedora import chat_approvals, chat_files
 from clawfedora.learning import awaiting, checkpoint_path, pending_feedback, submit
 from clawfedora.learning_feedback import review_submission
 from clawfedora.project_cloud import project_runner
-from clawfedora.project_common import read_json, sha256_file, write_json
+from clawfedora.project_common import (
+    assert_no_symlinks,
+    project_path,
+    read_json,
+    sha256_file,
+    write_json,
+)
 from clawfedora.project_control import request_pause, worker_active
 from clawfedora.project_engine import current_status, transition_project
 from clawfedora.project_revision import impact, revise
@@ -122,8 +128,17 @@ def _start(runtime: Path, project: Path, kind: str, action: Callable[[], str]) -
     return f"{kind} lancé en arrière-plan. Suivez avec `!etat`."
 
 
-def _project_digest(project: Path, *, extra: dict[str, Any] | None = None) -> str:
-    """Digest the state that a destructive/final confirmation is authorising."""
+def _project_digest(
+    runtime: Path, project: Path, *, extra: dict[str, Any] | None = None
+) -> str:
+    """Hash only a project under the verified workspace root, never an arbitrary path."""
+    root = (runtime / "projects").resolve(strict=True)
+    verified = project_path(runtime, project.name)
+    if project.is_symlink() or verified.parent != root or verified != project.resolve():
+        raise ValueError("projet hors de la racine autorisée")
+    verified.relative_to(root)
+    assert_no_symlinks(verified, label="projet soumis à confirmation")
+    project = verified
     records: list[tuple[str, str]] = []
     for relative in (
         "project.json",
@@ -271,7 +286,7 @@ def run_command(
             raise ValueError("Usage : !modifier <tâche> <raison précise>.")
         affected = impact(project, task_id)
         payload = {"task_id": task_id, "reason": reason.strip(), "affected": affected}
-        digest = _project_digest(project, extra=payload)
+        digest = _project_digest(runtime, project, extra=payload)
         pending = chat_approvals.issue(
             runtime,
             project.name,
@@ -288,7 +303,7 @@ def run_command(
     if name == "livrer":
         if status != "PACKAGING":
             raise ValueError("La livraison finale exige l'état PACKAGING après les deux audits PASS.")
-        digest = _project_digest(project)
+        digest = _project_digest(runtime, project)
         pending = chat_approvals.issue(
             runtime,
             project.name,
@@ -319,9 +334,9 @@ def apply_approval(
             project.name,
             action,
             code,
-            lambda pending: _project_digest(project, extra=pending.payload)
+            lambda pending: _project_digest(runtime, project, extra=pending.payload)
             if action == "revision"
-            else _project_digest(project),
+            else _project_digest(runtime, project),
         )
         if not outcome.ok or outcome.pending is None:
             reasons = {
