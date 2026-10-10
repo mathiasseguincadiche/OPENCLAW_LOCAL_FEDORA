@@ -24,7 +24,10 @@ Il accompagne aussi un parcours : passer de l'administration systèmes et résea
 | Discuter et poser n'importe quelle question | Open WebUI, `http://127.0.0.1:3000` |
 | Apprendre avec un mentor qui part des acquis de l'utilisateur | Open WebUI ou l'atelier |
 | Mener un projet avec sept rôles spécialisés | Atelier Projets, `http://127.0.0.1:18890` |
-| Interroger un projet et garder un document écrit dans le chat (accepté par une phrase de confirmation) | Open WebUI, avec les commandes `!projets`, `!projet`, `!garder`… |
+| Piloter un projet de la création à la livraison, avec confirmations humaines | Open WebUI ou Atelier Projets |
+| Joindre des PDF, Office, archives, code et images avant l'analyse | Open WebUI ou Atelier Projets |
+| Pratiquer en mode guidé, soumettre ses fichiers et recevoir un retour | Open WebUI ou Atelier Projets |
+| Dicter une question et écouter une réponse, sans service vocal cloud | Open WebUI, Whisper + TTS locaux |
 | Obtenir de vrais fichiers : Markdown, PDF, DOCX, YAML, Terraform, schémas Draw.io | Les deux |
 
 En local, un seul modèle, **Qwen 3.5 9B**, tourne sur la carte graphique avec Ollama. **OpenClaw** lui donne sept rôles : mentor, recherche, architecte, DevOps, sécurité, rédacteur et auditeur. Ce sont sept jeux de consignes pour le même modèle, pas sept IA en mémoire.
@@ -44,8 +47,10 @@ Détail, activation et limites : [Le cloud, facultatif](docs/fiches/12-cloud.md)
 
 ## Ce qu'il ne fait pas
 
-- **Le chat n'est pas encore complet** : il lit un projet et y garde des documents, mais il ne crée pas encore de projet, ne lance aucun traitement et ne reçoit ni fichier, ni image, ni voix. Ces étapes sont planifiées, avec leurs limites, dans le [plan d'intégration d'Open WebUI](docs/PLAN_INTEGRATION_WEBUI.md).
-- En local, il n'égale pas un grand modèle cloud. Un modèle de cette taille explique, relit et rédige bien ; il se trompe plus souvent sur les tâches longues. Le cloud facultatif existe pour ces moments. L'atelier compense par de petites étapes, des sources et de la relecture.
+- **Le PC cible reste à valider** : l'intégration est testée automatiquement, mais les performances réelles de la B580, Whisper, Open WebUI et du vrai OpenRouter doivent encore être mesurées sur Fedora.
+- Les sources d'un projet sont figées dès que l'analyse commence. Ajouter une nouvelle source impose de revenir au cadrage ou de créer un nouveau projet ; une pièce jointe ne modifie jamais silencieusement un projet déjà analysé.
+- Les images restent locales : elles peuvent être ingérées et lues par Qwen, mais ne partent pas vers DeepSeek tant que le filtre de confidentialité ne sait pas inspecter leur contenu.
+- En local, Qwen 9B n'égale pas un grand modèle cloud sur les tâches longues. DeepSeek V4.1 Flash est la route de capacité : contexte cloud 262K, sortie 16K et raisonnement `xhigh`, toujours derrière le filtre et le budget.
 - Il n'exécute rien sur le PC. Les rôles proposent du code et des fichiers ; c'est l'utilisateur qui les exécute.
 - Il n'est accessible que depuis ce PC. Hors cloud, aucune conversation ni aucun projet n'en sort (seule la recherche Web des rôles interroge le Web) ; avec le cloud, seul ce que le filtre laisse passer part, et seulement pour ce que tu as choisi d'y envoyer. Le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allure.
 
@@ -84,10 +89,10 @@ cd OPENCLAW_LOCAL_FEDORA
 | [Atelier Projets](docs/fiches/04-atelier-projets.md) | [Dépanner](docs/fiches/10-depanner.md) |
 | [Apprendre](docs/fiches/05-apprendre.md) | [Comment ça marche](docs/fiches/11-comment-ca-marche.md) |
 | [Fichiers et schémas](docs/fiches/06-fichiers-et-schemas.md) | [Le cloud, facultatif](docs/fiches/12-cloud.md) |
-| [Présentation illustrée (PDF, 17 pages)](docs/guide-utilisateur.pdf) | [Quel modèle pour expliquer](docs/DECISION_MODELE.md) |
+| [Test de fumée Open WebUI](docs/SMOKE_TEST_WEBUI.md) | [Quel modèle pour expliquer](docs/DECISION_MODELE.md) |
 | [Plan : tout faire depuis Open WebUI](docs/PLAN_INTEGRATION_WEBUI.md) | |
 
-La présentation illustrée (PDF) date d'avant le lien entre le chat et les projets et avant le passage à DeepSeek V4.1 Flash : elle sera refaite une fois l'intégration terminée.
+L'ancien PDF illustré de pré-intégration n'est plus la référence : le guide Markdown, les fiches et le test de fumée décrivent désormais l'architecture actuelle.
 
 ## État
 
