@@ -282,9 +282,7 @@ def _is_backup_secret(relative: Path) -> bool:
         return relative.suffix in SECRET_BACKUP_SUFFIXES
     if relative.parts[:2] == ("state", "webui") and len(relative.parts) == 3:
         return relative.name in {"bridge.token", "speech.token", "session.key", "webui.env"}
-    if relative.parts[:2] == ("state", "chat-approvals"):
-        return True
-    return False
+    return relative.parts[:2] == ("state", "chat-approvals")
 
 
 def _backup_sources(runtime_root: Path) -> list[Path]:
