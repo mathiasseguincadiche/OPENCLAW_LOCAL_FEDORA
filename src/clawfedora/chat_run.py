@@ -11,13 +11,14 @@ import json
 import threading
 from hashlib import sha256
 from pathlib import Path
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from clawfedora import chat_approvals, chat_files
 from clawfedora.learning import awaiting, checkpoint_path, pending_feedback, submit
 from clawfedora.learning_feedback import review_submission
 from clawfedora.project_common import read_json, sha256_file, write_json
-from clawfedora.project_control import progress, request_pause, worker_active
+from clawfedora.project_control import request_pause, worker_active
 from clawfedora.project_engine import current_status, transition_project
 from clawfedora.project_revision import impact, revise
 from clawfedora.project_ui import complete
@@ -204,11 +205,16 @@ def run_command(
         if status not in {"ASSIGNED", "IN_PROGRESS"}:
             raise ValueError("Aucun travail exécutable à mettre en pause.")
         request_pause(runtime, project)
-        return "Pause demandée. La génération en cours finit proprement; aucune nouvelle tâche ne démarre."
+        return (
+            "Pause demandée. La génération en cours finit proprement; "
+            "aucune nouvelle tâche ne démarre."
+        )
     if name == "auditer":
         if status != "VALIDATING":
             raise ValueError("L'audit de validation exige l'état VALIDATING.")
-        return _start(runtime, project, "validation", lambda: _audit(repo, runtime, project, "validation"))
+        return _start(
+            runtime, project, "validation", lambda: _audit(repo, runtime, project, "validation")
+        )
     if name == "relire":
         if status != "REVIEW":
             raise ValueError("La relecture finale exige l'état REVIEW.")
