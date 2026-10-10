@@ -32,13 +32,17 @@ BRIDGE_PLACEHOLDER = "(réponse du pont, non transmise au modèle)"
 MAX_CONTEXT_BYTES = 7000
 MAX_LISTED = 50
 FLOW_COMMANDS = ("creer", "analyser", "planifier", "valider", "questions", "repondre")
+RUN_COMMANDS = (
+    "lancer", "pause", "reprendre", "auditer", "relire", "livrer", "modifier", "pratique",
+    "soumettre", "importer",
+)
 COMMANDS = (
     "aide", "projets", "projet", "etat", "quitter",
     "garder", "propositions", "voir", "accepter", "refuser",
-    *FLOW_COMMANDS,
+    *FLOW_COMMANDS, *RUN_COMMANDS,
 )
 # Commands whose argument is a sentence the user writes: a longer single line is accepted.
-LONG_COMMANDS = ("repondre",)
+LONG_COMMANDS = ("repondre", "modifier", "soumettre")
 MAX_COMMAND_CHARS = 200
 MAX_LONG_COMMAND_CHARS = 1700
 
@@ -263,11 +267,14 @@ def status_text(repo_root: Path, runtime: Path, project: Path) -> str:
         waiting = sum(r["status"] == "pending" for r in rows)
         notes = sum(r["status"] == "accepted" for r in rows)
         lines.append(f"Propositions : {waiting} en attente, {notes} acceptée(s) comme notes")
-    from clawfedora import chat_flow
+    from clawfedora import chat_flow, chat_run
 
     job = chat_flow.job_line(runtime, project.name)
     if job:
         lines.append(job)
+    run_job = chat_run.job_line(runtime, project.name)
+    if run_job:
+        lines.append(run_job)
     step = chat_flow.next_step(runtime, project)
     if step:
         lines.append(f"Prochaine étape : {step}")
@@ -510,12 +517,20 @@ HELP = """Commandes du pont (comprises par le programme, jamais par le modèle) 
 - `!analyser`, `!planifier` : demandent une analyse ou un plan au chef d'opérations, en arrière-plan
 - `!valider` : montre le brouillon prêt et la phrase qui l'approuve
 - `!questions`, `!repondre <n°> <réponse>` : les précisions demandées par l'analyse
+- `!lancer` / `!pause` / `!reprendre` : conduit le plan approuvé en arrière-plan
+- `!pratique [tâche]` : affiche une étape guidée qui attend votre travail
+- `!soumettre <tâche> <explication>` + fichiers joints : soumet votre travail et lance le retour
+- `!importer` : consomme le dossier local de secours du projet avant l'analyse
+- `!auditer` : validation indépendante quand toutes les tâches sont terminées
+- `!relire` : seconde relecture indépendante après la validation
+- `!modifier <tâche> <raison>` : révision cohérente, avec confirmation humaine
+- `!livrer` : paquet final et clôture, avec confirmation humaine
 - `!aide` : cette aide
 
 Avec un projet sélectionné, posez vos questions normalement : le rôle lit le projet en
-**lecture seule**. Ce que le chat écrit dans un projet passe par vos commandes et, pour
-une approbation, par une phrase de confirmation : propositions (qui deviennent des **notes**,
-jamais des livrables), création, analyse et plan.
+**lecture seule**. Les commandes du pont peuvent maintenant conduire le même moteur que
+l'atelier de la création jusqu'à la livraison. Les révisions, propositions et la livraison finale
+gardent une confirmation humaine explicite.
 La phrase de confirmation est générée par le pont, à usage unique, valable 15 minutes :
 le modèle ne la voit jamais."""
 

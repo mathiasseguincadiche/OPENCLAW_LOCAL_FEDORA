@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import stat
@@ -19,6 +20,7 @@ from clawfedora.project_common import (
     project_path,
     read_json,
     sha256_file,
+    validate_project_id,
     write_json,
 )
 
@@ -346,6 +348,116 @@ def build_ingestion_index(project: Path, repo_root: Path) -> Path:
     path = project / "context" / "ingestion" / "index.json"
     write_json(path, index)
     return path
+
+
+
+def append_intake_items(
+    repo_root: Path,
+    platform_root: Path,
+    project: Path,
+    items: Iterable[Path],
+) -> list[str]:
+    """Add sources only inside a validated project rooted in the platform workspace.
+
+    The project path is reconstructed from its allow-listed ID rather than trusting the
+    caller's path. Normalization and containment precede *every* project file operation.
+    """
+    # Check containment at the string level before any filesystem operation on the
+    # caller's path. realpath resolves symlinks; equality with normpath rejects them.
+    root = os.path.realpath(os.fspath(platform_root / "projects"))
+    supplied = os.path.normpath(os.fspath(project))
+    candidate = os.path.realpath(supplied)
+    # CodeQL recognizes normalization followed by a checked directory prefix as
+    # a path-safety barrier. The separator prevents sibling prefix collisions.
+    if not candidate.startswith(root + os.sep):
+        raise ValueError("projet hors de la racine autorisée")
+    if (
+        os.path.commonpath((root, candidate)) != root
+        or os.path.dirname(candidate) != root
+        or supplied != candidate
+    ):
+        raise ValueError("projet hors de la racine autorisée")
+    if validate_project_id(os.path.basename(candidate)) != os.path.basename(candidate):
+        raise ValueError("identifiant du projet invalide")
+    project = Path(candidate)
+    assert_no_symlinks(project, label="projet d'ingestion")
+
+    manifest_path = project / "project.json"
+    payload = read_json(manifest_path)
+    if payload.get("status") != "INTAKE_READY":
+        raise ValueError(
+            "les sources sont figées après le début de l'analyse; créer un nouveau projet "
+            "ou réviser le périmètre avant d'ajouter des fichiers"
+        )
+    failures = validate_input_integrity(project)
+    if failures:
+        raise ValueError("intégrité des sources invalide: " + "; ".join(failures))
+
+    policy = core_contract(repo_root, "intake_policy.yaml")
+    limits = dict(policy["limits"])
+    max_file = int(limits["max_single_file_bytes"])
+    max_total = int(limits["max_total_input_bytes"])
+    current_total = _size(project / "intake")
+    if current_total >= max_total:
+        raise ValueError("intake: limite totale déjà atteinte")
+
+    staging = project / "context" / ".chat-intake-staging"
+    if staging.exists():
+        shutil.rmtree(staging)
+    staging.mkdir(parents=True)
+    copied: list[str] = []
+    moved: list[Path] = []
+    ingestion = project / "context" / "ingestion"
+    ingestion_old = project / "context" / ".ingestion-before-chat"
+    inventory_path = project / "evidence/intake/inventory.json"
+    old_inventory = inventory_path.read_bytes()
+    old_manifest = manifest_path.read_bytes()
+    try:
+        copied = _copy_inputs(
+            items,
+            staging,
+            label="pièce jointe",
+            max_file=max_file,
+            max_total=max_total - current_total,
+        )
+        for name in copied:
+            target = project / "intake" / name
+            if target.exists():
+                raise ValueError(f"pièce jointe: nom déjà présent: {name}")
+            shutil.move(str(staging / name), str(target))
+            moved.append(target)
+        if ingestion_old.exists():
+            shutil.rmtree(ingestion_old)
+        if ingestion.exists():
+            ingestion.rename(ingestion_old)
+        write_json(inventory_path, _inventory(project / "intake"))
+        build_ingestion_index(project, repo_root)
+        existing = payload.get("intake_items", [])
+        if not isinstance(existing, list):
+            raise ValueError("project.json: intake_items invalide")
+        payload["intake_items"] = [*existing, *copied]
+        payload["updated_at"] = now()
+        write_json(manifest_path, payload)
+        chmod_read_only_files(project / "intake")
+        if ingestion_old.exists():
+            shutil.rmtree(ingestion_old)
+        return copied
+    except Exception:
+        for path in moved:
+            try:
+                path.chmod(0o600)
+                path.unlink()
+            except OSError:
+                pass
+        inventory_path.write_bytes(old_inventory)
+        manifest_path.write_bytes(old_manifest)
+        if ingestion.exists():
+            shutil.rmtree(ingestion, ignore_errors=True)
+        if ingestion_old.exists():
+            ingestion_old.rename(ingestion)
+        raise
+    finally:
+        shutil.rmtree(staging, ignore_errors=True)
 
 
 def create_project(

@@ -14,6 +14,17 @@ scope: personal-loopback
 shared_worker_lock: true
 max_history_bytes: 32000
 max_response_tokens: 4096
+speech:
+  enabled: true
+  host: 127.0.0.1
+  port: 18893
+  stt_model: small
+  stt_device: cpu
+  stt_compute_type: int8
+  language: fr
+  tts_voice: fr-fr
+  tts_speed: 165
+  max_audio_bytes: 26214400
 notes:
   - Limite mémoire de départ, à ajuster après mesure sur le PC.
   - Réponses mises en tampon; aucun streaming token par token dans cette version.

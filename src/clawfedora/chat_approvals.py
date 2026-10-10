@@ -28,7 +28,7 @@ MAX_PENDING = 20
 # No 0/O/1/I/L: the code is read on screen and typed by hand.
 ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 CODE_LENGTH = 4
-ACTIONS = ("proposition", "creation", "analyse", "plan")
+ACTIONS = ("proposition", "creation", "analyse", "plan", "revision", "livraison")
 # Scope of an approval that belongs to no project yet (creating one).
 GLOBAL = "_global"
 

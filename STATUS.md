@@ -17,6 +17,8 @@ Dernière mise à jour : 10 octobre 2026.
 | Cloud avec le vrai OpenRouter (appel réel, coût réel, limite de clé) | **À faire** |
 | Test de fumée du cloud sur le PC ([fiche 12](docs/fiches/12-cloud.md)) | **À faire** |
 | Qualité de DeepSeek V4.1 Flash sur les usages visés | **À mesurer** à l'usage |
+| Open WebUI : conduite complète des projets, uploads, pratique guidée | **Implémenté et couvert par tests automatiques** |
+| Voix locale : Whisper CPU/int8 + TTS local | **Implémenté ; essai micro/latence à faire sur Fedora** |
 
 Tant que les lignes « À faire » et « À mesurer » ne sont pas faites, rien n'est prouvé sur la machine ni avec le vrai fournisseur cloud. La marche à suivre est dans [Premier essai](docs/fiches/02-premier-essai.md).
 
@@ -36,13 +38,13 @@ Rien n'est encore mesuré sur ta machine. Les résultats publics de DeepSeek V4.
 
 - Les réponses du chat arrivent d'un bloc, sans s'afficher mot à mot.
 - Une seule génération à la fois : le chat et l'atelier ne travaillent pas en même temps.
-- Le chat transmet au modèle les 32 000 derniers octets de la conversation.
+- Le chat local transmet les 32 000 derniers octets de la conversation ; la route DeepSeek peut transmettre jusqu'à environ 3 Mio d'historique dans la limite du contexte cloud de 1 048 576 tokens.
 - Si le contexte doit être réduit à 16K, le chat ne garde plus qu'environ 500 mots d'historique. Voir [Réglages](docs/fiches/08-reglages.md).
 - Les rôles n'exécutent rien : les scripts proposés sont à lancer soi-même.
 - Cloud : le coût est une estimation prudente (facteur 1,3 € par dollar), pas une facture. Le relevé OpenRouter fait foi : l'enregistrer avec `cloud-reconcile`.
 - Cloud : le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allure. En cas de doute, rester en local.
 - Cloud : le choix par défaut du chat reste local ; rien ne part tant que le modèle « · cloud » n'est pas choisi. Le coût d'une discussion cloud n'est pas rattaché à un projet.
-- Le chat peut lire un projet, y garder des propositions, créer un projet, l'analyser, répondre aux précisions et faire approuver un plan, avec des phrases de confirmation (lots 9 à 11 de l'[intégration d'Open WebUI](docs/PLAN_INTEGRATION_WEBUI.md)) ; il ne lance pas encore le travail des rôles, et il ne reçoit pas encore de fichiers, d'images ni de voix. Le comportement de `!` et `/` dans la vraie interface d'Open WebUI reste à vérifier.
+- Les lots 9 à 15 d'[Open WebUI](docs/PLAN_INTEGRATION_WEBUI.md) sont implémentés : lecture/cadrage, exécution, audits, pratique guidée, livraison, uploads, import de secours et voix locale. Le rendu réel de l'interface, le micro, la latence vocale et les préfixes `!` / `/` restent à vérifier au test de fumée sur le PC.
 
 ## Remise en ordre d'octobre 2026
 

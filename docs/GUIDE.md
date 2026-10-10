@@ -12,7 +12,9 @@ Il te donne quatre usages :
 |---|---|---|
 | Discuter, poser n'importe quelle question | Open WebUI, `http://127.0.0.1:3000` | [Discuter](fiches/03-discuter.md) |
 | Apprendre le DevOps avec un mentor qui te fait pratiquer | Open WebUI ou l'atelier | [Apprendre](fiches/05-apprendre.md) |
-| Mener un projet avec sept rôles spécialisés | Atelier Projets, `http://127.0.0.1:18890` | [Atelier Projets](fiches/04-atelier-projets.md) |
+| Mener un projet avec sept rôles spécialisés | Open WebUI ou Atelier Projets | [Atelier Projets](fiches/04-atelier-projets.md) |
+| Joindre des sources, pratiquer, auditer et livrer depuis le chat | Open WebUI | [Discuter](fiches/03-discuter.md) |
+| Dicter et écouter localement | Open WebUI | [Discuter](fiches/03-discuter.md) |
 | Obtenir de vrais fichiers : Markdown, PDF, DOCX, YAML, Terraform, schémas | Les deux | [Fichiers et schémas](fiches/06-fichiers-et-schemas.md) |
 
 En local, un seul modèle, Qwen 3.5 9B, sert à tout. Les sept rôles sont sept jeux de consignes pour ce même modèle, pas sept IA chargées en mémoire. Le détail est dans [Rôles et outils](fiches/07-roles-et-outils.md), et le fonctionnement interne dans [Comment ça marche](fiches/11-comment-ca-marche.md).
@@ -54,8 +56,8 @@ Lecture des résultats et quoi faire selon le cas : [Premier essai](fiches/02-pr
 
 Ensuite, ouvre `http://127.0.0.1:3000` pour discuter et `http://127.0.0.1:18890` pour l'atelier.
 
-- Une question, une notion, un blocage : [Discuter](fiches/03-discuter.md). Le chat peut aussi interroger un projet (`!projets`, `!projet`) et y garder un document (`!garder`, puis `!accepter` avec une phrase de confirmation) : même fiche.
-- Un travail avec des documents, un plan et des livrables : [Atelier Projets](fiches/04-atelier-projets.md).
+- Une question, une notion, un blocage : [Discuter](fiches/03-discuter.md). Le chat peut aussi créer, cadrer, exécuter, faire pratiquer, auditer, réviser et livrer un projet avec des commandes déterministes.
+- Un travail visuel sur les états, tâches et preuves : [Atelier Projets](fiches/04-atelier-projets.md). Le dashboard et le chat pilotent le même moteur.
 - Progresser en DevOps plutôt que recevoir une réponse toute faite : [Apprendre](fiches/05-apprendre.md).
 - Récupérer des fichiers et modifier un schéma dans Draw.io : [Fichiers et schémas](fiches/06-fichiers-et-schemas.md).
 
@@ -107,4 +109,4 @@ Puis cherche ton symptôme dans [Dépanner](fiches/10-depanner.md).
 11. [Comment ça marche](fiches/11-comment-ca-marche.md)
 12. [Le cloud, facultatif](fiches/12-cloud.md)
 
-Une présentation illustrée du projet existe aussi en [PDF](guide-utilisateur.pdf) ([source HTML](guide-utilisateur.html)).
+Pour valider l'intégration réelle du navigateur, des uploads, du micro et du cloud, suivre le [test de fumée Open WebUI](SMOKE_TEST_WEBUI.md).

@@ -10,7 +10,13 @@ from typing import Any
 import pytest
 
 from clawfedora.project_worker import worker_lock
-from clawfedora.webui_bridge import MODEL_IDS, chat_prompt, make_server
+from clawfedora.webui_bridge import (
+    CLOUD_MODEL_IDS,
+    MODEL_IDS,
+    BridgeHandler,
+    chat_prompt,
+    make_server,
+)
 from clawfedora.webui_setup import environment, render, seal
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -145,20 +151,38 @@ def test_setup_pins_limits_preserves_secrets_and_closes_registration(tmp_path: P
     assert "ENABLE_OLLAMA_API=false" in (state / "webui.env").read_text()
     assert value["sealed"] is False
     with closing(sqlite3.connect(state / "data/webui.db")) as db, db:
-        db.execute('CREATE TABLE "user" (role TEXT)')
-        db.execute('INSERT INTO "user" VALUES ("pending")')
+        db.execute('CREATE TABLE "user" (id TEXT, role TEXT)')
+        db.execute(
+            'CREATE TABLE "function" ('
+            'id TEXT PRIMARY KEY, user_id TEXT, name TEXT, type TEXT, content TEXT, '
+            'meta TEXT, valves TEXT, is_active INTEGER, is_global INTEGER, '
+            'updated_at INTEGER, created_at INTEGER)'
+        )
+        db.execute('INSERT INTO "user" VALUES ("admin-id", "pending")')
     with (
         pytest.raises(ValueError, match="un seul compte"),
         sqlite3.connect(state / "data/webui.db") as db,
     ):
-        seal(runtime)
+        seal(ROOT, runtime)
     with closing(sqlite3.connect(state / "data/webui.db")) as db, db:
         db.execute('UPDATE "user" SET role="admin"')
-    seal(runtime)
+    seal(ROOT, runtime)
     assert render(ROOT, runtime, units)["sealed"] is True
     assert "ENABLE_SIGNUP=false" in (state / "webui.env").read_text()
-    settings = environment(ROOT, TOKEN, "b" * 64, sealed=True)
+    settings = environment(ROOT, TOKEN, "b" * 64, "c" * 64, sealed=True)
     assert settings["HOST"] == "127.0.0.1"
+    assert settings["USER_PERMISSIONS_CHAT_FILE_UPLOAD"] == "true"
+    assert settings["USER_PERMISSIONS_CHAT_STT"] == "true"
+    assert settings["USER_PERMISSIONS_CHAT_TTS"] == "true"
+    assert settings["USER_PERMISSIONS_CHAT_CALL"] == "false"
+    assert settings["AUDIO_STT_OPENAI_API_BASE_URL"] == "http://127.0.0.1:18893/v1"
+    assert settings["AUDIO_TTS_OPENAI_API_BASE_URL"] == "http://127.0.0.1:18893/v1"
+    assert "clawfedora-speech.service" in (units / "clawfedora-webui.service").read_text()
+    with closing(sqlite3.connect(state / "data/webui.db")) as db:
+        row = db.execute(
+            'SELECT type, is_active, is_global FROM "function" WHERE id="clawfedora_files"'
+        ).fetchone()
+    assert row == ("filter", 1, 1)
     assert all(
         settings[key] == "false"
         for key in (
@@ -245,5 +269,83 @@ def test_chat_uses_approved_notes_and_displays_history_omission(tmp_path: Path) 
         assert "Administrateur Linux" in captured[0]
         models = json.loads(request(server, "/v1/models")[1])["data"]
         assert models[0]["name"] == "Mentor infrastructure/OPS"
+        server.shutdown()
+        thread.join(timeout=5)
+
+
+
+def test_project_images_are_sanitized_and_never_forward_media_urls() -> None:
+    image = {
+        "type": "image_url",
+        "image_url": {"url": "data:image/png;base64,PRIVATE_IMAGE_PAYLOAD"},
+    }
+    data = {
+        "model": MODEL_IDS[0],
+        "messages": [
+            {"role": "user", "content": [{"type": "text", "text": "Lis cette capture"}, image]}
+        ],
+    }
+    with pytest.raises(ValueError, match="texte uniquement"):
+        chat_prompt(data)
+    role, prompt = chat_prompt(data, allow_project_media=True)
+    assert role == "chef-operations"
+    assert "Lis cette capture" in prompt
+    assert "image conservée parmi les sources du projet" in prompt
+    assert "PRIVATE_IMAGE_PAYLOAD" not in prompt
+    assert "image_url" not in prompt
+
+
+def test_cloud_long_response_is_not_rejected_by_local_64k_limit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A 16K-token cloud response can exceed 64 KiB in UTF-8. It must be accepted while
+    # keeping the small-model limit unchanged for the local route.
+    def fake_answer(*_args: Any) -> tuple[dict[str, str], str]:
+        return {"text": "Réponse détaillée. " * 6_000}, ""
+
+    monkeypatch.setattr(BridgeHandler, "_answer", fake_answer)
+    with make_server(
+        ROOT, tmp_path, TOKEN, 0, cloud_ready=lambda: True,
+        runner=lambda *_args: {"text": "non utilisé"},
+    ) as server:
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        payload = {
+            "model": CLOUD_MODEL_IDS[0],
+            "messages": [{"role": "user", "content": "Analyse détaillée"}],
+        }
+        status, raw = request(server, "/v1/chat/completions", payload)
+        assert status == 200
+        reply = json.loads(raw)["choices"][0]["message"]["content"]
+        assert len(reply.encode()) > 64_000
+        assert "Réponse détaillée." in reply
+        server.shutdown()
+        thread.join(timeout=5)
+
+
+def test_full_deepseek_window_accepts_large_history_but_qwen_stays_bounded(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    prompts: list[int] = []
+
+    def fake_answer(
+        _handler: Any, _role: str, _context: str, prompt: str, *_args: Any
+    ) -> tuple[dict[str, str], str]:
+        prompts.append(len(prompt.encode()))
+        return {"text": "Historique long admis."}, ""
+
+    monkeypatch.setattr(BridgeHandler, "_answer", fake_answer)
+    with make_server(
+        ROOT, tmp_path, TOKEN, 0, cloud_ready=lambda: True,
+        runner=lambda *_args: {"text": "non utilisé"},
+    ) as server:
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        long_history = [{"role": "user", "content": "A" * 1_200_000}]
+        cloud_payload = {"model": CLOUD_MODEL_IDS[0], "messages": long_history}
+        assert request(server, "/v1/chat/completions", cloud_payload)[0] == 200
+        assert prompts and prompts[0] > 1_048_576
+        local_payload = {"model": MODEL_IDS[0], "messages": long_history}
+        assert request(server, "/v1/chat/completions", local_payload)[0] == 400
         server.shutdown()
         thread.join(timeout=5)

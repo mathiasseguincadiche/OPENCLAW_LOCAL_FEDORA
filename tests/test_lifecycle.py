@@ -213,6 +213,11 @@ def test_backup_never_contains_the_cloud_provider_key_or_gateway_token(tmp_path:
         "state/cloud/upstream.key": "sk-or-v1-" + "ab12" * 8,
         "state/cloud/gateway.token": "t" * 43,
         "state/cloud/upstream.tmp": "sk-or-v1-" + "cd34" * 8,
+        "state/webui/bridge.token": "bridge-secret-token-" + "a" * 32,
+        "state/webui/speech.token": "speech-secret-token-" + "b" * 32,
+        "state/webui/session.key": "webui-session-secret-" + "c" * 32,
+        "state/webui/webui.env": "WEBUI_SECRET_KEY=do-not-back-up\n",
+        "state/chat-approvals/projet.json": "one-time-approval-should-not-survive",
     }
     kept = {
         "state/cloud/ledger-2026-10.jsonl": '{"k": "invoice", "eur": 1.0}',
@@ -234,7 +239,14 @@ def test_backup_never_contains_the_cloud_provider_key_or_gateway_token(tmp_path:
         )
     assert names.isdisjoint(secrets) and set(kept) <= names
     assert b"sk-or-v1-" not in blob
+    assert b"bridge-secret-token" not in blob
+    assert b"speech-secret-token" not in blob
+    assert b"webui-session-secret" not in blob
+    assert b"WEBUI_SECRET_KEY" not in blob
+    assert b"one-time-approval-should-not-survive" not in blob
     restored = tmp_path / "restored"
     lifecycle.restore_backup(archive, restored)
     assert not (restored / "state/cloud/upstream.key").exists()
     assert (restored / "state/cloud/ledger-2026-10.jsonl").is_file()
+    assert not (restored / "state/webui/bridge.token").exists()
+    assert not (restored / "state/webui/webui.env").exists()

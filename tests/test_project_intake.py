@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from clawfedora.project_common import read_json
-from clawfedora.project_intake import create_project, validate_input_integrity
+from clawfedora.project_intake import append_intake_items, create_project, validate_input_integrity
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -146,3 +146,50 @@ def test_extensionless_dockerfile_is_ingested_as_text(tmp_path: Path) -> None:
     assert document["kind"] == "text"
     assert document["method"] == "local_text_extract"
     assert document["status"] == "READ"
+
+
+def test_append_intake_rebuilds_inventory_and_freezes_after_analysis(tmp_path: Path) -> None:
+    first = tmp_path / "brief.md"
+    first.write_text("première source", encoding="utf-8")
+    runtime = tmp_path / "runtime"
+    project = create_project(
+        ROOT,
+        runtime,
+        "chat-files",
+        "Pièces jointes",
+        intake_items=[first],
+    )
+    second = tmp_path / "architecture.yaml"
+    second.write_text("service: api\n", encoding="utf-8")
+    assert append_intake_items(ROOT, runtime, project, [second]) == ["architecture.yaml"]
+    assert validate_input_integrity(project) == []
+    inventory = read_json(project / "evidence/intake/inventory.json")
+    assert inventory["file_count"] == 2
+    index = read_json(project / "context/ingestion/index.json")
+    assert {Path(item["path"]).name for item in index["documents"]} == {
+        "brief.md",
+        "architecture.yaml",
+    }
+    manifest = read_json(project / "project.json")
+    manifest["status"] = "ANALYZED"
+    from clawfedora.project_common import write_json
+
+    write_json(project / "project.json", manifest)
+    third = tmp_path / "late.txt"
+    third.write_text("trop tard", encoding="utf-8")
+    with pytest.raises(ValueError, match="figées"):
+        append_intake_items(ROOT, runtime, project, [third])
+    assert not (project / "intake/late.txt").exists()
+
+
+def test_append_intake_requires_same_runtime_root(tmp_path: Path) -> None:
+    brief = tmp_path / "brief.md"
+    brief.write_text("source", encoding="utf-8")
+    legitimate = tmp_path / "runtime"
+    other = tmp_path / "other-runtime"
+    project = create_project(ROOT, legitimate, "valid-project", "Safe", intake_items=[brief])
+    new_source = tmp_path / "new.md"
+    new_source.write_text("nouveau", encoding="utf-8")
+    with pytest.raises((ValueError, FileNotFoundError)):
+        append_intake_items(ROOT, other, project, [new_source])
+    assert not (project / "intake/new.md").exists()

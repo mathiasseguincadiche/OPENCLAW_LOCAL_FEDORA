@@ -40,23 +40,32 @@ upstream:
   base_url: https://openrouter.ai/api/v1
   timeout_seconds: 300
 limits:
-  max_request_bytes: 1048576
+  max_request_bytes: 4194304
   max_messages: 500
   max_tools: 64
 model:
   alias: cloud-main
   upstream_id: deepseek/deepseek-v4.1-flash
   display_name: DeepSeek V4.1 Flash (cloud, via passerelle locale)
-  context_tokens: 32768
-  max_output_tokens: 4096
-  # Tarifs de référence prudents en USD par million de tokens, à relire sur OpenRouter à l'achat.
+  # Le cloud n'est pas bridé aux limites du petit modèle local : DeepSeek reçoit un contexte
+  # large pour les dépôts, documents et boucles d'outils complexes, avec une sortie ample.
+  context_tokens: 1048576
+  max_output_tokens: 32768
+  # Ces tarifs servent aussi de plafond OpenRouter : la réservation budgétaire et le routage
+  # partagent donc exactement le même pire cas autorisé.
   pricing_usd_per_million:
-    input: 0.15
-    output: 0.6
+    input: 0.25
+    output: 0.75
 # Réglages imposés par la passerelle à chaque requête (pas par OpenClaw).
 upstream_params:
   provider:
     data_collection: deny
     require_parameters: true
+    sort: throughput
+    max_price:
+      prompt: 0.25
+      completion: 0.75
+  # DeepSeek est la route de capacité : le raisonnement maximal reste imposé par la passerelle,
+  # jamais par une requête cliente ni par un agent.
   reasoning:
-    effort: low
+    effort: xhigh

@@ -1,6 +1,6 @@
 # Plan : tout faire depuis Open WebUI
 
-**Statut : plan révisé le 9 octobre 2026 (chat complet : fichiers, images, voix). Les lots 9 à 11 sont implémentés ; les lots 12 à 15 ne le sont pas encore.** Ce document est mis à jour à chaque lot : une case n'est cochée que si la preuve annoncée existe.
+**Statut : implémentation révisée le 10 octobre 2026. Les lots 9 à 15 sont implémentés dans le dépôt.** Les tests automatiques couvrent le pont, les garde-fous, les uploads et le service vocal ; le test de fumée sur le vrai PC Fedora reste nécessaire pour valider l'ergonomie, le micro, la latence et le stockage réel d'Open WebUI.
 
 ## 1. Objectif
 
@@ -34,11 +34,11 @@ Une branche et une pull request en brouillon par lot ; aucune fusion automatique
 |---|---|---|
 | 9 | **Lire** : `!projets`, `!projet`, `!état`, `!quitter`. Questions sur un projet : le rôle reçoit un contexte en lecture seule (résumé, plan, décisions, extraits retrouvés par la recherche locale). Accord cloud respecté. | [x] |
 | 10 | **Approuver et produire** : phrase de confirmation à usage unique ; documents générés dans le chat enregistrés comme propositions du projet ; `!propositions`, `!accepter`, `!refuser`. | [x] |
-| 11 | **Créer et cadrer** : `!creer` (la demande est le message précédent), `!analyser`, `!questions`/`!repondre`, `!planifier`, `!valider` ; création, analyse et plan approuvés par phrase de confirmation ; brouillons rédigés en arrière-plan. | [x] cette PR |
-| 12 | **Conduire** : exécution en arrière-plan, pause et reprise, audits, pratique guidée et retour, modification cohérente, livraison finale. | [ ] |
-| 13 | **Pièces jointes** : fichiers (texte, PDF, Office, archives, code) enregistrés dans le projet et lus par la chaîne d'ingestion de l'atelier, avec compte rendu de couverture ; images transmises au rôle local ; refus clair des types, tailles et contenus non pris en charge. | [ ] |
-| 14 | **Voix** : dictée locale (Whisper), synthèse vocale locale en option, installation et mesures de mémoire/latence, réglages Open WebUI (appel mains libres désactivé). | [ ] |
-| 15 | **Importer, documenter, tester** : dossier d'import local en secours, schéma, guide, fiches, captures, liste de cas du test de fumée. | [ ] |
+| 11 | **Créer et cadrer** : `!creer` (la demande est le message précédent), `!analyser`, `!questions`/`!repondre`, `!planifier`, `!valider` ; création, analyse et plan approuvés par phrase de confirmation ; brouillons rédigés en arrière-plan. | [x] |
+| 12 | **Conduire** : `!lancer`, `!pause`, `!reprendre`, audits, pratique guidée (`!pratique`, `!soumettre`), modification cohérente avec confirmation et livraison finale avec confirmation. | [x] |
+| 13 | **Pièces jointes** : filtre Open WebUI géré, copie contrôlée du fichier original, même chaîne d'ingestion que l'atelier, sources figées après analyse ; images locales uniquement. | [x] |
+| 14 | **Voix** : STT Whisper local CPU/int8, TTS local, service loopback protégé par jeton ; appel mains libres désactivé. | [x] |
+| 15 | **Importer, documenter, tester** : dossier d'import local de secours (`!importer`), documentation, architecture et checklist de test de fumée. | [x] |
 
 ## 5. Ce que chaque lot doit prouver
 
@@ -53,12 +53,13 @@ Une branche et une pull request en brouillon par lot ; aucune fusion automatique
 
 ## 6. Ce qui ne sera pas prouvé ici
 
-Ce qui dépend de l'interface réelle d'Open WebUI (et, pour la voix, du micro et du matériel) : le traitement des préfixes `/` et `@`, l'affichage des liens et des messages de confirmation, les délais d'attente sur de longues réponses, le rendu du Markdown, **la forme exacte sous laquelle Open WebUI transmet un fichier ou une image au pont** (le pont accepte les deux formes d'images et de textes extraits, mais l'envoi du fichier d'origine peut exiger une fonction Open WebUI ou le dépôt dans le dossier d'import), la qualité de la transcription en français, les délais de Whisper et la mémoire réellement utilisée. Il n'y a pas d'Open WebUI dans l'environnement de développement : ces points sont **vérifiés au test de fumée sur votre PC**, avec la liste des cas à essayer fournie dans le lot 15.
+Ce qui dépend du vrai poste reste volontairement non déclaré comme acquis : le traitement des préfixes `/` et `@`, le rendu exact des confirmations et liens, le comportement du filtre global de pièces jointes dans l'image Open WebUI épinglée, la qualité du micro, la latence de Whisper et de la synthèse, ainsi que la mémoire réellement utilisée. Ces points sont vérifiés avec [SMOKE_TEST_WEBUI.md](SMOKE_TEST_WEBUI.md) sur le PC Fedora.
 
 ## 7. Limites assumées dès maintenant
 
-- **Fichier d'origine** : Open WebUI extrait lui-même le texte d'un fichier joint avant de l'envoyer au backend. Si, sur votre version, il n'envoie que ce texte, le chat enregistre ce texte (marqué « texte extrait, non vérifié contre l'original ») et propose le dossier d'import pour les cas où l'original compte (PDF scannés, tableurs). Ce n'est connu qu'au test de fumée ; le plan ne le suppose pas acquis.
-- **Pas de fichier au cloud sans accord** : un fichier joint ne rejoint le cloud que par l'accord cloud du projet et après le filtre ; une image jamais.
+- **Fichier d'origine** : un filtre Open WebUI global désactive son RAG pour cette route et transmet au pont uniquement une référence au fichier appartenant à l'utilisateur. Le pont résout ensuite le fichier dans le volume local `uploads/`, contrôle chemin, taille et nom, puis le copie dans l'ingestion canonique. Le dossier `state/chat-import/inbox/<projet>` reste le plan B si le comportement réel de la version épinglée diffère.
+- **Sources immuables** : les uploads de cadrage ne sont acceptés qu'en `INTAKE_READY`. Après analyse, une pièce jointe ne peut pas changer silencieusement les sources ni rendre l'accord cloud obsolète.
+- **Pas d'image au cloud** : les images sont ingérées localement ; tant que le filtre de confidentialité ne sait pas inspecter leur contenu, elles ne sont pas routées vers DeepSeek.
 - **Voix** : la qualité du français et la vitesse dépendent du modèle Whisper choisi et se mesurent sur le PC ; la synthèse vocale locale est une option, pas une promesse de voix naturelle.
 - Pendant qu'une tâche tourne, le chat répond « occupé » : une seule génération à la fois, comme aujourd'hui. `!état` reste disponible.
 - L'approbation par phrase est plus lourde qu'un clic : c'est le prix de la sécurité.

@@ -42,7 +42,7 @@ fi
 
 PYTHON="$(claw_python)"
 if ((APPLY == 1)); then
-  systemctl --user disable --now clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-dashboard.service 2>/dev/null || true
+  systemctl --user disable --now clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-speech.service clawfedora-dashboard.service 2>/dev/null || true
   rm -f "$HOME/.local/share/applications/clawfedora-atelier.desktop"
 fi
 ARGS=(--root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" cleanup --apply)

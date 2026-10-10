@@ -14,7 +14,7 @@ Pour apprendre le DevOps, relire un dépôt, raisonner sur une architecture et p
 | Coût marginal | Pas de coût API. | Facturé à l'usage, avec plafond local de 25 € par mois. |
 | Capacité | Modèle compact adapté au quotidien, à la rédaction et aux petites tâches. | Modèle beaucoup plus grand, conçu pour le code, les outils et les tâches agentiques longues. |
 | Outils | Pris en charge par OpenClaw. | Pris en charge par le modèle et par OpenRouter. |
-| Contexte utilisé par ce projet | 32 768 tokens. | 32 768 tokens, volontairement limité par le projet malgré un contexte fournisseur bien plus grand. |
+| Contexte utilisé par ce projet | 32 768 tokens et sortie maximale de 4 096 tokens. | 1 048 576 tokens déclarés, sortie maximale de 32 768 tokens, raisonnement `xhigh` imposé par la passerelle. |
 | Images dans ce projet | Autorisées en local. | **Interdites pour l'instant**, même si le modèle les accepte : le filtre de confidentialité ne sait pas inspecter une image. |
 
 DeepSeek annonce pour V4.1 Flash notamment **90,6 sur Terminal-Bench 2.1**, **74,2 sur DeepSWE v1.1** et **65,4 sur NL2Repo-Bench**. Ce sont des indicateurs intéressants pour un atelier DevOps et des agents de code, mais ils ne prouvent pas qu'il enseigne mieux à un débutant.

@@ -21,7 +21,7 @@ OpenClaw ──► fournisseur "cloudgw" (127.0.0.1:18892/v1) ──► [filtre 
 | Qui voit quoi ? | La passerelle reçoit le prompt système, l'historique et, au second appel d'une boucle d'outil, **les résultats d'outils**. Un tour avec un outil fait **deux appels facturables**. |
 | Quel jeton circule ? | Un jeton **local** (`Authorization: Bearer <jeton local>`), lu dans la variable `CLAWFEDORA_CLOUD_GATEWAY_TOKEN`. La clé du fournisseur n'atteint jamais OpenClaw : le contrôle fait échouer toute fuite. |
 | Usage en streaming ? | OpenClaw envoie `stream: true` et `stream_options.include_usage: true` ; l'usage et le coût peuvent donc être lus dans le dernier fragment. |
-| Peut-on limiter le raisonnement avec `--thinking` ? | **Non** pour un fournisseur personnalisé (`low` refusé, seuls `off` et `ultra` sont acceptés). La limite est donc **imposée par la passerelle**, qui injecte `reasoning` dans chaque requête (`upstream_params`). |
+| Peut-on piloter le raisonnement ? | Oui par la **passerelle**, pas par le client : elle injecte `reasoning.effort=xhigh` dans chaque requête DeepSeek. Le modèle ou Open WebUI ne peuvent pas affaiblir ce réglage. |
 | Que se passe-t-il si le jeton manque ? | OpenClaw résout les secrets de **tous** les fournisseurs avant un tour : un jeton absent fait échouer **même un tour local**. L'environnement d'exécution doit donc toujours définir ce jeton dès que le fournisseur est configuré (lot 4). Avec le jeton défini et la passerelle arrêtée, les rôles locaux fonctionnent (`make native-prompt`). |
 | Retour arrière | Désactiver le cloud supprime le fournisseur `cloudgw` d'une installation existante (migration vérifiée par `make native-schema`). |
 | Quels modèles `--model` peut-il choisir ? | Seulement ceux de `agents.defaults.modelPolicy.allow` : Qwen, et le modèle cloud uniquement si le cloud est activé. |
@@ -48,7 +48,7 @@ Vérifié avec le vrai OpenClaw 2026.9.8 par `make native-cloud` : une vraie Gat
 3. la requête est bornée (taille, nombre de messages et d'outils) et **normalisée sur liste blanche** : `models`, `route`, `provider`, `plugins`, `transforms`, `reasoning`… sont refusés (400), de sorte qu'un client ne peut ni détourner vers un modèle plus cher ni modifier les réglages de la politique ; le modèle est forcé, la sortie bornée ;
 4. le filtre de confidentialité lit **tout le corps** : prompt système, historique, contexte ajouté, arguments d'appels d'outils et **résultats d'outils** (451 sinon) ;
 5. le budget réserve le coût maximal (402 sinon) ;
-6. la passerelle injecte les réglages de la politique (`provider`, `reasoning`, `usage`), appelle le fournisseur avec **sa** clé, relaie la réponse (en flux aussi) et règle l'usage réel.
+6. la passerelle injecte `data_collection: deny`, `require_parameters`, le tri `throughput`, le hard cap `max_price`, `reasoning.effort=xhigh` et `usage`, puis appelle le fournisseur avec **sa** clé, relaie la réponse et règle l'usage réel.
 
 Un client qui se déconnecte en plein flux n'interrompt pas la lecture : le fournisseur continue de générer et de facturer, l'usage est lu jusqu'au bout. Un appel sans usage connu garde l'estimation maximale (`interrupted`) ; un appel refusé par le fournisseur la libère (`failed`).
 
@@ -64,7 +64,7 @@ Laisse passer ce qui sert au cours : plages d'adresses de documentation, adresse
 
 ### Modes dans Open WebUI
 
-Le mode est le choix du modèle. Sans cloud activé, rien ne change : sept rôles locaux. Cloud activé, chaque rôle apparaît deux fois (« · local » et « · cloud (GLM) »). Une réponse cloud porte un bandeau de provenance. Si le cloud ne peut pas répondre, la réponse locale est donnée **avec un bandeau visible** :
+Le mode est le choix du modèle. Sans cloud activé, rien ne change : sept rôles locaux. Cloud activé, chaque rôle apparaît deux fois (« · local » et « · cloud (DeepSeek) »). Une réponse cloud porte un bandeau de provenance. Si le cloud ne peut pas répondre, la réponse locale est donnée **avec un bandeau visible** :
 
 - le filtre a détecté quelque chose (sur le message, le contexte ou, par le journal de la passerelle, un résultat d'outil) : la conversation **passe en local et y reste**. La passerelle de chat ne garde aucun état ; chaque réponse suivante répète le marqueur « 🔒 Conversation passée en local », qui est relu dans l'historique ;
 - budget épuisé, fournisseur indisponible : repli local ponctuel, sans verrouiller le fil.
@@ -160,8 +160,8 @@ Pour **continuer en local**, il faut le décider : « Retirer l'accord cloud » 
 - Aucun repli du local vers le cloud ni vers un modèle caché. Le repli cloud vers local est possible, mais visible.
 - Confidentialité **et** budget sont tous deux requis (`requires`).
 - Passerelle sur `127.0.0.1`, port valide non utilisé, jeton nommé par variable d'environnement, fichier de clé relatif à l'état d'exécution.
-- Contexte et sortie du modèle cloud égaux aux limites quotidiennes (une seule source).
-- `data_collection: deny` et `require_parameters: true` imposés ; tarifs de référence présents.
+- Le cloud peut dépasser les limites du petit modèle local : contexte 32K..1M et sortie 4K..32K, sans jamais être inférieurs au local.
+- `data_collection: deny`, `require_parameters: true`, `sort: throughput`, `reasoning: xhigh` et `max_price` égal au pire tarif réservé sont imposés.
 - Le modèle cloud est déclaré au catalogue, optionnel, et chaque rôle pointe vers lui.
 
 ## Ce qui n'est pas prouvé
@@ -171,4 +171,4 @@ Pour **continuer en local**, il faut le décider : « Retirer l'accord cloud » 
 - La vérification en ligne de la limite de clé n'a pas été exécutée contre le vrai fournisseur (pas de clé ici) : elle est testée avec un faux, sur la forme de réponse que je connais de `GET /api/v1/key` (`data.limit`), **non vérifiée** ici faute d'accès à la documentation du fournisseur : si la forme diffère, le contrôle échoue et l'activation reste refusée.
 - Le service systemd et le script d'activation n'ont pas tourné sur Fedora ; les contrôles couvrent leur syntaxe et leur ordre, pas leur exécution.
 
-Aucun appel réel vers OpenRouter, aucun comportement de GLM, aucun essai sur le PC Fedora. Les tests utilisent une passerelle factice.
+Aucun appel réel vers OpenRouter avec DeepSeek, aucun essai sur le PC Fedora. Les tests utilisent une passerelle factice.

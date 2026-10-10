@@ -39,7 +39,7 @@ Le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allu
 
 **Une seule génération à la fois.** Si l'atelier Projets travaille, le chat répond qu'il est occupé, et inversement. Le modèle n'est jamais lancé deux fois en parallèle.
 
-**La mémoire de la conversation est limitée.** Le chat transmet au modèle les messages les plus récents, jusqu'à 32 000 octets (environ 5 000 mots). Au-delà, les plus anciens ne sont plus transmis et le chat l'indique en tête de réponse. Si un détail ancien compte, rappelle-le.
+**La mémoire dépend de la route.** Qwen reçoit les messages récents jusqu'à 32 000 octets. DeepSeek peut recevoir un historique beaucoup plus large (jusqu'à environ 768 Ko transmis par le pont, dans un contexte cloud déclaré à 262K tokens). Dans les deux cas, le pont retire les messages les plus anciens avant de dépasser sa limite et l'indique.
 
 **Le bouton d'arrêt n'arrête pas tout de suite.** Il coupe l'affichage, mais la génération en cours se termine. Attends sa fin avant de passer en mode jeu.
 
@@ -62,7 +62,7 @@ Demande le format explicitement : « Fournis une fiche en Markdown, PDF et DOCX 
 
 ## Interroger un projet depuis le chat
 
-Le chat peut lire tes projets, **en lecture seule**. Des commandes, comprises par le programme (jamais par le modèle), choisissent le projet :
+Le chat peut interroger un projet **en lecture seule lorsqu'il parle au modèle** ; tes commandes explicites peuvent aussi déclencher une action dans le moteur de projet. Elles sont comprises par le programme, jamais par le modèle :
 
 | Tu écris | Ce qui se passe |
 |---|---|
@@ -75,6 +75,13 @@ Le chat peut lire tes projets, **en lecture seule**. Des commandes, comprises pa
 | `!voir 2` | affiche la proposition 2 |
 | `!accepter 2` | demande l'acceptation : le pont donne une **phrase à taper** pour confirmer |
 | `!refuser 2` | écarte la proposition 2 (elle reste consultable) |
+| `!lancer`, `!pause`, `!reprendre` | exécute ou contrôle le plan approuvé en arrière-plan |
+| `!pratique [tâche]` | affiche l'étape guidée qui attend ton travail |
+| `!soumettre <tâche> <explication>` + fichiers | remet ton travail et lance le retour du spécialiste |
+| `!auditer`, puis `!relire` | lance les deux contrôles indépendants aux états prévus |
+| `!modifier <tâche> <raison>` | prépare une révision cohérente ; une phrase humaine confirme |
+| `!livrer` | prépare la livraison finale ; une phrase humaine confirme |
+| `!importer` | consomme le dossier local de secours du projet avant analyse |
 | `!aide` | rappelle ces commandes |
 
 Une fois un projet sélectionné, pose tes questions normalement : le rôle reçoit un résumé du projet, son plan, la liste de ses livrables et les passages de tes documents qui répondent à la question (la recherche locale doit avoir été actualisée dans l'atelier). Chaque réponse commence par `📁 Projet : <id>` : c'est ce qui rappelle le projet choisi d'un message à l'autre.
@@ -82,8 +89,8 @@ Une fois un projet sélectionné, pose tes questions normalement : le rôle reç
 - Les commandes répondent tout de suite, **même quand une tâche tourne**. Une question au modèle, elle, attend la fin du traitement en cours.
 - Les réponses du pont (liste, état) ne sont jamais envoyées au modèle.
 - **Cloud** : avec le modèle « · cloud », le contexte d'un projet ne part que si ce projet a un [accord cloud valide](12-cloud.md). Sinon rien n'est envoyé et le pont le dit. Une fois qu'un fil a touché un projet, il garde cette règle même après `!quitter` : ouvre une nouvelle conversation pour une question sans rapport.
-- Le préfixe `/` est aussi accepté pour ces cinq commandes, mais Open WebUI utilise `/` et `@` pour ses propres raccourcis : `!` est le plus sûr.
-- Le chat peut créer et cadrer un projet (section suivante), mais il ne lance pas encore le travail des rôles : l'exécution, les audits et la livraison restent dans l'atelier. La suite est décrite dans le [plan d'intégration](../PLAN_INTEGRATION_WEBUI.md).
+- Le préfixe `/` est aussi accepté pour ces commandes, mais Open WebUI utilise `/` et `@` pour ses propres raccourcis : `!` est le plus sûr.
+- Le chat et l'atelier pilotent désormais le **même moteur jusqu'à la livraison** : exécution, pratique guidée, audits, révisions et paquet final utilisent exactement les mêmes états, verrous et garde-fous.
 
 ### Garder un document écrit dans le chat
 
@@ -125,12 +132,30 @@ Ce qu'il faut savoir :
 - Les commandes `!creer`, `!analyser`, `!planifier`, `!questions` et `!repondre` viennent **toujours de ton dernier message**, jamais du modèle. Répondre à une précision est une action de ta part, sans phrase de confirmation.
 - Pendant qu'un brouillon se rédige, le chat répond « occupé » aux questions normales ; `!etat` reste disponible. Si le service redémarre, `!etat` signale le brouillon interrompu : relance-le.
 - Le texte du brouillon est affiché sans liens ni images, et le mot « approuver » y est coupé : copier une phrase écrite par un modèle ne sert à rien.
-- Le travail des rôles (exécution des tâches, audits, livraison) reste dans l'atelier tant que l'étape suivante du plan n'est pas faite. Un projet créé ici apparaît dans l'atelier et inversement.
+- Après approbation du plan, `!lancer` conduit les mêmes tâches que l'atelier. `!etat` reste disponible pendant un traitement ; `!pause` demande une pause coopérative ; les audits et la livraison sont des étapes séparées.
 - Après `!creer`, ce fil a « touché » le nouveau projet : le modèle cloud n'y répond pas tant que ce projet n'a pas d'[accord cloud](12-cloud.md).
+
+## Joindre des fichiers et parler
+
+Avant l'analyse d'un projet sélectionné, joins un PDF, un document Office, une archive, du code ou
+une image : le fichier original est copié depuis le stockage local d'Open WebUI puis passe par la
+**même chaîne d'ingestion que l'atelier**. Le RAG intégré d'Open WebUI est désactivé pour cette
+route afin de ne pas créer une seconde vérité documentaire.
+
+Les sources deviennent immuables dès que l'analyse commence. Un upload tardif est refusé au lieu de
+modifier silencieusement le projet ou son accord cloud. Si le navigateur ne transmet pas correctement
+le fichier original, dépose-le dans
+`/srv/openclaw-local/state/chat-import/inbox/<projet>/` puis tape `!importer`.
+
+La dictée utilise Whisper **local** sur le CPU en int8 ; la lecture à voix haute utilise également
+un service local. Le texte dicté est relu avant envoi et le mode appel mains libres reste désactivé.
+Voir le [test de fumée](../SMOKE_TEST_WEBUI.md) pour mesurer la qualité et la latence réelles.
 
 ## Chat ou atelier ?
 
-Le chat explique, oriente et peut interroger un projet en lecture seule. Il n'écrit dans un projet que des propositions acceptées par phrase de confirmation (des notes), et les fichiers joints à une conversation ne deviennent pas des sources de projet. Pour un travail avec des documents, plusieurs étapes et des livrables relus, utilise l'[atelier Projets](04-atelier-projets.md).
+Le chat et l'atelier sont maintenant deux vues du même moteur. Le chat est pratique pour piloter
+avec des commandes et converser ; le dashboard reste plus confortable pour visualiser l'état,
+les tâches, les fichiers et les preuves. Aucune des deux interfaces n'a plus d'autorité que l'autre.
 
 ## Démarrer et arrêter
 

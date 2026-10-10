@@ -11,6 +11,20 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 - **Créer et cadrer un projet depuis le chat** : `!creer`, `!analyser`, `!planifier`, `!valider`, `!questions`, `!repondre`. Le chat appelle les mêmes fonctions que l'atelier (`project_ui`, donc les mêmes garde-fous). La création, l'analyse et le plan s'approuvent par phrase de confirmation (`approuver creation|analyse|plan K7Q2`), liée à l'empreinte du contenu ; les brouillons du chef d'opérations sont rédigés en arrière-plan avec `!etat` pour suivre, y compris la pause cloud d'un projet autorisé. Le texte d'un modèle affiché par le pont n'a ni lien, ni image, ni phrase d'approbation copiable.
 
+- **Conduite complète d'un projet depuis Open WebUI** : `!lancer`, `!pause`,
+  `!reprendre`, `!pratique`, `!soumettre`, `!auditer`, `!relire`,
+  `!modifier` et `!livrer`. Les tâches, le feedback, les audits et la livraison
+  réutilisent le moteur canonique et son verrou ; les révisions et la clôture
+  restent liées à une confirmation humaine à usage unique.
+- **Pièces jointes Open WebUI** : filtre global réservé à l'utilisateur authentifié,
+  ingestion canonique du fichier original, contrôle des chemins, empreinte SHA-256,
+  refus des liens symboliques, sources figées après analyse et `!importer` comme plan B.
+  Les URL d'images ne sont jamais retransmises aux modèles.
+- **Voix locale** : transcription Whisper `small` CPU/int8 et synthèse `espeak-ng`,
+  service loopback avec jeton privé et aucun mode d'appel mains libres.
+- **Contrats et vérifications** : tests ciblés pour les commandes, les pièces jointes,
+  les confirmations et l'audio ; procédure de test de fumée Fedora et vérification du cloud réel.
+
 ### Modifié
 - **Modèle cloud** : GLM-5.3 Flash est remplacé par **DeepSeek V4.1 Flash**, épinglé à `deepseek/deepseek-v4.1-flash` via OpenRouter. La passerelle locale, le filtre de confidentialité, le budget de 25 €, l'accord cloud par projet et le repli visible vers Qwen restent inchangés.
 - Les libellés d'interface et le scope de consentement deviennent génériques à la famille DeepSeek afin que le futur passage à V4.1 Pro ne demande pas de dupliquer les sept rôles.

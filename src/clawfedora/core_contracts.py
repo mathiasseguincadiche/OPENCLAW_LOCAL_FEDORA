@@ -250,22 +250,84 @@ def _validate_cloud_contracts(
         limits = daily_limits(repo_root)
     except (FileNotFoundError, ValueError):
         limits = {}
-    if limits and (
-        model.get("context_tokens") != limits["context_tokens"]
-        or model.get("max_output_tokens") != limits["max_output_tokens"]
+    cloud_context = model.get("context_tokens")
+    cloud_output = model.get("max_output_tokens")
+    if (
+        type(cloud_context) is not int
+        or type(cloud_output) is not int
+        or not 32768 <= cloud_context <= 1048576
+        or not 4096 <= cloud_output <= 32768
+        or (limits and cloud_context < int(limits["context_tokens"]))
+        or (limits and cloud_output < int(limits["max_output_tokens"]))
     ):
-        failures.append("core/cloud: contexte et sortie doivent égaler les limites quotidiennes")
+        failures.append(
+            "core/cloud: DeepSeek doit garder un contexte >= local (32K..1M) "
+            "et une sortie >= locale (4K..32K)"
+        )
     pricing = _mapping(model.get("pricing_usd_per_million"))
     if not all(
         isinstance(pricing.get(key), int | float) and pricing[key] > 0
         for key in ("input", "output")
     ):
         failures.append("core/cloud: tarifs de référence requis")
-    provider = _mapping(_mapping(cloud.get("upstream_params")).get("provider"))
+    upstream_params = _mapping(cloud.get("upstream_params"))
+    provider = _mapping(upstream_params.get("provider"))
     if provider.get("data_collection") != "deny":
         failures.append("core/cloud: data_collection=deny requis")
     if provider.get("require_parameters") is not True:
         failures.append("core/cloud: require_parameters=true requis")
+    if provider.get("sort") != "throughput":
+        failures.append("core/cloud: routage throughput requis pour la route de capacité")
+    max_price = _mapping(provider.get("max_price"))
+    if (
+        max_price.get("prompt") != pricing.get("input")
+        or max_price.get("completion") != pricing.get("output")
+    ):
+        failures.append("core/cloud: max_price doit égaler le pire tarif réservé")
+    reasoning = _mapping(upstream_params.get("reasoning"))
+    if reasoning.get("effort") != "xhigh":
+        failures.append("core/cloud: DeepSeek doit utiliser le raisonnement xhigh")
+
+
+
+def _validate_webui_contracts(repo_root: Path, failures: list[str]) -> None:
+    try:
+        policy = root_contract(repo_root, "webui_policy.yaml")
+    except (FileNotFoundError, ValueError) as exc:
+        failures.append(f"webui: {exc}")
+        return
+    if policy.get("variant") != "slim" or policy.get("deployment") != "podman-rootless":
+        failures.append("webui: image slim et Podman rootless requis")
+    if policy.get("scope") != "personal-loopback" or policy.get("shared_worker_lock") is not True:
+        failures.append("webui: usage personnel loopback avec verrou partagé requis")
+    speech = _mapping(policy.get("speech"))
+    ports = [
+        policy.get("web_port"),
+        policy.get("bridge_port"),
+        policy.get("dashboard_port"),
+        speech.get("port"),
+    ]
+    if (
+        any(type(port) is not int or not 1024 <= port <= 65535 for port in ports)
+        or len(set(ports)) != len(ports)
+        or 11434 in ports
+        or 18789 in ports
+        or 18892 in ports
+    ):
+        failures.append("webui: ports locaux valides, uniques et hors services réservés requis")
+    if (
+        speech.get("enabled") is not True
+        or speech.get("host") != "127.0.0.1"
+        or speech.get("stt_device") != "cpu"
+        or speech.get("stt_compute_type") != "int8"
+        or speech.get("language") != "fr"
+        or not str(speech.get("stt_model", "")).strip()
+        or not str(speech.get("tts_voice", "")).strip()
+        or not 1_000_000 <= int(speech.get("max_audio_bytes", 0)) <= 50_000_000
+    ):
+        failures.append(
+            "webui: voix locale CPU/int8, français, loopback et taille audio bornée requis"
+        )
 
 
 def validate_core_contracts(
@@ -299,6 +361,7 @@ def validate_core_contracts(
     if policy.get("default_agent") != "chef-operations":
         failures.append("core/agents: chef-operations doit rester l'agent par défaut")
 
+    _validate_webui_contracts(repo_root, failures)
     catalog = root_contract(repo_root, "model_catalog.yaml")
     model_aliases = set(_mapping(catalog.get("models")))
     routing = _mapping(contracts["model_routing.yaml"].get("agents"))

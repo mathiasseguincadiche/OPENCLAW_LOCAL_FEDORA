@@ -8,6 +8,7 @@ import os
 import re
 import secrets
 import sqlite3
+import time
 from contextlib import closing
 from pathlib import Path
 from typing import Any
@@ -29,7 +30,14 @@ def _secret(path: Path) -> str:
     return value
 
 
-def environment(repo_root: Path, token: str, secret: str, *, sealed: bool) -> dict[str, str]:
+def environment(
+    repo_root: Path,
+    token: str,
+    secret: str,
+    speech_token: str,
+    *,
+    sealed: bool,
+) -> dict[str, str]:
     policy = root_contract(repo_root, "webui_policy.yaml")
     disabled = (
         "ENABLE_CONTEXT_COMPACTION",
@@ -40,8 +48,6 @@ def environment(repo_root: Path, token: str, secret: str, *, sealed: bool) -> di
         "ENABLE_NOTES",
         "ENABLE_EVALUATION_ARENA_MODELS",
         "USER_PERMISSIONS_CHAT_MULTIPLE_MODELS",
-        "USER_PERMISSIONS_CHAT_STT",
-        "USER_PERMISSIONS_CHAT_TTS",
         "USER_PERMISSIONS_CHAT_CALL",
         "ENABLE_OLLAMA_API",
         "ENABLE_AUTOMATIONS",
@@ -57,13 +63,15 @@ def environment(repo_root: Path, token: str, secret: str, *, sealed: bool) -> di
         "ENABLE_WEB_SEARCH",
         "ENABLE_COMMUNITY_SHARING",
         "ENABLE_FORWARD_USER_INFO_HEADERS",
-        "USER_PERMISSIONS_CHAT_FILE_UPLOAD",
         "USER_PERMISSIONS_CHAT_WEB_UPLOAD",
         "ENABLE_PERSISTENT_CONFIG",
         "ENABLE_API_KEY",
     )
     return {
         **dict.fromkeys(disabled, "false"),
+        "USER_PERMISSIONS_CHAT_FILE_UPLOAD": "true",
+        "USER_PERMISSIONS_CHAT_STT": "true",
+        "USER_PERMISSIONS_CHAT_TTS": "true",
         "HOST": "127.0.0.1",
         "PORT": str(policy["web_port"]),
         "UVICORN_WORKERS": "1",
@@ -93,6 +101,20 @@ def environment(repo_root: Path, token: str, secret: str, *, sealed: bool) -> di
             ensure_ascii=False,
         ),
         "AIOHTTP_CLIENT_TIMEOUT": "660",
+        "AUDIO_STT_ENGINE": "openai",
+        "AUDIO_STT_MODEL": "clawfedora-whisper",
+        "AUDIO_STT_OPENAI_API_BASE_URL": "http://127.0.0.1:18893/v1",
+        "AUDIO_STT_OPENAI_API_KEY": speech_token,
+        "AUDIO_STT_OPENAI_API_REQUEST_FORMAT": "multipart",
+        "AUDIO_STT_SUPPORTED_CONTENT_TYPES": (
+            "audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/webm,audio/ogg,audio/flac,"
+            "audio/mp4,video/webm,video/mp4"
+        ),
+        "AUDIO_TTS_ENGINE": "openai",
+        "AUDIO_TTS_MODEL": "clawfedora-tts",
+        "AUDIO_TTS_VOICE": "fr-fr",
+        "AUDIO_TTS_OPENAI_API_BASE_URL": "http://127.0.0.1:18893/v1",
+        "AUDIO_TTS_OPENAI_API_KEY": speech_token,
     }
 
 
@@ -112,8 +134,16 @@ def render(repo_root: Path, runtime: Path, unit_root: Path) -> dict[str, Any]:
     assert_no_symlinks(state, label="WebUI")
     state.chmod(0o700)
     (state / "data").mkdir(exist_ok=True, mode=0o700)
-    token, secret = _secret(state / "bridge.token"), _secret(state / "session.key")
-    env = environment(repo_root, token, secret, sealed=(state / "sealed").exists())
+    token = _secret(state / "bridge.token")
+    secret = _secret(state / "session.key")
+    speech_token = _secret(state / "speech.token")
+    env = environment(
+        repo_root,
+        token,
+        secret,
+        speech_token,
+        sealed=(state / "sealed").exists(),
+    )
     env_path = state / "webui.env"
     env_path.write_text("\n".join(f"{key}={value}" for key, value in env.items()) + "\n")
     env_path.chmod(0o600)
@@ -130,9 +160,17 @@ def render(repo_root: Path, runtime: Path, unit_root: Path) -> dict[str, Any]:
         + f"--root {repo_root} --runtime-root {runtime}\n"
         + "NoNewPrivileges=true\n\n[Install]\nWantedBy=default.target\n"
     )
+    speech = (
+        "[Unit]\nDescription=Atelier IA - voix locale\n"
+        + common
+        + f"ExecStart={python} -m clawfedora.speech_server "
+        + f"--root {repo_root} --runtime-root {runtime} --token-file {state / 'speech.token'}\n"
+        + "NoNewPrivileges=true\nPrivateTmp=true\n\n[Install]\nWantedBy=default.target\n"
+    )
     webui = (
         "[Unit]\nDescription=Atelier IA - Open WebUI personnel\n"
-        "After=clawfedora-webui-bridge.service\nRequires=clawfedora-webui-bridge.service\n"
+        "After=clawfedora-webui-bridge.service clawfedora-speech.service\n"
+        "Requires=clawfedora-webui-bridge.service clawfedora-speech.service\n"
         + common
         + "ExecStart=/usr/bin/podman run --rm --name clawfedora-webui "
         "--label io.clawfedora.managed=true --network host --cap-drop ALL "
@@ -152,6 +190,7 @@ def render(repo_root: Path, runtime: Path, unit_root: Path) -> dict[str, Any]:
     )
     for name, content in (
         ("clawfedora-webui-bridge", bridge),
+        ("clawfedora-speech", speech),
         ("clawfedora-webui", webui),
         ("clawfedora-dashboard", dashboard),
     ):
@@ -171,16 +210,54 @@ def render(repo_root: Path, runtime: Path, unit_root: Path) -> dict[str, Any]:
     }
 
 
-def seal(runtime: Path) -> None:
+def seal(repo_root: Path, runtime: Path) -> None:
     state = runtime / "state/webui"
     assert_no_symlinks(state, label="WebUI")
     database = state / "data/webui.db"
-    with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as db:
-        users = db.execute('SELECT role FROM "user"').fetchall()
-    if users != [("admin",)]:
-        raise ValueError(
-            "créer un seul compte administrateur dans l’interface avant de fermer les inscriptions"
+    plugin = repo_root / "plugins/openwebui/clawfedora_files.py"
+    source = plugin.read_text(encoding="utf-8")
+    if not source.strip() or plugin.is_symlink():
+        raise ValueError("filtre Open WebUI géré absent ou lié")
+    with closing(sqlite3.connect(database)) as db:
+        users = db.execute('SELECT id, role FROM "user"').fetchall()
+        if len(users) != 1 or users[0][1] != "admin":
+            raise ValueError(
+                "créer un seul compte administrateur dans l’interface "
+                "avant de fermer les inscriptions"
+            )
+        admin_id = str(users[0][0])
+        now = int(time.time())
+        meta = json.dumps(
+            {"description": "Transmet les uploads au moteur d'ingestion local ClawFedora."},
+            ensure_ascii=False,
         )
+        db.execute(
+            '''
+            INSERT INTO "function"
+              (id, user_id, name, type, content, meta, valves, is_active, is_global,
+               updated_at, created_at)
+            VALUES (?, ?, ?, 'filter', ?, ?, NULL, 1, 1, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+              user_id=excluded.user_id,
+              name=excluded.name,
+              type='filter',
+              content=excluded.content,
+              meta=excluded.meta,
+              is_active=1,
+              is_global=1,
+              updated_at=excluded.updated_at
+            ''',
+            (
+                "clawfedora_files",
+                admin_id,
+                "ClawFedora — pièces jointes",
+                source,
+                meta,
+                now,
+                now,
+            ),
+        )
+        db.commit()
     (state / "sealed").touch(mode=0o600)
 
 
@@ -192,7 +269,7 @@ def main() -> None:
     parser.add_argument("--unit-root", type=Path, required=True)
     args = parser.parse_args()
     if args.action == "seal":
-        seal(args.runtime_root)
+        seal(args.root, args.runtime_root)
     print(json.dumps(render(args.root, args.runtime_root, args.unit_root)))
 
 
