@@ -64,15 +64,15 @@ Fichier : `config/core/cloud_policy.yaml`. `./menu.sh --action validate` refuse 
 | `budget.alert_ratio` | 0,8 | Seuil d'alerte (80 % du plafond). |
 | `budget.recommended_key_limit_usd` | 12 | Limite de clé conseillée. La limite déclarée ne peut pas dépasser `monthly_cap_eur / eur_per_usd` (≈ 19,2 $). |
 | `model` | `deepseek/deepseek-v4.1-flash` | Modèle cloud épinglé. |
-| `model.context_tokens` | 262 144 | Contexte cloud distinct du 32K local. |
-| `model.max_output_tokens` | 16 384 | Sortie cloud plus large pour les analyses et livrables complexes. |
+| `model.context_tokens` | 1 048 576 | Contexte cloud distinct du 32K local. |
+| `model.max_output_tokens` | 32 768 | Sortie cloud plus large pour les analyses et livrables complexes. |
 | `upstream_params.reasoning.effort` | `xhigh` | DeepSeek est la route de capacité : raisonnement maximal imposé par la passerelle. |
 | `provider.sort` | `throughput` | Choisit le fournisseur admissible le plus rapide. |
 | `provider.max_price` | 0,25 $ entrée / 0,75 $ sortie par M tokens | Hard cap fournisseur, identique au pire coût réservé localement. |
 | `provider.data_collection` | `deny` | Écarte les routes qui ne respectent pas ce réglage. |
 | `gateway.port` | 18892 | Boucle locale seulement. |
 
-Le raisonnement long du modèle local reste désactivé pour préserver la latence et la VRAM. DeepSeek n'est pas utilisé comme un simple Qwen distant : la passerelle lui impose `xhigh`, 262K de contexte et 16K de sortie. Le client ne peut ni diminuer ces garde-fous, ni choisir un modèle ou un fournisseur plus cher.
+Le raisonnement long du modèle local reste désactivé pour préserver la latence et la VRAM. DeepSeek n'est pas utilisé comme un simple Qwen distant : la passerelle lui impose `xhigh`, jusqu'à 1M de contexte et 32K de sortie. Le client ne peut ni diminuer ces garde-fous, ni choisir un modèle ou un fournisseur plus cher.
 
 Pour changer le plafond, baisse-le : tu ne peux pas dépasser 25 €. Après toute modification : `./menu.sh --action validate`, puis `./menu.sh --action cloud-enable --value 12 --apply` pour revalider.
 
