@@ -10,7 +10,7 @@ from typing import Any
 import pytest
 
 from clawfedora.project_worker import worker_lock
-from clawfedora.webui_bridge import MODEL_IDS, chat_prompt, make_server
+from clawfedora.webui_bridge import CLOUD_MODEL_IDS, MODEL_IDS, BridgeHandler, chat_prompt, make_server
 from clawfedora.webui_setup import environment, render, seal
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -287,3 +287,31 @@ def test_project_images_are_sanitized_and_never_forward_media_urls() -> None:
     assert "image conservée parmi les sources du projet" in prompt
     assert "PRIVATE_IMAGE_PAYLOAD" not in prompt
     assert "image_url" not in prompt
+
+
+def test_cloud_long_response_is_not_rejected_by_local_64k_limit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A 16K-token cloud response can exceed 64 KiB in UTF-8. It must be accepted while
+    # keeping the small-model limit unchanged for the local route.
+    def fake_answer(*_args: Any) -> tuple[dict[str, str], str]:
+        return {"text": "Réponse détaillée. " * 6_000}, ""
+
+    monkeypatch.setattr(BridgeHandler, "_answer", fake_answer)
+    with make_server(
+        ROOT, tmp_path, TOKEN, 0, cloud_ready=lambda: True,
+        runner=lambda *_args: {"text": "non utilisé"},
+    ) as server:
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        payload = {
+            "model": CLOUD_MODEL_IDS[0],
+            "messages": [{"role": "user", "content": "Analyse détaillée"}],
+        }
+        status, raw = request(server, "/v1/chat/completions", payload)
+        assert status == 200
+        reply = json.loads(raw)["choices"][0]["message"]["content"]
+        assert len(reply.encode()) > 64_000
+        assert "Réponse détaillée." in reply
+        server.shutdown()
+        thread.join(timeout=5)
