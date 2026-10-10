@@ -41,7 +41,7 @@ Les messages de blocage nomment la **catégorie** trouvée (« jeton d'accès »
 
 ### Où part ce que tu envoies
 
-GLM est édité par Z.ai. OpenRouter achemine la demande avec `data_collection: deny` (les fournisseurs qui conservent ou entraînent sur les données sont écartés) et `require_parameters`. C'est un réglage de la demande, pas une garantie contractuelle, et les pages d'OpenRouter n'ont pas été relues pour ce dépôt : vérifie leur description de ces réglages et les conditions du fournisseur retenu. La non-conservation totale (« ZDR ») est un réglage distinct, qui peut réduire la liste des fournisseurs disponibles ; il n'est pas activé ici.
+DeepSeek V4.1 Flash est appelé via OpenRouter. La passerelle impose `data_collection: deny`, `require_parameters: true`, un tri `throughput` et un `max_price` correspondant au pire coût réservé. Si aucun endpoint ne respecte ces contraintes, l'appel échoue : le projet ne relâche jamais automatiquement la confidentialité ou le plafond de prix. Vérifie aussi les conditions du fournisseur réellement retenu lors du premier essai.
 
 ## Le budget : 25 € réels par mois
 
@@ -55,7 +55,7 @@ Trois protections indépendantes :
 
 **Pourquoi la limite de la clé est en dollars.** Ton plafond est de 25 € payés, mais OpenRouter compte en dollars. Un dollar de consommation coûte plus d'un euro une fois le change, les frais d'achat de crédits et la TVA ajoutés. Le journal applique un facteur prudent de **1,3 € par dollar** (`eur_per_usd` dans `config/core/cloud_policy.yaml`). Donc : 25 € ÷ 1,3 ≈ **19,2 $** au maximum sur la clé, et la commande d'activation refuse une limite plus haute. **12 $** est la valeur conseillée : environ 15,6 €, avec de la marge pour un usage estimé à 6-10 $ par mois.
 
-Ce que compte le journal : le coût réel quand OpenRouter le donne, sinon les jetons × le tarif de référence. Un appel interrompu, sans information de coût ou jamais réglé est compté **au pire cas**. Seul un refus net du fournisseur n'est pas compté. À 80 % du plafond, le chat et le tableau de bord le disent ; à 100 %, plus rien ne part.
+Ce que compte le journal : le coût réel quand OpenRouter le donne, sinon les jetons × le tarif plafond. Le même plafond est transmis à OpenRouter avec `provider.max_price`, donc une route plus chère est refusée **avant** l'appel. Un appel interrompu, sans information de coût ou jamais réglé est compté au pire cas. Seul un refus net du fournisseur n'est pas compté. À 80 % du plafond, le chat et le tableau de bord le disent ; à 100 %, plus rien ne part.
 
 Le facteur 1,3 est une marge, pas un taux mesuré, et les tarifs de référence sont ceux du dépôt. Le relevé OpenRouter reste la vérité : une fois par mois, enregistre-le (voir plus bas).
 
@@ -97,6 +97,20 @@ Le cloud est désactivé, la passerelle arrêtée et le fournisseur retiré de l
 ```
 
 Le plafond applique **le plus élevé** de l'estimation du journal et du montant déclaré.
+
+## Capacité DeepSeek
+
+La route cloud est volontairement plus généreuse que Qwen local :
+
+- contexte déclaré : **262 144 tokens** ;
+- sortie maximale : **16 384 tokens** ;
+- raisonnement : **`xhigh`**, imposé par la passerelle ;
+- historique WebUI transmis : jusqu'à environ **768 Ko** avant réduction ;
+- routage fournisseur : priorité au débit, mais uniquement sous le plafond de prix et les règles de données.
+
+Ces valeurs ne rendent pas chaque question lente par obligation : elles donnent à DeepSeek la place
+nécessaire pour les dépôts, documents et boucles d'outils complexes. Le modèle local reste le choix
+quotidien pour le privé et les petites demandes.
 
 ## Dans le chat : Apprendre ou Travail
 
@@ -155,7 +169,7 @@ Les sauvegardes ne sont pas chiffrées. Elles **ne contiennent ni ta clé OpenRo
 
 Vérifié automatiquement : le filtre sur tous les chemins du contenu (y compris les résultats d'outils), le comptage de chaque appel, le refus au plafond avant l'envoi, la pause sans bascule locale, avec le vrai OpenClaw et un faux fournisseur.
 
-**Jamais essayé avec le vrai OpenRouter** : la qualité de GLM, le coût réel d'un tour avec outils, la forme exacte de la réponse qui donne la limite de ta clé, le service sur ton Fedora. Fais le test de fumée ci-dessous avant de t'y fier.
+**Jamais essayé avec le vrai OpenRouter sur le PC cible** : la qualité réelle de DeepSeek, le coût d'un tour avec outils, le provider admissible sous `data_collection: deny` + `max_price`, la forme exacte de la réponse qui donne la limite de ta clé et le service sur Fedora restent à valider. Suis [SMOKE_TEST_WEBUI.md](../SMOKE_TEST_WEBUI.md).
 
 ## Test de fumée à faire une fois
 
