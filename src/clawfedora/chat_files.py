@@ -95,3 +95,53 @@ def import_files(
             return append_intake_items(repo_root, project, sources)
     finally:
         shutil.rmtree(staging, ignore_errors=True)
+
+
+def practice_files(
+    runtime: Path,
+    project: Path,
+    task_id: str,
+    descriptors: object,
+) -> dict[str, str]:
+    """Read human-authored text outputs from Open WebUI without changing project sources."""
+    if not isinstance(descriptors, list) or not descriptors:
+        raise ValueError("joignez les fichiers demandés par la tâche")
+    task_path = project / "context/tasks" / f"{task_id}.json"
+    if not task_path.is_file():
+        raise ValueError("tâche inconnue")
+    from clawfedora.project_common import read_json
+
+    task = read_json(task_path)["task"]
+    expected = task.get("expected_outputs")
+    if not isinstance(expected, list) or not expected:
+        raise ValueError("sorties attendues invalides")
+    by_name: dict[str, str] = {}
+    for relative in expected:
+        name = Path(str(relative)).name
+        if name in by_name:
+            raise ValueError("deux sorties attendues portent le même nom; utiliser l'atelier")
+        by_name[name] = str(relative)
+    files: dict[str, str] = {}
+    total = 0
+    for raw in descriptors:
+        if not isinstance(raw, dict):
+            raise ValueError("descripteur de pièce jointe invalide")
+        source, name = _resolve_upload(runtime, raw)
+        relative = by_name.get(name)
+        if relative is None:
+            raise ValueError(f"fichier inattendu: {name}")
+        data = source.read_bytes()
+        total += len(data)
+        if total > 60_000:
+            raise ValueError("soumission guidée limitée à 60000 octets")
+        if b"\x00" in data:
+            raise ValueError(f"sortie binaire non prise en charge dans le chat: {name}")
+        try:
+            text = data.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise ValueError(f"sortie UTF-8 requise: {name}") from exc
+        files[relative] = text
+    if set(files) != set(expected):
+        missing = sorted(set(map(str, expected)) - set(files))
+        raise ValueError("fichiers attendus absents: " + ", ".join(missing))
+    return files
