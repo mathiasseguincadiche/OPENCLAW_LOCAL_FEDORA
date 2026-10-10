@@ -203,10 +203,11 @@ class SpeechHandler(BaseHTTPRequestHandler):
             voice,
             "-s",
             str(int(self.server.config["tts_speed"])),
-            text,
+            "--stdin",
         ]
         result = subprocess.run(
             command,
+            input=text.encode("utf-8"),
             check=True,
             capture_output=True,
             timeout=60,
