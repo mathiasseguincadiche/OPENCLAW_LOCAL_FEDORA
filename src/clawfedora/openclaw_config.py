@@ -98,7 +98,8 @@ def _cloud_provider(cloud: dict[str, Any], limits: dict[str, Any]) -> dict[str, 
     gateway = _mapping(cloud.get("gateway"))
     model = _mapping(cloud.get("model"))
     pricing = _mapping(model.get("pricing_usd_per_million"))
-    context_tokens = int(limits["context_tokens"])
+    context_tokens = int(model["context_tokens"])
+    max_tokens = int(model["max_output_tokens"])
     return {
         "baseUrl": f"http://{gateway['host']}:{gateway['port']}{gateway['path_prefix']}",
         "apiKey": _environment_reference(str(gateway["token_env"])),
@@ -118,7 +119,7 @@ def _cloud_provider(cloud: dict[str, Any], limits: dict[str, Any]) -> dict[str, 
                 },
                 "contextWindow": context_tokens,
                 "contextTokens": context_tokens,
-                "maxTokens": int(limits["max_output_tokens"]),
+                "maxTokens": max_tokens,
             }
         ],
     }
