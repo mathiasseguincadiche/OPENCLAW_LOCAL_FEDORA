@@ -145,3 +145,23 @@ def practice_files(
         missing = sorted(set(map(str, expected)) - set(files))
         raise ValueError("fichiers attendus absents: " + ", ".join(missing))
     return files
+
+
+def import_inbox(repo_root: Path, runtime: Path, project: Path) -> list[str]:
+    """Fallback for browsers/WebUI versions that cannot forward an original upload."""
+    inbox = runtime / "state/chat-import/inbox" / project.name
+    if inbox.is_symlink():
+        raise ValueError("dossier d'import lié interdit")
+    inbox.mkdir(parents=True, exist_ok=True, mode=0o700)
+    entries = sorted(inbox.iterdir())
+    if not entries:
+        raise ValueError(f"dossier vide: {inbox}")
+    if len(entries) > MAX_ATTACHMENTS:
+        raise ValueError(f"{MAX_ATTACHMENTS} fichiers maximum par import")
+    if any(path.is_symlink() or not path.is_file() for path in entries):
+        raise ValueError("le dossier d'import ne doit contenir que des fichiers ordinaires")
+    with worker_lock(runtime, allow_gaming=True):
+        copied = append_intake_items(repo_root, project, entries)
+    for path in entries:
+        path.unlink()
+    return copied
