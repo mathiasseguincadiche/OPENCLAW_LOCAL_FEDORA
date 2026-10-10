@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import stat
@@ -17,6 +18,7 @@ from clawfedora.project_common import (
     mime_type,
     now,
     project_path,
+    validate_project_id,
     read_json,
     sha256_file,
     write_json,
@@ -360,15 +362,21 @@ def append_intake_items(
     The project path is reconstructed from its allow-listed ID rather than trusting the
     caller's path. Normalization and containment precede *every* project file operation.
     """
-    root = (platform_root / "projects").resolve(strict=True)
-    if project.is_symlink():
-        raise ValueError("projet lié interdit")
-    verified = project_path(platform_root, project.name)
-    if verified.parent != root or verified != project.resolve(strict=True):
+    # Check containment at the string level before any filesystem operation on the
+    # caller's path. realpath resolves symlinks; equality with normpath rejects them.
+    root = os.path.realpath(os.fspath(platform_root / "projects"))
+    supplied = os.path.normpath(os.fspath(project))
+    candidate = os.path.realpath(supplied)
+    if (
+        os.path.commonpath((root, candidate)) != root
+        or os.path.dirname(candidate) != root
+        or supplied != candidate
+    ):
         raise ValueError("projet hors de la racine autorisée")
-    verified.relative_to(root)
-    assert_no_symlinks(verified, label="projet d'ingestion")
-    project = verified
+    if validate_project_id(os.path.basename(candidate)) != os.path.basename(candidate):
+        raise ValueError("identifiant du projet invalide")
+    project = Path(candidate)
+    assert_no_symlinks(project, label="projet d'ingestion")
 
     manifest_path = project / "project.json"
     payload = read_json(manifest_path)
