@@ -1,6 +1,6 @@
 # État du projet
 
-Dernière mise à jour : 9 octobre 2026.
+Dernière mise à jour : 10 octobre 2026.
 
 ## Où en est-on
 
@@ -16,13 +16,13 @@ Dernière mise à jour : 9 octobre 2026.
 | Cloud : filtre, budget, activation, accord par projet, pause visible | Écrits et testés avec le vrai OpenClaw et un faux fournisseur |
 | Cloud avec le vrai OpenRouter (appel réel, coût réel, limite de clé) | **À faire** |
 | Test de fumée du cloud sur le PC ([fiche 12](docs/fiches/12-cloud.md)) | **À faire** |
-| Qualité de GLM-5.3 Flash sur les usages visés | **À mesurer** à l'usage |
+| Qualité de DeepSeek V4.1 Flash sur les usages visés | **À mesurer** à l'usage |
 
 Tant que les lignes « À faire » et « À mesurer » ne sont pas faites, rien n'est prouvé sur la machine ni avec le vrai fournisseur cloud. La marche à suivre est dans [Premier essai](docs/fiches/02-premier-essai.md).
 
 ## Qualité des explications en local
 
-Rien n'est mesuré sur ta machine. Les sources publiques tranchent déjà pour l'apprentissage : le cloud GLM, pour les questions publiques ; le local Qwen, pour le travail et le confidentiel ([détail et sources](docs/DECISION_MODELE.md)). Ce qui est en place : des consignes qui imposent les étiquettes observé/vérifié/proposé/non vérifié, des sources réelles uniquement, la portée exacte des contrôles ; et le cloud facultatif pour comparer ou compléter. Pistes à décider **après** le premier essai, selon les défauts réellement observés : activer le raisonnement long pour le mentor (plus lent), enrichir les consignes sur les notions où il se trompe, ou faire du mentor cloud le choix par défaut si GLM est nettement meilleur à un coût tenable. Voir [Apprendre](docs/fiches/05-apprendre.md).
+Rien n'est encore mesuré sur ta machine. Les résultats publics de DeepSeek V4.1 Flash sont très solides sur les tâches agentiques, le code et l'usage d'outils, mais ils ne constituent pas un test direct de pédagogie face à Qwen 3.5 9B. La règle reste donc simple : Qwen local par défaut pour le quotidien et le confidentiel ; DeepSeek cloud, sur demande, pour les questions publiques complexes, les longues analyses et les tâches où un modèle plus puissant apporte une vraie valeur. La comparaison sur tes propres questions décidera ensuite s'il faut donner plus de place au mentor cloud. Voir [Quel modèle pour expliquer](docs/DECISION_MODELE.md) et [Apprendre](docs/fiches/05-apprendre.md).
 
 ## Mesures sur le PC
 

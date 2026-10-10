@@ -45,14 +45,14 @@ limits:
   max_tools: 64
 model:
   alias: cloud-main
-  upstream_id: z-ai/glm-5.3-flash
-  display_name: GLM-5.3 Flash (cloud, via passerelle locale)
+  upstream_id: deepseek/deepseek-v4.1-flash
+  display_name: DeepSeek V4.1 Flash (cloud, via passerelle locale)
   context_tokens: 32768
   max_output_tokens: 4096
   # Tarifs de référence prudents en USD par million de tokens, à relire sur OpenRouter à l'achat.
   pricing_usd_per_million:
     input: 0.15
-    output: 0.5
+    output: 0.6
 # Réglages imposés par la passerelle à chaque requête (pas par OpenClaw).
 upstream_params:
   provider:

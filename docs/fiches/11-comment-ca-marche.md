@@ -102,6 +102,6 @@ Tu modifies ces fichiers, puis `./menu.sh --action validate` vérifie qu'ils res
 | La cohérence des fichiers de configuration | La vitesse des réponses |
 | La configuration générée est acceptée par le vrai OpenClaw | La qualité des réponses de Qwen |
 | Les consignes ne sont pas tronquées et le prompt tient dans le contexte | L'installation complète sur Fedora |
-| Le filtre, le budget et la pause du cloud, avec le vrai OpenClaw et un faux fournisseur | Le cloud avec le vrai OpenRouter : coût réel, qualité de GLM |
+| Le filtre, le budget et la pause du cloud, avec le vrai OpenClaw et un faux fournisseur | Le cloud avec le vrai OpenRouter : coût réel, qualité de DeepSeek |
 
 La colonne de droite est l'objet du [premier essai](02-premier-essai.md).

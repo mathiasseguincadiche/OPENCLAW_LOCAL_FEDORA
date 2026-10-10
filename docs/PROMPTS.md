@@ -25,7 +25,7 @@ au chef (11743 mesurés sur le zip brut, soit 257 de marge). La fusion est donc 
 | Étiquettes OBSERVÉ / VÉRIFIÉ / PROPOSÉ / NON VÉRIFIÉ, portée de `terraform validate`, idempotence Ansible | Ajouté au CONTRACT (règle 4) |
 | Fraîcheur des sources (30 jours, version visée, sources secondaires non normatives) | Repris (règle 18) ; seules des URL réellement renvoyées par un outil sont citables |
 | Ne jamais recopier un secret rencontré | Ajouté (règle 9) |
-| Mentions du routeur cloud, du budget de 25 € et du middleware comme s'ils existaient | **Non reprises** : les prompts restent vrais quel que soit le modèle (règles 5 et 20). Un test interdit « Qwen », « OpenRouter », « GLM » dans les consignes. |
+| Mentions du routeur cloud, du budget de 25 € et du middleware comme s'ils existaient | **Non reprises** : les prompts restent vrais quel que soit le modèle (règles 5 et 20). Un test interdit « Qwen », « OpenRouter », « GLM », « DeepSeek » dans les consignes. |
 | `IDENTITY.md`, `SOUL.md`, `HEARTBEAT.md` | Repris tels quels |
 | Méthode détaillée de chaque rôle | Reprise, sans les paragraphes « contrat technique » répétés dans chaque rôle (factorisés dans `TOOLS.md` et `CONTRACT.md`) |
 | Suivi de compétences, révisions espacées, laboratoire, Skills | Hors périmètre de ce lot (voir `PLAN_MIGRATION_HYBRIDE.md`) ; les consignes disent qu'aucun rappel ni mémoire automatique n'existe |

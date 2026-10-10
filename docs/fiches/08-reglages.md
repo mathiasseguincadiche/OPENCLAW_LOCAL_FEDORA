@@ -63,7 +63,7 @@ Fichier : `config/core/cloud_policy.yaml`. `./menu.sh --action validate` refuse 
 | `budget.eur_per_usd` | 1,3 | Facteur prudent (change, frais d'achat de crédits, TVA). Doit rester ≥ 1. |
 | `budget.alert_ratio` | 0,8 | Seuil d'alerte (80 % du plafond). |
 | `budget.recommended_key_limit_usd` | 12 | Limite de clé conseillée. La limite déclarée ne peut pas dépasser `monthly_cap_eur / eur_per_usd` (≈ 19,2 $). |
-| `model` | `z-ai/glm-5.3-flash` | Modèle cloud, avec tarifs de référence en dollars par million de tokens, à relire sur OpenRouter à l'achat. |
+| `model` | `deepseek/deepseek-v4.1-flash` | Modèle cloud, avec tarifs de référence en dollars par million de tokens, à relire sur OpenRouter à l'achat. |
 | `upstream_params` | `data_collection: deny`, `require_parameters: true`, raisonnement `low` | Imposés par la passerelle à chaque appel. |
 | `gateway.port` | 18892 | Boucle locale seulement. |
 

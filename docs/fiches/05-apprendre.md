@@ -21,7 +21,7 @@ Une bonne façon de l'utiliser : demande un indice plutôt que la solution, part
 
 ## Apprendre avec le cloud, si tu l'as activé
 
-Pour comprendre une notion publique, le modèle « · cloud (GLM) » du chat peut mieux expliquer que Qwen. Choisis-le pour des questions sans secret ; garde « · local » pour tout ce qui touche ton travail ou ce dont tu n'es pas sûr. Les consignes du mentor sont les mêmes dans les deux modes. Voir [Discuter](03-discuter.md) et [Le cloud, facultatif](12-cloud.md). Un bon réflexe d'apprentissage reste le même quel que soit le modèle : vérifier une version, une commande ou un chiffre dans la documentation officielle.
+Pour une notion publique complexe, une longue analyse ou une tâche agentique, le modèle « · cloud (DeepSeek) » peut apporter plus de capacité que Qwen 9B. Ce n'est pas une preuve qu'il enseigne toujours mieux : compare les deux sur tes propres questions. Garde « · local » pour tout ce qui touche ton travail, tes données confidentielles ou ce dont tu n'es pas sûr. Les consignes du mentor sont les mêmes dans les deux modes. Voir [Discuter](03-discuter.md) et [Le cloud, facultatif](12-cloud.md). Un bon réflexe d'apprentissage reste le même quel que soit le modèle : vérifier une version, une commande ou un chiffre dans la documentation officielle.
 
 ## Obtenir des explications fiables
 
@@ -37,7 +37,7 @@ Ce que tu peux faire :
 1. Pour une version, une commande sensible ou un chiffre, demande « avec quelle source ? » : le mentor cherche, ou dit qu'il ne sait pas.
 2. Demande-lui « qu'est-ce qui n'est pas vérifié dans ta réponse ? ».
 3. Vérifie toujours dans la documentation officielle avant d'exécuter.
-4. Pour **apprendre une notion publique**, privilégie le modèle « · cloud (GLM) » : d'après les sources publiques, il invente nettement moins que Qwen 9B quand il ne sait pas (28 % contre 82 %). Garde « · local » pour le travail et le confidentiel. Voir [Quel modèle pour expliquer](../DECISION_MODELE.md) et [Le cloud, facultatif](12-cloud.md). Compare sur tes propres questions : c'est ce qui confirmera ou corrigera cette décision.
+4. Pour **une notion publique complexe ou une tâche longue**, essaie le modèle « · cloud (DeepSeek) ». Les benchmarks publics indiquent une forte capacité agentique et de code, mais pas une supériorité pédagogique démontrée face à Qwen 3.5 9B. Garde « · local » pour le travail et le confidentiel. Voir [Quel modèle pour expliquer](../DECISION_MODELE.md) et [Le cloud, facultatif](12-cloud.md). Compare sur tes propres questions : c'est cette mesure qui tranchera pour ton usage.
 
 La qualité réelle des explications n'a pas encore été mesurée sur ta machine : voir [STATUS](../../STATUS.md).
 

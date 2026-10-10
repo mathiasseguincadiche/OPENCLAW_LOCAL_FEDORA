@@ -58,7 +58,7 @@ def test_all_roles_receive_ordered_complete_instructions(tmp_path: Path) -> None
         ):
             assert instruction in deployed
         # The prompts must stay true whichever model answers: no claim about the backend.
-        for claim in ("Qwen", "OpenRouter", "GLM", "25 EUR", "Le modèle est local"):
+        for claim in ("Qwen", "OpenRouter", "GLM", "DeepSeek", "25 EUR", "Le modèle est local"):
             assert claim not in deployed
 
 

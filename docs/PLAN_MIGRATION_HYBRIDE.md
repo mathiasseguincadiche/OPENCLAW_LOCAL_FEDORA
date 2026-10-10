@@ -1,7 +1,9 @@
 # Plan de migration hybride (OpenRouter + Qwen local)
 
-**Statut : les 8 lots sont implémentés et fusionnés dans `main` (9 octobre 2026). Ce qui n'est pas prouvé : le vrai OpenRouter, le PC Fedora, la qualité de GLM (voir la section 9 et la [fiche 12](fiches/12-cloud.md)).**
-Le dépôt reste 100 % local tant que le cloud n'est pas activé explicitement (voir « Garde-fou d'activation »). Ce document est le plan d'origine, conservé avec ses déviations (section 8) ; la description à jour du fonctionnement est dans [PASSERELLE_CLOUD.md](PASSERELLE_CLOUD.md) et la [fiche 12](fiches/12-cloud.md).
+**Statut : les 8 lots sont implémentés et fusionnés dans `main` (9 octobre 2026). Ce qui n'est pas prouvé : le vrai OpenRouter, le PC Fedora, la qualité du modèle cloud actuel (voir la section 9 et la [fiche 12](fiches/12-cloud.md)).**
+Le dépôt reste 100 % local tant que le cloud n'est pas activé explicitement (voir « Garde-fou d'activation »).
+
+> **Évolution du 10 octobre 2026.** Le modèle cloud courant est désormais **DeepSeek V4.1 Flash** (`deepseek/deepseek-v4.1-flash`). Les références à GLM dans ce document décrivent la décision d'origine et sont conservées comme historique du plan. La passerelle, le budget, le filtrage, l'accord par projet et le caractère local-par-défaut ne changent pas. Voir [DECISION_MODELE.md](DECISION_MODELE.md) pour la décision actuelle. Ce document est le plan d'origine, conservé avec ses déviations (section 8) ; la description à jour du fonctionnement est dans [PASSERELLE_CLOUD.md](PASSERELLE_CLOUD.md) et la [fiche 12](fiches/12-cloud.md).
 
 Ce document fixe les décisions, l'architecture, l'ordre des lots et ce que chaque lot doit prouver. Il se met à jour à chaque lot : une case n'est cochée que si la preuve annoncée existe.
 

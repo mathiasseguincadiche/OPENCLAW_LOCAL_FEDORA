@@ -33,14 +33,14 @@ En local, un seul modèle, **Qwen 3.5 9B**, tourne sur la carte graphique avec O
 
 ## Local d'abord, cloud sur demande
 
-Le cloud (GLM-5.3 Flash par OpenRouter) est **facultatif** et désactivé tant que tu ne l'actives pas.
+Le cloud (DeepSeek V4.1 Flash par OpenRouter) est **facultatif** et désactivé tant que tu ne l'actives pas.
 
 - **Il ne s'active que si le filtre de confidentialité et le contrôle du budget fonctionnent ensemble.**
 - **Tout passe par une passerelle locale** qui filtre ce qui part (historique et résultats d'outils compris), compte chaque appel facturé et refuse au plafond de **25 € réels par mois**.
 - **Dans le chat**, tu choisis le modèle « · cloud » pour des questions publiques, et « · local » pour le reste.
 - **Dans l'atelier**, chaque projet demande ton accord, et il se met en pause plutôt que de basculer en local sans te le dire.
 
-Détail, activation et limites : [Le cloud, facultatif](docs/fiches/12-cloud.md). Pourquoi GLM pour apprendre et Qwen pour le travail : [Quel modèle pour expliquer](docs/DECISION_MODELE.md).
+Détail, activation et limites : [Le cloud, facultatif](docs/fiches/12-cloud.md). Pourquoi DeepSeek pour les tâches complexes et Qwen pour le local : [Quel modèle pour expliquer](docs/DECISION_MODELE.md).
 
 ## Ce qu'il ne fait pas
 
@@ -87,7 +87,7 @@ cd OPENCLAW_LOCAL_FEDORA
 | [Présentation illustrée (PDF, 17 pages)](docs/guide-utilisateur.pdf) | [Quel modèle pour expliquer](docs/DECISION_MODELE.md) |
 | [Plan : tout faire depuis Open WebUI](docs/PLAN_INTEGRATION_WEBUI.md) | |
 
-La présentation illustrée (PDF) date d'avant le lien entre le chat et les projets : elle sera refaite une fois l'intégration terminée.
+La présentation illustrée (PDF) date d'avant le lien entre le chat et les projets et avant le passage à DeepSeek V4.1 Flash : elle sera refaite une fois l'intégration terminée.
 
 ## État
 

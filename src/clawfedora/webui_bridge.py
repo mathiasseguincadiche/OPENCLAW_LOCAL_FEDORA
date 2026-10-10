@@ -35,7 +35,7 @@ MODEL_IDS = tuple(f"openclaw/{role}" for role in AGENT_IDS)
 CLOUD_PREFIX = "openclaw-cloud/"
 CLOUD_MODEL_IDS = tuple(f"{CLOUD_PREFIX}{role}" for role in AGENT_IDS)
 CLOUD_BANNER = (
-    "☁️ *Réponse du modèle cloud (GLM-5.3 Flash). "
+    "☁️ *Réponse du modèle cloud (DeepSeek V4.1 Flash). "
     "Pour des données qui ne sont pas publiques, choisissez le modèle « local ».*"
 )
 # Once a conversation has been moved to local, every later answer repeats this marker, so the
@@ -215,7 +215,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
         listed = {model: f"{names[model]} · local" for model in MODEL_IDS}
         listed.update(
             {
-                f"{CLOUD_PREFIX}{role}": f"{names[f'openclaw/{role}']} · cloud (GLM)"
+                f"{CLOUD_PREFIX}{role}": f"{names[f'openclaw/{role}']} · cloud (DeepSeek)"
                 for role in AGENT_IDS
             }
         )
