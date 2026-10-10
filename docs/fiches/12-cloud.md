@@ -102,10 +102,10 @@ Le plafond applique **le plus élevé** de l'estimation du journal et du montant
 
 La route cloud est volontairement plus généreuse que Qwen local :
 
-- contexte déclaré : **262 144 tokens** ;
-- sortie maximale : **16 384 tokens** ;
+- contexte déclaré : **1 048 576 tokens** (capacité maximale, pas une consommation par défaut) ;
+- sortie maximale : **32 768 tokens** ;
 - raisonnement : **`xhigh`**, imposé par la passerelle ;
-- historique WebUI transmis : jusqu'à environ **768 Ko** avant réduction ;
+- historique WebUI transmis : jusqu'à environ **3 Mio** avant réduction ;
 - routage fournisseur : priorité au débit, mais uniquement sous le plafond de prix et les règles de données.
 
 Ces valeurs ne rendent pas chaque question lente par obligation : elles donnent à DeepSeek la place
