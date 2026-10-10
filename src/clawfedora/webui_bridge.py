@@ -181,6 +181,7 @@ class BridgeServer(LocalServer):
     runner: AgentRunner
     model_names: dict[str, str]
     limits: dict[str, Any]
+    cloud_limits: dict[str, Any]
     cloud_ready: Callable[[], bool]
     privacy: PrivacyFilter
 
