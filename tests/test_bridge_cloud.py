@@ -46,7 +46,7 @@ class Runner:
         if route == "cloud":
             if self.cloud_error:
                 raise self.cloud_error
-            return {"text": "Réponse GLM.", "route": "cloud"}
+            return {"text": "Réponse DeepSeek.", "route": "cloud"}
         if self.local_error:
             raise self.local_error
         return {"text": "Réponse Qwen.", "route": "local"}
@@ -119,7 +119,7 @@ def test_with_the_cloud_each_role_is_offered_in_both_modes(cloud: tuple[Any, Run
     listed = models(server)
     assert list(listed) == [*MODEL_IDS, *CLOUD_MODEL_IDS]
     assert listed[MODEL_IDS[0]].endswith("· local")
-    assert listed[CLOUD_MODEL_IDS[0]].endswith("· cloud (GLM)")
+    assert listed[CLOUD_MODEL_IDS[0]].endswith("· cloud (DeepSeek)")
 
 
 def test_a_cloud_model_answers_in_the_cloud_with_a_visible_provenance(
@@ -128,7 +128,7 @@ def test_a_cloud_model_answers_in_the_cloud_with_a_visible_provenance(
     server, runner = cloud
     status, answer = ask(server, CLOUD_MODEL_IDS[0], ("user", "Explique terraform plan"))
     assert status == 200 and content(answer).startswith(CLOUD_BANNER)
-    assert content(answer).endswith("Réponse GLM.") and runner.routes() == ["cloud"]
+    assert content(answer).endswith("Réponse DeepSeek.") and runner.routes() == ["cloud"]
 
 
 def test_a_local_model_never_uses_the_cloud_even_when_it_is_activated(
@@ -272,7 +272,7 @@ def test_the_cloud_banner_warns_once_the_monthly_budget_is_nearly_spent(
     head = content(answer).split("\n\n")[0]
     assert head.startswith(CLOUD_BANNER) and "21.00 € sur 25 €" in head and "4.00 €" in head
     # The note is part of the banner: it is not fed back to the model on the next turn.
-    assert strip_banners(content(answer)) == "Réponse GLM."
+    assert strip_banners(content(answer)) == "Réponse DeepSeek."
 
 
 def test_an_unreadable_budget_journal_is_announced_not_ignored(
