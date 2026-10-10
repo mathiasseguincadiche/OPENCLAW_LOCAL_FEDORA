@@ -222,7 +222,8 @@ def seal(repo_root: Path, runtime: Path) -> None:
         users = db.execute('SELECT id, role FROM "user"').fetchall()
         if len(users) != 1 or users[0][1] != "admin":
             raise ValueError(
-                "créer un seul compte administrateur dans l’interface avant de fermer les inscriptions"
+                "créer un seul compte administrateur dans l’interface "
+                "avant de fermer les inscriptions"
             )
         admin_id = str(users[0][0])
         now = int(time.time())
