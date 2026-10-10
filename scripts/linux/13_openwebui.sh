@@ -38,7 +38,7 @@ if [[ "$ACTION" == install ]]; then
   fi
   IMAGE="$($PYTHON -c 'from pathlib import Path; from clawfedora.core_config import root_contract; import sys; print(root_contract(Path(sys.argv[1]), "webui_policy.yaml")["image"])' "$REPO_ROOT")"
   podman pull "$IMAGE"
-  "$PYTHON" -m pip install -e "$REPO_ROOT[speech]"
+  "$PYTHON" -m pip install -e "${REPO_ROOT}[speech]"
   "$PYTHON" -m clawfedora.speech_server --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" --prepare
   "$PYTHON" -m clawfedora.webui_setup render --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" --unit-root "$UNIT_ROOT"
   mkdir -p "$HOME/.local/share/applications"
