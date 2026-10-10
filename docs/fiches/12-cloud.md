@@ -2,7 +2,7 @@
 
 [← Guide](../GUIDE.md)
 
-Par défaut, tout reste sur ton PC avec Qwen. Le cloud est une option que tu actives toi-même, pour les moments où un modèle plus puissant aide : expliquer une notion publique, relire un long texte. Le modèle cloud est **GLM-5.3 Flash**, appelé par OpenRouter.
+Par défaut, tout reste sur ton PC avec Qwen. Le cloud est une option que tu actives toi-même, pour les moments où un modèle plus puissant aide : expliquer une notion publique, relire un long texte. Le modèle cloud est **DeepSeek V4.1 Flash**, appelé par OpenRouter.
 
 Tant que tu n'as rien activé, rien de cette fiche ne s'applique : aucune conversation ni aucun projet ne part vers un modèle distant (seule la recherche Web des rôles, quand tu la demandes, sort pour interroger le Web).
 
@@ -11,7 +11,7 @@ Tant que tu n'as rien activé, rien de cette fiche ne s'applique : aucune conver
 | Où | Comportement |
 |---|---|
 | Chat, modèle « · local » | Qwen sur ton PC. Aucun contenu de la conversation ne part vers un modèle distant. C'est le mode **Travail**. |
-| Chat, modèle « · cloud (GLM) » | GLM via la passerelle. C'est le mode **Apprendre**, pour des questions publiques. |
+| Chat, modèle « · cloud (DeepSeek) » | DeepSeek via la passerelle. C'est le mode **Apprendre**, pour des questions publiques. |
 | Atelier Projets | Local, sauf pour un projet que tu autorises toi-même, un par un. |
 
 Rien ne passe au cloud sans que tu l'aies choisi : ni une conversation, ni un projet. Rien ne repasse non plus du local vers le cloud tout seul.
@@ -100,7 +100,7 @@ Le plafond applique **le plus élevé** de l'estimation du journal et du montant
 
 ## Dans le chat : Apprendre ou Travail
 
-Quand le cloud est activé, Open WebUI liste chaque rôle deux fois : « · local » et « · cloud (GLM) ». Choisir le modèle, c'est choisir le mode.
+Quand le cloud est activé, Open WebUI liste chaque rôle deux fois : « · local » et « · cloud (DeepSeek) ». Choisir le modèle, c'est choisir le mode.
 
 - Une réponse cloud commence par un bandeau « ☁️ Réponse du modèle cloud ». Dès 80 % du budget, il ajoute la dépense du mois.
 - **Le choix par défaut reste local.** Rien ne part au cloud tant que tu n'as pas choisi le modèle cloud, ou réglé toi-même le modèle par défaut dans Open WebUI.
@@ -162,7 +162,7 @@ Vérifié automatiquement : le filtre sur tous les chemins du contenu (y compris
 À la première réponse cloud, vérifie aussi que le routage fonctionne avec la politique de données de la passerelle (erreur « no endpoints » : voir le tableau ci-dessus).
 
 1. `./menu.sh --action cloud-status` : « ready=1 », budget à 0 €.
-2. Dans Open WebUI, pose une question publique au modèle « · cloud (GLM) » : le bandeau cloud apparaît. Note le coût dans `cloud-status`.
+2. Dans Open WebUI, pose une question publique au modèle « · cloud (DeepSeek) » : le bandeau cloud apparaît. Note le coût dans `cloud-status`.
 3. Dans la même conversation, colle un faux jeton (ex. `ghp_` suivi de 36 lettres au hasard) : la conversation passe en local, avec le bandeau 🔒.
 4. Dans l'atelier, autorise un petit projet de test, lance une tâche, puis arrête le service (`systemctl --user stop clawfedora-cloud-gateway`) et relance : le projet doit se mettre en pause avec une raison, sans rien exécuter en local.
 5. `./menu.sh --action cloud-disable --apply`, puis redémarre : tout doit marcher en local, hors ligne.
