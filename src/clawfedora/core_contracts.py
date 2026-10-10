@@ -250,22 +250,43 @@ def _validate_cloud_contracts(
         limits = daily_limits(repo_root)
     except (FileNotFoundError, ValueError):
         limits = {}
-    if limits and (
-        model.get("context_tokens") != limits["context_tokens"]
-        or model.get("max_output_tokens") != limits["max_output_tokens"]
+    cloud_context = model.get("context_tokens")
+    cloud_output = model.get("max_output_tokens")
+    if (
+        type(cloud_context) is not int
+        or type(cloud_output) is not int
+        or not 32768 <= cloud_context <= 1048576
+        or not 4096 <= cloud_output <= 32768
+        or (limits and cloud_context < int(limits["context_tokens"]))
+        or (limits and cloud_output < int(limits["max_output_tokens"]))
     ):
-        failures.append("core/cloud: contexte et sortie doivent égaler les limites quotidiennes")
+        failures.append(
+            "core/cloud: DeepSeek doit garder un contexte >= local (32K..1M) "
+            "et une sortie >= locale (4K..32K)"
+        )
     pricing = _mapping(model.get("pricing_usd_per_million"))
     if not all(
         isinstance(pricing.get(key), int | float) and pricing[key] > 0
         for key in ("input", "output")
     ):
         failures.append("core/cloud: tarifs de référence requis")
-    provider = _mapping(_mapping(cloud.get("upstream_params")).get("provider"))
+    upstream_params = _mapping(cloud.get("upstream_params"))
+    provider = _mapping(upstream_params.get("provider"))
     if provider.get("data_collection") != "deny":
         failures.append("core/cloud: data_collection=deny requis")
     if provider.get("require_parameters") is not True:
         failures.append("core/cloud: require_parameters=true requis")
+    if provider.get("sort") != "throughput":
+        failures.append("core/cloud: routage throughput requis pour la route de capacité")
+    max_price = _mapping(provider.get("max_price"))
+    if (
+        max_price.get("prompt") != pricing.get("input")
+        or max_price.get("completion") != pricing.get("output")
+    ):
+        failures.append("core/cloud: max_price doit égaler le pire tarif réservé")
+    reasoning = _mapping(upstream_params.get("reasoning"))
+    if reasoning.get("effort") != "xhigh":
+        failures.append("core/cloud: DeepSeek doit utiliser le raisonnement xhigh")
 
 
 def validate_core_contracts(
