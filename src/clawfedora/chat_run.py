@@ -136,6 +136,10 @@ def _project_digest(
     root = os.path.realpath(os.fspath(runtime / "projects"))
     supplied = os.path.normpath(os.fspath(project))
     candidate = os.path.realpath(supplied)
+    # CodeQL recognizes normalization followed by a checked directory prefix as
+    # a path-safety barrier. The separator prevents sibling prefix collisions.
+    if not candidate.startswith(root + os.sep):
+        raise ValueError("projet hors de la racine autorisée")
     if (
         os.path.commonpath((root, candidate)) != root
         or os.path.dirname(candidate) != root
