@@ -137,9 +137,14 @@ def practice_files(
     if validate_project_id(os.path.basename(candidate)) != os.path.basename(candidate):
         raise ValueError("identifiant du projet invalide")
     tasks = Path(candidate) / "context/tasks"
-    task_path = tasks / f"{task_id}.json"
-    if task_path.is_symlink() or os.path.realpath(task_path) != os.path.normpath(task_path):
+    tasks_root = os.path.realpath(os.fspath(tasks))
+    supplied_task = os.path.normpath(os.fspath(tasks / f"{task_id}.json"))
+    canonical_task = os.path.realpath(supplied_task)
+    if not canonical_task.startswith(tasks_root + os.sep):
         raise ValueError("chemin de tâche hors de la racine autorisée")
+    if os.path.dirname(canonical_task) != tasks_root or canonical_task != supplied_task:
+        raise ValueError("chemin de tâche hors de la racine autorisée")
+    task_path = Path(canonical_task)
     if not task_path.is_file():
         raise ValueError("tâche inconnue")
     from clawfedora.project_common import read_json
