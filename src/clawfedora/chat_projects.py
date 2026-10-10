@@ -34,7 +34,7 @@ MAX_LISTED = 50
 FLOW_COMMANDS = ("creer", "analyser", "planifier", "valider", "questions", "repondre")
 RUN_COMMANDS = (
     "lancer", "pause", "reprendre", "auditer", "relire", "livrer", "modifier", "pratique",
-    "soumettre",
+    "soumettre", "importer",
 )
 COMMANDS = (
     "aide", "projets", "projet", "etat", "quitter",
@@ -520,6 +520,7 @@ HELP = """Commandes du pont (comprises par le programme, jamais par le modèle) 
 - `!lancer` / `!pause` / `!reprendre` : conduit le plan approuvé en arrière-plan
 - `!pratique [tâche]` : affiche une étape guidée qui attend votre travail
 - `!soumettre <tâche> <explication>` + fichiers joints : soumet votre travail et lance le retour
+- `!importer` : consomme le dossier local de secours du projet avant l'analyse
 - `!auditer` : validation indépendante quand toutes les tâches sont terminées
 - `!relire` : seconde relecture indépendante après la validation
 - `!modifier <tâche> <raison>` : révision cohérente, avec confirmation humaine
