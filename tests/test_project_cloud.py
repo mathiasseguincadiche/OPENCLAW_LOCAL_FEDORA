@@ -44,7 +44,7 @@ class Base:
         self, role: str, prompt: str, session: str, *, route: str = "local"
     ) -> dict[str, Any]:
         self.routes.append(route)
-        model = "z-ai/glm-5.3-flash" if route == "cloud" else "qwen3.5:9b"
+        model = "deepseek/deepseek-v4.1-flash" if route == "cloud" else "qwen3.5:9b"
         write_json(
             self.runtime / "state/model-runs" / f"{session}.json",
             {"session_id": session, "route": route, "provider": "x", "model": model},
@@ -114,7 +114,7 @@ def test_the_approval_is_private_content_free_and_bound_to_this_project(
     path = project_cloud.consent_path(runtime, project)
     assert oct(path.stat().st_mode & 0o777) == "0o600"
     record = json.loads(path.read_text())
-    assert record["project_id"] == "daily-project" and record["scope"] == "cloud-glm"
+    assert record["project_id"] == "daily-project" and record["scope"] == "cloud-deepseek"
     assert "Comparer deux architectures" not in path.read_text()
     assert project_cloud.consent_state(ROOT, runtime, project)["state"] == "granted"
 
@@ -128,10 +128,10 @@ def test_an_approved_project_runs_in_the_cloud_with_model_and_cost_recorded(
     assert [r["status"] for r in results] == ["PASS", "PASS"] and base.routes == ["cloud", "cloud"]
     view = project_cloud.view(ROOT, runtime, project)
     assert view["calls_cloud"] == 2 and view["calls_local"] == 0
-    assert view["models"] == {"cloud · z-ai/glm-5.3-flash": 2}
+    assert view["models"] == {"cloud · deepseek/deepseek-v4.1-flash": 2}
     expected = 2 * 0.0004 * load_ledger(runtime, ROOT).eur_per_usd
     assert view["cost_eur"] == pytest.approx(expected, abs=1e-5)
-    assert view["last"]["model"] == "z-ai/glm-5.3-flash" and view["pause"] is None
+    assert view["last"]["model"] == "deepseek/deepseek-v4.1-flash" and view["pause"] is None
     assert [r["task"] for r in project_cloud.runs(runtime, project)] == [
         "design-choice", "research-check"]
 
