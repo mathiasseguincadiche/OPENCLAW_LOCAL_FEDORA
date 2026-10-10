@@ -79,7 +79,9 @@ def test_shipped_contracts_are_valid() -> None:
         ("config/core/cloud_policy.yaml",
          lambda d: d["gateway"].update(token_env="OTHER_TOKEN"), "token_env"),
         ("config/core/cloud_policy.yaml",
-         lambda d: d["model"].update(context_tokens=131072), "limites quotidiennes"),
+         lambda d: d["model"].update(context_tokens=16384), "contexte"),
+        ("config/core/cloud_policy.yaml",
+         lambda d: d["model"].update(max_output_tokens=65536), "sortie"),
         ("config/core/cloud_policy.yaml",
          lambda d: d["model"].update(pricing_usd_per_million={"input": 0, "output": 1}),
          "tarifs"),
@@ -89,6 +91,13 @@ def test_shipped_contracts_are_valid() -> None:
         ("config/core/cloud_policy.yaml",
          lambda d: d["upstream_params"]["provider"].update(require_parameters=False),
          "require_parameters"),
+        ("config/core/cloud_policy.yaml",
+         lambda d: d["upstream_params"]["provider"].update(sort="price"), "throughput"),
+        ("config/core/cloud_policy.yaml",
+         lambda d: d["upstream_params"]["provider"]["max_price"].update(completion=9),
+         "max_price"),
+        ("config/core/cloud_policy.yaml",
+         lambda d: d["upstream_params"]["reasoning"].update(effort="low"), "xhigh"),
         ("config/core/cloud_policy.yaml",
          lambda d: d["policy"].update(provider_id="openrouter"), "cloudgw"),
         ("config/core/cloud_policy.yaml",
@@ -148,8 +157,8 @@ def test_enabled_configuration_routes_the_cloud_through_the_loopback_gateway() -
     assert "openrouter.ai" not in serialized and "sk-or" not in serialized
     (model,) = provider["models"]
     assert model["id"] == "deepseek/deepseek-v4.1-flash"
-    assert model["contextTokens"] == 32768 and model["maxTokens"] == 4096
-    assert model["cost"] == {"input": 0.15, "output": 0.6, "cacheRead": 0, "cacheWrite": 0}
+    assert model["contextTokens"] == 262144 and model["maxTokens"] == 16384
+    assert model["cost"] == {"input": 0.25, "output": 0.75, "cacheRead": 0, "cacheWrite": 0}
     defaults = patch["agents"]["defaults"]
     assert defaults["modelPolicy"]["allow"] == [
         defaults["model"]["primary"], "cloudgw/deepseek/deepseek-v4.1-flash",
