@@ -161,7 +161,7 @@ def test_append_intake_rebuilds_inventory_and_freezes_after_analysis(tmp_path: P
     )
     second = tmp_path / "architecture.yaml"
     second.write_text("service: api\n", encoding="utf-8")
-    assert append_intake_items(ROOT, project, [second]) == ["architecture.yaml"]
+    assert append_intake_items(ROOT, runtime, project, [second]) == ["architecture.yaml"]
     assert validate_input_integrity(project) == []
     inventory = read_json(project / "evidence/intake/inventory.json")
     assert inventory["file_count"] == 2
@@ -178,5 +178,5 @@ def test_append_intake_rebuilds_inventory_and_freezes_after_analysis(tmp_path: P
     third = tmp_path / "late.txt"
     third.write_text("trop tard", encoding="utf-8")
     with pytest.raises(ValueError, match="figées"):
-        append_intake_items(ROOT, project, [third])
+        append_intake_items(ROOT, runtime, project, [third])
     assert not (project / "intake/late.txt").exists()
