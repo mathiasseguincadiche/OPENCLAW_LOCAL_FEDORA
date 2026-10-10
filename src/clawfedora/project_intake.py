@@ -18,9 +18,9 @@ from clawfedora.project_common import (
     mime_type,
     now,
     project_path,
-    validate_project_id,
     read_json,
     sha256_file,
+    validate_project_id,
     write_json,
 )
 
