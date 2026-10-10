@@ -26,7 +26,7 @@ from clawfedora.cloud_gateway import (
 from clawfedora.cloud_state import ensure_gateway_token, require_cloud_ready
 
 ROOT = Path(__file__).resolve().parents[1]
-MODEL = "z-ai/glm-5.3-flash"
+MODEL = "deepseek/deepseek-v4.1-flash"
 UPSTREAM_KEY = "upstream-key-" + "".join(random.Random(7).choices(string.ascii_lowercase, k=24))
 GITHUB_TOKEN = "ghp_" + "".join(random.Random(8).choices(string.ascii_letters + string.digits, k=36))
 PATH = "/v1/chat/completions"
