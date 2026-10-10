@@ -204,10 +204,17 @@ def _check_runner(runtime: Path) -> None:
             sent = seen["body"]
             if seen["authorization"] != "Bearer " + UPSTREAM_KEY:
                 _fail("le fournisseur doit recevoir la clé de la passerelle, jamais le jeton local")
-            if sent["model"] != MODEL_ID or sent["provider"] != {
-                "data_collection": "deny", "require_parameters": True
-            } or sent["reasoning"] != {"effort": "low"} or sent["usage"] != {"include": True}:
-                _fail(f"réglages de la politique absents de la requête: {sorted(sent)}")
+            expected = cloud["upstream_params"]
+            if (
+                sent["model"] != MODEL_ID
+                or sent["provider"] != expected["provider"]
+                or sent["reasoning"] != expected["reasoning"]
+                or sent["usage"] != {"include": True}
+            ):
+                _fail(
+                    "politique DeepSeek non appliquée : confidentialité, prix plafond, "
+                    f"débit ou effort xhigh absent ; clés={sorted(sent)}"
+                )
             if sent["max_tokens"] > int(cloud["model"]["max_output_tokens"]):
                 _fail("la sortie doit être bornée par la politique")
         if any(status != "ok" for _, status in settled):
