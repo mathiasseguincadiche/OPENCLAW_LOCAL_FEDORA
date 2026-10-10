@@ -314,9 +314,18 @@ def clarify(repo: Path, runtime: Path, project: Path, identifier: str, answer: s
             transition_project(repo, project, "ANALYZED", actor="human", reason="web_answers")
 
 
+def _complete_locked(repo: Path, project: Path) -> None:
+    """Finalize an approved project while the caller holds the shared worker lock.
+
+    Keeping approval validation and packaging under one lock prevents a competing mutation
+    between the digest check and the final package write.
+    """
+    package_project(repo, project, actor="human")
+    transition_project(
+        repo, project, "COMPLETE", actor="human", reason="web_final_approval", human_approved=True
+    )
+
+
 def complete(repo: Path, runtime: Path, project: Path) -> None:
     with worker_lock(runtime, allow_gaming=True):
-        package_project(repo, project, actor="human")
-        transition_project(
-            repo, project, "COMPLETE", actor="human", reason="web_final_approval", human_approved=True
-        )
+        _complete_locked(repo, project)
