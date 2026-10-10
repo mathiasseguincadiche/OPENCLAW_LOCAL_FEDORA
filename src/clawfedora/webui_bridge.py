@@ -661,8 +661,15 @@ class BridgeHandler(BaseHTTPRequestHandler):
                 if banner:
                     heads.append(banner)
                 text = "\n\n".join([*heads, text])
-            if not isinstance(text, str) or len(text.encode()) > 64000:
-                raise ValueError("réponse locale invalide")
+            # The cloud may legitimately return much more French text than Qwen's 4K
+            # output budget. A fixed 64 KiB ceiling silently defeated the 16K cloud cap.
+            output_bytes = (
+                int(self.server.cloud_limits["max_response_bytes"])
+                if cloud
+                else 64_000
+            )
+            if not isinstance(text, str) or len(text.encode()) > output_bytes:
+                raise ValueError("réponse du modèle absente ou supérieure à la limite")
         except (OSError, ValueError, KeyError, RuntimeError) as exc:
             self._send(409, {"error": {"message": str(exc)}})
             return
@@ -690,6 +697,9 @@ def make_server(
     server.cloud_limits = {
         "max_output_tokens": int(cloud_model["max_output_tokens"]),
         "max_history_bytes": min(786432, int(cloud_model["context_tokens"]) * 3),
+        "max_response_bytes": min(
+            524_288, int(cloud_model["max_output_tokens"]) * 16
+        ),
     }
     server.model_names = {
         f"openclaw/{spec.agent_id}": spec.name for spec in load_agent_specs(repo_root)
