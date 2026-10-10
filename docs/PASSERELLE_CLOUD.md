@@ -171,4 +171,4 @@ Pour **continuer en local**, il faut le décider : « Retirer l'accord cloud » 
 - La vérification en ligne de la limite de clé n'a pas été exécutée contre le vrai fournisseur (pas de clé ici) : elle est testée avec un faux, sur la forme de réponse que je connais de `GET /api/v1/key` (`data.limit`), **non vérifiée** ici faute d'accès à la documentation du fournisseur : si la forme diffère, le contrôle échoue et l'activation reste refusée.
 - Le service systemd et le script d'activation n'ont pas tourné sur Fedora ; les contrôles couvrent leur syntaxe et leur ordre, pas leur exécution.
 
-Aucun appel réel vers OpenRouter, aucun comportement de GLM, aucun essai sur le PC Fedora. Les tests utilisent une passerelle factice.
+Aucun appel réel vers OpenRouter avec DeepSeek, aucun essai sur le PC Fedora. Les tests utilisent une passerelle factice.
