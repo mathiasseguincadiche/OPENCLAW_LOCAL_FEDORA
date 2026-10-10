@@ -62,7 +62,7 @@ Demande le format explicitement : « Fournis une fiche en Markdown, PDF et DOCX 
 
 ## Interroger un projet depuis le chat
 
-Le chat peut lire tes projets, **en lecture seule**. Des commandes, comprises par le programme (jamais par le modèle), choisissent le projet :
+Le chat peut interroger un projet **en lecture seule lorsqu'il parle au modèle** ; tes commandes explicites peuvent aussi déclencher une action dans le moteur de projet. Elles sont comprises par le programme, jamais par le modèle :
 
 | Tu écris | Ce qui se passe |
 |---|---|
@@ -89,7 +89,7 @@ Une fois un projet sélectionné, pose tes questions normalement : le rôle reç
 - Les commandes répondent tout de suite, **même quand une tâche tourne**. Une question au modèle, elle, attend la fin du traitement en cours.
 - Les réponses du pont (liste, état) ne sont jamais envoyées au modèle.
 - **Cloud** : avec le modèle « · cloud », le contexte d'un projet ne part que si ce projet a un [accord cloud valide](12-cloud.md). Sinon rien n'est envoyé et le pont le dit. Une fois qu'un fil a touché un projet, il garde cette règle même après `!quitter` : ouvre une nouvelle conversation pour une question sans rapport.
-- Le préfixe `/` est aussi accepté pour ces cinq commandes, mais Open WebUI utilise `/` et `@` pour ses propres raccourcis : `!` est le plus sûr.
+- Le préfixe `/` est aussi accepté pour ces commandes, mais Open WebUI utilise `/` et `@` pour ses propres raccourcis : `!` est le plus sûr.
 - Le chat et l'atelier pilotent désormais le **même moteur jusqu'à la livraison** : exécution, pratique guidée, audits, révisions et paquet final utilisent exactement les mêmes états, verrous et garde-fous.
 
 ### Garder un document écrit dans le chat
