@@ -262,13 +262,18 @@ def test_the_provider_receives_the_policy_settings_and_the_provider_key_only(
     assert seen["auth"] == "Bearer " + UPSTREAM_KEY
     assert server.token not in json.dumps(seen)
     assert sent["model"] == MODEL and sent["temperature"] == 0.2
-    assert sent["provider"] == {"data_collection": "deny", "require_parameters": True}
-    assert sent["reasoning"] == {"effort": "low"} and sent["usage"] == {"include": True}
-    assert sent["max_tokens"] == 4096 and "max_completion_tokens" not in sent
+    assert sent["provider"] == {
+        "data_collection": "deny",
+        "require_parameters": True,
+        "sort": "throughput",
+        "max_price": {"prompt": 0.25, "completion": 0.75},
+    }
+    assert sent["reasoning"] == {"effort": "xhigh"} and sent["usage"] == {"include": True}
+    assert sent["max_tokens"] == 16384 and "max_completion_tokens" not in sent
     # A smaller limit requested by the client is kept.
     post(server, request(max_tokens=100))
     assert upstream[0].requests[-1]["body"]["max_tokens"] == 100
-    assert budget.reserved[0][1] == 4096 and budget.reserved[0][0] > 0
+    assert budget.reserved[0][1] == 16384 and budget.reserved[0][0] > 0
 
 
 # -- privacy ------------------------------------------------------------------------
