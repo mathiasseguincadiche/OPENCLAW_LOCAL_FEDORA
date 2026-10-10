@@ -11,7 +11,6 @@ import argparse
 import hmac
 import importlib
 import json
-import os
 import subprocess
 import tempfile
 import threading
@@ -39,7 +38,7 @@ def _load_whisper(server: SpeechServer) -> Any:
     with server.model_lock:
         if server.model is None:
             module = importlib.import_module("faster_whisper")
-            model_cls = getattr(module, "WhisperModel")
+            model_cls = module.WhisperModel
             speech = server.config
             server.model = model_cls(
                 str(speech["stt_model"]),
@@ -209,8 +208,7 @@ class SpeechHandler(BaseHTTPRequestHandler):
         result = subprocess.run(
             command,
             check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             timeout=60,
         )
         audio = result.stdout
