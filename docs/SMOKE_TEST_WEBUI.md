@@ -134,7 +134,7 @@ Vérifier :
 
 - provenance cloud visible ;
 - modèle réellement servi = `deepseek/deepseek-v4.1-flash` ;
-- contexte cloud déclaré à 262 144 tokens, sortie 16 384 ;
+- contexte cloud déclaré à 1 048 576 tokens, sortie 32 768 ;
 - la passerelle impose `reasoning.effort=xhigh` ;
 - routage `throughput` sous `provider.max_price` ;
 - coût visible dans le journal et cohérent avec OpenRouter ;
