@@ -1,6 +1,6 @@
 # État du projet
 
-Dernière mise à jour : 9 octobre 2026.
+Dernière mise à jour : 10 octobre 2026.
 
 ## Où en est-on
 
