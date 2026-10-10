@@ -462,7 +462,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
             )
             return
         command = chat_projects.parse_command(typed) if last else None
-        if file_descriptors:
+        if file_descriptors and not (command is not None and command[0] == "soumettre"):
             project = chat_projects.open_project(self.server.runtime, current) if current else None
             if project is None:
                 self._completion(
@@ -545,7 +545,12 @@ class BridgeHandler(BaseHTTPRequestHandler):
                         )
                     else:
                         body = chat_run.run_command(
-                            self.server.repo_root, self.server.runtime, project, name, args
+                            self.server.repo_root,
+                            self.server.runtime,
+                            project,
+                            name,
+                            args,
+                            attachments=file_descriptors,
                         )
                         reply = chat_projects.bridge_reply(current, body)
                 else:
