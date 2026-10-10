@@ -8,6 +8,7 @@ import os
 import re
 import secrets
 import sqlite3
+import time
 from contextlib import closing
 from pathlib import Path
 from typing import Any
@@ -40,8 +41,6 @@ def environment(repo_root: Path, token: str, secret: str, *, sealed: bool) -> di
         "ENABLE_NOTES",
         "ENABLE_EVALUATION_ARENA_MODELS",
         "USER_PERMISSIONS_CHAT_MULTIPLE_MODELS",
-        "USER_PERMISSIONS_CHAT_STT",
-        "USER_PERMISSIONS_CHAT_TTS",
         "USER_PERMISSIONS_CHAT_CALL",
         "ENABLE_OLLAMA_API",
         "ENABLE_AUTOMATIONS",
@@ -57,13 +56,15 @@ def environment(repo_root: Path, token: str, secret: str, *, sealed: bool) -> di
         "ENABLE_WEB_SEARCH",
         "ENABLE_COMMUNITY_SHARING",
         "ENABLE_FORWARD_USER_INFO_HEADERS",
-        "USER_PERMISSIONS_CHAT_FILE_UPLOAD",
         "USER_PERMISSIONS_CHAT_WEB_UPLOAD",
         "ENABLE_PERSISTENT_CONFIG",
         "ENABLE_API_KEY",
     )
     return {
         **dict.fromkeys(disabled, "false"),
+        "USER_PERMISSIONS_CHAT_FILE_UPLOAD": "true",
+        "USER_PERMISSIONS_CHAT_STT": "true",
+        "USER_PERMISSIONS_CHAT_TTS": "true",
         "HOST": "127.0.0.1",
         "PORT": str(policy["web_port"]),
         "UVICORN_WORKERS": "1",
@@ -171,16 +172,53 @@ def render(repo_root: Path, runtime: Path, unit_root: Path) -> dict[str, Any]:
     }
 
 
-def seal(runtime: Path) -> None:
+def seal(repo_root: Path, runtime: Path) -> None:
     state = runtime / "state/webui"
     assert_no_symlinks(state, label="WebUI")
     database = state / "data/webui.db"
-    with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as db:
-        users = db.execute('SELECT role FROM "user"').fetchall()
-    if users != [("admin",)]:
-        raise ValueError(
-            "créer un seul compte administrateur dans l’interface avant de fermer les inscriptions"
+    plugin = repo_root / "plugins/openwebui/clawfedora_files.py"
+    source = plugin.read_text(encoding="utf-8")
+    if not source.strip() or plugin.is_symlink():
+        raise ValueError("filtre Open WebUI géré absent ou lié")
+    with closing(sqlite3.connect(database)) as db:
+        users = db.execute('SELECT id, role FROM "user"').fetchall()
+        if len(users) != 1 or users[0][1] != "admin":
+            raise ValueError(
+                "créer un seul compte administrateur dans l’interface avant de fermer les inscriptions"
+            )
+        admin_id = str(users[0][0])
+        now = int(time.time())
+        meta = json.dumps(
+            {"description": "Transmet les uploads au moteur d'ingestion local ClawFedora."},
+            ensure_ascii=False,
         )
+        db.execute(
+            '''
+            INSERT INTO "function"
+              (id, user_id, name, type, content, meta, valves, is_active, is_global,
+               updated_at, created_at)
+            VALUES (?, ?, ?, 'filter', ?, ?, NULL, 1, 1, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+              user_id=excluded.user_id,
+              name=excluded.name,
+              type='filter',
+              content=excluded.content,
+              meta=excluded.meta,
+              is_active=1,
+              is_global=1,
+              updated_at=excluded.updated_at
+            ''',
+            (
+                "clawfedora_files",
+                admin_id,
+                "ClawFedora — pièces jointes",
+                source,
+                meta,
+                now,
+                now,
+            ),
+        )
+        db.commit()
     (state / "sealed").touch(mode=0o600)
 
 
@@ -192,7 +230,7 @@ def main() -> None:
     parser.add_argument("--unit-root", type=Path, required=True)
     args = parser.parse_args()
     if args.action == "seal":
-        seal(args.runtime_root)
+        seal(args.root, args.runtime_root)
     print(json.dumps(render(args.root, args.runtime_root, args.unit_root)))
 
 
