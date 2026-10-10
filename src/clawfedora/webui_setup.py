@@ -30,7 +30,14 @@ def _secret(path: Path) -> str:
     return value
 
 
-def environment(repo_root: Path, token: str, secret: str, *, sealed: bool) -> dict[str, str]:
+def environment(
+    repo_root: Path,
+    token: str,
+    secret: str,
+    speech_token: str,
+    *,
+    sealed: bool,
+) -> dict[str, str]:
     policy = root_contract(repo_root, "webui_policy.yaml")
     disabled = (
         "ENABLE_CONTEXT_COMPACTION",
@@ -94,6 +101,20 @@ def environment(repo_root: Path, token: str, secret: str, *, sealed: bool) -> di
             ensure_ascii=False,
         ),
         "AIOHTTP_CLIENT_TIMEOUT": "660",
+        "AUDIO_STT_ENGINE": "openai",
+        "AUDIO_STT_MODEL": "clawfedora-whisper",
+        "AUDIO_STT_OPENAI_API_BASE_URL": "http://127.0.0.1:18893/v1",
+        "AUDIO_STT_OPENAI_API_KEY": speech_token,
+        "AUDIO_STT_OPENAI_API_REQUEST_FORMAT": "multipart",
+        "AUDIO_STT_SUPPORTED_CONTENT_TYPES": (
+            "audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/webm,audio/ogg,audio/flac,"
+            "audio/mp4,video/webm,video/mp4"
+        ),
+        "AUDIO_TTS_ENGINE": "openai",
+        "AUDIO_TTS_MODEL": "clawfedora-tts",
+        "AUDIO_TTS_VOICE": "fr-fr",
+        "AUDIO_TTS_OPENAI_API_BASE_URL": "http://127.0.0.1:18893/v1",
+        "AUDIO_TTS_OPENAI_API_KEY": speech_token,
     }
 
 
@@ -113,8 +134,16 @@ def render(repo_root: Path, runtime: Path, unit_root: Path) -> dict[str, Any]:
     assert_no_symlinks(state, label="WebUI")
     state.chmod(0o700)
     (state / "data").mkdir(exist_ok=True, mode=0o700)
-    token, secret = _secret(state / "bridge.token"), _secret(state / "session.key")
-    env = environment(repo_root, token, secret, sealed=(state / "sealed").exists())
+    token = _secret(state / "bridge.token")
+    secret = _secret(state / "session.key")
+    speech_token = _secret(state / "speech.token")
+    env = environment(
+        repo_root,
+        token,
+        secret,
+        speech_token,
+        sealed=(state / "sealed").exists(),
+    )
     env_path = state / "webui.env"
     env_path.write_text("\n".join(f"{key}={value}" for key, value in env.items()) + "\n")
     env_path.chmod(0o600)
@@ -131,9 +160,17 @@ def render(repo_root: Path, runtime: Path, unit_root: Path) -> dict[str, Any]:
         + f"--root {repo_root} --runtime-root {runtime}\n"
         + "NoNewPrivileges=true\n\n[Install]\nWantedBy=default.target\n"
     )
+    speech = (
+        "[Unit]\nDescription=Atelier IA - voix locale\n"
+        + common
+        + f"ExecStart={python} -m clawfedora.speech_server "
+        + f"--root {repo_root} --runtime-root {runtime} --token-file {state / 'speech.token'}\n"
+        + "NoNewPrivileges=true\nPrivateTmp=true\n\n[Install]\nWantedBy=default.target\n"
+    )
     webui = (
         "[Unit]\nDescription=Atelier IA - Open WebUI personnel\n"
-        "After=clawfedora-webui-bridge.service\nRequires=clawfedora-webui-bridge.service\n"
+        "After=clawfedora-webui-bridge.service clawfedora-speech.service\n"
+        "Requires=clawfedora-webui-bridge.service clawfedora-speech.service\n"
         + common
         + "ExecStart=/usr/bin/podman run --rm --name clawfedora-webui "
         "--label io.clawfedora.managed=true --network host --cap-drop ALL "
@@ -153,6 +190,7 @@ def render(repo_root: Path, runtime: Path, unit_root: Path) -> dict[str, Any]:
     )
     for name, content in (
         ("clawfedora-webui-bridge", bridge),
+        ("clawfedora-speech", speech),
         ("clawfedora-webui", webui),
         ("clawfedora-dashboard", dashboard),
     ):
