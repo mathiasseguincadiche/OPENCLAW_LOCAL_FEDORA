@@ -22,7 +22,7 @@ from clawfedora.project_common import read_json, sha256_file, write_json
 from clawfedora.project_control import request_pause, worker_active
 from clawfedora.project_engine import current_status, transition_project
 from clawfedora.project_revision import impact, revise
-from clawfedora.project_ui import complete
+from clawfedora.project_ui import _complete_locked
 from clawfedora.project_worker import (
     review_project,
     run_project_tasks,
@@ -342,6 +342,7 @@ def apply_approval(
                 f"✅ Révision approuvée pour **{payload['task_id']}**. "
                 f"Tâches remises en travail : {', '.join(result['affected_tasks'])}."
             )
-    # project_ui.complete takes its own worker lock; call it after the approval lock is released.
-    complete(repo, runtime, project)
-    return "✅ Livraison finale approuvée. Le paquet est validé et le projet est **COMPLETE**."
+        # Final packaging happens without releasing the same lock used for the approval
+        # digest: another project operation cannot change evidence between these steps.
+        _complete_locked(repo, project)
+        return "✅ Livraison finale approuvée. Le paquet est validé et le projet est **COMPLETE**."
