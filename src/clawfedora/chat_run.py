@@ -8,6 +8,7 @@ as the dashboard. Destructive revisions and final delivery need a single-use app
 from __future__ import annotations
 
 import json
+import os
 import threading
 from collections.abc import Callable
 from hashlib import sha256
@@ -20,7 +21,7 @@ from clawfedora.learning_feedback import review_submission
 from clawfedora.project_cloud import project_runner
 from clawfedora.project_common import (
     assert_no_symlinks,
-    project_path,
+    validate_project_id,
     read_json,
     sha256_file,
     write_json,
@@ -132,13 +133,19 @@ def _project_digest(
     runtime: Path, project: Path, *, extra: dict[str, Any] | None = None
 ) -> str:
     """Hash only a project under the verified workspace root, never an arbitrary path."""
-    root = (runtime / "projects").resolve(strict=True)
-    verified = project_path(runtime, project.name)
-    if project.is_symlink() or verified.parent != root or verified != project.resolve():
+    root = os.path.realpath(os.fspath(runtime / "projects"))
+    supplied = os.path.normpath(os.fspath(project))
+    candidate = os.path.realpath(supplied)
+    if (
+        os.path.commonpath((root, candidate)) != root
+        or os.path.dirname(candidate) != root
+        or supplied != candidate
+    ):
         raise ValueError("projet hors de la racine autorisée")
-    verified.relative_to(root)
-    assert_no_symlinks(verified, label="projet soumis à confirmation")
-    project = verified
+    if validate_project_id(os.path.basename(candidate)) != os.path.basename(candidate):
+        raise ValueError("identifiant du projet invalide")
+    project = Path(candidate)
+    assert_no_symlinks(project, label="projet soumis à confirmation")
     records: list[tuple[str, str]] = []
     for relative in (
         "project.json",
