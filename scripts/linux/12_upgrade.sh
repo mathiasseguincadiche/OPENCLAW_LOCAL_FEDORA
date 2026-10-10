@@ -29,7 +29,7 @@ finish() {
   fi
 }
 trap finish EXIT
-systemctl --user stop clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-dashboard.service 2>/dev/null || true
+systemctl --user stop clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-speech.service clawfedora-dashboard.service 2>/dev/null || true
 systemctl --user stop openclaw-gateway.service
 sudo systemctl stop ollama.service
 "$SCRIPT_DIR/08_backup_restore.sh" backup
