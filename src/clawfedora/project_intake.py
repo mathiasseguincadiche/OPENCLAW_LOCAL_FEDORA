@@ -348,6 +348,91 @@ def build_ingestion_index(project: Path, repo_root: Path) -> Path:
     return path
 
 
+
+def append_intake_items(repo_root: Path, project: Path, items: Iterable[Path]) -> list[str]:
+    """Append trusted local files before analysis, then rebuild the canonical ingestion index.
+
+    Project inputs become immutable as soon as analysis starts. This keeps the source digest,
+    cloud consent and every downstream proof meaningful instead of silently invalidating them.
+    """
+    manifest_path = project / "project.json"
+    payload = read_json(manifest_path)
+    if payload.get("status") != "INTAKE_READY":
+        raise ValueError(
+            "les sources sont figées après le début de l'analyse; créer un nouveau projet "
+            "ou réviser le périmètre avant d'ajouter des fichiers"
+        )
+    failures = validate_input_integrity(project)
+    if failures:
+        raise ValueError("intégrité des sources invalide: " + "; ".join(failures))
+
+    policy = core_contract(repo_root, "intake_policy.yaml")
+    limits = dict(policy["limits"])
+    max_file = int(limits["max_single_file_bytes"])
+    max_total = int(limits["max_total_input_bytes"])
+    current_total = _size(project / "intake")
+    if current_total >= max_total:
+        raise ValueError("intake: limite totale déjà atteinte")
+
+    staging = project / "context" / ".chat-intake-staging"
+    if staging.exists():
+        shutil.rmtree(staging)
+    staging.mkdir(parents=True)
+    copied: list[str] = []
+    moved: list[Path] = []
+    ingestion = project / "context" / "ingestion"
+    ingestion_old = project / "context" / ".ingestion-before-chat"
+    inventory_path = project / "evidence/intake/inventory.json"
+    old_inventory = inventory_path.read_bytes()
+    old_manifest = manifest_path.read_bytes()
+    try:
+        copied = _copy_inputs(
+            items,
+            staging,
+            label="pièce jointe",
+            max_file=max_file,
+            max_total=max_total - current_total,
+        )
+        for name in copied:
+            target = project / "intake" / name
+            if target.exists():
+                raise ValueError(f"pièce jointe: nom déjà présent: {name}")
+            shutil.move(str(staging / name), str(target))
+            moved.append(target)
+        if ingestion_old.exists():
+            shutil.rmtree(ingestion_old)
+        if ingestion.exists():
+            ingestion.rename(ingestion_old)
+        write_json(inventory_path, _inventory(project / "intake"))
+        build_ingestion_index(project, repo_root)
+        existing = payload.get("intake_items", [])
+        if not isinstance(existing, list):
+            raise ValueError("project.json: intake_items invalide")
+        payload["intake_items"] = [*existing, *copied]
+        payload["updated_at"] = now()
+        write_json(manifest_path, payload)
+        chmod_read_only_files(project / "intake")
+        if ingestion_old.exists():
+            shutil.rmtree(ingestion_old)
+        return copied
+    except Exception:
+        for path in moved:
+            try:
+                path.chmod(0o600)
+                path.unlink()
+            except OSError:
+                pass
+        inventory_path.write_bytes(old_inventory)
+        manifest_path.write_bytes(old_manifest)
+        if ingestion.exists():
+            shutil.rmtree(ingestion, ignore_errors=True)
+        if ingestion_old.exists():
+            ingestion_old.rename(ingestion)
+        raise
+    finally:
+        shutil.rmtree(staging, ignore_errors=True)
+
+
 def create_project(
     repo_root: Path,
     platform_root: Path,
