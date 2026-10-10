@@ -99,6 +99,18 @@ def test_guided_submission_maps_uploaded_names_to_expected_paths(tmp_path: Path)
         )
 
 
+def test_upload_rejects_wrong_sha256(tmp_path: Path) -> None:
+    runtime = tmp_path / "runtime"
+    brief = tmp_path / "brief.md"
+    brief.write_text("objectif", encoding="utf-8")
+    project = create_project(ROOT, runtime, "digest-project", "Digest", intake_items=[brief])
+    descriptor = _upload(runtime, "tampered.txt", b"contenu")
+    descriptor["sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="SHA-256"):
+        chat_files.import_files(ROOT, runtime, project, [descriptor])
+    assert not (project / "intake/tampered.txt").exists()
+
+
 def test_fallback_inbox_is_consumed_after_success(tmp_path: Path) -> None:
     runtime = tmp_path / "runtime"
     brief = tmp_path / "brief.md"
