@@ -71,6 +71,9 @@ def test_speech_and_transcription_stay_local(
     def fake_run(command: list[str], **kwargs: Any) -> subprocess.CompletedProcess[bytes]:
         assert command[:4] == ["espeak-ng", "--stdout", "-v", "fr-fr"]
         assert kwargs["timeout"] == 60
+        assert kwargs["input"] == b"Bonjour"
+        assert "--stdin" in command
+        assert "Bonjour" not in command
         return subprocess.CompletedProcess(command, 0, stdout=b"RIFFtest", stderr=b"")
 
     monkeypatch.setattr(speech_server.subprocess, "run", fake_run)
