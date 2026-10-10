@@ -122,3 +122,24 @@ def test_fallback_inbox_is_consumed_after_success(tmp_path: Path) -> None:
     assert chat_files.import_inbox(ROOT, runtime, project) == ["source.txt"]
     assert not list(inbox.iterdir())
     assert (project / "intake/source.txt").read_text() == "source locale"
+
+
+def test_guided_submission_rejects_traversal_id(tmp_path: Path) -> None:
+    runtime = tmp_path / "runtime"
+    brief = tmp_path / "brief.md"
+    brief.write_text("objectif", encoding="utf-8")
+    project = create_project(ROOT, runtime, "guided-safe", "Safe", intake_items=[brief])
+    with pytest.raises(ValueError, match="task id invalide"):
+        chat_files.practice_files(runtime, project, "../../outside", [{"id": "dummy"}])
+
+
+def test_upload_rejects_project_outside_runtime(tmp_path: Path) -> None:
+    runtime = tmp_path / "runtime"
+    real_runtime = tmp_path / "elsewhere"
+    brief = tmp_path / "brief.md"
+    brief.write_text("objectif", encoding="utf-8")
+    project = create_project(ROOT, real_runtime, "elsewhere-project", "Unsafe", intake_items=[brief])
+    descriptor = _upload(runtime, "poison.txt", b"not allowed")
+    with pytest.raises((ValueError, FileNotFoundError)):
+        chat_files.import_files(ROOT, runtime, project, [descriptor])
+    assert not (project / "intake/poison.txt").exists()
