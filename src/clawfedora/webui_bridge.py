@@ -18,7 +18,7 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
 
-from clawfedora import chat_approvals, chat_flow, chat_projects, project_cloud
+from clawfedora import chat_approvals, chat_flow, chat_projects, chat_run, project_cloud
 from clawfedora.agents import load_agent_specs
 from clawfedora.cloud_budget import BudgetRefused, load_ledger
 from clawfedora.cloud_privacy import LABELS, PrivacyFilter, describe
@@ -448,6 +448,21 @@ class BridgeHandler(BaseHTTPRequestHandler):
                     reply = chat_projects.apply_approval(
                         self.server.runtime, approval[0], approval[1], current
                     )
+                elif approval[0] in {"revision", "livraison"}:
+                    project = chat_projects.open_project(self.server.runtime, current) if current else None
+                    if project is None:
+                        reply = chat_projects.bridge_reply(
+                            current, "Aucun projet sélectionné pour cette confirmation."
+                        )
+                    else:
+                        body = chat_run.apply_approval(
+                            self.server.repo_root,
+                            self.server.runtime,
+                            project,
+                            approval[0],
+                            approval[1],
+                        )
+                        reply = chat_projects.bridge_reply(current, body)
                 else:
                     reply = chat_flow.apply_approval(
                         self.server.repo_root, self.server.runtime, approval[0], approval[1], current
@@ -466,6 +481,17 @@ class BridgeHandler(BaseHTTPRequestHandler):
                         last_brief(messages), self.server.runner,
                     )
                     reply = chat_flow.run_command(flow, name, args)
+                elif name in chat_projects.RUN_COMMANDS:
+                    project = chat_projects.open_project(self.server.runtime, current) if current else None
+                    if project is None:
+                        reply = chat_projects.bridge_reply(
+                            current, "Aucun projet sélectionné. Faites `!projets` puis `!projet <id>`."
+                        )
+                    else:
+                        body = chat_run.run_command(
+                            self.server.repo_root, self.server.runtime, project, name, args
+                        )
+                        reply = chat_projects.bridge_reply(current, body)
                 else:
                     reply = chat_projects.run_command(
                         self.server.repo_root,
