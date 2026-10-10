@@ -50,7 +50,7 @@ Détail, activation et limites : [Le cloud, facultatif](docs/fiches/12-cloud.md)
 - **Le PC cible reste à valider** : l'intégration est testée automatiquement, mais les performances réelles de la B580, Whisper, Open WebUI et du vrai OpenRouter doivent encore être mesurées sur Fedora.
 - Les sources d'un projet sont figées dès que l'analyse commence. Ajouter une nouvelle source impose de revenir au cadrage ou de créer un nouveau projet ; une pièce jointe ne modifie jamais silencieusement un projet déjà analysé.
 - Les images restent locales : elles peuvent être ingérées et lues par Qwen, mais ne partent pas vers DeepSeek tant que le filtre de confidentialité ne sait pas inspecter leur contenu.
-- En local, Qwen 9B n'égale pas un grand modèle cloud sur les tâches longues. DeepSeek V4.1 Flash est la route de capacité : contexte cloud 262K, sortie 16K et raisonnement `xhigh`, toujours derrière le filtre et le budget.
+- En local, Qwen 9B n'égale pas un grand modèle cloud sur les tâches longues. DeepSeek V4.1 Flash est la route de capacité : contexte cloud disponible jusqu'à 1M de tokens, sortie 32K et raisonnement `xhigh`, toujours derrière le filtre et le budget.
 - Il n'exécute rien sur le PC. Les rôles proposent du code et des fichiers ; c'est l'utilisateur qui les exécute.
 - Il n'est accessible que depuis ce PC. Hors cloud, aucune conversation ni aucun projet n'en sort (seule la recherche Web des rôles interroge le Web) ; avec le cloud, seul ce que le filtre laisse passer part, et seulement pour ce que tu as choisi d'y envoyer. Le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allure.
 
