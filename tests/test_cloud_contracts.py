@@ -163,7 +163,9 @@ def test_enabled_configuration_routes_the_cloud_through_the_loopback_gateway() -
 def test_cloud_model_reference_matches_the_policy() -> None:
     from clawfedora.core_config import core_contract
 
-    assert cloud_model_ref(core_contract(ROOT, "cloud_policy.yaml")) == "cloudgw/deepseek/deepseek-v4.1-flash"
+    assert cloud_model_ref(core_contract(ROOT, "cloud_policy.yaml")) == (
+        "cloudgw/deepseek/deepseek-v4.1-flash"
+    )
 
 
 def test_disabling_the_cloud_retires_its_provider_from_an_existing_installation() -> None:
