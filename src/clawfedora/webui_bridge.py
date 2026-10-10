@@ -544,7 +544,10 @@ class BridgeHandler(BaseHTTPRequestHandler):
                     )
                     reply = chat_flow.run_command(flow, name, args)
                 elif name in chat_projects.RUN_COMMANDS:
-                    project = chat_projects.open_project(self.server.runtime, current) if current else None
+                    project = (
+                        chat_projects.open_project(self.server.runtime, current)
+                        if current else None
+                    )
                     if project is None:
                         reply = chat_projects.bridge_reply(
                             current,
