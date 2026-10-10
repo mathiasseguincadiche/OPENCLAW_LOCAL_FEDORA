@@ -243,7 +243,7 @@ def test_body_limits_and_media_type(gateway: tuple[GatewayServer, FakeBudget]) -
     assert post(server, None, raw=b"{")[0] == 400
     assert post(server, None, raw=b"[]")[0] == 400
     # The size is judged on the declared length, before the body is read.
-    assert post(server, None, raw=b"x" * 10, headers={"Content-Length": "2000000"})[0] == 413
+    assert post(server, None, raw=b"x" * 10, headers={"Content-Length": "5000000"})[0] == 413
     assert post(server, request(), headers={"Content-Type": "text/plain"})[0] == 415
     assert post(server, None, raw=b"")[0] == 400
 
@@ -269,11 +269,11 @@ def test_the_provider_receives_the_policy_settings_and_the_provider_key_only(
         "max_price": {"prompt": 0.25, "completion": 0.75},
     }
     assert sent["reasoning"] == {"effort": "xhigh"} and sent["usage"] == {"include": True}
-    assert sent["max_tokens"] == 16384 and "max_completion_tokens" not in sent
+    assert sent["max_tokens"] == 32768 and "max_completion_tokens" not in sent
     # A smaller limit requested by the client is kept.
     post(server, request(max_tokens=100))
     assert upstream[0].requests[-1]["body"]["max_tokens"] == 100
-    assert budget.reserved[0][1] == 16384 and budget.reserved[0][0] > 0
+    assert budget.reserved[0][1] == 32768 and budget.reserved[0][0] > 0
 
 
 # -- privacy ------------------------------------------------------------------------
