@@ -49,6 +49,8 @@ ATTACHMENTS_MARK = "\n\nFichiers produits localement (liens valables 24 h) :"
 
 DEFAULT_MAX_TOKENS = 4096
 DEFAULT_HISTORY_BYTES = 32000
+MAX_CHAT_REQUEST_BYTES = 4_194_304
+MAX_LOCAL_REQUEST_BYTES = 1_048_576
 
 
 def leading_banners(content: str) -> list[str]:
@@ -431,7 +433,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
         try:
             length = int(self.headers.get("Content-Length", "0"))
             if (
-                not 0 < length <= 1_048_576
+                not 0 < length <= MAX_CHAT_REQUEST_BYTES
                 or self.headers.get("Transfer-Encoding")
                 or self.headers.get_content_type() != "application/json"
             ):
@@ -440,6 +442,8 @@ class BridgeHandler(BaseHTTPRequestHandler):
             if not isinstance(data, dict):
                 raise ValueError("objet JSON requis")
             cloud_request = str(data.get("model", "")).startswith(CLOUD_PREFIX)
+            if not cloud_request and length > MAX_LOCAL_REQUEST_BYTES:
+                raise ValueError("requête locale supérieure à 1 Mio")
             candidates = data.get("messages")
             allow_project_media = (
                 isinstance(candidates, list)
@@ -692,11 +696,11 @@ def make_server(
     server.repo_root = repo_root
     server.limits = daily_limits(repo_root)
     cloud_model = dict(core_contract(repo_root, "cloud_policy.yaml")["model"])
-    # The body itself stays under 1 MiB; ~3 bytes/token gives DeepSeek much more useful
-    # conversation history than Qwen without pretending the transport can fill its whole context.
+    # Cloud requests have a separate bounded 4-MiB envelope; small local requests retain
+    # their 1-MiB guard. Most chats stay short: only long cloud threads can use the full window.
     server.cloud_limits = {
         "max_output_tokens": int(cloud_model["max_output_tokens"]),
-        "max_history_bytes": min(786432, int(cloud_model["context_tokens"]) * 3),
+        "max_history_bytes": min(3_145_728, int(cloud_model["context_tokens"]) * 3),
         "max_response_bytes": min(
             524_288, int(cloud_model["max_output_tokens"]) * 16
         ),
