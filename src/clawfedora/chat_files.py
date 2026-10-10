@@ -9,6 +9,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+from clawfedora.project_common import sha256_file
 from clawfedora.project_engine import current_status
 from clawfedora.project_intake import append_intake_items
 from clawfedora.project_worker import worker_lock
@@ -48,8 +49,13 @@ def _resolve_upload(runtime: Path, item: dict[str, Any]) -> tuple[Path, str]:
     if not relative.parts or relative.parts[0] != "uploads" or ".." in relative.parts:
         raise ValueError("pièce jointe hors du dossier uploads")
     candidate = host_data.joinpath(*relative.parts)
-    if candidate.is_symlink():
-        raise ValueError("pièce jointe liée interdite")
+    if host_data.is_symlink() or uploads.is_symlink():
+        raise ValueError("stockage Open WebUI lié interdit")
+    cursor = host_data
+    for part in relative.parts:
+        cursor = cursor / part
+        if cursor.is_symlink():
+            raise ValueError("pièce jointe liée interdite")
     resolved = candidate.resolve(strict=True)
     root = uploads.resolve(strict=True)
     if os.path.commonpath((str(resolved), str(root))) != str(root) or not resolved.is_file():
@@ -57,6 +63,14 @@ def _resolve_upload(runtime: Path, item: dict[str, Any]) -> tuple[Path, str]:
     expected = item.get("size")
     if isinstance(expected, int) and expected >= 0 and resolved.stat().st_size != expected:
         raise ValueError("taille de pièce jointe différente du manifeste Open WebUI")
+    expected_hash = item.get("sha256")
+    if expected_hash is not None:
+        if not isinstance(expected_hash, str) or not re.fullmatch(
+            r"[a-fA-F0-9]{64}", expected_hash
+        ):
+            raise ValueError("empreinte de pièce jointe invalide")
+        if sha256_file(resolved).lower() != expected_hash.lower():
+            raise ValueError("empreinte SHA-256 différente de celle d'Open WebUI")
     return resolved, _safe_name(item.get("filename"))
 
 
