@@ -38,7 +38,7 @@ Rien n'est encore mesuré sur ta machine. Les résultats publics de DeepSeek V4.
 
 - Les réponses du chat arrivent d'un bloc, sans s'afficher mot à mot.
 - Une seule génération à la fois : le chat et l'atelier ne travaillent pas en même temps.
-- Le chat local transmet les 32 000 derniers octets de la conversation ; la route DeepSeek peut transmettre jusqu'à environ 768 Ko d'historique dans la limite du contexte cloud 262K.
+- Le chat local transmet les 32 000 derniers octets de la conversation ; la route DeepSeek peut transmettre jusqu'à environ 3 Mio d'historique dans la limite du contexte cloud de 1 048 576 tokens.
 - Si le contexte doit être réduit à 16K, le chat ne garde plus qu'environ 500 mots d'historique. Voir [Réglages](docs/fiches/08-reglages.md).
 - Les rôles n'exécutent rien : les scripts proposés sont à lancer soi-même.
 - Cloud : le coût est une estimation prudente (facteur 1,3 € par dollar), pas une facture. Le relevé OpenRouter fait foi : l'enregistrer avec `cloud-reconcile`.
