@@ -17,7 +17,7 @@ OpenClaw ──► fournisseur "cloudgw" (127.0.0.1:18892/v1) ──► [filtre 
 | Question | Constat |
 |---|---|
 | OpenClaw accepte-t-il un fournisseur personnalisé à URL locale ? | Oui. `models.providers.cloudgw`, `api: openai-completions`, modèles déclarés statiquement, `models.mode: replace` : aucune découverte de catalogue, donc aucun accès réseau au démarrage. |
-| Peut-on choisir le modèle par requête ? | Oui : `openclaw agent --model cloudgw/z-ai/glm-5.3-flash`. Les sept rôles gardent Qwen comme modèle principal ; le cloud se choisit à chaque tour. |
+| Peut-on choisir le modèle par requête ? | Oui : `openclaw agent --model cloudgw/deepseek/deepseek-v4.1-flash`. Les sept rôles gardent Qwen comme modèle principal ; le cloud se choisit à chaque tour. |
 | Qui voit quoi ? | La passerelle reçoit le prompt système, l'historique et, au second appel d'une boucle d'outil, **les résultats d'outils**. Un tour avec un outil fait **deux appels facturables**. |
 | Quel jeton circule ? | Un jeton **local** (`Authorization: Bearer <jeton local>`), lu dans la variable `CLAWFEDORA_CLOUD_GATEWAY_TOKEN`. La clé du fournisseur n'atteint jamais OpenClaw : le contrôle fait échouer toute fuite. |
 | Usage en streaming ? | OpenClaw envoie `stream: true` et `stream_options.include_usage: true` ; l'usage et le coût peuvent donc être lus dans le dernier fragment. |
@@ -31,7 +31,7 @@ OpenClaw ──► fournisseur "cloudgw" (127.0.0.1:18892/v1) ──► [filtre 
 `openclaw_runner(...)(role, prompt, session)` garde son comportement local. Un appelant qui a décidé d'utiliser le cloud passe `route="cloud"` ; rien ne bascule jamais seul du local vers le cloud.
 
 - **Refus avant tout processus** : la route cloud exige un enregistrement d'activation (`state/cloud/activation.json`) prouvant que **chaque** contrôle requis par la politique (`privacy_filter`, `budget_guard`) est vérifié. Un seul contrôle vérifié ne suffit pas. Seule la future commande d'activation (lot 6) écrit cet enregistrement ; `revoke_activation` éteint le cloud.
-- **Pas d'Ollama sur la route cloud** : ni version, ni inventaire, ni verrou de digest. Le tour passe par `openclaw agent --model cloudgw/z-ai/glm-5.3-flash` via la Gateway OpenClaw.
+- **Pas d'Ollama sur la route cloud** : ni version, ni inventaire, ni verrou de digest. Le tour passe par `openclaw agent --model cloudgw/deepseek/deepseek-v4.1-flash` via la Gateway OpenClaw.
 - **Configuration revérifiée** avant un tour cloud (avec le vrai CLI) : l'URL du fournisseur doit être exactement celle de la politique, le transport, le modèle déclaré, la liste d'autorisation, et la clé doit être une **référence d'environnement** (jamais une chaîne). `config get` masque le nom de la référence (`__OPENCLAW_REDACTED__`) mais garde sa forme : c'est cette forme qui est contrôlée.
 - **Identité du modèle** : le tour échoue si le fournisseur ou le modèle réellement servis diffèrent. `state/model-runs/<session>.json` conserve route, fournisseur, modèle et tokens, **sans contenu**.
 - **Jeton local** : `state/cloud/gateway.token` (droits 0600, répertoire 0700, créé une fois). L'environnement d'exécution le définit toujours (voir plus haut pourquoi). Hors d'un runtime géré, rien n'est écrit.
