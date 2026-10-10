@@ -143,3 +143,11 @@ def test_revision_and_final_delivery_require_single_use_human_phrases(
     )
     assert "Livraison finale approuvée" in approved
     assert completed == ["complete"]
+
+
+def test_project_digest_rejects_a_foreign_workspace(tmp_path: Path) -> None:
+    runtime, project = _project(tmp_path, "IN_PROGRESS")
+    other = tmp_path / "different-runtime"
+    with pytest.raises((ValueError, FileNotFoundError)):
+        chat_run._project_digest(other, project)
+    assert chat_run._project_digest(runtime, project)
