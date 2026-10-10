@@ -31,7 +31,7 @@ from typing import Any, Protocol
 from clawfedora.cloud_budget import BudgetRefused, load_ledger
 from clawfedora.cloud_privacy import PrivacyFilter, describe
 from clawfedora.cloud_state import CLOUD_STATE, ensure_gateway_token, require_cloud_ready
-from clawfedora.core_config import core_contract, daily_limits
+from clawfedora.core_config import core_contract
 from clawfedora.local_http import LocalServer
 
 ALLOWED_FIELDS = frozenset({
