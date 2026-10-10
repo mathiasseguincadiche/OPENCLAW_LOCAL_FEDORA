@@ -214,7 +214,7 @@ def check_together(repo_root: Path) -> Check:
         with tempfile.TemporaryDirectory(prefix="clawfedora-activation-") as temporary:
             runtime = Path(temporary)
             (runtime / "state").mkdir()
-            ledger = Ledger(runtime, _small_cap_policy(repo_root, 0.01))
+            ledger = Ledger(runtime, _small_cap_policy(repo_root, 0.1))
             gateway = make_server(
                 repo_root, runtime, budget=ledger, activation_check=lambda: None, port=0,
                 upstream_base_url=f"http://127.0.0.1:{provider.server_port}/v1",
@@ -255,7 +255,7 @@ def check_together(repo_root: Path) -> Check:
                              "le fournisseur doit recevoir la clé, jamais le jeton local")
             if ledger.summary().calls_ok != 1:
                 return Check("filtre et budget ensemble", False, "l'appel n'est pas compté")
-            ledger.record_invoice(0.0099)
+            ledger.record_invoice(0.0999)
             if post("bonjour") != 402 or len(calls) != 1:
                 return Check("filtre et budget ensemble", False,
                              "un appel au-delà du plafond n'est pas refusé avant l'envoi")
