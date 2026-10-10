@@ -10,7 +10,13 @@ from typing import Any
 import pytest
 
 from clawfedora.project_worker import worker_lock
-from clawfedora.webui_bridge import CLOUD_MODEL_IDS, MODEL_IDS, BridgeHandler, chat_prompt, make_server
+from clawfedora.webui_bridge import (
+    CLOUD_MODEL_IDS,
+    MODEL_IDS,
+    BridgeHandler,
+    chat_prompt,
+    make_server,
+)
 from clawfedora.webui_setup import environment, render, seal
 
 ROOT = Path(__file__).resolve().parents[1]
