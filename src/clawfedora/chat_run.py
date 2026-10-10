@@ -21,9 +21,9 @@ from clawfedora.learning_feedback import review_submission
 from clawfedora.project_cloud import project_runner
 from clawfedora.project_common import (
     assert_no_symlinks,
-    validate_project_id,
     read_json,
     sha256_file,
+    validate_project_id,
     write_json,
 )
 from clawfedora.project_control import request_pause, worker_active
