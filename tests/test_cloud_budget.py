@@ -45,8 +45,8 @@ def test_a_reservation_precedes_the_call_and_the_journal_is_private(ledger: Ledg
     held = ledger.reserve(input_tokens=1000, max_output_tokens=4096)
     (record,) = lines(ledger)
     assert record["k"] == "reserve" and record["max_output_tokens"] == 4096
-    # 1000 tokens in at 0.15 $/M + 4096 out at 0.60 $/M, worst case.
-    assert record["est_usd"] == pytest.approx(0.00015 + 0.0024576)
+    # 1000 tokens in at 0.25 $/M + 4096 out at 0.75 $/M, worst case.
+    assert record["est_usd"] == pytest.approx(0.00025 + 0.003072)
     assert stat.S_IMODE(ledger.path("2026-10").stat().st_mode) == 0o600
     assert ledger.summary().pending == 1
     held.settle(USAGE, "ok")
@@ -65,7 +65,7 @@ def test_the_real_cost_replaces_the_estimate_and_is_converted_in_euros(ledger: L
 def test_without_a_cost_the_tokens_are_priced_with_the_policy(ledger: Ledger) -> None:
     usage = {"prompt_tokens": 2_000_000, "completion_tokens": 1_000_000}
     ledger.reserve(input_tokens=10, max_output_tokens=10).settle(usage, "ok")
-    assert ledger.summary().spent_usd == pytest.approx(2 * 0.15 + 1 * 0.6)
+    assert ledger.summary().spent_usd == pytest.approx(2 * 0.25 + 1 * 0.75)
 
 
 def test_only_a_refused_call_is_released_everything_uncertain_keeps_its_estimate(
