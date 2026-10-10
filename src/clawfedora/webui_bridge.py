@@ -463,7 +463,10 @@ class BridgeHandler(BaseHTTPRequestHandler):
             return
         command = chat_projects.parse_command(typed) if last else None
         if file_descriptors and not (command is not None and command[0] == "soumettre"):
-            project = chat_projects.open_project(self.server.runtime, current) if current else None
+            project = (
+                        chat_projects.open_project(self.server.runtime, current)
+                        if current else None
+                    )
             if project is None:
                 self._completion(
                     data,
@@ -506,7 +509,10 @@ class BridgeHandler(BaseHTTPRequestHandler):
                         self.server.runtime, approval[0], approval[1], current
                     )
                 elif approval[0] in {"revision", "livraison"}:
-                    project = chat_projects.open_project(self.server.runtime, current) if current else None
+                    project = (
+                        chat_projects.open_project(self.server.runtime, current)
+                        if current else None
+                    )
                     if project is None:
                         reply = chat_projects.bridge_reply(
                             current, "Aucun projet sélectionné pour cette confirmation."
@@ -541,7 +547,8 @@ class BridgeHandler(BaseHTTPRequestHandler):
                     project = chat_projects.open_project(self.server.runtime, current) if current else None
                     if project is None:
                         reply = chat_projects.bridge_reply(
-                            current, "Aucun projet sélectionné. Faites `!projets` puis `!projet <id>`."
+                            current,
+                            "Aucun projet sélectionné. Faites `!projets` puis `!projet <id>`.",
                         )
                     else:
                         body = chat_run.run_command(
