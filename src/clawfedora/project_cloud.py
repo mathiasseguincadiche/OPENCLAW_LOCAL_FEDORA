@@ -32,7 +32,7 @@ from clawfedora.project_control import cloud_pause_path
 
 PROJECT_CLOUD = "state/project-cloud"
 CONSENT_TEXT = (
-    "Ce projet enverra au cloud (GLM-5.3 Flash via OpenRouter, par la passerelle locale) ses "
+    "Ce projet enverra au cloud (DeepSeek V4.1 Flash via OpenRouter, par la passerelle locale) ses "
     "consignes, les extraits de sources lus par les agents et les résultats d'outils, après "
     "filtrage des secrets. Le filtre reconnaît les identifiants, mots de passe et clés ; il ne "
     "reconnaît pas un contenu confidentiel qui n'en a pas l'allure (nom de serveur interne, "
@@ -102,7 +102,7 @@ def grant(repo_root: Path, runtime: Path, project: Path, *, acknowledged: bool) 
         "project_id": _project_id(project),
         "granted_at": now(),
         "sources_digest": sources_digest(project),
-        "scope": "cloud-glm",
+        "scope": "cloud-deepseek",
         "consent_text_sha256": _text_digest(),
     }
     path = consent_path(runtime, project)
