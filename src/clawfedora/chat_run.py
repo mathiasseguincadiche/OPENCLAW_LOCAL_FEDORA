@@ -18,12 +18,12 @@ from clawfedora import chat_approvals, chat_files
 from clawfedora.learning import awaiting, checkpoint_path, pending_feedback, submit
 from clawfedora.learning_feedback import review_submission
 from clawfedora.project_common import read_json, sha256_file, write_json
+from clawfedora.project_cloud import project_runner
 from clawfedora.project_control import request_pause, worker_active
 from clawfedora.project_engine import current_status, transition_project
 from clawfedora.project_revision import impact, revise
 from clawfedora.project_ui import complete
 from clawfedora.project_worker import (
-    project_runner,
     review_project,
     run_project_tasks,
     worker_lock,
