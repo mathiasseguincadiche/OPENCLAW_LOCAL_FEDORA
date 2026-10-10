@@ -321,3 +321,31 @@ def test_cloud_long_response_is_not_rejected_by_local_64k_limit(
         assert "Réponse détaillée." in reply
         server.shutdown()
         thread.join(timeout=5)
+
+
+def test_full_deepseek_window_accepts_large_history_but_qwen_stays_bounded(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    prompts: list[int] = []
+
+    def fake_answer(
+        _handler: Any, _role: str, _context: str, prompt: str, *_args: Any
+    ) -> tuple[dict[str, str], str]:
+        prompts.append(len(prompt.encode()))
+        return {"text": "Historique long admis."}, ""
+
+    monkeypatch.setattr(BridgeHandler, "_answer", fake_answer)
+    with make_server(
+        ROOT, tmp_path, TOKEN, 0, cloud_ready=lambda: True,
+        runner=lambda *_args: {"text": "non utilisé"},
+    ) as server:
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        long_history = [{"role": "user", "content": "A" * 1_200_000}]
+        cloud_payload = {"model": CLOUD_MODEL_IDS[0], "messages": long_history}
+        assert request(server, "/v1/chat/completions", cloud_payload)[0] == 200
+        assert prompts and prompts[0] > 1_048_576
+        local_payload = {"model": MODEL_IDS[0], "messages": long_history}
+        assert request(server, "/v1/chat/completions", local_payload)[0] == 400
+        server.shutdown()
+        thread.join(timeout=5)
