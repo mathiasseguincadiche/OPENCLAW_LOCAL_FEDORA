@@ -123,6 +123,7 @@ def chat_prompt(
     max_tokens: int = DEFAULT_MAX_TOKENS,
     max_history_bytes: int = DEFAULT_HISTORY_BYTES,
     allow_cloud: bool = False,
+    allow_project_media: bool = False,
 ) -> tuple[str, str]:
     model = data.get("model")
     if model not in MODEL_IDS + (CLOUD_MODEL_IDS if allow_cloud else ()):
@@ -144,10 +145,23 @@ def chat_prompt(
         if (
             not isinstance(item, dict)
             or item.get("role") not in {"user", "assistant", "system"}
-            or not isinstance(item.get("content"), str)
         ):
+            raise ValueError("historique du chat invalide")
+        content = item.get("content")
+        if allow_project_media and item["role"] == "user" and isinstance(content, list):
+            # Open WebUI replays image_url objects. Never forward binary, remote URLs or
+            # base64 to Qwen/DeepSeek: the original image is read through project ingestion.
+            if len(content) > 20 or any(
+                not isinstance(part, dict) or part.get("type") not in {"text", "image_url"}
+                for part in content
+            ):
+                raise ValueError("parties multimodales inconnues")
+            pieces = [part.get("text", "") for part in content if part["type"] == "text"]
+            if not all(isinstance(piece, str) for piece in pieces):
+                raise ValueError("texte multimodal invalide")
+            content = "\n".join(pieces).strip() + "\n(image conservée parmi les sources du projet)"
+        if not isinstance(content, str):
             raise ValueError("texte uniquement; importer les documents dans l’atelier Projets")
-        content = item["content"]
         history.append(
             {"role": item["role"], "content": strip_banners(content)
              if item["role"] == "assistant" else content}
@@ -426,6 +440,13 @@ class BridgeHandler(BaseHTTPRequestHandler):
             if not isinstance(data, dict):
                 raise ValueError("objet JSON requis")
             cloud_request = str(data.get("model", "")).startswith(CLOUD_PREFIX)
+            candidates = data.get("messages")
+            allow_project_media = (
+                isinstance(candidates, list)
+                and bool(chat_projects.thread_state(
+                    [item for item in candidates if isinstance(item, dict)]
+                )[0])
+            )
             role, prompt = chat_prompt(
                 data,
                 max_tokens=(
@@ -439,6 +460,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
                     else int(self.server.limits["max_history_bytes"])
                 ),
                 allow_cloud=self.server.cloud_ready(),
+                allow_project_media=allow_project_media,
             )
             omitted = len(data["messages"]) - len(json.loads(prompt.split("\n", 1)[1]))
         except (ValueError, TypeError) as exc:
