@@ -13,16 +13,25 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any, Callable
 
-from clawfedora import chat_approvals
-from clawfedora.learning import awaiting, pending_feedback
+from clawfedora import chat_approvals, chat_files
+from clawfedora.learning import awaiting, checkpoint_path, pending_feedback, submit
+from clawfedora.learning_feedback import review_submission
 from clawfedora.project_common import read_json, sha256_file, write_json
 from clawfedora.project_control import progress, request_pause, worker_active
 from clawfedora.project_engine import current_status, transition_project
 from clawfedora.project_revision import impact, revise
 from clawfedora.project_ui import complete
-from clawfedora.project_worker import review_project, run_project_tasks, worker_lock
+from clawfedora.project_worker import (
+    project_runner,
+    review_project,
+    run_project_tasks,
+    worker_lock,
+)
 
-COMMANDS = ("lancer", "pause", "reprendre", "auditer", "relire", "livrer", "modifier", "pratique")
+COMMANDS = (
+    "lancer", "pause", "reprendre", "auditer", "relire", "livrer", "modifier",
+    "pratique", "soumettre",
+)
 _threads: dict[str, threading.Thread] = {}
 _guard = threading.Lock()
 
@@ -57,6 +66,7 @@ def job_line(runtime: Path, project_id: str) -> str:
         return "Traitement chat : état illisible."
     labels = {
         "run": "exécution",
+        "feedback": "retour pédagogique",
         "validation": "audit de validation",
         "review": "relecture indépendante",
     }
@@ -174,6 +184,8 @@ def run_command(
     project: Path,
     name: str,
     args: str,
+    *,
+    attachments: object = None,
 ) -> str:
     status = current_status(project)
     if name in {"lancer", "reprendre"}:
@@ -203,6 +215,43 @@ def run_command(
         return _start(runtime, project, "review", lambda: _audit(repo, runtime, project, "review"))
     if name == "pratique":
         return _practice(project, args.strip())
+    if name == "soumettre":
+        task_id, _, explanation = args.strip().partition(" ")
+        if not task_id or not explanation.strip():
+            raise ValueError(
+                "Usage : joignez les fichiers attendus puis "
+                "!soumettre <tâche> <ce que vous avez fait>."
+            )
+        files = chat_files.practice_files(runtime, project, task_id, attachments)
+        result = submit(
+            repo,
+            runtime,
+            project,
+            task_id,
+            {
+                "human_approved": True,
+                "files": files,
+                "explanation": explanation.strip(),
+            },
+        )
+
+        def feedback() -> str:
+            with worker_lock(runtime, allow_gaming=True):
+                checkpoint = read_json(checkpoint_path(project, task_id))
+                reviewed = review_submission(
+                    repo,
+                    runtime,
+                    project,
+                    checkpoint,
+                    project_runner(repo, runtime, project),
+                )
+            return json.dumps(reviewed, ensure_ascii=False)[:900]
+
+        _start(runtime, project, "feedback", feedback)
+        return (
+            f"✅ Soumission reçue pour **{result['task_id']}**. "
+            "Le spécialiste la relit maintenant en arrière-plan; suivez avec !etat."
+        )
     if name == "modifier":
         task_id, _, reason = args.strip().partition(" ")
         if not task_id or not reason.strip():
