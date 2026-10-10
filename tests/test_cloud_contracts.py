@@ -149,7 +149,7 @@ def test_enabled_configuration_routes_the_cloud_through_the_loopback_gateway() -
     (model,) = provider["models"]
     assert model["id"] == "deepseek/deepseek-v4.1-flash"
     assert model["contextTokens"] == 32768 and model["maxTokens"] == 4096
-    assert model["cost"] == {"input": 0.15, "output": 0.5, "cacheRead": 0, "cacheWrite": 0}
+    assert model["cost"] == {"input": 0.15, "output": 0.6, "cacheRead": 0, "cacheWrite": 0}
     defaults = patch["agents"]["defaults"]
     assert defaults["modelPolicy"]["allow"] == [
         defaults["model"]["primary"], "cloudgw/deepseek/deepseek-v4.1-flash",
