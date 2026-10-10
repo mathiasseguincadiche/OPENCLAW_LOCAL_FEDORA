@@ -4,7 +4,7 @@
 
 - Tous les services écoutent sur `127.0.0.1` ; aucun port du pare-feu n'est ouvert.
 - SELinux reste en mode `Enforcing` ; aucun script ne le désactive.
-- Le modèle est local par défaut. Le cloud (GLM-5.3 Flash par OpenRouter) est **désactivé tant que tu ne l'actives pas**, et il ne s'active que si le filtre de confidentialité et le contrôle du budget fonctionnent ensemble. Aucun repli automatique du local vers le cloud.
+- Le modèle est local par défaut. Le cloud (DeepSeek V4.1 Flash par OpenRouter) est **désactivé tant que tu ne l'actives pas**, et il ne s'active que si le filtre de confidentialité et le contrôle du budget fonctionnent ensemble. Aucun repli automatique du local vers le cloud.
 - Quand le cloud est actif, seule la passerelle locale (`127.0.0.1:18892`) connaît ta clé OpenRouter et sort vers Internet : elle filtre tout ce qui part (historique et résultats d'outils compris), compte chaque appel facturé et refuse au plafond de 25 € réels par mois. La clé est dans un fichier à droits 0600, jamais dans Git, les journaux, la configuration d'OpenClaw ni les sauvegardes.
 - Un projet de l'atelier n'utilise le cloud qu'avec ton accord explicite, lié à ses sources ; en cas de blocage, il se met en pause au lieu de basculer en local sans te le dire.
 - Les rôles ne peuvent ni exécuter de commande, ni écrire directement un fichier, ni ouvrir un navigateur, ni mettre à jour OpenClaw.
