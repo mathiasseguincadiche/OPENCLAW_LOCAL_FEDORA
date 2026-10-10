@@ -349,12 +349,27 @@ def build_ingestion_index(project: Path, repo_root: Path) -> Path:
 
 
 
-def append_intake_items(repo_root: Path, project: Path, items: Iterable[Path]) -> list[str]:
-    """Append trusted local files before analysis, then rebuild the canonical ingestion index.
+def append_intake_items(
+    repo_root: Path,
+    platform_root: Path,
+    project: Path,
+    items: Iterable[Path],
+) -> list[str]:
+    """Add sources only inside a validated project rooted in the platform workspace.
 
-    Project inputs become immutable as soon as analysis starts. This keeps the source digest,
-    cloud consent and every downstream proof meaningful instead of silently invalidating them.
+    The project path is reconstructed from its allow-listed ID rather than trusting the
+    caller's path. Normalization and containment precede *every* project file operation.
     """
+    root = (platform_root / "projects").resolve(strict=True)
+    if project.is_symlink():
+        raise ValueError("projet lié interdit")
+    verified = project_path(platform_root, project.name)
+    if verified.parent != root or verified != project.resolve(strict=True):
+        raise ValueError("projet hors de la racine autorisée")
+    verified.relative_to(root)
+    assert_no_symlinks(verified, label="projet d'ingestion")
+    project = verified
+
     manifest_path = project / "project.json"
     payload = read_json(manifest_path)
     if payload.get("status") != "INTAKE_READY":
