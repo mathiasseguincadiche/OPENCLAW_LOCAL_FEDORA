@@ -88,6 +88,13 @@ def test_speech_and_transcription_stay_local(
         status, raw, content_type = _request(server, "POST", "/v1/audio/speech", speech)
         assert status == 200 and raw.startswith(b"RIFF") and content_type == "audio/wav"
 
+        # Even a crafted client voice must not enter the subprocess command line.
+        hostile = json.dumps(
+            {"model": "clawfedora-tts", "voice": "fr-fr --path=/tmp/evil", "input": "Bonjour"}
+        ).encode()
+        status, _, _ = _request(server, "POST", "/v1/audio/speech", hostile)
+        assert status == 400
+
         boundary = "----clawfedora-test"
         multipart = (
             f"--{boundary}\r\n"
