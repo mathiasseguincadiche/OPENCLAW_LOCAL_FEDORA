@@ -129,11 +129,12 @@ def test_revision_and_final_delivery_require_single_use_human_phrases(
     write_json(project / "project.json", payload)
     monkeypatch.setattr(chat_run, "current_status", lambda _project: "PACKAGING")
     completed: list[str] = []
-    monkeypatch.setattr(
-        chat_run,
-        "complete",
-        lambda _repo, _runtime, _project: completed.append("complete"),
-    )
+    def fake_complete_locked(_repo: Path, _project: Path) -> None:
+        # The finalizer must still hold the same lock that validated the human phrase.
+        assert chat_run.worker_active(runtime)
+        completed.append("complete")
+
+    monkeypatch.setattr(chat_run, "_complete_locked", fake_complete_locked)
     reply = chat_run.run_command(tmp_path, runtime, project, "livrer", "")
     code = re.search(r"approuver livraison ([A-Z0-9]{4})", reply)
     assert code
