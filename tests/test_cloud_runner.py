@@ -31,7 +31,9 @@ class FakeOpenClaw:
         patch = build_openclaw_patch(ROOT, runtime, cloud_enabled=True)
         self.agents = patch["agents"]
         self.providers = patch["models"]["providers"]
-        self.envelope: dict[str, Any] = self.reply("Bonjour", "cloudgw", "deepseek/deepseek-v4.1-flash")
+        self.envelope: dict[str, Any] = self.reply(
+            "Bonjour", "cloudgw", "deepseek/deepseek-v4.1-flash"
+        )
         self.commands: list[list[str]] = []
         self.environments: list[dict[str, str]] = []
 
