@@ -106,7 +106,7 @@ def import_files(
             destination.chmod(0o600)
             sources.append(destination)
         with worker_lock(runtime, allow_gaming=True):
-            return append_intake_items(repo_root, project, sources)
+            return append_intake_items(repo_root, runtime, project, sources)
     finally:
         shutil.rmtree(staging, ignore_errors=True)
 
@@ -175,7 +175,7 @@ def import_inbox(repo_root: Path, runtime: Path, project: Path) -> list[str]:
     if any(path.is_symlink() or not path.is_file() for path in entries):
         raise ValueError("le dossier d'import ne doit contenir que des fichiers ordinaires")
     with worker_lock(runtime, allow_gaming=True):
-        copied = append_intake_items(repo_root, project, entries)
+        copied = append_intake_items(repo_root, runtime, project, entries)
     for path in entries:
         path.unlink()
     return copied
