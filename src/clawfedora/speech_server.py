@@ -193,16 +193,24 @@ class SpeechHandler(BaseHTTPRequestHandler):
         text = value.get("input")
         if not isinstance(text, str) or not text.strip() or len(text) > MAX_TEXT:
             raise ValueError("texte TTS invalide")
-        voice = str(value.get("voice") or self.server.config["tts_voice"])
-        if voice != str(self.server.config["tts_voice"]):
+        configured_voice = str(self.server.config["tts_voice"])
+        requested_voice = value.get("voice")
+        if requested_voice is not None and requested_voice != configured_voice:
             raise ValueError("voix non autorisée")
+        # The command line is built entirely from trusted policy values. Untrusted
+        # speech text is *data on stdin*, never a command argument or an option.
+        speed = int(self.server.config["tts_speed"])
+        if not 80 <= speed <= 450:
+            raise ValueError("vitesse TTS hors limites")
+        if configured_voice != "fr-fr":
+            raise ValueError("voix TTS non autorisée par la politique")
         command = [
             "espeak-ng",
             "--stdout",
             "-v",
-            voice,
+            "fr-fr",
             "-s",
-            str(int(self.server.config["tts_speed"])),
+            str(speed),
             "--stdin",
         ]
         result = subprocess.run(
