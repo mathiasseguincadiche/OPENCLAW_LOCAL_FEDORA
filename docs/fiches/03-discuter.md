@@ -6,7 +6,7 @@ Open WebUI est l'interface de discussion, à l'adresse `http://127.0.0.1:3000`. 
 
 ## Choisir à qui tu parles
 
-Le sélecteur de modèle en haut de la page liste les sept rôles. Tous utilisent le même Qwen : choisir un rôle change les consignes et les outils, pas le modèle. Si tu as activé le cloud, chaque rôle apparaît aussi en « · cloud (GLM) » : voir plus bas.
+Le sélecteur de modèle en haut de la page liste les sept rôles. Tous utilisent le même Qwen : choisir un rôle change les consignes et les outils, pas le modèle. Si tu as activé le cloud, chaque rôle apparaît aussi en « · cloud (DeepSeek) » : voir plus bas.
 
 | Tu veux | Choisis |
 |---|---|
@@ -27,7 +27,7 @@ Le cloud est facultatif et désactivé tant que tu ne l'as pas activé ([Le clou
 | Modèle | Mode | À utiliser pour |
 |---|---|---|
 | « … · local » | **Travail** : Qwen sur ton PC, aucun contenu de la conversation ne part vers un modèle distant | tout ce qui est interne, professionnel ou incertain |
-| « … · cloud (GLM) » | **Apprendre** : GLM-5.3 Flash par OpenRouter | des questions publiques, sans secret |
+| « … · cloud (DeepSeek) » | **Apprendre** : DeepSeek V4.1 Flash par OpenRouter | des questions publiques, sans secret |
 
 Le choix par défaut reste local. Une réponse cloud porte un bandeau « ☁️ Réponse du modèle cloud ». Si le filtre détecte un secret dans ton message, l'historique ou un résultat d'outil, rien ne part : la conversation passe en local (« 🔒 Conversation passée en local ») et le reste du fil y reste. Si le plafond de 25 € est atteint ou si le fournisseur est indisponible, la réponse vient du local avec un bandeau « 💻 ».
 
