@@ -5,9 +5,10 @@
 > **Ce document conserve le plan historique des lots 9 à 15.** Pour apprendre le
 > fonctionnement **aujourd'hui**, commence par le guide et les fiches. Les commandes de
 > projet sont implémentées, et le plugin Action gère **cinq boutons de lecture**,
-> **huit boutons de pilotage confirmés** et un **formulaire de création**
-> avec code d'approbation distinct. Toutes les actions avancées n'ont
-> pas encore de formulaire (révisions, réponses et soumission de fichiers).
+> **huit boutons de pilotage confirmés** et **trois formulaires** :
+> création, réponse aux précisions et demande de révision. Les créations
+> et révisions gardent leur code d'approbation indépendant. La soumission
+> de fichiers n'a pas encore de formulaire dédié.
 > Open WebUI reste épinglé à 0.11.4 ; le transport SSE est préparé
 > mais non activé, et les essais Fedora/navigateur restent à effectuer.
 
