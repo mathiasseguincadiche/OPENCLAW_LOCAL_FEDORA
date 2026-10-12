@@ -13,8 +13,8 @@ from pathlib import Path
 from typing import Any
 
 from PIL import Image, ImageDraw
-from reportlab.lib.utils import ImageReader
-from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader  # type: ignore[import-untyped]
+from reportlab.pdfgen import canvas  # type: ignore[import-untyped]
 
 from clawfedora.local_vision import local_vision
 
