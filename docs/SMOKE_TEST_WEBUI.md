@@ -5,6 +5,21 @@ navigateur, le micro, la B580, le stockage des uploads et le vrai fournisseur cl
 **après** une CI verte. Un échec n'est jamais contourné en désactivant SELinux, le filtre, le
 budget ou les confirmations.
 
+## 0. Vérifier que l'explication est compréhensible
+
+Avant les essais techniques, ouvrir le [README](../README.md), le [guide](GUIDE.md),
+les [rôles et outils](fiches/07-roles-et-outils.md), l'[architecture](fiches/11-comment-ca-marche.md)
+et le [parcours DevOps](EXEMPLE_PARCOURS_DEVOPS.md) sur GitHub ou en rendu Markdown.
+
+- Vérifier que les deux SVG s'affichent, restent lisibles et que les flèches se comprennent.
+- Identifier où se trouvent Open WebUI, le worker, OpenClaw, Qwen, les fichiers et la route cloud.
+- Retrouver **chaque rôle** et **un outil réservé** sans lire le code source.
+- Vérifier que « lint », « test », « livraison » et « déploiement réel » ne sont pas confondus.
+- Vérifier qu'aucune légende ne présente une fonctionnalité non testée comme validée sur Fedora.
+
+Ce contrôle est **humain et visuel** : un test XML ou une CI verte ne garantit pas
+la bonne lisibilité du diagramme.
+
 ## 1. Préparer et contrôler les services
 
 ```bash
