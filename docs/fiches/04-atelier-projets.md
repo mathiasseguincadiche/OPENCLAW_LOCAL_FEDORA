@@ -37,6 +37,12 @@ Un modèle de cette taille fait des erreurs, en local comme en cloud. L'atelier 
 - **Une tâche attend celles dont elle dépend.** Elle ne reçoit leur travail qu'une fois relu.
 - **Deux tentatives maximum par tâche**, pour ne pas tourner en rond.
 
+## Pourquoi DeepSeek peut être utile à un projet
+
+L'atelier est **hybride** : Qwen prend en charge le travail local ordinaire ou confidentiel, alors que DeepSeek V4.1 Flash peut fournir un raisonnement et un contexte plus grands pour un **projet public difficile** (plusieurs modules IaC, architecture, CI/CD, audit documentaire).
+
+**Le comportement réel est plus simple qu'un routage automatique :** un projet sans accord reste local ; si tu l'autorises au cloud, **l'accord couvre les étapes du projet** et non uniquement celles que le système jugerait difficiles. Les rôles, leurs outils et les règles d'approbation restent les mêmes. [Comprendre le choix des deux modèles](../ARCHITECTURE_HYBRIDE.md).
+
 ## Le cloud dans un projet
 
 Par défaut, un projet travaille en local. Si tu as activé le cloud ([Le cloud, facultatif](12-cloud.md)), le panneau **Cloud pour ce projet** te laisse l'autoriser pour ce projet seulement, après lecture d'un texte d'accord.

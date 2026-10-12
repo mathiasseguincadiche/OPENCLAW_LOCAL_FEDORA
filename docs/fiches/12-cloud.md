@@ -1,10 +1,20 @@
-# Le cloud, facultatif
+# DeepSeek cloud — le moteur de capacité de l'atelier hybride
 
 [← Guide](../GUIDE.md) · [Schéma des routes](11-comment-ca-marche.md) · [État réel](../../STATUS.md)
 
-Par défaut, tout reste sur ton PC avec Qwen. Le cloud est une option que tu actives toi-même, pour les moments où un modèle plus puissant aide : expliquer une notion publique, relire un long texte. Le modèle cloud est **DeepSeek V4.1 Flash**, appelé par OpenRouter.
+L'atelier est **hybride par conception** : **Qwen local** sert le travail quotidien privé, tandis que **DeepSeek V4.1 Flash dans le cloud** est prévu pour les tâches **plus exigeantes** — revue de modules Terraform/Ansible, architecture complexe, longs diagnostics et audit de documents publics. DeepSeek est appelé par **OpenRouter**, à travers une passerelle locale qui impose les permissions, le filtre et le budget.
+
+Le cloud reste **facultatif au sens du consentement**, mais **central dans la stratégie de capacité**. L'objectif est une meilleure qualité et moins de reprises quand la difficulté justifie le service distant ; **cela reste à démontrer par des essais**, pas une promesse de performance automatique.
+
+→ [Comprendre la stratégie hybride et les cas adaptés à chaque modèle](../ARCHITECTURE_HYBRIDE.md).
 
 Tant que tu n'as rien activé, rien de cette fiche ne s'applique : aucune conversation ni aucun projet ne part vers un modèle distant (seule la recherche Web des rôles, quand tu la demandes, sort pour interroger le Web).
+
+## Deux routes pour deux besoins : autonomie et capacité
+
+La route DeepSeek est volontairement plus généreuse en contexte (jusqu'à **1 048 576 tokens configurés**, sortie jusqu'à **32 768**) que Qwen local (**32 768 / 4 096**). Cela vise la cohérence des dossiers techniques complexes, mais **ne garantit ni une réponse plus rapide ni une meilleure exactitude**.
+
+**Pas de routage autonome par tâche** : les variantes « local » et « cloud » sont sélectionnées dans le chat ; l'accord donné à un projet autorise **ce projet** à employer le cloud. L'outil ne décide pas que « l'architecte doit utiliser DeepSeek et le rédacteur Qwen » sans intervention humaine.
 
 ## Le principe : local d'abord, cloud sur demande
 

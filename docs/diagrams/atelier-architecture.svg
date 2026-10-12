@@ -1,78 +1,82 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 755" role="img" aria-labelledby="title desc">
-  <title id="title">Fonctionnement de l'Atelier IA Fedora</title>
-  <desc id="desc">Deux entrées à gauche : Open WebUI et Atelier Projets. Au centre : pont de chat, moteur de projet et données contrôlées. À droite : OpenClaw applique un rôle puis utilise Ollama Qwen local ou, sur autorisation, la passerelle DeepSeek cloud. Les commandes et fichiers passent par des garde-fous.</desc>
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="#628296"/></marker>
-    <marker id="cloud-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="#bb7b3c"/></marker>
-  </defs>
-  <rect width="1220" height="755" rx="20" fill="#f6f9fc"/>
-  <text x="40" y="51" font-family="DejaVu Sans,Arial,sans-serif" font-size="28" font-weight="700" fill="#183a4d">Une demande, des rôles spécialisés, des preuves contrôlées</text>
-  <text x="40" y="81" font-family="DejaVu Sans,Arial,sans-serif" font-size="15" fill="#456273">Architecture logique : ce schéma ne remplace pas les tests réels sur Fedora</text>
-  <g font-family="DejaVu Sans,Arial,sans-serif" font-size="14" font-weight="700">
-    <text x="43" y="137" fill="#126b74">01 — TU UTILISES</text>
-    <text x="375" y="137" fill="#284659">02 — LE SYSTÈME ENCADRE</text>
-    <text x="792" y="137" fill="#163449">03 — LE MODÈLE PROPOSE</text>
-  </g>
-  <!-- Entry cards -->
-  <rect x="40" y="158" width="267" height="95" rx="13" fill="#126b74"/>
-  <text x="173" y="195" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="21" font-weight="700" fill="#fff">Open WebUI</text>
-  <text x="173" y="222" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#eafafb">Chat • choix de rôle • fichiers</text>
-  <rect x="40" y="323" width="267" height="95" rx="13" fill="#126b74"/>
-  <text x="173" y="360" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="21" font-weight="700" fill="#fff">Atelier Projets</text>
-  <text x="173" y="386" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#eafafb">Tâches • suivi • approbations</text>
-  <!-- Orchestration cards -->
-  <rect x="373" y="158" width="349" height="95" rx="13" fill="#284659"/>
-  <text x="548" y="195" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="21" font-weight="700" fill="#fff">Pont de chat · :18891</text>
-  <text x="548" y="222" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#e1eef4">Accès • historique • commandes !</text>
-  <rect x="373" y="323" width="349" height="95" rx="13" fill="#284659"/>
-  <text x="548" y="360" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="21" font-weight="700" fill="#fff">Moteur de projets</text>
-  <text x="548" y="386" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#e1eef4">Plan • verrou • collecte • preuves</text>
-  <rect x="373" y="530" width="349" height="96" rx="13" fill="#e5f0f2" stroke="#87a9b6" stroke-width="2"/>
-  <text x="548" y="565" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="20" font-weight="700" fill="#204657">Projet central</text>
-  <text x="548" y="590" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#355d6b">Sources • décisions • livrables</text>
-  <text x="548" y="611" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="13" fill="#355d6b">Fichiers contrôlés, pas écriture libre</text>
-  <!-- AI cards -->
-  <rect x="791" y="158" width="372" height="95" rx="13" fill="#163449"/>
-  <text x="977" y="193" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="21" font-weight="700" fill="#fff">OpenClaw</text>
-  <text x="977" y="220" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#e0edf2">Consignes et outils d'un seul rôle</text>
-  <rect x="791" y="306" width="372" height="87" rx="13" fill="#d8eaf1" stroke="#5e91a3" stroke-width="2"/>
-  <text x="977" y="342" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="20" font-weight="700" fill="#1d4253">Ollama + Qwen 3.5 9B</text>
-  <text x="977" y="370" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#34596a">Local • Fedora • Intel Arc B580</text>
-  <rect x="791" y="449" width="372" height="78" rx="13" fill="#fff3e4" stroke="#bc864f" stroke-width="2"/>
-  <text x="977" y="481" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="700" fill="#8a5629">Passerelle cloud · :18892</text>
-  <text x="977" y="505" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="13" fill="#835d38">Accord • filtre des secrets • budget</text>
-  <rect x="791" y="565" width="372" height="62" rx="12" fill="#f8e3ca" stroke="#bc864f" stroke-width="2"/>
-  <text x="977" y="591" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="19" font-weight="700" fill="#8a5629">OpenRouter → DeepSeek</text>
-  <text x="977" y="612" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="13" fill="#835d38">Uniquement après autorisation</text>
-  <!-- Interactions -->
-  <g stroke="#628296" stroke-width="3" fill="none" marker-end="url(#arrow)">
-    <path d="M307 205H373"/>
-    <path d="M307 370H373"/>
-    <path d="M722 205H791"/>
-    <path d="M722 360H756V239H791"/>
-    <path d="M548 253V323"/>
-    <path d="M548 418V530"/>
-    <path d="M977 253V306"/>
-  </g>
-  <text x="553" y="294" font-family="DejaVu Sans,Arial,sans-serif" font-size="12" fill="#527084">commandes projet</text>
-  <text x="559" y="478" font-family="DejaVu Sans,Arial,sans-serif" font-size="13" fill="#527084">contrôle + collecte</text>
-  <g stroke="#bb7b3c" stroke-width="3" stroke-dasharray="8 6" fill="none" marker-end="url(#cloud-arrow)">
-    <path d="M1163 207H1180V489H1163"/>
-    <path d="M977 527V565"/>
-  </g>
-  <text x="1175" y="428" text-anchor="end" font-family="DejaVu Sans,Arial,sans-serif" font-size="13" fill="#9b6937">cloud : choix explicite</text>
-  <!-- Human approval note -->
-  <rect x="40" y="477" width="267" height="149" rx="13" fill="#fff" stroke="#b7cbd4" stroke-width="2"/>
-  <text x="173" y="508" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="700" fill="#183a4d">Tu restes décideur</text>
-  <text x="173" y="538" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#3c5e71">Relire les propositions</text>
-  <text x="173" y="561" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#3c5e71">Confirmer les étapes sensibles</text>
-  <text x="173" y="584" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#3c5e71">Exécuter et mesurer sur le PC</text>
-  <path d="M307 566H341V578H373" stroke="#628296" stroke-width="2" stroke-dasharray="5 6" fill="none" marker-end="url(#arrow)"/>
-  <!-- Legend -->
-  <line x1="42" y1="685" x2="88" y2="685" stroke="#628296" stroke-width="3" marker-end="url(#arrow)"/>
-  <text x="104" y="690" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#35576b">Flux contrôlé</text>
-  <line x1="278" y1="685" x2="324" y2="685" stroke="#bb7b3c" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#cloud-arrow)"/>
-  <text x="340" y="690" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#835d38">Route cloud facultative</text>
-  <text x="790" y="688" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#35576b">Un modèle / une génération à la fois</text>
-  <text x="40" y="725" font-family="DejaVu Sans,Arial,sans-serif" font-size="13" fill="#668090">Le schéma montre les flux logiques, non la liste exhaustive des ports ni un fonctionnement matériel déjà démontré.</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 790" role="img" aria-labelledby="title desc">
+<title id="title">Atelier hybride Fedora : Qwen local et DeepSeek cloud</title>
+<desc id="desc">Open WebUI et Atelier Projets alimentent un pont et un moteur contrôlé. OpenClaw applique le rôle spécialisé, puis deux voies sont possibles : Qwen 3.5 local sur Fedora et Intel Arc B580 par défaut ; DeepSeek V4.1 Flash distant via une passerelle qui impose consentement, confidentialité et budget. Le projet conserve fichiers et preuves ; l'humain décide.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#648398"/></marker><marker id="cloudArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#b6783a"/></marker></defs>
+<rect width="1280" height="790" rx="18" fill="#f6f9fc"/>
+<g font-family="DejaVu Sans,Arial,sans-serif">
+<text x="36" y="48" font-size="29" font-weight="700" fill="#14374c">Un atelier, sept agents, deux moteurs complémentaires</text>
+<text x="36" y="78" font-size="15" fill="#416477">Qwen local : autonomie et confidentialité · DeepSeek cloud : capacité pour les tâches DevOps difficiles</text>
+<g font-size="14" font-weight="700"><text x="37" y="132" fill="#116b74">1 · INTERFACES</text><text x="334" y="132" fill="#284659">2 · CONTRÔLES</text><text x="633" y="132" fill="#284659">3 · MISSIONS</text><text x="922" y="132" fill="#234d64">4 · MODÈLES</text></g>
+<!-- Interfaces -->
+<rect x="34" y="158" width="244" height="108" rx="15" fill="#126b74"/>
+<text x="156" y="193" fill="#fff" text-anchor="middle" font-weight="700" font-size="21">Open WebUI</text>
+<text x="156" y="221" fill="#e5f8f6" text-anchor="middle" font-size="14">Chat · rôles · fichiers</text>
+<text x="156" y="243" fill="#e5f8f6" text-anchor="middle" font-size="13">Modèle choisi dans le chat</text>
+<rect x="34" y="332" width="244" height="107" rx="15" fill="#126b74"/>
+<text x="156" y="368" fill="#fff" text-anchor="middle" font-weight="700" font-size="21">Atelier Projets</text>
+<text x="156" y="395" fill="#e5f8f6" text-anchor="middle" font-size="14">Tâches · sources · accords</text>
+<text x="156" y="417" fill="#e5f8f6" text-anchor="middle" font-size="13">Consentement cloud du projet</text>
+<rect x="34" y="535" width="244" height="111" rx="15" fill="#ffffff" stroke="#a3becb" stroke-width="2"/>
+<text x="156" y="567" fill="#183d50" text-anchor="middle" font-size="19" font-weight="700">Tu gardes la décision</text>
+<text x="156" y="593" fill="#436579" text-anchor="middle" font-size="14">Choisir le modèle et le plan</text>
+<text x="156" y="616" fill="#436579" text-anchor="middle" font-size="14">Approuver · vérifier · tester</text>
+<!-- Control plane -->
+<rect x="332" y="158" width="250" height="108" rx="15" fill="#284659"/>
+<text x="457" y="193" fill="#fff" text-anchor="middle" font-weight="700" font-size="20">Pont de chat</text>
+<text x="457" y="219" fill="#e0eef2" text-anchor="middle" font-size="14">Port 18891</text>
+<text x="457" y="240" fill="#e0eef2" text-anchor="middle" font-size="14">Commandes et historique</text>
+<rect x="332" y="332" width="250" height="107" rx="15" fill="#284659"/>
+<text x="457" y="368" fill="#fff" text-anchor="middle" font-weight="700" font-size="20">Moteur de projets</text>
+<text x="457" y="395" fill="#e0eef2" text-anchor="middle" font-size="14">Plan · verrou · collecte</text>
+<text x="457" y="417" fill="#e0eef2" text-anchor="middle" font-size="13">Garde-fous et confirmations</text>
+<rect x="332" y="535" width="250" height="111" rx="15" fill="#e4f0f3" stroke="#87aabb" stroke-width="2"/>
+<text x="457" y="569" fill="#254d5f" text-anchor="middle" font-size="20" font-weight="700">Projet central</text>
+<text x="457" y="595" fill="#416576" text-anchor="middle" font-size="14">Sources · livrables · preuves</text>
+<text x="457" y="618" fill="#416576" text-anchor="middle" font-size="13">Collecte vérifiée, non libre</text>
+<!-- Orchestration -->
+<rect x="633" y="248" width="232" height="131" rx="16" fill="#163449"/>
+<text x="749" y="284" fill="#fff" text-anchor="middle" font-size="23" font-weight="700">OpenClaw</text>
+<text x="749" y="315" fill="#e2eef4" text-anchor="middle" font-size="15">Un des sept rôles</text>
+<text x="749" y="340" fill="#e2eef4" text-anchor="middle" font-size="14">Consignes et outils</text>
+<text x="749" y="361" fill="#e2eef4" text-anchor="middle" font-size="13">Même mission sur les 2 routes</text>
+<rect x="633" y="535" width="232" height="111" rx="15" fill="#e4f0f3" stroke="#87aabb" stroke-width="2"/>
+<text x="749" y="569" fill="#254d5f" text-anchor="middle" font-size="19" font-weight="700">Outils métier</text>
+<text x="749" y="594" fill="#416576" text-anchor="middle" font-size="14">Recherche · statique</text>
+<text x="749" y="617" fill="#416576" text-anchor="middle" font-size="13">Exports et schémas locaux</text>
+<!-- Local model -->
+<rect x="916" y="155" width="330" height="155" rx="15" fill="#dbeef3" stroke="#6097a8" stroke-width="2.5"/>
+<text x="939" y="184" fill="#1d6579" font-size="16" font-weight="700">A · LOCAL PAR DÉFAUT</text>
+<text x="1081" y="222" text-anchor="middle" fill="#173d4e" font-size="23" font-weight="700">Ollama + Qwen 3.5 9B</text>
+<text x="1081" y="251" text-anchor="middle" fill="#315c70" font-size="14">Fedora · Intel Arc B580</text>
+<text x="1081" y="278" text-anchor="middle" fill="#315c70" font-size="14">Quotidien · privé · tâches ciblées</text>
+<!-- Cloud gateway and model -->
+<rect x="916" y="365" width="330" height="118" rx="15" fill="#fff1de" stroke="#bd8749" stroke-width="2.5"/>
+<text x="939" y="392" fill="#906029" font-size="16" font-weight="700">B · CLOUD SUR ACCORD</text>
+<text x="1081" y="426" text-anchor="middle" fill="#815428" font-size="21" font-weight="700">Passerelle :18892</text>
+<text x="1081" y="451" text-anchor="middle" fill="#815428" font-size="14">Filtre · budget · politique fournisseur</text>
+<rect x="916" y="535" width="330" height="111" rx="15" fill="#fae7cd" stroke="#bd8749" stroke-width="2.5"/>
+<text x="1081" y="570" text-anchor="middle" fill="#784b22" font-size="21" font-weight="700">OpenRouter → DeepSeek</text>
+<text x="1081" y="597" text-anchor="middle" fill="#84572b" font-size="16">V4.1 Flash</text>
+<text x="1081" y="620" text-anchor="middle" fill="#84572b" font-size="13">Analyses longues et complexes</text>
+<!-- arrows -->
+<g fill="none" stroke="#648398" stroke-width="3" marker-end="url(#arrow)">
+<path d="M278 208H332"/><path d="M278 386H332"/>
+<path d="M582 208H607V280H633"/><path d="M582 386H608V342H633"/>
+<path d="M457 266V332"/><path d="M457 439V535"/>
+<path d="M865 282H891V229H916"/>
+<path d="M749 379V535"/>
+</g>
+<g fill="none" stroke="#b6783a" stroke-width="3" stroke-dasharray="9 7" marker-end="url(#cloudArrow)">
+<path d="M865 340H891V426H916"/><path d="M1081 483V535"/>
+</g>
+<path d="M278 590H332" fill="none" stroke="#648398" stroke-width="2" stroke-dasharray="5 6" marker-end="url(#arrow)"/>
+<text x="599" y="495" font-size="12" fill="#496779">Fichiers contrôlés</text>
+<text x="877" y="349" font-size="12" fill="#9a6936">Choix explicite</text>
+<line x1="42" y1="699" x2="91" y2="699" stroke="#648398" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="108" y="703" font-size="14" fill="#3c6074">Route locale</text>
+<line x1="290" y1="699" x2="339" y2="699" stroke="#b6783a" stroke-width="3" stroke-dasharray="9 7" marker-end="url(#cloudArrow)"/>
+<text x="358" y="703" font-size="14" fill="#8c5b2d">Route cloud autorisée</text>
+<text x="661" y="703" font-size="14" fill="#3c6074">Une seule génération à la fois · consentement et preuves</text>
+<text x="40" y="754" font-size="13" fill="#607d8e">Schéma logique, pas preuve de déploiement. Le cloud n'est jamais un repli automatique du local.</text>
+</g>
 </svg>

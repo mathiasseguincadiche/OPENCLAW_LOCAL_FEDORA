@@ -9,19 +9,32 @@ L'atelier sépare **quatre responsabilités** :
 1. **Toi, l'utilisateur** : tu exprimes le besoin, choisis le modèle, approuves les étapes et testes les résultats.
 2. **Les interfaces et le moteur** : ils organisent les demandes, les tâches, les sources et les confirmations.
 3. **OpenClaw et les outils** : ils appliquent les instructions et capacités autorisées au rôle demandé.
-4. **Le modèle IA** : il explique et propose, **sans droit d'exécuter du code sur l'hôte**.
+4. **Les deux moteurs d'IA** : Qwen **local** fournit les réponses ciblées sur Fedora, et DeepSeek **cloud** fournit la capacité supplémentaire pour les tâches difficiles autorisées ; aucun n'a le droit d'exécuter du code sur l'hôte.
 
 > Analogie utile : **Open WebUI est le guichet**, **le moteur de projets est le chef de chantier et son registre**, **OpenClaw distribue la fiche métier**, et **Qwen/DeepSeek propose le travail**. L'analogie s'arrête là : il n'y a pas sept modèles autonomes et le modèle ne signe jamais la réception des travaux.
 
 ![Architecture de l'atelier : composants, flux et protections](../diagrams/atelier-architecture.svg)
 
+## Le choix qui justifie l'architecture hybride
+
+**Le même agent peut travailler avec Qwen ou DeepSeek.** Le rôle indique « *quoi faire et quels outils utiliser* » ; le modèle détermine « *avec quelle capacité et à quel coût* ».
+
+- **Qwen sur Ollama/B580** : confidentialité et travail quotidien, contexte local configuré à **32 768 tokens**.
+- **DeepSeek V4.1 Flash via OpenRouter** : raisonnement et contexte plus grands (**1 048 576 tokens déclarés**) pour les analyses DevOps difficiles et les dossiers publics volumineux.
+- **Passerelle cloud `127.0.0.1:18892`** : protège et comptabilise chaque demande avant le fournisseur distant, y compris les résultats d'outils.
+- **Choix explicite** : un projet autorise ou refuse la route cloud pour **ses étapes** ; le système ne décide pas encore automatiquement modèle par modèle pour chaque tâche.
+
+**Pourquoi c'est important ?** Essayer de traiter de très longues architectures avec un 9B peut nécessiter des découpages et des reprises ; utiliser DeepSeek pour tout ferait perdre le contrôle des coûts et exposerait inutilement du contenu. L'atelier cherche donc **le bon niveau de ressources** en conservant le consentement humain. Les gains restent **à mesurer**.
+
+→ [Stratégie hybride expliquée, scénarios et critères de choix](../ARCHITECTURE_HYBRIDE.md).
+
 ## Lire le schéma en moins d'une minute
 
 - **À gauche : les portes d'entrée.** Open WebUI pour discuter ; Atelier Projets pour suivre un projet et ses preuves. Les deux utilisent la même logique de projet.
 - **Au milieu : le contrôle.** Le pont de chat et le moteur de projets gèrent commandes déterministes, documents, droits, verrou et étapes d'approbation.
-- **À droite : le travail du modèle.** OpenClaw applique la mission d'un des sept rôles. Par défaut Ollama exécute Qwen localement sur Fedora/B580.
+- **À droite : les deux routes d'inférence.** OpenClaw applique la mission d'un des sept rôles. La voie locale arrive à Ollama/Qwen ; la voie cloud, **autorisée explicitement**, traverse le filtre et le budget avant OpenRouter/DeepSeek. Les deux sont des moteurs utiles, pas un « modèle principal et un modèle de secours automatique ».
 - **En bas : les sorties durables.** Le projet central contient sources, contexte, fichiers collectés, éléments de preuve et rapports. Un résultat du modèle n'y entre pas librement.
-- **Voie cloud facultative :** après autorisation, OpenClaw contacte la passerelle cloud locale qui **filtre et borne** avant OpenRouter/DeepSeek. Elle n'a pas de flèche automatique venant de l'échec du local.
+- **Voie DeepSeek :** destinée **aux tâches difficiles où une capacité supérieure a de la valeur**, après autorisation. La passerelle **filtre et borne** les appels ; elle n'est pas déclenchée automatiquement par l'échec de Qwen.
 
 Une flèche indique un **échange de données ou de commandes contrôlées**, pas un droit d'écriture ou d'exécution. Le schéma représente l'architecture **prévue par le code**, pas un test réussi sur le vrai PC.
 
@@ -102,7 +115,11 @@ INTAKE_READY → ANALYZED ──→ PLANNED → ASSIGNED → IN_PROGRESS
 
 Les retours vers `IN_PROGRESS` sont des corrections, pas une validation forcée. Une livraison nécessite une confirmation humaine. Le mode guidé n'est activé **que si tu l'as choisi**.
 
-## Parcours n° 3 : la route cloud, uniquement sur accord
+## Parcours n° 3 : DeepSeek, la route de capacité (avec accord)
+
+La route DeepSeek n'a pas été ajoutée pour « afficher un modèle supplémentaire ». Elle est prévue pour les analyses d'architecture, les revues multi-fichiers, les raisonnements longs et les vérifications complexes **lorsque les données peuvent sortir et que le coût est justifié**.
+
+**Le routage disponible aujourd'hui reste explicite :** choisir « · cloud (DeepSeek) » dans le chat, ou approuver l'accès cloud **au niveau du projet**. L'atelier n'effectue pas de classement automatique de la difficulté et n'attribue pas DeepSeek seulement au spécialiste qu'il estime le plus difficile.
 
 ```text
 OpenClaw → passerelle cloud locale :18892

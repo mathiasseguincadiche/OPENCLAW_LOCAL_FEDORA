@@ -1,6 +1,6 @@
 # Discuter
 
-[← Guide](../GUIDE.md) · [Comparer les sept rôles et leurs outils](07-roles-et-outils.md) · [Exemple DevOps](../EXEMPLE_PARCOURS_DEVOPS.md)
+[← Guide](../GUIDE.md) · [Pourquoi Qwen + DeepSeek ?](../ARCHITECTURE_HYBRIDE.md) · [Les sept rôles](07-roles-et-outils.md) · [Exemple DevOps](../EXEMPLE_PARCOURS_DEVOPS.md)
 
 Open WebUI est l'interface de discussion, à l'adresse `http://127.0.0.1:3000`. Elle sert aux questions de tous les jours, comme tu le ferais avec Claude ou ChatGPT.
 

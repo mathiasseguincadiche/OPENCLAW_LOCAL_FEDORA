@@ -21,6 +21,14 @@ Ce que tu peux lui demander dans le chat :
 
 Une bonne façon de l'utiliser : demande un indice plutôt que la solution, partage ton essai, puis demande une correction.
 
+## Deux moteurs pour progresser : Qwen et DeepSeek
+
+Le mentor peut travailler avec **Qwen local** quand tu veux comprendre une notion, travailler sur tes documents privés ou recevoir un exemple rapide. Avec **DeepSeek cloud**, ce **même mentor** dispose d'une route pensée pour expliquer les sujets publics complexes, relier plusieurs concepts et analyser des dossiers plus longs. Cela ne signifie **pas** qu'il enseigne forcément mieux : la précision, la clarté, la latence et le coût doivent être comparés sur tes questions.
+
+**L'atelier ne bascule pas automatiquement le mentor vers DeepSeek** en cas de question difficile : tu choisis la route dans le chat ou autorises le cloud du projet. Les exercices restent facultatifs sur les deux moteurs.
+
+→ [Comprendre l'intérêt et les limites de l'hybride](../ARCHITECTURE_HYBRIDE.md).
+
 ## Apprendre avec le cloud, si tu l'as activé
 
 Pour une notion publique complexe, une longue analyse ou une tâche agentique, le modèle « · cloud (DeepSeek) » peut apporter plus de capacité que Qwen 9B. Ce n'est pas une preuve qu'il enseigne toujours mieux : compare les deux sur tes propres questions. Garde « · local » pour tout ce qui touche ton travail, tes données confidentielles ou ce dont tu n'es pas sûr. Les consignes du mentor sont les mêmes dans les deux modes. Voir [Discuter](03-discuter.md) et [Le cloud, facultatif](12-cloud.md). Un bon réflexe d'apprentissage reste le même quel que soit le modèle : vérifier une version, une commande ou un chiffre dans la documentation officielle.

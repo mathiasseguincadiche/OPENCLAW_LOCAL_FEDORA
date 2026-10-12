@@ -36,6 +36,16 @@ Sources :
 - La qualité du routage avec `data_collection: deny`, les coûts réels et le comportement de l'hébergeur doivent encore être vérifiés par le test de fumée.
 - Les benchmarks du fabricant et les agrégateurs sont utiles pour orienter un choix, pas pour promettre un résultat.
 
+## Pourquoi l'efficacité DevOps justifie un deuxième moteur
+
+Un modèle local compact peut être suffisant pour comprendre un service Linux, rédiger une procédure courte ou relire un fichier privé. En revanche, une architecture composée de nombreuses contraintes, plusieurs modules Terraform/Ansible, une CI complexe et des rapports contradictoires peuvent nécessiter **plus de contexte, plus de raisonnement et davantage d'itérations de correction**.
+
+**DeepSeek V4.1 Flash est précisément la route de capacité choisie pour ces besoins.** La performance visée n'est pas « plus de tokens » mais **un résultat exploitable, bien expliqué, avec moins d'erreurs et de reprises**, sous réserve de mesures. Le tarif cloud n'est justifié que si le bénéfice en qualité/temps dépasse le coût **et** que les données peuvent être transmises.
+
+**Cette stratégie hybride n'est pas un routeur intelligent déjà implémenté.** Dans le chat, l'utilisateur sélectionne le modèle ; dans un projet, l'accord cloud couvre le projet et ses sources, pas un routage automatique par tâche. Les sept spécialistes restent identiques sur Qwen ou DeepSeek. Une estimation de « difficulté » par rôle sans accord cloud n'existe pas.
+
+→ [Architecture hybride : scénarios, critères de décision et trajet détaillé](ARCHITECTURE_HYBRIDE.md).
+
 ## La décision
 
 | Usage | Modèle | Raison |
@@ -99,6 +109,6 @@ Le changement devra alors être explicite, testé dans une pull request, puis va
 
 ## Règle pratique
 
-**Local par défaut. DeepSeek quand la tâche est publique et réellement difficile. Aucune donnée sensible au cloud par confort.**
+**Qwen pour l'autonomie et le privé. DeepSeek pour les tâches publiques difficiles où ses capacités sont réellement utiles. Consentement et budget d'abord, performance mesurée ensuite.**
 
 Cette règle pourra être revue après les premières mesures réelles sur le PC Fedora.

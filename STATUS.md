@@ -1,4 +1,4 @@
-# État du projet
+# État du projet hybride Qwen + DeepSeek
 
 Dernière mise à jour documentaire : 12 octobre 2026.
 
@@ -24,9 +24,19 @@ Tant que les lignes « À faire » et « À mesurer » ne sont pas faites, rien 
 
 ## Lire et comprendre le projet
 
-Le [README](README.md) explique l'objectif et les usages ; le [guide](docs/GUIDE.md) permet de découvrir l'atelier dans l'ordre. La fiche [Rôles et outils](docs/fiches/07-roles-et-outils.md) distingue précisément les droits des sept agents ; [Comment ça marche](docs/fiches/11-comment-ca-marche.md) explique les ports, flux et limites de preuve. Le [parcours DevOps](docs/EXEMPLE_PARCOURS_DEVOPS.md) est **fictif et pédagogique**, pas un test effectué.
+Le [README](README.md) présente le projet comme **hybride**, et [la stratégie Qwen + DeepSeek](docs/ARCHITECTURE_HYBRIDE.md) explique quand et pourquoi utiliser chaque moteur ; le [guide](docs/GUIDE.md) permet de découvrir l'atelier dans l'ordre. La fiche [Rôles et outils](docs/fiches/07-roles-et-outils.md) distingue précisément les droits des sept agents ; [Comment ça marche](docs/fiches/11-comment-ca-marche.md) explique les ports, flux et limites de preuve. Le [parcours DevOps](docs/EXEMPLE_PARCOURS_DEVOPS.md) est **fictif et pédagogique**, pas un test effectué.
 
 Les deux diagrammes de `docs/diagrams/` sont des **représentations logiques du code**, non des preuves d'exécution physique. Les critères et mesures manquants restent ceux décrits dans ce document.
+
+## Qualification de l'efficacité du système hybride
+
+**Objectif technique :** Qwen local pour les tâches courantes et privées, DeepSeek cloud pour les dossiers publics difficiles et les analyses multi-fichiers. Les sept rôles partagent les mêmes outils ; la route est choisie explicitement et le consentement cloud d'un projet s'applique au **projet**.
+
+**Ce qui est vérifié :** la présence des deux routes dans les politiques, les filtres et budgets simulés, les règles de blocage et l'absence de bascule locale → cloud cachée.
+
+**Ce qui n'est pas vérifié :** la qualité comparative Qwen/DeepSeek, l'amélioration réelle du temps de travail, le coût facturé et la sélection du fournisseur sur le véritable PC. Le routage automatique par difficulté/tâche n'est **pas implémenté**.
+
+→ [Pourquoi l'architecture est hybride](docs/ARCHITECTURE_HYBRIDE.md) · [Comment comparer les modèles](docs/DECISION_MODELE.md).
 
 ## Qualité des explications en local
 

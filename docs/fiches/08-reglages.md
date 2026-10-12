@@ -4,6 +4,12 @@
 
 Chaque réglage appartient à une couche précise (interface, pont, moteur de projets, OpenClaw, modèle) : regarde le diagramme avant de modifier un port, un rôle ou une limite.
 
+## Deux profils de capacité, une seule politique de sécurité
+
+Qwen 3.5 9B est la route locale par défaut. DeepSeek V4.1 Flash est la route cloud de capacité, choisie explicitement pour les tâches exigeantes et seulement lorsque la confidentialité et le coût le permettent. Le modèle utilisé ne change **pas** les outils autorisés au rôle.
+
+Le choix des modèles est fixé dans `config/model_catalog.yaml` et `config/core/model_routing.yaml` ; la passerelle et le budget sont déclarés dans `config/core/cloud_policy.yaml`. La route cloud n'est **pas** sélectionnée automatiquement selon la complexité de chaque tâche. [Comprendre la stratégie hybride](../ARCHITECTURE_HYBRIDE.md).
+
 ## Les valeurs en place
 
 | Réglage | Valeur | Fichier |
