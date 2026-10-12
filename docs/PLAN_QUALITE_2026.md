@@ -113,6 +113,16 @@ L'authentification à des projets privés sous permissions minimales, les
 preuves de jobs/artefacts et l'intégration contrôlée au moteur des projets
 restent à développer.
 
+## Recherche documentaire : fraîcheur des preuves
+
+Le contexte de projet envoyé aux agents n'inclut plus les passages de
+recherche expirés. Si l'intégrité de l'intake a dérivé depuis sa capture,
+les anciens extraits de l'index FTS sont exclus et le contexte indique
+`source_integrity=UNVERIFIED_CHANGED` : il faut reconstruire l'index avant
+de citer. Les références conservées incluent le chemin, la page et la ligne
+quand ces informations sont disponibles. Cette vérification automatique
+ne remplace ni une recherche humaine ni l'examen du document original.
+
 ## P2 : ergonomie et vérification métier
 
 - Le plugin Action expose désormais **cinq lectures locales** (projets, état,
