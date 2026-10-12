@@ -26,6 +26,18 @@ C'est précisément **la raison d'être de DeepSeek V4.1 Flash** dans ce projet 
 
 Ces valeurs sont les **limites configurées**, pas la preuve d'un résultat obtenu. Un contexte déclaré à 1 M de tokens ne signifie pas qu'une tâche consomme automatiquement 1 M de tokens.
 
+## Aide au choix intégrée, sans appel à un modèle
+
+Dans Open WebUI, le raccourci **Quel modèle choisir ?** et la commande
+`!modele` présentent les critères de choix **de manière déterministe**.
+Des catégories courtes comme `!modele iac` ou `!modele confidentiel`
+affichent une recommandation motivée. Le programme n'examine pas le contenu
+du chat et ne décide jamais qu'une conversation est sans danger pour le cloud.
+
+C'est **une aide manuelle**, pas une sélection automatique ni un classificateur
+de données privées. Elle ne consomme aucune requête Qwen ou DeepSeek et ne
+modifie ni le budget ni les accords de projet.
+
 ## En pratique : quand solliciter quel modèle ?
 
 Ce tableau donne des **critères de choix**, pas des résultats de benchmark déjà mesurés.
