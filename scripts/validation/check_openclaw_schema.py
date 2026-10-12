@@ -24,6 +24,15 @@ if extract_openclaw_version(version) != pin:
 plugin = Path(os.environ["OPENCLAW_SCHEMA_PARALLEL_PATH"]).resolve()
 if not (plugin / "openclaw.plugin.json").is_file():
     raise SystemExit("Pinned Parallel plugin absent")
+plugin_meta = json.loads((plugin / "package.json").read_text(encoding="utf-8"))
+parallel_pin = str(
+    root_contract(repo, "runtime_versions.yaml")["openclaw"]["plugins"]["parallel"]["version"]
+)
+if (
+    plugin_meta.get("name") != "@openclaw/parallel-plugin"
+    or plugin_meta.get("version") != parallel_pin
+):
+    raise SystemExit("Parallel plugin npm package differs from exact repository pin")
 with tempfile.TemporaryDirectory(prefix="clawfedora-native-schema-") as temporary:
     state = Path(temporary)
     toolkit = state / "runtime/extensions/clawfedora-toolkit"
