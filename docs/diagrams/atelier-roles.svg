@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 790" role="img" aria-labelledby="title desc">
-<title id="title">Les sept rôles d'un seul atelier IA</title>
-<desc id="desc">Le mentor, l'expert recherche, l'architecte, le DevOps, le spécialiste sécurité, le rédacteur et l'auditeur partagent le même modèle local Qwen. Le worker choisit les rôles utiles et les appelle successivement. Les traits pointillés représentent une sélection de profil, pas une discussion autonome entre agents.</desc>
+<title id="title">Les sept rôles de l'atelier hybride Qwen et DeepSeek</title>
+<desc id="desc">Le mentor, la recherche, l'architecte, le DevOps, la sécurité, le rédacteur et l'auditeur utilisent Qwen en local ou DeepSeek dans le cloud selon la route autorisée. Le worker les appelle successivement, sans routage automatique entre moteurs. Les traits pointillés représentent une sélection de profil, pas une discussion autonome entre agents.</desc>
 <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#698698"/></marker></defs>
 <rect x="0" y="0" width="1200" height="790" rx="20" fill="#f6f9fc"/>
-<text x="42" y="48" fill="#193b4d" font-family="DejaVu Sans,Arial,sans-serif" font-size="28" font-weight="700">Sept métiers, un modèle IA, un seul travail à la fois</text>
-<text x="42" y="79" fill="#4b6879" font-family="DejaVu Sans,Arial,sans-serif" font-size="15">Un rôle = une mission, des consignes et des outils autorisés • le worker distribue les tâches</text>
+<text x="42" y="48" fill="#193b4d" font-family="DejaVu Sans,Arial,sans-serif" font-size="28" font-weight="700">Sept métiers, Qwen + DeepSeek, un travail à la fois</text>
+<text x="42" y="79" fill="#4b6879" font-family="DejaVu Sans,Arial,sans-serif" font-size="15">Sept missions et outils autorisés • Qwen local ou DeepSeek cloud sur choix explicite</text>
 <!-- specialist cards left -->
 <g font-family="DejaVu Sans,Arial,sans-serif">
 <rect x="43" y="207" width="325" height="98" rx="14" fill="#e3eef4" stroke="#8fb2c1" stroke-width="2"/>
@@ -37,9 +37,9 @@
 <text x="600" y="155" text-anchor="middle" fill="#fff" font-size="21" font-weight="700">Mentor infrastructure/OPS</text>
 <text x="600" y="180" text-anchor="middle" fill="#e4faf8" font-size="15">Expliquer • cadrer • accompagner</text>
 <rect x="436" y="332" width="328" height="128" rx="18" fill="#173a50"/>
-<text x="600" y="373" text-anchor="middle" fill="#fff" font-size="24" font-weight="700">Qwen 3.5 9B</text>
-<text x="600" y="403" text-anchor="middle" fill="#e1edf6" font-size="16">Un seul modèle local via Ollama</text>
-<text x="600" y="428" text-anchor="middle" fill="#b8dae6" font-size="14">Même moteur, consignes différentes</text>
+<text x="600" y="373" text-anchor="middle" fill="#fff" font-size="24" font-weight="700">Qwen / DeepSeek</text>
+<text x="600" y="403" text-anchor="middle" fill="#e1edf6" font-size="16">Deux moteurs complémentaires</text>
+<text x="600" y="428" text-anchor="middle" fill="#b8dae6" font-size="14">Rôle identique, route autorisée</text>
 <rect x="436" y="505" width="328" height="80" rx="14" fill="#e5f0f2" stroke="#8eb2c1" stroke-width="2"/>
 <text x="600" y="539" text-anchor="middle" fill="#23495b" font-size="20" font-weight="700">Worker de projet</text>
 <text x="600" y="562" text-anchor="middle" fill="#406275" font-size="14">Choisit l'ordre et collecte les preuves</text>
@@ -57,7 +57,7 @@
 <path d="M600 505V461" stroke="#698698" stroke-width="3" fill="none" marker-end="url(#arr)"/>
 <rect x="41" y="633" width="1117" height="100" rx="14" fill="#fff" stroke="#c3d5df" stroke-width="2"/>
 <text x="64" y="664" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="700" fill="#1c4154">Et si le cloud est activé ?</text>
-<text x="64" y="690" font-family="DejaVu Sans,Arial,sans-serif" font-size="15" fill="#466878">Le même rôle peut utiliser DeepSeek via la passerelle filtrée, après accord explicite. Ce n'est pas un huitième agent.</text>
+<text x="64" y="690" font-family="DejaVu Sans,Arial,sans-serif" font-size="15" fill="#466878">Qwen est local ; DeepSeek est la route de capacité via la passerelle, après accord. Aucun nouveau rôle n'est ajouté.</text>
 <text x="64" y="713" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#466878">Traits pointillés = sélection de consignes, pas communication directe entre agents. Aucun rôle n'exécute des commandes sur Fedora.</text>
-<text x="44" y="768" font-family="DejaVu Sans,Arial,sans-serif" font-size="13" fill="#668090">Un rôle n'est sollicité que s'il est utile au plan approuvé ; la relecture reste soumise aux preuves et à la validation humaine.</text>
+<text x="44" y="768" font-family="DejaVu Sans,Arial,sans-serif" font-size="13" fill="#668090">Le choix local/cloud n'est pas automatique par agent ; les preuves et approbations restent humaines.</text>
 </svg>
