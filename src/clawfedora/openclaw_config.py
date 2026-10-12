@@ -170,12 +170,20 @@ def build_openclaw_patch(
     web = _mapping(web_policy.get("nominal_path"))
     global_tools = _mapping(tools.get("security_defaults"))
 
+    from clawfedora.native_stream import opted_in
+
+    gateway: dict[str, Any] = {
+        "mode": "local",
+        "bind": "loopback",
+        "controlUi": {"newSessionModelDefaults": "configured"},
+    }
+    # The operator-privileged HTTP endpoint is absent from nominal config.
+    # A private, explicit canary marker is required to stage it.
+    if opted_in(runtime_root):
+        gateway["http"] = {"endpoints": {"chatCompletions": {"enabled": True}}}
+
     return {
-        "gateway": {
-            "mode": "local",
-            "bind": "loopback",
-            "controlUi": {"newSessionModelDefaults": "configured"},
-        },
+        "gateway": gateway,
         "plugins": {
             "allow": ["parallel", "clawfedora-toolkit", "memory-core"],
             "slots": {"memory": "none"},
