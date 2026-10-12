@@ -1,6 +1,8 @@
 # Entretenir
 
-[← Guide](../GUIDE.md)
+[← Guide](../GUIDE.md) · [Source de vérité et collecte](11-comment-ca-marche.md)
+
+Le projet conserve tes sources et tes décisions : **sauvegarder** ne signifie pas encore **avoir testé une restauration**. Toute preuve de restauration doit venir d'un essai réel.
 
 Avant toute opération de cette fiche, attends la fin d'une génération en cours ou mets ton projet en pause : ces commandes refusent de s'exécuter pendant que le modèle travaille.
 
