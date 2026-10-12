@@ -53,8 +53,11 @@ Source officielle : https://www.openwebui.com/blog/v0-12-0-a-voice-that-talks-ba
 
 ## P1 : expérience de conversation
 
-- **Streaming réel** : adapter le producteur OpenClaw et le pont pour envoyer les tokens progressivement.
-  L'actuel événement SSE est émis seulement à la fin ; changer le transport seul ne suffit pas.
+- **Streaming réel** : PR #89 et #90 intégrées ; le transport et le pont WebUI
+  savent émettre progressivement depuis OpenClaw sous activation canary privée.
+  La voie nominale reste le CLI en un bloc. La vraie réception par Open WebUI,
+  l'annulation et le Gateway opérateur sont **à qualifier sur Fedora**, pas
+  considérés prouvés par la CI.
 - Arrêt explicite : traiter déconnexion et annulation sans libérer un verrou ni oublier un coût encore engagé.
 - Chat sans projet : étendre l'analyse isolée aux PDF/Office/images avec la **même** ingestion contrôlée, sans raccourci direct vers le cloud.
 - Ne jamais faire d'un fichier joint ou d'un message du modèle une confirmation humaine.
