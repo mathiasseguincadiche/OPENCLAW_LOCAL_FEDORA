@@ -38,7 +38,7 @@ RUN_COMMANDS = (
     "soumettre", "importer",
 )
 COMMANDS = (
-    "aide", "projets", "projet", "etat", "quitter", "modele", "budget",
+    "aide", "projets", "projet", "etat", "sources", "quitter", "modele", "budget",
     "garder", "propositions", "voir", "accepter", "refuser",
     *FLOW_COMMANDS, *RUN_COMMANDS,
 )
@@ -518,6 +518,7 @@ HELP = """Commandes du pont (comprises par le programme, jamais par le modèle) 
 - `!projets` : liste vos projets, avec leur état
 - `!projet <id>` : sélectionne un projet (un morceau d'identifiant ou de titre suffit s'il est unique)
 - `!etat` : état du projet sélectionné (tâches, pause, cloud, traitement en cours)
+- `!sources` : liste en lecture seule les sources et leur état d'ingestion
 - `!modele [catégorie]` : conseille Qwen ou DeepSeek selon la tâche,
   sans transmettre de conversation à un modèle
 - `!budget` : affiche les dépenses et réservations cloud du mois, sans appel au modèle
@@ -644,6 +645,42 @@ def run_command(
             for r in rows
         ]
         return bridge_reply(current, "\n".join(table) + "\n\nChoisissez avec `!projet <id>`.")
+    if name == "sources":
+        if args:
+            return bridge_reply(current, "Utilisez uniquement `!sources` sans argument.")
+        project = open_project(runtime, current) if current else None
+        if project is None:
+            return bridge_reply(None, "Aucun projet sélectionné. Faites `!projets`.")
+        from clawfedora.project_intake import validate_input_integrity
+
+        try:
+            drift = validate_input_integrity(project)
+            index = read_json(project / "context/ingestion/index.json")
+            entries = index.get("documents")
+            if not isinstance(entries, list):
+                raise ValueError("index sans documents")
+        except (OSError, ValueError, KeyError):
+            return bridge_reply(current, "Index des sources non vérifiable : réindexer le projet.")
+        table = ["| Source | Type | Lecture |", "|---|---|---|"]
+        valid = [entry for entry in entries if isinstance(entry, dict)]
+        for entry in valid[:20]:
+            source = str(entry.get("path", ""))
+            if not source.startswith("intake/") or ".." in Path(source).parts:
+                continue
+            table.append(
+                f"| {_cell(source, 90)} | {_cell(entry.get('kind', 'inconnu'), 16)} "
+                f"| {_cell(entry.get('status', 'inconnu'), 16)} |"
+            )
+        if not valid:
+            table.append("| Aucune source importée | — | — |")
+        if len(valid) > 20:
+            table.append(f"\nAffichage limité aux 20 premières sources ({len(valid)} au total).")
+        if drift:
+            table.append("\n**Attention :** sources modifiées depuis l'inventaire ; "
+                         "les extraits existants ne sont pas une preuve à jour.")
+        return bridge_reply(
+            current, "\n".join(table) + "\n\nAucun document n'a été envoyé au modèle."
+        )
     if name == "quitter":
         return bridge_reply(None, "Aucun projet n'est plus sélectionné.")
     if name == "etat" or (name == "projet" and not args):
