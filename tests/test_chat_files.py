@@ -147,7 +147,7 @@ def test_upload_rejects_project_outside_runtime(tmp_path: Path) -> None:
 
 def test_standalone_text_attachments_are_private_and_bounded(tmp_path: Path) -> None:
     runtime = tmp_path / "runtime"
-    uploaded = _upload(runtime, "main.tf", b'resource "null_resource" "example" {}\\n')
+    uploaded = _upload(runtime, "main.tf", b'resource "null_resource" "example" {}\n')
     prompt = chat_files.standalone_texts(runtime, [uploaded])
     assert "main.tf" in prompt and "null_resource" in prompt
     with pytest.raises(ValueError, match="projet"):
