@@ -14,6 +14,7 @@ import re
 import stat
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -88,7 +89,7 @@ def _permitted(provider: str, url: str) -> bool:
     return False
 
 
-def _authenticated_reader(provider: str, token: str):
+def _authenticated_reader(provider: str, token: str) -> Callable[[str], Any]:
     """A closure with no externally chosen host; reject redirects and errors."""
     def read(url: str) -> Any:
         if not _permitted(provider, url):
