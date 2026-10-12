@@ -60,11 +60,11 @@ def local_bridge(
 ) -> str:
     create = creation_brief is not None
     if create:
-        if not mutation or not command.startswith("!creer "):
+        if not mutation or not command.startswith("!creer ") or len(command) > 200:
             raise ValueError("création non autorisée")
         title = command.removeprefix("!creer ")
         if (
-            not title.strip() or len(title) > 200
+            not title.strip() or len(title) > 193
             or any(char in title for char in ("\n", "\r", "\x00"))
             or not isinstance(creation_brief, str)
             or not creation_brief.strip()
@@ -161,7 +161,7 @@ class Action:
                 raise ValueError("formulaire navigateur indisponible")
             title = await __event_call__({
                 "type": "input", "data": {
-                    "title": "Nouveau projet", "message": "Titre du projet (200 caractères max)",
+                    "title": "Nouveau projet", "message": "Titre du projet (193 caractères max)",
                     "placeholder": "Exemple : Infrastructure Terraform",
                 },
             })
