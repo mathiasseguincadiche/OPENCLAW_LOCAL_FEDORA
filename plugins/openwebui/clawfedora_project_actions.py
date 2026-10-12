@@ -92,7 +92,7 @@ def local_bridge(
     elif mutation and clarification is None:
         if command not in {item[0] for item in PROJECT_ACTIONS.values()}:
             raise ValueError("action mutante non autorisée")
-    elif command not in READ_ONLY_ACTIONS.values():
+    elif not mutation and command not in READ_ONLY_ACTIONS.values():
         raise ValueError("action non autorisée")
     if not isinstance(key, str) or len(key) < 32:
         raise ValueError("jeton du pont local absent")
@@ -196,7 +196,7 @@ class Action:
                 return
             title, brief = title.strip(), brief.strip()
             if (
-                len(title) > 200 or any(c in title for c in ("\n", "\r", "\x00"))
+                len(title) > 193 or any(c in title for c in ("\n", "\r", "\x00"))
                 or len(brief.encode("utf-8")) > 12_000 or "\x00" in brief
             ):
                 raise ValueError("titre ou demande de projet trop long ou invalide")
