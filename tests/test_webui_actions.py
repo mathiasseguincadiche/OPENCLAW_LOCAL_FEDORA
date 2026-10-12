@@ -272,9 +272,11 @@ def test_visual_project_creation_requires_title_brief_and_double_approval(
         __id__="create", __user__={"role": "admin"},
         __event_call__=events, __event_emitter__=emit,
     ))
-    assert sent == [("!creer Infrastructure Terraform", "Construire un module Terraform sans données privées.")]
+    assert sent == [
+        ("!creer Infrastructure Terraform", "Construire un module Terraform sans données privées.")
+    ]
     assert [call["type"] for call in calls] == ["input", "input", "confirmation"]
-    assert "approbation" not in notices[0]["data"]["content"].lower() or "creation" in notices[0]["data"]["content"]
+    assert "approuver creation ABCD" in notices[0]["data"]["content"]
     assert "approuver creation ABCD" in notices[0]["data"]["content"]
 
 
