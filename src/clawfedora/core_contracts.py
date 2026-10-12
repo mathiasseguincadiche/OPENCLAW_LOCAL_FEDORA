@@ -296,8 +296,13 @@ def _validate_cloud_contracts(
     if (
         cloud.get("default_reasoning_profile") != "approfondi"
         or profiles != required_profiles
-        or any(profile["max_output_tokens"] > cloud_output for profile in
-               required_profiles.values() if type(cloud_output) is int)
+        or (
+            isinstance(cloud_output, int)
+            and any(
+                profile["max_output_tokens"] > cloud_output
+                for profile in required_profiles.values()
+            )
+        )
     ):
         failures.append("core/cloud: profils d'effort DeepSeek validés, bornés et non modifiables")
 
