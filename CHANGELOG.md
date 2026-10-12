@@ -4,6 +4,11 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Documentation du système hybride
+- Le README, le guide, les rôles, le parcours DevOps, le choix de modèle et les schémas présentent désormais **Qwen 3.5 local et DeepSeek V4.1 Flash cloud comme deux moteurs complémentaires**.
+- Nouvelle fiche `docs/ARCHITECTURE_HYBRIDE.md` : pourquoi DeepSeek est une **route de capacité** pour les tâches DevOps difficiles, critères de choix, parcours, consentement, budget et limites.
+- Clarification essentielle : la sélection du cloud est **explicite**, l'accord s'applique au projet ; il n'existe **pas encore** de routage automatique selon la difficulté ou l'agent. Aucun nouveau comportement technique n'est annoncé comme validé sur Fedora.
+
 ### Ajouté
 - **Interroger un projet depuis Open WebUI, en lecture seule** : commandes `!projets`, `!projet`, `!etat`, `!quitter`, `!aide`, comprises par le pont et jamais par le modèle ; le projet sélectionné est rappelé par un marqueur en tête des réponses ; le rôle reçoit un contexte borné en lecture seule. L'accord cloud du projet s'applique à tout le fil.
 
