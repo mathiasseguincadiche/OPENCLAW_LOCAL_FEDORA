@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import time
 import uuid
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import closing
 from http.server import BaseHTTPRequestHandler
 from typing import Any
@@ -29,7 +29,7 @@ def _event(base: dict[str, Any], delta: dict[str, str], finish: str | None) -> b
 def progressive_completion(
     handler: BaseHTTPRequestHandler,
     model: str,
-    pieces: Iterator[str],
+    pieces: Generator[str, None, None],
     *,
     max_output_bytes: int = MAX_OUTPUT_BYTES,
     truncated_history: int = 0,
