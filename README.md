@@ -25,6 +25,7 @@ Il accompagne aussi un parcours : passer de l'administration systèmes et résea
 | Apprendre avec un mentor qui part des acquis de l'utilisateur | Open WebUI ou l'atelier |
 | Mener un projet avec sept rôles spécialisés | Atelier Projets, `http://127.0.0.1:18890` |
 | Piloter un projet de la création à la livraison, avec confirmations humaines | Open WebUI ou Atelier Projets |
+| Boutons rapides de consultation des projets, de leur état et de l'aide | Open WebUI, après scellage, en lecture seule |
 | Joindre des PDF, Office, archives, code et images avant l'analyse | Open WebUI ou Atelier Projets, dans un projet |
 | Pratiquer en mode guidé, soumettre ses fichiers et recevoir un retour | Open WebUI ou Atelier Projets |
 | Dicter une question et écouter une réponse, sans service vocal cloud | Open WebUI, Whisper + TTS locaux |
