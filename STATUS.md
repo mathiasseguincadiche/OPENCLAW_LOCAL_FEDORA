@@ -112,8 +112,10 @@ refusés dans cette voie. Tests simulés intégrés (PR #97), rendu réel Open W
 
 La commande humaine `clawfedora-doc-bundle` assemble jusqu'à 16 sections
 Markdown relues en source éditable, PDF, DOCX et manifeste SHA-256, sans
-écrasement ni exécution d'agent (PR #93). Les qualités visuelles et
-pédagogiques des exports doivent encore être inspectées manuellement.
+écrasement ni exécution d'agent (PR #93). L'outil Draw.io accepte désormais
+un fichier éditable de **1 à 8 vues indépendantes** (PR #98), dont seule la
+première est représentée dans le SVG/Mermaid d'aperçu. Les qualités visuelles
+et pédagogiques des exports doivent encore être inspectées manuellement.
 
 ## Pilotage visuel des projets Open WebUI
 
