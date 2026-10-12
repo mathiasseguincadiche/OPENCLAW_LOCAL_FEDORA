@@ -515,7 +515,8 @@ class BridgeHandler(BaseHTTPRequestHandler):
                     return
                 try:
                     standalone_attachment_context = chat_files.standalone_texts(
-                        self.server.runtime, file_descriptors
+                        self.server.runtime, file_descriptors,
+                        repo_root=self.server.repo_root,
                     )
                 except (OSError, ValueError, KeyError) as exc:
                     self._completion(
