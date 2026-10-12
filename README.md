@@ -68,7 +68,7 @@ Chaque rôle possède ses **consignes**, son **espace de travail** et une **list
 | **Open WebUI** | `http://127.0.0.1:3000` | Chat, choix du rôle, fichiers, dictée, commandes `!` ; trois boutons rapides **en lecture seule** |
 | **Atelier Projets** | `http://127.0.0.1:18890` | Créer, cadrer, approuver, suivre les tâches, vérifier et livrer via le tableau de bord |
 
-**Précision :** Open WebUI n'a pas encore tous les contrôles de projet en boutons. Les opérations avancées utilisent les commandes textuelles ou le tableau de bord. Le chat local accepte sans projet **4 petits fichiers texte/code, 12 000 octets cumulés** ; les PDF, Office et images suivent l'ingestion contrôlée d'un projet. [Détails des fichiers](docs/fiches/06-fichiers-et-schemas.md).
+**Précision :** Open WebUI n'a pas encore tous les contrôles de projet en boutons. Les opérations avancées utilisent les commandes textuelles ou le tableau de bord. Le chat local permet aussi d'analyser de petits fichiers texte/code **sans créer de projet** (4 fichiers, 12 000 octets cumulés) ; les PDF, Office et images suivent l'ingestion contrôlée d'un projet. [Détails des fichiers](docs/fiches/06-fichiers-et-schemas.md).
 
 ## Modèle local et cloud facultatif
 
@@ -97,7 +97,7 @@ cd OPENCLAW_LOCAL_FEDORA
 
 ## Limites : ne pas confondre « codé » et « prouvé »
 
-**Le PC cible reste à valider** : accélération B580, vraie interface et uploads Open WebUI, voix, sauvegarde/restauration et appels réels OpenRouter. Les réponses du chat arrivent **en bloc**, la carte ne traite qu'une génération à la fois, et les fichiers proposés ne sont **pas** des déploiements validés. La version déployée reste **Open WebUI 0.11.4** : le canary 0.12.0 est un essai isolé, pas une migration.
+**Le PC cible reste à valider :** le projet n'a pas encore tourné sur le PC cible dans le cadre des essais de réception documentés. Accélération B580, vraie interface et uploads Open WebUI, voix, sauvegarde/restauration et appels réels OpenRouter restent à qualifier. Les réponses du chat arrivent **en bloc**, la carte ne traite qu'une génération à la fois, et les fichiers proposés ne sont **pas** des déploiements validés. La version déployée reste **Open WebUI 0.11.4** : le canary 0.12.0 est un essai isolé, pas une migration.
 
 Les tests automatiques ne prouvent pas un résultat sur ton matériel. Voir [état précis](STATUS.md), [test de fumée](docs/SMOKE_TEST_WEBUI.md) et [plan de qualité](docs/PLAN_QUALITE_2026.md).
 
