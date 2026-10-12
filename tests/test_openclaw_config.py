@@ -85,6 +85,7 @@ def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
     assert tools["profile"] == "minimal"
     assert tools["sessions"] == {"visibility": "self"}
     assert tools["agentToAgent"] == {"enabled": False}
+    assert "skills_read" in tools["deny"]
     mentor_tools = agents["chef-operations"]["tools"]
     assert not {"sessions_list", "sessions_history", "sessions_search"}.intersection(
         mentor_tools["alsoAllow"]
