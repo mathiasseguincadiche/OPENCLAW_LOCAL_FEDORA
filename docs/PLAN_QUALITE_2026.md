@@ -71,6 +71,12 @@ arrêt/redémarrage reproduits ; aucune commande système déclenchée par une p
 
 **Acceptation :** un runbook complet, une architecture multi-zones et un rapport d'audit exportés sans troncature, avec sources éditables.
 
+## Préparer une évaluation métier reproductible
+
+La CLI `clawfedora-evals` génère un plan de **sept scénarios publics et synthétiques** couvrant les sept rôles, puis agrège des **notes humaines et des références de preuves complètes**. Elle n'appelle aucun modèle et ne se présente pas comme un benchmark déjà exécuté. Les comparaisons Qwen vs DeepSeek et la vérification humaine des sorties restent à réaliser dans la dernière phase.
+
+→ [Mode d'emploi des évaluations](EVALUATION_AGENTS.md) · [Programme global](PROGRAMME_AMELIORATION_2026.md).
+
 ## Mesurer l'efficacité réelle de Qwen + DeepSeek
 
 La stratégie du projet est **hybride par conception** : Qwen quotidien, DeepSeek pour les tâches difficiles, sans routage automatique tant que ce mécanisme n'est pas conçu et validé.
