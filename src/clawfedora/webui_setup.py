@@ -75,6 +75,10 @@ def environment(
         "HOST": "127.0.0.1",
         "PORT": str(policy["web_port"]),
         "UVICORN_WORKERS": "1",
+        # Open WebUI's event_call may otherwise wait indefinitely for a
+        # disconnected/inactive browser. The Function interprets the returned
+        # {"error": "..."} as a refusal, never as human consent.
+        "WEBSOCKET_EVENT_CALLER_TIMEOUT": "300",
         "WEBUI_AUTH": "true",
         "ENABLE_SIGNUP": "false" if sealed else "true",
         "DEFAULT_USER_ROLE": "pending",
