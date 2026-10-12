@@ -1,6 +1,21 @@
-# Laboratoire DevOps hors ligne — préparation des validations réelles
+# Validateur DevOps facultatif et isolé — hors de l'architecture IA
 
 [← Guide](GUIDE.md) · [Rôles](fiches/07-roles-et-outils.md) · [Plan de qualité](PLAN_QUALITE_2026.md)
+
+## Périmètre : indépendant de l'atelier IA
+
+**Ce module ne sert pas à faire fonctionner OpenClaw, Qwen, DeepSeek,
+Ollama ou Open WebUI.** Ces composants s'exécutent côté **Fedora**, avec
+Open WebUI dans Podman rootless sur Fedora. Aucune VM ou distribution
+Rocky Linux n'est nécessaire pour installer, démarrer ou faire fonctionner
+le système hybride.
+
+Le validateur `clawfedora-lab` est un **outil annexe, à la demande**,
+destiné à vérifier statiquement des fichiers DevOps fournis par
+l'utilisateur. L'image OCI contenant les validateurs n'a pas besoin
+d'être basée sur Rocky Linux : une autre base de confiance avec les
+binaires requis et les mêmes garanties d'isolation convient.
+Les exercices sur une VM Rocky Linux sont un **projet pédagogique séparé**.
 
 ## Pourquoi ce module existe
 
@@ -9,7 +24,7 @@ Aujourd'hui, l'agent DevOps **rédige** Terraform, Ansible, Bash ou GitHub Actio
 La nouvelle commande `clawfedora-lab` est **indépendante des agents et d'Open WebUI** : **seul l'utilisateur** peut déclencher le contrôle avec `--apply`. Elle exécute un validateur statique précis dans un conteneur **Podman rootless**, sur une **copie temporaire limitée du projet**, avec réseau désactivé.
 
 > **Ce qui est prêt :** moteur CLI, restriction des arguments, collecte défensive, vérifications d'isolation testées en CI.
-> **Ce qui manque :** une image de laboratoire Rocky Linux *construite et qualifiée*, avec les outils souhaités et les versions épinglées, puis des tests en vrai Podman sur le PC. Le code **n'installe aucun outil**, **ne construit pas d'image** et **ne certifie pas que les validateurs existent** dans l'image fournie.
+> **Ce qui manque si cet outil facultatif est utilisé :** une image OCI de validateurs de confiance, construite et qualifiée (Rocky **ou une autre base au choix**), avec versions épinglées, puis des essais Podman réels sur Fedora. Le code **n'installe aucun outil**, **ne construit pas d'image** et **ne certifie pas que les validateurs existent** dans l'image fournie.
 
 ## Fonctionnement concret
 
@@ -30,7 +45,7 @@ Dossier original ── lecture bornée ──► Copie temporaire sans liens ni
                     Copie et conteneur supprimés
 ```
 
-Il ne s'agit **pas** d'une VM Rocky Linux complète. L'image OCI choisie doit provenir d'une construction contrôlée — par exemple basée sur Rocky avec uniquement les validateurs requis. Le fait qu'une image soit référencée par digest **garantit son identité**, pas sa confiance ni sa provenance ; il faut donc aussi vérifier son origine et son contenu.
+Il ne s'agit **pas** d'une VM ni d'un système d'exploitation hôte supplémentaire. L'image OCI, **facultative et indépendante d'OpenClaw**, doit provenir d'une construction contrôlée avec uniquement les validateurs requis. Le fait qu'une image soit référencée par digest **garantit son identité**, pas sa confiance ni sa provenance ; il faut donc aussi vérifier son origine et son contenu.
 
 ## Premier essai — sans exécuter quoi que ce soit
 
@@ -49,7 +64,7 @@ Pour une **exécution réelle**, l'utilisateur doit disposer localement d'une im
 clawfedora-lab \
   --project /chemin/vers/projet \
   --tool terraform-fmt \
-  --image 'registry.example.org/rocky-validators@sha256:<EMPREINTE_REELLE_64_HEX>' \
+  --image 'registry.example.org/devops-validators@sha256:<EMPREINTE_REELLE_64_HEX>' \
   --apply
 ```
 
@@ -61,7 +76,7 @@ La référence ci-dessus est volontairement **un emplacement fictif** : elle n'e
 |---|---|---|
 | `terraform-fmt` | `terraform fmt -check -recursive -no-color` | Ressources cloud créées ou utilisables |
 | `terraform-validate` | `terraform validate -no-color` | Backend, providers, modules externes chargés (hors ligne) ou `apply` réussi |
-| `ansible-lint` | `ansible-lint --offline` | Playbook exécuté ou idempotence sur Rocky |
+| `ansible-lint` | `ansible-lint --offline` | Playbook exécuté ou idempotence sur une machine cible |
 | `actionlint` | Validation des workflows sous `.github/workflows/` | GitHub Actions réellement exécuté |
 | `shellcheck` | Analyse statique des scripts `.sh` de la copie | Shell script sans défaut métier |
 | `hadolint` | Analyse des `Dockerfile` | Conteneur construit, signé ou démarré |
@@ -88,7 +103,7 @@ Le raccordement ultérieur à l'Atelier Projets devra passer par une **file d'ap
 ## Phase de tests matériels, à la fin
 
 Pour atteindre le niveau « prêt quotidien » :
-1. produire et contrôler l'image Rocky des validateurs, ses versions et son digest ;
+1. seulement si le validateur annexe est utilisé, produire et contrôler l'image OCI des validateurs, ses versions et son digest, sans imposer de distribution ;
 2. exécuter les six scénarios réels sous Fedora/Podman rootless, SELinux Enforcing ;
 3. tenter les refus : secret, lien symbolique, timeout, image absente, outil absent, projet volumineux ;
 4. vérifier qu'aucun fichier source original n'a changé ;

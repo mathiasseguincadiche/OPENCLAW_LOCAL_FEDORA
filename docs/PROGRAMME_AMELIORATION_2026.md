@@ -2,6 +2,14 @@
 
 [← README](../README.md) · [État mesuré](../STATUS.md) · [Stratégie hybride](ARCHITECTURE_HYBRIDE.md)
 
+**Architecture non négociable : Fedora est l'hôte natif d'OpenClaw, Ollama,
+des agents, de la passerelle et du moteur de projets. Open WebUI tourne
+dans un conteneur Podman rootless sur Fedora ; DeepSeek est distant via
+OpenRouter uniquement sur autorisation. Aucune VM Rocky Linux ni image
+Rocky n'est nécessaire au fonctionnement de l'atelier.** La VM Rocky de
+formation DevOps est un projet externe facultatif, à ne pas confondre avec
+l'infrastructure IA.
+
 **Date de cadrage : 12 octobre 2026.** Cible : un atelier hybride **Qwen local + DeepSeek cloud**, sept rôles DevOps spécialisés, une interface Web cohérente, un moteur de projet sûr, une pédagogie accessible, des résultats **vérifiables**, et **25 €/mois maximum** de budget API.
 
 ## Le principe : préparer le code, qualifier en dernier
@@ -19,7 +27,7 @@ Une CI verte ne prouve ni un vrai navigateur opérationnel, ni un coût fourniss
 | Lot | Objectif | Critère pour dire « intégré au code » | Phase de réception finale |
 |---|---|---|---|
 | **S0 : confidentialité des sessions** | Isoler les historiques et désactiver les communications inter-agents inutiles | Configuration explicite `tools.sessions.visibility=self`, `tools.agentToAgent.enabled=false`, test contrat | Vérifier qu'aucun rôle ne voit les sessions des autres |
-| **D1 : laboratoire IaC/CI** | Vérifier Terraform, Ansible, Actions, Bash et Dockerfile sans shell exposé à l'IA | CLI hors ligne, lecture seule, digest, quotas, refus défensifs, tests unitaires | Qualifier image Rocky et vrais validateurs sous Podman rootless |
+| **D1 : validateur DevOps indépendant et facultatif** | Proposer des contrôles statiques hors ligne, sur demande humaine, sans shell aux agents | CLI `clawfedora-lab` isolée : aucun prérequis Rocky pour OpenClaw ; image OCI de validateurs au choix, épinglée et contrôlée | Si l'utilisateur choisit cet outil, qualifier séparément l'image et les vrais validateurs Podman |
 | **Q1 : évaluations des sept agents** | Mesurer rigueur, pédagogie, preuves et sécurité | Suite synthétique par rôle, schéma de revue humaine et agrégateur qui refuse les notes incomplètes | Mesurer Qwen vs DeepSeek sur les mêmes cas et examiner les fichiers générés |
 | **Q2 : prompts adaptés au modèle** | Réduire répétitions, ajuster contraintes de contexte et méthode par rôle | Prompts sous limites OpenClaw, tests de structure et jeux de régression | Mesurer l'amélioration réelle sans dégrader le local |
 | **C1 : cloud efficient** | Profils Rapide/Équilibré/Approfondi, coûts et visibilité | Profils contrôlés localement, avec `--apply`, verrou worker, effort et plafonds bornés ; **le profil reste global**, les profils par tâche et l'ajustement automatique ne sont pas livrés | Mesurer latence, coût, qualité sur OpenRouter réel |
@@ -37,12 +45,12 @@ Une CI verte ne prouve ni un vrai navigateur opérationnel, ni un coût fourniss
 
 ## Ordre de travail recommandé
 
-1. **Sécurité et fondations** : permissions, contrats, staging laboratoire, protocoles de preuve.
-2. **Qualité de sortie** : prompts, évaluations, laboratoire et documents.
-3. **Usage quotidien** : vrai streaming, interface Web visualisée et chemins de fichiers.
-4. **Performance hybride** : profils cloud, contexte compact, routage assisté sous accord et coûts tracés.
-5. **Fiabilité d'exploitation** : sauvegardes, intégrations de forges en lecture seule, diagnostics, montée de version canary.
-6. **Tests finaux** : validation sur la machine réelle, benchmarks Qwen/DeepSeek, confidentialité et ergonomie navigateur.
+1. **Streaming réel Open WebUI sur Fedora** : réponses progressives, gestion des annulations, conservation du verrou et du budget cloud, refus vérifiés.
+2. **Pilotage visuel des projets** : créer, sélectionner, cadrer, approuver, lancer, auditer et livrer via des commandes serveur déterministes et confirmations humaines.
+3. **Compatibilité Open WebUI et ergonomie** : canary 0.12, fonctions, téléchargements, pièces jointes, meilleure navigation et contrôle des permissions.
+4. **Fiabilité du système hybride** : prompts, recherche locale, exports, régressions, contrats et dépenses vérifiables.
+5. **Réception finale sur Fedora** : B580, OpenClaw/Ollama, Open WebUI/Podman, DeepSeek/OpenRouter, sauvegarde/restauration et qualité des agents.
+6. **Option hors cœur IA uniquement si utile** : qualification de `clawfedora-lab` avec une image de validateurs OCI au choix. Aucune obligation Rocky Linux.
 
 ## Critères de décision sur chaque amélioration
 

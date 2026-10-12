@@ -92,7 +92,11 @@ La stratégie du projet est **hybride par conception** : Qwen quotidien, DeepSee
 
 Une commande `clawfedora-lab` est maintenant disponible comme **exécuteur standalone**, hors des outils OpenClaw : dry-run obligatoire par défaut, `--apply` humain, image locale épinglée par digest, copie filtrée et temporaire, réseau absent et conteneur rootless en lecture seule. Elle prévoit `terraform fmt/validate`, `ansible-lint`, `actionlint`, `shellcheck` et `hadolint`.
 
-**Ne pas marquer le laboratoire Rocky comme pleinement livré** : image avec validateurs, versions, provenance, vrais tests Podman et intégration des preuves au worker restent ouverts. [Procédure de préparation](LABORATOIRE_DEVOPS.md).
+**Le validateur annexe n'est pas un laboratoire Rocky obligatoire :**
+OpenClaw tourne sur Fedora indépendamment de cet outil. Si le validateur
+facultatif est utilisé, image OCI de base librement choisie, versions,
+provenance et vrais tests Podman restent à qualifier.
+[Précisions](LABORATOIRE_DEVOPS.md).
 
 ## Provenance des pipelines GitHub/GitLab publics
 
@@ -110,9 +114,13 @@ restent à développer.
 
 - Quatre actions visuelles **en lecture seule** sont ajoutées : voir les projets, consulter l'état, l'aide et **quel modèle choisir** (conseils déterministes sans contexte privé). Les opérations mutantes (créer/sélectionner/approuver/exécuter/auditer/livrer) restent à construire avec les confirmations existantes ; ne pas les considérer terminées.
   Toute action doit passer par les mêmes API déterministes et confirmations à usage unique.
-- Développer un labo isolé Rocky Linux pour `terraform fmt/validate`, `ansible-lint`,
-  `actionlint`, tests d'idempotence et diagnostics, avec validation humaine, quotas,
-  permissions minimales et **aucun accès en écriture au PC hôte**.
+- **Priorité :** finaliser le vrai streaming d'Open WebUI sur Fedora
+  et les commandes visuelles de projet avec approbation humaine,
+  sans accès libre des agents à la machine.
+- **Option séparée uniquement si souhaitée :** qualifier le validateur
+  CLI déjà préparé dans une image OCI à base libre, avec quotas
+  et **aucun accès en écriture au projet original** ; jamais une VM
+  Rocky imposée au fonctionnement d'OpenClaw.
 - Ajouter une validation distincte pour les citations/documentations officielles et
   envisager un second modèle auditeur uniquement si le budget l'autorise.
 - Évaluer Qwen contre DeepSeek sur les mêmes cas DevOps avec critère de correction
