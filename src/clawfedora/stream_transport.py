@@ -11,7 +11,7 @@ import http.client
 import json
 import re
 import time
-from collections.abc import Iterable, Iterator
+from collections.abc import Generator, Iterable, Iterator
 from typing import Any
 
 from clawfedora.core_config import AGENT_IDS
@@ -138,7 +138,7 @@ def gateway_local_deltas(
     *,
     operator_token: str,
     port: int = GATEWAY_PORT,
-) -> Iterator[str]:
+) -> Generator[str, None, None]:
     """Server-side HTTPS-less *loopback-only* Gateway stream, with fixed target.
 
     Caller owns the worker lock, consent checks, telemetry and the disconnect
