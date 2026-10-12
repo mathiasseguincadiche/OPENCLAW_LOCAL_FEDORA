@@ -12,8 +12,7 @@ import json
 import re
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import UTC, datetime
 from typing import Any, cast
 from urllib.parse import quote
 
@@ -140,7 +139,7 @@ def verify_public_run(
         "run_id": run_id,
         "commit": commit,
         "verdict": verdict,
-        "observed_at_utc": datetime.now(timezone.utc).isoformat(),
+        "observed_at_utc": datetime.now(UTC).isoformat(),
         "official_url": url,
         "remote_status": status,
         "provenance": "OFFICIAL_PUBLIC_FORGE_API",
