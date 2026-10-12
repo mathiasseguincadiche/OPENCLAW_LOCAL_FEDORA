@@ -29,13 +29,20 @@ def read_only_bridge(
         raise ValueError("jeton du pont local absent")
     if not isinstance(history, list):
         raise ValueError("historique invalide")
-    recent = []
-    for item in history[-24:]:
-        if not isinstance(item, dict):
+    # Project selection lives in the first paragraph of the last project-marked
+    # assistant reply. Never forward ordinary chat contents, code, files or secrets
+    # just to render a read-only toolbar notification.
+    recent: list[dict[str, str]] = []
+    for item in reversed(history):
+        if not isinstance(item, dict) or item.get("role") != "assistant":
             continue
-        role, content = item.get("role"), item.get("content")
-        if role in ("user", "assistant") and isinstance(content, str):
-            recent.append({"role": role, "content": content[:16_000]})
+        content = item.get("content")
+        if not isinstance(content, str):
+            continue
+        marker = content.split("\n", 1)[0][:160]
+        if marker.startswith(("📁 Projet : ", "📁 Aucun projet")):
+            recent.append({"role": "assistant", "content": marker})
+            break
     recent.append({"role": "user", "content": command})
     payload = {
         "model": "openclaw/chef-operations",
