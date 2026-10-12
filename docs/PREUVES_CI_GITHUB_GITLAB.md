@@ -28,6 +28,13 @@ clawfedora-ci-proof \
 Remplacer les valeurs ci-dessus par les **vrais** identifiants. Aucune chaîne
 fictive n'est une preuve du projet.
 
+Pour examiner également les **métadonnées publiques des jobs**, ajouter
+`--jobs`. Cette option interroge la liste officielle des jobs **après** avoir
+vérifié l'identité et le SHA du pipeline ; elle retourne uniquement les
+identifiants, noms, statuts et conclusions des jobs, jamais leurs journaux,
+étapes, variables, artefacts ou secrets. Un résultat paginé ou ambigu est
+**refusé** plutôt que présenté comme une liste complète.
+
 Pour GitLab, fournir `--provider gitlab`, un chemin tel que
 `group/subgroup/repository`, l'identifiant numérique du pipeline et le SHA
 complet du commit.
@@ -59,8 +66,9 @@ Pour cela, le runbook doit collecter les preuves distinctes adaptées.
   un document de preuve mais ne donne pas de permissions supplémentaires.
 - Pas de redirection externe acceptée, pas d'URL libre et taille JSON bornée ;
   des champs inattendus ne sont pas reproduits dans le rapport.
-- Le résultat constate le **statut global du pipeline**, pas une inspection de
-  tous ses jobs, de leurs artefacts ou de leurs journaux.
+- Par défaut, le résultat constate uniquement le **statut global du pipeline**.
+  `--jobs` peut fournir les métadonnées publiques d'une liste complète et
+  bornée (au maximum 99 jobs), mais ne valide ni les artefacts ni leurs journaux.
 - Les API officielles publiques peuvent appliquer des limites de débit ;
   si l'API est indisponible, le contrôle doit **refuser** au lieu d'inventer PASS.
 - Les tests unitaires simulés du dépôt prouvent les refus et les vérifications
@@ -78,4 +86,5 @@ preuves contrôlée, une date d'observation et une validation de provenance
 Le projet reste soumis à l'approbation humaine, avec Qwen local par défaut et
 DeepSeek seulement si ses sources sont autorisées.
 
-**Statut actuel : module de vérification codé ; tests de réseau réels reportés à la phase finale.**
+**Statut actuel :** vérification du run et option `--jobs` codées ; essais contre
+les vraies API publiques reportés à la phase finale.
