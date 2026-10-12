@@ -59,7 +59,7 @@ def test_bridge_request_cannot_send_control_plane_commands(monkeypatch: Any) -> 
         "!etat",
         [
             {"role": "user", "content": "secret-in-history"},
-            {"role": "assistant", "content": "📁 Projet : lab\\n\\nBonjour"},
+            {"role": "assistant", "content": "📁 Projet : lab\n\nBonjour"},
             {"role": "user", "content": "another-private-prompt"},
         ],
         key="x" * 64
