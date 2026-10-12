@@ -137,3 +137,29 @@ jobs:
         run: |
           /tmp/clawfedora-venv/bin/clawfedora validate
           /tmp/clawfedora-venv/bin/pytest -q
+
+
+  fedora-45-preview:
+    name: fedora-45-preview
+    runs-on: ubuntu-latest
+    container: quay.io/fedora/fedora:45
+    timeout-minutes: 15
+    steps:
+      - name: Install beta validation tooling
+        run: dnf install -y git python3 python3-pip python3-virtualenv
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Assert Fedora 45 preview only
+        shell: bash
+        run: |
+          source /etc/os-release
+          test "$ID" = fedora
+          test "$VERSION_ID" = 45
+          # Real installer MUST continue refusing Fedora 45 until acceptance on hardware.
+          grep -q 'VERSION_ID:-}" != "44"' scripts/linux/00_bootstrap.sh
+      - name: Python source and contracts in Fedora 45 beta container
+        run: |
+          python3 -m venv /tmp/clawfedora45-preview-venv
+          /tmp/clawfedora45-preview-venv/bin/python -m pip install -e ".[dev]"
+          /tmp/clawfedora45-preview-venv/bin/clawfedora validate
+          /tmp/clawfedora45-preview-venv/bin/pytest -q
