@@ -271,7 +271,11 @@ class BridgeHandler(BaseHTTPRequestHandler):
             answer = runner(role, full_prompt, session, route="cloud")
             return answer, CLOUD_BANNER + self._budget_note()
         except (ValueError, RuntimeError, OSError, subprocess.SubprocessError):
-            events = recent_events(self.server.runtime, started)
+            # The gateway records whole UTC seconds, while 'started' is fractional.
+            # Allow a small clock/timestamp skew after a failed cloud call. Since
+            # the worker is serialized, conservative false positives only force
+            # a local answer; they can never leak content to the cloud.
+            events = recent_events(self.server.runtime, started - 2.0)
             blocked = [e for e in events if e.get("decision") == "blocked"]
             if blocked:
                 kinds = sorted({str(c) for e in blocked for c in e.get("categories", [])})
