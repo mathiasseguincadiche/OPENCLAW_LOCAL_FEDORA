@@ -393,9 +393,11 @@ def test_a_client_that_leaves_mid_stream_is_still_counted(
     ("code", "status", "marker"),
     [(402, 402, b"upstream_payment_required"), (401, 502, b"upstream_auth"),
      (403, 502, b"upstream_auth"), (429, 429, b"upstream_rate_limited"),
-     (500, 502, b"upstream_error"), (404, 502, b"upstream_error")],
+     (408, 502, b"upstream_error"), (500, 502, b"upstream_error"),
+     (502, 502, b"upstream_error"), (503, 502, b"upstream_error"),
+     (404, 502, b"upstream_error")],
 )
-def test_provider_errors_are_mapped_and_release_the_reservation(
+def test_provider_errors_are_mapped_and_preserve_ambiguous_reservations(
     gateway: tuple[GatewayServer, FakeBudget], upstream: tuple[Upstream, int],
     code: int, status: int, marker: bytes,
 ) -> None:
@@ -491,7 +493,7 @@ def test_every_billed_call_is_counted_with_its_real_cost(
     assert summary.spent_eur == pytest.approx(0.00084 * ledger.eur_per_usd)
 
 
-def test_a_call_the_provider_refused_costs_nothing_but_an_unreachable_one_is_kept(
+def test_a_server_error_or_unreachable_provider_keeps_the_worst_case(
     counted: tuple[GatewayServer, Any], upstream: tuple[Upstream, int]
 ) -> None:
     server, ledger = counted
