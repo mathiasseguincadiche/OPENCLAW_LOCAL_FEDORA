@@ -373,3 +373,32 @@ def test_the_trimmed_history_note_no_longer_hides_the_markers(
     assert heads and heads[0] == f"📁 Projet : {PROJECT}"
     assert any(h.startswith("*Contexte allégé") for h in leading_banners(text))
     assert chat_prompt({"model": MODEL_IDS[0], "messages": [{"role": "user", "content": "a"}]})
+
+
+
+def test_project_context_only_includes_verified_fresh_source_passages(
+    tmp_path: Path, monkeypatch: Any,
+) -> None:
+    runtime = tmp_path / "runtime"
+    project = runtime / "projects" / "valid-proj"
+    project.mkdir(parents=True)
+    (project / "project.json").write_text('{"title":"Demo", "status":"INTAKE_READY"}')
+    hits = [
+        {"path": "intake/expired.md", "page": 1, "line": 3,
+         "kind": "research", "text": "Do not cite expired advice", "stale": True},
+        {"path": "intake/current.md", "page": 2, "line": 17,
+         "kind": "text", "text": "Actuel et vérifié", "stale": False},
+    ]
+    monkeypatch.setattr(chat_projects, "validate_input_integrity", lambda _: [])
+    monkeypatch.setattr(chat_projects, "search", lambda *_: hits)
+    context = chat_projects.project_context(ROOT, runtime, project, "source")
+    assert "Do not cite expired advice" not in context
+    assert "Actuel et vérifié" in context
+    assert '"line": 17' in context
+    assert '"source_integrity": "PASS"' in context
+
+    monkeypatch.setattr(chat_projects, "validate_input_integrity",
+                        lambda _: ["empreinte différente"])
+    context = chat_projects.project_context(ROOT, runtime, project, "source")
+    assert '"source_integrity": "UNVERIFIED_CHANGED"' in context
+    assert "Actuel et vérifié" not in context
