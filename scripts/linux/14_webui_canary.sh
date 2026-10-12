@@ -106,4 +106,4 @@ if missing:
 print("WEBUI_CANARY_SCHEMA=PASS")
 PY
 echo 'WEBUI_CANARY_RESULT=PASS (préqualification conteneur, pas validation navigateur)'
-echo 'Aucun digest du déploiement principal n’a été modifié.'
+echo "Aucun digest du déploiement principal n'a été modifié."
