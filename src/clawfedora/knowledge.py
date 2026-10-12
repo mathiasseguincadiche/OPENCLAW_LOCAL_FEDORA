@@ -256,15 +256,39 @@ def search(repo_root: Path, project: Path, query: str) -> list[dict[str, Any]]:
     if not terms:
         return []
     match = " OR ".join('"' + term + '"' for term in terms)
+    max_results = int(limits["max_results"])
+    # BM25 alone can return four near-identical passages from one document and
+    # hide a second relevant Terraform/Ansible file. Fetch bounded candidates,
+    # then prefer one passage per source before filling spare slots by rank.
+    candidates = min(128, max_results * 16)
     with closing(sqlite3.connect(path.as_uri() + "?mode=ro", uri=True, timeout=2)) as db:
         rows = db.execute(
             "SELECT text,path,page,line,metadata FROM chunks WHERE chunks MATCH ? "
             "ORDER BY bm25(chunks), path, page, line LIMIT ?",
-            (match, int(limits["max_results"])),
+            (match, candidates),
         ).fetchall()
+    preferred: list[tuple[Any, ...]] = []
+    selected_indexes: set[int] = set()
+    seen_sources: set[str] = set()
+    for index, row in enumerate(rows):
+        source = str(row[1])
+        if source in seen_sources:
+            continue
+        preferred.append(row)
+        selected_indexes.add(index)
+        seen_sources.add(source)
+        if len(preferred) == max_results:
+            break
+    if len(preferred) < max_results:
+        for index, row in enumerate(rows):
+            if index in selected_indexes:
+                continue
+            preferred.append(row)
+            if len(preferred) == max_results:
+                break
     hits: list[dict[str, Any]] = []
     remaining = int(limits["max_result_chars"])
-    for text, relative, page, line, raw in rows:
+    for text, relative, page, line, raw in preferred:
         metadata = json.loads(raw)
         expiry = metadata.get("expires_at")
         stale = bool(expiry and datetime.fromisoformat(expiry) < datetime.now(UTC))
