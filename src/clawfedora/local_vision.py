@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import base64
 import json
-import os
 import stat
 import subprocess
 import tempfile
@@ -25,7 +24,6 @@ from clawfedora.project_worker import openclaw_runner, worker_lock
 MARKER = Path("state/webui/local-vision.enabled")
 APPROVAL = "qwen-local-vision-v1"
 BASE = "http://127.0.0.1:11434"
-MAX_VISION_BYTES = 2 * 1024 * 1024
 MAX_RESPONSE_BYTES = 24 * 1024
 
 
@@ -173,6 +171,8 @@ def local_vision(
     """Image or scanned PDF -> bounded untrusted text via one pinned local model."""
     if not enabled(runtime):
         raise ValueError("vision locale non activée")
+    if any(part.is_symlink() for part in (runtime, *runtime.parents)):
+        raise ValueError("runtime vision lié interdit")
     if maximum_output < 800:
         raise ValueError("budget de réponse image insuffisant")
     if source.is_symlink() or not source.is_file() or source.stat().st_size > MAX_INPUT:
@@ -184,7 +184,10 @@ def local_vision(
         images = _scanned_pdf(source)
         kind = "scanned-pdf-vision-local-qwen"
     else:
-        data = source.read_bytes()
+        with source.open("rb") as handle:
+            data = handle.read(MAX_INPUT + 1)
+        if len(data) > MAX_INPUT:
+            raise ValueError("image locale dépassant la limite de taille")
         _image(data, suffix)
         images = [data]
         kind = "image-vision-local-qwen"
