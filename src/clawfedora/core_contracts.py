@@ -298,9 +298,8 @@ def _validate_cloud_contracts(
         or profiles != required_profiles
         or (
             isinstance(cloud_output, int)
-            and any(
-                profile["max_output_tokens"] > cloud_output
-                for profile in required_profiles.values()
+            and cloud_output < max(
+                profile["max_output_tokens"] for profile in required_profiles.values()
             )
         )
     ):
