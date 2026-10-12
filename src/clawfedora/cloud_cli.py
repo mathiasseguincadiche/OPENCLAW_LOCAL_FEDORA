@@ -62,9 +62,14 @@ def _status(root: Path, runtime: Path) -> int:
         print(f"CLOUD_DECLARED key_limit_usd={declared.get('key_limit_usd')} "
               f"verified_online={declared.get('verified_online')}")
     try:
+        profile_name, settings = chosen_profile(runtime, core_contract(root, "cloud_policy.yaml"))
+        print(
+            f"CLOUD_PROFILE name={profile_name} effort={settings['effort']} "
+            f"max_output_tokens={settings['max_output_tokens']}"
+        )
         for line in budget_lines(root, runtime):
             print(line)
-    except (BudgetRefused, OSError, ValueError) as exc:
+    except (BudgetRefused, OSError, ValueError, KeyError) as exc:
         print(f"CLOUD_BUDGET error={exc}")
         return 2
     return 0
