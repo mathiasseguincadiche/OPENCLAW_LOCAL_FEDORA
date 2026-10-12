@@ -4,6 +4,24 @@
 
 **Cet exemple est fictif** : il illustre le fonctionnement du dépôt, pas un test réellement effectué ni des fichiers déjà produits dans ton atelier.
 
+## D'abord : quel moteur IA pour ce projet ?
+
+Cet atelier utilise **Qwen local et DeepSeek cloud comme deux moteurs complémentaires**, et pas seulement sept rôles distincts. **La route est un choix de confidentialité et de capacité avant d'être une question de spécialiste.**
+
+Dans le scénario ci-dessous, deux variantes sont possibles :
+
+| Variante | Comment le moteur est choisi | Conséquence |
+|---|---|---|
+| **Projet contenant des configurations privées** | **Qwen local**, sans accord cloud | Les sept rôles travaillent dans le périmètre local ; le travail complexe peut être découpé en tâches plus petites |
+| **Démonstration sur une architecture et des fichiers fictifs/publics** | **DeepSeek V4.1 Flash**, après activation et **accord cloud de tout le projet** | Le même architecte, DevOps, rédacteur ou auditeur peut utiliser un contexte plus large et une capacité de raisonnement supérieure, avec facturation et contrôles |
+| **Une seule question complexe dans le chat** | Tu choisis « · cloud (DeepSeek) » sur une nouvelle discussion autorisée | Tu utilises le moteur de capacité sans faire croire qu'un projet entier s'est routé tout seul |
+
+**Attention :** le worker ne choisit pas automatiquement DeepSeek pour « DevOps » et Qwen pour « Rédacteur ». Un accord cloud de projet autorise les étapes concernées du projet ; il n'est **pas** une délégation automatique intelligente par rôle.
+
+**Pourquoi choisir DeepSeek pour le scénario public ?** Parce que plusieurs modules d'infrastructure, des flux réseau, le pipeline, la sécurité et le rollback demandent un raisonnement transversal ; **le gain effectif par rapport à Qwen reste à mesurer** sur des cas réels.
+
+→ [Stratégie de choix des moteurs](ARCHITECTURE_HYBRIDE.md).
+
 ## Le problème
 
 Tu disposes d'une petite API qui doit tourner sur **une VM Rocky Linux**. Tu souhaites préparer une architecture compréhensible, un dépôt versionné, un pipeline GitHub Actions, les fichiers d'installation, les contrôles de sécurité et un runbook. Tu veux **comprendre le rôle de chaque fichier** avant de lancer quoi que ce soit.
@@ -58,7 +76,7 @@ Un **ADR** peut comparer un service systemd natif et un conteneur. Le schéma `.
 
 ## Étape 3 — le DevOps prépare des fichiers distincts
 
-**Rôle : Ingénieur DevOps.** Il s'appuie sur les flux validés plutôt que de deviner.
+**Rôle : Ingénieur DevOps.** Il s'appuie sur les flux validés plutôt que de deviner. **Route :** Qwen pour une version locale privée, DeepSeek si le projet public a été autorisé au cloud. **Ses droits ne changent pas** avec le modèle utilisé.
 
 Exemple de **structure souhaitée** (illustration, aucun fichier ci-dessous n'est déjà généré) :
 
