@@ -14,7 +14,9 @@ from clawfedora.context_probe import probe_context
 Probe = Callable[..., dict[str, Any]]
 
 
-def benchmark(repo: Path, *, context_sizes: tuple[int, ...], probe: Probe = probe_context) -> dict[str, Any]:
+def benchmark(
+    repo: Path, *, context_sizes: tuple[int, ...], probe: Probe = probe_context
+) -> dict[str, Any]:
     if not context_sizes or len(context_sizes) > 3 or any(
         context not in (8192, 16384, 32768) for context in context_sizes
     ):
@@ -53,7 +55,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Mesurer Qwen local sur la B580 sans mutation")
     parser.add_argument("--root", required=True, type=Path)
     parser.add_argument("--contexts", default="8192,16384,32768")
-    parser.add_argument("--apply", action="store_true", help="Effectuer les inférences Ollama locales")
+    parser.add_argument(
+        "--apply", action="store_true", help="Effectuer les inférences Ollama locales"
+    )
     args = parser.parse_args(argv)
     try:
         contexts = tuple(int(item) for item in args.contexts.split(","))
