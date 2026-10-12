@@ -155,3 +155,82 @@ def test_source_never_runs_for_commands_or_project_history(tmp_path: Path) -> No
         server.shutdown()
         thread.join(timeout=5)
     assert not invoked
+
+
+@pytest.mark.parametrize("truncate", [False, True])
+def test_staged_gateway_stream_reaches_webui_without_exposing_operator_token(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, truncate: bool,
+) -> None:
+    from clawfedora import stream_transport
+
+    operator_token = "gateway-only-operator-token-" + "z" * 40
+    network: list[Any] = []
+
+    def event(text: str, finish: str | None = None) -> bytes:
+        return (
+            "data: " + json.dumps({
+                "choices": [{"index": 0, "delta": {"content": text},
+                             "finish_reason": finish}]
+            }) + "\n\n"
+        ).encode()
+
+    class GatewayResponse:
+        status = 200
+
+        def __init__(self) -> None:
+            values = [event("Premier "), event("fragment")]
+            if not truncate:
+                values.extend([event("", "stop"), b"data: [DONE]\n\n"])
+            self.lines = iter(b"".join(values).splitlines(keepends=True))
+
+        def getheader(self, _name: str, _default: str = "") -> str:
+            return "text/event-stream"
+
+        def readline(self, _size: int) -> bytes:
+            return next(self.lines, b"")
+
+    class GatewayConnection:
+        def __init__(self, host: str, port: int, timeout: int) -> None:
+            assert (host, port, timeout) == ("127.0.0.1", 18789, 30)
+            self.closed = False
+            network.append(self)
+
+        def request(
+            self, method: str, endpoint: str, *, body: bytes, headers: dict[str, str]
+        ) -> None:
+            assert method == "POST" and endpoint == "/v1/chat/completions"
+            assert headers["Authorization"] == "Bearer " + operator_token
+            assert json.loads(body)["model"] == MODEL_IDS[0]
+
+        def getresponse(self) -> GatewayResponse:
+            return GatewayResponse()
+
+        def close(self) -> None:
+            self.closed = True
+
+    monkeypatch.setattr(stream_transport.http.client, "HTTPConnection", GatewayConnection)
+
+    def source(role: str, prompt: str, session: str) -> Generator[str, None, None]:
+        yield from stream_transport.gateway_local_deltas(
+            role, prompt, session, operator_token=operator_token
+        )
+
+    with make_server(ROOT, tmp_path, TOKEN, 0, stream_runner=source) as server:
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        conn = _request(server, [{"role": "user", "content": "bonjour"}])
+        response = conn.getresponse()
+        body = response.read().decode()
+        assert response.status == 200
+        assert "Premier " in body and "fragment" in body
+        assert operator_token not in body
+        if truncate:
+            assert "generation interrompue" in body
+            assert '"finish_reason": "stop"' not in body
+        else:
+            assert '"finish_reason": "stop"' in body
+        assert "data: [DONE]" in body
+        conn.close()
+        server.shutdown()
+        thread.join(timeout=5)
+    assert network and network[0].closed

@@ -16,7 +16,7 @@ Elle sait décoder **progressivement** les fragments de texte SSE d'OpenClaw,
 refuser les flux partiels ou erronés et demander l'arrêt de la source
 lorsqu'un consommateur ferme le générateur.
 
-**À ce stade, le pont HTTP Open WebUI continue d'utiliser la voie CLI
+**Même après ce durcissement**, le pont HTTP Open WebUI continue d'utiliser la voie CLI
 en attente de réponse complète.** Ne pas présenter ce nouveau module
 comme un streaming déjà visible dans le navigateur.
 
@@ -29,13 +29,18 @@ comme un streaming déjà visible dans le navigateur.
   identifiant de session borné, message texte borné et opérateur
   exclusivement côté serveur.
 - Aucun champ `tools`, `x-openclaw-model` ou fournisseur cloud transmis.
-- Décodage SSE **fragment par fragment** et validation des deltas ;
-  rejet des structures d'outils, du raisonnement privé, des erreurs et
-  des fins non confirmées.
+- Décodage SSE **fragment par fragment après terminaison de chaque événement** :
+  les lignes `data:` incomplètes ne sont jamais affichées, les rôles autres
+  qu’`assistant`, les structures d'outils, les doublons de fin et les
+  erreurs sont refusés. Un éventuel événement de consommation finale sans
+  texte est toléré uniquement après `finish_reason=stop` ; `[DONE]` reste
+  obligatoire.
 - Limites de volume par événement (128 Kio) et sortie (64 000 octets).
 - Fermeture de la connexion réseau lors de l'abandon par le consommateur.
-- Tests hors ligne : premier fragment avant le suivant, erreur réseau,
-  troncature, limites, identité et fermeture.
+- Tests hors ligne : premier fragment avant le suivant, erreurs réseau,
+  troncature de ligne et d'événement, rôle usurpé, doublon de terminaison,
+  plafonds, fermeture et liaison du **faux Gateway** au vrai pont HTTP
+  Open WebUI sans divulgation du jeton opérateur.
 
 ## Conditions indispensables avant activation dans le pont
 
