@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "openclaw": {
+    "version": "2026.10.2",
+    "url": "https://registry.npmjs.org/openclaw/-/openclaw-2026.10.2.tgz",
+    "sha512": "16e2cb17e588d76ca9c10d2bfa970a0dc981fa45eeb3937840295a2849da027e86378235022b643a1c2fd06165dab54aa6fb9404341621f8251cdcba4ebbff11"
+  },
+  "ollama": {
+    "version": "0.35.1",
+    "url": "https://github.com/ollama/ollama/releases/download/v0.35.1/ollama-linux-amd64.tar.zst",
+    "sha256": "9fcd79ac4575b2bd31b992eee18b1000c8ad126b451627c8f8cd091714cfbb10"
+  }
+}

@@ -30,6 +30,7 @@ def test_shell_entrypoints_are_strict() -> None:
         "scripts/linux/12_upgrade.sh",
         "scripts/linux/13_openwebui.sh",
         "scripts/linux/14_cloud.sh",
+        "scripts/linux/15_verified_installer.sh",
         "scripts/linux/lib/runtime.sh",
     ):
         text = _read(path)
@@ -111,8 +112,10 @@ def test_full_install_is_explicit_and_pinned() -> None:
     assert "APPLY=0" in text
     assert 'OPENCLAW_PIN="$(claw_pin openclaw version)"' in text
     assert 'OLLAMA_PIN="$(claw_pin ollama version)"' in text
-    assert 'OLLAMA_VERSION="$OLLAMA_PIN"' in text
-    assert '--install-method npm --version "$OPENCLAW_PIN"' in text
+    assert 'bash "$LINUX/15_verified_installer.sh" ollama --apply' in text
+    assert 'bash "$LINUX/15_verified_installer.sh" openclaw --apply' in text
+    assert "https://ollama.com/install.sh" not in text
+    assert "https://openclaw.ai/install-cli.sh" not in text
     assert '[[ "$OPENCLAW_VERSION" == "$OPENCLAW_PIN" ]]' in text
     assert '[[ "$OPENCLAW_VERSION" == *"$OPENCLAW_PIN"* ]]' not in text
     assert "05_provision_models.sh" in text

@@ -79,7 +79,7 @@ def test_install_and_config_scripts_use_exact_openclaw_equality() -> None:
     configure = (ROOT / "scripts/linux/03_configure_openclaw.sh").read_text(encoding="utf-8")
 
     assert 'OPENCLAW_PIN="$(claw_pin openclaw version)"' in install
-    assert '--install-method npm --version "$OPENCLAW_PIN"' in install
+    assert 'bash "$LINUX/15_verified_installer.sh" openclaw --apply' in install
     assert '[[ "$OPENCLAW_VERSION" == "$OPENCLAW_PIN" ]]' in install
     assert '[[ "$OPENCLAW_VERSION" == *"$OPENCLAW_PIN"* ]]' not in install
 
