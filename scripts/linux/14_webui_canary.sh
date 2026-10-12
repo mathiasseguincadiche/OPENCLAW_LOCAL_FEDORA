@@ -7,6 +7,7 @@ source "$SCRIPT_DIR/lib/runtime.sh"
 
 IMAGE="ghcr.io/open-webui/open-webui:v0.12.0-slim"
 RUNTIME_ROOT="$(claw_runtime_root)"
+REPO_ROOT="$(claw_repo_root)"
 APPLY=0
 WITH_DB=0
 for arg in "$@"; do
@@ -54,6 +55,15 @@ with sqlite3.connect(f"file:{sys.argv[1]}?mode=ro", uri=True) as original:
         original.backup(target)
 PY
   chmod 600 "$TMP/data/webui.db"
+  # Capture a content-free baseline on the *copy* before any migration.
+  PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" python3 - \
+    "$TMP/data/webui.db" "$TMP/before.json" <<'PY'
+import json, sys
+from pathlib import Path
+from clawfedora.webui_migration_audit import snapshot
+Path(sys.argv[2]).write_text(json.dumps(snapshot(Path(sys.argv[1]))), encoding="utf-8")
+PY
+  chmod 600 "$TMP/before.json"
 fi
 
 podman pull "$IMAGE"
@@ -106,5 +116,16 @@ if missing:
     raise SystemExit("WEBUI_CANARY_RESULT=FAIL, colonnes manquantes: " + str(sorted(missing)))
 print("WEBUI_CANARY_SCHEMA=PASS")
 PY
+if (( WITH_DB )); then
+  PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" python3 - \
+    "$TMP/before.json" "$TMP/data/webui.db" <<'PY'
+import json, sys
+from pathlib import Path
+from clawfedora.webui_migration_audit import snapshot, verify_preservation
+before = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+report = verify_preservation(before, snapshot(Path(sys.argv[2])))
+print(f"WEBUI_CANARY_DATA=PASS functions={report['functions_preserved']}")
+PY
+fi
 echo 'WEBUI_CANARY_RESULT=PASS (préqualification conteneur, pas validation navigateur)'
 echo "Aucun digest du déploiement principal n'a été modifié."
