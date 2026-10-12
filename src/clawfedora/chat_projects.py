@@ -21,9 +21,9 @@ from typing import Any
 
 from clawfedora import chat_approvals, chat_proposals, project_cloud
 from clawfedora.knowledge import search
-from clawfedora.project_intake import validate_input_integrity
 from clawfedora.project_common import assert_no_symlinks, project_path, read_json
 from clawfedora.project_control import progress
+from clawfedora.project_intake import validate_input_integrity
 from clawfedora.project_worker import worker_lock
 
 PROJECT_MARKER = "📁 Projet : "
@@ -328,7 +328,7 @@ def project_context(repo_root: Path, runtime: Path, project: Path, question: str
         try:
             hits = [h for h in search(repo_root, project, question) if h.get("stale") is False][:4]
         except (OSError, ValueError, KeyError):
-            pass
+            hits = []
     value: dict[str, Any] = {
         "project": {
             "id": project.name,
