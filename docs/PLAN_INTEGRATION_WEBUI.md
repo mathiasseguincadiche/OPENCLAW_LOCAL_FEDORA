@@ -4,7 +4,7 @@
 
 > **Ce document conserve le plan historique des lots 9 à 15.** Pour apprendre le
 > fonctionnement **aujourd'hui**, commence par le guide et les fiches. Les commandes de
-> projet sont implémentées, et le plugin Action gère **cinq boutons de lecture**,
+> projet sont implémentées, et le plugin Action gère **six boutons de lecture (dont Voir les sources)**,
 > **huit boutons de pilotage confirmés** et **trois formulaires** :
 > création, réponse aux précisions et demande de révision. Les créations
 > et révisions gardent leur code d'approbation indépendant. La soumission

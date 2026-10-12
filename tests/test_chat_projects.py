@@ -402,3 +402,19 @@ def test_project_context_only_includes_verified_fresh_source_passages(
     context = chat_projects.project_context(ROOT, runtime, project, "source")
     assert '"source_integrity": "UNVERIFIED_CHANGED"' in context
     assert "Actuel et vérifié" not in context
+
+
+def test_source_inventory_button_is_read_only_and_shows_import_status(
+    chat: tuple[Any, Runner, Path, Path],
+) -> None:
+    server, runner, _runtime, project = chat
+    selected = ask(server, MODEL_IDS[0], ("user", f"!projet {PROJECT}"))[1]
+    before = tree_hash(project)
+    _, listing = ask(server, MODEL_IDS[0], ("assistant", selected),
+                     ("user", "!sources"))
+    assert "intake/" in listing and "READ" in listing
+    assert "Aucun document n'a été envoyé au modèle" in listing
+    assert tree_hash(project) == before
+    assert not runner.calls
+    _, denied = ask(server, MODEL_IDS[0], ("user", "!sources"))
+    assert "Aucun projet sélectionné" in denied

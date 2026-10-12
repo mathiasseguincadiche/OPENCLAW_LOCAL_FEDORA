@@ -31,6 +31,7 @@ def test_all_readonly_entrypoints_exist_without_cloud_permission() -> None:
     assert actions["READ_ONLY_ACTIONS"] == {
         "projects": "!projets",
         "status": "!etat",
+        "sources": "!sources",
         "help": "!aide",
         "models": "!modele",
         "budget": "!budget",

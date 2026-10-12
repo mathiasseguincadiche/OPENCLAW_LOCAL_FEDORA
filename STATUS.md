@@ -100,7 +100,7 @@ Le dépôt comporte une **suite synthétique fixe de sept scénarios métier**, 
 
 ## Pilotage visuel des projets Open WebUI
 
-Le plugin Action propose **cinq boutons en lecture seule**, **huit
+Le plugin Action propose **six boutons en lecture seule**, dont **Voir les sources**, **huit
 boutons de transition** (analyse, plan, lancer, pause, reprise, audit,
 relecture, préparation de livraison), plus trois formulaires : **Créer
 un projet**, **Répondre à une précision** et **Demander une révision**.

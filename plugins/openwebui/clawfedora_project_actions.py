@@ -31,6 +31,7 @@ PROJECT_ACTIONS = {
 READ_ONLY_ACTIONS = {
     "projects": "!projets",
     "status": "!etat",
+    "sources": "!sources",
     "help": "!aide",
     "models": "!modele",
     "budget": "!budget",
@@ -158,6 +159,7 @@ class Action:
     actions = [
         {"id": "projects", "name": "Voir les projets"},
         {"id": "status", "name": "État du projet"},
+        {"id": "sources", "name": "Voir les sources"},
         {"id": "help", "name": "Commandes disponibles"},
         {"id": "models", "name": "Quel modèle choisir ?"},
         {"id": "budget", "name": "Budget DeepSeek"},
