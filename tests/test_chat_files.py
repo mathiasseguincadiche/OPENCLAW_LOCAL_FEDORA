@@ -143,3 +143,21 @@ def test_upload_rejects_project_outside_runtime(tmp_path: Path) -> None:
     with pytest.raises((ValueError, FileNotFoundError)):
         chat_files.import_files(ROOT, runtime, project, [descriptor])
     assert not (project / "intake/poison.txt").exists()
+
+
+def test_standalone_text_attachments_are_private_and_bounded(tmp_path: Path) -> None:
+    runtime = tmp_path / "runtime"
+    uploaded = _upload(runtime, "main.tf", b'resource "null_resource" "example" {}\\n')
+    prompt = chat_files.standalone_texts(runtime, [uploaded])
+    assert "main.tf" in prompt and "null_resource" in prompt
+    assert "donnees" not in prompt  # French message labels come from the implementation
+    with pytest.raises(ValueError, match="projet"):
+        chat_files.standalone_texts(runtime, [_upload(runtime, "guide.pdf", b"%PDF")])
+    with pytest.raises(ValueError, match="binaire"):
+        chat_files.standalone_texts(runtime, [_upload(runtime, "nul.md", b"abc\\x00def")])
+    with pytest.raises(ValueError, match="12000"):
+        chat_files.standalone_texts(runtime, [_upload(runtime, "huge.txt", b"x" * 12001)])
+    with pytest.raises(ValueError, match="SHA-256"):
+        chat_files.standalone_texts(runtime, [{**uploaded, "sha256": "0" * 64}])
+    with pytest.raises(ValueError, match="1 à 4"):
+        chat_files.standalone_texts(runtime, [uploaded] * 5)
