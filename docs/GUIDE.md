@@ -1,8 +1,8 @@
-# Découvrir l'Atelier IA Fedora — guide pas à pas
+# Découvrir l'Atelier IA **hybride** Fedora — guide pas à pas
 
 [← Accueil du dépôt](../README.md)
 
-**Objectif de ce guide :** comprendre l'utilité du projet, savoir à qui poser une question, suivre le chemin d'une réponse et distinguer ce qui est **proposé** de ce qui est **réellement vérifié**. Pas besoin de connaître OpenClaw pour commencer.
+**Objectif de ce guide :** comprendre **pourquoi Qwen local et DeepSeek cloud coexistent**, savoir à qui poser une question, comment choisir une route d'inférence et distinguer ce qui est **proposé** de ce qui est **réellement vérifié**. Pas besoin de connaître OpenClaw pour commencer.
 
 ## 1. Pourquoi un atelier plutôt qu'un simple chatbot ?
 
@@ -15,9 +15,11 @@ L'atelier est conçu pour apprendre **en comprenant**. Tu peux demander une rép
 
 ### Les trois choses à retenir
 
-1. **Les sept agents sont sept métiers, pas sept IA différentes.** Ils utilisent le même Qwen local et interviennent seulement quand leur spécialité est utile.
-2. **Le modèle propose, les outils vérifient une partie et l'humain décide.** Un script rédigé, une syntaxe valide et un déploiement réussi sont **trois niveaux de preuve différents**.
-3. **Local par défaut.** DeepSeek cloud n'est disponible que si tu l'actives, et les données d'un projet ne peuvent partir qu'après l'accord prévu. La recherche Web est un accès externe distinct.
+1. **C'est une architecture hybride à deux moteurs.** Qwen local est le socle du quotidien ; DeepSeek cloud apporte une **capacité supplémentaire** sur des problèmes complexes ou de longs contextes, quand ce choix est utile et autorisé.
+2. **Les sept agents sont sept métiers, pas sept moteurs supplémentaires.** Un même agent (mentor, DevOps, auditeur…) travaille sur Qwen **ou** DeepSeek avec **les mêmes outils autorisés**. Le modèle propose, le moteur contrôle et l'humain valide.
+3. **Le cloud est une décision, pas une bascule magique.** Il faut l'activer ; un projet exige son accord. Il n'existe pas de sélection automatique du meilleur modèle pour chaque tâche. Une recherche Web est une sortie réseau distincte.
+
+→ **[Pourquoi Qwen + DeepSeek ? Stratégie et exemples d'efficacité](ARCHITECTURE_HYBRIDE.md)**.
 
 ![Les sept spécialités autour du même moteur](diagrams/atelier-roles.svg)
 
@@ -35,8 +37,9 @@ Suis les flèches **de gauche vers la droite**, puis vers le bas : **ta demande 
 | **Atelier Projets** | Le tableau de bord | Créer, organiser, approuver et suivre |
 | **Pont / worker** | Les règles du jeu | Limites, étapes, verrous, collecte et confirmations |
 | **OpenClaw** | La fiche métier | Appliquer consignes et outils du rôle |
-| **Ollama / Qwen** | Le moteur IA local | Proposer le texte et les fichiers |
-| **Cloud facultatif** | Une autre puissance de modèle | DeepSeek derrière filtre, budget et accord |
+| **Ollama / Qwen** | Le moteur local quotidien | Autonomie, confidentialité et tâches ciblées |
+| **OpenRouter / DeepSeek** | Le moteur cloud de capacité | Analyses complexes, grands dossiers publics et raisonnement DevOps |
+| **Passerelle cloud locale** | Le contrôleur d'accès | Consentement, filtre des secrets, prix et budget |
 
 → [Lire le schéma composant par composant](fiches/11-comment-ca-marche.md).
 
@@ -111,13 +114,19 @@ cd OPENCLAW_LOCAL_FEDORA
 
 → [Fichiers, limites et Draw.io](fiches/06-fichiers-et-schemas.md).
 
-## 8. Local ou cloud ?
+## 8. Local ou DeepSeek : optimiser le travail, pas simplement le coût
 
-Le chat local reste le choix sûr pour un projet personnel ou sensible. Si tu actives DeepSeek via OpenRouter, les appels passent par une passerelle qui filtre les secrets et vérifie le budget. **Le filtre ne reconnaît pas toutes les informations confidentielles** : quand tu hésites, reste en local.
+| Situation | Route recommandée | Pourquoi |
+|---|---|---|
+| Expliquer `systemd`, documenter un petit playbook, travailler sur des données privées | **Qwen local** | Tâche courte ou sensible, coût API nul |
+| Revoir plusieurs modules Terraform **publics**, une CI complexe, un ADR multi-contraintes | **DeepSeek cloud**, sur choix explicite | Contexte et raisonnement supplémentaires, gain de qualité **attendu, pas encore mesuré** |
+| Projet avec données professionnelles confidentielles | **Qwen local** | Le filtre de secrets ne détecte pas tous les contenus sensibles |
 
-Un rôle peut demander une **recherche Web** même en local : il faut donc distinguer **rechercher sur Internet** et **envoyer ta conversation à DeepSeek**.
+En chat, tu choisis la **variante locale ou cloud** ; en atelier, un **accord au niveau du projet** permet la route DeepSeek. **Le routage par difficulté ou par agent n'est pas encore automatique.** Les mêmes consignes et restrictions d'outils s'appliquent.
 
-→ [Le cloud, facultatif](fiches/12-cloud.md) · [Paramètres](fiches/08-reglages.md).
+La recherche Web d'un agent peut interroger Internet **même avec Qwen** : elle est distincte de l'envoi d'une conversation à DeepSeek.
+
+→ **[Pourquoi cette architecture hybride ?](ARCHITECTURE_HYBRIDE.md)** · [Activer le cloud](fiches/12-cloud.md) · [Choix du modèle](DECISION_MODELE.md).
 
 ## 9. Quel est le vrai niveau de maturité ?
 
