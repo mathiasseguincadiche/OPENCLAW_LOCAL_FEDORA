@@ -57,10 +57,43 @@ que Terraform a fait `apply`, que l'API est déployée, que le rollback marche,
 que les tests sont complets ou qu'un opérateur sait exécuter ces opérations.
 Pour cela, le runbook doit collecter les preuves distinctes adaptées.
 
+## Dépôts privés : consultation exclusivement opérateur
+
+Une commande **distincte** `clawfedora-ci-private-proof` permet maintenant de
+consulter en lecture seule une CI privée GitHub ou GitLab :
+
+```bash
+# Sur Fedora, en tant qu'utilisateur du runtime — jamais dans Git.
+install -m 0600 /dev/null ~/.private-forge-ci.token
+# Écrire le jeton hors historique du shell avec un éditeur approprié.
+clawfedora-ci-private-proof \\
+  --provider github --repo org/depot-prive \\
+  --run-id 123456 --commit 0123456789abcdef0123456789abcdef01234567 \\
+  --token-file ~/.private-forge-ci.token --jobs
+```
+
+Créer un jeton **personnel de lecture seule**, limité au seul dépôt concerné et
+aux métadonnées CI nécessaires. Il n'est **jamais** passé en argument texte, en
+URL, dans un prompt OpenClaw ni imprimé dans le JSON. Le fichier doit être
+ordinaire, appartenir à l'utilisateur courant, avoir les permissions `0600`
+(ou plus strictes), ne pas être un lien symbolique et rester hors du dépôt.
+
+L'appel HTTPS n'autorise que les deux hôtes officiels et les chemins de lecture
+pipeline/jobs exacts. Redirections, routes vers artefacts/logs, URL externes et
+réponses dépassant 256 Kio sont refusées. Le rapport renvoie seulement une
+preuve de statut associée à l'ID et au SHA, ainsi que les métadonnées des jobs
+si demandées. **Les agents n'ont pas accès à cette commande** : un opérateur
+doit volontairement l'exécuter.
+
+Ce connecteur CLI n'est pas un connecteur GitHub/GitLab intégré à Open WebUI.
+Il ne lit pas les logs, ne télécharge pas d'artefacts et n'assure pas la
+preuve qu'un déploiement a effectivement réussi. Les essais avec de vrais
+jetons et les droits minimaux doivent être qualifiés sur Fedora.
+
 ## Limites et règles de confidentialité
 
-- **Uniquement les projets publics.** Un dépôt privé exige un autre connecteur
-  avec autorisation de lecture minimale ; cet outil n'accepte pas de token.
+- La commande **publique** n'accepte toujours aucun jeton. Pour les dépôts privés,
+  utiliser exclusivement la commande opérateur séparée documentée ci-dessus.
 - **Aucun historique de chat n'est envoyé** : commande CLI hors OpenClaw.
 - **Aucun accès par l'IA** à cette fonction ; le résultat peut être relu comme
   un document de preuve mais ne donne pas de permissions supplémentaires.

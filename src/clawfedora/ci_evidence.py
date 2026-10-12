@@ -12,6 +12,7 @@ import json
 import re
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any, cast
 from urllib.parse import quote
@@ -89,16 +90,18 @@ def _matching(payload: object, run_id: int, commit: str) -> dict[str, Any]:
 
 
 def verify_public_run(
-    provider: str, repository: str, run_id: int, commit: str
+    provider: str, repository: str, run_id: int, commit: str,
+    *, getter: Callable[[str], Any] | None = None,
 ) -> dict[str, Any]:
     """One remote observation. A successful run is not proof of service deployment."""
     parts = _repo_parts(provider, repository)
+    read = getter or _json_get
     if type(run_id) is not int or run_id < 1 or not SHA.fullmatch(commit):
         raise ProofRefused("ID positif et commit SHA-1 complet (40 hex) obligatoires")
 
     if provider == "github":
         api = "https://api.github.com/repos/" + "/".join(quote(p) for p in parts)
-        payload = _matching(_json_get(f"{api}/actions/runs/{run_id}"), run_id, commit)
+        payload = _matching(read(f"{api}/actions/runs/{run_id}"), run_id, commit)
         status, conclusion = payload.get("status"), payload.get("conclusion")
         if status not in {"queued", "in_progress", "completed", "waiting", "pending"}:
             raise ProofRefused("Statut GitHub Actions inconnu")
@@ -119,7 +122,7 @@ def verify_public_run(
             + quote("/".join(parts), safe="")
             + f"/pipelines/{run_id}"
         )
-        payload = _matching(_json_get(api), run_id, commit)
+        payload = _matching(read(api), run_id, commit)
         status = payload.get("status")
         if status in {"created", "waiting_for_resource", "preparing", "pending", "running",
                       "scheduled", "manual"}:
@@ -154,6 +157,7 @@ def verify_public_run(
 
 def _public_jobs(
     provider: str, repository: str, run_id: int, commit: str,
+    *, getter: Callable[[str], Any] | None = None,
 ) -> dict[str, Any]:
     """Bounded, public job metadata, never logs/artifacts or credentials.
 
@@ -161,9 +165,10 @@ def _public_jobs(
     report, refuse the detail instead of implying every job was inspected.
     """
     parts = _repo_parts(provider, repository)
+    read = getter or _json_get
     if provider == "github":
         api = "https://api.github.com/repos/" + "/".join(quote(p) for p in parts)
-        data = _json_get(f"{api}/actions/runs/{run_id}/jobs?per_page=100")
+        data = read(f"{api}/actions/runs/{run_id}/jobs?per_page=100")
         if not isinstance(data, dict):
             raise ProofRefused("Liste des jobs GitHub mal formée")
         raw, count = data.get("jobs"), data.get("total_count")
@@ -174,7 +179,7 @@ def _public_jobs(
             raise ProofRefused("Liste de jobs GitHub incomplète ou paginée")
     else:
         api = "https://gitlab.com/api/v4/projects/" + quote("/".join(parts), safe="")
-        raw = _json_get(f"{api}/pipelines/{run_id}/jobs?per_page=100")
+        raw = read(f"{api}/pipelines/{run_id}/jobs?per_page=100")
         if not isinstance(raw, list) or len(raw) >= 100:
             raise ProofRefused("Liste de jobs GitLab incomplète ou paginée")
     rows: list[dict[str, Any]] = []
@@ -227,10 +232,11 @@ def _public_jobs(
 
 def verify_public_run_with_jobs(
     provider: str, repository: str, run_id: int, commit: str,
+    *, getter: Callable[[str], Any] | None = None,
 ) -> dict[str, Any]:
     """Optional detailed metadata; never weaken the default run-only proof."""
-    report = verify_public_run(provider, repository, run_id, commit)
-    report.update(_public_jobs(provider, repository, run_id, commit))
+    report = verify_public_run(provider, repository, run_id, commit, getter=getter)
+    report.update(_public_jobs(provider, repository, run_id, commit, getter=getter))
     return report
 
 
