@@ -28,6 +28,7 @@ def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
         "mode": "local",
         "bind": "loopback",
         "controlUi": {"newSessionModelDefaults": "configured"},
+        "http": {"endpoints": {"chatCompletions": {"enabled": False}}},
     }
     assert patch["plugins"]["slots"]["memory"] == "none"
     assert patch["plugins"]["entries"]["memory-core"]["enabled"] is False
