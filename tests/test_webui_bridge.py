@@ -195,6 +195,20 @@ def test_setup_pins_limits_preserves_secrets_and_closes_registration(tmp_path: P
         ).fetchone()
     assert row == ("filter", 1, 1)
     assert action == ("action", 1, 1)
+    with closing(sqlite3.connect(state / "data/webui.db")) as db:
+        row = db.execute(
+            'SELECT name, meta, content FROM "function" '
+            'WHERE id="clawfedora_project_actions"'
+        ).fetchone()
+    assert row is not None
+    name, raw_meta, source = row
+    assert name == "ClawFedora — contrôle des projets"
+    metadata = json.loads(raw_meta)
+    assert "confirmation humaine" in metadata["description"]
+    assert "code à usage unique" in metadata["description"]
+    assert '"id": "create"' in source
+    assert '"id": "deliver"' in source
+    assert '"id": "budget"' in source
     assert all(
         settings[key] == "false"
         for key in (
