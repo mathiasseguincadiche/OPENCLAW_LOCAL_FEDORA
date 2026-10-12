@@ -112,7 +112,12 @@ restent à développer.
 
 ## P2 : ergonomie et vérification métier
 
-- Quatre actions visuelles **en lecture seule** sont ajoutées : voir les projets, consulter l'état, l'aide et **quel modèle choisir** (conseils déterministes sans contexte privé). Les opérations mutantes (créer/sélectionner/approuver/exécuter/auditer/livrer) restent à construire avec les confirmations existantes ; ne pas les considérer terminées.
+- Le plugin Action expose désormais **cinq lectures locales** (projets, état,
+  aide, modèle, budget), **huit transitions de projet** avec confirmation
+  navigateur et un **formulaire de création** exigeant encore un code
+  d'approbation. Elles sont testées hors navigateur ; leur rendu réel
+  sur Open WebUI reste à qualifier. Les formulaires de révision, réponse
+  aux questions et soumission de fichiers restent à faire.
   Toute action doit passer par les mêmes API déterministes et confirmations à usage unique.
 - **Priorité :** finaliser le vrai streaming d'Open WebUI sur Fedora
   et les commandes visuelles de projet avec approbation humaine,
