@@ -99,7 +99,7 @@ def test_health_uses_full_json_inventory_and_reports_no_gpu_offload(
 
     def command(args: list[str], _runtime: Path | None = None) -> tuple[bool, str]:
         if args[-1] == "--version":
-            return True, "OpenClaw 2026.9.8"
+            return True, "OpenClaw 2026.10.2"
         if "gateway" in args:
             return True, '{"rpc":{"ok":true}}'
         if args == ["getenforce"]:
