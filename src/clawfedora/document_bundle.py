@@ -105,7 +105,7 @@ def build_bundle(parts: list[Path], dest: Path, name: str, *, apply: bool = Fals
     staged: list[Path] = []
     written: list[Path] = []
     try:
-        for fname, data in result.items():
+        for _fname, data in result.items():
             with tempfile.NamedTemporaryFile(
                 mode="wb", dir=destination, prefix=".clawfedora-bundle-",
                 delete=False,
