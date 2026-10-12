@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import json
 from pathlib import Path
 from typing import Any
 
@@ -86,6 +87,7 @@ def test_vision_uses_exact_local_model_and_preflight_under_worker_lock(
         assert endpoint == "/api/chat"
         assert len(payload["messages"][1]["images"]) == 1
         assert payload["stream"] is False
+        assert payload["think"] is False
         assert payload["options"]["num_predict"] == 512
         return {
             "model": "qwen3.5:9b-q4_K_M", "done": True,
@@ -165,3 +167,78 @@ def test_local_api_never_accepts_remote_hosts_or_arbitrary_paths() -> None:
         local_vision._local_json("https://api.openrouter.ai/", {})
     with pytest.raises(ValueError, match="non autorisée"):
         local_vision._local_json("/v1/chat/completions", {})
+
+
+
+def test_opt_in_marker_rejects_links_and_non_private_content(tmp_path: Path) -> None:
+    runtime = _runtime(tmp_path)
+    marker = runtime / local_vision.MARKER
+    other = tmp_path / "external"
+    other.write_text(local_vision.APPROVAL + "\n")
+    marker.symlink_to(other)
+    with pytest.raises(ValueError, match="liée"):
+        local_vision.enabled(runtime)
+    marker.unlink()
+    _enable(runtime)
+    alias = tmp_path / "extra-link"
+    alias.hardlink_to(marker)
+    with pytest.raises(ValueError, match="privée"):
+        local_vision.enabled(runtime)
+    alias.unlink()
+    marker.write_text(local_vision.APPROVAL + "\n" + ("X" * 200))
+    with pytest.raises(ValueError, match="privée"):
+        local_vision.enabled(runtime)
+    marker.write_text(local_vision.APPROVAL)
+    with pytest.raises(ValueError, match="non reconnue"):
+        local_vision.enabled(runtime)
+
+
+def test_marker_directory_symlinks_are_refused(tmp_path: Path) -> None:
+    runtime = _runtime(tmp_path)
+    _enable(runtime)
+    alias = tmp_path / "alias"
+    alias.symlink_to(runtime, target_is_directory=True)
+    with pytest.raises(ValueError, match="lié"):
+        local_vision.enabled(alias)
+
+
+def test_ollama_local_request_is_only_fixed_post_with_no_proxies(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: list[dict[str, Any]] = []
+
+    class Response:
+        status = 200
+
+        def __enter__(self) -> Response:
+            return self
+
+        def __exit__(self, *_args: object) -> None:
+            pass
+
+        def read(self, maximum: int) -> bytes:
+            return b'{"capabilities":["vision"]}'[:maximum]
+
+    class Opener:
+        def open(self, request: Any, timeout: int) -> Response:
+            seen.append({
+                "url": request.full_url, "method": request.get_method(),
+                "payload": json.loads(request.data), "timeout": timeout,
+            })
+            return Response()
+
+    def factory(*handlers: Any) -> Opener:
+        assert any(isinstance(x, local_vision._NoRedirect) for x in handlers)
+        assert any(isinstance(x, local_vision.urllib.request.ProxyHandler)
+                   and not x.proxies for x in handlers)
+        return Opener()
+
+    monkeypatch.setattr(local_vision.urllib.request, "build_opener", factory)
+    result = local_vision._local_json("/api/show", {"model": "qwen3.5:9b-q4_K_M"})
+    assert result["capabilities"] == ["vision"]
+    assert seen == [{
+        "url": "http://127.0.0.1:11434/api/show",
+        "method": "POST",
+        "payload": {"model": "qwen3.5:9b-q4_K_M"},
+        "timeout": 12,
+    }]
