@@ -95,13 +95,15 @@ Chaque rôle possède ses **consignes**, son **espace de travail** et une **list
 
 | Interface | Sur le PC Fedora | Ce qu'elle permet |
 |---|---|---|
-| **Open WebUI** | `http://127.0.0.1:3000` | Chat, choix du rôle, fichiers, dictée, cinq raccourcis de lecture, huit actions de projet confirmées et formulaire de création en deux étapes |
+| **Open WebUI** | `http://127.0.0.1:3000` | Chat, choix du rôle, fichiers, dictée, cinq raccourcis de lecture, huit actions confirmées et trois formulaires (création, précisions, révision) |
 | **Atelier Projets** | `http://127.0.0.1:18890` | Créer, cadrer, approuver, suivre les tâches, vérifier et livrer via le tableau de bord |
 
-**Précision :** le code prévoit neuf actions visuelles de projet, dont la
-création par formulaire ; **elles ne remplacent pas** les vérifications du
-moteur, les approbations à usage unique ni les commandes avancées
-(révision, réponses à des questions, soumission de fichiers).
+**Précision :** le code prévoit onze actions visuelles de projet :
+huit transitions confirmées et trois formulaires de création, de réponse
+aux précisions et de demande de révision. **Elles ne remplacent pas** les
+vérifications du moteur ni les approbations à usage unique ; la révision
+proposée par formulaire nécessite encore un code distinct avant tout
+changement. Les soumissions de fichiers restent accessibles par commande.
 L'affichage effectif de ces actions dans Open WebUI reste à qualifier
 sur Fedora. Le streaming SSE est **préparé mais non activé** par défaut.
 Les opérations non couvertes utilisent les commandes ou l'Atelier Projets. Le chat local permet aussi d'analyser de petits fichiers texte/code **sans créer de projet** (4 fichiers, 12 000 octets cumulés) ; les PDF, Office et images suivent l'ingestion contrôlée d'un projet. [Détails des fichiers](docs/fiches/06-fichiers-et-schemas.md).
