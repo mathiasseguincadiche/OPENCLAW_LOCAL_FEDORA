@@ -247,6 +247,8 @@ def build_openclaw_patch(
                 "sessions_send",
                 "subagents",
                 "browser",
+                # Introduced by OpenClaw 2026.10.2; not reviewed for our seven roles.
+                "skills_read",
                 # "gateway" can run an OpenClaw update: forbidden by the exact version lock.
                 "gateway",
                 "presence",
