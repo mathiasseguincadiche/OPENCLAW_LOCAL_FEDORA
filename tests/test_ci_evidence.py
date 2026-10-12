@@ -130,3 +130,92 @@ def test_incomplete_sha_and_nonpositive_run_are_refused() -> None:
 def test_no_arbitrary_external_fetch_and_no_credentials() -> None:
     with pytest.raises(ci.ProofRefused, match="Destination"):
         ci._json_get("https://evil.example/forward")
+
+
+
+def test_github_jobs_are_scoped_to_exact_verified_run(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: list[str] = []
+
+    def get(url: str) -> object:
+        seen.append(url)
+        if url.endswith("/jobs?per_page=100"):
+            return {
+                "total_count": 2,
+                "jobs": [
+                    {"id": 8, "name": "Lint", "run_id": 123, "status": "completed",
+                     "conclusion": "success", "secret": "not-for-display"},
+                    {"id": 4, "name": "Tests", "run_id": 123, "status": "completed",
+                     "conclusion": "failure", "steps": [{"logs": "private"}]},
+                ],
+            }
+        return {"id": 123, "head_sha": SHA, "status": "completed", "conclusion": "success"}
+
+    monkeypatch.setattr(ci, "_json_get", get)
+    proof = ci.verify_public_run_with_jobs("github", "octo/repo", 123, SHA)
+    assert proof["jobs_count"] == 2
+    assert [j["id"] for j in proof["jobs"]] == [4, 8]
+    assert proof["jobs_scope"] == "public_job_metadata_only"
+    assert "not-for-display" not in str(proof) and "private" not in str(proof)
+    assert seen == [
+        "https://api.github.com/repos/octo/repo/actions/runs/123",
+        "https://api.github.com/repos/octo/repo/actions/runs/123/jobs?per_page=100",
+    ]
+
+
+def test_gitlab_jobs_metadata_is_bounded_and_has_parent_id(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def get(url: str) -> object:
+        if url.endswith("/jobs?per_page=100"):
+            return [{"id": 47, "name": "build", "status": "success",
+                     "pipeline": {"id": 42, "sha": SHA}}]
+        return {"id": 42, "sha": SHA, "status": "success"}
+
+    monkeypatch.setattr(ci, "_json_get", get)
+    proof = ci.verify_public_run_with_jobs("gitlab", "team/repo", 42, SHA)
+    assert proof["jobs"] == [
+        {"id": 47, "name": "build", "status": "success", "conclusion": None}
+    ]
+
+
+@pytest.mark.parametrize("provider,reply", [
+    ("github", {"total_count": 101, "jobs": []}),
+    ("github", {"total_count": 2, "jobs": [{"id": 1}]}),
+    ("github", {"total_count": 0, "jobs": [None]}),
+    ("github", {"total_count": 1, "jobs": [
+        {"id": 1, "name": "bad", "run_id": 2, "status": "completed"},
+    ]}),
+    ("gitlab", [{"id": 2, "name": "job", "status": "success",
+                 "pipeline": {"id": 99}}]),
+    ("gitlab", [{"id": 2, "name": "job", "status": "success"}]),
+])
+def test_jobs_fail_closed_on_mismatch_or_partial_response(
+    monkeypatch: pytest.MonkeyPatch, provider: str, reply: object,
+) -> None:
+    def get(url: str) -> object:
+        if url.endswith("/jobs?per_page=100"):
+            return reply
+        if provider == "github":
+            return {"id": 1, "head_sha": SHA, "status": "completed",
+                    "conclusion": "success"}
+        return {"id": 1, "sha": SHA, "status": "success"}
+
+    monkeypatch.setattr(ci, "_json_get", get)
+    with pytest.raises(ci.ProofRefused):
+        ci.verify_public_run_with_jobs(provider, "octo/repo", 1, SHA)
+
+
+def test_never_fetch_jobs_when_parent_run_sha_is_wrong(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: list[str] = []
+
+    def get(url: str) -> object:
+        seen.append(url)
+        return {"id": 123, "head_sha": "b" * 40,
+                "status": "completed", "conclusion": "success"}
+
+    monkeypatch.setattr(ci, "_json_get", get)
+    with pytest.raises(ci.ProofRefused, match="SHA"):
+        ci.verify_public_run_with_jobs("github", "octo/repo", 123, SHA)
+    assert len(seen) == 1
