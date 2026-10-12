@@ -72,6 +72,7 @@ podman run --rm --detach --name "$NAME" --network none \
   -e ENABLE_OPENAI_API=false -e ENABLE_PLUGINS=true \
   -e ENABLE_FUNCTIONS=true -e ENABLE_TOOLS=false \
   -e ENABLE_TOOL_SERVERS=false -e ENABLE_SIGNUP=false \
+  -e ENABLE_PIP_INSTALL_FRONTMATTER_REQUIREMENTS=false \
   -e WEBUI_AUTH=true -e HOST=127.0.0.1 -e PORT=8080 \
   -e WEBUI_SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_hex(32))')" \
   --volume "$TMP/data:/app/backend/data:Z" "$DIGEST" >/dev/null
