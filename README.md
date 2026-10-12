@@ -95,7 +95,7 @@ Chaque rôle possède ses **consignes**, son **espace de travail** et une **list
 
 | Interface | Sur le PC Fedora | Ce qu'elle permet |
 |---|---|---|
-| **Open WebUI** | `http://127.0.0.1:3000` | Chat, choix du rôle, fichiers, dictée, commandes `!` ; trois boutons rapides **en lecture seule** |
+| **Open WebUI** | `http://127.0.0.1:3000` | Chat, choix du rôle, fichiers, dictée, commandes `!` ; cinq raccourcis rapides **en lecture seule** |
 | **Atelier Projets** | `http://127.0.0.1:18890` | Créer, cadrer, approuver, suivre les tâches, vérifier et livrer via le tableau de bord |
 
 **Précision :** Open WebUI n'a pas encore tous les contrôles de projet en boutons. Les opérations avancées utilisent les commandes textuelles ou le tableau de bord. Le chat local permet aussi d'analyser de petits fichiers texte/code **sans créer de projet** (4 fichiers, 12 000 octets cumulés) ; les PDF, Office et images suivent l'ingestion contrôlée d'un projet. [Détails des fichiers](docs/fiches/06-fichiers-et-schemas.md).
@@ -112,6 +112,16 @@ Chaque rôle possède ses **consignes**, son **espace de travail** et une **list
 
 ## Démarrer sur Fedora
 
+**Architecture cible : Fedora est le système hôte du projet IA.** OpenClaw,
+Ollama, les sept rôles, le moteur de projets, la passerelle cloud et les
+données fonctionnent côté Fedora. Open WebUI est prévu en **conteneur
+Podman rootless sur ce même Fedora**. DeepSeek est le seul moteur d'inférence
+déporté (via OpenRouter et sur autorisation). **Aucune installation de Rocky
+Linux, VM Rocky ou image Rocky n'est requise pour démarrer ou utiliser
+l'atelier IA.** Une VM Rocky peut servir *indépendamment* aux exercices
+DevOps de l'utilisateur ; elle ne fait pas partie de l'infrastructure
+d'exécution de l'atelier.
+
 Cible : **Fedora 44**, Ryzen 7 7700, 48 Go de RAM, Intel Arc B580 12 Go. Installation sans root, avec SELinux actif.
 
 ```bash
@@ -127,11 +137,15 @@ cd OPENCLAW_LOCAL_FEDORA
 
 → [Préparer l'installation](docs/fiches/01-installer.md) · [Vérifier le premier essai](docs/fiches/02-premier-essai.md).
 
-## Laboratoire DevOps offline : premières validations réelles
+## Outil de validation DevOps facultatif — hors du cœur IA
 
 La commande indépendante `clawfedora-lab` prépare des vérifications Terraform, Ansible, GitHub Actions, ShellCheck et Dockerfile dans un **conteneur rootless, offline et jetable**, sur une copie limitée du projet. Aucun agent ne peut la déclencher librement : c'est **toi** qui dois fournir une **image de validateurs déjà présente, épinglée par digest**, puis `--apply`.
 
-**Le moteur est préparé dans le dépôt, mais l'image Rocky et les essais Podman réels restent à qualifier.** [Fonctionnement, commandes et protections](docs/LABORATOIRE_DEVOPS.md).
+**Cet outil optionnel ne fait pas fonctionner OpenClaw et n'exige pas Rocky Linux.**
+Le validateur demande une **image OCI locale de confiance contenant les outils**,
+quelle que soit la distribution de base ; sa provenance et les essais Podman
+réels restent à qualifier. Ce chantier ne bloque **ni le streaming ni le
+pilotage WebUI**. [Fonctionnement, commandes et protections](docs/LABORATOIRE_DEVOPS.md).
 
 ## Faire progresser l'atelier sans se raconter d'histoires
 
