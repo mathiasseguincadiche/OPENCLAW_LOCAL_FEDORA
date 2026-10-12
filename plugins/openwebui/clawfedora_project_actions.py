@@ -17,6 +17,7 @@ READ_ONLY_ACTIONS = {
     "projects": "!projets",
     "status": "!etat",
     "help": "!aide",
+    "models": "!modele",
 }
 
 
@@ -76,6 +77,7 @@ class Action:
         {"id": "projects", "name": "Voir les projets"},
         {"id": "status", "name": "État du projet"},
         {"id": "help", "name": "Commandes disponibles"},
+        {"id": "models", "name": "Quel modèle choisir ?"},
     ]
 
     async def action(
