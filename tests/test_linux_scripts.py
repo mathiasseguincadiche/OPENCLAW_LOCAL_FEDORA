@@ -187,7 +187,7 @@ def test_installer_reads_exact_pins_without_third_party_python_packages() -> Non
         capture_output=True,
         check=True,
     )
-    assert result.stdout.splitlines() == ["2026.9.8", "0.35.1"]
+    assert result.stdout.splitlines() == ["2026.10.2", "0.35.1"]
 
 
 def test_openclaw_toolkit_inventory_matches_the_plugin() -> None:

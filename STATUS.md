@@ -7,7 +7,7 @@ Dernière mise à jour documentaire : 12 octobre 2026.
 | | État |
 |---|---|
 | Code, scripts et configuration | Écrits et testés automatiquement |
-| Configuration acceptée par le vrai OpenClaw 2026.9.8 | Vérifié à chaque modification |
+| Configuration acceptée par le vrai OpenClaw 2026.10.2 | Vérifié à chaque modification |
 | Consignes des rôles non tronquées, prompt dans le contexte | Vérifié à chaque modification |
 | Installation sur le PC Fedora | **À faire** |
 | Carte graphique utilisée, contexte de 32K tenu en mémoire vidéo | **À mesurer** |

@@ -24,6 +24,15 @@ if extract_openclaw_version(version) != pin:
 plugin = Path(os.environ["OPENCLAW_SCHEMA_PARALLEL_PATH"]).resolve()
 if not (plugin / "openclaw.plugin.json").is_file():
     raise SystemExit("Pinned Parallel plugin absent")
+plugin_meta = json.loads((plugin / "package.json").read_text(encoding="utf-8"))
+parallel_pin = str(
+    root_contract(repo, "runtime_versions.yaml")["openclaw"]["plugins"]["parallel"]["version"]
+)
+if (
+    plugin_meta.get("name") != "@openclaw/parallel-plugin"
+    or plugin_meta.get("version") != parallel_pin
+):
+    raise SystemExit("Parallel plugin npm package differs from exact repository pin")
 with tempfile.TemporaryDirectory(prefix="clawfedora-native-schema-") as temporary:
     state = Path(temporary)
     toolkit = state / "runtime/extensions/clawfedora-toolkit"
@@ -110,6 +119,27 @@ with tempfile.TemporaryDirectory(prefix="clawfedora-native-schema-") as temporar
     preserved.parent.mkdir()
     preserved.write_text("historical user data")
     path.write_text(json.dumps(current))
+    # OpenClaw 2026.10.2 refuses legacy default flags before any config patch.
+    # Rehearse the same native Doctor repair as 03_configure_openclaw.sh, but
+    # only inside this disposable CI state; never change a real user runtime.
+    repair = subprocess.run(
+        [cli, "doctor", "--fix", "--non-interactive"],
+        env=env, capture_output=True, text=True, timeout=120, check=False,
+    )
+    if repair.returncode != 0:
+        raise SystemExit(
+            f"Native legacy roster Doctor repair failed: "
+            f"{repair.stderr[-2000:]} {repair.stdout[-2000:]}"
+        )
+    repaired = subprocess.run(
+        [cli, "config", "validate", "--json"], env=env,
+        capture_output=True, text=True, timeout=120, check=False,
+    )
+    if repaired.returncode != 0:
+        raise SystemExit(
+            f"Native legacy roster still invalid after Doctor: "
+            f"{repaired.stdout[-2000:]} {repaired.stderr[-1000:]}"
+        )
     migration = state / "migration.json"
     migration.write_text(json.dumps(prepare_migration_patch(config)))
     for dry_run in (True, False):

@@ -42,7 +42,7 @@ def test_openclaw_neighbor_version_stops_before_loading_model(
 
     def run(command: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
         assert command == ["openclaw", "--version"]
-        return subprocess.CompletedProcess(command, 0, "OpenClaw 2026.9.80", "")
+        return subprocess.CompletedProcess(command, 0, "OpenClaw 2026.10.20", "")
 
     monkeypatch.setattr(ollama_api, "request_json", request)
     monkeypatch.setattr(project_worker.subprocess, "run", run)

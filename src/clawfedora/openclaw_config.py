@@ -150,7 +150,6 @@ def build_openclaw_patch(
         agent_list.append(
             {
                 "id": spec.agent_id,
-                "default": spec.agent_id == "chef-operations",
                 "name": spec.name,
                 "workspace": str(runtime_root / "workspaces" / spec.agent_id),
                 "model": {
@@ -196,7 +195,9 @@ def build_openclaw_patch(
         },
         "models": {"mode": "replace", "providers": providers},
         "agents": {
+            "ownership": "explicit",
             "defaults": {
+                "systemAgent": {"agentId": "chef-operations"},
                 "skipBootstrap": bool(defaults.get("skip_bootstrap", True)),
                 "bootstrapMaxChars": int(limits["bootstrap_max_chars"]),
                 "bootstrapTotalMaxChars": int(limits["bootstrap_total_max_chars"]),
@@ -225,9 +226,10 @@ def build_openclaw_patch(
                 for entry in agent_list
             },
         },
+        "talk": {"agentId": "chef-operations"},
         "tools": {
             "profile": str(global_tools.get("profile", "minimal")),
-            # OpenClaw 2026.9.8 defaults to cross-agent/all-session access if
+            # OpenClaw may default to cross-agent/all-session access if
             # omitted. This personal atelier must never expose another role's
             # conversation through a session tool, including the mentor role.
             "sessions": {"visibility": "self"},
@@ -245,6 +247,8 @@ def build_openclaw_patch(
                 "sessions_send",
                 "subagents",
                 "browser",
+                # Introduced by OpenClaw 2026.10.2; not reviewed for our seven roles.
+                "skills_read",
                 # "gateway" can run an OpenClaw update: forbidden by the exact version lock.
                 "gateway",
                 "presence",

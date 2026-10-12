@@ -38,7 +38,7 @@ def test_upgrade_dry_run_makes_no_runtime_changes(tmp_path: Path) -> None:
         text=True,
     )
     assert result.returncode == 0 and "UPGRADE_DRY_RUN=PASS" in result.stdout
-    assert "openclaw=2026.9.8 ollama=0.35.1" in result.stdout and not runtime.exists()
+    assert "openclaw=2026.10.2 ollama=0.35.1" in result.stdout and not runtime.exists()
 
 
 @pytest.mark.skipif(os.geteuid() == 0, reason="operator script deliberately refuses root")

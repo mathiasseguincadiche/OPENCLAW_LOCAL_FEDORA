@@ -62,7 +62,11 @@ def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
 
     agents = _agents_by_id(patch)
     assert len(agents) == 7
-    assert agents["chef-operations"]["default"] is True
+    assert "default" not in agents["chef-operations"]
+    assert all("default" not in entry for entry in agents.values())
+    assert patch["agents"]["ownership"] == "explicit"
+    assert patch["agents"]["defaults"]["systemAgent"] == {"agentId": "chef-operations"}
+    assert patch["talk"] == {"agentId": "chef-operations"}
     assert agents["ingenieur-devops"]["model"] == {
         "primary": "ollama/qwen3.5:9b-q4_K_M",
         "fallbacks": [],
@@ -81,6 +85,7 @@ def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
     assert tools["profile"] == "minimal"
     assert tools["sessions"] == {"visibility": "self"}
     assert tools["agentToAgent"] == {"enabled": False}
+    assert "skills_read" in tools["deny"]
     mentor_tools = agents["chef-operations"]["tools"]
     assert not {"sessions_list", "sessions_history", "sessions_search"}.intersection(
         mentor_tools["alsoAllow"]
