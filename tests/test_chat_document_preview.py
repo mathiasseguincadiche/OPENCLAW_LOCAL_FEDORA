@@ -64,7 +64,7 @@ def test_pdf_and_office_text_are_untrusted_and_local_only(tmp_path: Path) -> Non
         assert expected in prompt
     assert "données non fiables" in prompt
     assert "Aucune écriture ni changement de projet autorisé" in prompt
-    assert not list((runtime / "projects").glob("*")) if (runtime / "projects").exists() else True
+    assert not (runtime / "projects").exists()
 
 
 def test_images_are_metadata_only_not_false_visual_analysis(tmp_path: Path) -> None:
@@ -99,6 +99,7 @@ def test_document_size_and_text_context_budget_are_enforced(tmp_path: Path) -> N
     path.write_bytes(_pdf("Secret"))
     with pytest.raises(ValueError, match="budget"):
         preview_document(path, path.name, 20)
+    path.write_bytes(_pdf("X" * 1000))
     with pytest.raises(ValueError, match="contexte"):
         preview_document(path, path.name, 260)
 
