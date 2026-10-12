@@ -507,7 +507,8 @@ HELP = """Commandes du pont (comprises par le programme, jamais par le modèle) 
 - `!projets` : liste vos projets, avec leur état
 - `!projet <id>` : sélectionne un projet (un morceau d'identifiant ou de titre suffit s'il est unique)
 - `!etat` : état du projet sélectionné (tâches, pause, cloud, traitement en cours)
-- `!modele [catégorie]` : recommande Qwen local ou DeepSeek selon un type de tâche, sans envoyer de données à un modèle
+- `!modele [catégorie]` : conseille Qwen ou DeepSeek selon la tâche,
+  sans transmettre de conversation à un modèle
 - `!quitter` : n'utilise plus de projet
 - `!garder [titre]` : garde la dernière réponse du rôle comme **proposition** du projet
 - `!propositions` : liste les propositions ; `!voir <n>` en affiche une
