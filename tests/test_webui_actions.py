@@ -56,12 +56,21 @@ def test_bridge_request_cannot_send_control_plane_commands(monkeypatch: Any) -> 
 
     monkeypatch.setattr(http.client, "HTTPConnection", FakeConnection)
     answer = API["read_only_bridge"](
-        "!etat", [{"role": "assistant", "content": "📁 Projet : lab\\n\\nBonjour"}], key="x" * 64
+        "!etat",
+        [
+            {"role": "user", "content": "secret-in-history"},
+            {"role": "assistant", "content": "📁 Projet : lab\\n\\nBonjour"},
+            {"role": "user", "content": "another-private-prompt"},
+        ],
+        key="x" * 64
     )
     assert answer == "Projet actif : lab"
     assert captured[0]["model"] == "openclaw/chef-operations"
     assert captured[0]["messages"][-1] == {"role": "user", "content": "!etat"}
-    assert captured[0]["messages"][0]["role"] == "assistant"
+    assert captured[0]["messages"][0] == {"role": "assistant", "content": "📁 Projet : lab"}
+    assert len(captured[0]["messages"]) == 2
+    assert "private" not in json.dumps(captured[0])
+    assert "secret-in-history" not in json.dumps(captured[0])
 
 
 def test_action_buttons_require_admin_and_never_approve(monkeypatch: Any) -> None:
