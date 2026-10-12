@@ -536,7 +536,8 @@ class BridgeHandler(BaseHTTPRequestHandler):
                         data,
                         chat_projects.bridge_reply(
                             current,
-                            f"✅ {len(imported)} pièce(s) jointe(s) ajoutée(s) aux sources : {names}. "
+                            f"✅ {len(imported)} pièce(s) jointe(s) ajoutée(s) "
+                            f"aux sources : {names}. "
                             "La chaîne d'ingestion canonique a été reconstruite. Lancez `!analyser` "
                             "pour les lire avec les outils requis."
                         ),
