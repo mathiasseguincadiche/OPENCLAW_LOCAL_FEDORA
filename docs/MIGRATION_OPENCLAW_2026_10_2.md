@@ -9,6 +9,10 @@ Sources amont :
 - Package npm OpenClaw : https://www.npmjs.com/package/openclaw/v/2026.10.2
 - Métadonnées du plugin Parallel (tag) : https://github.com/openclaw/openclaw/blob/v2026.10.2/extensions/parallel/package.json
 
+## Compatibilité 2026.10.2 corrigée pendant la CI
+
+OpenClaw 2026.10.2 refuse désormais les marqueurs hérités `agents.entries.<id>.default` sans propriétaire de surface explicite. La configuration générée n'utilise plus ces anciens marqueurs : elle définit `agents.ownership: explicit`, `agents.defaults.systemAgent.agentId: chef-operations` et `talk.agentId: chef-operations`. Le patch de migration supprime encore les marqueurs historiques du runtime existant. Le mentor reste l'agent système et le rôle par défaut du projet ; les six autres agents restent explicitement sélectionnés. Le test avec le binaire npm réel doit accepter la configuration et la migration, sans exécuter `doctor --fix` sur l'installation de l'utilisateur.
+
 ## Bénéfices attendus et limites
 
 Les correctifs amont touchent la redaction de secrets dans les résultats d'outils volumineux, la stabilité des sessions et des conversations longues, la réactivité du Gateway et du tableau de bord, les mises à jour et Doctor, ainsi que des erreurs sur les images tronquées. Les optimisations de cache Anthropic ou de compaction OpenAI ne justifient **aucun changement** à notre route locale Ollama/DeepSeek via OpenRouter. Leur gain sur la B580 n'est pas démontré.
