@@ -13,6 +13,7 @@ GUIDES = (
     "README.md",
     "STATUS.md",
     "docs/GUIDE.md",
+    "docs/ARCHITECTURE_HYBRIDE.md",
     "docs/EXEMPLE_PARCOURS_DEVOPS.md",
     "docs/PLAN_QUALITE_2026.md",
     "docs/DECISION_MODELE.md",
@@ -90,3 +91,60 @@ def test_readme_architecture_mentions_really_pinned_webui() -> None:
     assert "streaming" in architecture.lower()
     assert "cloud" in architecture.lower()
     assert "approbation" in architecture.lower()
+
+
+def test_hybrid_documentation_describes_both_configured_engines() -> None:
+    models = yaml.safe_load(
+        (ROOT / "config/model_catalog.yaml").read_text(encoding="utf-8")
+    )["models"]
+    routing = yaml.safe_load(
+        (ROOT / "config/core/model_routing.yaml").read_text(encoding="utf-8")
+    )
+    cloud = yaml.safe_load(
+        (ROOT / "config/core/cloud_policy.yaml").read_text(encoding="utf-8")
+    )
+    assert models["qwen-max"]["provider"] == "ollama"
+    assert models["cloud-main"]["provider"] == "cloud-gateway"
+    assert models["cloud-main"]["runtime_id"] == cloud["model"]["upstream_id"]
+    assert cloud["model"]["upstream_id"] == "deepseek/deepseek-v4.1-flash"
+    assert routing["policy"]["cloud_enabled_by_default"] is False
+    assert routing["policy"]["local_to_cloud_fallback"] == "forbidden"
+    assert set(routing["agents"]) == set(
+        yaml.safe_load((ROOT / "config/core/agents.yaml").read_text(encoding="utf-8"))[
+            "agents"
+        ]
+    )
+    for spec in routing["agents"].values():
+        assert spec["local_primary"] == "qwen-max"
+        assert spec["cloud_primary"] == "cloud-main"
+
+    docs = [
+        "README.md",
+        "docs/GUIDE.md",
+        "docs/ARCHITECTURE_HYBRIDE.md",
+        "docs/fiches/07-roles-et-outils.md",
+        "docs/fiches/11-comment-ca-marche.md",
+        "docs/fiches/12-cloud.md",
+    ]
+    for name in docs:
+        text = (ROOT / name).read_text(encoding="utf-8")
+        assert "Qwen" in text, name
+        assert "DeepSeek" in text, name
+        assert "cloud" in text.lower(), name
+    strategy = (ROOT / "docs/ARCHITECTURE_HYBRIDE.md").read_text(
+        encoding="utf-8"
+    )
+    assert "automatique" in strategy.lower()
+    assert "consentement" in strategy.lower()
+    assert "25 €/mois" in strategy
+    assert str(cloud["model"]["context_tokens"]) in strategy.replace(" ", "")
+
+
+def test_hybrid_social_preview_contains_both_models() -> None:
+    cover = ROOT / ".github/social-preview.svg"
+    picture = ElementTree.parse(cover).getroot()
+    assert picture.find("{http://www.w3.org/2000/svg}title") is not None
+    content = cover.read_text(encoding="utf-8")
+    assert "hybride" in content
+    assert "Qwen" in content
+    assert "DeepSeek" in content
