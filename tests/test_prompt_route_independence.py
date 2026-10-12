@@ -22,7 +22,7 @@ def test_direct_teaching_has_no_arbitrary_depth_cap() -> None:
     text = (ROOT / "agents/_shared/PEDAGOGY.md").read_text(encoding="utf-8")
     assert "En guidé, limiter à trois notions" in text
     assert "En direct, expliquer aussi profondément que demandé" in text
-    assert "exercice facultatif" in text
+    assert "exercice est facultatif" in text
 
 
 def test_no_provider_name_or_automatic_route_claim_in_shared_prompts() -> None:
