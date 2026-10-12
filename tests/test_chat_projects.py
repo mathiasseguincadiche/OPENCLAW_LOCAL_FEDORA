@@ -14,6 +14,7 @@ import pytest
 from test_daily_worker import planned as planned
 
 from clawfedora import chat_projects, project_cloud
+from clawfedora.cloud_budget import load_ledger
 from clawfedora.cloud_state import write_activation
 from clawfedora.project_worker import worker_lock
 from clawfedora.webui_bridge import (
@@ -83,6 +84,7 @@ def tree_hash(root: Path) -> str:
 def test_commands_are_parsed_from_one_line_messages_only() -> None:
     assert chat_projects.parse_command("!projets") == ("projets", "")
     assert chat_projects.parse_command("!modele iac") == ("modele", "iac")
+    assert chat_projects.parse_command("!budget") == ("budget", "")
     assert chat_projects.parse_command("/modele") == ("modele", "")
     assert chat_projects.parse_command("  !Projet  Daily ") == ("projet", "Daily")
     assert chat_projects.parse_command("!état") == ("etat", "")
@@ -117,6 +119,40 @@ def test_model_advice_never_calls_an_agent(chat: tuple[Any, Runner, Path, Path])
         code, generic = ask(server, MODEL_IDS[0], ("user", "!modele"))
         assert code == 200 and "Qwen local" in generic
         assert runner.calls == []
+
+
+def test_budget_is_local_private_and_does_not_run_an_agent(
+    chat: tuple[Any, Runner, Path, Path]
+) -> None:
+    server, runner, runtime, _ = chat
+    ledger = load_ledger(runtime, ROOT)
+    ledger.record_invoice(21.35)
+    with worker_lock(runtime):
+        code, response = ask(server, MODEL_IDS[0], ("user", "!budget"))
+    assert code == 200
+    assert "Budget DeepSeek" in response and "21.35" in response
+    assert "25.00" in response
+    assert "facture en temps réel" in response
+    assert runner.calls == []
+    code, response = ask(server, MODEL_IDS[0], ("user", "!budget avec secret"))
+    assert code == 200 and "sans argument" in response
+    assert runner.calls == []
+
+
+def test_budget_refuses_linked_ledger_without_reading(
+    chat: tuple[Any, Runner, Path, Path], tmp_path: Path
+) -> None:
+    server, runner, runtime, _ = chat
+    ledger = load_ledger(runtime, ROOT)
+    month = ledger.summary().month
+    ledger.path(month).parent.mkdir(parents=True, exist_ok=True)
+    private_file = tmp_path / "fake-budget.jsonl"
+    private_file.write_text('{"secret":"should not be read"}')
+    ledger.path(month).symlink_to(private_file)
+    code, response = ask(server, MODEL_IDS[0], ("user", "!budget"))
+    assert code == 200 and "Budget cloud indisponible" in response
+    assert "secret" not in response
+    assert runner.calls == []
 
 
 def test_help_and_unknown_commands(chat: tuple[Any, Runner, Path, Path]) -> None:
