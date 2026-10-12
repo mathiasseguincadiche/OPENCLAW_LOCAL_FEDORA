@@ -10,6 +10,17 @@ Le cloud reste **facultatif au sens du consentement**, mais **central dans la st
 
 Tant que tu n'as rien activé, rien de cette fiche ne s'applique : aucune conversation ni aucun projet ne part vers un modèle distant (seule la recherche Web des rôles, quand tu la demandes, sort pour interroger le Web).
 
+## Voir le budget depuis Open WebUI
+
+`!budget` et le raccourci **Budget DeepSeek** affichent une synthèse locale :
+montant engagé ou rapproché, reste sur **25 €/mois**, appels incertains et
+réservations en attente. Il s'agit du **journal du pont**, pas de la facture
+OpenRouter en direct. Aucun appel à DeepSeek ne sert à produire ce rapport.
+En cas de journal manquant ou invalide, le système refuse le rapport au lieu
+de présenter un faux chiffre.
+
+→ [Consulter le budget et les raccourcis](03-discuter.md).
+
 ## Deux routes pour deux besoins : autonomie et capacité
 
 La route DeepSeek est volontairement plus généreuse en contexte (jusqu'à **1 048 576 tokens configurés**, sortie jusqu'à **32 768**) que Qwen local (**32 768 / 4 096**). Cela vise la cohérence des dossiers techniques complexes, mais **ne garantit ni une réponse plus rapide ni une meilleure exactitude**.

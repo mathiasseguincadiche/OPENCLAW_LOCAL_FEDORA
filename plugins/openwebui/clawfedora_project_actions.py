@@ -18,6 +18,7 @@ READ_ONLY_ACTIONS = {
     "status": "!etat",
     "help": "!aide",
     "models": "!modele",
+    "budget": "!budget",
 }
 
 
@@ -78,6 +79,7 @@ class Action:
         {"id": "status", "name": "État du projet"},
         {"id": "help", "name": "Commandes disponibles"},
         {"id": "models", "name": "Quel modèle choisir ?"},
+        {"id": "budget", "name": "Budget DeepSeek"},
     ]
 
     async def action(

@@ -51,12 +51,17 @@ Redémarrer Open WebUI et confirmer qu'un second compte ne peut pas être créé
 Après `webui-seal --apply`, dans le navigateur :
 - vérifier que les filtres et actions `clawfedora_files` et
   `clawfedora_project_actions` sont présents, actifs et globaux ;
-- vérifier que **Voir les projets**, **État du projet** et
-  **Commandes disponibles** apparaissent sous les messages ;
+- vérifier que **Voir les projets**, **État du projet**,
+  **Commandes disponibles**, **Quel modèle choisir ?** et
+  **Budget DeepSeek** apparaissent sous les messages ;
 - cliquer sur chacun, vérifier le retour en notification et l'absence
   d'appels au modèle, de dépense cloud ou de transition de projet ;
 - vérifier qu'aucun bouton ne déclenche un `!livrer`, `!modifier` ou
-  une approbation et que les droits ne sont pas élargis.
+  une approbation et que les droits ne sont pas élargis ;
+- comparer `!budget` et le bouton Budget DeepSeek : mêmes montants du
+  journal local, aucune génération IA ni appel OpenRouter ;
+- saisir un relevé fournisseur factice uniquement dans un laboratoire de test
+  séparé, vérifier que l'estimation ne devient **jamais** une facture annoncée.
 
 ## 2. Conversation locale
 
