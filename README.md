@@ -91,7 +91,7 @@ cd OPENCLAW_LOCAL_FEDORA
 | [Apprendre](docs/fiches/05-apprendre.md) | [Comment ça marche](docs/fiches/11-comment-ca-marche.md) |
 | [Fichiers et schémas](docs/fiches/06-fichiers-et-schemas.md) | [Le cloud, facultatif](docs/fiches/12-cloud.md) |
 | [Test de fumée Open WebUI](docs/SMOKE_TEST_WEBUI.md) | [Quel modèle pour expliquer](docs/DECISION_MODELE.md) |
-| [Plan : tout faire depuis Open WebUI](docs/PLAN_INTEGRATION_WEBUI.md) | |
+| [Plan : tout faire depuis Open WebUI](docs/PLAN_INTEGRATION_WEBUI.md) | [Plan qualité et critères de validation](docs/PLAN_QUALITE_2026.md) |
 
 L'ancien PDF illustré de pré-intégration n'est plus la référence : le guide Markdown, les fiches et le test de fumée décrivent désormais l'architecture actuelle.
 
