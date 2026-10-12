@@ -13,6 +13,19 @@ import json
 import os
 from typing import Any
 
+# Only fixed commands are exposed. The bridge performs all project-state checks.
+# Every state-changing button requires an affirmative browser confirmation first.
+PROJECT_ACTIONS = {
+    "analyze": ("!analyser", "Lancer l'analyse du projet sélectionné ?"),
+    "plan": ("!planifier", "Préparer un plan pour le projet sélectionné ?"),
+    "start": ("!lancer", "Démarrer les tâches du projet approuvé ?"),
+    "pause": ("!pause", "Mettre en pause le projet sélectionné ?"),
+    "resume": ("!reprendre", "Reprendre les tâches de ce projet ?"),
+    "audit": ("!auditer", "Demander l'audit du travail terminé ?"),
+    "review": ("!relire", "Demander une seconde relecture ?"),
+    "deliver": ("!livrer", "Préparer la livraison ? Une confirmation distincte restera requise."),
+}
+
 READ_ONLY_ACTIONS = {
     "projects": "!projets",
     "status": "!etat",
@@ -22,19 +35,10 @@ READ_ONLY_ACTIONS = {
 }
 
 
-def read_only_bridge(
-    command: str, history: object, *, key: str, port: int = 18891
-) -> str:
-    if command not in READ_ONLY_ACTIONS.values():
-        raise ValueError("action non autorisée")
-    if not isinstance(key, str) or len(key) < 32:
-        raise ValueError("jeton du pont local absent")
+def _project_marker(history: object) -> str | None:
     if not isinstance(history, list):
         raise ValueError("historique invalide")
-    # Project selection lives in the first paragraph of the last project-marked
-    # assistant reply. Never forward ordinary chat contents, code, files or secrets
-    # just to render a read-only toolbar notification.
-    recent: list[dict[str, str]] = []
+    # The server revalidates this marker against its project registry.
     for item in reversed(history):
         if not isinstance(item, dict) or item.get("role") != "assistant":
             continue
@@ -42,9 +46,30 @@ def read_only_bridge(
         if not isinstance(content, str):
             continue
         marker = content.split("\n", 1)[0][:160]
-        if marker.startswith(("📁 Projet : ", "📁 Aucun projet")):
-            recent.append({"role": "assistant", "content": marker})
-            break
+        if marker.startswith("📁 Projet : "):
+            return marker
+        if marker.startswith("📁 Aucun projet"):
+            return None
+    return None
+
+
+def local_bridge(
+    command: str, history: object, *, key: str, port: int = 18891,
+    mutation: bool = False,
+) -> str:
+    if mutation:
+        if command not in {item[0] for item in PROJECT_ACTIONS.values()}:
+            raise ValueError("action mutante non autorisée")
+    elif command not in READ_ONLY_ACTIONS.values():
+        raise ValueError("action non autorisée")
+    if not isinstance(key, str) or len(key) < 32:
+        raise ValueError("jeton du pont local absent")
+    marker = _project_marker(history)
+    if mutation and marker is None:
+        raise ValueError("sélectionner d'abord le projet dans le chat avec !projet <id>")
+    # A fixed command and project marker only. Never forward prompt, files or
+    # history from the browser to initiate a project mutation.
+    recent = ([{"role": "assistant", "content": marker}] if marker else [])
     recent.append({"role": "user", "content": command})
     payload = {
         "model": "openclaw/chef-operations",
@@ -73,6 +98,12 @@ def read_only_bridge(
         connection.close()
 
 
+def read_only_bridge(
+    command: str, history: object, *, key: str, port: int = 18891
+) -> str:
+    return local_bridge(command, history, key=key, port=port)
+
+
 class Action:
     actions = [
         {"id": "projects", "name": "Voir les projets"},
@@ -80,6 +111,14 @@ class Action:
         {"id": "help", "name": "Commandes disponibles"},
         {"id": "models", "name": "Quel modèle choisir ?"},
         {"id": "budget", "name": "Budget DeepSeek"},
+        {"id": "analyze", "name": "Analyser le projet"},
+        {"id": "plan", "name": "Préparer le plan"},
+        {"id": "start", "name": "Lancer les tâches"},
+        {"id": "pause", "name": "Mettre en pause"},
+        {"id": "resume", "name": "Reprendre"},
+        {"id": "audit", "name": "Auditer"},
+        {"id": "review", "name": "Relire"},
+        {"id": "deliver", "name": "Préparer la livraison"},
     ]
 
     async def action(
@@ -88,14 +127,37 @@ class Action:
         __id__: str | None = None,
         __user__: dict[str, Any] | None = None,
         __event_emitter__: Any = None,
+        __event_call__: Any = None,
         **_: Any,
     ) -> None:
-        if __id__ not in READ_ONLY_ACTIONS or (__user__ or {}).get("role") != "admin":
+        if (__user__ or {}).get("role") != "admin":
             raise ValueError("action interdite")
         secret = os.environ.get("OPENAI_API_KEY", "")
-        output = await asyncio.to_thread(
-            read_only_bridge, READ_ONLY_ACTIONS[__id__], body.get("messages"), key=secret
-        )
+        history = body.get("messages")
+        if __id__ in READ_ONLY_ACTIONS:
+            output = await asyncio.to_thread(
+                read_only_bridge, READ_ONLY_ACTIONS[__id__], history, key=secret
+            )
+        elif __id__ in PROJECT_ACTIONS:
+            # Only a positive response from the actual browser counts, not an
+            # LLM claim, a missing callback or a dict containing an error.
+            if __event_call__ is None:
+                raise ValueError("confirmation navigateur indisponible")
+            command, warning = PROJECT_ACTIONS[__id__]
+            if _project_marker(history) is None:
+                raise ValueError("projet non sélectionné")
+            confirmed = await __event_call__(
+                {"type": "confirmation", "data": {
+                    "title": "Action de projet", "message": warning,
+                }}
+            )
+            if confirmed is not True:
+                return
+            output = await asyncio.to_thread(
+                local_bridge, command, history, key=secret, mutation=True
+            )
+        else:
+            raise ValueError("action interdite")
         if __event_emitter__ is not None:
             await __event_emitter__(
                 {"type": "notification", "data": {"type": "info", "content": output}}

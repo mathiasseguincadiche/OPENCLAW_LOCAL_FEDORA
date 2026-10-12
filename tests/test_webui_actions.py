@@ -110,3 +110,124 @@ def test_action_buttons_require_admin_and_never_approve(monkeypatch: Any) -> Non
     assert commands == ["!etat"]
     assert notices[0]["type"] == "notification"
     assert "Etat" in notices[0]["data"]["content"]
+
+
+def test_mutating_button_requires_positive_browser_confirmation(monkeypatch: Any) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "x" * 64)
+    commands: list[str] = []
+    prompts: list[dict[str, Any]] = []
+    emitted: list[dict[str, Any]] = []
+    history = [
+        {"role": "user", "content": "super-secret-private-prompt"},
+        {"role": "assistant", "content": "📁 Projet : mon-projet\n\nTravail demandé"},
+    ]
+
+    def fake_bridge(
+        command: str, messages: object, *, key: str, mutation: bool, port: int = 18891
+    ) -> str:
+        assert mutation is True and key == "x" * 64
+        assert messages == history
+        commands.append(command)
+        return "Projet : action confirmée dans le pont"
+
+    monkeypatch.setitem(API["local_bridge"].__globals__, "local_bridge", fake_bridge)
+
+    async def confirm(event: dict[str, Any]) -> bool:
+        prompts.append(event)
+        return True
+
+    async def notify(event: dict[str, Any]) -> None:
+        emitted.append(event)
+
+    action = API["Action"]()
+    asyncio.run(action.action(
+        {"messages": history}, __id__="start", __user__={"role": "admin"},
+        __event_call__=confirm, __event_emitter__=notify,
+    ))
+    assert commands == ["!lancer"]
+    assert prompts == [{"type": "confirmation", "data": {
+        "title": "Action de projet", "message": "Démarrer les tâches du projet approuvé ?",
+    }}]
+    assert emitted[0]["data"]["type"] == "info"
+
+    # A declined dialog and an error from a disconnected browser MUST NOT act.
+    for reply in (False, None, {"error": "Client session disconnected."}, {"ok": True}):
+        async def refuse(_event: dict[str, Any], answer: Any = reply) -> Any:
+            return answer
+        asyncio.run(action.action(
+            {"messages": history}, __id__="deliver", __user__={"role": "admin"},
+            __event_call__=refuse, __event_emitter__=notify,
+        ))
+    assert commands == ["!lancer"]
+
+
+def test_mutating_button_requires_admin_project_and_callback(monkeypatch: Any) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "x" * 64)
+    action = API["Action"]()
+    messages = [{"role": "assistant", "content": "📁 Projet : projet-valide"}]
+
+    async def approved(_event: dict[str, Any]) -> bool:
+        return True
+
+    with pytest.raises(ValueError, match="interdite"):
+        asyncio.run(action.action(
+            {"messages": messages}, __id__="pause", __user__={"role": "user"},
+            __event_call__=approved,
+        ))
+    with pytest.raises(ValueError, match="non sélectionné"):
+        asyncio.run(action.action(
+            {"messages": [{"role": "user", "content": "pas de projet"}]},
+            __id__="pause", __user__={"role": "admin"}, __event_call__=approved,
+        ))
+    with pytest.raises(ValueError, match="indisponible"):
+        asyncio.run(action.action(
+            {"messages": messages}, __id__="pause", __user__={"role": "admin"},
+        ))
+
+
+def test_mutations_send_only_fixed_commands_and_project_marker(monkeypatch: Any) -> None:
+    import http.client
+
+    payloads: list[dict[str, Any]] = []
+
+    class FakeResponse:
+        status = 200
+
+        def read(self, limit: int) -> bytes:
+            return json.dumps({"choices": [{"message": {"content": "OK"}}]}).encode()
+
+    class FakeConnection:
+        def __init__(self, host: str, port: int, timeout: int) -> None:
+            assert (host, port, timeout) == ("127.0.0.1", 18891, 8)
+
+        def request(
+            self, method: str, path: str, body: bytes, headers: dict[str, str]
+        ) -> None:
+            assert method == "POST" and path == "/v1/chat/completions"
+            assert headers["Authorization"] == "Bearer " + "x" * 64
+            payloads.append(json.loads(body))
+
+        def getresponse(self) -> FakeResponse:
+            return FakeResponse()
+
+        def close(self) -> None:
+            return None
+
+    monkeypatch.setattr(http.client, "HTTPConnection", FakeConnection)
+    history = [
+        {"role": "user", "content": "my-sensitive-terraform-creds"},
+        {"role": "assistant", "content": "📁 Projet : test-sans-secret\n\nprivate text"},
+        {"role": "user", "content": "another confidential note"},
+    ]
+    assert API["local_bridge"](
+        "!analyser", history, key="x" * 64, mutation=True
+    ) == "OK"
+    assert payloads == [{"model": "openclaw/chef-operations", "stream": False,
+        "messages": [
+            {"role": "assistant", "content": "📁 Projet : test-sans-secret"},
+            {"role": "user", "content": "!analyser"},
+        ]}]
+    for command in ("!modifier 1 please", "!livrer maintenant", "!creer secret"):
+        with pytest.raises(ValueError, match="non autorisée"):
+            API["local_bridge"](command, history, key="x" * 64, mutation=True)
+    assert len(payloads) == 1
