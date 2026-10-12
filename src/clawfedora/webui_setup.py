@@ -272,8 +272,9 @@ def seal(repo_root: Path, runtime: Path) -> None:
                 now,
             ),
         )
-        # The Action exposes read-only status/project buttons. It never sends
-        # an approval phrase and cannot execute an agent-proposed command.
+        # Fixed read-only controls + confirmed user actions (creation, lifecycle).
+        # Every mutation is revalidated by the local bridge and project worker.
+        # The Action never submits an approval phrase or executes model commands.
         db.execute(
             '''
             INSERT INTO "function"
@@ -293,9 +294,14 @@ def seal(repo_root: Path, runtime: Path) -> None:
             (
                 "clawfedora_project_actions",
                 admin_id,
-                "ClawFedora — raccourcis projets",
+                "ClawFedora — contrôle des projets",
                 action_source,
-                json.dumps({"description": "Actions de projet en lecture seule."}),
+                json.dumps({
+                    "description": (
+                        "Consultation locale et actions de projet avec confirmation humaine; "
+                        "création/livraison soumises en plus à un code à usage unique."
+                    )
+                }, ensure_ascii=False),
                 now,
                 now,
             ),
