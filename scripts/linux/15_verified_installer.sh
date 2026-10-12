@@ -21,7 +21,11 @@ command -v curl >/dev/null || { echo "curl requis" >&2; exit 127; }
 umask 077
 TMP="$(mktemp -d -p "${TMPDIR:-/tmp}" clawfedora-verified-release-XXXXXXXX)"
 trap 'rm -rf -- "$TMP"' EXIT
-ARCHIVE="$TMP/release-archive"
+if [[ "$KIND" == openclaw ]]; then
+  ARCHIVE="$TMP/openclaw-$PIN.tgz"
+else
+  ARCHIVE="$TMP/ollama-linux-amd64.tar.zst"
+fi
 # A redirect cannot lower TLS to HTTP. Content is ALWAYS verified against the pinned digest.
 curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' \
   --connect-timeout 15 --max-time 900 --output "$ARCHIVE" "$URL"
