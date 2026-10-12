@@ -177,10 +177,11 @@ def build_openclaw_patch(
         "bind": "loopback",
         "controlUi": {"newSessionModelDefaults": "configured"},
     }
-    # The operator-privileged HTTP endpoint is absent from nominal config.
-    # A private, explicit canary marker is required to stage it.
-    if opted_in(runtime_root):
-        gateway["http"] = {"endpoints": {"chatCompletions": {"enabled": True}}}
+    # Set explicit False on rollback: OpenClaw config patch is a merge, so
+    # simply omitting the field would leave a previous privileged API enabled.
+    gateway["http"] = {
+        "endpoints": {"chatCompletions": {"enabled": opted_in(runtime_root)}}
+    }
 
     return {
         "gateway": gateway,
