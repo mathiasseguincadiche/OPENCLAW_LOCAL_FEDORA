@@ -129,6 +129,16 @@ La nouvelle commande `clawfedora-evals --plan` prépare sept scénarios DevOps s
 
 → [Évaluation des sept agents](docs/EVALUATION_AGENTS.md) · [Programme d'amélioration 2026](docs/PROGRAMME_AMELIORATION_2026.md).
 
+## Vérifier les preuves CI officielles
+
+La commande indépendante `clawfedora-ci-proof` permet de consulter **le statut officiel
+d'une exécution GitHub Actions ou GitLab CI publique liée à un commit exact**,
+sans envoyer de jeton ni appeler un modèle IA. Elle évite de prendre une mention
+« CI réussie » dans un texte pour une preuve suffisante.
+
+**Elle vérifie uniquement le statut global de la CI** : ni déploiement, ni
+rollback, ni fonctionnement réel du système. [Guide de vérification et limites](docs/PREUVES_CI_GITHUB_GITLAB.md).
+
 ## Limites : ne pas confondre « codé » et « prouvé »
 
 **Le PC cible reste à valider :** le projet n'a pas encore tourné sur le PC cible dans le cadre des essais de réception documentés. Accélération B580, vraie interface et uploads Open WebUI, voix, sauvegarde/restauration et appels réels OpenRouter restent à qualifier. Les réponses du chat arrivent **en bloc**, la carte ne traite qu'une génération à la fois, et les fichiers proposés ne sont **pas** des déploiements validés. La version déployée reste **Open WebUI 0.11.4** : le canary 0.12.0 est un essai isolé, pas une migration.

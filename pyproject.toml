@@ -25,6 +25,7 @@ clawfedora = "clawfedora.cli:main"
 clawfedora-ops = "clawfedora.ops_cli:main"
 clawfedora-lab = "clawfedora.devops_lab:main"
 clawfedora-evals = "clawfedora.agent_eval:main"
+clawfedora-ci-proof = "clawfedora.ci_evidence:main"
 
 [project.optional-dependencies]
 speech = [
