@@ -63,6 +63,10 @@ Après `webui-seal --apply`, dans le navigateur :
   **Auditer**, **Relire**, **Préparer la livraison** ;
 - **annuler** chaque confirmation : aucune commande ni transition ne doit suivre ;
 - déconnecter le navigateur pendant un dialogue : aucun déclenchement ;
+- vérifier que `WEBSOCKET_EVENT_CALLER_TIMEOUT=300` est conservé
+  dans l'environnement généré du conteneur, puis laisser une confirmation
+  ouverte jusqu'au délai : la Function doit échouer **sans action** ;
+  un retour `{"error": "..."}` du navigateur ne vaut jamais accord ;
 - confirmer une action dans un état incompatible : le pont doit la refuser ;
 - confirmer une action dans un état compatible : le changement doit passer
   par les contrats et le verrou du moteur existant ;
