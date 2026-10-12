@@ -26,6 +26,14 @@ chez OpenRouter.
 
 ## Piloter les projets avec les boutons de confirmation
 
+Le bouton **Créer un projet** ouvre deux champs : titre (maximum
+200 caractères) et description du besoin (maximum 12 000 octets). Il
+demande ensuite une confirmation dans le navigateur. **Même après
+celle-ci, le projet n'est pas créé immédiatement** : le pont local
+génère une phrase `approuver creation CODE` valable 15 minutes, à
+recopier séparément dans le chat. Le formulaire ne sollicite aucun
+modèle IA et ne contacte pas OpenRouter.
+
 Après sélection d'un projet dans le chat (`!projet <id>`), huit actions
 visuelles supplémentaires sont prévues sous les réponses : **Analyser le projet**,
 **Préparer le plan**, **Lancer les tâches**, **Mettre en pause**, **Reprendre**,
@@ -45,9 +53,9 @@ si une tâche est déjà en cours ou si le cloud n'est pas autorisé. Le navigat
 
 **Préparer la livraison** ne livre pas automatiquement : le pont crée encore
 une phrase d'approbation à usage unique, à taper séparément dans le chat. Les
-actions qui demandent des informations supplémentaires (nouveau projet, réponse
+actions qui demandent des informations supplémentaires (réponse
 à une question, révision, soumission de fichiers) restent accessibles depuis
-les commandes ou le tableau de bord, le temps de créer des formulaires adaptés.
+les commandes ou le tableau de bord, le temps de créer leurs formulaires.
 
 La compatibilité des dialogues, l'affichage effectif des boutons et le
 comportement après coupure du navigateur devront être vérifiés sur le véritable
