@@ -59,7 +59,7 @@ Source officielle : https://www.openwebui.com/blog/v0-12-0-a-voice-that-talks-ba
   l'annulation et le Gateway opérateur sont **à qualifier sur Fedora**, pas
   considérés prouvés par la CI.
 - Arrêt explicite : traiter déconnexion et annulation sans libérer un verrou ni oublier un coût encore engagé.
-- Chat sans projet : extension de l'aperçu local contrôlé aux petits PDF **avec texte** et aux documents DOCX/PPTX/XLSX, ainsi qu'aux métadonnées d'images. Budget de texte borné, refus des archives et des PDF scannés sans OCR. **Aucune analyse des pixels par Qwen** : lecture visuelle complète dans un projet, puis qualification réelle des formats Open WebUI et des refus cloud.
+- Chat sans projet : PDF texte et Office bornés ; images limitées aux métadonnées par défaut. **Canary vision Qwen local** disponible sous marqueur 0600 : images ou PDF scannés de 1–2 pages, prévalidation de l'identité Qwen et verrou commun, aucune route cloud ni fallback. Les tests automatisés ne prouvent pas la qualité OCR/vision ni les performances de la B580 ; qualifer dans le navigateur sur un jeu d'exemples de référence.
 - Ne jamais faire d'un fichier joint ou d'un message du modèle une confirmation humaine.
 
 **Acceptation :** test de réception des premiers tokens avant fin d'inférence ;
