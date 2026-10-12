@@ -16,6 +16,7 @@ from typing import Any
 from defusedxml.ElementTree import fromstring
 from PIL import Image, UnidentifiedImageError
 from pypdf import PdfReader
+from pypdf.errors import PdfReadError
 
 MAX_INPUT = 2 * 1024 * 1024
 MAX_PDF_PAGES = 12
@@ -46,7 +47,10 @@ def preview_document(path: Path, name: str, budget: int) -> dict[str, Any]:
     if suffix not in SUPPORTED_SUFFIXES:
         raise ValueError("type de document non autorisé")
     # Limiting bytes before parsing bounds the input to every document handler.
-    raw = path.read_bytes()
+    with path.open("rb") as handle:
+        raw = handle.read(MAX_INPUT + 1)
+    if len(raw) > MAX_INPUT:
+        raise ValueError("document limité à 2 Mio en chat libre")
     if suffix in PDF_SUFFIXES:
         content = _pdf(raw, budget)
         return {"type": "pdf-text", "note": "Texte PDF uniquement, sans OCR", "text": content}
@@ -80,7 +84,7 @@ def _pdf(data: bytes, budget: int) -> str:
         if len(combined.encode("utf-8")) > budget:
             raise ValueError("texte PDF dépasse le contexte local : utiliser un projet")
         return combined
-    except (OSError, IndexError, KeyError, TypeError) as exc:
+    except (OSError, IndexError, KeyError, TypeError, PdfReadError) as exc:
         raise ValueError("PDF non analysable par le lecteur texte") from exc
 
 
