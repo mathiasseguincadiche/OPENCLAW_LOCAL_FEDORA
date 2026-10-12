@@ -31,6 +31,18 @@ Créer le compte administrateur unique dans Open WebUI, puis fermer les inscript
 
 Redémarrer Open WebUI et confirmer qu'un second compte ne peut pas être créé.
 
+## 1 bis. Boutons de l'interface
+
+Après `webui-seal --apply`, dans le navigateur :
+- vérifier que les filtres et actions `clawfedora_files` et
+  `clawfedora_project_actions` sont présents, actifs et globaux ;
+- vérifier que **Voir les projets**, **État du projet** et
+  **Commandes disponibles** apparaissent sous les messages ;
+- cliquer sur chacun, vérifier le retour en notification et l'absence
+  d'appels au modèle, de dépense cloud ou de transition de projet ;
+- vérifier qu'aucun bouton ne déclenche un `!livrer`, `!modifier` ou
+  une approbation et que les droits ne sont pas élargis.
+
 ## 2. Conversation locale
 
 Dans `http://127.0.0.1:3000` :

@@ -35,9 +35,9 @@ et journaux assainis ; aucune protection désactivée pour obtenir PASS.
 ## P1 : mise à niveau Open WebUI 0.12.0
 
 - **Ne pas** remplacer le digest de v0.11.4 par un tag mouvant ou une empreinte devinée.
-- Recueillir le digest officiel de l'image `slim` cible et tester son démarrage dans un volume jetable.
+- Recueillir le digest officiel de l'image `slim` cible et tester son démarrage dans un volume jetable ; la commande `bash scripts/linux/14_webui_canary.sh --apply [--with-db-copy]` prépare désormais cette préqualification.
 - Tester la migration SQLite depuis une copie cohérente de v0.11.4 et la possibilité de restaurer.
-- Vérifier l'activation explicite des Functions/Filters : la v0.12.0 introduit `ENABLE_PLUGINS` comme interrupteur maître.
+- Vérifier l'activation explicite des Functions/Filters : la v0.12.0 introduit `ENABLE_PLUGINS` comme interrupteur maître. Les variables `ENABLE_PLUGINS=true`, `ENABLE_FUNCTIONS=true` et `ENABLE_TOOL_SERVERS=false` sont désormais explicites dans la configuration générée.
 - Tester l'insertion du filtre `clawfedora_files`, `file_handler`, la résolution des chemins, l'appartenance utilisateur et chaque type d'upload.
 - Tester STT/TTS et s'assurer qu'aucun mode vocal distant ne s'active par défaut.
 - Mettre à jour version et digest ensemble dans `config/webui_policy.yaml`; passer tout le smoke test.
@@ -69,7 +69,7 @@ arrêt/redémarrage reproduits ; aucune commande système déclenchée par une p
 
 ## P2 : ergonomie et vérification métier
 
-- Construire des actions visuelles pour créer/sélectionner un projet, approuver, suivre, relire et livrer.
+- Trois premières actions visuelles **en lecture seule** sont ajoutées : voir les projets, consulter l'état et l'aide. Les opérations mutantes (créer/sélectionner/approuver/exécuter/auditer/livrer) restent à construire avec les confirmations existantes ; ne pas les considérer terminées.
   Toute action doit passer par les mêmes API déterministes et confirmations à usage unique.
 - Développer un labo isolé Rocky Linux pour `terraform fmt/validate`, `ansible-lint`,
   `actionlint`, tests d'idempotence et diagnostics, avec validation humaine, quotas,

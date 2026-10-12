@@ -149,6 +149,13 @@ def test_setup_pins_limits_preserves_secrets_and_closes_registration(tmp_path: P
     assert "sha256:" in service and "--memory 3g --cpus 2" in service
     assert "--network host" in service and ":Z" in service and "--privileged" not in service
     assert "ENABLE_OLLAMA_API=false" in (state / "webui.env").read_text()
+    assert "ENABLE_PLUGINS=true" in (state / "webui.env").read_text()
+    assert "ENABLE_FUNCTIONS=true" in (state / "webui.env").read_text()
+    assert "ENABLE_TOOLS=false" in (state / "webui.env").read_text()
+    assert "ENABLE_TOOL_SERVERS=false" in (state / "webui.env").read_text()
+    assert "ENABLE_PIP_INSTALL_FRONTMATTER_REQUIREMENTS=false" in (
+        state / "webui.env"
+    ).read_text()
     assert value["sealed"] is False
     with closing(sqlite3.connect(state / "data/webui.db")) as db, db:
         db.execute('CREATE TABLE "user" (id TEXT, role TEXT)')
@@ -182,7 +189,12 @@ def test_setup_pins_limits_preserves_secrets_and_closes_registration(tmp_path: P
         row = db.execute(
             'SELECT type, is_active, is_global FROM "function" WHERE id="clawfedora_files"'
         ).fetchone()
+        action = db.execute(
+            'SELECT type, is_active, is_global FROM "function" '
+            'WHERE id="clawfedora_project_actions"'
+        ).fetchone()
     assert row == ("filter", 1, 1)
+    assert action == ("action", 1, 1)
     assert all(
         settings[key] == "false"
         for key in (
