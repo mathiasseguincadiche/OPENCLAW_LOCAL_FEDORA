@@ -53,6 +53,8 @@ sans les mesures sur la vraie B580.
 ```bash
 bash scripts/linux/14_webui_canary.sh
 bash scripts/linux/14_webui_canary.sh --apply --with-db-copy
+# Facultatif, dans un vrai terminal pour tester également l'interface :
+bash scripts/linux/14_webui_canary.sh --apply --with-db-copy --browser
 ```
 
 Sur l'état WebUI, l'audit vérifie désormais non seulement les comptages
@@ -61,6 +63,11 @@ des conversations à empreintes SHA-256 privées, et refuse une Function modifi�
 Ces preuves ne remplacent **pas** les essais visuels : connexion, rôles,
 actions, uploads, téléchargement, voix, annulation et préservation des sessions
 dans un vrai navigateur restent à constater manuellement sur Fedora.
+Le mode `--browser` publie **uniquement** `127.0.0.1:3001` depuis
+un réseau Podman interne isolé et désactive les fournisseurs OpenAI/Ollama.
+La copie de base et le conteneur sont supprimés dès que l'opérateur appuie
+sur Entrée dans le terminal. Ce mode ne remplace pas le véritable Open WebUI
+de production ni un test complet des fonctions reliées à la passerelle.
 
 Le canary doit afficher le digest exact de l'image téléchargée, vérifier
 la santé conteneur, le schéma SQLite, les utilisateurs, conversations et
