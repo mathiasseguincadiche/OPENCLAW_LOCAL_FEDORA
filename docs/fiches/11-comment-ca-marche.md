@@ -95,7 +95,7 @@ Paquet de livraison → accord humain → COMPLETE
 ### Où vont les fichiers ?
 
 - **Intake / sources :** documents d'origine reçus et vérifiés. Une fois analysés, ils ne peuvent plus être remplacés silencieusement.
-- **Contexte :** analyse, plan, décisions humaines et index local pour retrouver des passages.
+- **Contexte :** analyse, plan, décisions humaines et index local pour retrouver des passages. La recherche SQLite FTS5 privilégie désormais des **documents distincts** quand ils correspondent à la question, sans utiliser de service cloud. [Détails et limites](../RECHERCHE_LOCALE_SOURCES.md).
 - **Espaces de travail des rôles :** copies et résultats temporaires, distincts de la source de vérité.
 - **Collecteur :** vérifie extensions, chemins attendus, limites, empreintes et entrées protégées avant d'accepter une sortie.
 - **Livrables et preuves :** fichiers validés ou contrôles consignés dans le projet central. Un PDF n'est pas une preuve de déploiement, et un rapport CI collé par l'IA n'est pas une CI authentifiée.

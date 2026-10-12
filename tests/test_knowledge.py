@@ -134,3 +134,44 @@ def test_index_records_no_duplicate_note_text_per_chunk(project: Path) -> None:
             0
         ]
     assert "text" not in json.loads(raw)
+
+
+def test_search_includes_multiple_relevant_files_before_duplicate_chunks(
+    tmp_path: Path,
+) -> None:
+    """Multi-file IaC questions should not be answered from one file exclusively."""
+    primary = tmp_path / "module-main.md"
+    secondary = tmp_path / "ansible-setup.md"
+    primary.write_text(
+        "# Module Terraform Azure\n"
+        + ("Terraform pipeline state provider variables output.\n" * 300),
+        encoding="utf-8",
+    )
+    secondary.write_text(
+        "# Mise en place Ansible et Terraform\n"
+        + ("Terraform pipeline state provider variables output.\n" * 12),
+        encoding="utf-8",
+    )
+    project = create_project(
+        ROOT,
+        tmp_path / "runtime",
+        "iac-multi-source",
+        "Terraform et Ansible",
+        intake_items=[primary, secondary],
+    )
+    build_index(ROOT, project)
+    hits = search(ROOT, project, "Terraform pipeline state provider")
+    assert len(hits) == 4
+    paths = {hit["path"] for hit in hits}
+    assert "intake/module-main.md" in paths
+    assert "intake/ansible-setup.md" in paths
+    assert all(hit["page"] == 1 and hit["line"] >= 1 for hit in hits)
+    assert sum(len(hit["text"]) for hit in hits) <= 4000
+
+
+def test_single_source_still_fills_multiple_result_slots(project: Path) -> None:
+    build_index(ROOT, project)
+    hits = search(ROOT, project, "Intel Vulkan mémoire")
+    assert len(hits) >= 2
+    assert len(hits) <= 4
+    assert {hit["path"] for hit in hits} == {"intake/configuration.md"}
