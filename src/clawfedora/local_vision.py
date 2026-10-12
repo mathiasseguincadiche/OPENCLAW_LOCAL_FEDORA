@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import stat
 import subprocess
 import tempfile
@@ -36,14 +37,30 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def enabled(runtime: Path) -> bool:
+    """Read opt-in atomically: private owner, bounded bytes, no symlink races."""
+    if any(parent.is_symlink() for parent in (runtime, *runtime.parents)):
+        raise ValueError("runtime vision lié interdit")
     path = runtime / MARKER
+    if path.parent.is_symlink() or path.parent.parent.is_symlink():
+        raise ValueError("répertoire du marqueur vision lié interdit")
     try:
-        mode = path.lstat().st_mode
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
     except FileNotFoundError:
         return False
-    if not stat.S_ISREG(mode) or mode & 0o077:
-        raise ValueError("activation vision non privée (0600 requis)")
-    if path.read_text(encoding="utf-8").strip() != APPROVAL:
+    except OSError as exc:
+        raise ValueError("activation vision liée ou inaccessible") from exc
+    with os.fdopen(fd, "rb") as reader:
+        info = os.fstat(reader.fileno())
+        if (
+            not stat.S_ISREG(info.st_mode)
+            or info.st_uid != os.geteuid()
+            or info.st_mode & 0o077
+            or info.st_nlink != 1
+            or info.st_size > 128
+        ):
+            raise ValueError("activation vision non privée (0600, propriétaire requis)")
+        marker = reader.read(129)
+    if marker != (APPROVAL + "\n").encode("ascii"):
         raise ValueError("activation vision non reconnue")
     if not (runtime / ".openclaw-fedora-runtime").is_file():
         raise ValueError("runtime géré absent")
@@ -99,6 +116,7 @@ def _describe(model: str, image_data: bytes, prompt: str) -> str:
     reply = _local_json("/api/chat", {
         "model": model,
         "stream": False,
+        "think": False,
         "messages": [
             {"role": "system", "content": (
                 "Décris uniquement le contenu visuel observable, en français. "
