@@ -178,6 +178,10 @@ def test_setup_pins_limits_preserves_secrets_and_closes_registration(tmp_path: P
     assert "ENABLE_SIGNUP=false" in (state / "webui.env").read_text()
     settings = environment(ROOT, TOKEN, "b" * 64, "c" * 64, sealed=True)
     assert settings["HOST"] == "127.0.0.1"
+    assert settings["WEBSOCKET_EVENT_CALLER_TIMEOUT"] == "300"
+    assert "WEBSOCKET_EVENT_CALLER_TIMEOUT=300" in (
+        state / "webui.env"
+    ).read_text()
     assert settings["USER_PERMISSIONS_CHAT_FILE_UPLOAD"] == "true"
     assert settings["USER_PERMISSIONS_CHAT_STT"] == "true"
     assert settings["USER_PERMISSIONS_CHAT_TTS"] == "true"
