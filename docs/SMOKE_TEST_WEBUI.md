@@ -75,6 +75,24 @@ Après `webui-seal --apply`, dans le navigateur :
 - saisir un relevé fournisseur factice uniquement dans un laboratoire de test
   séparé, vérifier que l'estimation ne devient **jamais** une facture annoncée.
 
+## 1 ter. Streaming incrémental — raccordement opt-in
+
+Le code du pont prévoit désormais une source de fragments SSE **injectée par le
+serveur**, limitée au Mentor **Qwen local** sans projet ni pièce jointe.
+Dans l'installation normale, cette source n'est **pas activée** :
+le chemin CLI validé continue de renvoyer la réponse complète.
+
+Les tests de CI prouvent que, lorsqu'une source de test autorisée est
+injectée, Open WebUI peut recevoir un fragment **avant** la fin de la
+génération, que le worker reste verrouillé et qu'un échec en cours de
+flux n'est jamais présenté comme une réponse complète.
+
+**Avant l'activation réelle** : intégrer le transport du Gateway à la
+prévalidation existante (version et modèle exacts, outils, confidentialité,
+jeton opérateur réservé au serveur et arrêt fiable), puis tester sur Fedora
+avec un vrai navigateur. Ne pas activer directement l'API privilégiée
+d'OpenClaw depuis Open WebUI pour contourner cette étape.
+
 ## 2. Conversation locale
 
 Dans `http://127.0.0.1:3000` :
