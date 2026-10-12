@@ -25,6 +25,16 @@ affiche des recommandations déterministes pour les tâches Linux, IaC, CI,
 architecture et documents. Aucun historique n'est inspecté ni envoyé à Qwen
 ou DeepSeek. Le conseil ne certifie jamais que des données peuvent sortir du PC.
 
+**Réglage de l'effort DeepSeek :** en plus du choix local/cloud, trois profils
+d'exécution **globaux et explicites** sont disponibles : `rapide` (low, 4K),
+`equilibre` (medium, 8K) et `approfondi` (xhigh, 32K, défaut historique).
+La commande `./menu.sh --action cloud-profile` affiche le profil courant ;
+`./menu.sh --action cloud-set-profile --value equilibre --apply` le modifie
+sous verrou worker. Aucun agent ne peut changer ce profil ; le budget,
+la confidentialité et le fournisseur restent contrôlés par la passerelle.
+Ce n'est **pas** encore un routage automatique par tâche.
+[Procédure des profils cloud](docs/fiches/12-cloud.md).
+
 **Fonctionnement actuel :** le choix du modèle est **manuel et explicite** dans le chat ; le cloud d'un projet couvre les étapes autorisées du projet après consentement, sans sélection automatique du « meilleur modèle » pour chaque tâche. La sécurité et le budget priment sur la performance : le filtre de secrets ne sait pas détecter toutes les informations confidentielles.
 
 → **[Lire la stratégie hybride et les critères de choix](docs/ARCHITECTURE_HYBRIDE.md)**.
