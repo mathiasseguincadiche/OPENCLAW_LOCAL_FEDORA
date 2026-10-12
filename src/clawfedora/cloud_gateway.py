@@ -30,6 +30,7 @@ from typing import Any, Protocol
 
 from clawfedora.cloud_budget import BudgetRefused, load_ledger
 from clawfedora.cloud_privacy import PrivacyFilter, describe
+from clawfedora.cloud_profiles import ProfileRefused, chosen_profile
 from clawfedora.cloud_state import CLOUD_STATE, ensure_gateway_token, require_cloud_ready
 from clawfedora.core_config import core_contract
 from clawfedora.local_http import LocalServer
@@ -138,12 +139,15 @@ def normalize_request(body: Any, policy: dict[str, Any], output_cap: int) -> dic
     return normalized
 
 
-def upstream_payload(normalized: dict[str, Any], policy: dict[str, Any]) -> dict[str, Any]:
+def upstream_payload(
+    normalized: dict[str, Any], policy: dict[str, Any],
+    reasoning_profile: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """What the provider receives: client fields plus the settings only the policy may set."""
     params = policy["upstream_params"]
     payload = dict(normalized)
     payload["provider"] = dict(params["provider"])
-    payload["reasoning"] = dict(params["reasoning"])
+    payload["reasoning"] = {"effort": (reasoning_profile or params["reasoning"])["effort"]}
     payload["usage"] = {"include": True}
     if payload.get("stream"):
         payload["stream_options"] = {"include_usage": True}
@@ -208,7 +212,9 @@ class GatewayHandler(BaseHTTPRequestHandler):
         try:
             self.server.activation_check()
             body = self._read_body()
-            normalized = normalize_request(body, self.server.policy, self.server.output_cap)
+            profile_name, profile = chosen_profile(self.server.runtime, self.server.policy)
+            output_cap = min(self.server.output_cap, int(profile["max_output_tokens"]))
+            normalized = normalize_request(body, self.server.policy, output_cap)
             findings = self.server.privacy.scan_request(normalized)
             if findings:
                 summary = describe(findings)
@@ -228,6 +234,9 @@ class GatewayHandler(BaseHTTPRequestHandler):
                 self._event(request_id, "budget_refused")
                 raise Refused(402, "budget_refused", str(exc)) from None
             key = self.server.key_reader()
+        except ProfileRefused:
+            self._error(503, "profile_invalid", "profil de raisonnement cloud invalide")
+            return
         except Refused as exc:
             if reservation is not None:
                 reservation.settle(None, "failed")
@@ -236,7 +245,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
         except ValueError as exc:
             self._error(503, "cloud_not_activated", str(exc))
             return
-        self._forward(request_id, normalized, key, reservation, input_tokens)
+        self._forward(request_id, normalized, key, reservation, input_tokens, profile_name, profile)
 
     def _read_body(self) -> Any:
         limit = int(self.server.policy["limits"]["max_request_bytes"])
@@ -265,9 +274,11 @@ class GatewayHandler(BaseHTTPRequestHandler):
         key: str,
         reservation: Reservation,
         input_tokens: int,
+        profile_name: str,
+        reasoning_profile: dict[str, Any],
     ) -> None:
         policy = self.server.policy
-        payload = upstream_payload(normalized, policy)
+        payload = upstream_payload(normalized, policy, reasoning_profile)
         request = urllib.request.Request(
             self.server.upstream_base_url + "/chat/completions",
             data=json.dumps(payload, ensure_ascii=False).encode(),
@@ -276,7 +287,10 @@ class GatewayHandler(BaseHTTPRequestHandler):
         )
         timeout = float(policy["upstream"]["timeout_seconds"])
         streaming = bool(normalized.get("stream"))
-        self._event(request_id, "forwarded", input_estimate=input_tokens, stream=streaming)
+        self._event(
+            request_id, "forwarded", input_estimate=input_tokens,
+            stream=streaming, reasoning_profile=profile_name,
+        )
         try:
             with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
                 if streaming:
