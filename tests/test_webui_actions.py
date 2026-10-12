@@ -14,9 +14,12 @@ ROOT = Path(__file__).resolve().parents[1]
 API = runpy.run_path(str(ROOT / "plugins/openwebui/clawfedora_project_actions.py"))
 
 
-def test_only_three_read_only_commands_are_exposed() -> None:
+def test_only_four_read_only_commands_are_exposed() -> None:
     allowed = API["READ_ONLY_ACTIONS"]
-    assert allowed == {"projects": "!projets", "status": "!etat", "help": "!aide"}
+    assert allowed == {
+        "projects": "!projets", "status": "!etat",
+        "help": "!aide", "models": "!modele",
+    }
     with pytest.raises(ValueError, match="non autorisée"):
         API["read_only_bridge"]("!livrer", [], key="x" * 64)
     with pytest.raises(ValueError, match="jeton"):

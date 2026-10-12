@@ -28,6 +28,15 @@ Le [README](README.md) présente le projet comme **hybride**, et [la stratégie 
 
 Les deux diagrammes de `docs/diagrams/` sont des **représentations logiques du code**, non des preuves d'exécution physique. Les critères et mesures manquants restent ceux décrits dans ce document.
 
+## Choix de modèle assisté
+
+La commande `!modele` et le raccourci Open WebUI **Quel modèle choisir ?**
+fournissent un **conseil déterministe local** selon des catégories métier.
+Ils ne consultent aucune conversation, ne modifient pas le modèle sélectionné,
+n'envoient rien au cloud et **ne valident pas** la confidentialité des sources.
+L'interface réelle et la pertinence des conseils restent à vérifier lors des
+essais finaux. La sélection automatique par tâche n'est toujours pas implémentée.
+
 ## Qualification de l'efficacité du système hybride
 
 **Objectif technique :** Qwen local pour les tâches courantes et privées, DeepSeek cloud pour les dossiers publics difficiles et les analyses multi-fichiers. Les sept rôles partagent les mêmes outils ; la route est choisie explicitement et le consentement cloud d'un projet s'applique au **projet**.

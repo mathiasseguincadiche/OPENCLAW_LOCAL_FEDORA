@@ -96,7 +96,7 @@ Une commande `clawfedora-lab` est maintenant disponible comme **exécuteur stand
 
 ## P2 : ergonomie et vérification métier
 
-- Trois premières actions visuelles **en lecture seule** sont ajoutées : voir les projets, consulter l'état et l'aide. Les opérations mutantes (créer/sélectionner/approuver/exécuter/auditer/livrer) restent à construire avec les confirmations existantes ; ne pas les considérer terminées.
+- Quatre actions visuelles **en lecture seule** sont ajoutées : voir les projets, consulter l'état, l'aide et **quel modèle choisir** (conseils déterministes sans contexte privé). Les opérations mutantes (créer/sélectionner/approuver/exécuter/auditer/livrer) restent à construire avec les confirmations existantes ; ne pas les considérer terminées.
   Toute action doit passer par les mêmes API déterministes et confirmations à usage unique.
 - Développer un labo isolé Rocky Linux pour `terraform fmt/validate`, `ansible-lint`,
   `actionlint`, tests d'idempotence et diagnostics, avec validation humaine, quotas,
