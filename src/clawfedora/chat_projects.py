@@ -37,7 +37,7 @@ RUN_COMMANDS = (
     "soumettre", "importer",
 )
 COMMANDS = (
-    "aide", "projets", "projet", "etat", "quitter",
+    "aide", "projets", "projet", "etat", "quitter", "modele",
     "garder", "propositions", "voir", "accepter", "refuser",
     *FLOW_COMMANDS, *RUN_COMMANDS,
 )
@@ -507,6 +507,7 @@ HELP = """Commandes du pont (comprises par le programme, jamais par le modèle) 
 - `!projets` : liste vos projets, avec leur état
 - `!projet <id>` : sélectionne un projet (un morceau d'identifiant ou de titre suffit s'il est unique)
 - `!etat` : état du projet sélectionné (tâches, pause, cloud, traitement en cours)
+- `!modele [catégorie]` : recommande Qwen local ou DeepSeek selon un type de tâche, sans envoyer de données à un modèle
 - `!quitter` : n'utilise plus de projet
 - `!garder [titre]` : garde la dernière réponse du rôle comme **proposition** du projet
 - `!propositions` : liste les propositions ; `!voir <n>` en affiche une
@@ -571,6 +572,10 @@ def run_command(
         return _proposal_command(runtime, name, args, current, answer)
     if name == "aide":
         return bridge_reply(current, HELP)
+    if name == "modele":
+        from clawfedora.model_advice import advise
+
+        return bridge_reply(current, advise(args))
     if name == "projets":
         rows = list_projects(repo_root, runtime)
         if not rows:
