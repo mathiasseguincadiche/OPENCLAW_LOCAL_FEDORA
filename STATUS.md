@@ -86,11 +86,28 @@ connecteurs privés restent à qualifier. [Guide](docs/PREUVES_CI_GITHUB_GITLAB.
 
 ## Exécuteur de validation DevOps
 
-Le code du [laboratoire offline](docs/LABORATOIRE_DEVOPS.md) fournit une CLI séparée des agents, avec exécution Podman contrôlée et approbation `--apply`. **L'image Rocky avec les validateurs, son digest et la validation Podman réelle ne sont pas encore qualifiés**. L'agent ne lance pas lui-même Terraform, Ansible ou la CI sur l'hôte.
+**Ce validateur est totalement facultatif, et non une dépendance du système IA natif Fedora.**
+Le code du [validateur DevOps isolé](docs/LABORATOIRE_DEVOPS.md) fournit
+une CLI séparée des agents, avec exécution Podman contrôlée et
+approbation `--apply`. Si l'utilisateur souhaite s'en servir, il reste
+à qualifier une image OCI de validateurs **sans imposer Rocky Linux**
+et les essais Podman réels. Aucun agent ne lance Terraform, Ansible
+ou la CI sur l'hôte.
 
 ## Évaluation des agents, préparation
 
 Le dépôt comporte une **suite synthétique fixe de sept scénarios métier**, une CLI `clawfedora-evals` et un format de revue humaine. Cela vérifie la structure du plan et la complétude des notes, **pas** la qualité réelle de Qwen ou DeepSeek. Les résultats comparatifs seront établis seulement lors de la qualification finale. [Mode d'emploi](docs/EVALUATION_AGENTS.md) · [Programme global](docs/PROGRAMME_AMELIORATION_2026.md).
+
+## Séparation entre l'atelier IA Fedora et une VM de formation
+
+**Le projet IA fonctionne sur Fedora :** OpenClaw et ses sept rôles,
+Ollama/Qwen, la passerelle DeepSeek, le moteur de projets et les données
+sont hébergés sur Fedora ; Open WebUI utilise Podman rootless
+sur ce même hôte. **Rocky Linux n'est ni un système hôte requis,
+ni une VM nécessaire, ni une dépendance de lancement de l'atelier.**
+Une VM Rocky de formation, si utilisée, appartient à un parcours
+DevOps externe au projet IA. Les priorités du dépôt sont désormais
+**streaming Open WebUI natif** puis **pilotage visuel des projets**.
 
 ## Limites connues
 
