@@ -20,6 +20,11 @@
 
 **L'objectif n'est pas de dépenser du cloud à chaque question, ni de forcer un petit modèle local sur une mission trop difficile.** On choisit le moteur selon **complexité, volume, sensibilité, délai et coût**. DeepSeek est la **route de capacité prévue pour les tâches qui le justifient**, pas un secours automatique lorsque Qwen échoue. Son gain de précision, de pédagogie ou de rapidité doit encore être **mesuré sur des cas réels**, et non présumé.
 
+**Conseil pratique sans IA :** `!modele` (ou le bouton **Quel modèle choisir ?** dans Open WebUI)
+affiche des recommandations déterministes pour les tâches Linux, IaC, CI,
+architecture et documents. Aucun historique n'est inspecté ni envoyé à Qwen
+ou DeepSeek. Le conseil ne certifie jamais que des données peuvent sortir du PC.
+
 **Fonctionnement actuel :** le choix du modèle est **manuel et explicite** dans le chat ; le cloud d'un projet couvre les étapes autorisées du projet après consentement, sans sélection automatique du « meilleur modèle » pour chaque tâche. La sécurité et le budget priment sur la performance : le filtre de secrets ne sait pas détecter toutes les informations confidentielles.
 
 → **[Lire la stratégie hybride et les critères de choix](docs/ARCHITECTURE_HYBRIDE.md)**.
