@@ -72,6 +72,13 @@ def chosen_profile(runtime: Path, policy: dict[str, Any]) -> tuple[str, dict[str
         # Check again at open: never follow a replaced symlink.
         fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
         with os.fdopen(fd, "r", encoding="utf-8") as handle:
+            opened = os.fstat(handle.fileno())
+            if (
+                not stat.S_ISREG(opened.st_mode)
+                or stat.S_IMODE(opened.st_mode) != 0o600
+                or opened.st_size > MAX_FILE_BYTES
+            ):
+                raise ProfileRefused("profil cloud : fichier modifié pendant la lecture")
             record: Any = json.loads(handle.read(MAX_FILE_BYTES + 1))
     except (OSError, ValueError, UnicodeError) as exc:
         raise ProfileRefused("profil cloud : fichier illisible") from exc
