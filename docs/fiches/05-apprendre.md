@@ -1,10 +1,12 @@
 # Apprendre
 
-[← Guide](../GUIDE.md)
+[← Guide](../GUIDE.md) · [Parcours concret](../EXEMPLE_PARCOURS_DEVOPS.md) · [Rôles et outils](07-roles-et-outils.md)
 
 Recevoir une réponse claire aide à comprendre. Cela ne suffit pas pour savoir faire. L'atelier t'explique d'abord, sans imposer d'exercice. Si tu choisis de pratiquer, il te laisse agir puis relit ton travail.
 
 ## Le mentor
+
+Le mode normal est **une aide directe et pédagogique**, avec une réponse exploitable. Tu ne dois pas accepter un exercice pour obtenir une solution. L'entraînement guidé est disponible uniquement si tu le souhaites.
 
 Le Mentor infrastructure/OPS est ton interlocuteur par défaut. Il part de ce que tu sais déjà, Linux et le réseau, pour relier une notion nouvelle à quelque chose de familier : un service, un port, un processus, un droit. Il ne refait pas un cours sur ce que tu maîtrises.
 
