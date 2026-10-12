@@ -119,13 +119,52 @@ Le cloud est désactivé, la passerelle arrêtée et le fournisseur retiré de l
 
 Le plafond applique **le plus élevé** de l'estimation du journal et du montant déclaré.
 
+## Régler l'effort DeepSeek sans changer de fournisseur
+
+Le contrôle de l'effort est désormais **séparé du choix Qwen/DeepSeek**.
+Trois profils sont épinglés dans `config/core/cloud_policy.yaml` :
+
+| Profil | Effort demandé au fournisseur | Sortie maximale par appel | Usage envisagé |
+|---|---|---|---|
+| **rapide** | `low` | 4 096 tokens | Questions publiques ciblées et tâches courtes |
+| **equilibre** | `medium` | 8 192 tokens | Revue ordinaire de code public, explications structurées |
+| **approfondi** (défaut) | `xhigh` | 32 768 tokens | Analyse multi-fichiers, architecture difficile, audit approfondi |
+
+```bash
+./menu.sh --action cloud-profile
+./menu.sh --action cloud-set-profile --value equilibre          # simulation, aucun changement
+./menu.sh --action cloud-set-profile --value equilibre --apply  # choix explicite
+./menu.sh --action cloud-status                                # contrôle
+```
+
+Le profil est **global à la passerelle cloud**, pas différent selon l'agent ;
+le changement n'est permis qu'avec `--apply`, sous le verrou du worker pour
+ne pas modifier le profil au milieu d'une génération. Il est conservé
+dans l'état privé local `state/cloud/reasoning-profile.json` (0600), hors Git.
+Le profil initial reste `approfondi` pour ne pas modifier silencieusement
+le comportement actuel. Il peut être lu dans le bouton **Budget DeepSeek**
+ou via `!budget`, mais **pas changé par un message de chat ni par un agent**.
+
+La passerelle **ignore toute tentative cliente** de choisir un autre effort,
+plafonne réellement `max_tokens` selon le profil *avant* la réservation du
+budget et refuse le cloud si le fichier de réglage est non fiable. Elle
+conserve `data_collection: deny`, `max_price`, le filtre de confidentialité,
+l'accord de projet, la clé et le plafond de 25 €.
+
+Ce sont des **paramètres techniques prêts à tester**, pas une preuve que
+la qualité, le coût ou le délai améliorent effectivement le résultat :
+les fournisseurs OpenRouter retenus doivent accepter le niveau demandé
+avec `require_parameters: true`. Si aucun hébergeur admissible ne l'accepte,
+**l'appel doit échouer sans assouplir les restrictions**. Comparer les trois
+profils sur les sept scénarios synthétiques avant de conclure.
+
 ## Capacité DeepSeek
 
 La route cloud est volontairement plus généreuse que Qwen local :
 
 - contexte déclaré : **1 048 576 tokens** (capacité maximale, pas une consommation par défaut) ;
 - sortie maximale : **32 768 tokens** ;
-- raisonnement : **`xhigh`**, imposé par la passerelle ;
+- raisonnement : **trois profils autorisés** (`low`, `medium`, `xhigh`) ; **par défaut `xhigh`** ;
 - historique WebUI transmis : jusqu'à environ **3 Mio** avant réduction ;
 - routage fournisseur : priorité au débit, mais uniquement sous le plafond de prix et les règles de données.
 
