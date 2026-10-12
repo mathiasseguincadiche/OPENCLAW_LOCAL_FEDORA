@@ -153,3 +153,23 @@ def test_hybrid_social_preview_contains_both_models() -> None:
     assert "hybride" in content
     assert "Qwen" in content
     assert "DeepSeek" in content
+
+
+
+def test_fedora_is_native_host_and_rocky_validation_is_only_optional() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    roadmap = (ROOT / "docs/PROGRAMME_AMELIORATION_2026.md").read_text(
+        encoding="utf-8"
+    )
+    lab = (ROOT / "docs/LABORATOIRE_DEVOPS.md").read_text(encoding="utf-8")
+    assert "Fedora est le système hôte du projet IA" in readme
+    assert "Aucune installation de Rocky" in readme
+    assert "Podman rootless sur ce même Fedora" in readme
+    assert "aucun prérequis Rocky pour OpenClaw" in roadmap
+    assert "Streaming réel Open WebUI sur Fedora" in roadmap
+    assert "Pilotage visuel des projets" in roadmap
+    assert roadmap.index("Streaming réel Open WebUI sur Fedora") < roadmap.index(
+        "Option hors cœur IA uniquement si utile"
+    )
+    assert "Ce module ne sert pas à faire fonctionner OpenClaw" in lab
+    assert "n'a pas besoin" in lab and "Rocky Linux" in lab
