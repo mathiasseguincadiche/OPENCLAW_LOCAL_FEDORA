@@ -82,8 +82,6 @@ def content_deltas(
                 raise StreamingRefused("flux terminé sans résultat final du modèle")
             saw_done = True
             break
-        if saw_stop:
-            raise StreamingRefused("événement inattendu après la fin du modèle")
         try:
             frame: Any = json.loads(payload)
         except (ValueError, UnicodeError) as exc:
@@ -93,11 +91,13 @@ def content_deltas(
         choices = frame.get("choices")
         if not isinstance(choices, list):
             raise StreamingRefused("événement sans choix de modèle")
-        # A standard optional usage-only frame is allowed after finish=stop,
-        # but only with a well-formed usage field. The branch above must
-        # permit it before checking saw_stop.
+        # Optional final usage-only chunk, never carrying model text.
         if not choices:
-            raise StreamingRefused("événement de sortie sans choix de modèle")
+            if not saw_stop or not isinstance(frame.get("usage"), dict):
+                raise StreamingRefused("événement de sortie sans choix de modèle")
+            continue
+        if saw_stop:
+            raise StreamingRefused("événement inattendu après la fin du modèle")
         if len(choices) != 1 or not isinstance(choices[0], dict):
             raise StreamingRefused("plusieurs choix de réponse non autorisés")
         item = choices[0]
