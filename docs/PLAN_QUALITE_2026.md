@@ -12,13 +12,17 @@ Ce plan ne remplace pas les essais sur le PC cible ni l'état factuel de `STATUS
 - Tout changement d'état projet conserve une confirmation humaine indépendante du modèle.
 - Un faux fournisseur, une base SQLite simulée ou une CI verte ne valident pas un vrai fournisseur ou un navigateur.
 
-## Changements de la branche d'amélioration
+## Travaux déjà intégrés au dépôt (PR #56 et #62)
 
 - [x] Journal cloud : maintenir le coût maximal réservé pour une erreur HTTP ambiguë (408 ou 5xx), comme pour une perte réseau ; tests de régression ajoutés.
 - [x] Chat local : accepter jusqu'à quatre pièces jointes de texte/code UTF-8 (12 000 octets cumulés) sans créer de projet, après vérification du stockage Open WebUI ; refuser images, PDF, Office, binaire et cloud.
 - [x] Corriger les limites cloud obsolètes dans la documentation de conversation.
 - [x] Ajouter un contrôle automatisé des indications documentaires importantes.
-- [ ] Prouver l'ensemble en CI de la branche puis sur Fedora. Les cases précédentes attestent seulement de modifications apportées au code.
+- [x] Vérifications CI des PR #56 et #62 : réussies à leur fusion. **Les essais Fedora réels restent à faire**.
+
+## Documentation pédagogique et architecture
+
+La documentation de découverte s'organise maintenant autour du [README](../README.md), du [guide](GUIDE.md), des [sept rôles](fiches/07-roles-et-outils.md), des [flux d'architecture](fiches/11-comment-ca-marche.md) et d'un [exemple DevOps](EXEMPLE_PARCOURS_DEVOPS.md). Les schémas SVG sont des cartes pédagogiques **du fonctionnement prévu**, pas des preuves d'intégration du conteneur ni de la GPU.
 
 ## Blocage P0 : qualification réelle sur le PC
 
