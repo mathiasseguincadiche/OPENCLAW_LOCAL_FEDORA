@@ -98,6 +98,17 @@ ou la CI sur l'hôte.
 
 Le dépôt comporte une **suite synthétique fixe de sept scénarios métier**, une CLI `clawfedora-evals` et un format de revue humaine. Cela vérifie la structure du plan et la complétude des notes, **pas** la qualité réelle de Qwen ou DeepSeek. Les résultats comparatifs seront établis seulement lors de la qualification finale. [Mode d'emploi](docs/EVALUATION_AGENTS.md) · [Programme global](docs/PROGRAMME_AMELIORATION_2026.md).
 
+## Préparation du streaming SSE OpenClaw
+
+Le module `stream_transport.py` prépare un transport SSE **serveur à
+serveur**, restreint au Gateway en boucle locale et aux sept agents,
+avec flux incrémental borné, rejets des événements malformés et
+fermeture sur annulation. **Il n'est pas encore raccordé au pont
+Open WebUI** : les réponses du chat s'affichent toujours après la
+génération complète. La prévalidation des versions/modèles, les
+verrous worker et la sécurité du jeton opérateur doivent être réunis
+avant de l'activer. [Protocole et critères](docs/STREAMING_SSE_PREPARATION.md).
+
 ## Séparation entre l'atelier IA Fedora et une VM de formation
 
 **Le projet IA fonctionne sur Fedora :** OpenClaw et ses sept rôles,
