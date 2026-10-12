@@ -34,11 +34,11 @@ def content_deltas(
     *,
     max_output_bytes: int = MAX_TOTAL_BYTES,
 ) -> Iterator[str]:
-    """Decode a bounded Gateway OpenAI-style SSE response one delta at a time.
+    """Decode *complete* bounded Gateway SSE events, one text delta at a time.
 
-    Errors and premature EOF fail *closed*; the caller must not emit finish=stop.
-    This decoder cannot verify source model identity; the caller must enforce
-    the existing agent roster/model lock *before* opening the Gateway stream.
+    A data line is not an event until the terminating empty line arrives.
+    This avoids displaying an incomplete or malformed frame as trusted text.
+    Gateway and browser errors must never be represented as finish=stop.
     """
     if not 0 < max_output_bytes <= MAX_TOTAL_BYTES:
         raise StreamingRefused("taille de sortie non autorisée")
@@ -46,68 +46,87 @@ def content_deltas(
     saw_stop = False
     saw_done = False
     event_bytes = 0
+    data_line: bytes | None = None
     for raw in lines:
         if not isinstance(raw, bytes):
             raise StreamingRefused("événement SSE non binaire")
         event_bytes += len(raw)
         if event_bytes > MAX_SSE_EVENT_BYTES:
             raise StreamingRefused("événement SSE démesuré")
-        line = raw.rstrip(b"\r\n")
-        if not line:
-            event_bytes = 0
-            continue
+        # HTTPResponse.readline() may return a partial line on timeout/EOF.
+        # Never accept a partial JSON payload, even if it parses as valid JSON.
+        if not raw.endswith(b"\n"):
+            raise StreamingRefused("ligne SSE interrompue")
+        line = raw[:-1].removesuffix(b"\r")
+        if b"\x00" in line:
+            raise StreamingRefused("ligne SSE invalide")
         if line.startswith(b":"):
+            continue  # SSE heartbeat; no content is forwarded.
+        if line.startswith((b"event:", b"id:", b"retry:")):
+            continue  # Metadata is not an instruction or visible model text.
+        if line.startswith(b"data: "):
+            if data_line is not None:
+                raise StreamingRefused("événement SSE à plusieurs lignes de données")
+            data_line = line[6:]
             continue
-        if not line.startswith(b"data: "):
-            # Spec permits event/id/retry metadata. It must never contain text to display.
-            if line.startswith((b"event:", b"id:", b"retry:")):
-                continue
+        if line:
             raise StreamingRefused("ligne de flux SSE inconnue")
-        payload = line[6:]
+        # A blank line commits the accumulated SSE event.
+        event_bytes = 0
+        if data_line is None:
+            continue
+        payload = data_line
+        data_line = None
         if payload == b"[DONE]":
             if not saw_stop:
                 raise StreamingRefused("flux terminé sans résultat final du modèle")
             saw_done = True
             break
+        if saw_stop:
+            raise StreamingRefused("événement inattendu après la fin du modèle")
         try:
             frame: Any = json.loads(payload)
         except (ValueError, UnicodeError) as exc:
             raise StreamingRefused("événement SSE non décodable") from exc
-        if not isinstance(frame, dict) or frame.get("error"):
+        if not isinstance(frame, dict) or ("error" in frame and frame["error"] is not None):
             raise StreamingRefused("la génération distante a signalé une erreur")
         choices = frame.get("choices")
         if not isinstance(choices, list):
             raise StreamingRefused("événement sans choix de modèle")
-        # An optional final usage record may have no choices.
+        # A standard optional usage-only frame is allowed after finish=stop,
+        # but only with a well-formed usage field. The branch above must
+        # permit it before checking saw_stop.
         if not choices:
-            continue
+            raise StreamingRefused("événement de sortie sans choix de modèle")
         if len(choices) != 1 or not isinstance(choices[0], dict):
             raise StreamingRefused("plusieurs choix de réponse non autorisés")
         item = choices[0]
         if item.get("index") != 0:
             raise StreamingRefused("index de choix incohérent")
+        delta = item.get("delta")
+        if not isinstance(delta, dict):
+            raise StreamingRefused("delta de réponse invalide")
+        if set(delta) - {"content", "role"} or (
+            "role" in delta and delta["role"] != "assistant"
+        ):
+            raise StreamingRefused("delta outil/rôle privé non autorisé")
+        piece = delta.get("content")
+        if piece is not None and not isinstance(piece, str):
+            raise StreamingRefused("delta de texte invalide")
         finish = item.get("finish_reason")
         if finish is not None:
             if finish != "stop":
                 raise StreamingRefused("génération arrêtée ou incomplète")
+            if piece:
+                raise StreamingRefused("texte et terminaison mélangés")
             saw_stop = True
-        delta = item.get("delta")
-        if not isinstance(delta, dict):
-            raise StreamingRefused("delta de réponse invalide")
-        if set(delta) - {"content", "role"}:
-            raise StreamingRefused("delta outil/raisonnement privé non autorisé")
-        piece = delta.get("content")
-        if piece is None:
-            continue
-        if saw_stop and piece:
-            raise StreamingRefused("texte envoyé après la fin du modèle")
-        if not isinstance(piece, str):
-            raise StreamingRefused("delta de texte invalide")
-        total += len(piece.encode("utf-8"))
-        if total > max_output_bytes:
-            raise StreamingRefused("sortie du flux trop volumineuse")
         if piece:
+            total += len(piece.encode("utf-8"))
+            if total > max_output_bytes:
+                raise StreamingRefused("sortie du flux trop volumineuse")
             yield piece
+    if data_line is not None:
+        raise StreamingRefused("événement SSE non terminé")
     if not saw_stop or not saw_done:
         raise StreamingRefused("flux interrompu avant confirmation de fin")
 
