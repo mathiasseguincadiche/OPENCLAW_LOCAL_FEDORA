@@ -82,6 +82,8 @@ def tree_hash(root: Path) -> str:
 # -- commands -----------------------------------------------------------------------
 def test_commands_are_parsed_from_one_line_messages_only() -> None:
     assert chat_projects.parse_command("!projets") == ("projets", "")
+    assert chat_projects.parse_command("!modele iac") == ("modele", "iac")
+    assert chat_projects.parse_command("/modele") == ("modele", "")
     assert chat_projects.parse_command("  !Projet  Daily ") == ("projet", "Daily")
     assert chat_projects.parse_command("!état") == ("etat", "")
     assert chat_projects.parse_command("/projets") == ("projets", "")
@@ -102,6 +104,19 @@ def test_a_command_is_answered_without_the_model_even_when_the_worker_is_busy(
         assert status == 200 and PROJECT in text and "Daily" in text
         assert ask(server, MODEL_IDS[0], ("user", "Une vraie question"))[0] == 409
     assert runner.calls == []
+
+
+def test_model_advice_never_calls_an_agent(chat: tuple[Any, Runner, Path, Path]) -> None:
+    server, runner, runtime, _ = chat
+    with worker_lock(runtime):
+        code, message = ask(server, MODEL_IDS[0], ("user", "!modele iac"))
+        assert code == 200
+        assert "DeepSeek" in message and "Terraform" in message
+        assert "aucun passage automatique" in message.lower()
+        assert runner.calls == []
+        code, generic = ask(server, MODEL_IDS[0], ("user", "!modele"))
+        assert code == 200 and "Qwen local" in generic
+        assert runner.calls == []
 
 
 def test_help_and_unknown_commands(chat: tuple[Any, Runner, Path, Path]) -> None:
