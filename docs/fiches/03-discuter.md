@@ -24,6 +24,35 @@ Le bouton **Budget DeepSeek** indique le plafond et les dépenses conservatrices
 du **journal local**, sans requête au modèle ni facture récupérée automatiquement
 chez OpenRouter.
 
+## Piloter les projets avec les boutons de confirmation
+
+Après sélection d'un projet dans le chat (`!projet <id>`), huit actions
+visuelles supplémentaires sont prévues sous les réponses : **Analyser le projet**,
+**Préparer le plan**, **Lancer les tâches**, **Mettre en pause**, **Reprendre**,
+**Auditer**, **Relire** et **Préparer la livraison**.
+
+Ces actions ne sont **pas** des instructions données au modèle. Chaque clic
+demande d'abord une **confirmation explicite dans le navigateur**. Un clic
+annulé, une session de navigateur déconnectée, l'absence de dialogue ou
+l'absence de projet sélectionné ne déclenchent **aucune mutation**.
+
+Après confirmation, l'action transmet au **pont local authentifié**
+uniquement l'identifiant du projet actif et une commande fixe, par exemple
+`!lancer`. Le pont réutilise les permissions, les états et les verrous de
+l'Atelier Projets. Il peut refuser l'opération si le plan n'est pas approuvé,
+si une tâche est déjà en cours ou si le cloud n'est pas autorisé. Le navigateur
+**ne reçoit aucun accès direct aux API privilégiées d'OpenClaw**.
+
+**Préparer la livraison** ne livre pas automatiquement : le pont crée encore
+une phrase d'approbation à usage unique, à taper séparément dans le chat. Les
+actions qui demandent des informations supplémentaires (nouveau projet, réponse
+à une question, révision, soumission de fichiers) restent accessibles depuis
+les commandes ou le tableau de bord, le temps de créer des formulaires adaptés.
+
+La compatibilité des dialogues, l'affichage effectif des boutons et le
+comportement après coupure du navigateur devront être vérifiés sur le véritable
+Open WebUI de Fedora durant la réception finale.
+
 ## Choisir Qwen ou DeepSeek sans divulgation automatique
 
 Tu peux taper `!modele` pour voir une carte des usages, ou `!modele iac`,
