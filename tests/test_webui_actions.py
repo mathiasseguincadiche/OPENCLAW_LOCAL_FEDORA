@@ -597,11 +597,11 @@ def test_revision_bridge_transmits_only_bounded_task_and_reason(monkeypatch: Any
     monkeypatch.setattr(http.client, "HTTPConnection", Connection)
     history = [
         {"role": "user", "content": "sensitive-previous-history"},
-        {"role": "assistant", "content": "📁 Projet : infra-demo\\n\\nprivate"},
+        {"role": "assistant", "content": "📁 Projet : infra-demo\n\nprivate"},
     ]
     assert API["local_bridge"](
         "!modifier", history, key="k" * 64, mutation=True,
-        revision=(" TASK-001 ", "  Améliorer\\nle plan Terraform.  "),
+        revision=(" TASK-001 ", "  Améliorer\nle plan Terraform.  "),
     ) == "approuver revision ABCD"
     assert captured == [{
         "model": "openclaw/chef-operations", "stream": False,
@@ -614,7 +614,7 @@ def test_revision_bridge_transmits_only_bounded_task_and_reason(monkeypatch: Any
     for task, reason in [
         ("../escape", "motif"), ("a", "motif"), ("x" * 65, "motif"),
         ("task-001", ""), ("task-001", "X" * 2001),
-        ("task-001", "nul\\x00ici"),
+        ("task-001", "nul\x00ici"),
     ]:
         with pytest.raises(ValueError, match="invalide"):
             API["local_bridge"](
