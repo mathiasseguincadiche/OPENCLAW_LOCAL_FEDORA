@@ -1,8 +1,9 @@
 """Open WebUI Action: controlled project shortcuts for a single-admin Fedora atelier.
 
-The tool never interprets or executes model output, never approves a project
-transition and never sends user content to an external host. Requests go only to
-the existing authenticated OpenClaw bridge on loopback.
+The tool never interprets or executes model output or approves a project
+transition by itself. Form input and the selected marker are sent only to
+the existing authenticated OpenClaw bridge on loopback, never to a cloud host.
+The bridge issues a distinct one-time code for creating the project.
 """
 
 from __future__ import annotations
