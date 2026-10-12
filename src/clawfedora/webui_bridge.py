@@ -12,7 +12,7 @@ import json
 import subprocess
 import time
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from contextlib import suppress
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
@@ -28,6 +28,7 @@ from clawfedora.local_http import LocalServer
 from clawfedora.mentor import context as mentor_context
 from clawfedora.project_control import write_progress
 from clawfedora.project_worker import AgentRunner, openclaw_runner, worker_lock
+from clawfedora.webui_stream import progressive_completion
 
 MODEL_IDS = tuple(f"openclaw/{role}" for role in AGENT_IDS)
 # "Apprendre" mode: the same roles answered by the cloud model, listed only when the cloud is
@@ -200,6 +201,7 @@ class BridgeServer(LocalServer):
     cloud_limits: dict[str, Any]
     cloud_ready: Callable[[], bool]
     privacy: PrivacyFilter
+    stream_runner: Callable[[str, str, str], Generator[str, None, None]] | None
 
 
 class BridgeHandler(BaseHTTPRequestHandler):
@@ -648,6 +650,32 @@ class BridgeHandler(BaseHTTPRequestHandler):
                 context += "\n" + chat_projects.project_context(
                     self.server.repo_root, self.server.runtime, project, str(last.get("content", ""))
                 )
+        # First integration gate: plain local Mentor chat only. No project thread,
+        # uploads or cloud ever reach this alternative source. Production keeps the
+        # CLI path until the native SSE source passes the exact same preflight.
+        if (
+            data.get("stream") is True
+            and self.server.stream_runner is not None
+            and not cloud and role == "chef-operations"
+            and current is None and not referenced
+            and not file_descriptors and not standalone_attachment_context
+        ):
+            try:
+                with worker_lock(self.server.runtime):
+                    session = str(uuid.uuid4())
+                    write_progress(self.server.runtime, None, "chat", role=role, session=session)
+                    try:
+                        pieces = self.server.stream_runner(
+                            role, context + "\n" + prompt, session
+                        )
+                        progressive_completion(
+                            self, str(data["model"]), pieces, truncated_history=omitted
+                        )
+                    finally:
+                        write_progress(self.server.runtime, None, "idle")
+            except (OSError, ValueError, KeyError, RuntimeError) as exc:
+                self._send(409, {"error": {"message": str(exc)}})
+            return
         try:
             with worker_lock(self.server.runtime):
                 session = str(uuid.uuid4())
@@ -708,6 +736,7 @@ def make_server(
     *,
     runner: AgentRunner | None = None,
     cloud_ready: Callable[[], bool] | None = None,
+    stream_runner: Callable[[str, str, str], Generator[str, None, None]] | None = None,
 ) -> BridgeServer:
     if len(token) < 32:
         raise ValueError("jeton d’intégration privé requis")
@@ -734,6 +763,7 @@ def make_server(
     server.runner = runner or openclaw_runner(runtime, repo_root, plain_text=True)
     server.cloud_ready = cloud_ready or (lambda: cloud_status(runtime, repo_root)[0])
     server.privacy = PrivacyFilter(runtime / CLOUD_STATE / "denylist.txt")
+    server.stream_runner = stream_runner
     return server
 
 
