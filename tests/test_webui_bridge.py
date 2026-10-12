@@ -349,3 +349,39 @@ def test_full_deepseek_window_accepts_large_history_but_qwen_stays_bounded(
         assert request(server, "/v1/chat/completions", local_payload)[0] == 400
         server.shutdown()
         thread.join(timeout=5)
+
+
+def test_standalone_uploads_reach_only_the_local_chat(tmp_path: Path) -> None:
+    prompts: list[str] = []
+
+    def runner(_role: str, prompt: str, _session: str) -> dict[str, Any]:
+        prompts.append(prompt)
+        return {"text": "Ce Terraform déclare une ressource."}
+
+    upload = tmp_path / "state/webui/data/uploads/example.tf"
+    upload.parent.mkdir(parents=True)
+    upload.write_text('resource "null_resource" "example" {}', encoding="utf-8")
+    descriptor = {
+        "id": "file-example", "filename": "example.tf",
+        "path": "/app/backend/data/uploads/example.tf", "size": upload.stat().st_size,
+    }
+    with make_server(
+        ROOT, tmp_path, TOKEN, 0, runner=runner, cloud_ready=lambda: True
+    ) as server:
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        payload = {
+            "model": MODEL_IDS[0],
+            "messages": [{"role": "user", "content": "Explique ce Terraform"}],
+            "clawfedora_files": [descriptor],
+        }
+        status, answer = request(server, "/v1/chat/completions", payload)
+        assert status == 200 and "Terraform" in answer
+        assert len(prompts) == 1 and "null_resource" in prompts[0]
+        assert not (tmp_path / "projects").exists()
+        payload["model"] = CLOUD_MODEL_IDS[0]
+        status, answer = request(server, "/v1/chat/completions", payload)
+        assert status == 200 and "uniquement en chat local" in answer
+        assert len(prompts) == 1
+        server.shutdown()
+        thread.join(timeout=5)

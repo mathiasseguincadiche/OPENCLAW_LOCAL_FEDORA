@@ -19,6 +19,8 @@ Demander un document ou une configuration produit un vrai fichier, téléchargea
 Demande le format : « Explique-moi les artefacts d'une CI, puis fournis une fiche en Markdown, PDF
 et DOCX. » Les liens de téléchargement s'ajoutent à la réponse. Ils sont valables 24 heures.
 
+Sans projet sélectionné, le chat local accepte jusqu'à quatre petits fichiers texte ou de code totalisant 12 000 octets ; ils servent uniquement à la question courante. Cette voie courte ne prend pas en charge PDF, Office, archives ni images, et elle est toujours refusée en cloud. Les fichiers demeurent dans le stockage Open WebUI jusqu'à leur suppression ou selon sa politique de conservation.
+
 Pour **apporter des sources** à un projet, sélectionne-le puis joins les fichiers avant
 `!analyser`. Open WebUI n'indexe pas ces fichiers dans sa propre RAG : un filtre géré transmet
 la référence du fichier au pont, qui contrôle son propriétaire, son chemin, sa taille et son nom,

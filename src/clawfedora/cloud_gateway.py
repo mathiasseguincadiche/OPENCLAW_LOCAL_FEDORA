@@ -284,8 +284,12 @@ class GatewayHandler(BaseHTTPRequestHandler):
                 else:
                     self._relay_json(request_id, response, reservation)
         except urllib.error.HTTPError as exc:
-            reservation.settle(None, "failed")
-            self._event(request_id, "upstream_error", status=exc.code)
+            # A 5xx or timeout is ambiguous: the provider may already have billed a
+            # generation before its gateway returned an error. Preserve the reserved
+            # worst-case amount instead of silently undercounting cloud spending.
+            uncertain = exc.code >= 500 or exc.code == 408
+            reservation.settle(None, "interrupted" if uncertain else "failed")
+            self._event(request_id, "upstream_error", status=exc.code, uncertain=uncertain)
             self._upstream_error(exc)
         except (urllib.error.URLError, TimeoutError, OSError):
             # The request may have been processed: keep the worst-case estimate.

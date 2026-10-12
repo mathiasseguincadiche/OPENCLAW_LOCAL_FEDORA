@@ -25,9 +25,10 @@ Il accompagne aussi un parcours : passer de l'administration systèmes et résea
 | Apprendre avec un mentor qui part des acquis de l'utilisateur | Open WebUI ou l'atelier |
 | Mener un projet avec sept rôles spécialisés | Atelier Projets, `http://127.0.0.1:18890` |
 | Piloter un projet de la création à la livraison, avec confirmations humaines | Open WebUI ou Atelier Projets |
-| Joindre des PDF, Office, archives, code et images avant l'analyse | Open WebUI ou Atelier Projets |
+| Joindre des PDF, Office, archives, code et images avant l'analyse | Open WebUI ou Atelier Projets, dans un projet |
 | Pratiquer en mode guidé, soumettre ses fichiers et recevoir un retour | Open WebUI ou Atelier Projets |
 | Dicter une question et écouter une réponse, sans service vocal cloud | Open WebUI, Whisper + TTS locaux |
+| Analyser rapidement de petits fichiers texte/code sans créer de projet | Open WebUI en local uniquement, 4 fichiers et 12 Ko au total |
 | Obtenir de vrais fichiers : Markdown, PDF, DOCX, YAML, Terraform, schémas Draw.io | Les deux |
 
 En local, un seul modèle, **Qwen 3.5 9B**, tourne sur la carte graphique avec Ollama. **OpenClaw** lui donne sept rôles : mentor, recherche, architecte, DevOps, sécurité, rédacteur et auditeur. Ce sont sept jeux de consignes pour le même modèle, pas sept IA en mémoire.
@@ -90,7 +91,7 @@ cd OPENCLAW_LOCAL_FEDORA
 | [Apprendre](docs/fiches/05-apprendre.md) | [Comment ça marche](docs/fiches/11-comment-ca-marche.md) |
 | [Fichiers et schémas](docs/fiches/06-fichiers-et-schemas.md) | [Le cloud, facultatif](docs/fiches/12-cloud.md) |
 | [Test de fumée Open WebUI](docs/SMOKE_TEST_WEBUI.md) | [Quel modèle pour expliquer](docs/DECISION_MODELE.md) |
-| [Plan : tout faire depuis Open WebUI](docs/PLAN_INTEGRATION_WEBUI.md) | |
+| [Plan : tout faire depuis Open WebUI](docs/PLAN_INTEGRATION_WEBUI.md) | [Plan qualité et critères de validation](docs/PLAN_QUALITE_2026.md) |
 
 L'ancien PDF illustré de pré-intégration n'est plus la référence : le guide Markdown, les fiches et le test de fumée décrivent désormais l'architecture actuelle.
 

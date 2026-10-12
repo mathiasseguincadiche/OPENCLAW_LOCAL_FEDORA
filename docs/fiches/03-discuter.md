@@ -39,7 +39,7 @@ Le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allu
 
 **Une seule génération à la fois.** Si l'atelier Projets travaille, le chat répond qu'il est occupé, et inversement. Le modèle n'est jamais lancé deux fois en parallèle.
 
-**La mémoire dépend de la route.** Qwen reçoit les messages récents jusqu'à 32 000 octets. DeepSeek peut recevoir un historique beaucoup plus large (jusqu'à environ 768 Ko transmis par le pont, dans un contexte cloud déclaré à 262K tokens). Dans les deux cas, le pont retire les messages les plus anciens avant de dépasser sa limite et l'indique.
+**La mémoire dépend de la route.** Qwen reçoit les messages récents jusqu'à 32 000 octets. DeepSeek peut recevoir un historique beaucoup plus large (jusqu'à environ 3 Mio transmis par le pont, dans un contexte cloud déclaré à 1 048 576 tokens). Le contexte maximal annoncé n'est pas la quantité effectivement envoyée : la passerelle, l'historique et le fournisseur imposent leurs propres limites. Dans les deux cas, le pont retire les messages les plus anciens avant de dépasser sa limite et l'indique.
 
 **Le bouton d'arrêt n'arrête pas tout de suite.** Il coupe l'affichage, mais la génération en cours se termine. Attends sa fin avant de passer en mode jeu.
 
@@ -55,6 +55,12 @@ Un modèle de cette taille répond mieux à une demande précise et courte.
 - Pour une information qui a pu changer, écris « cherche sur le Web et donne tes sources ».
 
 Exemple : « Je connais les services systemd. Explique-moi ce qu'un rôle Ansible apporte par rapport à un simple playbook, avec un petit exemple. »
+
+## Analyser un petit fichier sans créer de projet
+
+Dans une discussion **locale**, tu peux joindre directement jusqu'à **quatre petits fichiers texte ou de code** (Terraform, Ansible/YAML, Markdown, Python, Bash, JSON, etc.), pour **12 000 octets au total**. Le pont contrôle le fichier d'origine puis place son contenu dans le contexte de cette question uniquement : rien n'est enregistré dans un projet et aucun document n'est envoyé à DeepSeek. Les fichiers envoyés restent néanmoins dans le stockage normal d'Open WebUI et suivent sa politique de conservation.
+
+Les PDF, images, archives et fichiers Office doivent pour l'instant passer par l'ingestion canonique d'un projet, comme les analyses volumineuses. Un changement de modèle vers « cloud » avec des pièces jointes hors projet est explicitement refusé. Pour analyser un fichier de projet, sélectionne le projet et importe les pièces jointes **avant** l'analyse.
 
 ## Obtenir un fichier
 

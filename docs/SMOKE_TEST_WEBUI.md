@@ -43,6 +43,24 @@ Dans `http://127.0.0.1:3000` :
 Tester une conversation assez longue : l'interface doit rester utilisable et le bandeau
 « contexte allégé » doit apparaître avant qu'une requête trop grande ne soit refusée.
 
+## 2 bis. Petits fichiers en chat local, sans projet
+
+Dans une nouvelle conversation sans projet :
+
+1. Sélectionner « Mentor infrastructure/OPS · local », joindre un petit `main.tf` UTF-8
+   et demander une explication. La réponse doit expliquer son contenu sans créer de projet.
+2. Joindre un `README.md` et un `deployment.yaml` (moins de 12 000 octets cumulés).
+3. Tenter un cinquième fichier et un fichier de plus de 12 000 octets :
+   refus explicite, aucune inférence.
+4. Tenter un PDF, une image, un fichier binaire ou une empreinte invalide :
+   refus explicite, aucune inférence.
+5. Choisir « · cloud (DeepSeek) » et joindre le même `main.tf` :
+   **refus**, aucun appel OpenRouter et aucun coût enregistré.
+6. Vérifier que le fichier n'a créé aucun dossier sous `projects/`.
+   Il peut rester dans le stockage normal d'Open WebUI : vérifier aussi sa suppression.
+
+Ces vérifications ne remplacent pas les tests de l'ingestion complète dans un projet.
+
 ## 3. Commandes projet de bout en bout
 
 Dans une nouvelle conversation :

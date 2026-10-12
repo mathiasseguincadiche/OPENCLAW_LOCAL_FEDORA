@@ -474,6 +474,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
         current, referenced = chat_projects.thread_state(messages)
         last = messages[-1] if messages[-1].get("role") == "user" else {}
         file_descriptors = data.get("clawfedora_files")
+        standalone_attachment_context = ""
         # Commands come from the user's last message only, and are understood by this code.
         typed = str(last.get("content", "")) if last else ""
         # An approval phrase counts only as the whole last message of the user, never from the
@@ -495,40 +496,53 @@ class BridgeHandler(BaseHTTPRequestHandler):
                         if current else None
                     )
             if project is None:
-                self._completion(
-                    data,
-                    chat_projects.bridge_reply(
-                        current,
-                        "Sélectionnez ou créez d'abord un projet, puis joignez les fichiers. "
-                        "Les uploads ne sont jamais envoyés directement au modèle."
-                    ),
-                )
-                return
-            try:
-                imported = chat_files.import_files(
-                    self.server.repo_root,
-                    self.server.runtime,
-                    project,
-                    file_descriptors,
-                )
-            except (OSError, ValueError, KeyError) as exc:
-                self._completion(
-                    data,
-                    chat_projects.bridge_reply(current, f"Pièces jointes refusées : {exc}."),
-                )
-                return
-            if command is None:
-                names = ", ".join(f"`{name}`" for name in imported)
-                self._completion(
-                    data,
-                    chat_projects.bridge_reply(
-                        current,
-                        f"✅ {len(imported)} pièce(s) jointe(s) ajoutée(s) aux sources : {names}. "
-                        "La chaîne d'ingestion canonique a été reconstruite. Lancez `!analyser` "
-                        "pour les lire avec les outils requis."
-                    ),
-                )
-                return
+                if cloud_request or command is not None:
+                    self._completion(
+                        data,
+                        chat_projects.bridge_reply(
+                            current,
+                            "Les fichiers hors projet sont analysés uniquement en chat local. "
+                            "Choisissez un rôle local et posez une question sans commande, "
+                            "ou créez un projet pour des sources persistantes."
+                        ),
+                    )
+                    return
+                try:
+                    standalone_attachment_context = chat_files.standalone_texts(
+                        self.server.runtime, file_descriptors
+                    )
+                except (OSError, ValueError, KeyError) as exc:
+                    self._completion(
+                        data, chat_projects.bridge_reply(current, f"Pièces jointes refusées : {exc}.")
+                    )
+                    return
+            else:
+                try:
+                    imported = chat_files.import_files(
+                        self.server.repo_root,
+                        self.server.runtime,
+                        project,
+                        file_descriptors,
+                    )
+                except (OSError, ValueError, KeyError) as exc:
+                    self._completion(
+                        data,
+                        chat_projects.bridge_reply(current, f"Pièces jointes refusées : {exc}."),
+                    )
+                    return
+                if command is None:
+                    names = ", ".join(f"`{name}`" for name in imported)
+                    self._completion(
+                        data,
+                        chat_projects.bridge_reply(
+                            current,
+                            f"✅ {len(imported)} pièce(s) jointe(s) ajoutée(s) "
+                            f"aux sources : {names}. "
+                            "La chaîne d'ingestion canonique a été reconstruite. Lancez `!analyser` "
+                            "pour les lire avec les outils requis."
+                        ),
+                    )
+                    return
         if approval is not None:
             try:
                 if approval[0] == "proposition":
@@ -620,6 +634,8 @@ class BridgeHandler(BaseHTTPRequestHandler):
                 )
                 return
         context = mentor_context(self.server.runtime)
+        if standalone_attachment_context:
+            context += "\n" + standalone_attachment_context
         if current:
             project = chat_projects.open_project(self.server.runtime, current)
             if project is None:
