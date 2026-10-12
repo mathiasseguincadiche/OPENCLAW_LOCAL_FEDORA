@@ -13,7 +13,6 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
-
 MAX_INPUT = 2 * 1024 * 1024
 MAX_PDF_PAGES = 12
 MAX_OFFICE_MEMBERS = 100
