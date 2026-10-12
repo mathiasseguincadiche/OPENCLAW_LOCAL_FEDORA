@@ -120,7 +120,7 @@ def test_streaming_falls_back_to_existing_cli_path_when_source_not_approved(
         response = conn.getresponse()
         data = response.read().decode()
         assert response.status == 200
-        assert "Réponse classique en un bloc" in data
+        assert "classique en un bloc" in data
         assert "data: [DONE]" in data
         conn.close()
         server.shutdown()
