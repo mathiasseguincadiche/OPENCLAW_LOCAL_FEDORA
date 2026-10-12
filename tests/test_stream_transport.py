@@ -140,7 +140,12 @@ def test_gateway_adapter_stops_and_closes_on_consumer_cancel(
             return "text/event-stream"
 
         def readline(self, _size: int) -> bytes:
-            return _chunk("continue")
+            # HTTPResponse.readline() returns a single physical SSE line.
+            # The test stream repeats frames indefinitely until cancelled.
+            self.counter = getattr(self, "counter", 0) + 1
+            if self.counter % 2:
+                return _chunk("continue").splitlines(keepends=True)[0]
+            return b"\n"
 
     class FakeConnection:
         def __init__(self, *_args: Any, **_kwargs: Any) -> None:
