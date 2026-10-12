@@ -59,7 +59,7 @@ configuration OpenClaw, jamais depuis une réponse du modèle.
    contexte, pièces jointes, accord cloud par projet, filtre des secrets,
    journaux et liens produits. Aucun contenu sensible ne doit suivre
    une nouvelle route vers DeepSeek par inadvertance.
-4. **Lire le jeton du Gateway depuis sa configuration privée**, en 0600 hors Git, sans
+4. **Lire le jeton du Gateway depuis sa configuration privée** (0600), sans
    jamais l'insérer dans Open WebUI ou une réponse ; garantir que le
    service écoute en boucle locale et que les mécanismes de provisionnement
    n'exposent pas la valeur.
@@ -71,8 +71,9 @@ configuration OpenClaw, jamais depuis une réponse du modèle.
    incrémentale** : envoi de fragments au navigateur au fil de l'eau,
    terminaison `finish_reason=stop` seulement après succès,
    erreur visible sinon, aucune injection de faux marqueur projet.
-7. Valider la version OpenClaw épinglée et l'instance Open WebUI 0.12
-   en canary, puis seulement effectuer les essais sur Fedora.
+7. Valider la version OpenClaw épinglée et l'instance Open WebUI actuellement
+   épinglée en canary ; la migration v0.12 reste une qualification séparée.
+   Réaliser ensuite les essais finaux sur Fedora.
 
 Le code livré n'active pas automatiquement l'API opérateur : le marqueur
 0600, le patch géré et le redémarrage du Gateway constituent une activation
@@ -86,38 +87,38 @@ réels tant que l'utilisateur n'active pas le mode canary. **Ne pas confondre
 CI verte, API configurée et streaming confirmé dans le navigateur.**
 
 1. Conserver une sauvegarde de l'état OpenClaw et les résultats d'un
-   \`./menu.sh --action health\` propre. Vérifier que
-   \`state/openclaw/openclaw.json\` est un fichier ordinaire privé **0600**
-   contenant un \`gateway\` de mode \`local\`, avec \`bind=loopback\`,
-   \`gateway.auth.mode=token\` et un jeton d'opérateur existant d'au moins
+   `./menu.sh --action health` propre. Vérifier que
+   `state/openclaw/openclaw.json` est un fichier ordinaire privé **0600**
+   contenant un `gateway` de mode `local`, avec `bind=loopback`,
+   `gateway.auth.mode=token` et un jeton d'opérateur existant d'au moins
    32 caractères. Une référence d'environnement ne peut être utilisée que
-   via \`OPENCLAW_GATEWAY_TOKEN\` disponible **uniquement côté serveur**.
+   via `OPENCLAW_GATEWAY_TOKEN` disponible **uniquement côté serveur**.
    En l'absence de ce jeton, l'activation échoue : ne pas en générer un
    différent du secret réellement configuré dans le Gateway.
 2. Créer le marqueur privé depuis la session propriétaire du runtime,
    sans écraser un fichier non géré. Exemple à adapter au chemin réel du
    runtime ; ne pas le placer dans Git :
 
-   \`\`\`bash
+   ```bash
    RUNTIME_ROOT="/srv/openclaw-local"
    # Adapter RUNTIME_ROOT si l'installation utilise le chemin utilisateur.
    install -m 0600 /dev/null "$RUNTIME_ROOT/state/webui/native-sse.enabled"
    printf 'local-mentor-sse-v1\n' > "$RUNTIME_ROOT/state/webui/native-sse.enabled"
    chmod 0600 "$RUNTIME_ROOT/state/webui/native-sse.enabled"
-   \`\`\`
+   ```
 
 3. Revalider et appliquer la configuration épinglée, puis redémarrer les
    deux services locaux :
 
-   \`\`\`bash
+   ```bash
    bash scripts/linux/03_configure_openclaw.sh --apply
    systemctl --user restart openclaw-gateway.service
    systemctl --user restart clawfedora-webui-bridge.service
-   \`\`\`
+   ```
 
    Le patch géré ajoute alors **uniquement**
-   \`gateway.http.endpoints.chatCompletions.enabled=true\`, tout en conservant
-   \`bind=loopback\`. Si le mode/token n'est pas conforme, le pont refuse
+   `gateway.http.endpoints.chatCompletions.enabled=true`, tout en conservant
+   `bind=loopback`. Si le mode/token n'est pas conforme, le pont refuse
    **avant** l'appel HTTP. Aucun jeton n'est renvoyé au navigateur.
 
 4. Depuis Open WebUI, choisir **Mentor infrastructure/OPS · local** et
@@ -133,14 +134,16 @@ CI verte, API configurée et streaming confirmé dans le navigateur.**
 Supprimer **uniquement** le marqueur créé manuellement, puis réappliquer
 le patch validé et redémarrer le Gateway et le pont :
 
-\`\`\`bash
+```bash
 rm -- "$RUNTIME_ROOT/state/webui/native-sse.enabled"
 bash scripts/linux/03_configure_openclaw.sh --apply
 systemctl --user restart openclaw-gateway.service
 systemctl --user restart clawfedora-webui-bridge.service
-\`\`\`
+```
 
-Le patch nominal **n'active pas** l'API Chat Completions privilégiée.
+Le patch nominal réapplique explicitement `enabled=false` afin de
+fermer l'API opérateur même lorsque le gestionnaire de patch fusionne
+les réglages au lieu de supprimer les champs absents.
 Aucune modification du jeton cloud OpenRouter n'est nécessaire.
 
 **Limites de preuve :** les tests CI vérifient le raccordement à un Gateway
