@@ -26,6 +26,7 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
   les confirmations et l'audio ; procédure de test de fumée Fedora et vérification du cloud réel.
 
 ### Modifié
+- **Documentation pédagogique** : README et guide réorganisés autour des usages réels ; description détaillée et sourcée des sept rôles, de leurs outils et de leurs limites ; parcours fictif complet de déploiement DevOps ; schémas SVG refondus pour distinguer interfaces, moteur, Qwen, cloud facultatif, données et accords humains ; contrôle automatisé des liens, noms de rôles et SVG. Cela **ne modifie pas** la version épinglée d'Open WebUI ni le niveau de validation Fedora.
 - **Modèle cloud** : GLM-5.3 Flash est remplacé par **DeepSeek V4.1 Flash**, épinglé à `deepseek/deepseek-v4.1-flash` via OpenRouter. La passerelle locale, le filtre de confidentialité, le budget de 25 €, l'accord cloud par projet et le repli visible vers Qwen restent inchangés.
 - Les libellés d'interface et le scope de consentement deviennent génériques à la famille DeepSeek afin que le futur passage à V4.1 Pro ne demande pas de dupliquer les sept rôles.
 - Les images restent locales : V4.1 Flash est multimodal, mais le filtre de confidentialité du projet ne sait pas encore inspecter le contenu d'une image.
