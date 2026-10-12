@@ -119,7 +119,7 @@ def test_mutating_button_requires_positive_browser_confirmation(monkeypatch: Any
     emitted: list[dict[str, Any]] = []
     history = [
         {"role": "user", "content": "super-secret-private-prompt"},
-        {"role": "assistant", "content": "📁 Projet : mon-projet\\n\\nTravail demandé"},
+        {"role": "assistant", "content": "📁 Projet : mon-projet\n\nTravail demandé"},
     ]
 
     def fake_bridge(
@@ -216,7 +216,7 @@ def test_mutations_send_only_fixed_commands_and_project_marker(monkeypatch: Any)
     monkeypatch.setattr(http.client, "HTTPConnection", FakeConnection)
     history = [
         {"role": "user", "content": "my-sensitive-terraform-creds"},
-        {"role": "assistant", "content": "📁 Projet : test-sans-secret\\n\\nprivate text"},
+        {"role": "assistant", "content": "📁 Projet : test-sans-secret\n\nprivate text"},
         {"role": "user", "content": "another confidential note"},
     ]
     assert API["local_bridge"](
