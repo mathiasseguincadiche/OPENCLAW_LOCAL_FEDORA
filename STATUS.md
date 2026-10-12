@@ -79,7 +79,9 @@ Rien n'est encore mesuré sur ta machine. Les résultats publics de DeepSeek V4.
 
 La commande `clawfedora-ci-proof` vérifie en lecture seule le **statut global**
 d'un pipeline public GitHub/GitLab via l'API officielle, après comparaison
-de l'identifiant d'exécution et du SHA du commit. Elle **ne télécharge pas**
+de l'identifiant d'exécution et du SHA du commit. L'option `--jobs` fournit
+désormais une liste bornée des métadonnées de jobs publics rattachés au pipeline ;
+toute pagination non vérifiable est refusée. Elle **ne télécharge pas**
 de journaux et ne valide pas les artefacts, les déploiements ou les backups.
 Sa logique est testée sur de faux API ; les appels réels sur Fedora et les
 connecteurs privés restent à qualifier. [Guide](docs/PREUVES_CI_GITHUB_GITLAB.md).
@@ -97,6 +99,21 @@ ou la CI sur l'hôte.
 ## Évaluation des agents, préparation
 
 Le dépôt comporte une **suite synthétique fixe de sept scénarios métier**, une CLI `clawfedora-evals` et un format de revue humaine. Cela vérifie la structure du plan et la complétude des notes, **pas** la qualité réelle de Qwen ou DeepSeek. Les résultats comparatifs seront établis seulement lors de la qualification finale. [Mode d'emploi](docs/EVALUATION_AGENTS.md) · [Programme global](docs/PROGRAMME_AMELIORATION_2026.md).
+
+## Documents de conversation et exports vérifiables
+
+Le chat **local sans projet** peut désormais produire des aperçus de petits PDF
+contenant du texte et de fichiers Office (DOCX, PPTX, XLSX), sous limites de
+taille et de contexte. Les images PNG/JPEG/WebP ne fournissent que leurs
+**métadonnées vérifiées** : Qwen texte **ne voit pas leurs pixels**. Les PDF
+scannés sans texte, les archives et les usages cloud avec fichiers restent
+refusés dans cette voie. Tests simulés intégrés (PR #97), rendu réel Open WebUI
+à vérifier sur Fedora.
+
+La commande humaine `clawfedora-doc-bundle` assemble jusqu'à 16 sections
+Markdown relues en source éditable, PDF, DOCX et manifeste SHA-256, sans
+écrasement ni exécution d'agent (PR #93). Les qualités visuelles et
+pédagogiques des exports doivent encore être inspectées manuellement.
 
 ## Pilotage visuel des projets Open WebUI
 
