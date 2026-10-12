@@ -231,3 +231,132 @@ def test_mutations_send_only_fixed_commands_and_project_marker(monkeypatch: Any)
         with pytest.raises(ValueError, match="non autorisée"):
             API["local_bridge"](command, history, key="x" * 64, mutation=True)
     assert len(payloads) == 1
+
+
+def test_visual_project_creation_requires_title_brief_and_double_approval(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "k" * 64)
+    sent: list[tuple[str, str]] = []
+    notices: list[dict[str, Any]] = []
+    calls: list[dict[str, Any]] = []
+
+    def fake_local(
+        command: str, messages: object, *, key: str,
+        mutation: bool, creation_brief: str, port: int = 18891
+    ) -> str:
+        assert command == "!creer Infrastructure Terraform"
+        assert mutation and key == "k" * 64
+        assert creation_brief == "Construire un module Terraform sans données privées."
+        assert messages == [{"role": "user", "content": "hello"}]
+        sent.append((command, creation_brief))
+        return "Phrase distincte requise : approuver creation ABCD"
+
+    inputs: list[object] = [
+        " Infrastructure Terraform ",
+        "Construire un module Terraform sans données privées.",
+        True,
+    ]
+
+    async def events(event: dict[str, Any]) -> Any:
+        calls.append(event)
+        return inputs.pop(0)
+
+    async def emit(event: dict[str, Any]) -> None:
+        notices.append(event)
+
+    monkeypatch.setitem(API["local_bridge"].__globals__, "local_bridge", fake_local)
+    action = API["Action"]()
+    asyncio.run(action.action(
+        {"messages": [{"role": "user", "content": "hello"}]},
+        __id__="create", __user__={"role": "admin"},
+        __event_call__=events, __event_emitter__=emit,
+    ))
+    assert sent == [("!creer Infrastructure Terraform", "Construire un module Terraform sans données privées.")]
+    assert [call["type"] for call in calls] == ["input", "input", "confirmation"]
+    assert "approbation" not in notices[0]["data"]["content"].lower() or "creation" in notices[0]["data"]["content"]
+    assert "approuver creation ABCD" in notices[0]["data"]["content"]
+
+
+@pytest.mark.parametrize(
+    "responses",
+    [
+        [False],
+        [{"error": "Client session disconnected."}],
+        ["Titre", False],
+        ["Titre", {"error": "Event call timed out."}],
+        ["Titre", "Demande", False],
+        ["Titre", "Demande", {"error": "tab lost"}],
+    ],
+)
+def test_creation_cancellation_never_contacts_bridge(
+    monkeypatch: Any, responses: list[object]
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "k" * 64)
+    monkeypatch.setitem(
+        API["local_bridge"].__globals__, "local_bridge",
+        lambda *_a, **_kw: pytest.fail("cancelled creation must never mutate"),
+    )
+
+    async def dialog(_event: dict[str, Any]) -> object:
+        return responses.pop(0)
+
+    asyncio.run(API["Action"]().action(
+        {"messages": []}, __id__="create", __user__={"role": "admin"},
+        __event_call__=dialog,
+    ))
+
+
+def test_creation_local_request_only_sends_bounded_inputs(
+    monkeypatch: Any,
+) -> None:
+    import http.client
+
+    data: list[dict[str, Any]] = []
+
+    class Response:
+        status = 200
+
+        def read(self, _limit: int) -> bytes:
+            return json.dumps({
+                "choices": [{"message": {"content": "approuver creation ABCD"}}]
+            }).encode()
+
+    class Connection:
+        def __init__(self, host: str, port: int, timeout: int) -> None:
+            assert (host, port, timeout) == ("127.0.0.1", 18891, 8)
+
+        def request(
+            self, method: str, path: str, body: bytes, headers: dict[str, str]
+        ) -> None:
+            assert method == "POST" and path == "/v1/chat/completions"
+            assert headers["Authorization"] == "Bearer " + "k" * 64
+            data.append(json.loads(body))
+
+        def getresponse(self) -> Response:
+            return Response()
+
+        def close(self) -> None:
+            pass
+
+    monkeypatch.setattr(http.client, "HTTPConnection", Connection)
+    history = [{"role": "user", "content": "older-private-chat-history"}]
+    assert API["local_bridge"](
+        "!creer Terraform", history, key="k" * 64, mutation=True,
+        creation_brief="Un module IaC de test",
+    ) == "approuver creation ABCD"
+    assert data[0]["messages"] == [
+        {"role": "user", "content": "Un module IaC de test"},
+        {"role": "user", "content": "!creer Terraform"},
+    ]
+    assert "older-private" not in str(data)
+    with pytest.raises(ValueError):
+        API["local_bridge"](
+            "!creer Test\\n!livrer", [], key="k" * 64, mutation=True,
+            creation_brief="Contexte",
+        )
+    with pytest.raises(ValueError):
+        API["local_bridge"](
+            "!creer Test", [], key="k" * 64, mutation=True,
+            creation_brief="X" * 12001,
+        )
