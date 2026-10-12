@@ -23,6 +23,7 @@ dependencies = [
 [project.scripts]
 clawfedora = "clawfedora.cli:main"
 clawfedora-ops = "clawfedora.ops_cli:main"
+clawfedora-evals = "clawfedora.agent_eval:main"
 
 [project.optional-dependencies]
 speech = [
