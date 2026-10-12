@@ -85,6 +85,9 @@ def environment(
         "ENABLE_FUNCTIONS": "true",
         "ENABLE_TOOLS": "false",
         "ENABLE_TOOL_SERVERS": "false",
+        # Functions are source-managed and pinned; never install dependencies
+        # declared by untrusted plugin frontmatter at server startup.
+        "ENABLE_PIP_INSTALL_FRONTMATTER_REQUIREMENTS": "false",
         "ENABLE_OPENAI_API": "true",
         "OPENAI_API_BASE_URL": "http://127.0.0.1:18891/v1",
         "OPENAI_API_KEY": token,
