@@ -4,7 +4,13 @@
 
 ## D'abord, comprendre le mot « agent »
 
-Imagine une **équipe de sept métiers** réunie autour d'un même dossier, **mais avec un seul poste de travail IA partagé**.
+Imagine une **équipe de sept spécialités** réunie autour d'un même dossier : elle dispose **de deux moteurs d'inférence complémentaires**, mais garde les mêmes missions et outils autorisés.
+
+- **Qwen local** : traitement quotidien privé, raisonnements ciblés, zéro coût API.
+- **DeepSeek V4.1 Flash cloud** : **capacité de raisonnement et contexte renforcés**, prévus pour les tâches complexes, les analyses longues et les contributions multi-fichiers qui le justifient.
+- **OpenClaw + worker** : une couche commune de consignes, outils, ordonnanceur et protections. Les sept agents **ne constituent pas sept modèles distincts**.
+
+La route cloud n'est ni obligatoire ni choisie automatiquement par agent. [Stratégie hybride et cas d'usage](../ARCHITECTURE_HYBRIDE.md).
 
 - **Le modèle** est le moteur qui rédige et raisonne : **Qwen 3.5 9B Q4_K_M** via Ollama en local, ou **DeepSeek V4.1 Flash** via OpenRouter si tu as activé le cloud et autorisé son usage.
 - **Le rôle** indique la mission, les règles et les outils auxquels le modèle a droit. Changer de rôle **ne change pas automatiquement de modèle**.
@@ -14,6 +20,22 @@ Imagine une **équipe de sept métiers** réunie autour d'un même dossier, **ma
 ![Le modèle unique et les sept spécialités](../diagrams/atelier-roles.svg)
 
 **Un point crucial :** les agents qui travaillent en local emploient **le même modèle** Qwen. Le cloud, lorsqu'il est autorisé, change la route d'inférence mais pas les règles d'accès aux outils. Un audit sur une session distincte ne devient pas indépendant simplement parce que le nom du rôle change.
+
+### Quelle route pour quel spécialiste ?
+
+**DeepSeek ne remplace pas un spécialiste.** Il peut apporter **davantage de capacité au même spécialiste** pour une mission difficile — par exemple le DevOps sur plusieurs modules Terraform, l'architecte sur une topologie multi-contraintes, le mentor sur une explication publique complexe ou l'auditeur sur un dossier long. Les outils disponibles restent ceux du rôle.
+
+| Agent | Qwen local : exemple | DeepSeek cloud : exemple, si le contenu est autorisé |
+|---|---|---|
+| Mentor | Explication d'Ansible ou de systemd | Relier plusieurs concepts complexes d'architecture/CI et pédagogie détaillée |
+| Recherche | Collecte ciblée de sources officielles | Synthèse critique de nombreuses sources publiques contradictoires |
+| Architecte | Petit diagramme réseau, ADR simple | Comparaison multi-critères de scénarios d'infrastructure |
+| DevOps | Relecture d'un petit YAML, runbook | Cohérence de plusieurs modules Terraform/Ansible et workflow CI/CD |
+| Sécurité | Vérification statique d'une configuration locale privée | Revue documentaire approfondie d'un ensemble public assaini |
+| Rédacteur | Fiche courte ou compte-rendu interne | Document public long et cohérence interchapitres |
+| Auditeur | Vérification de quelques critères | Confrontation de nombreux critères et preuves **autorisées à sortir** |
+
+**Ce sont des usages visés, pas des performances déjà mesurées.** Dans un projet, l'accord cloud s'applique **au projet**, pas aux seules tâches de ce tableau : le worker ne bascule pas automatiquement entre Qwen et DeepSeek selon le rôle.
 
 **Un projet n'a pas besoin des sept agents.** Pour une question Linux simple, le mentor suffit. Pour un pipeline sensible, DevOps + sécurité + audit peuvent être utiles. Ajouter des agents inutilement **augmente les générations, la durée et éventuellement le coût cloud**.
 
