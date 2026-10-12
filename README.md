@@ -112,6 +112,12 @@ cd OPENCLAW_LOCAL_FEDORA
 
 → [Préparer l'installation](docs/fiches/01-installer.md) · [Vérifier le premier essai](docs/fiches/02-premier-essai.md).
 
+## Faire progresser l'atelier sans se raconter d'histoires
+
+La nouvelle commande `clawfedora-evals --plan` prépare sept scénarios DevOps synthétiques — un par agent — que Qwen et DeepSeek pourront passer sur les mêmes critères. Le rapport de notes humaines `clawfedora-evals --report fichier.json` vérifie l'exhaustivité de la grille, **mais n'appelle pas les modèles et ne certifie pas les résultats**.
+
+→ [Évaluation des sept agents](docs/EVALUATION_AGENTS.md) · [Programme d'amélioration 2026](docs/PROGRAMME_AMELIORATION_2026.md).
+
 ## Limites : ne pas confondre « codé » et « prouvé »
 
 **Le PC cible reste à valider :** le projet n'a pas encore tourné sur le PC cible dans le cadre des essais de réception documentés. Accélération B580, vraie interface et uploads Open WebUI, voix, sauvegarde/restauration et appels réels OpenRouter restent à qualifier. Les réponses du chat arrivent **en bloc**, la carte ne traite qu'une génération à la fois, et les fichiers proposés ne sont **pas** des déploiements validés. La version déployée reste **Open WebUI 0.11.4** : le canary 0.12.0 est un essai isolé, pas une migration.
