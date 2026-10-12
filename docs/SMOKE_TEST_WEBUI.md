@@ -70,6 +70,14 @@ Après `webui-seal --apply`, dans le navigateur :
   **distincte**, à usage unique, et n'effectue pas la livraison par son clic ;
 - vérifier que le compte non-administrateur ne voit ou n'utilise aucune action
   de pilotage et qu'aucun historique confidentiel n'est transmis par les boutons ;
+- utiliser le bouton **Créer un projet** avec titre et demande de test, puis
+  vérifier que la simple confirmation du navigateur n'a créé aucun projet :
+  une phrase `approuver creation CODE` doit être envoyée séparément ;
+- annuler chacun des deux champs et la confirmation de création, tester un
+  titre multiligne et une description démesurée : aucun projet créé, aucun
+  appel au modèle, aucune fuite d'historique ni d'identifiants ;
+- vérifier que l'Action installée se nomme « ClawFedora — contrôle des projets »
+  et que sa description ne prétend plus limiter les boutons à la lecture seule ;
 - comparer `!budget` et le bouton Budget DeepSeek : mêmes montants du
   journal local, aucune génération IA ni appel OpenRouter ;
 - saisir un relevé fournisseur factice uniquement dans un laboratoire de test
