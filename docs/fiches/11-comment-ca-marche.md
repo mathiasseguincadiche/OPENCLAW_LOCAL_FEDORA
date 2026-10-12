@@ -1,107 +1,190 @@
-# Comment ça marche
+# Comment ça marche — l'architecture expliquée simplement
 
-[← Guide](../GUIDE.md)
+[← Guide](../GUIDE.md) · [Les rôles et outils](07-roles-et-outils.md) · [Un exemple complet](../EXEMPLE_PARCOURS_DEVOPS.md)
 
-## Les pièces
+## L'idée essentielle
 
-![Deux interfaces, un même moteur](../diagrams/atelier-architecture.svg)
+L'atelier sépare **quatre responsabilités** :
 
-| Pièce | Rôle | Où elle tourne |
+1. **Toi, l'utilisateur** : tu exprimes le besoin, choisis le modèle, approuves les étapes et testes les résultats.
+2. **Les interfaces et le moteur** : ils organisent les demandes, les tâches, les sources et les confirmations.
+3. **OpenClaw et les outils** : ils appliquent les instructions et capacités autorisées au rôle demandé.
+4. **Le modèle IA** : il explique et propose, **sans droit d'exécuter du code sur l'hôte**.
+
+> Analogie utile : **Open WebUI est le guichet**, **le moteur de projets est le chef de chantier et son registre**, **OpenClaw distribue la fiche métier**, et **Qwen/DeepSeek propose le travail**. L'analogie s'arrête là : il n'y a pas sept modèles autonomes et le modèle ne signe jamais la réception des travaux.
+
+![Architecture de l'atelier : composants, flux et protections](../diagrams/atelier-architecture.svg)
+
+## Lire le schéma en moins d'une minute
+
+- **À gauche : les portes d'entrée.** Open WebUI pour discuter ; Atelier Projets pour suivre un projet et ses preuves. Les deux utilisent la même logique de projet.
+- **Au milieu : le contrôle.** Le pont de chat et le moteur de projets gèrent commandes déterministes, documents, droits, verrou et étapes d'approbation.
+- **À droite : le travail du modèle.** OpenClaw applique la mission d'un des sept rôles. Par défaut Ollama exécute Qwen localement sur Fedora/B580.
+- **En bas : les sorties durables.** Le projet central contient sources, contexte, fichiers collectés, éléments de preuve et rapports. Un résultat du modèle n'y entre pas librement.
+- **Voie cloud facultative :** après autorisation, OpenClaw contacte la passerelle cloud locale qui **filtre et borne** avant OpenRouter/DeepSeek. Elle n'a pas de flèche automatique venant de l'échec du local.
+
+Une flèche indique un **échange de données ou de commandes contrôlées**, pas un droit d'écriture ou d'exécution. Le schéma représente l'architecture **prévue par le code**, pas un test réussi sur le vrai PC.
+
+## À quoi servent les composants ?
+
+| Composant | Sa responsabilité | Sa limite importante |
 |---|---|---|
-| **Ollama** | Charge Qwen sur la carte graphique et produit le texte | Service système, port 11434 |
-| **OpenClaw** | Applique à chaque demande les consignes et les outils du rôle choisi | Service de ton compte (Gateway), port 18789 |
-| **Passerelle de chat** | Relie Open WebUI à OpenClaw | Service de ton compte, port 18891 |
-| **Open WebUI** | L'interface de discussion | Conteneur Podman, port 3000 |
-| **Atelier Projets** | L'interface des projets et le moteur qui ordonne les tâches | Service de ton compte, port 18890 |
-| **Outils métier** | Fabriquent les fichiers, schémas et contrôles pour les rôles | Plugin `clawfedora-toolkit` chargé par OpenClaw |
-| **Passerelle cloud** (facultative) | Filtre, compte et relaie les appels vers OpenRouter ; seule à connaître la clé | Service de ton compte, port 18892 |
+| **Open WebUI** — `127.0.0.1:3000` | Afficher le chat et les fichiers, choisir un rôle, dictée/TTS | Ce n'est pas le moteur de projet ; la plupart des actions complexes nécessitent encore des commandes `!` |
+| **Pont de chat** — `127.0.0.1:18891` | Vérifier l'appel, comprendre les commandes `!`, préparer contexte et réponse OpenAI-compatible | Pas d'exécution générale, pas de streaming token par token actuellement |
+| **Atelier Projets** — `127.0.0.1:18890` | Interface des étapes, notes, validations et livrables | Ne produit pas lui-même de texte par IA |
+| **Worker / moteur** | Ordonnancer les tâches validées, appliquer le verrou, contrôler et collecter les sorties | N'exécute qu'une tâche/génération à la fois |
+| **OpenClaw** — Gateway `127.0.0.1:18789` | Charger les consignes et les outils du spécialiste ; appeler le modèle | `exec`, `write`, `edit`, sous-agents et navigateur non autorisés aux rôles quotidiens |
+| **Ollama + Qwen** — `127.0.0.1:11434` | Produire les réponses avec le modèle local `qwen3.5:9b-q4_K_M` | Qualité/vitesse/VRAM à mesurer sur la B580 |
+| **Toolkit métier** | Recherche locale, trames, lint, génération de fichiers/Draw.io | Les contrôles statiques ne sont pas des tests de déploiement |
+| **Passerelle cloud** — `127.0.0.1:18892` | Autoriser, filtrer, réserver le budget puis appeler OpenRouter | Désactivée par défaut ; les contenus métier confidentiels non reconnaissables peuvent échapper au filtre |
+| **Voix locale** — `127.0.0.1:18893` | Whisper CPU/int8 et synthèse vocale locale | Fonctionnement du microphone et latence à tester |
+| **Projet central** | Sources, index, plans, preuves, exports et décisions approuvées | Les sources deviennent immuables après l'analyse |
 
-Tous les ports écoutent sur `127.0.0.1` : rien n'est accessible depuis un autre appareil. Hors cloud, aucune connexion ne sort de ton PC, hormis la recherche Web des rôles.
+Les ports sont **en boucle locale** : l'accès par une tablette distante n'est **pas** ouvert directement par ce dépôt. Il faut une architecture d'accès distant distincte et sécurisée.
 
-## Le trajet d'une question
-
-1. Tu écris dans Open WebUI et tu choisis un rôle.
-2. Open WebUI envoie la conversation à la passerelle.
-3. La passerelle prend le verrou : si une génération est déjà en cours, elle répond « occupé ».
-4. Elle garde les messages récents, y ajoute tes notes de suivi, et appelle OpenClaw pour ce rôle.
-5. OpenClaw assemble ses consignes, celles du rôle et la description des outils, puis interroge Ollama.
-6. Qwen répond. S'il demande un outil (une recherche Web, un fichier à produire), OpenClaw l'exécute et lui rend le résultat.
-7. La réponse finale revient à Open WebUI, avec les liens des fichiers produits.
-
-Un projet de l'atelier suit le même chemin à partir de l'étape 3, tâche après tâche.
-
-## Le trajet d'une question au cloud
-
-Si le cloud est activé et que tu as choisi le modèle « · cloud » (ou autorisé le projet), seule l'étape 5 change : OpenClaw n'interroge pas Ollama mais la **passerelle cloud** sur `127.0.0.1:18892`, avec un jeton local. La passerelle :
-
-1. refuse tout si le cloud n'est pas activé (filtre et budget vérifiés ensemble) ;
-2. scanne **tout le corps** de la demande : consignes, historique, contexte, appels d'outils et leurs résultats ;
-3. si un secret est trouvé, répond 451 et n'envoie rien (le fil de chat passe en local, un projet se met en pause) ;
-4. réserve le coût maximal dans le journal du budget, ou refuse (402) au plafond ;
-5. appelle OpenRouter avec ta clé (lue dans un fichier privé, jamais donnée à OpenClaw) et les réglages imposés ;
-6. note le coût réel, ou garde le pire cas si la réponse n'en donne pas.
-
-Un tour avec un outil fait deux appels, donc deux passages par ces étapes. Il n'y a **aucun repli du local vers le cloud** : seul l'inverse existe dans le chat (avec bandeau), et l'atelier se met en pause.
-
-## Pourquoi un verrou
-
-La carte n'a que 12 Go. Deux générations en même temps se partageraient la mémoire et la vitesse. Le chat et l'atelier partagent donc un seul verrou (`/srv/openclaw-local/state/worker.lock`) : une génération à la fois, pour tout le monde. Le mode jeu et les opérations d'entretien prennent le même verrou.
-
-## Le dépôt
+## Parcours n° 1 : « Explique-moi ce fichier Terraform »
 
 ```text
-menu.sh              point d'entrée : toutes les commandes passent par lui
-agents/              consignes des sept rôles
-config/              réglages : modèle, versions, limites, outils autorisés
-plugins/             outils métier chargés par OpenClaw
-scripts/linux/       étapes d'installation et d'entretien, numérotées dans l'ordre
-scripts/validation/  contrôles qui exécutent le vrai OpenClaw
-src/clawfedora/      le code Python : atelier, passerelle, génération de la configuration
-tests/               tests automatiques
-docs/                ce guide et ses fiches
+Utilisateur → Open WebUI → Pont de chat → OpenClaw (rôle DevOps)
+                                            ↓
+                                     Ollama / Qwen
+                                            ↓
+                       Explication → Pont → Open WebUI
 ```
 
-## Les fichiers de configuration
+1. Tu choisis **Ingénieur DevOps** et poses ta question.
+2. Le pont authentifie la demande et limite le volume d'historique. Avec un petit fichier texte joint hors projet : **4 fichiers/12 000 octets maximum**, chat **local seulement**.
+3. Le pont prend le **verrou partagé** et appelle OpenClaw avec le rôle demandé.
+4. OpenClaw ajoute ses consignes et éventuellement des outils métier accessibles au rôle.
+5. Qwen rédige. Si un outil vérifie un YAML, le résultat reste un **contrôle de syntaxe**, pas un test dans Azure.
+6. La réponse revient au chat. **Elle s'affiche en bloc** après la génération. Le bouton d'arrêt peut couper l'affichage sans annuler immédiatement le travail déjà lancé.
 
-| Fichier | Ce qu'il fixe |
+**Important :** lire un code source n'autorise pas son exécution. Un fichier téléchargé reste à relire.
+
+## Parcours n° 2 : « Prépare un petit déploiement complet »
+
+```text
+Besoin + sources
+    ↓
+Création du projet (INTAKE_READY)
+    ↓
+Analyse → questions si besoin → plan de 1 à 4 tâches
+    ↓                   accord humain
+Tâche Architecte → Tâche DevOps → Tâche Sécurité / Rédacteur si utiles
+    ↓
+Validation des critères → Audit indépendant de session
+    ↓                      corrections si nécessaire
+Paquet de livraison → accord humain → COMPLETE
+```
+
+**Pourquoi cet ordre ?** L'architecte décrit les flux, le DevOps fournit les fichiers et la méthode de test, la sécurité examine les risques, puis l'auditeur vérifie **preuves et critères**. Ce n'est **qu'un exemple** : le plan peut attribuer les tâches autrement. Le moteur suit les dépendances approuvées, pas un ordre imposé à sept agents.
+
+### Où vont les fichiers ?
+
+- **Intake / sources :** documents d'origine reçus et vérifiés. Une fois analysés, ils ne peuvent plus être remplacés silencieusement.
+- **Contexte :** analyse, plan, décisions humaines et index local pour retrouver des passages.
+- **Espaces de travail des rôles :** copies et résultats temporaires, distincts de la source de vérité.
+- **Collecteur :** vérifie extensions, chemins attendus, limites, empreintes et entrées protégées avant d'accepter une sortie.
+- **Livrables et preuves :** fichiers validés ou contrôles consignés dans le projet central. Un PDF n'est pas une preuve de déploiement, et un rapport CI collé par l'IA n'est pas une CI authentifiée.
+
+Les états exacts sont configurés dans `config/core/orchestration_policy.yaml` :
+
+```text
+INTAKE_READY → ANALYZED ──→ PLANNED → ASSIGNED → IN_PROGRESS
+                   │                                 │
+                   └→ CLARIFICATION_REQUIRED          ↓
+                       → ANALYZED                VALIDATING ↔ IN_PROGRESS
+                                                      ↓
+                                              REVIEW ↔ IN_PROGRESS
+                                                      ↓
+                                            PACKAGING → COMPLETE
+```
+
+Les retours vers `IN_PROGRESS` sont des corrections, pas une validation forcée. Une livraison nécessite une confirmation humaine. Le mode guidé n'est activé **que si tu l'as choisi**.
+
+## Parcours n° 3 : la route cloud, uniquement sur accord
+
+```text
+OpenClaw → passerelle cloud locale :18892
+                      │
+           Activation + autorisation ?
+                      │ oui
+          Analyse des secrets / données
+                      │ aucune catégorie bloquante
+              Réservation du budget
+                      │ sous le plafond
+              OpenRouter → DeepSeek
+                      │
+             Coût réel ou pire cas
+                      ↓
+           Réponse et journal local
+```
+
+**Trois refus différents à ne pas confondre :**
+
+- **Secret détecté :** la passerelle refuse avant l'envoi. Dans le chat, le fil peut rester ensuite en local avec un bandeau ; dans un projet cloud, le traitement se met en pause.
+- **Plafond ou fournisseur indisponible :** la réponse cloud n'est pas obtenue. Le chat peut fournir une réponse locale **signalée** ; le projet attend ta décision.
+- **Pas d'accord cloud :** le projet reste local. Aucun système ne passe automatiquement du local au cloud.
+
+Le journal borne la dépense **estimée**, mais ne constitue pas une facture. La clé du fournisseur n'est utilisée que par la passerelle. [La procédure complète](12-cloud.md).
+
+## Pourquoi une seule génération à la fois ?
+
+La B580 possède **12 Go de VRAM**. Lancer simultanément plusieurs générations risquerait de saturer la carte ou d'allonger fortement les délais. Le chat, les tâches de projets et les opérations sensibles partagent un **verrou d'inférence**. Une demande concurrente peut donc recevoir « occupé ». Les consultations de statut restent accessibles.
+
+Cette protection est **une règle de capacité**, pas la preuve qu'un contexte de 32K tient effectivement dans la VRAM. [Mesurer la machine](02-premier-essai.md).
+
+## Les contrôles de sécurité, en langage courant
+
+| Protection | Pourquoi elle existe |
 |---|---|
-| `config/model_catalog.yaml` | Le modèle utilisé |
-| `config/runtime_versions.yaml` | Les versions exactes d'OpenClaw et d'Ollama |
-| `config/core/openclaw_policy.yaml` | Contexte, longueur des réponses, taille des consignes |
-| `config/webui_policy.yaml` | Open WebUI : image, ports, mémoire, historique |
-| `config/core/agents.yaml` | La liste des sept rôles |
-| `config/core/model_routing.yaml` | Quel modèle sert chaque rôle (le même pour tous ; la route cloud est facultative) |
-| `config/core/cloud_policy.yaml` | Le cloud : passerelle, modèle, budget, garde-fous ([détail](08-reglages.md)) |
-| `config/core/tool_policy.yaml` | Les outils autorisés et interdits par rôle |
-| `config/core/web_policy.yaml` | La recherche Web |
-| `config/core/knowledge_policy.yaml` | La recherche dans les documents d'un projet |
-| `config/core/orchestration_policy.yaml` | Les états d'un projet et leurs transitions |
-| `config/core/intake_policy.yaml`, `document_ingestion_policy.yaml`, `artifact_exchange_policy.yaml` | L'import des documents et l'échange de fichiers entre tâches |
-| `config/hardware.yaml`, `config/platform.yaml` | La machine et le système attendus |
-| `config/lifecycle_policy.yaml` | Installation, sauvegarde, désinstallation |
+| **SELinux et conteneur Podman rootless** | Limiter l'exposition du processus WebUI ; pas d'accès privilégié au PC |
+| **Boucle locale `127.0.0.1`** | Ne pas publier les API directement sur le réseau domestique |
+| **Pas de shell pour les rôles** | Une instruction erronée ou malveillante ne peut pas lancer `rm`, `terraform apply` ou une autre commande sur l'hôte |
+| **Approbation indépendante du modèle** | Une phrase cachée dans un PDF ou une réponse IA ne peut pas signer une étape à ta place |
+| **Filtre et budget cloud** | Éviter les secrets évidents et borner les appels payants |
+| **Collecte contrôlée** | Protéger les sources et ne publier que les fichiers attendus |
+| **Audit** | Distinguer un résultat plausible d'une conformité démontrée |
 
-Tu modifies ces fichiers, puis `./menu.sh --action validate` vérifie qu'ils restent cohérents entre eux, et `./menu.sh --action install --apply` les applique. La configuration d'OpenClaw n'est jamais éditée à la main : elle est générée à partir de ces fichiers par `src/clawfedora/openclaw_config.py`.
+La validation automatique mesure le code et les contrats du dépôt ; elle ne démontre pas la protection effective du poste contre toutes les attaques.
 
-## Ce qui protège ton PC
+## Le dépôt : où regarder sans se perdre
 
-- **Rien n'est exposé au réseau.** Tous les services écoutent sur `127.0.0.1` et aucun port du pare-feu n'est ouvert.
-- **SELinux reste actif.** Aucun script ne le désactive.
-- **Le modèle ne peut rien exécuter.** Les outils de commande, d'écriture et de navigation sont interdits dans la configuration d'OpenClaw.
-- **Le modèle ne peut pas se mettre à jour.** L'outil d'OpenClaw qui le permettrait est interdit, et les versions sont vérifiées à chaque message.
-- **Les documents et pages Web sont traités comme des données.** Un texte qui dirait « ignore tes consignes » n'a aucune autorité.
-- **Open WebUI tourne dans un conteneur sans privilèges**, limité à 3 Go de mémoire et 2 cœurs, sans accès à ton dossier personnel.
-- **La clé du cloud n'est lue que par la passerelle**, dans un fichier à droits 0600, et n'est jamais écrite dans la configuration d'OpenClaw, les journaux ni les sauvegardes. OpenClaw ne connaît qu'un jeton local, sans valeur auprès d'OpenRouter.
-- **Le cloud est désactivé tant que le filtre et le budget ne fonctionnent pas ensemble** : l'activation est refusée si un contrôle échoue.
+```text
+README.md                    carte de visite du projet
+docs/GUIDE.md                parcours de découverte
+docs/fiches/                 modes d'emploi par sujet
+docs/diagrams/               schémas lisibles et sources Draw.io
+agents/<rôle>/               les consignes propres à chaque spécialité
+agents/_shared/              pédagogie, outils et règles communes
+config/                      modèle, ports, droits, états et limites
+plugins/                     outils métiers et intégration Open WebUI
+src/clawfedora/              logique Python du moteur, du pont et du cloud
+scripts/linux/               installation, entretien et canary 0.12
+tests/                       tests du code et des garde-fous
+STATUS.md                    vérifié / restant à vérifier
+```
 
-## Ce qui est testé, et ce qui ne l'est pas
+### Les fichiers de configuration les plus utiles
 
-| Vérifié automatiquement à chaque modification | Vérifiable seulement sur ton PC |
+| Modifier / consulter | Où |
 |---|---|
-| Le code Python (tests, typage, style) | La carte graphique est bien utilisée |
-| Les scripts shell (ShellCheck) | Le contexte tient dans la mémoire vidéo |
-| La cohérence des fichiers de configuration | La vitesse des réponses |
-| La configuration générée est acceptée par le vrai OpenClaw | La qualité des réponses de Qwen |
-| Les consignes ne sont pas tronquées et le prompt tient dans le contexte | L'installation complète sur Fedora |
-| Le filtre, le budget et la pause du cloud, avec le vrai OpenClaw et un faux fournisseur | Le cloud avec le vrai OpenRouter : coût réel, qualité de DeepSeek |
+| Missions et identifiants | `config/core/agents.yaml` |
+| Quels outils sont autorisés | `config/core/tool_policy.yaml` |
+| Choix du modèle local/cloud | `config/core/model_routing.yaml`, `config/model_catalog.yaml` |
+| États et dépendances des tâches | `config/core/orchestration_policy.yaml` |
+| Image Open WebUI, ports et limites | `config/webui_policy.yaml` |
+| Permissions, budget et route cloud | `config/core/cloud_policy.yaml` |
+| Recherche Web et documents | `config/core/web_policy.yaml`, `config/core/knowledge_policy.yaml` |
 
-La colonne de droite est l'objet du [premier essai](02-premier-essai.md).
+**Ne modifie pas directement la configuration générée d'OpenClaw.** Change les sources versionnées du dépôt, exécute `./menu.sh --action validate`, puis applique avec les scripts prévus.
+
+## Ce qui est codé ≠ ce qui est qualifié
+
+Les tests automatiques peuvent contrôler le code Python, Ruff/mypy, ShellCheck, certaines intégrations simulées et la configuration acceptée par OpenClaw. **Ils ne remplacent pas** les essais sur Fedora, la B580, le navigateur Open WebUI réel, les fichiers originaux, le microphone ou un appel facturé par OpenRouter.
+
+La version déployée d'Open WebUI reste **0.11.4** ; `scripts/linux/14_webui_canary.sh` sert à tester **une copie isolée** avec 0.12.0. Les raccourcis visuels ajoutés sont **en lecture seule**, pas une interface complète d'approbation. Le streaming réel n'est pas encore implémenté.
+
+→ [État factuel](../../STATUS.md) · [Plan de validation](../PLAN_QUALITE_2026.md) · [Test de fumée sur Fedora](../SMOKE_TEST_WEBUI.md).
+
+[← Guide](../GUIDE.md) · [Rôles et outils →](07-roles-et-outils.md)
