@@ -51,14 +51,18 @@ def _config(runtime: Path, **gateway_override: Any) -> Path:
 def test_native_sse_default_off_and_canary_patch_reverts(tmp_path: Path) -> None:
     runtime = tmp_path / "runtime"
     assert native_stream.opted_in(runtime) is False
-    assert "http" not in build_openclaw_patch(ROOT, runtime)["gateway"]
+    assert build_openclaw_patch(ROOT, runtime)["gateway"]["http"] == {
+        "endpoints": {"chatCompletions": {"enabled": False}}
+    }
     enabled = _runtime(tmp_path)
     assert native_stream.opted_in(enabled)
     assert build_openclaw_patch(ROOT, enabled)["gateway"]["http"] == {
         "endpoints": {"chatCompletions": {"enabled": True}}
     }
     (enabled / native_stream.MARKER).unlink()
-    assert "http" not in build_openclaw_patch(ROOT, enabled)["gateway"]
+    assert build_openclaw_patch(ROOT, enabled)["gateway"]["http"] == {
+        "endpoints": {"chatCompletions": {"enabled": False}}
+    }
 
 
 def test_native_operator_token_is_read_only_from_private_loopback_config(
