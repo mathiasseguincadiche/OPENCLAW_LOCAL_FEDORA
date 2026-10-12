@@ -36,9 +36,9 @@ def benchmark(
                 "prompt_tokens_per_second", "output_tokens_per_second", "verdict",
             )
         })
-    recommended = next(
-        (r["context_tokens"] for r in reversed(results) if r["verdict"] == "FULL_GPU"),
-        None,
+    recommended = max(
+        (r["context_tokens"] for r in results if r["verdict"] == "FULL_GPU"),
+        default=None,
     )
     return {
         "scope": "local_ollama_qwen_benchmark_only",
