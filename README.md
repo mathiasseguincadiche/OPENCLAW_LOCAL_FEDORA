@@ -118,6 +118,12 @@ La commande indépendante `clawfedora-lab` prépare des vérifications Terraform
 
 **Le moteur est préparé dans le dépôt, mais l'image Rocky et les essais Podman réels restent à qualifier.** [Fonctionnement, commandes et protections](docs/LABORATOIRE_DEVOPS.md).
 
+## Faire progresser l'atelier sans se raconter d'histoires
+
+La nouvelle commande `clawfedora-evals --plan` prépare sept scénarios DevOps synthétiques — un par agent — que Qwen et DeepSeek pourront passer sur les mêmes critères. Le rapport de notes humaines `clawfedora-evals --report fichier.json` vérifie l'exhaustivité de la grille, **mais n'appelle pas les modèles et ne certifie pas les résultats**.
+
+→ [Évaluation des sept agents](docs/EVALUATION_AGENTS.md) · [Programme d'amélioration 2026](docs/PROGRAMME_AMELIORATION_2026.md).
+
 ## Limites : ne pas confondre « codé » et « prouvé »
 
 **Le PC cible reste à valider :** le projet n'a pas encore tourné sur le PC cible dans le cadre des essais de réception documentés. Accélération B580, vraie interface et uploads Open WebUI, voix, sauvegarde/restauration et appels réels OpenRouter restent à qualifier. Les réponses du chat arrivent **en bloc**, la carte ne traite qu'une génération à la fois, et les fichiers proposés ne sont **pas** des déploiements validés. La version déployée reste **Open WebUI 0.11.4** : le canary 0.12.0 est un essai isolé, pas une migration.

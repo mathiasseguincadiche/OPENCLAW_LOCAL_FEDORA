@@ -54,6 +54,10 @@ Rien n'est encore mesuré sur ta machine. Les résultats publics de DeepSeek V4.
 
 Le code du [laboratoire offline](docs/LABORATOIRE_DEVOPS.md) fournit une CLI séparée des agents, avec exécution Podman contrôlée et approbation `--apply`. **L'image Rocky avec les validateurs, son digest et la validation Podman réelle ne sont pas encore qualifiés**. L'agent ne lance pas lui-même Terraform, Ansible ou la CI sur l'hôte.
 
+## Évaluation des agents, préparation
+
+Le dépôt comporte une **suite synthétique fixe de sept scénarios métier**, une CLI `clawfedora-evals` et un format de revue humaine. Cela vérifie la structure du plan et la complétude des notes, **pas** la qualité réelle de Qwen ou DeepSeek. Les résultats comparatifs seront établis seulement lors de la qualification finale. [Mode d'emploi](docs/EVALUATION_AGENTS.md) · [Programme global](docs/PROGRAMME_AMELIORATION_2026.md).
+
 ## Limites connues
 
 - Les réponses du chat arrivent d'un bloc, sans s'afficher mot à mot.

@@ -15,6 +15,8 @@ GUIDES = (
     "docs/GUIDE.md",
     "docs/ARCHITECTURE_HYBRIDE.md",
     "docs/LABORATOIRE_DEVOPS.md",
+    "docs/EVALUATION_AGENTS.md",
+    "docs/PROGRAMME_AMELIORATION_2026.md",
     "docs/EXEMPLE_PARCOURS_DEVOPS.md",
     "docs/PLAN_QUALITE_2026.md",
     "docs/DECISION_MODELE.md",
