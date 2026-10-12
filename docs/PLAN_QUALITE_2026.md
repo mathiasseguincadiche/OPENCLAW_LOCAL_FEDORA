@@ -40,7 +40,7 @@ et journaux assainis ; aucune protection désactivée pour obtenir PASS.
 
 - **Ne pas** remplacer le digest de v0.11.4 par un tag mouvant ou une empreinte devinée.
 - Recueillir le digest officiel de l'image `slim` cible et tester son démarrage dans un volume jetable ; la commande `bash scripts/linux/14_webui_canary.sh --apply [--with-db-copy]` prépare désormais cette préqualification.
-- Tester la migration SQLite depuis une copie cohérente de v0.11.4 et la possibilité de restaurer.
+- Tester la migration SQLite depuis une copie cohérente de v0.11.4 et la possibilité de restaurer. Le canary `--with-db-copy` contrôle désormais la présence des tables et la conservation des comptes, conversations et fonctions (contenu/activation) dans la base jetable ; il refuse de conclure PASS si une de ces données disparaît.
 - Vérifier l'activation explicite des Functions/Filters : la v0.12.0 introduit `ENABLE_PLUGINS` comme interrupteur maître. Les variables `ENABLE_PLUGINS=true`, `ENABLE_FUNCTIONS=true` et `ENABLE_TOOL_SERVERS=false` sont désormais explicites dans la configuration générée.
 - Tester l'insertion du filtre `clawfedora_files`, `file_handler`, la résolution des chemins, l'appartenance utilisateur et chaque type d'upload.
 - Tester STT/TTS et s'assurer qu'aucun mode vocal distant ne s'active par défaut.
