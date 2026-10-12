@@ -540,3 +540,63 @@ def test_an_unreadable_journal_stops_the_cloud_instead_of_guessing(
     status, body = post(server, request())
     assert status == 402 and b"budget_refused" in body and b"illisible" in body
     assert upstream[0].requests == []
+
+
+# -- explicit cloud reasoning profiles --------------------------------------------
+@pytest.mark.parametrize(
+    ("name", "effort", "maximum"),
+    [
+        ("rapide", "low", 4096),
+        ("equilibre", "medium", 8192),
+        ("approfondi", "xhigh", 32768),
+    ],
+)
+def test_gateway_enforces_operator_profile_before_cost_reservation(
+    gateway: tuple[GatewayServer, FakeBudget],
+    upstream: tuple[Upstream, int],
+    name: str,
+    effort: str,
+    maximum: int,
+) -> None:
+    from clawfedora.cloud_profiles import set_profile
+
+    server, budget = gateway
+    set_profile(server.runtime, server.policy, name)
+    code, _ = post(server, request(max_tokens=999999))
+    assert code == 200
+    assert budget.reserved[-1][1] == maximum
+    sent = upstream[0].requests[-1]["body"]
+    assert sent["max_tokens"] == maximum
+    assert sent["reasoning"] == {"effort": effort}
+    assert sent["provider"]["data_collection"] == "deny"
+    assert sent["provider"]["require_parameters"] is True
+    assert sent["provider"]["max_price"] == {"prompt": 0.25, "completion": 0.75}
+    assert events(server)[-2]["reasoning_profile"] == name
+
+
+def test_invalid_profile_refuses_cloud_before_budget_and_network(
+    gateway: tuple[GatewayServer, FakeBudget], upstream: tuple[Upstream, int]
+) -> None:
+    from clawfedora.cloud_profiles import profile_path
+
+    server, budget = gateway
+    path = profile_path(server.runtime)
+    path.write_text('{"version":1,"profile":"bypass"}')
+    path.chmod(0o600)
+    status, answer = post(server, request())
+    assert status == 503 and b"profile_invalid" in answer
+    assert upstream[0].requests == [] and budget.reserved == []
+    assert b"bypass" not in answer
+
+
+def test_request_cannot_override_cloud_profile(
+    gateway: tuple[GatewayServer, FakeBudget], upstream: tuple[Upstream, int]
+) -> None:
+    from clawfedora.cloud_profiles import set_profile
+
+    server, budget = gateway
+    set_profile(server.runtime, server.policy, "rapide")
+    for key in ("reasoning", "reasoning_effort", "reasoning_profile"):
+        status, raw = post(server, request(**{key: {"effort": "xhigh"}}))
+        assert status == 400 and b"unsupported_parameter" in raw
+    assert not upstream[0].requests and not budget.reserved
