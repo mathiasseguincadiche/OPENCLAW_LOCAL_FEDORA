@@ -152,15 +152,99 @@ def verify_public_run(
     }
 
 
+def _public_jobs(
+    provider: str, repository: str, run_id: int, commit: str,
+) -> dict[str, Any]:
+    """Bounded, public job metadata, never logs/artifacts or credentials.
+
+    Verify the parent pipeline identity *first*. If pagination may truncate a
+    report, refuse the detail instead of implying every job was inspected.
+    """
+    parts = _repo_parts(provider, repository)
+    if provider == "github":
+        api = "https://api.github.com/repos/" + "/".join(quote(p) for p in parts)
+        data = _json_get(f"{api}/actions/runs/{run_id}/jobs?per_page=100")
+        if not isinstance(data, dict):
+            raise ProofRefused("Liste des jobs GitHub mal formée")
+        raw, count = data.get("jobs"), data.get("total_count")
+        if (
+            not isinstance(raw, list) or type(count) is not int
+            or not 0 <= count < 100 or len(raw) != count
+        ):
+            raise ProofRefused("Liste de jobs GitHub incomplète ou paginée")
+    else:
+        api = "https://gitlab.com/api/v4/projects/" + quote("/".join(parts), safe="")
+        raw = _json_get(f"{api}/pipelines/{run_id}/jobs?per_page=100")
+        if not isinstance(raw, list) or len(raw) >= 100:
+            raise ProofRefused("Liste de jobs GitLab incomplète ou paginée")
+    rows: list[dict[str, Any]] = []
+    known = {
+        "queued", "in_progress", "completed", "waiting", "pending",
+        "success", "failed", "canceled", "cancelled", "skipped",
+        "running", "created", "manual", "scheduled", "preparing",
+        "waiting_for_resource",
+    }
+    for item in raw:
+        if not isinstance(item, dict):
+            raise ProofRefused("Job fournisseur non structuré")
+        identifier, name, status = item.get("id"), item.get("name"), item.get("status")
+        if (
+            type(identifier) is not int or identifier < 1
+            or not isinstance(name, str) or not 0 < len(name) <= 160
+            or not isinstance(status, str) or status not in known
+        ):
+            raise ProofRefused("Identité ou statut de job non vérifiables")
+        if provider == "github":
+            if item.get("run_id") != run_id:
+                raise ProofRefused("Job GitHub lié à un autre run")
+            conclusion = item.get("conclusion")
+            if conclusion is not None and conclusion not in {
+                "success", "failure", "cancelled", "timed_out", "action_required",
+                "neutral", "skipped", "startup_failure",
+            }:
+                raise ProofRefused("Conclusion de job GitHub inconnue")
+        else:
+            parent = item.get("pipeline")
+            if not isinstance(parent, dict) or parent.get("id") != run_id:
+                raise ProofRefused("Job GitLab lié à un autre pipeline")
+            conclusion = None
+        rows.append({
+            "id": identifier, "name": name, "status": status, "conclusion": conclusion,
+        })
+    rows.sort(key=lambda item: item["id"])
+    if len({row["id"] for row in rows}) != len(rows):
+        raise ProofRefused("Identifiants de jobs dupliqués")
+    return {
+        "jobs_scope": "public_job_metadata_only",
+        "jobs_count": len(rows),
+        "jobs": rows,
+        "jobs_warning": (
+            "Métadonnées des jobs liées au pipeline et à son SHA, sans "
+            "inspection des journaux, étapes, fichiers ou déploiements."
+        ),
+    }
+
+
+def verify_public_run_with_jobs(
+    provider: str, repository: str, run_id: int, commit: str,
+) -> dict[str, Any]:
+    """Optional detailed metadata; never weaken the default run-only proof."""
+    report = verify_public_run(provider, repository, run_id, commit)
+    report.update(_public_jobs(provider, repository, run_id, commit))
+    return report
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Vérifier une CI publique sur son commit")
     parser.add_argument("--provider", choices=("github", "gitlab"), required=True)
     parser.add_argument("--repo", required=True, help="owner/name ou group/subgroup/name")
     parser.add_argument("--run-id", type=int, required=True)
     parser.add_argument("--commit", required=True, help="SHA complet à 40 caractères")
+    parser.add_argument("--jobs", action="store_true", help="Inclure les jobs publics (sans logs)")
     args = parser.parse_args(argv)
     try:
-        report = verify_public_run(args.provider, args.repo, args.run_id, args.commit)
+        proof = verify_public_run_with_jobs if args.jobs else verify_public_run
+        report = proof(args.provider, args.repo, args.run_id, args.commit)
         print(json.dumps(report, ensure_ascii=False, indent=2))
         return 0 if report["verdict"] == "VERIFIED_RUN_SUCCESS" else 1
     except ProofRefused as exc:
