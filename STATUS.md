@@ -98,6 +98,20 @@ ou la CI sur l'hôte.
 
 Le dépôt comporte une **suite synthétique fixe de sept scénarios métier**, une CLI `clawfedora-evals` et un format de revue humaine. Cela vérifie la structure du plan et la complétude des notes, **pas** la qualité réelle de Qwen ou DeepSeek. Les résultats comparatifs seront établis seulement lors de la qualification finale. [Mode d'emploi](docs/EVALUATION_AGENTS.md) · [Programme global](docs/PROGRAMME_AMELIORATION_2026.md).
 
+## Pilotage visuel des projets Open WebUI
+
+Le plugin Action propose **cinq boutons en lecture seule**, **huit
+boutons de transition** (analyse, plan, lancer, pause, reprise, audit,
+relecture, préparation de livraison) et **Créer un projet** par formulaire
+de deux champs. Une action mutante exige la confirmation du navigateur ;
+la création et la livraison conservent ensuite la phrase d'approbation
+indépendante, émise par le pont. Les tests couvrent des dialogues simulés,
+les appels du pont, l'absence d'historique transmis par les boutons et
+les cas d'annulation. **Le rendu sur le véritable Open WebUI et la
+fiabilité de ses dialogues restent non qualifiés sur Fedora.**
+Les formulaires de révision, de réponse aux questions et d'envoi de
+fichiers restent hors de ces boutons.
+
 ## Préparation du streaming SSE OpenClaw
 
 Le module `stream_transport.py` prépare un transport SSE **serveur à
