@@ -56,8 +56,20 @@ Après `webui-seal --apply`, dans le navigateur :
   **Budget DeepSeek** apparaissent sous les messages ;
 - cliquer sur chacun, vérifier le retour en notification et l'absence
   d'appels au modèle, de dépense cloud ou de transition de projet ;
-- vérifier qu'aucun bouton ne déclenche un `!livrer`, `!modifier` ou
-  une approbation et que les droits ne sont pas élargis ;
+- les cinq boutons **en lecture seule** doivent continuer à fonctionner sans
+  confirmation ni transition de projet ;
+- sélectionner un projet fictif de test, puis vérifier la présence des huit
+  actions **Analyser**, **Plan**, **Lancer**, **Pause**, **Reprendre**,
+  **Auditer**, **Relire**, **Préparer la livraison** ;
+- **annuler** chaque confirmation : aucune commande ni transition ne doit suivre ;
+- déconnecter le navigateur pendant un dialogue : aucun déclenchement ;
+- confirmer une action dans un état incompatible : le pont doit la refuser ;
+- confirmer une action dans un état compatible : le changement doit passer
+  par les contrats et le verrou du moteur existant ;
+- vérifier que « Préparer la livraison » requiert encore une phrase d'approbation
+  **distincte**, à usage unique, et n'effectue pas la livraison par son clic ;
+- vérifier que le compte non-administrateur ne voit ou n'utilise aucune action
+  de pilotage et qu'aucun historique confidentiel n'est transmis par les boutons ;
 - comparer `!budget` et le bouton Budget DeepSeek : mêmes montants du
   journal local, aucune génération IA ni appel OpenRouter ;
 - saisir un relevé fournisseur factice uniquement dans un laboratoire de test
