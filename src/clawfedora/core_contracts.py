@@ -299,7 +299,7 @@ def _validate_cloud_contracts(
         or (
             isinstance(cloud_output, int)
             and cloud_output < max(
-                profile["max_output_tokens"] for profile in required_profiles.values()
+                int(profile["max_output_tokens"]) for profile in required_profiles.values()
             )
         )
     ):
