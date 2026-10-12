@@ -13,12 +13,15 @@ effectué par le code du dépôt tant que l'opérateur ne crée pas le marqueur.
   du Qwen `qwen3.5:9b-q4_K_M`, roster des sept agents et outils refusés.
 - Appel **uniquement** à `127.0.0.1:11434` avec l'API Ollama native,
   proxy et redirections refusés ; aucun modèle librement fourni par le chat.
-- Le Qwen local doit annoncer `vision` via `/api/show`. Le nom retourné
+- Le Qwen local doit annoncer `vision` via `/api/show`. Les inférences
+  d'images fixent `think=false` et `num_predict=512` pour borner le temps et
+  préserver la place de la réponse visible. Le nom retourné
   par `/api/chat` doit être identique au nom du catalogue, la réponse
   doit être complète et bornée, sous le verrou unique du worker.
 - Image PNG/JPEG/WebP vérifiée et limitée à 2 Mio/12 millions de pixels.
   PDF scanné limité à **2 pages**, rendu en images de 1024 pixels de côté
-  maximum par Poppler local dans un dossier temporaire privé.
+  maximum par Poppler local dans un dossier temporaire privé. Le marqueur d'activation est ouvert avec
+  `O_NOFOLLOW` et contrôlé par propriétaire, permissions, taille et contenu.
 - **Aucun fallback OpenRouter** : une erreur donne un refus explicite.
   Les descriptions sont une observation probable du modèle, jamais une
   transcription OCR certifiée ni une preuve de contenu.
