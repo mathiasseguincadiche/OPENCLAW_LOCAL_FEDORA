@@ -56,7 +56,23 @@ model:
   pricing_usd_per_million:
     input: 0.25
     output: 0.75
-# Réglages imposés par la passerelle à chaque requête (pas par OpenClaw).
+# Les profils réduisent l'effort et/ou le plafond de sortie SANS changer le
+# fournisseur, les prix maximaux, la confidentialité ni les permissions.
+# « approfondi » est le comportement historique (xhigh / 32768).
+# Le choix est stocké hors Git par l'opérateur, via la CLI --apply ; jamais par
+# un paramètre client, un agent ou une bascule implicite local -> cloud.
+default_reasoning_profile: approfondi
+reasoning_profiles:
+  rapide:
+    effort: low
+    max_output_tokens: 4096
+  equilibre:
+    effort: medium
+    max_output_tokens: 8192
+  approfondi:
+    effort: xhigh
+    max_output_tokens: 32768
+# Réglages de sécurité imposés par la passerelle à chaque requête (pas par OpenClaw).
 upstream_params:
   provider:
     data_collection: deny
@@ -65,7 +81,7 @@ upstream_params:
     max_price:
       prompt: 0.25
       completion: 0.75
-  # DeepSeek est la route de capacité : le raisonnement maximal reste imposé par la passerelle,
-  # jamais par une requête cliente ni par un agent.
+  # Référence contractuelle du profil par défaut « approfondi » (xhigh).
+  # La passerelle substitue uniquement effort via un profil local validé.
   reasoning:
     effort: xhigh

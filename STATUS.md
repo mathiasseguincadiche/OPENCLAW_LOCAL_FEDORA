@@ -28,6 +28,22 @@ Le [README](README.md) présente le projet comme **hybride**, et [la stratégie 
 
 Les deux diagrammes de `docs/diagrams/` sont des **représentations logiques du code**, non des preuves d'exécution physique. Les critères et mesures manquants restent ceux décrits dans ce document.
 
+## Profils de raisonnement DeepSeek
+
+Le code propose trois **profils globaux** de raisonnement DeepSeek,
+`rapide` (`low`/4K), `equilibre` (`medium`/8K) et `approfondi`
+(`xhigh`/32K, valeur historique par défaut). Seul l'opérateur
+peut enregistrer un changement via `cloud-set-profile --value ... --apply`.
+Le fichier est privé, le verrou worker interdit de changer le profil
+durant une génération normale et la passerelle plafonne la réponse
+**avant** la réservation du budget. Les contrôles du consentement,
+de la confidentialité et de prix ne sont pas modifiés.
+
+**À qualifier en dernier :** bonne application de `reasoning.effort`
+par le véritable hébergeur DeepSeek sous OpenRouter, facture, latence,
+qualité réelle des sorties et impact sur les itérations. Le réglage
+reste global et manuel, jamais une sélection automatique par tâche.
+
 ## Choix de modèle assisté
 
 La commande `!modele` et le raccourci Open WebUI **Quel modèle choisir ?**

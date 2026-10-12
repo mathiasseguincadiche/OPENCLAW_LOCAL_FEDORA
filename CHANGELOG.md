@@ -4,6 +4,12 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Améliorations du raisonnement DeepSeek
+- Trois profils d'effort cloud bornés et enregistrés dans l'état privé : `rapide` (low/4K), `equilibre` (medium/8K), `approfondi` (xhigh/32K). Le profil par défaut reste `approfondi` pour préserver le comportement existant.
+- Contrôle opérateur `cloud-profile` / `cloud-set-profile --value ... --apply`, sous verrou partagé avec le worker ; aucune modification par les agents ni paramètre libre de l'API.
+- La passerelle applique le plafond de sortie avant toute réservation budgétaire et refuse tout profil local invalide. Évaluation réelle du fournisseur et du coût reportée aux tests de réception.
+
+
 ### Documentation du système hybride
 - Le README, le guide, les rôles, le parcours DevOps, le choix de modèle et les schémas présentent désormais **Qwen 3.5 local et DeepSeek V4.1 Flash cloud comme deux moteurs complémentaires**.
 - Nouvelle fiche `docs/ARCHITECTURE_HYBRIDE.md` : pourquoi DeepSeek est une **route de capacité** pour les tâches DevOps difficiles, critères de choix, parcours, consentement, budget et limites.

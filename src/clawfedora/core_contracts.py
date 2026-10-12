@@ -286,7 +286,19 @@ def _validate_cloud_contracts(
         failures.append("core/cloud: max_price doit égaler le pire tarif réservé")
     reasoning = _mapping(upstream_params.get("reasoning"))
     if reasoning.get("effort") != "xhigh":
-        failures.append("core/cloud: DeepSeek doit utiliser le raisonnement xhigh")
+        failures.append("core/cloud: raisonnement xhigh requis pour le profil approfondi")
+    profiles = _mapping(cloud.get("reasoning_profiles"))
+    required_profiles = {
+        "rapide": {"effort": "low", "max_output_tokens": 4096},
+        "equilibre": {"effort": "medium", "max_output_tokens": 8192},
+        "approfondi": {"effort": "xhigh", "max_output_tokens": 32768},
+    }
+    if (
+        cloud.get("default_reasoning_profile") != "approfondi"
+        or profiles != required_profiles
+        or (isinstance(cloud_output, int) and cloud_output < 32768)
+    ):
+        failures.append("core/cloud: profils d'effort DeepSeek validés, bornés et non modifiables")
 
 
 

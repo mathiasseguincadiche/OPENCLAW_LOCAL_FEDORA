@@ -17,7 +17,7 @@ usage() {
   cat <<'EOF_USAGE'
 Atelier IA local — Infrastructure & OPS · centre de contrôle
 
-Usage: ./menu.sh --action ACTION [--apply] [--purge-data] [--context N] [--value N]
+Usage: ./menu.sh --action ACTION [--apply] [--purge-data] [--context N] [--value N|PROFIL]
 
 Sans --apply, une action qui modifie le système affiche seulement ce qu'elle ferait.
 
@@ -31,6 +31,9 @@ Installer et utiliser:
   webui-start|webui-stop Démarrer ou arrêter le chat
   webui-status           État du chat et de l'atelier
   cloud-status           État du cloud optionnel, de la clé et du budget du mois
+  cloud-profile          Afficher le profil de raisonnement DeepSeek actuel
+  cloud-set-profile      Préparer/changer le profil via --value
+                         rapide|equilibre|approfondi, et --apply pour confirmer
   cloud-set-key          Enregistrer la clé OpenRouter (saisie masquée)
   cloud-enable           Contrôler puis activer le cloud (--value = limite de la clé en $)
   cloud-disable          Désactiver le cloud et arrêter la passerelle
@@ -124,6 +127,18 @@ case "$ACTION" in
     args=()
     [[ -z "$VALUE" ]] || args+=(--value "$VALUE")
     with_apply 14_cloud.sh "${ACTION#cloud-}" "${args[@]}"
+    ;;
+  cloud-profile)
+    run_module cloud_cli --runtime-root "$(claw_runtime_root)" profile
+    ;;
+  cloud-set-profile)
+    [[ -n "$VALUE" ]] || {
+      echo "ERREUR: cloud-set-profile exige --value rapide|equilibre|approfondi" >&2
+      exit 2
+    }
+    args=(--runtime-root "$(claw_runtime_root)" set-profile --name "$VALUE")
+    ((APPLY == 1)) && args+=(--apply)
+    run_module cloud_cli "${args[@]}"
     ;;
   dashboard) run_cli dashboard --serve ;;
   gaming) with_apply 11_daily_profile.sh gaming ;;

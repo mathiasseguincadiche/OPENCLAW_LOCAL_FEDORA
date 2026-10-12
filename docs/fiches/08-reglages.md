@@ -74,13 +74,22 @@ Fichier : `config/core/cloud_policy.yaml`. `./menu.sh --action validate` refuse 
 | `model` | `deepseek/deepseek-v4.1-flash` | Modèle cloud épinglé. |
 | `model.context_tokens` | 1 048 576 | Contexte cloud distinct du 32K local. |
 | `model.max_output_tokens` | 32 768 | Sortie cloud plus large pour les analyses et livrables complexes. |
-| `upstream_params.reasoning.effort` | `xhigh` | DeepSeek est la route de capacité : raisonnement maximal imposé par la passerelle. |
+| `default_reasoning_profile` | `approfondi` | Comportement cloud historique (`xhigh`) sans changement implicite. |
+| `reasoning_profiles` | `rapide` / `equilibre` / `approfondi` | Efforts `low` / `medium` / `xhigh` et plafonds par appel bornés à 4K / 8K / 32K, validés dans les contrats. |
+| `upstream_params.reasoning.effort` | `xhigh` | Référence immuable du profil par défaut ; la passerelle remplace seulement l'effort si l'opérateur choisit explicitement un autre profil. |
 | `provider.sort` | `throughput` | Choisit le fournisseur admissible le plus rapide. |
 | `provider.max_price` | 0,25 $ entrée / 0,75 $ sortie par M tokens | Hard cap fournisseur, identique au pire coût réservé localement. |
 | `provider.data_collection` | `deny` | Écarte les routes qui ne respectent pas ce réglage. |
 | `gateway.port` | 18892 | Boucle locale seulement. |
 
-Le raisonnement long du modèle local reste désactivé pour préserver la latence et la VRAM. DeepSeek n'est pas utilisé comme un simple Qwen distant : la passerelle lui impose `xhigh`, jusqu'à 1M de contexte et 32K de sortie. Le client ne peut ni diminuer ces garde-fous, ni choisir un modèle ou un fournisseur plus cher.
+Le raisonnement long du modèle local reste désactivé pour préserver la latence et la VRAM.
+DeepSeek offre un **profil approfondi `xhigh` par défaut**, et deux profils
+moins exigeants **choisis manuellement** via
+`./menu.sh --action cloud-set-profile --value rapide|equilibre|approfondi --apply`.
+Le client n'a jamais la possibilité d'envoyer son propre paramètre de
+raisonnement ; le modèle et les prix plafonds sont inchangés. Les protections
+de confidentialité et les limites de budget ne peuvent pas être diminuées.
+[Guide détaillé](12-cloud.md).
 
 Pour changer le plafond, baisse-le : tu ne peux pas dépasser 25 €. Après toute modification : `./menu.sh --action validate`, puis `./menu.sh --action cloud-enable --value 12 --apply` pour revalider.
 
