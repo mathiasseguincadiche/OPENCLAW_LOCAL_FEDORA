@@ -55,6 +55,10 @@ jobs:
           node-version: "24"
       - name: Install repository
         run: python -m pip install -e .
+      - name: Production-only document preview smoke
+        run: |
+          python -m pip check
+          python scripts/validation/check_runtime_dependencies.py
       - name: Install pinned OpenClaw and Parallel plugin
         shell: bash
         run: |
