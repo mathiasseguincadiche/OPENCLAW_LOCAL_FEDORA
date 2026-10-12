@@ -303,7 +303,7 @@ def seal(repo_root: Path, runtime: Path) -> None:
                 json.dumps({
                     "description": (
                         "Consultation locale et actions de projet avec confirmation humaine; "
-                        "création/livraison soumises en plus à un code à usage unique."
+                        "création/révision/livraison soumises à un code à usage unique."
                     )
                 }, ensure_ascii=False),
                 now,
