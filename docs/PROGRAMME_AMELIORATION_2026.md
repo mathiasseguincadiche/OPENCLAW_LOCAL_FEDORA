@@ -29,7 +29,7 @@ Une CI verte ne prouve ni un vrai navigateur opérationnel, ni un coût fourniss
 | **W3 : commandes visuelles** | Gérer projet, approbation, audit, livraison dans l'UI | Boutons reliés au pont déterministe, confirmation serveur, test d'autorisation | Parcours complet sans mémoriser de commandes |
 | **F1 : livrables professionnels** | PDF/DOCX/Draw.io cohérents, gros documents par sections | Rendu et assemblage déterministes, sources éditables, pas de troncature silencieuse | Inspection visuelle d'exemples représentatifs |
 | **K1 : contexte de projet** | Meilleure recherche des sources et décisions | Index vérifiable, couverture par document, références de fichiers non fabriquées | Comparer recherche actuelle et améliorée sur des corpus réels |
-| **I1 : forges et preuves** | Lire les vrais runs GitHub/GitLab en lecture seule | Accès limité, commit/provenance vérifiés, secrets jamais exposés au modèle | Vérifier vrais journaux CI et audit de permissions |
+| **I1 : forges et preuves** | Lire les vrais runs GitHub/GitLab en lecture seule | CLI publique `clawfedora-ci-proof` : statut global et SHA vérifiables ; connecteurs privés, jobs détaillés et stockage contrôlé des preuves encore à développer | Vérifier API réelles, journaux CI et audit de permissions |
 | **O1 : exploitation** | Suivi santé, sauvegardes, consommation VRAM/ressources, alertes utiles | Indicateurs pertinents, lecture seule, pas de télémétrie inutile | Vérifier veille, relance, sauvegarde et restauration |
 | **R1 : qualification finale** | Démontrer fiabilité et utilité sur Fedora/B580 + OpenRouter | **N/A** : seule la phase de réception peut attester ce niveau | Rapports datés, scénarios utilisateur et limites résiduelles |
 
