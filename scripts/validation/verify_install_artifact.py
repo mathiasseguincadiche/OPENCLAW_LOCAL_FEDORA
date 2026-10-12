@@ -15,8 +15,8 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "config/install_artifact_integrity.json"
 ALLOWED = {
-    "openclaw": ("sha512", re.compile(r"https://registry\\.npmjs\\.org/openclaw/-/openclaw-(\\d{4}\\.\\d+\\.\\d+)\\.tgz")),
-    "ollama": ("sha256", re.compile(r"https://github\\.com/ollama/ollama/releases/download/v(\\d+\\.\\d+\\.\\d+)/ollama-linux-amd64\\.tar\\.zst")),
+    "openclaw": ("sha512", re.compile(r"https://registry\.npmjs\.org/openclaw/-/openclaw-(\d{4}\.\d+\.\d+)\.tgz")),
+    "ollama": ("sha256", re.compile(r"https://github\.com/ollama/ollama/releases/download/v(\d+\.\d+\.\d+)/ollama-linux-amd64\.tar\.zst")),
 }
 
 
