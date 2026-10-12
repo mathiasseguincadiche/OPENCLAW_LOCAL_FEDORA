@@ -167,9 +167,9 @@ def test_fedora_is_native_host_and_rocky_validation_is_only_optional() -> None:
     assert "Aucune installation de Rocky" in readme
     assert "Podman rootless sur ce même Fedora" in readme
     assert "aucun prérequis Rocky pour OpenClaw" in roadmap
-    assert "Streaming réel Open WebUI sur Fedora" in roadmap
+    assert "Streaming canary prêt en code" in roadmap
     assert "Pilotage visuel des projets" in roadmap
-    assert roadmap.index("Streaming réel Open WebUI sur Fedora") < roadmap.index(
+    assert roadmap.index("Streaming canary prêt en code") < roadmap.index(
         "Option hors cœur IA uniquement si utile"
     )
     assert "Ce module ne sert pas à faire fonctionner OpenClaw" in lab
