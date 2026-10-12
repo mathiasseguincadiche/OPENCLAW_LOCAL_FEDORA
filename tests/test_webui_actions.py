@@ -362,3 +362,118 @@ def test_creation_local_request_only_sends_bounded_inputs(
             "!creer Test", [], key="k" * 64, mutation=True,
             creation_brief="X" * 12001,
         )
+
+
+def test_visual_clarification_form_requires_explicit_confirmation(monkeypatch: Any) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "k" * 64)
+    calls: list[tuple[str, tuple[int, str]]] = []
+    notice: list[dict[str, Any]] = []
+    history = [{"role": "assistant", "content": "📁 Projet : projet-devops"}]
+
+    def fake_bridge(
+        command: str, messages: object, *, key: str, mutation: bool,
+        clarification: tuple[int, str], port: int = 18891
+    ) -> str:
+        assert messages == history and mutation and key == "k" * 64
+        calls.append((command, clarification))
+        return "Réponse enregistrée"
+
+    monkeypatch.setitem(API["local_bridge"].__globals__, "local_bridge", fake_bridge)
+    replies: list[Any] = ["2", "Un pipeline Terraform idempotent.", True]
+
+    async def browser(_event: dict[str, Any]) -> Any:
+        return replies.pop(0)
+
+    async def notify(event: dict[str, Any]) -> None:
+        notice.append(event)
+
+    asyncio.run(API["Action"]().action(
+        {"messages": history}, __id__="answer", __user__={"role": "admin"},
+        __event_call__=browser, __event_emitter__=notify,
+    ))
+    assert calls == [("!repondre", (2, "Un pipeline Terraform idempotent."))]
+    assert notice[0]["data"]["content"] == "Réponse enregistrée"
+
+
+@pytest.mark.parametrize(
+    "replies",
+    [
+        [None], [{"error": "disconnected"}], ["1", None],
+        ["1", "Réponse", False], ["1", "Réponse", {"ok": True}],
+    ],
+)
+def test_clarification_cancellation_never_runs(
+    monkeypatch: Any, replies: list[Any]
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "k" * 64)
+    monkeypatch.setitem(
+        API["local_bridge"].__globals__, "local_bridge",
+        lambda *_a, **_kw: pytest.fail("declined action must not reach bridge"),
+    )
+
+    async def browser(_event: dict[str, Any]) -> Any:
+        return replies.pop(0)
+
+    asyncio.run(API["Action"]().action(
+        {"messages": [{"role": "assistant", "content": "📁 Projet : test"}]},
+        __id__="answer", __user__={"role": "admin"}, __event_call__=browser,
+    ))
+
+
+def test_clarification_bridge_sends_only_validated_project_answer(
+    monkeypatch: Any
+) -> None:
+    import http.client
+
+    captured: list[dict[str, Any]] = []
+
+    class Response:
+        status = 200
+
+        def read(self, _limit: int) -> bytes:
+            return json.dumps({
+                "choices": [{"message": {"content": "Précision enregistrée"}}]
+            }).encode()
+
+    class Connection:
+        def __init__(self, host: str, port: int, timeout: int) -> None:
+            assert (host, port, timeout) == ("127.0.0.1", 18891, 8)
+
+        def request(
+            self, method: str, path: str, body: bytes, headers: dict[str, str]
+        ) -> None:
+            assert (method, path) == ("POST", "/v1/chat/completions")
+            assert headers["Authorization"] == "Bearer " + "k" * 64
+            captured.append(json.loads(body))
+
+        def getresponse(self) -> Response:
+            return Response()
+
+        def close(self) -> None:
+            pass
+
+    monkeypatch.setattr(http.client, "HTTPConnection", Connection)
+    history = [
+        {"role": "user", "content": "credentials-private-not-for-action"},
+        {"role": "assistant", "content": "📁 Projet : projet-test\n\nInformations privées"},
+    ]
+    assert API["local_bridge"](
+        "!repondre", history, key="k" * 64, mutation=True,
+        clarification=(3, "  Déployer\nsur Fedora.  "),
+    ) == "Précision enregistrée"
+    assert captured[0]["messages"] == [
+        {"role": "assistant", "content": "📁 Projet : projet-test"},
+        {"role": "user", "content": "!repondre 3 Déployer sur Fedora."},
+    ]
+    assert "credentials-private" not in str(captured)
+    for number, answer in (
+        (0, "bonjour"), (31, "bonjour"), (1, ""), (1, "X" * 1501),
+    ):
+        with pytest.raises(ValueError):
+            API["local_bridge"](
+                "!repondre", history, key="k" * 64, mutation=True,
+                clarification=(number, answer),
+            )
+    assert len(captured) == 1
+    with pytest.raises(ValueError):
+        API["local_bridge"]("!repondre", history, key="k" * 64)

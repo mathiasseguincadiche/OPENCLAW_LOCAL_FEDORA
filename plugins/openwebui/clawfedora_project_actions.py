@@ -57,8 +57,25 @@ def _project_marker(history: object) -> str | None:
 def local_bridge(
     command: str, history: object, *, key: str, port: int = 18891,
     mutation: bool = False, creation_brief: str | None = None,
+    clarification: tuple[int, str] | None = None,
 ) -> str:
     create = creation_brief is not None
+    if create and clarification is not None:
+        raise ValueError("paramètres incompatibles")
+    if clarification is not None:
+        if not mutation or command != "!repondre":
+            raise ValueError("réponse de précision non autorisée")
+        number, answer = clarification
+        if (
+            type(number) is not int or not 1 <= number <= 30
+            or not isinstance(answer, str) or not answer.strip()
+            or len(answer) > 1500 or "\x00" in answer
+        ):
+            raise ValueError("numéro ou réponse de précision invalide")
+        cleaned = " ".join(answer.split())
+        if len(cleaned) > 1500:
+            raise ValueError("réponse trop longue")
+        command = f"!repondre {number} {cleaned}"
     if create:
         if not mutation or not command.startswith("!creer ") or len(command) > 200:
             raise ValueError("création non autorisée")
@@ -72,10 +89,10 @@ def local_bridge(
             or "\x00" in creation_brief
         ):
             raise ValueError("titre ou demande de projet invalide")
-    elif mutation:
+    elif mutation and clarification is None:
         if command not in {item[0] for item in PROJECT_ACTIONS.values()}:
             raise ValueError("action mutante non autorisée")
-    elif command not in READ_ONLY_ACTIONS.values():
+    elif not mutation and command not in READ_ONLY_ACTIONS.values():
         raise ValueError("action non autorisée")
     if not isinstance(key, str) or len(key) < 32:
         raise ValueError("jeton du pont local absent")
@@ -129,6 +146,7 @@ class Action:
         {"id": "models", "name": "Quel modèle choisir ?"},
         {"id": "budget", "name": "Budget DeepSeek"},
         {"id": "create", "name": "Créer un projet"},
+        {"id": "answer", "name": "Répondre à une précision"},
         {"id": "analyze", "name": "Analyser le projet"},
         {"id": "plan", "name": "Préparer le plan"},
         {"id": "start", "name": "Lancer les tâches"},
@@ -178,7 +196,7 @@ class Action:
                 return
             title, brief = title.strip(), brief.strip()
             if (
-                len(title) > 200 or any(c in title for c in ("\n", "\r", "\x00"))
+                len(title) > 193 or any(c in title for c in ("\n", "\r", "\x00"))
                 or len(brief.encode("utf-8")) > 12_000 or "\x00" in brief
             ):
                 raise ValueError("titre ou demande de projet trop long ou invalide")
@@ -197,6 +215,50 @@ class Action:
             output = await asyncio.to_thread(
                 local_bridge, "!creer " + title, history,
                 key=secret, mutation=True, creation_brief=brief,
+            )
+        elif __id__ == "answer":
+            if __event_call__ is None:
+                raise ValueError("formulaire navigateur indisponible")
+            if _project_marker(history) is None:
+                raise ValueError("sélectionner d'abord un projet")
+            number_raw = await __event_call__({
+                "type": "input", "data": {
+                    "title": "Question de cadrage",
+                    "message": "Numéro affiché par !questions (entre 1 et 30)",
+                    "placeholder": "1",
+                },
+            })
+            if type(number_raw) is not str or not number_raw.strip():
+                return
+            number_raw = number_raw.strip()
+            if not number_raw.isdecimal() or not 1 <= int(number_raw) <= 30:
+                raise ValueError("numéro de question invalide")
+            number = int(number_raw)
+            answer_raw = await __event_call__({
+                "type": "input", "data": {
+                    "title": f"Réponse à la question {number}",
+                    "message": "Votre réponse de cadrage (maximum 1 500 caractères)",
+                    "placeholder": "Votre réponse…",
+                },
+            })
+            if type(answer_raw) is not str or not answer_raw.strip():
+                return
+            if len(answer_raw) > 1500 or "\x00" in answer_raw:
+                raise ValueError("réponse de cadrage invalide")
+            confirmed = await __event_call__({
+                "type": "confirmation", "data": {
+                    "title": "Enregistrer la réponse",
+                    "message": (
+                        f"Enregistrer votre réponse à la question {number} "
+                        "du projet sélectionné ?"
+                    ),
+                },
+            })
+            if confirmed is not True:
+                return
+            output = await asyncio.to_thread(
+                local_bridge, "!repondre", history, key=secret,
+                mutation=True, clarification=(number, answer_raw),
             )
         elif __id__ in PROJECT_ACTIONS:
             # Only a positive response from the actual browser counts, not an

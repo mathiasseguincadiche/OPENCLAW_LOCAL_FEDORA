@@ -53,9 +53,16 @@ si une tâche est déjà en cours ou si le cloud n'est pas autorisé. Le navigat
 
 **Préparer la livraison** ne livre pas automatiquement : le pont crée encore
 une phrase d'approbation à usage unique, à taper séparément dans le chat. Les
-actions qui demandent des informations supplémentaires (réponse
-à une question, révision, soumission de fichiers) restent accessibles depuis
-les commandes ou le tableau de bord, le temps de créer leurs formulaires.
+Le bouton **Répondre à une précision** demande le numéro visible avec
+`!questions` (entre 1 et 30), puis votre réponse (jusqu'à 1 500 caractères).
+Il demande une confirmation explicite avant de transmettre uniquement
+le numéro et le texte au pont local. Le moteur vérifie l'existence de
+la question et l'état du projet ; un numéro inventé n'autorise rien.
+L'annulation d'un champ ou du dialogue ne déclenche aucune commande.
+
+Les autres actions qui demandent des informations supplémentaires
+(révision, soumission de fichiers) restent accessibles par commande
+ou par l'Atelier Projets.
 
 La compatibilité des dialogues, l'affichage effectif des boutons et le
 comportement après coupure du navigateur devront être vérifiés sur le véritable
