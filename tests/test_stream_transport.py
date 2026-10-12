@@ -182,3 +182,63 @@ def test_refuses_invalid_target_before_opening_a_connection(
     )
     with pytest.raises(StreamingRefused):
         list(gateway_local_deltas(role, "bonjour", session, operator_token=token))
+
+
+def test_sse_waits_for_the_blank_line_before_exposing_a_delta() -> None:
+    steps: list[str] = []
+
+    def fragmented_event() -> Iterator[bytes]:
+        steps.append("data")
+        yield _chunk("partiel").splitlines(keepends=True)[0]
+        steps.append("commit")
+        yield b"\n"
+        yield from _lines(_chunk("", "stop"), b"data: [DONE]\n\n")
+
+    source = content_deltas(fragmented_event())
+    assert next(source) == "partiel"
+    assert steps == ["data", "commit"]
+    assert list(source) == []
+
+
+def test_sse_can_read_a_standard_usage_only_final_frame() -> None:
+    usage = b'data: {"choices":[],"usage":{"prompt_tokens":4,"completion_tokens":2}}\n\n'
+    frames = _lines(_chunk("OK"), _chunk("", "stop"), usage, b"data: [DONE]\n\n")
+    assert list(content_deltas(frames)) == ["OK"]
+
+
+@pytest.mark.parametrize(
+    "frames",
+    [
+        # A valid JSON document with no final SSE blank line is still incomplete.
+        [b'data: {"choices":[{"index":0,"delta":{"content":"fake"},"finish_reason":null}]}\n'],
+        [_chunk("fake").removesuffix(b"\n\n")],
+        [_chunk("fake").replace(b"\n\n", b"\n"), _chunk("", "stop"), b"data: [DONE]\n\n"],
+        # Two 'data' fields must never be interpreted as two separate SSE events.
+        [b"data: {}\ndata: {}\n\n"],
+        [b"data: {}\x00\n\n"],
+        [b"data: {}\r\n", b"unknown: x\n\n"],
+        [b'data: {"choices":[{"index":0,"delta":{"role":"system","content":"hi"},"finish_reason":null}]}\n\n'],
+        [b'data: {"choices":[{"index":0,"delta":{"role":"tool","content":"hi"},"finish_reason":null}]}\n\n'],
+        [b'data: {"choices":[]}\n\n'],
+        [_chunk("", "stop"), _chunk("after"), b"data: [DONE]\n\n"],
+        [_chunk("content", "stop"), b"data: [DONE]\n\n"],
+        [_chunk("", "stop"), _chunk("", "stop"), b"data: [DONE]\n\n"],
+        [_chunk("", "stop"), b'data: {"choices":[]}\n\n', b"data: [DONE]\n\n"],
+    ],
+)
+def test_sse_framing_never_promotes_bad_data_to_a_finished_answer(
+    frames: list[bytes],
+) -> None:
+    with pytest.raises(StreamingRefused):
+        list(content_deltas(_lines(*frames)))
+
+
+def test_heartbeats_and_metadata_cannot_become_visible_content() -> None:
+    frames = _lines(
+        b": keepalive\n",
+        b"event: message\nid: raw-secret-not-for-display\n",
+        _chunk("Visible"),
+        _chunk("", "stop"),
+        b"data: [DONE]\n\n",
+    )
+    assert list(content_deltas(frames)) == ["Visible"]
