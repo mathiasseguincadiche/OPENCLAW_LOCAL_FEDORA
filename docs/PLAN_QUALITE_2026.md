@@ -94,6 +94,18 @@ Une commande `clawfedora-lab` est maintenant disponible comme **exécuteur stand
 
 **Ne pas marquer le laboratoire Rocky comme pleinement livré** : image avec validateurs, versions, provenance, vrais tests Podman et intégration des preuves au worker restent ouverts. [Procédure de préparation](LABORATOIRE_DEVOPS.md).
 
+## Provenance des pipelines GitHub/GitLab publics
+
+La commande `clawfedora-ci-proof` récupère uniquement **l'état global d'une
+exécution CI publique** dans les API officielles avec SHA/identifiant vérifiés.
+Aucun token, journal ou accès privé n'est transmis. Elle reste distincte des
+outils de l'auditeur et des preuves d'exécution sur un laboratoire réel.
+[Mode d'emploi et limites](PREUVES_CI_GITHUB_GITLAB.md).
+
+L'authentification à des projets privés sous permissions minimales, les
+preuves de jobs/artefacts et l'intégration contrôlée au moteur des projets
+restent à développer.
+
 ## P2 : ergonomie et vérification métier
 
 - Quatre actions visuelles **en lecture seule** sont ajoutées : voir les projets, consulter l'état, l'aide et **quel modèle choisir** (conseils déterministes sans contexte privé). Les opérations mutantes (créer/sélectionner/approuver/exécuter/auditer/livrer) restent à construire avec les confirmations existantes ; ne pas les considérer terminées.
