@@ -49,7 +49,7 @@ BOOTSTRAP_ARGS=(--apply --runtime-root "$RUNTIME_ROOT")
 OLLAMA_VERSION_TEXT="$(ollama --version 2>/dev/null || true)"
 ollama_version="$(claw_extract_ollama_version "$OLLAMA_VERSION_TEXT" || true)"
 if [[ "$ollama_version" != "$OLLAMA_PIN" ]]; then
-  "$LINUX/15_verified_installer.sh" ollama --apply
+  bash "$LINUX/15_verified_installer.sh" ollama --apply
   export PATH="/usr/local/bin:$PATH"
 fi
 OLLAMA_VERSION_TEXT="$(ollama --version 2>/dev/null || true)"
@@ -67,7 +67,7 @@ export PATH="$HOME/.openclaw/bin:$HOME/.local/bin:$PATH"
 OPENCLAW_VERSION_TEXT="$(openclaw --version 2>/dev/null | head -n1 || true)"
 OPENCLAW_VERSION="$(claw_extract_openclaw_version "$OPENCLAW_VERSION_TEXT" || true)"
 if [[ "$OPENCLAW_VERSION" != "$OPENCLAW_PIN" ]]; then
-  "$LINUX/15_verified_installer.sh" openclaw --apply
+  bash "$LINUX/15_verified_installer.sh" openclaw --apply
   export PATH="$HOME/.openclaw/bin:$HOME/.local/bin:$PATH"
 fi
 
