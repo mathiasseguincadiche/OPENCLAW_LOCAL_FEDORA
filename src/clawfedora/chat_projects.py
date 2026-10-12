@@ -581,16 +581,18 @@ def run_command(
     if name == "budget":
         if args:
             return bridge_reply(current, "Utilisez seulement `!budget` sans argument.")
-        from clawfedora.cloud_budget import BudgetRefused, load_ledger
+        import time
+
+        from clawfedora.cloud_budget import BudgetRefused, load_ledger, month_key
 
         try:
             ledger = load_ledger(runtime, repo_root)
-            report = ledger.summary()
-            ledger_file = ledger.path(report.month)
+            ledger_file = ledger.path(month_key(time.time()))
             if ledger_file.is_symlink() or (
                 ledger_file.exists() and ledger_file.stat().st_mode & 0o077
             ):
                 raise BudgetRefused("journal non privé")
+            report = ledger.summary()
         except (OSError, ValueError, KeyError, BudgetRefused):
             return bridge_reply(
                 current,
