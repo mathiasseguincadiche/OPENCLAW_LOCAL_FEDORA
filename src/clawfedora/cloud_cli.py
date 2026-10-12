@@ -22,6 +22,7 @@ from clawfedora.cloud_activation import (
     set_key,
 )
 from clawfedora.cloud_budget import BudgetRefused, load_ledger, month_key
+from clawfedora.cloud_profiles import chosen_profile, profiles, set_profile
 from clawfedora.cloud_state import cloud_status, read_activation
 from clawfedora.core_config import core_contract, resolve_runtime_root
 
@@ -84,6 +85,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--runtime-root", type=Path)
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("status")
+    commands.add_parser("profile")
+    profile = commands.add_parser("set-profile")
+    profile.add_argument("--name", required=True, choices=("rapide", "equilibre", "approfondi"))
+    profile.add_argument("--apply", action="store_true")
     key = commands.add_parser("set-key")
     key.add_argument("--replace", action="store_true")
     activate = commands.add_parser("enable")
@@ -108,6 +113,33 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "status":
             return _status(root, runtime)
+        if args.command == "profile":
+            policy = core_contract(root, "cloud_policy.yaml")
+            name, settings = chosen_profile(runtime, policy)
+            print(
+                f"CLOUD_PROFILE name={name} effort={settings['effort']} "
+                f"max_output_tokens={settings['max_output_tokens']}"
+            )
+            return 0
+        if args.command == "set-profile":
+            policy = core_contract(root, "cloud_policy.yaml")
+            options = profiles(policy)
+            if args.name not in options:
+                raise ValueError("profil inconnu")
+            if not args.apply:
+                print(
+                    f"CLOUD_PROFILE_RESULT=DRY_RUN proposed={args.name} "
+                    "aucun changement sans --apply"
+                )
+                return 0
+            # Do not switch effort mid-generation: the shared worker lock also
+            # covers project turns, agent tools and the personal chat bridge.
+            from clawfedora.project_worker import worker_lock
+
+            with worker_lock(runtime):
+                path = set_profile(runtime, policy, args.name)
+            print(f"CLOUD_PROFILE_RESULT=PASS name={args.name} path={path}")
+            return 0
         if args.command == "set-key":
             path = set_key(root, runtime, _read_key(), replace=args.replace)
             print(f"CLOUD_KEY_RESULT=PASS path={path}")
