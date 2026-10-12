@@ -36,6 +36,28 @@ scripts/linux/08_backup_restore.sh restore ARCHIVE DESTINATION
 
 La destination doit être un dossier vide : la restauration n'écrase jamais des données existantes. Vérifie le contenu restauré avant de le mettre à la place de `/srv/openclaw-local`, puis relance `./menu.sh --action install --apply` et `./menu.sh --action health`.
 
+## Préqualifier Open WebUI 0.12.0 sans toucher à l'installation
+
+Avant toute migration de l'interface, vérifie le candidat dans un conteneur
+**isolé sans réseau** : la branche de travail propose
+`bash scripts/linux/14_webui_canary.sh --apply`. Le script tire la version
+publiée, détermine son digest réel, démarre une base jetable et vérifie les
+colonnes nécessaires aux fonctions et filtres.
+
+Pour tester la migration du schéma avec une **copie cohérente** de ta base
+actuelle (sans toucher au service original) :
+
+```bash
+bash scripts/linux/14_webui_canary.sh --apply --with-db-copy
+```
+
+Les données temporaires sont supprimées à la fin. Les contrôles sont
+délibérément préliminaires : ils ne prouvent pas l'interface, les uploads,
+les actions, les pièces jointes, les outils ou la restitution de l'audio.
+Le digest du déploiement principal reste inchangé tant que le test de fumée
+complet n'a pas été exécuté. Aucune commande ci-dessus ne fusionne ni ne met
+à jour Open WebUI en production.
+
 ## Mettre à niveau
 
 Quand le dépôt passe à de nouvelles versions d'OpenClaw ou d'Ollama :
