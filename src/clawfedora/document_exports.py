@@ -23,12 +23,16 @@ def blocks(markdown: str) -> list[tuple[str, Any]]:
     result: list[tuple[str, Any]] = []
     row: list[str] = []
     table: list[list[str]] = []
-    heading, listing, in_table = "paragraph", 0, False
+    heading, listing, in_table, quoting = "paragraph", 0, False, 0
     for token in tokens:
         if token.type == "heading_open":
             heading = token.tag
         elif token.type == "heading_close":
             heading = "paragraph"
+        elif token.type == "blockquote_open":
+            quoting += 1
+        elif token.type == "blockquote_close":
+            quoting -= 1
         elif token.type in {"bullet_list_open", "ordered_list_open"}:
             listing += 1
         elif token.type in {"bullet_list_close", "ordered_list_close"}:
@@ -62,7 +66,7 @@ def blocks(markdown: str) -> list[tuple[str, Any]]:
             if in_table:
                 row.append(text)
             else:
-                result.append((heading if not listing else "list", text))
+                result.append(("list" if listing else "quote" if quoting else heading, text))
         elif token.type in {"fence", "code_block"}:
             result.append(("code", token.content.rstrip()))
     if len(result) > 500:
@@ -114,7 +118,7 @@ def output_bytes(relative: str, files: dict[str, str]) -> bytes:
 
 def _docx(parts: list[tuple[str, Any]]) -> bytes:
     from docx import Document
-    from docx.shared import Cm, Pt
+    from docx.shared import Cm, Pt, RGBColor
 
     doc = Document()
     doc.core_properties.created = doc.core_properties.modified = datetime(2000, 1, 1)
@@ -124,6 +128,15 @@ def _docx(parts: list[tuple[str, Any]]) -> bytes:
     section.top_margin = section.bottom_margin = Cm(2)
     normal = doc.styles["Normal"]
     normal.font.name, normal.font.size = "DejaVu Sans", Pt(10.5)
+    normal.paragraph_format.space_after = Pt(7)
+    for level, size in ((1, 19), (2, 15), (3, 12)):
+        heading = doc.styles[f"Heading {level}"]
+        heading.font.name = "DejaVu Sans"
+        heading.font.size = Pt(size)
+        heading.font.color.rgb = RGBColor(18, 107, 116)
+        heading.paragraph_format.keep_with_next = True
+        heading.paragraph_format.space_before = Pt(12)
+    section.footer.paragraphs[0].text = "Atelier IA local · Infrastructure & OPS"
     for kind, value in parts:
         if kind.startswith("h") and kind[1:].isdigit():
             doc.add_heading(value, min(int(kind[1:]), 6))
@@ -135,9 +148,12 @@ def _docx(parts: list[tuple[str, Any]]) -> bytes:
                 for i, cell in enumerate(row):
                     cells[i].text = cell
         elif kind == "code":
-            p = doc.add_paragraph(value)
-            for run in p.runs:
-                run.font.name, run.font.size = "DejaVu Sans Mono", Pt(8)
+            p = doc.add_paragraph(style="No Spacing")
+            p.paragraph_format.space_after = Pt(8)
+            run = p.add_run(value)
+            run.font.name, run.font.size = "DejaVu Sans Mono", Pt(8)
+        elif kind == "quote":
+            doc.add_paragraph(value, style="Quote")
         else:
             doc.add_paragraph(value, style="List Bullet" if kind == "list" else None)
     buffer = io.BytesIO()
@@ -197,6 +213,36 @@ def _pdf(parts: list[tuple[str, Any]]) -> bytes:
             spaceBefore=12,
             textColor=colors.HexColor("#126b74"),
         ),
+        "h2": ParagraphStyle(
+            "h2",
+            fontName="AtelierBold",
+            fontSize=14,
+            leading=19,
+            spaceBefore=10,
+            spaceAfter=8,
+            keepWithNext=True,
+            textColor=colors.HexColor("#126b74"),
+        ),
+        "h3": ParagraphStyle(
+            "h3",
+            fontName="AtelierBold",
+            fontSize=11,
+            leading=16,
+            spaceBefore=9,
+            spaceAfter=6,
+            keepWithNext=True,
+            textColor=colors.HexColor("#126b74"),
+        ),
+        "quote": ParagraphStyle(
+            "quote",
+            fontName="Atelier",
+            fontSize=10,
+            leading=15,
+            leftIndent=10 * mm,
+            spaceBefore=4,
+            spaceAfter=9,
+            textColor=colors.HexColor("#4d6570"),
+        ),
         "code": ParagraphStyle(
             "code",
             fontName="Atelier",
@@ -235,7 +281,13 @@ def _pdf(parts: list[tuple[str, Any]]) -> bytes:
                         Paragraph(escape(wrapped).replace(" ", "&#160;") or "&#160;", styles["code"])
                     )
         else:
-            style = styles["heading"] if kind.startswith("h") else styles["body"]
+            style = (
+                styles["heading"] if kind == "h1"
+                else styles["h2"] if kind == "h2"
+                else styles["h3"] if kind in {"h3", "h4", "h5", "h6"}
+                else styles["quote"] if kind == "quote"
+                else styles["body"]
+            )
             story.append(
                 Paragraph(
                     ("• " if kind == "list" else "") + escape(value).replace("\n", "<br/>"), style
