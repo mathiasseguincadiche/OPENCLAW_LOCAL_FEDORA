@@ -31,6 +31,7 @@ clawfedora-ci-proof = "clawfedora.ci_evidence:main"
 clawfedora-ci-private-proof = "clawfedora.ci_private_evidence:main"
 clawfedora-fedora-precheck = "clawfedora.fedora_acceptance:main"
 clawfedora-backup-verify = "clawfedora.backup_acceptance:main"
+clawfedora-gpu-benchmark = "clawfedora.gpu_acceptance:main"
 clawfedora-doc-bundle = "clawfedora.document_bundle:main"
 
 [project.optional-dependencies]
