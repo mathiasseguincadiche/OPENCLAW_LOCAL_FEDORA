@@ -400,7 +400,8 @@ def validate_core_contracts(
     native_allowed = {
         "read", "web_search", "web_fetch", "session_status", "pdf", "view_image",
     }
-    mentor_allowed = {"agents_list", "sessions_list", "sessions_history", "sessions_search"}
+    # Session history and search are intentionally absent, even for the mentor.
+    mentor_allowed = {"agents_list"}
     for agent_id, raw_tools in tools.items():
         tool_entry = _mapping(raw_tools)
         allow = tool_entry.get("also_allow")
