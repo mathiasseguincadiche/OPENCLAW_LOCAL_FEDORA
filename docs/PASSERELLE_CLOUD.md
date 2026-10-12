@@ -1,5 +1,12 @@
 # Passerelle cloud locale : conception et faits vérifiés
 
+[← Guide pédagogique](GUIDE.md) · [Trajet des requêtes](fiches/11-comment-ca-marche.md) · [Mode d'emploi cloud](fiches/12-cloud.md)
+
+**Cette fiche est une référence d'implémentation.** Pour comprendre le choix
+local/cloud avant les détails HTTP, lis d'abord le fonctionnement et le mode d'emploi.
+Les résultats d'un faux fournisseur n'attestent pas un appel réellement facturé
+par OpenRouter.
+
 **Statut : tout est en place (lots 3 à 8) : fondation, exécuteur, passerelle et filtre, modes Apprendre/Travail, budget et activation contrôlée, accord par projet dans l'atelier. Le cloud reste désactivé tant qu'il n'est pas activé par `cloud-enable --apply`. Il n'a jamais été essayé avec le vrai OpenRouter.**
 
 Ce document décrit la conception, fixe le contrat que le code respecte (imposé par `clawfedora validate`) et consigne ce qui a été **vérifié avec le vrai OpenClaw 2026.9.8** (`make native-cloud`, `make native-schema`, `make native-prompt`).
