@@ -6,16 +6,34 @@ Open WebUI est l'interface de discussion, à l'adresse `http://127.0.0.1:3000`. 
 
 ## Boutons de lecture rapide (Open WebUI)
 
-Après la création de ton compte administrateur et `webui-seal --apply`, trois
+Après la création de ton compte administrateur et `webui-seal --apply`, quatre
 raccourcis **en lecture seule** peuvent apparaître sous les réponses : **Voir les projets**,
-**État du projet** et **Commandes disponibles**. Ils interrogent le pont local authentifié
+**État du projet**, **Commandes disponibles** et **Quel modèle choisir ?**. Ils interrogent le pont local authentifié
 et affichent une notification, sans modifier le projet, sans utiliser le modèle
 et sans dépenser de tokens. Ils ne remplacent pas encore les commandes de création,
 d'approbation et de livraison ni l'Atelier Projets : ces opérations gardent
 leurs confirmations humaines.
 
 La présence et le bon fonctionnement de ces boutons doivent être vérifiés dans
-le vrai navigateur (voir `docs/SMOKE_TEST_WEBUI.md`).
+le vrai navigateur (voir `docs/SMOKE_TEST_WEBUI.md`). Le bouton
+**Quel modèle choisir ?** affiche une orientation statique locale et **n'analyse
+pas l'historique du chat** : il ne transmet aucun prompt privé à un modèle,
+ne choisit pas le fournisseur à ta place et ne donne pas d'autorisation cloud.
+
+## Choisir Qwen ou DeepSeek sans divulgation automatique
+
+Tu peux taper `!modele` pour voir une carte des usages, ou `!modele iac`,
+`!modele architecture`, `!modele ci`, `!modele confidentiel`,
+`!modele simple` et `!modele documents` pour obtenir les raisons et limites
+de chaque choix.
+
+**Ce ne sont pas des commandes IA :** le pont répond **localement**, sans
+consulter tes conversations, sans envoyer de texte à DeepSeek, sans dépenser
+de tokens et sans changer la route. Un conseil « DeepSeek à envisager » ne
+signifie jamais que des documents sont publics ou sûrs à exporter.
+
+Le choix du modèle reste dans le sélecteur Open WebUI ; l'accord du projet
+et la passerelle de confidentialité/budget restent obligatoires.
 
 ## Choisir à qui tu parles
 
