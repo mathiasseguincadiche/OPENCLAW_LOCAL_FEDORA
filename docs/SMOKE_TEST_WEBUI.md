@@ -167,6 +167,26 @@ CPU pendant STT         : ____ %
 Le service vocal doit rester sur `127.0.0.1:18893`. La B580 reste réservée à Qwen : Whisper
 est configuré CPU/int8.
 
+## 5 bis. Profils DeepSeek (à qualifier après stabilisation)
+
+Avant un vrai appel OpenRouter, tester les trois profils sans désactiver les
+garde-fous : `./menu.sh --action cloud-profile` affiche `approfondi`
+si aucun profil n'a été enregistré. `cloud-set-profile --value equilibre`
+sans `--apply` n'écrit **rien** ; avec `--apply`, le profil devient
+`equilibre` et apparaît dans `cloud-status` et `!budget`.
+
+Vérifier aussi qu'un changement est refusé pendant une tâche du worker
+et que le fichier privé `state/cloud/reasoning-profile.json` reste en 0600.
+Une valeur non prévue ou un lien symbolique doit bloquer l'appel cloud
+avant réservation et envoi. Ne jamais corriger cela en supprimant le filtre.
+
+Pour `rapide`, `equilibre` et `approfondi`, effectuer **la même
+question publique de référence** en notant le provider effectif, la latence,
+la qualité humaine, les tokens et la dépense réelle sur OpenRouter. Le test
+doit vérifier que `require_parameters: true` n'a pas été assoupli et
+qu'un hébergeur incompatible **échoue** au lieu d'ignorer l'effort demandé.
+Revenir à `approfondi` après comparaison si nécessaire.
+
 ## 6. DeepSeek V4.1 Flash réel
 
 Seulement avec une clé OpenRouter limitée et des crédits prépayés :
