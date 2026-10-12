@@ -259,11 +259,11 @@ def test_chat_returns_signed_downloads_without_operator_token(tmp_path: Path) ->
 
 def test_professional_exports_preserve_heading_levels_and_quotes() -> None:
     source = (
-        "# Architecture de déploiement\\n\\n"
-        "## Prérequis\\n\\n"
-        "> Garder les secrets hors du dépôt.\\n\\n"
-        "### Validation\\n\\n"
-        "```bash\\nterraform validate\\n```\\n"
+        "# Architecture de déploiement\n\n"
+        "## Prérequis\n\n"
+        "> Garder les secrets hors du dépôt.\n\n"
+        "### Validation\n\n"
+        "```bash\nterraform validate\n```\n"
     )
     docx = Document(io.BytesIO(export(source, "docx")))
     styles = [part.style.name for part in docx.paragraphs]
@@ -274,7 +274,7 @@ def test_professional_exports_preserve_heading_levels_and_quotes() -> None:
     assert "No Spacing" in styles
     assert "Atelier IA local" in docx.sections[0].footer.paragraphs[0].text
     pdf = PdfReader(io.BytesIO(export(source, "pdf")))
-    extracted = "\\n".join(page.extract_text() for page in pdf.pages)
+    extracted = "\n".join(page.extract_text() for page in pdf.pages)
     assert "Architecture de déploiement" in extracted
     assert "Garder les secrets" in extracted
     assert "terraform validate" in extracted
