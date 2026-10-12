@@ -1,6 +1,6 @@
 # Fichiers et schémas
 
-[← Guide](../GUIDE.md)
+[← Guide](../GUIDE.md) · [Rôles et outils](07-roles-et-outils.md) · [Exemple DevOps](../EXEMPLE_PARCOURS_DEVOPS.md)
 
 Demander un document ou une configuration produit un vrai fichier, téléchargeable et modifiable. Le modèle rédige le contenu ; un outil local fabrique le fichier. La conversion tourne sur le processeur, sans service ni abonnement supplémentaire.
 
@@ -53,7 +53,7 @@ les critères sont remplis.
 ## Limites
 
 - Un appel produit au plus 12 000 octets de contenu et trois exports. Pour un document long, demande-le section par section.
-- Le rendu gère titres, paragraphes, listes, tableaux simples et blocs de code. Les images ne sont pas intégrées.
+- Le rendu gère titres hiérarchisés, paragraphes, citations, listes, tableaux simples et blocs de code ; le DOCX comprend un pied de page. Les images ne sont pas intégrées. Le rendu est plus lisible mais ne remplace pas une inspection visuelle avant remise.
 - Un fichier généré n'est pas un fichier testé. Les fichiers JSON, YAML, Python, TOML et XML sont vérifiés sur leur syntaxe. Terraform, Dockerfile, shell et Jinja sont produits comme du texte : vérifie-les avec leurs propres outils.
 - Une image est traitée localement. Elle ne part jamais vers DeepSeek tant que le filtre de confidentialité ne sait pas inspecter son contenu.
 
@@ -64,6 +64,8 @@ Les rôles DevOps, sécurité et auditeur peuvent passer un texte dans ShellChec
 Tous les rôles peuvent aussi lire un résumé de résultats de ta CI que tu leur fournis. Ils l'interprètent sans pouvoir vérifier qu'il vient bien de ton pipeline.
 
 ## Schémas Draw.io
+
+**À retenir :** le fichier `.drawio` est la **source éditable** du schéma. L'aperçu `.svg` sert à le regarder dans une documentation : changer le SVG ne modifie pas le Draw.io. De la même façon qu'un `.tf` décrit une infrastructure sans l'avoir créée, le diagramme décrit des flux sans prouver qu'ils fonctionnent.
 
 L'architecte génère un fichier `.drawio` que tu ouvres et modifies dans Draw.io : les blocs, les textes et les flèches sont de vrais objets. Un fichier SVG séparé sert d'aperçu pour la documentation.
 
