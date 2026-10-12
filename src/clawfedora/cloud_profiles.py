@@ -58,12 +58,17 @@ def profile_path(runtime: Path) -> Path:
 def chosen_profile(runtime: Path, policy: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     """Missing file = explicitly contracted default. Unsafe file = refuse cloud."""
     declared = profiles(policy)
+    directory = runtime / CLOUD_STATE
+    if directory.is_symlink():
+        raise ProfileRefused("profil cloud : répertoire lié refusé")
     path = profile_path(runtime)
     try:
         status = path.lstat()
     except FileNotFoundError:
         name = str(policy["default_reasoning_profile"])
         return name, declared[name]
+    except OSError as exc:
+        raise ProfileRefused("profil cloud : inaccessible") from exc
     if not stat.S_ISREG(status.st_mode) or stat.S_IMODE(status.st_mode) != 0o600:
         raise ProfileRefused("profil cloud : fichier ordinaire privé 0600 requis")
     if status.st_size > MAX_FILE_BYTES or status.st_size < 2:
