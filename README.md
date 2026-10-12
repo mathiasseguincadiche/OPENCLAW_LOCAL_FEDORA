@@ -112,6 +112,12 @@ cd OPENCLAW_LOCAL_FEDORA
 
 → [Préparer l'installation](docs/fiches/01-installer.md) · [Vérifier le premier essai](docs/fiches/02-premier-essai.md).
 
+## Laboratoire DevOps offline : premières validations réelles
+
+La commande indépendante `clawfedora-lab` prépare des vérifications Terraform, Ansible, GitHub Actions, ShellCheck et Dockerfile dans un **conteneur rootless, offline et jetable**, sur une copie limitée du projet. Aucun agent ne peut la déclencher librement : c'est **toi** qui dois fournir une **image de validateurs déjà présente, épinglée par digest**, puis `--apply`.
+
+**Le moteur est préparé dans le dépôt, mais l'image Rocky et les essais Podman réels restent à qualifier.** [Fonctionnement, commandes et protections](docs/LABORATOIRE_DEVOPS.md).
+
 ## Limites : ne pas confondre « codé » et « prouvé »
 
 **Le PC cible reste à valider :** le projet n'a pas encore tourné sur le PC cible dans le cadre des essais de réception documentés. Accélération B580, vraie interface et uploads Open WebUI, voix, sauvegarde/restauration et appels réels OpenRouter restent à qualifier. Les réponses du chat arrivent **en bloc**, la carte ne traite qu'une génération à la fois, et les fichiers proposés ne sont **pas** des déploiements validés. La version déployée reste **Open WebUI 0.11.4** : le canary 0.12.0 est un essai isolé, pas une migration.

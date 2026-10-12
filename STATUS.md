@@ -50,6 +50,10 @@ Rien n'est encore mesuré sur ta machine. Les résultats publics de DeepSeek V4.
 |---|---|---|---|---|---|
 | | 32 768 | | | | |
 
+## Exécuteur de validation DevOps
+
+Le code du [laboratoire offline](docs/LABORATOIRE_DEVOPS.md) fournit une CLI séparée des agents, avec exécution Podman contrôlée et approbation `--apply`. **L'image Rocky avec les validateurs, son digest et la validation Podman réelle ne sont pas encore qualifiés**. L'agent ne lance pas lui-même Terraform, Ansible ou la CI sur l'hôte.
+
 ## Limites connues
 
 - Les réponses du chat arrivent d'un bloc, sans s'afficher mot à mot.

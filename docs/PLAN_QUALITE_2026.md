@@ -82,6 +82,12 @@ La stratégie du projet est **hybride par conception** : Qwen quotidien, DeepSee
 
 → [Contrat pédagogique du système hybride](ARCHITECTURE_HYBRIDE.md).
 
+## Laboratoire DevOps — première étape de code
+
+Une commande `clawfedora-lab` est maintenant disponible comme **exécuteur standalone**, hors des outils OpenClaw : dry-run obligatoire par défaut, `--apply` humain, image locale épinglée par digest, copie filtrée et temporaire, réseau absent et conteneur rootless en lecture seule. Elle prévoit `terraform fmt/validate`, `ansible-lint`, `actionlint`, `shellcheck` et `hadolint`.
+
+**Ne pas marquer le laboratoire Rocky comme pleinement livré** : image avec validateurs, versions, provenance, vrais tests Podman et intégration des preuves au worker restent ouverts. [Procédure de préparation](LABORATOIRE_DEVOPS.md).
+
 ## P2 : ergonomie et vérification métier
 
 - Trois premières actions visuelles **en lecture seule** sont ajoutées : voir les projets, consulter l'état et l'aide. Les opérations mutantes (créer/sélectionner/approuver/exécuter/auditer/livrer) restent à construire avec les confirmations existantes ; ne pas les considérer terminées.
