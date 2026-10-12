@@ -66,7 +66,11 @@ def snapshot_manifest(source: Path) -> tuple[Path, ...]:
             relative = path.relative_to(source)
             if path.is_symlink():
                 raise LabRefusal(f"Fichier lié refusé: {relative}")
-            if name in SENSITIVE_NAMES or path.suffix in SENSITIVE_SUFFIXES or name.endswith(".tfstate.backup"):
+            if (
+                name in SENSITIVE_NAMES
+                or path.suffix in SENSITIVE_SUFFIXES
+                or name.endswith(".tfstate.backup")
+            ):
                 raise LabRefusal(f"Fichier sensible détecté, copie refusée: {relative}")
             # Hidden files other than the tracked GitHub workflows are not needed.
             if any(part.startswith(".") and part != ".github" for part in relative.parts):
@@ -162,7 +166,8 @@ def run_lab(source: Path, tool: str, image: str | None, apply: bool) -> int:
         print(f"LAB tool={tool} files={len(manifest)} network=none image={image}")
         try:
             result = subprocess.run(argv, check=False, timeout=180)
-            print(f"LAB_RESULT={'PASS' if result.returncode == 0 else 'FAIL'} exit={result.returncode}")
+            verdict = "PASS" if result.returncode == 0 else "FAIL"
+            print(f"LAB_RESULT={verdict} exit={result.returncode}")
             return result.returncode
         except subprocess.TimeoutExpired:
             print("LAB_RESULT=FAIL timeout=180s")
