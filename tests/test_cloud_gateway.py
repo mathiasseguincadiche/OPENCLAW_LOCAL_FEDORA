@@ -404,7 +404,7 @@ def test_provider_errors_are_mapped_and_release_the_reservation(
     got, body = post(server, request())
     assert got == status and marker in body
     assert UPSTREAM_KEY.encode() not in body and "détail du fournisseur".encode() not in body
-    assert budget.settled == [(None, "failed")]
+    assert budget.settled == [(None, "interrupted" if code >= 500 or code == 408 else "failed")]
 
 
 def test_an_unreachable_provider_keeps_the_worst_case_estimate(
@@ -498,11 +498,12 @@ def test_a_call_the_provider_refused_costs_nothing_but_an_unreachable_one_is_kep
     upstream[0].behaviour = upstream[0].status(500)
     assert post(server, request())[0] == 502
     summary = ledger.summary()
-    assert (summary.calls_failed, summary.spent_usd) == (1, 0)
+    assert summary.calls_uncertain == 1 and summary.spent_usd > 0
+    assert summary.calls_failed == 0
     server.upstream_base_url = "http://127.0.0.1:9/v1"
     assert post(server, request())[0] == 504
     summary = ledger.summary()
-    assert summary.calls_uncertain == 1 and summary.spent_usd > 0
+    assert summary.calls_uncertain == 2 and summary.spent_usd > 0
 
 
 def test_once_the_cap_is_reached_nothing_more_leaves(
