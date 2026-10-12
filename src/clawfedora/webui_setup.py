@@ -79,6 +79,12 @@ def environment(
         "ENABLE_SIGNUP": "false" if sealed else "true",
         "DEFAULT_USER_ROLE": "pending",
         "WEBUI_SECRET_KEY": secret,
+        # v0.12.0 introduced ENABLE_PLUGINS as the master switch; our trusted,
+        # locally managed file filter and project shortcuts require Functions.
+        "ENABLE_PLUGINS": "true",
+        "ENABLE_FUNCTIONS": "true",
+        "ENABLE_TOOLS": "false",
+        "ENABLE_TOOL_SERVERS": "false",
         "ENABLE_OPENAI_API": "true",
         "OPENAI_API_BASE_URL": "http://127.0.0.1:18891/v1",
         "OPENAI_API_KEY": token,
@@ -216,8 +222,14 @@ def seal(repo_root: Path, runtime: Path) -> None:
     database = state / "data/webui.db"
     plugin = repo_root / "plugins/openwebui/clawfedora_files.py"
     source = plugin.read_text(encoding="utf-8")
+    actions = repo_root / "plugins/openwebui/clawfedora_project_actions.py"
     if not source.strip() or plugin.is_symlink():
         raise ValueError("filtre Open WebUI géré absent ou lié")
+    if actions.is_symlink() or not actions.is_file():
+        raise ValueError("actions Open WebUI gérées absentes ou liées")
+    action_source = actions.read_text(encoding="utf-8")
+    if not action_source.strip():
+        raise ValueError("actions Open WebUI vides")
     with closing(sqlite3.connect(database)) as db:
         users = db.execute('SELECT id, role FROM "user"').fetchall()
         if len(users) != 1 or users[0][1] != "admin":
@@ -253,6 +265,34 @@ def seal(repo_root: Path, runtime: Path) -> None:
                 "ClawFedora — pièces jointes",
                 source,
                 meta,
+                now,
+                now,
+            ),
+        )
+        # The Action exposes read-only status/project buttons. It never sends
+        # an approval phrase and cannot execute an agent-proposed command.
+        db.execute(
+            '''
+            INSERT INTO "function"
+              (id, user_id, name, type, content, meta, valves, is_active, is_global,
+               updated_at, created_at)
+            VALUES (?, ?, ?, 'action', ?, ?, NULL, 1, 1, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+              user_id=excluded.user_id,
+              name=excluded.name,
+              type='action',
+              content=excluded.content,
+              meta=excluded.meta,
+              is_active=1,
+              is_global=1,
+              updated_at=excluded.updated_at
+            ''',
+            (
+                "clawfedora_project_actions",
+                admin_id,
+                "ClawFedora — raccourcis projets",
+                action_source,
+                json.dumps({"description": "Actions de projet en lecture seule."}),
                 now,
                 now,
             ),
