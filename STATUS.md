@@ -115,16 +115,20 @@ le moteur calcule les tâches affectées et émet un code distinct à saisir
 dans le chat. La soumission guidée de fichiers reste disponible par
 commande, sans formulaire dédié.
 
-## Préparation du streaming SSE OpenClaw
+## Streaming SSE natif — PR #89 et #90
 
-Le module `stream_transport.py` prépare un transport SSE **serveur à
-serveur**, restreint au Gateway en boucle locale et aux sept agents,
-avec flux incrémental borné, rejets des événements malformés et
-fermeture sur annulation. **Il n'est pas encore raccordé au pont
-Open WebUI** : les réponses du chat s'affichent toujours après la
-génération complète. La prévalidation des versions/modèles, les
-verrous worker et la sécurité du jeton opérateur doivent être réunis
-avant de l'activer. [Protocole et critères](docs/STREAMING_SSE_PREPARATION.md).
+Le streaming est **raccordé au pont Open WebUI dans le code** pour le chat
+simple du Mentor Qwen local ; il est **désactivé par défaut**. L'activation
+canary volontaire exige un marqueur privé `0600`, la prévalidation
+OpenClaw/Ollama/modèle/rôles, un Gateway en boucle locale et son jeton
+opérateur privé côté serveur. Les commandes, projets, autres rôles,
+pièces jointes et appels DeepSeek conservent leur chemin habituel. La
+révocation canary force `enabled=false` dans le patch du Gateway. Les PR
+[#89](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/89)
+et [#90](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/90)
+sont fusionnées, avec CI/CodeQL verts. **Aucun flux réel n'a encore été
+qualifié sur Fedora/Open WebUI** : ne pas confondre canary disponible,
+activation et validation physique. [Activation et rollback](docs/STREAMING_SSE_PREPARATION.md).
 
 ## Séparation entre l'atelier IA Fedora et une VM de formation
 
@@ -135,11 +139,12 @@ sur ce même hôte. **Rocky Linux n'est ni un système hôte requis,
 ni une VM nécessaire, ni une dépendance de lancement de l'atelier.**
 Une VM Rocky de formation, si utilisée, appartient à un parcours
 DevOps externe au projet IA. Les priorités du dépôt sont désormais
-**streaming Open WebUI natif** puis **pilotage visuel des projets**.
+**canary et qualification du streaming Open WebUI**, cohérence des documents,
+puis **pilotage visuel des projets**.
 
 ## Limites connues
 
-- Les réponses du chat arrivent d'un bloc, sans s'afficher mot à mot.
+- Par défaut, les réponses du chat arrivent d'un bloc via le CLI ; le streaming SSE natif est raccordé en canary privé et reste à qualifier sur Fedora.
 - Une seule génération à la fois : le chat et l'atelier ne travaillent pas en même temps.
 - Le chat local transmet les 32 000 derniers octets de la conversation ; la route DeepSeek peut transmettre jusqu'à environ 3 Mio d'historique dans la limite du contexte cloud de 1 048 576 tokens.
 - Si le contexte doit être réduit à 16K, le chat ne garde plus qu'environ 500 mots d'historique. Voir [Réglages](docs/fiches/08-reglages.md).

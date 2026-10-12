@@ -33,7 +33,7 @@ Une CI verte ne prouve ni un vrai navigateur opérationnel, ni un coût fourniss
 | **C1 : cloud efficient** | Profils Rapide/Équilibré/Approfondi, coûts et visibilité | Profils contrôlés localement, avec `--apply`, verrou worker, effort et plafonds bornés ; **le profil reste global**, les profils par tâche et l'ajustement automatique ne sont pas livrés | Mesurer latence, coût, qualité sur OpenRouter réel |
 | **C2 : routage assisté** | Recommander Qwen/DeepSeek sur critères explicables | Premier niveau : `!modele` et bouton WebUI, conseil statique **sans accès à l'historique** ; route toujours manuelle. Évaluation par tâche/projet : non développée | Vérifier pertinence, refus sensibles, budget |
 | **W1 : Open WebUI 0.12** | Migration isolée et interface moderne | Image par digest, canary DB, filtres et fonctions configurés, restauration prévue | Valider vraie base, filtres, fichiers, voix, navigateur |
-| **W2 : vrai streaming** | Réponse affichée pendant l'inférence avec annulation fiable | **Transport SSE serveur à serveur préparé** avec décodage incrémental et refus ; **pont WebUI non raccordé**, jeton opérateur non exposé et activation suspendue aux vérifications du worker/verrou/budget | Mesurer premier token avant fin de réponse, arrêt propre |
+| **W2 : vrai streaming** | Réponse affichée pendant l'inférence avec annulation fiable | **PR #89 et #90 fusionnées** : transport SSE strict et pont WebUI raccordé en canary privé **désactivé par défaut**, avec prévalidation CLI, verrou partagé et jeton opérateur côté serveur ; cloud/projets exclus du canary | Tester sur Fedora la réception progressive, l'annulation, le verrou et le rollback sans laisser le Gateway privilégié actif |
 | **W3 : commandes visuelles** | Gérer projet, approbation, audit, livraison dans l'UI | Boutons reliés au pont déterministe, confirmation serveur, test d'autorisation | Parcours complet sans mémoriser de commandes |
 | **F1 : livrables professionnels** | PDF/DOCX/Draw.io cohérents, gros documents par sections | Rendu et assemblage déterministes, sources éditables, pas de troncature silencieuse | Inspection visuelle d'exemples représentatifs |
 | **K1 : contexte de projet** | Meilleure recherche des sources et décisions | Index vérifiable, couverture par document, références de fichiers non fabriquées | Comparer recherche actuelle et améliorée sur des corpus réels |
@@ -45,7 +45,7 @@ Une CI verte ne prouve ni un vrai navigateur opérationnel, ni un coût fourniss
 
 ## Ordre de travail recommandé
 
-1. **Streaming réel Open WebUI sur Fedora** : réponses progressives, gestion des annulations, conservation du verrou et du budget cloud, refus vérifiés.
+1. **Streaming canary prêt en code** (PR #90) : vérifier la configuration réelle du Gateway et réserver les essais de fragments/annulation/rollback à la phase finale Fedora.
 2. **Pilotage visuel des projets** : créer, sélectionner, cadrer, approuver, lancer, auditer et livrer via des commandes serveur déterministes et confirmations humaines.
 3. **Compatibilité Open WebUI et ergonomie** : canary 0.12, fonctions, téléchargements, pièces jointes, meilleure navigation et contrôle des permissions.
 4. **Fiabilité du système hybride** : prompts, recherche locale, exports, régressions, contrats et dépenses vérifiables.
