@@ -4,6 +4,19 @@
 
 Open WebUI est l'interface de discussion, à l'adresse `http://127.0.0.1:3000`. Elle sert aux questions de tous les jours, comme tu le ferais avec Claude ou ChatGPT.
 
+## Boutons de lecture rapide (Open WebUI)
+
+Après la création de ton compte administrateur et `webui-seal --apply`, trois
+raccourcis **en lecture seule** peuvent apparaître sous les réponses : **Voir les projets**,
+**État du projet** et **Commandes disponibles**. Ils interrogent le pont local authentifié
+et affichent une notification, sans modifier le projet, sans utiliser le modèle
+et sans dépenser de tokens. Ils ne remplacent pas encore les commandes de création,
+d'approbation et de livraison ni l'Atelier Projets : ces opérations gardent
+leurs confirmations humaines.
+
+La présence et le bon fonctionnement de ces boutons doivent être vérifiés dans
+le vrai navigateur (voir `docs/SMOKE_TEST_WEBUI.md`).
+
 ## Choisir à qui tu parles
 
 Le sélecteur de modèle en haut de la page liste les sept rôles. Tous utilisent le même Qwen : choisir un rôle change les consignes et les outils, pas le modèle. Si tu as activé le cloud, chaque rôle apparaît aussi en « · cloud (DeepSeek) » : voir plus bas.
