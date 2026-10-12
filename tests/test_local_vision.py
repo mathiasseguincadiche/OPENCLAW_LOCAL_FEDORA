@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import json
 from pathlib import Path
 from typing import Any
 
@@ -204,9 +205,6 @@ def test_marker_directory_symlinks_are_refused(tmp_path: Path) -> None:
 def test_ollama_local_request_is_only_fixed_post_with_no_proxies(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import json
-    from typing import Any
-
     seen: list[dict[str, Any]] = []
 
     class Response:
