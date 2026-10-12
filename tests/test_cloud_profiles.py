@@ -9,7 +9,11 @@ from pathlib import Path
 import pytest
 
 from clawfedora.cloud_profiles import (
-    ProfileRefused, chosen_profile, profile_path, profiles, set_profile,
+    ProfileRefused,
+    chosen_profile,
+    profile_path,
+    profiles,
+    set_profile,
 )
 from clawfedora.core_config import core_contract
 from clawfedora.project_worker import worker_lock
