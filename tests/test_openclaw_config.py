@@ -78,6 +78,13 @@ def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
     tools = patch["tools"]
     assert isinstance(tools, dict)
     assert tools["profile"] == "minimal"
+    assert tools["sessions"] == {"visibility": "self"}
+    assert tools["agentToAgent"] == {"enabled": False}
+    mentor_tools = agents["chef-operations"]["tools"]
+    assert not {"sessions_list", "sessions_history", "sessions_search"}.intersection(
+        mentor_tools["alsoAllow"]
+    )
+    assert "session_status" in mentor_tools["alsoAllow"]
     assert tools["exec"] == {"mode": "ask", "applyPatch": {"workspaceOnly": True}}
     assert tools["elevated"] == {"enabled": False}
     web = tools["web"]

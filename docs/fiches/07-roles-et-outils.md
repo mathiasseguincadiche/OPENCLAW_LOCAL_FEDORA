@@ -85,7 +85,7 @@ La matrice d'accès qui fait foi est dans [`config/core/tool_policy.yaml`](../..
 
 **Sa méthode :** réponse directe par défaut → explication du mécanisme → exemple adapté → vérification à réaliser. Si un projet est nécessaire, il propose **1 à 4 tâches** et les critères, puis **attend ton approbation** avant l'affectation par le worker.
 
-**Outils marquants :** lecture, recherche, `clawfedora_outline` (brief), `clawfedora_tool_status`, analyse de rapports CI, exports documentaires. Les outils de consultation de sessions sont disponibles selon son profil OpenClaw, sans délégation autonome.
+**Outils marquants :** lecture, recherche, `clawfedora_outline` (brief), `clawfedora_tool_status`, analyse de rapports CI, exports documentaires. Le mentor peut vérifier **le statut de sa session courante** (`session_status`), mais ne dispose plus de `sessions_list`, `sessions_history` ni `sessions_search`. La visibilité OpenClaw est explicitement limitée à `self` et la communication inter-agents native est désactivée ; c'est le worker, et non le modèle, qui remet les seules contributions approuvées aux spécialistes.
 
 **Exemple :** « Je sais administrer systemd. Explique ce qu'une CI ajoute, avec un exemple et les erreurs fréquentes. »
 

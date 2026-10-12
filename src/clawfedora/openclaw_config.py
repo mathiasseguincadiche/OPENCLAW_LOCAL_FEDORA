@@ -218,6 +218,11 @@ def build_openclaw_patch(
         },
         "tools": {
             "profile": str(global_tools.get("profile", "minimal")),
+            # OpenClaw 2026.9.8 defaults to cross-agent/all-session access if
+            # omitted. This personal atelier must never expose another role's
+            # conversation through a session tool, including the mentor role.
+            "sessions": {"visibility": "self"},
+            "agentToAgent": {"enabled": False},
             # Direct schemas: one tool call instead of search -> describe -> call,
             # which a 9B model rarely chains reliably. Affordable with the daily context.
             "toolSearch": False,
