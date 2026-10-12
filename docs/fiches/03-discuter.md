@@ -27,7 +27,7 @@ chez OpenRouter.
 ## Piloter les projets avec les boutons de confirmation
 
 Le bouton **Créer un projet** ouvre deux champs : titre (maximum
-200 caractères) et description du besoin (maximum 12 000 octets). Il
+193 caractères) et description du besoin (maximum 12 000 octets). Il
 demande ensuite une confirmation dans le navigateur. **Même après
 celle-ci, le projet n'est pas créé immédiatement** : le pont local
 génère une phrase `approuver creation CODE` valable 15 minutes, à
