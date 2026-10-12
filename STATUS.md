@@ -104,8 +104,12 @@ Le dépôt comporte une **suite synthétique fixe de sept scénarios métier**, 
 
 Le chat **local sans projet** peut désormais produire des aperçus de petits PDF
 contenant du texte et de fichiers Office (DOCX, PPTX, XLSX), sous limites de
-taille et de contexte. Les images PNG/JPEG/WebP ne fournissent que leurs
-**métadonnées vérifiées** : Qwen texte **ne voit pas leurs pixels**. Les PDF
+taille et de contexte. Sans activation, les images PNG/JPEG/WebP ne fournissent que leurs
+**métadonnées vérifiées**. La nouvelle voie de **vision locale Qwen** est
+strictement canary (marqueur privé 0600) et ne touche jamais OpenRouter ;
+les images et PDF scannés courts peuvent alors être décrits par Qwen
+après prévalidation et verrou worker. La précision visuelle sur B580 n'est
+**pas encore qualifiée**. Les PDF
 scannés sans texte, les archives et les usages cloud avec fichiers restent
 refusés dans cette voie. Tests simulés intégrés (PR #97), rendu réel Open WebUI
 à vérifier sur Fedora.
