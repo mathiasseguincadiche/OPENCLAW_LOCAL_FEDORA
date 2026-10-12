@@ -354,7 +354,7 @@ def test_creation_local_request_only_sends_bounded_inputs(
     assert "older-private" not in str(data)
     with pytest.raises(ValueError):
         API["local_bridge"](
-            "!creer Test\\n!livrer", [], key="k" * 64, mutation=True,
+            "!creer Test\n!livrer", [], key="k" * 64, mutation=True,
             creation_brief="Contexte",
         )
     with pytest.raises(ValueError):
