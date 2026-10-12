@@ -217,9 +217,9 @@ def test_sse_can_read_a_standard_usage_only_final_frame() -> None:
         [b"data: {}\ndata: {}\n\n"],
         [b"data: {}\x00\n\n"],
         [b"data: {}\r\n", b"unknown: x\n\n"],
-        [b'data: {"choices":[{"index":0,"delta":{"role":"system",
+        [b'data: {"choices":[{"index":0,"delta":{"role":"system",'
          b'"content":"hi"},"finish_reason":null}]}\n\n'],
-        [b'data: {"choices":[{"index":0,"delta":{"role":"tool",
+        [b'data: {"choices":[{"index":0,"delta":{"role":"tool",'
          b'"content":"hi"},"finish_reason":null}]}\n\n'],
         [b'data: {"choices":[]}\n\n'],
         [_chunk("", "stop"), _chunk("after"), b"data: [DONE]\n\n"],
