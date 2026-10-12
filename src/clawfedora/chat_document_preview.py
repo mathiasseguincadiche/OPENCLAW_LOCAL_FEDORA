@@ -13,10 +13,6 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
-from defusedxml.ElementTree import fromstring
-from PIL import Image, UnidentifiedImageError
-from pypdf import PdfReader
-from pypdf.errors import PdfReadError
 
 MAX_INPUT = 2 * 1024 * 1024
 MAX_PDF_PAGES = 12
@@ -65,6 +61,9 @@ def preview_document(path: Path, name: str, budget: int) -> dict[str, Any]:
 
 
 def _pdf(data: bytes, budget: int) -> str:
+    from pypdf import PdfReader
+    from pypdf.errors import PdfReadError
+
     if not data.startswith(b"%PDF-"):
         raise ValueError("PDF invalide")
     try:
@@ -97,6 +96,8 @@ def _wanted(name: str, suffix: str) -> bool:
 
 
 def _office(data: bytes, suffix: str, budget: int) -> str:
+    from defusedxml.ElementTree import fromstring
+
     text: list[str] = []
     total = 0
     try:
@@ -141,6 +142,8 @@ def _office(data: bytes, suffix: str, budget: int) -> str:
 
 
 def _image(data: bytes, suffix: str) -> dict[str, Any]:
+    from PIL import Image, UnidentifiedImageError
+
     try:
         with Image.open(io.BytesIO(data)) as image:
             width, height = image.size
