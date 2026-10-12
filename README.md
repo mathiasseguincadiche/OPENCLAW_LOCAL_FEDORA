@@ -28,7 +28,8 @@ Il accompagne aussi un parcours : passer de l'administration systèmes et résea
 | Joindre des PDF, Office, archives, code et images avant l'analyse | Open WebUI ou Atelier Projets, dans un projet |
 | Pratiquer en mode guidé, soumettre ses fichiers et recevoir un retour | Open WebUI ou Atelier Projets |
 | Dicter une question et écouter une réponse, sans service vocal cloud | Open WebUI, Whisper + TTS locaux |
-| Analyser rapidement de petits fichiers texte/code sans créer de projet | Open WebUI en local uniquement, 4 fichiers et 12 Ko au total |\n| Obtenir de vrais fichiers : Markdown, PDF, DOCX, YAML, Terraform, schémas Draw.io | Les deux |
+| Analyser rapidement de petits fichiers texte/code sans créer de projet | Open WebUI en local uniquement, 4 fichiers et 12 Ko au total |
+| Obtenir de vrais fichiers : Markdown, PDF, DOCX, YAML, Terraform, schémas Draw.io | Les deux |
 
 En local, un seul modèle, **Qwen 3.5 9B**, tourne sur la carte graphique avec Ollama. **OpenClaw** lui donne sept rôles : mentor, recherche, architecte, DevOps, sécurité, rédacteur et auditeur. Ce sont sept jeux de consignes pour le même modèle, pas sept IA en mémoire.
 
