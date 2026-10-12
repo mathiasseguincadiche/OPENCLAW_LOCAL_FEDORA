@@ -186,11 +186,11 @@ def test_setup_pins_limits_preserves_secrets_and_closes_registration(tmp_path: P
         row = db.execute(
             'SELECT type, is_active, is_global FROM "function" WHERE id="clawfedora_files"'
         ).fetchone()
-    assert row == ("filter", 1, 1)
         action = db.execute(
             'SELECT type, is_active, is_global FROM "function" '
             'WHERE id="clawfedora_project_actions"'
         ).fetchone()
+    assert row == ("filter", 1, 1)
     assert action == ("action", 1, 1)
     assert all(
         settings[key] == "false"
