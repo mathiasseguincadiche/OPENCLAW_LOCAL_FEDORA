@@ -6,11 +6,11 @@ requires the user's private vision marker and preflight.
 from __future__ import annotations
 
 import argparse
-import io
 import json
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from PIL import Image, ImageDraw
 from reportlab.lib.utils import ImageReader
