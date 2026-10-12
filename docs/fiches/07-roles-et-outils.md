@@ -13,6 +13,8 @@ Imagine une **équipe de sept métiers** réunie autour d'un même dossier, **ma
 
 ![Le modèle unique et les sept spécialités](../diagrams/atelier-roles.svg)
 
+**Un point crucial :** les agents qui travaillent en local emploient **le même modèle** Qwen. Le cloud, lorsqu'il est autorisé, change la route d'inférence mais pas les règles d'accès aux outils. Un audit sur une session distincte ne devient pas indépendant simplement parce que le nom du rôle change.
+
 **Un projet n'a pas besoin des sept agents.** Pour une question Linux simple, le mentor suffit. Pour un pipeline sensible, DevOps + sécurité + audit peuvent être utiles. Ajouter des agents inutilement **augmente les générations, la durée et éventuellement le coût cloud**.
 
 ## Choisir le bon interlocuteur
