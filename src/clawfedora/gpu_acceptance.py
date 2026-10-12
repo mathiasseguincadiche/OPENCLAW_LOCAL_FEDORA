@@ -6,8 +6,9 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from clawfedora.context_probe import probe_context
 
