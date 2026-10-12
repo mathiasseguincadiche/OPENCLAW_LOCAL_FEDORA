@@ -477,3 +477,160 @@ def test_clarification_bridge_sends_only_validated_project_answer(
     assert len(captured) == 1
     with pytest.raises(ValueError):
         API["local_bridge"]("!repondre", history, key="k" * 64)
+
+
+def test_visual_revision_asks_for_independent_approval(monkeypatch: Any) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "k" * 64)
+    history = [{"role": "assistant", "content": "📁 Projet : infra-demo"}]
+    bridge_calls: list[tuple[str, tuple[str, str]]] = []
+    events: list[dict[str, Any]] = []
+    notices: list[dict[str, Any]] = []
+
+    def fake_bridge(
+        command: str, messages: object, *, key: str, mutation: bool,
+        revision: tuple[str, str], port: int = 18891,
+    ) -> str:
+        assert messages == history and key == "k" * 64 and mutation
+        bridge_calls.append((command, revision))
+        return "Révision proposée. Pour confirmer : approuver revision ABCD"
+
+    responses: list[Any] = [" TACHE-001 ", "Corriger la validation Terraform.", True]
+
+    async def browser(event: dict[str, Any]) -> Any:
+        events.append(event)
+        return responses.pop(0)
+
+    async def notify(event: dict[str, Any]) -> None:
+        notices.append(event)
+
+    monkeypatch.setitem(API["local_bridge"].__globals__, "local_bridge", fake_bridge)
+    asyncio.run(API["Action"]().action(
+        {"messages": history}, __id__="revise", __user__={"role": "admin"},
+        __event_call__=browser, __event_emitter__=notify,
+    ))
+    assert bridge_calls == [("!modifier", ("tache-001", "Corriger la validation Terraform."))]
+    assert [event["type"] for event in events] == ["input", "input", "confirmation"]
+    assert "indépendante" in events[-1]["data"]["message"]
+    assert "approuver revision ABCD" in notices[0]["data"]["content"]
+
+
+@pytest.mark.parametrize(
+    "responses",
+    [
+        [None], [{"error": "browser disconnected"}],
+        ["tache-001", None], ["tache-001", {"error": "timeout"}],
+        ["tache-001", "motif", False],
+        ["tache-001", "motif", {"ok": True}],
+    ],
+)
+def test_visual_revision_cancellation_never_contacts_bridge(
+    monkeypatch: Any, responses: list[Any],
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "k" * 64)
+    monkeypatch.setitem(
+        API["local_bridge"].__globals__, "local_bridge",
+        lambda *_args, **_kwargs: pytest.fail("cancelled revision reached the bridge"),
+    )
+
+    async def browser(_event: dict[str, Any]) -> Any:
+        return responses.pop(0)
+
+    asyncio.run(API["Action"]().action(
+        {"messages": [{"role": "assistant", "content": "📁 Projet : infra-demo"}]},
+        __id__="revise", __user__={"role": "admin"}, __event_call__=browser,
+    ))
+
+
+def test_visual_revision_requires_admin_project_and_browser() -> None:
+    action = API["Action"]()
+
+    async def confirmed(_event: dict[str, Any]) -> bool:
+        return True
+
+    with pytest.raises(ValueError, match="interdite"):
+        asyncio.run(action.action(
+            {"messages": []}, __id__="revise", __user__={"role": "pending"},
+            __event_call__=confirmed,
+        ))
+    with pytest.raises(ValueError, match="projet"):
+        asyncio.run(action.action(
+            {"messages": []}, __id__="revise", __user__={"role": "admin"},
+            __event_call__=confirmed,
+        ))
+    with pytest.raises(ValueError, match="navigateur"):
+        asyncio.run(action.action(
+            {"messages": [{"role": "assistant", "content": "📁 Projet : infra-demo"}]},
+            __id__="revise", __user__={"role": "admin"},
+        ))
+
+
+def test_revision_bridge_transmits_only_bounded_task_and_reason(monkeypatch: Any) -> None:
+    import http.client
+
+    captured: list[dict[str, Any]] = []
+
+    class Response:
+        status = 200
+
+        def read(self, _limit: int) -> bytes:
+            return json.dumps({
+                "choices": [{"message": {"content": "approuver revision ABCD"}}]
+            }).encode()
+
+    class Connection:
+        def __init__(self, host: str, port: int, timeout: int) -> None:
+            assert (host, port, timeout) == ("127.0.0.1", 18891, 8)
+
+        def request(
+            self, method: str, path: str, body: bytes, headers: dict[str, str],
+        ) -> None:
+            assert (method, path) == ("POST", "/v1/chat/completions")
+            assert headers["Authorization"] == "Bearer " + "k" * 64
+            captured.append(json.loads(body))
+
+        def getresponse(self) -> Response:
+            return Response()
+
+        def close(self) -> None:
+            pass
+
+    monkeypatch.setattr(http.client, "HTTPConnection", Connection)
+    history = [
+        {"role": "user", "content": "sensitive-previous-history"},
+        {"role": "assistant", "content": "📁 Projet : infra-demo\n\nprivate"},
+    ]
+    assert API["local_bridge"](
+        "!modifier", history, key="k" * 64, mutation=True,
+        revision=(" TASK-001 ", "  Améliorer\nle plan Terraform.  "),
+    ) == "approuver revision ABCD"
+    assert captured == [{
+        "model": "openclaw/chef-operations", "stream": False,
+        "messages": [
+            {"role": "assistant", "content": "📁 Projet : infra-demo"},
+            {"role": "user", "content": "!modifier task-001 Améliorer le plan Terraform."},
+        ],
+    }]
+    assert "sensitive-previous-history" not in str(captured)
+    for task, reason in [
+        ("../escape", "motif"), ("a", "motif"), ("x" * 65, "motif"),
+        ("task-001", ""), ("task-001", "X" * 2001),
+        ("task-001", "nul\x00ici"),
+    ]:
+        with pytest.raises(ValueError, match="invalide"):
+            API["local_bridge"](
+                "!modifier", history, key="k" * 64, mutation=True,
+                revision=(task, reason),
+            )
+    with pytest.raises(ValueError, match="non autorisée"):
+        API["local_bridge"]("!modifier task-001 motif", history, key="k" * 64, mutation=True)
+    with pytest.raises(ValueError, match="non autorisée"):
+        API["local_bridge"](
+            "!modifier", history, key="k" * 64,
+            revision=("task-001", "motif"), mutation=False,
+        )
+    with pytest.raises(ValueError, match="incompatibles"):
+        API["local_bridge"](
+            "!modifier", history, key="k" * 64, mutation=True,
+            revision=("task-001", "motif"), clarification=(1, "réponse"),
+        )
+    assert len(captured) == 1

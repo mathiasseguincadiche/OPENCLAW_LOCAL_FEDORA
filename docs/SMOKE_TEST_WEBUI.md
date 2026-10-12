@@ -80,6 +80,18 @@ Après `webui-seal --apply`, dans le navigateur :
 - annuler chacun des deux champs et la confirmation de création, tester un
   titre multiligne et une description démesurée : aucun projet créé, aucun
   appel au modèle, aucune fuite d'historique ni d'identifiants ;
+- sélectionner un projet, répondre à une question de cadrage via
+  **Répondre à une précision**, puis vérifier que l'annulation, une
+  erreur de navigateur et un numéro invalide n'envoient rien ;
+- sélectionner une tâche déjà planifiée, demander une révision via
+  **Demander une révision**, puis vérifier que le navigateur affiche le
+  numéro de tâche et le motif à saisir ; annuler chacun des champs ou
+  la confirmation et vérifier qu'aucune révision n'est créée ;
+- confirmer le dialogue de révision : vérifier que le pont énumère
+  les tâches affectées et demande une phrase indépendante
+  `approuver revision CODE` ; avant de saisir cette phrase, **aucun**
+  état ou livrable ne doit changer ; tester un code expiré puis un
+  code valide sur un projet de test ;
 - vérifier que l'Action installée se nomme « ClawFedora — contrôle des projets »
   et que sa description ne prétend plus limiter les boutons à la lecture seule ;
 - comparer `!budget` et le bouton Budget DeepSeek : mêmes montants du

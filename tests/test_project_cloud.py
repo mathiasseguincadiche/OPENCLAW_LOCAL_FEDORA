@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -288,6 +289,26 @@ def test_the_independent_review_also_goes_through_the_project_route(
     with pytest.raises(CloudPause) as paused:
         review_project(ROOT, runtime, project, "validation", runner=runner)
     assert paused.value.code == "budget_refused" and base.routes[-1] == "cloud"
+
+
+def test_a_gateway_second_timestamp_skew_does_not_mislabel_budget_refusal(
+    workshop: tuple[Path, Path, Base], monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime, project, base = workshop
+    approve(runtime, project)
+    base.cloud_events = [{"decision": "budget_refused"}]
+    base.cloud_error = RuntimeError("402")
+    # Model a gateway event timestamp one second behind the caller's clock.
+    # The gateway writes whole UTC seconds; the pause must keep its actual
+    # reason instead of silently becoming gateway_unreachable.
+    offset = time.time() + 1.25
+    monkeypatch.setattr(project_cloud, "time", SimpleNamespace(time=lambda: offset))
+    runner = project_runner(ROOT, runtime, project, base=base)
+    with pytest.raises(CloudPause) as paused:
+        runner("expert-recherche", "Contexte\\n{}", "test-skew")
+    assert paused.value.code == "budget_refused"
+    assert base.routes == ["cloud"]
+    assert project_cloud.read_pause(runtime, project)["code"] == "budget_refused"
 
 
 def test_the_local_model_check_is_skipped_for_cloud_projects_only(

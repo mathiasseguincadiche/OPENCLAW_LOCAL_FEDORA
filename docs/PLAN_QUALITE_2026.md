@@ -114,10 +114,11 @@ restent à développer.
 
 - Le plugin Action expose désormais **cinq lectures locales** (projets, état,
   aide, modèle, budget), **huit transitions de projet** avec confirmation
-  navigateur et un **formulaire de création** exigeant encore un code
-  d'approbation. Elles sont testées hors navigateur ; leur rendu réel
-  sur Open WebUI reste à qualifier. Les formulaires de révision, réponse
-  aux questions et soumission de fichiers restent à faire.
+  navigateur et **trois formulaires** (création, précision, révision).
+  La création et la révision exigent encore leur code d'approbation
+  indépendant. Les dialogues sont testés hors navigateur ; leur rendu
+  réel sur Open WebUI reste à qualifier. Un formulaire dédié à la
+  soumission de fichiers reste à faire.
   Toute action doit passer par les mêmes API déterministes et confirmations à usage unique.
 - **Priorité :** finaliser le vrai streaming d'Open WebUI sur Fedora
   et les commandes visuelles de projet avec approbation humaine,

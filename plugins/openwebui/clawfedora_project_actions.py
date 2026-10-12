@@ -12,6 +12,7 @@ import asyncio
 import http.client
 import json
 import os
+import re
 from typing import Any
 
 # Only fixed commands are exposed. The bridge performs all project-state checks.
@@ -58,10 +59,25 @@ def local_bridge(
     command: str, history: object, *, key: str, port: int = 18891,
     mutation: bool = False, creation_brief: str | None = None,
     clarification: tuple[int, str] | None = None,
+    revision: tuple[str, str] | None = None,
 ) -> str:
     create = creation_brief is not None
-    if create and clarification is not None:
+    if sum((create, clarification is not None, revision is not None)) > 1:
         raise ValueError("paramètres incompatibles")
+    if revision is not None:
+        if not mutation or command != "!modifier":
+            raise ValueError("révision non autorisée")
+        task_id, reason = revision
+        if not isinstance(task_id, str) or not isinstance(reason, str):
+            raise ValueError("identifiant ou motif de révision invalide")
+        task_id = task_id.strip().lower()
+        cleaned = " ".join(reason.split())
+        if (
+            re.fullmatch(r"[a-z0-9][a-z0-9-]{1,62}[a-z0-9]", task_id) is None
+            or not cleaned or len(cleaned) > 2000 or "\x00" in reason
+        ):
+            raise ValueError("identifiant ou motif de révision invalide")
+        command = f"!modifier {task_id} {cleaned}"
     if clarification is not None:
         if not mutation or command != "!repondre":
             raise ValueError("réponse de précision non autorisée")
@@ -89,7 +105,7 @@ def local_bridge(
             or "\x00" in creation_brief
         ):
             raise ValueError("titre ou demande de projet invalide")
-    elif mutation and clarification is None:
+    elif mutation and clarification is None and revision is None:
         if command not in {item[0] for item in PROJECT_ACTIONS.values()}:
             raise ValueError("action mutante non autorisée")
     elif not mutation and command not in READ_ONLY_ACTIONS.values():
@@ -147,6 +163,7 @@ class Action:
         {"id": "budget", "name": "Budget DeepSeek"},
         {"id": "create", "name": "Créer un projet"},
         {"id": "answer", "name": "Répondre à une précision"},
+        {"id": "revise", "name": "Demander une révision"},
         {"id": "analyze", "name": "Analyser le projet"},
         {"id": "plan", "name": "Préparer le plan"},
         {"id": "start", "name": "Lancer les tâches"},
@@ -259,6 +276,50 @@ class Action:
             output = await asyncio.to_thread(
                 local_bridge, "!repondre", history, key=secret,
                 mutation=True, clarification=(number, answer_raw),
+            )
+        elif __id__ == "revise":
+            if __event_call__ is None:
+                raise ValueError("formulaire navigateur indisponible")
+            if _project_marker(history) is None:
+                raise ValueError("sélectionner d'abord un projet")
+            task_raw = await __event_call__({
+                "type": "input", "data": {
+                    "title": "Réviser une tâche",
+                    "message": "Identifiant de la tâche figurant dans !etat",
+                    "placeholder": "tache-001",
+                },
+            })
+            if type(task_raw) is not str or not task_raw.strip():
+                return
+            task_id = task_raw.strip().lower()
+            if re.fullmatch(r"[a-z0-9][a-z0-9-]{1,62}[a-z0-9]", task_id) is None:
+                raise ValueError("identifiant de tâche invalide")
+            reason_raw = await __event_call__({
+                "type": "input", "data": {
+                    "title": f"Motif de révision : {task_id}",
+                    "message": "Pourquoi reprendre cette tâche ? (maximum 2 000 caractères)",
+                    "placeholder": "Décrire précisément le changement attendu…",
+                },
+            })
+            if type(reason_raw) is not str or not reason_raw.strip():
+                return
+            if len(" ".join(reason_raw.split())) > 2000 or "\x00" in reason_raw:
+                raise ValueError("motif de révision invalide")
+            confirmed = await __event_call__({
+                "type": "confirmation", "data": {
+                    "title": "Préparer la révision",
+                    "message": (
+                        f"Préparer la révision de {task_id} ? Le pont calculera les "
+                        "tâches affectées et exigera ensuite une phrase d'approbation "
+                        "indépendante avant toute modification."
+                    ),
+                },
+            })
+            if confirmed is not True:
+                return
+            output = await asyncio.to_thread(
+                local_bridge, "!modifier", history, key=secret,
+                mutation=True, revision=(task_id, reason_raw),
             )
         elif __id__ in PROJECT_ACTIONS:
             # Only a positive response from the actual browser counts, not an

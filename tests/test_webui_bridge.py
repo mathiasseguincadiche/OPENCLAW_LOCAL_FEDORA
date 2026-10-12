@@ -211,6 +211,8 @@ def test_setup_pins_limits_preserves_secrets_and_closes_registration(tmp_path: P
     assert "confirmation humaine" in metadata["description"]
     assert "code à usage unique" in metadata["description"]
     assert '"id": "create"' in source
+    assert '"id": "answer"' in source
+    assert '"id": "revise"' in source
     assert '"id": "deliver"' in source
     assert '"id": "budget"' in source
     assert all(

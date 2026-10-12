@@ -258,7 +258,11 @@ class ProjectRunner:
             response = self.base(role, prompt, session, route="cloud")
         except Exception as exc:
             self._log(role, session, "cloud", self._spent(ledger, before.spent_eur), failed=True)
-            failure = classify_failure(recent_events(self.runtime, started))
+            # Gateway events are stamped to whole UTC seconds. Allow the same
+            # small clock/rounding tolerance as the chat bridge, so a logged
+            # budget refusal is not mistaken for a missing local gateway.
+            # This is diagnosis only: the failed operation stays paused.
+            failure = classify_failure(recent_events(self.runtime, started - 2.0))
             if failure is not None:
                 raise self._pause(failure[0], failure[1]) from exc
             raise

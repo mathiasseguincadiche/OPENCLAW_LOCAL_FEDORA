@@ -102,15 +102,18 @@ Le dépôt comporte une **suite synthétique fixe de sept scénarios métier**, 
 
 Le plugin Action propose **cinq boutons en lecture seule**, **huit
 boutons de transition** (analyse, plan, lancer, pause, reprise, audit,
-relecture, préparation de livraison) et **Créer un projet** par formulaire
-de deux champs. Une action mutante exige la confirmation du navigateur ;
-la création et la livraison conservent ensuite la phrase d'approbation
+relecture, préparation de livraison), plus trois formulaires : **Créer
+un projet**, **Répondre à une précision** et **Demander une révision**.
+Une action mutante exige la confirmation du navigateur ; la création,
+la révision et la livraison conservent ensuite la phrase d'approbation
 indépendante, émise par le pont. Les tests couvrent des dialogues simulés,
 les appels du pont, l'absence d'historique transmis par les boutons et
 les cas d'annulation. **Le rendu sur le véritable Open WebUI et la
 fiabilité de ses dialogues restent non qualifiés sur Fedora.**
-Les formulaires de révision, de réponse aux questions et d'envoi de
-fichiers restent hors de ces boutons.
+Le formulaire de révision ne change aucun livrable au premier clic :
+le moteur calcule les tâches affectées et émet un code distinct à saisir
+dans le chat. La soumission guidée de fichiers reste disponible par
+commande, sans formulaire dédié.
 
 ## Préparation du streaming SSE OpenClaw
 
