@@ -149,7 +149,10 @@ def _record_model_run(
     return record
 
 
-def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False) -> AgentRunner:
+def openclaw_runner(
+    runtime: Path, repo_root: Path, *, plain_text: bool = False,
+    preflight_only: bool = False,
+) -> AgentRunner:
     checked_binary: tuple[str, int, int] | None = None
     roster_stamp: tuple[int, int] | None = None
     cloud_stamp: tuple[int, int] | None = None
@@ -165,6 +168,10 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
 
         if route not in ROUTES:
             raise ValueError(f"route inconnue: {route}")
+        if role not in AGENT_IDS:
+            raise ValueError("rôle OpenClaw non autorisé")
+        if preflight_only and route != "local":
+            raise ValueError("prévalidation SSE réservée au modèle local")
         cloud = route == "cloud"
         if cloud:
             # Cheapest check first: no process starts unless filter and budget are verified.
@@ -266,6 +273,10 @@ def openclaw_runner(runtime: Path, repo_root: Path, *, plain_text: bool = False)
                     raise ValueError("fournisseurs cloud non vérifiables: route cloud refusée")
                 _verify_cloud_config(repo_root, roster_payload, json.loads(providers_result.stdout))
                 cloud_stamp = stamp
+        # Reuse the *same* pinned version, model digest, roster and tool-policy
+        # checks before an HTTP SSE turn. No CLI agent inference is launched.
+        if preflight_only:
+            return {"text": "", "route": "local"}
         model_args = ["--model", cloud_model_ref(core_contract(repo_root, "cloud_policy.yaml"))]
         completed = subprocess.run(
             [

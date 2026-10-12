@@ -763,7 +763,14 @@ def make_server(
     server.runner = runner or openclaw_runner(runtime, repo_root, plain_text=True)
     server.cloud_ready = cloud_ready or (lambda: cloud_status(runtime, repo_root)[0])
     server.privacy = PrivacyFilter(runtime / CLOUD_STATE / "denylist.txt")
-    server.stream_runner = stream_runner
+    # Production remains on the established CLI path unless a private canary
+    # opt-in exists. Only this server can access the Gateway operator bearer.
+    if stream_runner is not None:
+        server.stream_runner = stream_runner
+    else:
+        from clawfedora.native_stream import native_source, opted_in
+
+        server.stream_runner = native_source(runtime, repo_root) if opted_in(runtime) else None
     return server
 
 

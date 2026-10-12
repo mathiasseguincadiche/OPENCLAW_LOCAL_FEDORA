@@ -170,12 +170,21 @@ def build_openclaw_patch(
     web = _mapping(web_policy.get("nominal_path"))
     global_tools = _mapping(tools.get("security_defaults"))
 
+    from clawfedora.native_stream import opted_in
+
+    gateway: dict[str, Any] = {
+        "mode": "local",
+        "bind": "loopback",
+        "controlUi": {"newSessionModelDefaults": "configured"},
+    }
+    # Set explicit False on rollback: OpenClaw config patch is a merge, so
+    # simply omitting the field would leave a previous privileged API enabled.
+    gateway["http"] = {
+        "endpoints": {"chatCompletions": {"enabled": opted_in(runtime_root)}}
+    }
+
     return {
-        "gateway": {
-            "mode": "local",
-            "bind": "loopback",
-            "controlUi": {"newSessionModelDefaults": "configured"},
-        },
+        "gateway": gateway,
         "plugins": {
             "allow": ["parallel", "clawfedora-toolkit", "memory-core"],
             "slots": {"memory": "none"},

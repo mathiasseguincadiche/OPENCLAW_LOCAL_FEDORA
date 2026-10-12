@@ -111,11 +111,17 @@ injectée, Open WebUI peut recevoir un fragment **avant** la fin de la
 génération, que le worker reste verrouillé et qu'un échec en cours de
 flux n'est jamais présenté comme une réponse complète.
 
-**Avant l'activation réelle** : intégrer le transport du Gateway à la
-prévalidation existante (version et modèle exacts, outils, confidentialité,
-jeton opérateur réservé au serveur et arrêt fiable), puis tester sur Fedora
-avec un vrai navigateur. Ne pas activer directement l'API privilégiée
-d'OpenClaw depuis Open WebUI pour contourner cette étape.
+**Le raccordement canary est disponible dans le code, mais désactivé par défaut.**
+Le pont peut désormais sélectionner le streaming natif après activation explicite,
+prévalidation CLI exacte (versions/modèle Qwen/roster/outils) et contrôle du jeton
+opérateur 0600. L'API privilégiée reste inaccessible à Open WebUI : seul le pont
+local peut l'appeler. L'activation et le retour arrière sont documentés dans
+[Streaming SSE natif](STREAMING_SSE_PREPARATION.md).
+
+**Test final sur Fedora** : vérifier les fragments en direct, l'annulation,
+la fermeture du générateur, le verrou, la sécurité des commandes et l'absence
+de coût cloud. Sans marqueur, vérifier que le CLI reste sélectionné. Une CI
+verte seule ne valide ni OpenClaw réel ni le navigateur.
 
 ## 2. Conversation locale
 
