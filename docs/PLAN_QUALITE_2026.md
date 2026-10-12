@@ -71,6 +71,17 @@ arrêt/redémarrage reproduits ; aucune commande système déclenchée par une p
 
 **Acceptation :** un runbook complet, une architecture multi-zones et un rapport d'audit exportés sans troncature, avec sources éditables.
 
+## Mesurer l'efficacité réelle de Qwen + DeepSeek
+
+La stratégie du projet est **hybride par conception** : Qwen quotidien, DeepSeek pour les tâches difficiles, sans routage automatique tant que ce mécanisme n'est pas conçu et validé.
+
+- Comparer **sur les mêmes tâches DevOps publiques** un module Terraform multi-fichiers, une revue CI, un ADR, un audit de configuration et un runbook complexe.
+- Mesurer **correction technique, qualité pédagogique, nombre de reprises, temps total, coût réel et confidentialité** ; ne pas inférer la supériorité de DeepSeek d'un contexte maximal plus grand.
+- Vérifier les deux cas actuels : choix du modèle dans le chat, et **accord cloud appliqué au projet** dans l'atelier. Une sélection par tâche/agent n'existe pas encore.
+- Évaluer ultérieurement un routage assisté **avec consentement explicite, critère de coût, règles de non-divulgation et journal d'explication du choix**, sans jamais rendre automatique l'envoi de documents privés.
+
+→ [Contrat pédagogique du système hybride](ARCHITECTURE_HYBRIDE.md).
+
 ## P2 : ergonomie et vérification métier
 
 - Trois premières actions visuelles **en lecture seule** sont ajoutées : voir les projets, consulter l'état et l'aide. Les opérations mutantes (créer/sélectionner/approuver/exécuter/auditer/livrer) restent à construire avec les confirmations existantes ; ne pas les considérer terminées.
