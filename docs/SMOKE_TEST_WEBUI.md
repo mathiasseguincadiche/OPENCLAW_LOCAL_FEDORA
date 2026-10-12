@@ -147,11 +147,17 @@ Dans une nouvelle conversation sans projet :
 2. Joindre un `README.md` et un `deployment.yaml` (moins de 12 000 octets cumulés).
 3. Tenter un cinquième fichier et un fichier de plus de 12 000 octets :
    refus explicite, aucune inférence.
-4. Tenter un PDF, une image, un fichier binaire ou une empreinte invalide :
-   refus explicite, aucune inférence.
-5. Choisir « · cloud (DeepSeek) » et joindre le même `main.tf` :
+4. Joindre un petit PDF texte et un DOCX : vérifier que seules les portions
+   textuelles bornées sont transmises au Mentor local, sans créer de projet.
+   Pour un PPTX ou XLSX, contrôler que le résultat indique une extraction
+   partielle, sans garantir mise en page ni formules.
+5. Joindre une petite image PNG/JPEG : vérifier que seules les **métadonnées**
+   (dimensions/format) sont retournées, sans prétendre comprendre ses pixels.
+   Refuser un PDF scanné sans texte, un format exécutable, un fichier corrompu,
+   une archive ZIP, un PDF trop long ou une empreinte invalide avant inférence.
+6. Choisir « · cloud (DeepSeek) » et joindre le même `main.tf` :
    **refus**, aucun appel OpenRouter et aucun coût enregistré.
-6. Vérifier que le fichier n'a créé aucun dossier sous `projects/`.
+7. Vérifier que le fichier n'a créé aucun dossier sous `projects/`.
    Il peut rester dans le stockage normal d'Open WebUI : vérifier aussi sa suppression.
 
 Ces vérifications ne remplacent pas les tests de l'ingestion complète dans un projet.

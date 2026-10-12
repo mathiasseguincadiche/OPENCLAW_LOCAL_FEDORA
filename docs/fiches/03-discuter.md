@@ -153,9 +153,9 @@ Exemple : « Je connais les services systemd. Explique-moi ce qu'un rôle Ansibl
 
 ## Analyser un petit fichier sans créer de projet
 
-Dans une discussion **locale**, tu peux joindre directement jusqu'à **quatre petits fichiers texte ou de code** (Terraform, Ansible/YAML, Markdown, Python, Bash, JSON, etc.), pour **12 000 octets au total**. Le pont contrôle le fichier d'origine puis place son contenu dans le contexte de cette question uniquement : rien n'est enregistré dans un projet et aucun document n'est envoyé à DeepSeek. Les fichiers envoyés restent néanmoins dans le stockage normal d'Open WebUI et suivent sa politique de conservation.
+Dans une discussion **locale**, tu peux joindre jusqu'à **quatre petites pièces jointes** : fichiers texte/code (Terraform, YAML, Markdown, Python, Bash, etc.) ou aperçus bornés de PDF texte et Office (DOCX, PPTX, XLSX), avec un budget cumulé de **12 000 octets de contenu texte**. Un document PDF/Office ne doit pas dépasser **2 Mio**. Le pont contrôle le fichier d'origine puis place son contenu dans le contexte de cette question uniquement : rien n'est enregistré dans un projet et aucun document n'est envoyé à DeepSeek. Les fichiers envoyés restent néanmoins dans le stockage normal d'Open WebUI et suivent sa politique de conservation.
 
-Les PDF, images, archives et fichiers Office doivent pour l'instant passer par l'ingestion canonique d'un projet, comme les analyses volumineuses. Un changement de modèle vers « cloud » avec des pièces jointes hors projet est explicitement refusé. Pour analyser un fichier de projet, sélectionne le projet et importe les pièces jointes **avant** l'analyse.
+Les **PDF scannés sans texte** ne sont pas analysés par OCR en chat libre. Une image PNG/JPEG/WebP est contrôlée uniquement pour son **format et ses dimensions** : ses pixels ne sont pas transmis au modèle texte Qwen ; cela ne prouve aucune compréhension de l'image. Pour l'analyse visuelle réelle, les archives ou les documents volumineux, utilise l'ingestion canonique d'un projet. Un changement de modèle vers « cloud » avec des pièces jointes hors projet est explicitement refusé. Pour analyser un fichier de projet, sélectionne le projet et importe les pièces jointes **avant** l'analyse.
 
 ## Obtenir un fichier
 

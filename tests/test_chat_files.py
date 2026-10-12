@@ -150,7 +150,7 @@ def test_standalone_text_attachments_are_private_and_bounded(tmp_path: Path) -> 
     uploaded = _upload(runtime, "main.tf", b'resource "null_resource" "example" {}\n')
     prompt = chat_files.standalone_texts(runtime, [uploaded])
     assert "main.tf" in prompt and "null_resource" in prompt
-    with pytest.raises(ValueError, match="projet"):
+    with pytest.raises(ValueError, match="PDF"):
         chat_files.standalone_texts(runtime, [_upload(runtime, "guide.pdf", b"%PDF")])
     with pytest.raises(ValueError, match="binaire"):
         chat_files.standalone_texts(runtime, [_upload(runtime, "nul.md", b"abc\x00def")])
