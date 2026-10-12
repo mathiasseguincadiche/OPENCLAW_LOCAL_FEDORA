@@ -1,8 +1,9 @@
-"""Open WebUI Action: read-only project shortcuts for a single-admin Fedora atelier.
+"""Open WebUI Action: controlled project shortcuts for a single-admin Fedora atelier.
 
-The tool never interprets or executes model output, never approves a project
-transition and never sends user content to an external host. Requests go only to
-the existing authenticated OpenClaw bridge on loopback.
+The tool never interprets or executes model output or approves a project
+transition by itself. Form input and the selected marker are sent only to
+the existing authenticated OpenClaw bridge on loopback, never to a cloud host.
+The bridge issues a distinct one-time code for creating the project.
 """
 
 from __future__ import annotations
@@ -55,9 +56,23 @@ def _project_marker(history: object) -> str | None:
 
 def local_bridge(
     command: str, history: object, *, key: str, port: int = 18891,
-    mutation: bool = False,
+    mutation: bool = False, creation_brief: str | None = None,
 ) -> str:
-    if mutation:
+    create = creation_brief is not None
+    if create:
+        if not mutation or not command.startswith("!creer ") or len(command) > 200:
+            raise ValueError("création non autorisée")
+        title = command.removeprefix("!creer ")
+        if (
+            not title.strip() or len(title) > 193
+            or any(char in title for char in ("\n", "\r", "\x00"))
+            or not isinstance(creation_brief, str)
+            or not creation_brief.strip()
+            or len(creation_brief.encode("utf-8")) > 12_000
+            or "\x00" in creation_brief
+        ):
+            raise ValueError("titre ou demande de projet invalide")
+    elif mutation:
         if command not in {item[0] for item in PROJECT_ACTIONS.values()}:
             raise ValueError("action mutante non autorisée")
     elif command not in READ_ONLY_ACTIONS.values():
@@ -65,11 +80,13 @@ def local_bridge(
     if not isinstance(key, str) or len(key) < 32:
         raise ValueError("jeton du pont local absent")
     marker = _project_marker(history)
-    if mutation and marker is None:
+    if mutation and not create and marker is None:
         raise ValueError("sélectionner d'abord le projet dans le chat avec !projet <id>")
     # A fixed command and project marker only. Never forward prompt, files or
     # history from the browser to initiate a project mutation.
     recent = ([{"role": "assistant", "content": marker}] if marker else [])
+    if creation_brief is not None:
+        recent.append({"role": "user", "content": creation_brief})
     recent.append({"role": "user", "content": command})
     payload = {
         "model": "openclaw/chef-operations",
@@ -111,6 +128,7 @@ class Action:
         {"id": "help", "name": "Commandes disponibles"},
         {"id": "models", "name": "Quel modèle choisir ?"},
         {"id": "budget", "name": "Budget DeepSeek"},
+        {"id": "create", "name": "Créer un projet"},
         {"id": "analyze", "name": "Analyser le projet"},
         {"id": "plan", "name": "Préparer le plan"},
         {"id": "start", "name": "Lancer les tâches"},
@@ -137,6 +155,48 @@ class Action:
         if __id__ in READ_ONLY_ACTIONS:
             output = await asyncio.to_thread(
                 read_only_bridge, READ_ONLY_ACTIONS[__id__], history, key=secret
+            )
+        elif __id__ == "create":
+            if __event_call__ is None:
+                raise ValueError("formulaire navigateur indisponible")
+            title = await __event_call__({
+                "type": "input", "data": {
+                    "title": "Nouveau projet", "message": "Titre du projet (193 caractères max)",
+                    "placeholder": "Exemple : Infrastructure Terraform",
+                },
+            })
+            if type(title) is not str or not title.strip():
+                return
+            brief = await __event_call__({
+                "type": "input", "data": {
+                    "title": "Objectif du projet",
+                    "message": "Décris le besoin, les livrables et les contraintes.",
+                    "placeholder": "Objectif, contexte et résultat attendu…",
+                },
+            })
+            if type(brief) is not str or not brief.strip():
+                return
+            title, brief = title.strip(), brief.strip()
+            if (
+                len(title) > 200 or any(c in title for c in ("\n", "\r", "\x00"))
+                or len(brief.encode("utf-8")) > 12_000 or "\x00" in brief
+            ):
+                raise ValueError("titre ou demande de projet trop long ou invalide")
+            confirmed = await __event_call__({
+                "type": "confirmation", "data": {
+                    "title": "Préparer un nouveau projet",
+                    "message": (
+                        f"Préparer « {title} » à partir de {len(brief.encode('utf-8'))} "
+                        "octets ? Une confirmation distincte sera demandée "
+                        "pour créer réellement le projet."
+                    ),
+                },
+            })
+            if confirmed is not True:
+                return
+            output = await asyncio.to_thread(
+                local_bridge, "!creer " + title, history,
+                key=secret, mutation=True, creation_brief=brief,
             )
         elif __id__ in PROJECT_ACTIONS:
             # Only a positive response from the actual browser counts, not an
