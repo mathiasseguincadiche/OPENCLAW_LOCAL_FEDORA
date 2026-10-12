@@ -50,6 +50,15 @@ Rien n'est encore mesuré sur ta machine. Les résultats publics de DeepSeek V4.
 |---|---|---|---|---|---|
 | | 32 768 | | | | |
 
+## Vérification des preuves de CI publiques
+
+La commande `clawfedora-ci-proof` vérifie en lecture seule le **statut global**
+d'un pipeline public GitHub/GitLab via l'API officielle, après comparaison
+de l'identifiant d'exécution et du SHA du commit. Elle **ne télécharge pas**
+de journaux et ne valide pas les artefacts, les déploiements ou les backups.
+Sa logique est testée sur de faux API ; les appels réels sur Fedora et les
+connecteurs privés restent à qualifier. [Guide](docs/PREUVES_CI_GITHUB_GITLAB.md).
+
 ## Exécuteur de validation DevOps
 
 Le code du [laboratoire offline](docs/LABORATOIRE_DEVOPS.md) fournit une CLI séparée des agents, avec exécution Podman contrôlée et approbation `--apply`. **L'image Rocky avec les validateurs, son digest et la validation Podman réelle ne sont pas encore qualifiés**. L'agent ne lance pas lui-même Terraform, Ansible ou la CI sur l'hôte.
