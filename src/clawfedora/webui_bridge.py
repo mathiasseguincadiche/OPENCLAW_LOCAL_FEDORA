@@ -634,7 +634,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
                 return
         context = mentor_context(self.server.runtime)
         if standalone_attachment_context:
-            context += "\\n" + standalone_attachment_context
+            context += "\n" + standalone_attachment_context
         if current:
             project = chat_projects.open_project(self.server.runtime, current)
             if project is None:
