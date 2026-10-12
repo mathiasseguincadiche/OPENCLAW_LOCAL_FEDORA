@@ -14,7 +14,7 @@ import yaml
 
 from clawfedora.ci_reports import summarize
 from clawfedora.core_config import AGENT_IDS
-from clawfedora.drawio import native_diagram
+from clawfedora.drawio import multi_view_diagram, native_diagram
 from clawfedora.file_artifacts import formats, produce
 from clawfedora.project_common import assert_no_symlinks, read_json
 from clawfedora.specialist_tools import FORMATS, available, lint, receipt
@@ -165,12 +165,23 @@ def diagram(data: dict[str, Any]) -> dict[str, Any]:
         )
         mermaid.append(f"  n{a} --> n{b}")
     rendered = "".join(svg) + "</svg>"
+    views = data.get("views", [])
+    if not isinstance(views, list) or len(views) > 7 or any(
+        not isinstance(view, dict) for view in views
+    ):
+        raise ValueError("jusqu'à 7 vues additionnelles Draw.io requises")
+    drawio = multi_view_diagram(labels, edges, views) if views else native_diagram(labels, edges)
     return {
-        "drawio": native_diagram(labels, edges),
+        "drawio": drawio,
+        "views_generated": 1 + len(views),
+        "svg_view": "Infrastructure (vue principale uniquement)",
         "svg": rendered,
         "mermaid": "\n".join(mermaid),
         "renderer": "drawio-xml",
-        "warning": "Réexporter le SVG après édition dans Draw.io; aucune synchronisation.",
+        "warning": (
+            "SVG/Mermaid : vue principale uniquement ; ouvrir Draw.io pour toutes les vues. "
+            "Réexporter après édition ; aucune synchronisation."
+        ),
         "scope": "schéma proposé, aucune architecture déployée",
     }
 
