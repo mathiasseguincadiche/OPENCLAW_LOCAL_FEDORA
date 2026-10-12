@@ -1,1 +1,63 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 460" role="img" aria-label="atelier-roles"><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#677b89"/></marker></defs><rect x="270" y="10" width="220" height="72" rx="10" fill="#126b74"/><text x="380.0" y="40.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">Mentor OPS</text><text x="380.0" y="64.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">Cadrer / apprendre</text><rect x="0" y="130" width="220" height="72" rx="10" fill="#284659"/><text x="110.0" y="160.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">Recherche</text><text x="110.0" y="184.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">Sources actuelles</text><rect x="0" y="255" width="220" height="72" rx="10" fill="#284659"/><text x="110.0" y="285.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">Architecte</text><text x="110.0" y="309.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">Choix / schémas</text><rect x="0" y="380" width="220" height="72" rx="10" fill="#284659"/><text x="110.0" y="410.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">DevOps</text><text x="110.0" y="434.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">Préparer / vérifier</text><rect x="270" y="250" width="220" height="80" rx="10" fill="#126b74"/><text x="380.0" y="284.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">Qwen unique</text><text x="380.0" y="308.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">Un rôle à la fois</text><rect x="540" y="130" width="220" height="72" rx="10" fill="#284659"/><text x="650.0" y="160.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">Sécurité</text><text x="650.0" y="184.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">Droits / exposition</text><rect x="540" y="255" width="220" height="72" rx="10" fill="#284659"/><text x="650.0" y="285.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">Rédacteur</text><text x="650.0" y="309.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">Relier / clarifier</text><rect x="540" y="380" width="220" height="72" rx="10" fill="#284659"/><text x="650.0" y="410.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">Auditeur</text><text x="650.0" y="434.0" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">Critères / preuves</text><path d="M380,82 L380,250" fill="none" stroke="#677b89" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 4"/><path d="M220,166 L245,166 L245,270 L270,270" fill="none" stroke="#677b89" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 4"/><path d="M220,291 L270,291" fill="none" stroke="#677b89" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 4"/><path d="M220,416 L245,416 L245,310 L270,310" fill="none" stroke="#677b89" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 4"/><path d="M540,166 L515,166 L515,270 L490,270" fill="none" stroke="#677b89" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 4"/><path d="M540,291 L490,291" fill="none" stroke="#677b89" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 4"/><path d="M540,416 L515,416 L515,310 L490,310" fill="none" stroke="#677b89" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 4"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 790" role="img" aria-labelledby="title desc">
+<title id="title">Les sept rôles d'un seul atelier IA</title>
+<desc id="desc">Le mentor, l'expert recherche, l'architecte, le DevOps, le spécialiste sécurité, le rédacteur et l'auditeur partagent le même modèle local Qwen. Le worker choisit les rôles utiles et les appelle successivement. Les traits pointillés représentent une sélection de profil, pas une discussion autonome entre agents.</desc>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#698698"/></marker></defs>
+<rect x="0" y="0" width="1200" height="790" rx="20" fill="#f6f9fc"/>
+<text x="42" y="48" fill="#193b4d" font-family="DejaVu Sans,Arial,sans-serif" font-size="28" font-weight="700">Sept métiers, un modèle IA, un seul travail à la fois</text>
+<text x="42" y="79" fill="#4b6879" font-family="DejaVu Sans,Arial,sans-serif" font-size="15">Un rôle = une mission, des consignes et des outils autorisés • le worker distribue les tâches</text>
+<!-- specialist cards left -->
+<g font-family="DejaVu Sans,Arial,sans-serif">
+<rect x="43" y="207" width="325" height="98" rx="14" fill="#e3eef4" stroke="#8fb2c1" stroke-width="2"/>
+<text x="64" y="240" fill="#23495b" font-size="20" font-weight="700">Expert recherche</text>
+<text x="64" y="265" fill="#406275" font-size="15">Documentation officielle, versions</text>
+<text x="64" y="286" fill="#406275" font-size="14">Recherche Web • sources datées</text>
+<rect x="43" y="347" width="325" height="98" rx="14" fill="#e3eef4" stroke="#8fb2c1" stroke-width="2"/>
+<text x="64" y="380" fill="#23495b" font-size="20" font-weight="700">Architecte solutions</text>
+<text x="64" y="405" fill="#406275" font-size="15">Flux, compromis, ADR</text>
+<text x="64" y="426" fill="#406275" font-size="14">Draw.io / SVG • fichiers techniques</text>
+<rect x="43" y="487" width="325" height="98" rx="14" fill="#e3eef4" stroke="#8fb2c1" stroke-width="2"/>
+<text x="64" y="520" fill="#23495b" font-size="20" font-weight="700">Ingénieur DevOps</text>
+<text x="64" y="545" fill="#406275" font-size="15">Terraform, Ansible, CI et runbooks</text>
+<text x="64" y="566" fill="#406275" font-size="14">Contrôles statiques • rollback</text>
+<!-- specialist cards right -->
+<rect x="832" y="207" width="325" height="98" rx="14" fill="#e3eef4" stroke="#8fb2c1" stroke-width="2"/>
+<text x="852" y="240" fill="#23495b" font-size="20" font-weight="700">Ingénieur sécurité</text>
+<text x="852" y="265" fill="#406275" font-size="15">Droits, secrets, risques, remèdes</text>
+<text x="852" y="286" fill="#406275" font-size="14">Lint • Gitleaks • vérifications</text>
+<rect x="832" y="347" width="325" height="98" rx="14" fill="#e3eef4" stroke="#8fb2c1" stroke-width="2"/>
+<text x="852" y="380" fill="#23495b" font-size="20" font-weight="700">Rédacteur pédagogique</text>
+<text x="852" y="405" fill="#406275" font-size="15">Expliquer et mettre en forme</text>
+<text x="852" y="426" fill="#406275" font-size="14">Markdown • PDF • DOCX</text>
+<rect x="832" y="487" width="325" height="98" rx="14" fill="#e3eef4" stroke="#8fb2c1" stroke-width="2"/>
+<text x="852" y="520" fill="#23495b" font-size="20" font-weight="700">Auditeur qualité</text>
+<text x="852" y="545" fill="#406275" font-size="15">Critères, preuves et écarts</text>
+<text x="852" y="566" fill="#406275" font-size="14">Session distincte, même modèle</text>
+<!-- mentor, core and worker -->
+<rect x="436" y="120" width="328" height="88" rx="14" fill="#126b74"/>
+<text x="600" y="155" text-anchor="middle" fill="#fff" font-size="21" font-weight="700">Mentor infrastructure/OPS</text>
+<text x="600" y="180" text-anchor="middle" fill="#e4faf8" font-size="15">Expliquer • cadrer • accompagner</text>
+<rect x="436" y="332" width="328" height="128" rx="18" fill="#173a50"/>
+<text x="600" y="373" text-anchor="middle" fill="#fff" font-size="24" font-weight="700">Qwen 3.5 9B</text>
+<text x="600" y="403" text-anchor="middle" fill="#e1edf6" font-size="16">Un seul modèle local via Ollama</text>
+<text x="600" y="428" text-anchor="middle" fill="#b8dae6" font-size="14">Même moteur, consignes différentes</text>
+<rect x="436" y="505" width="328" height="80" rx="14" fill="#e5f0f2" stroke="#8eb2c1" stroke-width="2"/>
+<text x="600" y="539" text-anchor="middle" fill="#23495b" font-size="20" font-weight="700">Worker de projet</text>
+<text x="600" y="562" text-anchor="middle" fill="#406275" font-size="14">Choisit l'ordre et collecte les preuves</text>
+</g>
+<!-- dashed profile links -->
+<g fill="none" stroke="#698698" stroke-width="2.5" stroke-dasharray="8 6">
+<path d="M600 208V332" marker-end="url(#arr)"/>
+<path d="M368 256H394V372H436" marker-end="url(#arr)"/>
+<path d="M368 396H436" marker-end="url(#arr)"/>
+<path d="M368 536H394V425H436" marker-end="url(#arr)"/>
+<path d="M832 256H806V372H764" marker-end="url(#arr)"/>
+<path d="M832 396H764" marker-end="url(#arr)"/>
+<path d="M832 536H806V425H764" marker-end="url(#arr)"/>
+</g>
+<path d="M600 505V461" stroke="#698698" stroke-width="3" fill="none" marker-end="url(#arr)"/>
+<rect x="41" y="633" width="1117" height="100" rx="14" fill="#fff" stroke="#c3d5df" stroke-width="2"/>
+<text x="64" y="664" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="700" fill="#1c4154">Et si le cloud est activé ?</text>
+<text x="64" y="690" font-family="DejaVu Sans,Arial,sans-serif" font-size="15" fill="#466878">Le même rôle peut utiliser DeepSeek via la passerelle filtrée, après accord explicite. Ce n'est pas un huitième agent.</text>
+<text x="64" y="713" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#466878">Traits pointillés = sélection de consignes, pas communication directe entre agents. Aucun rôle n'exécute des commandes sur Fedora.</text>
+<text x="44" y="768" font-family="DejaVu Sans,Arial,sans-serif" font-size="13" fill="#668090">Un rôle n'est sollicité que s'il est utile au plan approuvé ; la relecture reste soumise aux preuves et à la validation humaine.</text>
+</svg>

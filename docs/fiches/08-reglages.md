@@ -1,6 +1,8 @@
 # Réglages
 
-[← Guide](../GUIDE.md)
+[← Guide](../GUIDE.md) · [Composants et flux](11-comment-ca-marche.md)
+
+Chaque réglage appartient à une couche précise (interface, pont, moteur de projets, OpenClaw, modèle) : regarde le diagramme avant de modifier un port, un rôle ou une limite.
 
 ## Les valeurs en place
 

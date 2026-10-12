@@ -1,5 +1,9 @@
 # Quel modèle pour expliquer et travailler : DeepSeek (cloud) ou Qwen (local) ?
 
+[← Guide](GUIDE.md) · [Choisir le rôle avant le modèle](fiches/07-roles-et-outils.md) · [Comprendre les routes](fiches/11-comment-ca-marche.md)
+
+**Deux choix différents :** le **rôle** détermine la mission et les outils, tandis que le **modèle** détermine où s'effectue le raisonnement. Les sept rôles existent sur Qwen ; si tu actives le cloud, ils peuvent aussi emprunter la route DeepSeek, sans élargir leurs droits.
+
 Décision mise à jour le **10 octobre 2026**. Elle remplace le choix GLM-5.3 Flash fait la veille, sans changer l'architecture de sécurité : le local reste le choix par défaut, le cloud reste facultatif et passe toujours par la passerelle locale.
 
 ## La question

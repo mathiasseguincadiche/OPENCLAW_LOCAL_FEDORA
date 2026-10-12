@@ -1,6 +1,6 @@
 # Le cloud, facultatif
 
-[← Guide](../GUIDE.md)
+[← Guide](../GUIDE.md) · [Schéma des routes](11-comment-ca-marche.md) · [État réel](../../STATUS.md)
 
 Par défaut, tout reste sur ton PC avec Qwen. Le cloud est une option que tu actives toi-même, pour les moments où un modèle plus puissant aide : expliquer une notion publique, relire un long texte. Le modèle cloud est **DeepSeek V4.1 Flash**, appelé par OpenRouter.
 

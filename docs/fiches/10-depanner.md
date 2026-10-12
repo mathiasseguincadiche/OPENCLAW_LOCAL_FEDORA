@@ -1,6 +1,8 @@
 # Dépanner
 
-[← Guide](../GUIDE.md)
+[← Guide](../GUIDE.md) · [Carte des composants](11-comment-ca-marche.md)
+
+Commence par identifier la **couche** en panne : interface, pont, OpenClaw, Ollama, matériel ou passerelle cloud. Le diagramme te montre les dépendances pour éviter de corriger le mauvais service.
 
 ## La méthode
 

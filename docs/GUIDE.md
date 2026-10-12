@@ -1,112 +1,145 @@
-# Guide de l'atelier
+# Découvrir l'Atelier IA Fedora — guide pas à pas
 
-Ce guide donne la trame. Chaque étape tient en quelques lignes et renvoie vers une fiche qui contient le détail. Tu peux le suivre dans l'ordre la première fois, puis revenir directement à la fiche dont tu as besoin.
+[← Accueil du dépôt](../README.md)
 
-## 1. Comprendre ce que fait le projet
+**Objectif de ce guide :** comprendre l'utilité du projet, savoir à qui poser une question, suivre le chemin d'une réponse et distinguer ce qui est **proposé** de ce qui est **réellement vérifié**. Pas besoin de connaître OpenClaw pour commencer.
 
-Tu as un PC capable de faire tourner un modèle d'IA : Ryzen 7 7700, 48 Go de RAM, Intel Arc B580 de 12 Go. Le projet l'utilise pour remplacer, autant que possible, les abonnements Claude et ChatGPT par une IA qui tourne chez toi. Un cloud facultatif (DeepSeek V4.1 Flash par OpenRouter, 25 € réels par mois au plus) peut compléter le local, seulement si tu l'actives et pour ce que tu choisis d'y envoyer.
+## 1. Pourquoi un atelier plutôt qu'un simple chatbot ?
 
-Il te donne quatre usages :
+Tu peux utiliser l'IA de deux façons :
 
-| Usage | Où | Fiche |
+- **Pour une question rapide** : « Pourquoi Terraform a-t-il un fichier d'état ? ». Tu choisis un rôle, tu lis la réponse et tu peux demander un exemple.
+- **Pour un vrai travail DevOps** : « Prépare l'architecture, les fichiers, les contrôles et le guide d'un déploiement ». Tu crées un projet avec des étapes, des rôles et des validations.
+
+L'atelier est conçu pour apprendre **en comprenant**. Tu peux demander une réponse complète : **aucun exercice ni questionnaire n'est obligatoire**. Si tu souhaites pratiquer, il existe un mode guidé sur consentement.
+
+### Les trois choses à retenir
+
+1. **Les sept agents sont sept métiers, pas sept IA différentes.** Ils utilisent le même Qwen local et interviennent seulement quand leur spécialité est utile.
+2. **Le modèle propose, les outils vérifient une partie et l'humain décide.** Un script rédigé, une syntaxe valide et un déploiement réussi sont **trois niveaux de preuve différents**.
+3. **Local par défaut.** DeepSeek cloud n'est disponible que si tu l'actives, et les données d'un projet ne peuvent partir qu'après l'accord prévu. La recherche Web est un accès externe distinct.
+
+![Les sept spécialités autour du même moteur](diagrams/atelier-roles.svg)
+
+→ [Découvrir les sept rôles, leurs outils et des demandes types](fiches/07-roles-et-outils.md).
+
+## 2. L'architecture en image
+
+![Les deux interfaces, le moteur de projet, OpenClaw et les modèles](diagrams/atelier-architecture.svg)
+
+Suis les flèches **de gauche vers la droite**, puis vers le bas : **ta demande → les règles et le rôle → le modèle → la réponse ou les fichiers contrôlés**. Le système comporte deux interfaces mais un seul moteur de projet :
+
+| Partie | Pour toi, c'est… | Ce qu'elle fait |
 |---|---|---|
-| Discuter, poser n'importe quelle question | Open WebUI, `http://127.0.0.1:3000` | [Discuter](fiches/03-discuter.md) |
-| Apprendre le DevOps avec un mentor qui te fait pratiquer | Open WebUI ou l'atelier | [Apprendre](fiches/05-apprendre.md) |
-| Mener un projet avec sept rôles spécialisés | Open WebUI ou Atelier Projets | [Atelier Projets](fiches/04-atelier-projets.md) |
-| Joindre des sources, pratiquer, auditer et livrer depuis le chat | Open WebUI | [Discuter](fiches/03-discuter.md) |
-| Dicter et écouter localement | Open WebUI | [Discuter](fiches/03-discuter.md) |
-| Obtenir de vrais fichiers : Markdown, PDF, DOCX, YAML, Terraform, schémas | Les deux | [Fichiers et schémas](fiches/06-fichiers-et-schemas.md) |
+| **Open WebUI** | Le chat de tous les jours | Discuter, choisir un rôle, joindre des fichiers |
+| **Atelier Projets** | Le tableau de bord | Créer, organiser, approuver et suivre |
+| **Pont / worker** | Les règles du jeu | Limites, étapes, verrous, collecte et confirmations |
+| **OpenClaw** | La fiche métier | Appliquer consignes et outils du rôle |
+| **Ollama / Qwen** | Le moteur IA local | Proposer le texte et les fichiers |
+| **Cloud facultatif** | Une autre puissance de modèle | DeepSeek derrière filtre, budget et accord |
 
-En local, un seul modèle, Qwen 3.5 9B, sert à tout. Les sept rôles sont sept jeux de consignes pour ce même modèle, pas sept IA chargées en mémoire. Le détail est dans [Rôles et outils](fiches/07-roles-et-outils.md), et le fonctionnement interne dans [Comment ça marche](fiches/11-comment-ca-marche.md).
+→ [Lire le schéma composant par composant](fiches/11-comment-ca-marche.md).
 
-![Deux interfaces, un même moteur](diagrams/atelier-architecture.svg)
+## 3. Premier scénario : une question simple
 
-Une limite à garder en tête : un modèle de cette taille aide bien à expliquer, relire, rédiger et structurer. Il se trompe plus souvent qu'un grand modèle cloud sur les tâches longues et complexes. L'atelier est construit autour de cette réalité : petites étapes, sources citées, relecture, et c'est toi qui exécutes et qui valides.
+Tu ouvres **Open WebUI** (`http://127.0.0.1:3000`, une fois installé), sélectionnes **Mentor infrastructure/OPS** et demandes :
 
-## 2. Installer
+> Je connais les services systemd et les scripts Bash. Explique-moi ce qu'Ansible apporte, avec un exemple simple, ce qu'il faut vérifier et ses limites.
 
-Sur Fedora 44, depuis ton compte habituel :
+Le mentor peut expliquer le vocabulaire et le mécanisme, puis proposer un exemple **non exécuté**. S'il te manque une version précise d'Ansible, tu peux sélectionner **Expert recherche** pour obtenir des sources datées.
+
+**À essayer ensuite :** « Explique chaque ligne du YAML que tu proposes, puis indique ce que tu ne peux pas vérifier depuis cette conversation. »
+
+→ [Discuter](fiches/03-discuter.md) · [Apprendre](fiches/05-apprendre.md).
+
+## 4. Deuxième scénario : un petit projet à plusieurs étapes
+
+Pour une application Linux à déployer, l'intérêt est de ne pas mélanger architecture, scripts, sécurité et relecture.
+
+1. **Tu crées le projet** et joins son objectif et, si besoin, des documents sources.
+2. **Le mentor cadre**, recherche les informations manquantes et propose un plan court.
+3. **Tu approuves** l'analyse puis les tâches utiles (par exemple architecte et DevOps).
+4. **Le worker distribue** les tâches dans l'ordre prévu. Il n'y a pas sept agents en parallèle.
+5. **Le spécialiste propose** un résultat et une méthode pour le vérifier. Le collecteur contrôle les fichiers attendus.
+6. **L'auditeur relit** les critères et les preuves. S'il manque une preuve, le travail doit être repris.
+7. **Tu approuves la livraison**. Si une application doit être réellement installée, c'est **toi** qui exécutes et observes l'opération dans ton laboratoire.
+
+**Règle pratique :** si tu as déjà un fichier `.tf` et veux seulement comprendre son contenu, **ne crée pas un projet**. Un petit fichier texte peut être joint au chat local (4 fichiers, 12 000 octets cumulés).
+
+→ [Parcours DevOps commenté, du besoin au livrable](EXEMPLE_PARCOURS_DEVOPS.md) · [Piloter les projets](fiches/04-atelier-projets.md).
+
+## 5. Quel rôle choisir ?
+
+| Situation | Rôle conseillé |
+|---|---|
+| Je veux comprendre ou je suis bloqué | **Mentor** |
+| Je veux une documentation officielle récente | **Expert recherche** |
+| Je dois choisir une architecture et comprendre les flux | **Architecte** |
+| Je dois préparer Terraform, Ansible, Bash ou une CI | **DevOps** |
+| Je veux vérifier droits, secrets ou exposition réseau | **Sécurité** |
+| Je veux un guide clair, lisible et exportable | **Rédacteur** |
+| Je veux savoir si une exigence est **prouvée** | **Auditeur** |
+
+→ [Voir les outils exacts et leurs restrictions](fiches/07-roles-et-outils.md).
+
+## 6. Préparer et installer Fedora
+
+Machine ciblée : Ryzen 7 7700, 48 Go de RAM, Intel Arc B580 (12 Go), Fedora 44. Installation et performance réelles **non encore qualifiées** sur ce PC.
 
 ```bash
 git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
 cd OPENCLAW_LOCAL_FEDORA
-./menu.sh --action install            # aperçu, ne modifie rien
+./menu.sh --action install                 # d'abord un aperçu
 ./menu.sh --action install --apply
-```
-
-Prérequis, détail des étapes et ce que l'installation modifie : [Installer](fiches/01-installer.md).
-
-## 3. Faire le premier essai
-
-L'installation ne dit pas si ta carte graphique travaille vraiment ni à quelle vitesse. Trois commandes le disent :
-
-```bash
 ./menu.sh --action health
 ./menu.sh --action check-gpu
 ./menu.sh --action context-probe --apply
+./menu.sh --action webui-install --apply
 ```
 
-Lecture des résultats et quoi faire selon le cas : [Premier essai](fiches/02-premier-essai.md). Tant que cette étape n'est pas faite, rien n'est prouvé sur ta machine.
+**Où aller après installation :** Open WebUI `http://127.0.0.1:3000` ; Atelier Projets `http://127.0.0.1:18890`. Ces adresses sont **locales à ton PC**.
 
-## 4. Utiliser au quotidien
+→ [Installer sans deviner](fiches/01-installer.md) · [Mesurer vitesse et GPU](fiches/02-premier-essai.md).
 
-```bash
-./menu.sh --action webui-install --apply   # une seule fois
-```
+## 7. Documents, dessins et validations : ne pas mélanger
 
-Ensuite, ouvre `http://127.0.0.1:3000` pour discuter et `http://127.0.0.1:18890` pour l'atelier.
+- **Markdown** : la source éditable d'un guide. Le PDF et le DOCX sont des exports issus de cette source.
+- **Draw.io** : le schéma éditable de l'architecte. Le SVG n'est qu'un aperçu qui ne se resynchronise pas automatiquement.
+- **Contrôle statique** : peut signaler des erreurs JSON/YAML/Python, Bash, Markdown ou secrets selon l'agent. Cela **n'exécute ni Terraform ni Ansible**.
+- **Preuve d'exécution** : un résultat réellement obtenu sur la plateforme cible, daté et attribuable à la bonne version.
+- **Livraison** : fichiers attendus, critères et approbation humaine ; elle ne certifie pas que ton infrastructure externe est en production.
 
-- Une question, une notion, un blocage : [Discuter](fiches/03-discuter.md). Le chat peut aussi créer, cadrer, exécuter, faire pratiquer, auditer, réviser et livrer un projet avec des commandes déterministes.
-- Un travail visuel sur les états, tâches et preuves : [Atelier Projets](fiches/04-atelier-projets.md). Le dashboard et le chat pilotent le même moteur.
-- Progresser en DevOps plutôt que recevoir une réponse toute faite : [Apprendre](fiches/05-apprendre.md).
-- Récupérer des fichiers et modifier un schéma dans Draw.io : [Fichiers et schémas](fiches/06-fichiers-et-schemas.md).
+→ [Fichiers, limites et Draw.io](fiches/06-fichiers-et-schemas.md).
 
-Pour jouer, libère la carte graphique puis reprends ensuite :
+## 8. Local ou cloud ?
 
-```bash
-./menu.sh --action gaming --apply
-./menu.sh --action daily --apply
-```
+Le chat local reste le choix sûr pour un projet personnel ou sensible. Si tu actives DeepSeek via OpenRouter, les appels passent par une passerelle qui filtre les secrets et vérifie le budget. **Le filtre ne reconnaît pas toutes les informations confidentielles** : quand tu hésites, reste en local.
 
-## 5. Régler
+Un rôle peut demander une **recherche Web** même en local : il faut donc distinguer **rechercher sur Internet** et **envoyer ta conversation à DeepSeek**.
 
-La taille du contexte, la longueur des réponses, le modèle, les versions et le budget cloud se règlent dans quelques fichiers de `config/`. Lesquels, pourquoi ces valeurs et comment les changer sans rien casser : [Réglages](fiches/08-reglages.md).
+→ [Le cloud, facultatif](fiches/12-cloud.md) · [Paramètres](fiches/08-reglages.md).
 
-## 6. Utiliser le cloud, si tu le souhaites
+## 9. Quel est le vrai niveau de maturité ?
 
-Le cloud est désactivé tant que tu ne l'actives pas. Il passe par une passerelle locale qui filtre ce qui part, compte chaque appel et refuse au plafond de 25 € par mois. Dans le chat, tu choisis le modèle « · cloud (DeepSeek) » pour les questions publiques ; dans l'atelier, tu autorises chaque projet un par un, et un projet se met en **pause** plutôt que de basculer en local sans te le dire. Activation, budget, limites du filtre et test de fumée : [Le cloud, facultatif](fiches/12-cloud.md).
+Le code et les tests automatiques existent. En revanche, les performances GPU, la vraie compatibilité du conteneur Open WebUI, la voix, les uploads et le fournisseur cloud doivent être **essayés sur le PC Fedora**. Le chat ne diffuse pas encore les tokens progressivement et la migration 0.12 d'Open WebUI reste une **préqualification isolée**.
 
-## 7. Entretenir
+→ [Ce qui est testé ou non](../STATUS.md) · [Test de fumée](SMOKE_TEST_WEBUI.md) · [Chantiers restants](PLAN_QUALITE_2026.md).
 
-```bash
-./menu.sh --action backup
-./menu.sh --action upgrade --apply
-```
+## La bibliothèque, par besoin
 
-Sauvegarde, restauration, mise à niveau, réparation et désinstallation : [Entretenir](fiches/09-entretenir.md).
+| Pour quoi faire ? | Fiche |
+|---|---|
+| Installer | [01 — Installer](fiches/01-installer.md) |
+| Contrôler le GPU et les performances | [02 — Premier essai](fiches/02-premier-essai.md) |
+| Discuter, charger un petit fichier, utiliser les commandes | [03 — Discuter](fiches/03-discuter.md) |
+| Gérer les sources, les tâches et les approbations | [04 — Atelier Projets](fiches/04-atelier-projets.md) |
+| Comprendre sans exercices imposés | [05 — Apprendre](fiches/05-apprendre.md) |
+| Produire PDF, DOCX, Terraform et Draw.io | [06 — Fichiers et schémas](fiches/06-fichiers-et-schemas.md) |
+| Choisir un agent et comprendre ses outils | [07 — Rôles et outils](fiches/07-roles-et-outils.md) |
+| Configurer les limites | [08 — Réglages](fiches/08-reglages.md) |
+| Sauvegarder et mettre à jour | [09 — Entretenir](fiches/09-entretenir.md) |
+| Diagnostiquer | [10 — Dépanner](fiches/10-depanner.md) |
+| Comprendre les composants et flux | [11 — Comment ça marche](fiches/11-comment-ca-marche.md) |
+| Activer ou désactiver le cloud | [12 — Le cloud, facultatif](fiches/12-cloud.md) |
 
-## 8. Dépanner
-
-```bash
-./menu.sh --action health
-./menu.sh --action status
-```
-
-Puis cherche ton symptôme dans [Dépanner](fiches/10-depanner.md).
-
-## Les fiches
-
-1. [Installer](fiches/01-installer.md)
-2. [Premier essai](fiches/02-premier-essai.md)
-3. [Discuter](fiches/03-discuter.md)
-4. [Atelier Projets](fiches/04-atelier-projets.md)
-5. [Apprendre](fiches/05-apprendre.md)
-6. [Fichiers et schémas](fiches/06-fichiers-et-schemas.md)
-7. [Rôles et outils](fiches/07-roles-et-outils.md)
-8. [Réglages](fiches/08-reglages.md)
-9. [Entretenir](fiches/09-entretenir.md)
-10. [Dépanner](fiches/10-depanner.md)
-11. [Comment ça marche](fiches/11-comment-ca-marche.md)
-12. [Le cloud, facultatif](fiches/12-cloud.md)
-
-Pour valider l'intégration réelle du navigateur, des uploads, du micro et du cloud, suivre le [test de fumée Open WebUI](SMOKE_TEST_WEBUI.md).
+**Pour retenir l'essentiel :** **le modèle propose ; le moteur encadre et collecte ; tu vérifies et approuves.**

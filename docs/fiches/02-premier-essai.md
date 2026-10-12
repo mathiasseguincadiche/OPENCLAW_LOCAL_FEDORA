@@ -1,6 +1,8 @@
 # Premier essai
 
-[← Guide](../GUIDE.md)
+[← Guide](../GUIDE.md) · [État des preuves](../../STATUS.md)
+
+Les contrôles du dépôt ne sont pas un essai sur la carte graphique : distingue **configuration validée**, **service démarré** et **performance réellement mesurée**.
 
 Les tests automatiques du dépôt vérifient que le logiciel est cohérent. Ils ne peuvent pas vérifier ce qui dépend de ton PC : que la B580 est bien utilisée, que le contexte tient dans ses 12 Go et que la vitesse est confortable. Cette fiche produit ces trois réponses.
 

@@ -1,10 +1,18 @@
 # Plan : tout faire depuis Open WebUI
 
+[← Guide actuel](GUIDE.md) · [Fonctionnement réel](fiches/11-comment-ca-marche.md) · [État et limites](../STATUS.md)
+
+> **Ce document conserve le plan historique des lots 9 à 15.** Pour apprendre le
+> fonctionnement **aujourd'hui**, commence par le guide et les fiches. Les commandes de
+> projet sont implémentées, mais l'interface n'a **pas encore tous ses boutons**
+> (trois actions de consultation seulement). Open WebUI est toujours épinglé à 0.11.4,
+> le streaming est encore tamponné et les tests matériels restent à réaliser.
+
 **Statut : implémentation révisée le 10 octobre 2026. Les lots 9 à 15 sont implémentés dans le dépôt.** Les tests automatiques couvrent le pont, les garde-fous, les uploads et le service vocal ; le test de fumée sur le vrai PC Fedora reste nécessaire pour valider l'ergonomie, le micro, la latence et le stockage réel d'Open WebUI.
 
 ## 1. Objectif
 
-Aujourd'hui, le chat Open WebUI et l'atelier Projets sont deux interfaces séparées : le chat ne connaît aucun projet, ne peut pas y écrire et ne peut rien approuver. L'objectif est qu'on puisse **tout faire depuis Open WebUI** : choisir un projet, l'interroger, faire générer ses documents, le créer, le planifier, l'exécuter, l'auditer et le livrer. Le chat doit être **complet** : on y joint des fichiers (PDF, Office, archives, code), des images, et on peut **parler** (note vocale) au lieu de taper. L'atelier reste disponible, comme une autre vue du même moteur.
+Au début de ce chantier, le chat Open WebUI et l'atelier Projets étaient deux interfaces séparées : le chat ne connaissait aucun projet, ne pouvait pas y écrire et ne pouvait rien approuver. **Cette situation initiale est historique** : le code actuel gère les projets depuis le chat, avec des commandes déterministes et des confirmations humaines. L'objectif est qu'on puisse **tout faire depuis Open WebUI** : choisir un projet, l'interroger, faire générer ses documents, le créer, le planifier, l'exécuter, l'auditer et le livrer. Le chat doit être **complet** : on y joint des fichiers (PDF, Office, archives, code), des images, et on peut **parler** (note vocale) au lieu de taper. L'atelier reste disponible, comme une autre vue du même moteur.
 
 ## 2. Principe : une seule source de vérité
 
@@ -19,7 +27,7 @@ Le chat n'a **aucun état de projet à lui**. Chaque action du chat appelle les 
 | Projet courant | Rappelé par un **marqueur** en tête des réponses du pont (`📁 Projet : id`), relu dans l'historique du fil. | Le pont est sans mémoire entre deux messages, comme pour le marqueur « conversation passée en local ». |
 | Approbation | **Phrase de confirmation à usage unique**, générée par le pont (pas par le modèle) : `approuver proposition K7Q2`. Valable seulement si elle est **le dernier message de l'utilisateur**, que le code correspond à un état enregistré côté serveur, qu'il n'a pas expiré (15 minutes) et que ce qu'on approuve n'a pas changé (empreinte SHA-256). | Le modèle ne peut ni produire ni valider une approbation : une consigne cachée dans un document ne peut pas approuver à sa place. Les décisions restent les vôtres. |
 | Actions longues | Lancées **en arrière-plan** : le chat répond « lancé » et `!état` donne l'avancement. Une seule génération à la fois (verrou existant). | Une tâche prend plusieurs minutes : une requête de chat tiendrait mal. |
-| Fichiers joints | Un fichier joint dans le chat est **enregistré tel quel** dans le projet courant (ou, sans projet, dans une zone d'import du chat), puis lu par la **même chaîne d'ingestion que l'atelier** (types, tailles, archives sûres, couverture de lecture READ/PARTIAL/UNREADABLE). Rien n'est lu « à moitié » en silence : le chat annonce ce qui a été lu et ce qui ne l'a pas été. | Une seule chaîne de lecture, déjà éprouvée ; pas de seconde chaîne RAG dans Open WebUI. |
+| Fichiers joints | Une pièce jointe de projet est **enregistrée comme source dans le projet courant**, puis lue par la **même chaîne d'ingestion que l'atelier**. **Sans projet**, la voie courte locale traite uniquement jusqu'à quatre petits fichiers texte/code (12 000 octets au total) ; PDF, Office, images et archives passent par un projet. L'ingestion d'un projet contrôle types, tailles, archives sûres et couverture de lecture (READ/PARTIAL/UNREADABLE) ; elle doit signaler les parties non lues plutôt que de prétendre avoir tout analysé. | Une seule chaîne de lecture, déjà éprouvée ; pas de seconde chaîne RAG dans Open WebUI. |
 | Images | Les images jointes sont transmises au rôle local (Qwen 3.5 est multimodal : entrée image déclarée dans `model_catalog.yaml`), après contrôle du type réel (signature de fichier), de la taille et des dimensions. **Jamais envoyées au cloud pour l'instant** : DeepSeek V4.1 Flash sait accepter des images, mais le filtre de confidentialité du projet ne sait pas inspecter leur contenu. Tant que ce contrôle n'existe pas, une image reste locale. | Le filtre protège tout ce qui part au cloud ; ce qu'il ne peut pas inspecter ne part pas. |
 | Voix | Note vocale = **dictée locale** : l'audio est transcrit sur la machine (Whisper local), jamais par un service du navigateur qui l'enverrait à un tiers. Le texte transcrit arrive dans la zone de saisie, **relu avant l'envoi**. Réponses lues à voix haute par une synthèse vocale **locale** (option). Le mode appel mains libres (envoi sans relecture) reste désactivé. | Vie privée (rien ne sort), et une phrase d'approbation mal entendue ne doit jamais partir sans relecture. |
 | Approbation et voix | Une phrase d'approbation n'est valable que **tapée ou dictée puis envoyée par vous** ; elle est à usage unique et liée à un code que le modèle ne produit pas. | Même sécurité qu'à l'écrit. |

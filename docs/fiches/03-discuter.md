@@ -1,6 +1,6 @@
 # Discuter
 
-[← Guide](../GUIDE.md)
+[← Guide](../GUIDE.md) · [Comparer les sept rôles et leurs outils](07-roles-et-outils.md) · [Exemple DevOps](../EXEMPLE_PARCOURS_DEVOPS.md)
 
 Open WebUI est l'interface de discussion, à l'adresse `http://127.0.0.1:3000`. Elle sert aux questions de tous les jours, comme tu le ferais avec Claude ou ChatGPT.
 
@@ -18,6 +18,10 @@ La présence et le bon fonctionnement de ces boutons doivent être vérifiés da
 le vrai navigateur (voir `docs/SMOKE_TEST_WEBUI.md`).
 
 ## Choisir à qui tu parles
+
+**Pour commencer**, sélectionne le Mentor infrastructure/OPS, pose ta question normalement et demande une explication adaptée à tes acquis. Si tu sais déjà qu'il te faut un schéma, un pipeline ou une relecture de sécurité, choisis directement le spécialiste : tu n'es pas obligé de créer un projet.
+
+Les outils des rôles et leurs limites exactes sont expliqués dans la [fiche détaillée](07-roles-et-outils.md).
 
 Le sélecteur de modèle en haut de la page liste les sept rôles. Tous utilisent le même Qwen : choisir un rôle change les consignes et les outils, pas le modèle. Si tu as activé le cloud, chaque rôle apparaît aussi en « · cloud (DeepSeek) » : voir plus bas.
 

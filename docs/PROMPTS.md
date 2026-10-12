@@ -1,5 +1,12 @@
 # Consignes pédagogiques et contrôles d'intégration
 
+[← Guide pour commencer](GUIDE.md) · [Les sept agents expliqués](fiches/07-roles-et-outils.md) · [Architecture](fiches/11-comment-ca-marche.md)
+
+**Ce document est une trace technique des décisions sur les consignes (prompts) et de leurs
+contrôles.** Il ne remplace pas les fiches pédagogiques : leurs exemples expliquent le
+comportement attendu, tandis que `agents/` et `config/core/tool_policy.yaml` fixent
+ce que le modèle reçoit réellement et les outils qu'il peut employer.
+
 ## Documents de référence et confrontation
 
 Les documents de référence ont été lus en entier le 9 octobre 2026 :

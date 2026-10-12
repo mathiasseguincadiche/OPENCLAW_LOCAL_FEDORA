@@ -1,6 +1,8 @@
 # Installer
 
-[← Guide](../GUIDE.md)
+[← Guide](../GUIDE.md) · [Architecture expliquée](11-comment-ca-marche.md)
+
+Pour découvrir **ce que tu installes** avant de lancer les scripts, consulte le schéma des composants et le rôle d'OpenClaw/Ollama.
 
 ## Ce qu'il faut avant de commencer
 

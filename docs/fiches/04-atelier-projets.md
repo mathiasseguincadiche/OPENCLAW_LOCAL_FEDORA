@@ -1,12 +1,16 @@
 # Atelier Projets
 
-[← Guide](../GUIDE.md)
+[← Guide](../GUIDE.md) · [Exemple de projet de bout en bout](../EXEMPLE_PARCOURS_DEVOPS.md)
 
 L'atelier, à l'adresse `http://127.0.0.1:18890`, sert aux travaux qui dépassent une simple conversation : plusieurs documents en entrée, plusieurs étapes, des fichiers à livrer et une trace de ce qui a été décidé.
 
 Si Open WebUI n'est pas installé, lance l'atelier seul avec `./menu.sh --action dashboard` et garde le terminal ouvert.
 
 ## Le parcours d'un projet
+
+**Une façon de s'y retrouver :** le mentor **cadre**, l'architecte **conçoit**, le DevOps **prépare**, la sécurité **relit les risques**, le rédacteur **explique** et l'auditeur **vérifie les preuves**. Ces spécialistes ne sont appelés que si la tâche le justifie ; ce sont des rôles du même modèle, pas sept IA simultanées. [Le détail des rôles](07-roles-et-outils.md).
+
+La différence fondamentale avec une simple discussion est la **traçabilité** : sources d'entrée, plan approuvé, fichiers attendus, contrôles et décisions restent attachés au projet.
 
 1. **Créer le projet.** Donne un titre, un objectif précis et jusqu'à trois documents (8 Mo au total).
 2. **Demander le cadrage.** Le mentor lit les documents et propose son analyse : contraintes, informations manquantes, questions. Relis, corrige, puis approuve. Rien n'avance tant que tu n'as pas approuvé.

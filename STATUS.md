@@ -1,6 +1,6 @@
 # État du projet
 
-Dernière mise à jour : 10 octobre 2026.
+Dernière mise à jour documentaire : 12 octobre 2026.
 
 ## Où en est-on
 
@@ -21,6 +21,12 @@ Dernière mise à jour : 10 octobre 2026.
 | Voix locale : Whisper CPU/int8 + TTS local | **Implémenté ; essai micro/latence à faire sur Fedora** |
 
 Tant que les lignes « À faire » et « À mesurer » ne sont pas faites, rien n'est prouvé sur la machine ni avec le vrai fournisseur cloud. La marche à suivre est dans [Premier essai](docs/fiches/02-premier-essai.md).
+
+## Lire et comprendre le projet
+
+Le [README](README.md) explique l'objectif et les usages ; le [guide](docs/GUIDE.md) permet de découvrir l'atelier dans l'ordre. La fiche [Rôles et outils](docs/fiches/07-roles-et-outils.md) distingue précisément les droits des sept agents ; [Comment ça marche](docs/fiches/11-comment-ca-marche.md) explique les ports, flux et limites de preuve. Le [parcours DevOps](docs/EXEMPLE_PARCOURS_DEVOPS.md) est **fictif et pédagogique**, pas un test effectué.
+
+Les deux diagrammes de `docs/diagrams/` sont des **représentations logiques du code**, non des preuves d'exécution physique. Les critères et mesures manquants restent ceux décrits dans ce document.
 
 ## Qualité des explications en local
 
@@ -55,7 +61,7 @@ Le dépôt avait accumulé beaucoup de mécanismes sans rapport avec l'usage vis
 - ajouté un contrôle qui exécute le vrai OpenClaw, pour que ce type de défaut ne repasse pas inaperçu ;
 - interdit au modèle l'outil qui lui permettait de mettre à jour OpenClaw ;
 - retiré ce qui ne servait pas l'usage quotidien : niveaux de « qualification » L2 à L8, comparaisons de modèles, moteur llama.cpp de rechange, compilation d'un noyau, ancien suivi de coûts cloud, télémétrie (le cloud revient, borné et facultatif, avec la migration hybride ci-dessous) ;
-- remplacé 27 documents par un guide et onze fiches.
+- remplacé l'ancienne documentation dispersée par un guide et des fiches thématiques (le parcours de découverte a ensuite été enrichi).
 
 Le dépôt est passé d'environ 15 500 à 9 200 lignes de Python. Tout ce qui a été retiré reste dans l'historique Git.
 
