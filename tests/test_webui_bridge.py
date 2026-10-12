@@ -153,6 +153,9 @@ def test_setup_pins_limits_preserves_secrets_and_closes_registration(tmp_path: P
     assert "ENABLE_FUNCTIONS=true" in (state / "webui.env").read_text()
     assert "ENABLE_TOOLS=false" in (state / "webui.env").read_text()
     assert "ENABLE_TOOL_SERVERS=false" in (state / "webui.env").read_text()
+    assert "ENABLE_PIP_INSTALL_FRONTMATTER_REQUIREMENTS=false" in (
+        state / "webui.env"
+    ).read_text()
     assert value["sealed"] is False
     with closing(sqlite3.connect(state / "data/webui.db")) as db, db:
         db.execute('CREATE TABLE "user" (id TEXT, role TEXT)')
