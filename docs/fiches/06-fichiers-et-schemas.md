@@ -69,7 +69,7 @@ Tous les rôles peuvent aussi lire un résumé de résultats de ta CI que tu leu
 
 L'architecte génère un fichier `.drawio` que tu ouvres et modifies dans Draw.io : les blocs, les textes et les flèches sont de vrais objets. Un fichier SVG séparé sert d'aperçu pour la documentation.
 
-Un appel produit un schéma de 8 blocs et 12 flèches au maximum, en rectangles simples. Pour une infrastructure plus grande, demande plusieurs vues : ensemble, réseau, déploiement. Les icônes AWS ou Azure, les groupes et les légendes s'ajoutent ensuite dans Draw.io.
+Un appel produit désormais **une source Draw.io éditable jusqu'à huit vues** : une vue principale et jusqu'à sept vues nommées (par exemple Ensemble, Réseau et Déploiement). Chaque vue garde une limite de **8 blocs et 12 flèches**, pour éviter un graphe illisible. Le SVG et Mermaid n'illustrent **que la vue principale** ; pour retrouver toutes les vues ou éditer des blocs, ouvrir le fichier `.drawio`. Les icônes, groupes, légendes et l'inspection visuelle restent à compléter dans Draw.io.
 
 ### Modifier un schéma dans un projet
 

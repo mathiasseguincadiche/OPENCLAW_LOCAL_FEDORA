@@ -69,7 +69,7 @@ arrêt/redémarrage reproduits ; aucune commande système déclenchée par une p
 
 - Document Markdown source, styles PDF/DOCX cohérents, tableaux complexes, blocs de code lisibles, illustrations/diagrammes et sommaire si nécessaire.
 - Génération longue par sections avec assemblage atomique, provenance et vérification d'intégrité.
-- Schémas Draw.io multi-vues : dépasser les limites actuelles de huit blocs et douze flèches par génération sans produire de diagrammes illisibles.
+- Schémas Draw.io : source native désormais générée en 1 à 8 vues indépendantes, chaque vue limitée à 8 blocs et 12 liens ; aperçu SVG limité à la première vue et explicitement identifié. La qualité visuelle reste à vérifier manuellement dans l'éditeur.
 - Tests de rendu de référence et contrôle des artefacts PDF/DOCX/Draw.io produits ; aucune promesse de qualité sans inspection visuelle.
 
 **Acceptation :** un runbook complet, une architecture multi-zones et un rapport d'audit exportés sans troncature, avec sources éditables.

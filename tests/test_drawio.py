@@ -277,3 +277,39 @@ def test_collection_validates_all_drawio_files_before_publishing(
     files[task["expected_outputs"][0]] = native_diagram(["CI"], [])
     _collect(ROOT, project, task, {"files": files})
     assert (project / task["expected_outputs"][0]).read_text() == files[task["expected_outputs"][0]]
+
+
+
+def test_multiview_diagrams_have_separate_editable_pages_and_honest_preview() -> None:
+    views = [
+        {"title": "Réseau & sécurité", "nodes": ["Pare-feu", "VPN"], "edges": [[0, 1]]},
+        {"title": "Déploiement", "nodes": ["Git", "CI", "Fedora"], "edges": [[0, 1], [1, 2]]},
+    ]
+    output = diagram({"nodes": ["Besoin", "Architecture"], "edges": [[0, 1]],
+                      "views": views})
+    document = ET.fromstring(output["drawio"])
+    assert [page.get("name") for page in document.findall("diagram")] == [
+        "Infrastructure", "Réseau & sécurité", "Déploiement"
+    ]
+    assert len({page.get("id") for page in document.findall("diagram")}) == 3
+    assert inspect_diagram(output["drawio"])["pages"] == 3
+    assert inspect_diagram(output["drawio"])["shapes"] == 7
+    assert inspect_diagram(output["drawio"])["links"] == 4
+    assert output["views_generated"] == 3
+    assert "vue principale uniquement" in output["svg_view"]
+    assert "Pare-feu" not in output["svg"]
+    assert "Pare-feu" in output["drawio"]
+    assert normalize_diagram(output["drawio"]) == output["drawio"]
+
+
+@pytest.mark.parametrize("views", [
+    [{"title": "mauvaise", "nodes": ["A"], "edges": [[0, 2]]}],
+    [{"title": "trop grand", "nodes": ["X"] * 9}],
+    [{"title": "lien invalide", "nodes": ["X"], "edges": [[True, 0]]}],
+    [{"title": "vide", "nodes": []}],
+    [{"title": "mauvais\nnom", "nodes": ["X"]}],
+    [{"title": "Valide", "nodes": ["X"]}] * 8,
+])
+def test_multiview_rejects_bad_graphs_and_limits(views: list[dict[str, Any]]) -> None:
+    with pytest.raises(ValueError):
+        diagram({"nodes": ["Départ"], "views": views})

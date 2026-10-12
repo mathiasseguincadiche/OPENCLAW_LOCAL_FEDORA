@@ -112,6 +112,48 @@ def native_diagram(labels: list[str], edges: list[list[int]]) -> str:
     return result
 
 
+def multi_view_diagram(
+    labels: list[str], edges: list[list[int]], views: list[dict[str, Any]],
+) -> str:
+    """One editable Draw.io file with independent bounded views (no flattening).
+
+    Each page is a self-contained graph. The summary SVG from the calling
+    agent tool intentionally previews page 1 only.
+    """
+    if len(views) > 7:
+        raise ValueError("Draw.io: 8 vues maximum, vue principale comprise")
+    document = ET.fromstring(native_diagram(labels, edges))
+    first = document.find("diagram")
+    if first is None:
+        raise ValueError("Draw.io: vue principale manquante")
+    first.set("id", "view-1")
+    for index, view in enumerate(views, 2):
+        title = view.get("title")
+        nodes, links = view.get("nodes"), view.get("edges", [])
+        if (
+            not isinstance(title, str) or not 1 <= len(title.strip()) <= 60
+            or any(c in title for c in "\r\n\x00")
+            or not isinstance(nodes, list) or not 1 <= len(nodes) <= 8
+            or any(not isinstance(label, str) or not label.strip()
+                   or len(label) > 60 for label in nodes)
+            or not isinstance(links, list) or len(links) > 12
+            or any(not isinstance(link, list) or len(link) != 2
+                   or any(type(n) is not int or not 0 <= n < len(nodes) for n in link)
+                   for link in links)
+        ):
+            raise ValueError("Draw.io: titre ou graphe d'une vue invalide")
+        other = ET.fromstring(native_diagram(nodes, links))
+        page = other.find("diagram")
+        if page is None:
+            raise ValueError("Draw.io: vue non générée")
+        page.set("id", f"view-{index}")
+        page.set("name", title.strip())
+        document.append(page)
+    xml = ET.tostring(document, encoding="unicode")
+    inspect_diagram(xml)
+    return xml
+
+
 def inspect_diagram(content: str) -> dict[str, Any]:
     """Check plain XML and editable graph structure, never infrastructure correctness."""
     document = _document(content)
