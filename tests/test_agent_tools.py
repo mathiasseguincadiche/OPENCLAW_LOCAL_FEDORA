@@ -40,7 +40,8 @@ def test_role_tools_policy_matches_callable_helpers_and_prompt_budget(tmp_path: 
         assert instructions == effective_instructions(ROOT, role)
         for marker in ("infrastructure/OPS", "Outils et livrables", "Contrat partagé"):
             assert marker in instructions
-        assert "contexte 32768, sortie 4096" in instructions
+        assert "dépendent de la route choisie par l'application" in instructions
+        assert "contexte 32768, sortie 4096" not in instructions
         for tool, roles in TOOL_ROLES.items():
             assert (tool in policy["agents"][role]["also_allow"]) == (role in roles)
         for kind in OUTLINES[role]:

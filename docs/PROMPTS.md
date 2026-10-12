@@ -68,6 +68,14 @@ dans `bootstrap_total_max_chars` (24000). Le contrôle natif vérifie la présen
 intégrale du fichier assemblé dans la requête envoyée à Ollama, les permissions
 des outils réellement exposés et le contexte, y compris avec l'historique maximal.
 
+## Cohérence entre Qwen local et DeepSeek cloud
+
+Les consignes communes doivent rester **indépendantes du fournisseur**, car les sept rôles peuvent être exécutés sur les deux routes. Elles ne doivent donc plus annoncer systématiquement un contexte de 32 768 tokens ou une sortie maximale de 4 096 tokens : ces valeurs correspondent **au modèle local** ; la route cloud a d'autres limites, imposées et vérifiées par le code.
+
+La règle pédagogique a été précisée : **trois notions nouvelles par séquence guidée**, mais aucune limite arbitraire à la profondeur d'une **explication directe demandée**. Le contexte, les droits aux outils, l'accord cloud et le budget restent définis par l'application, jamais par un prompt.
+
+Les valeurs actuelles sont dans `config/core/openclaw_policy.yaml` et `config/core/cloud_policy.yaml`, non dans les fichiers `agents/_shared/`. La qualité réelle doit être contrôlée sur les scénarios d'évaluation, pas déduite de la formulation des instructions.
+
 ## Liberté pédagogique
 
 Le chef-operations est d'abord le mentor, puis le coordinateur. Une explication
