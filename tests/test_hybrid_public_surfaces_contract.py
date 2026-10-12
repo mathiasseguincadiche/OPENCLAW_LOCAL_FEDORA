@@ -6,7 +6,6 @@ write to project state, or turn an unverified report into a runtime deployment.
 
 from __future__ import annotations
 
-import json
 import runpy
 import tomllib
 from pathlib import Path
@@ -86,4 +85,3 @@ def test_budget_and_route_advice_are_local_deterministic_readonly(tmp_path: Path
     )
     assert before == after
     assert "7.25" in chat_projects.run_command(ROOT, tmp_path, "budget", "", None)
-    assert json.dumps({"test": "safe"})
