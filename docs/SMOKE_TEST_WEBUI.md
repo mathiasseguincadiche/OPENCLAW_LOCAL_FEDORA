@@ -151,10 +151,16 @@ Dans une nouvelle conversation sans projet :
    textuelles bornées sont transmises au Mentor local, sans créer de projet.
    Pour un PPTX ou XLSX, contrôler que le résultat indique une extraction
    partielle, sans garantir mise en page ni formules.
-5. Joindre une petite image PNG/JPEG : vérifier que seules les **métadonnées**
-   (dimensions/format) sont retournées, sans prétendre comprendre ses pixels.
-   Refuser un PDF scanné sans texte, un format exécutable, un fichier corrompu,
-   une archive ZIP, un PDF trop long ou une empreinte invalide avant inférence.
+5. **Vision désactivée par défaut :** joindre une petite image PNG/JPEG
+   et vérifier que seules les métadonnées sont décrites. Un PDF scanné
+   doit être refusé sans activation. **Canary de vision explicitement activé :**
+   lancer d'abord `clawfedora-vision-smoke --root "$PWD"
+   --runtime-root /srv/openclaw-local --apply` sur une image et un
+   PDF synthétiques, puis joindre une vraie image publique sans données
+   privées. Vérifier les objets/couleurs décrits et l'absence de repli
+   cloud. Le simple retour d'une réponse ne prouve pas la précision.
+   Refuser un exécutable, fichier corrompu, archive ZIP, PDF trop long
+   ou empreinte invalide avant inférence.
 6. Choisir « · cloud (DeepSeek) » et joindre le même `main.tf` :
    **refus**, aucun appel OpenRouter et aucun coût enregistré.
 7. Vérifier que le fichier n'a créé aucun dossier sous `projects/`.
