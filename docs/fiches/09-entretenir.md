@@ -38,27 +38,23 @@ scripts/linux/08_backup_restore.sh restore ARCHIVE DESTINATION
 
 La destination doit être un dossier vide : la restauration n'écrase jamais des données existantes. Vérifie le contenu restauré avant de le mettre à la place de `/srv/openclaw-local`, puis relance `./menu.sh --action install --apply` et `./menu.sh --action health`.
 
-## Préqualifier Open WebUI 0.12.0 sans toucher à l'installation
+## Vérification isolée facultative d'Open WebUI 0.12.1
 
-Avant toute migration de l'interface, vérifie le candidat dans un conteneur
-**isolé sans réseau** : la branche de travail propose
-`bash scripts/linux/14_webui_canary.sh --apply`. Le script tire la version
-publiée, détermine son digest réel, démarre une base jetable et vérifie les
-colonnes nécessaires aux fonctions et filtres.
+La première installation choisit **Open WebUI 0.12.1** directement et
+épingle par digest l'image téléchargée dans le service. Sur une machine
+vierge, **aucune migration de 0.11.4 n'est nécessaire** et il n'est pas
+obligatoire d'exécuter le canary avant l'installation.
 
-Pour tester la migration du schéma avec une **copie cohérente** de ta base
-actuelle (sans toucher au service original) :
+Pour examiner la version en conteneur jetable et hors réseau :
 
 ```bash
-bash scripts/linux/14_webui_canary.sh --apply --with-db-copy
+bash scripts/linux/14_webui_canary.sh --apply
 ```
 
-Les données temporaires sont supprimées à la fin. Les contrôles sont
-délibérément préliminaires : ils ne prouvent pas l'interface, les uploads,
-les actions, les pièces jointes, les outils ou la restitution de l'audio.
-Le digest du déploiement principal reste inchangé tant que le test de fumée
-complet n'a pas été exécuté. Aucune commande ci-dessus ne fusionne ni ne met
-à jour Open WebUI en production.
+La commande `--with-db-copy` est réservée à l'étude d'une base SQLite
+**déjà existante** et n'a aucun intérêt au premier déploiement. L'essai
+automatisé ne remplace pas les tests navigateur, fichiers, fonctions et voix
+sur le véritable PC Fedora.
 
 ## Mettre à niveau
 
