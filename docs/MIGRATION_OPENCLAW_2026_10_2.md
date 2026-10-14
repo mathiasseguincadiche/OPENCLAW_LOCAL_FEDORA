@@ -1,4 +1,9 @@
-# Migration OpenClaw 2026.9.8 → 2026.10.2
+# Archive historique — Migration OpenClaw 2026.9.8 → 2026.10.2
+
+> **Historique seulement.** Une installation neuve utilise désormais OpenClaw et
+> Parallel **2026.10.3**, Ollama **0.40.4** et Open WebUI **0.12.1**.
+> Aucun des passages ci-dessous n'est requis pour une machine jamais installée.
+> Les instructions de migration conservées ici décrivent un ancien état du dépôt.
 
 ## Décision et périmètre
 
