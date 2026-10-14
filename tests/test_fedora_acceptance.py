@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import pytest
@@ -32,10 +34,16 @@ def test_precheck_never_claims_real_hardware_qualification(tmp_path: Path) -> No
     assert "backup_archive_restore_to_separate_destination" in report[
         "outstanding_manual_proofs"
     ]
-    assert all(command[:4] == ["systemctl", "--user", "is-active", "--quiet"]
-               for command in commands[:-1])
-    assert all(command[4].endswith(".service") for command in commands[:-1])
-    assert commands[-1] == ["systemctl", "is-active", "--quiet", "ollama.service"]
+    user_commands = commands[:-2]
+    assert len(user_commands) == 2 * len(accept.SERVICES)
+    assert all(cmd[:2] == ["systemctl", "--user"] for cmd in user_commands)
+    assert set(tuple(cmd[2:4]) for cmd in user_commands) == {
+        ("is-active", "--quiet"), ("is-enabled", "--quiet")
+    }
+    assert all(cmd[4].endswith(".service") for cmd in user_commands)
+    assert commands[-2] == ["systemctl", "is-active", "--quiet", "ollama.service"]
+    assert commands[-1] == ["systemctl", "is-enabled", "--quiet", "ollama.service"]
+    assert all(report["checks"]["systemd_user_services_enabled"].values())
     assert set(endpoints) == set(accept.LOOPBACK.values())
 
 
@@ -96,3 +104,63 @@ def test_cli_failure_outputs_no_secrets(capsys: pytest.CaptureFixture[str]) -> N
     assert rc == 2
     assert "REFUSED" in output
     assert "Bearer" not in output and "token" not in output.lower()
+
+
+def test_precheck_rejects_disabled_boot_services(tmp_path: Path) -> None:
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    (runtime / ".openclaw-fedora-runtime").touch()
+    report = accept.readiness(
+        ROOT, runtime,
+        command=lambda args: not (
+            args[-1] == "clawfedora-dashboard.service" and "is-enabled" in args
+        ),
+        health=lambda _: True,
+    )
+    assert report["precheck"] == "INCOMPLETE"
+    assert report["checks"]["systemd_user_services_enabled"][
+        "clawfedora-dashboard.service"
+    ] is False
+    assert report["verdict"] == "NOT_END_TO_END_QUALIFIED"
+
+
+def test_health_redirect_never_contacts_untrusted_destination(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    arrivals: list[str] = []
+
+    class Receiver(BaseHTTPRequestHandler):
+        def log_message(self, format: str, *args: object) -> None:
+            pass
+
+        def do_GET(self) -> None:
+            arrivals.append(self.path)
+            self.send_response(200)
+            self.end_headers()
+
+    receiver = ThreadingHTTPServer(("127.0.0.1", 0), Receiver)
+    threading.Thread(target=receiver.serve_forever, daemon=True).start()
+
+    class Redirect(BaseHTTPRequestHandler):
+        def log_message(self, format: str, *args: object) -> None:
+            pass
+
+        def do_GET(self) -> None:
+            self.send_response(302)
+            self.send_header(
+                "Location", f"http://127.0.0.1:{receiver.server_port}/stolen"
+            )
+            self.end_headers()
+
+    redirect = ThreadingHTTPServer(("127.0.0.1", 0), Redirect)
+    threading.Thread(target=redirect.serve_forever, daemon=True).start()
+    try:
+        health_url = f"http://127.0.0.1:{redirect.server_port}/health"
+        monkeypatch.setattr(accept, "LOOPBACK", {"test": health_url})
+        assert accept.loopback_health(health_url) is False
+        assert arrivals == []
+    finally:
+        redirect.shutdown()
+        redirect.server_close()
+        receiver.shutdown()
+        receiver.server_close()

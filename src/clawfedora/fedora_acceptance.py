@@ -18,6 +18,17 @@ from typing import Any
 
 from clawfedora.core_config import root_contract
 
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """A local /health response must never send a readiness probe to the internet."""
+
+    def redirect_request(
+        self, req: urllib.request.Request, fp: Any, code: int,
+        msg: str, headers: Any, newurl: str,
+    ) -> None:
+        return None
+
+
 SERVICES = (
     "openclaw-gateway.service",
     "clawfedora-webui-bridge.service",
@@ -45,7 +56,9 @@ def loopback_health(url: str) -> bool:
     # No target URL can come from model, user, command output or network response.
     if url not in LOOPBACK.values():
         raise ValueError("Destination locale non autorisée")
-    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    opener = urllib.request.build_opener(
+        urllib.request.ProxyHandler({}), _NoRedirect()
+    )
     try:
         with opener.open(
             urllib.request.Request(url, method="GET"), timeout=4
@@ -75,14 +88,24 @@ def readiness(
         service: command(["systemctl", "--user", "is-active", "--quiet", service])
         for service in SERVICES
     }
+    enabled = {
+        service: command(["systemctl", "--user", "is-enabled", "--quiet", service])
+        for service in SERVICES
+    }
     loopback = {key: health(url) for key, url in LOOPBACK.items()}
     local_model = command(["systemctl", "is-active", "--quiet", "ollama.service"])
+    local_model_enabled = command(["systemctl", "is-enabled", "--quiet", "ollama.service"])
     checks = {
         "systemd_user_services": services,
+        "systemd_user_services_enabled": enabled,
         "loopback_health": loopback,
         "ollama_system_service_active": local_model,
+        "ollama_system_service_enabled": local_model_enabled,
     }
-    complete = all(services.values()) and all(loopback.values()) and local_model
+    complete = (
+        all(services.values()) and all(enabled.values())
+        and all(loopback.values()) and local_model and local_model_enabled
+    )
     return {
         "schema_version": "1.0.0",
         "observed_at_utc": datetime.now(UTC).isoformat(),
