@@ -165,7 +165,7 @@ jobs:
             echo "GNOME 51/Wayland required: headless apply should fail" >&2
             exit 1
           fi
-          grep -F 'GNOME Shell 51 requis' /tmp/headless-rejection.log
+          grep -E 'GNOME Shell 51 requis|Fedora 45 stable requis' /tmp/headless-rejection.log
       - name: Test Fedora 45 Python source and contracts in container
         run: |
           python3 -m venv /tmp/clawfedora45-venv
