@@ -61,6 +61,18 @@ clawfedora-evals --report ./notes_qwen.json
 clawfedora-evals --report ./notes_deepseek.json
 ```
 
+Pour comparer les mêmes sept scénarios, après avoir recueilli deux rapports
+humains complets :
+
+```bash
+clawfedora-evals --compare ./notes_qwen.json ./notes_deepseek.json
+```
+
+La sortie indique les différences de notes **cloud − local**, par scénario et
+par critère, mais ne déclare jamais un vainqueur. Une comparaison sans réponses
+réelles conservées et revues reste une comparaison de jugements déclarés, pas une
+mesure objective de performance.
+
 L'outil affiche une moyenne sur 4 par critère, sans jamais annoncer de PASS d'exécution. Son statut est toujours `HUMAN_REVIEWED_UNVERIFIED_BY_RUNTIME` : même une note maximale ne certifie **ni Terraform appliqué ni OpenRouter facturé**. Lier les notes aux preuves d'une CI réelle est un chantier distinct.
 
 ## Comment améliorer les prompts sans régression
