@@ -28,7 +28,7 @@ La documentation de découverte s'organise maintenant autour du [README](../READ
 
 ## Blocage P0 : qualification réelle sur le PC
 
-1. Déployer sans root sur Fedora 44 avec SELinux Enforcing et la B580.
+1. Déployer sans root sur Fedora 45 Workstation / GNOME 51 avec SELinux Enforcing et la B580.
 2. Tester 32K, 16K si nécessaire, vitesse, VRAM, températures et comportement après veille.
 3. Exécuter le parcours `docs/SMOKE_TEST_WEBUI.md` dans le vrai navigateur avec le vrai volume uploads.
 4. Vérifier que les fichiers sans projet sont lisibles localement, rejetés en cloud et ne créent aucun projet.
