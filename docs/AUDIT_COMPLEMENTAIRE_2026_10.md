@@ -1,4 +1,4 @@
-# Audit complémentaire après OpenClaw 2026.10.2
+# Audit complémentaire après OpenClaw 2026.10.3
 
 Cet audit distingue les **défauts prouvés dans le code** des **risques à qualifier sur Fedora**. Les tests CI verts du dépôt n'attestent pas que les installateurs distants, la migration WebUI, la B580 ou une restauration ont été éprouvés de bout en bout.
 
