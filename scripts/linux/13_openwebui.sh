@@ -38,9 +38,16 @@ if [[ "$ACTION" == install ]]; then
   fi
   IMAGE="$($PYTHON -c 'from pathlib import Path; from clawfedora.core_config import root_contract; import sys; print(root_contract(Path(sys.argv[1]), "webui_policy.yaml")["image"])' "$REPO_ROOT")"
   podman pull "$IMAGE"
+  # The stable v0.12.1-slim tag is selected by policy but must never be
+  # written to the live service definition: lock the exact downloaded digest.
+  IMAGE_DIGEST="$(podman image inspect "$IMAGE" --format '{{index .RepoDigests 0}}')"
+  [[ "$IMAGE_DIGEST" =~ ^ghcr[.]io/open-webui/open-webui@sha256:[a-f0-9]{64}$ ]] || {
+    echo "ERREUR: digest officiel Open WebUI indisponible ou incorrect" >&2
+    exit 2
+  }
   "$PYTHON" -m pip install -e "${REPO_ROOT}[speech]"
   "$PYTHON" -m clawfedora.speech_server --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" --prepare
-  "$PYTHON" -m clawfedora.webui_setup render --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" --unit-root "$UNIT_ROOT"
+  "$PYTHON" -m clawfedora.webui_setup render --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" --unit-root "$UNIT_ROOT" --image-digest "$IMAGE_DIGEST"
   mkdir -p "$HOME/.local/share/applications"
   cat > "$HOME/.local/share/applications/clawfedora-atelier.desktop" <<'DESKTOP'
 [Desktop Entry]
