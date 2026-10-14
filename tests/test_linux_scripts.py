@@ -277,3 +277,13 @@ def test_webui_stop_covers_all_started_services_without_host_mutation(tmp_path: 
         "clawfedora-speech.service",
     }
     assert "OPENWEBUI_RESULT=PASS" in result.stdout
+
+
+def test_bootstrap_avoids_unbounded_toolchain_upgrade_and_checks_prod_deps() -> None:
+    source = _read("scripts/linux/00_bootstrap.sh")
+    assert 'pip install --upgrade pip setuptools wheel' not in source
+    assert 'as_target "$VENV/bin/python" -m pip --version' in source
+    assert 'as_target "$VENV/bin/python" -m pip check' in source
+    assert source.index('as_target "$VENV/bin/python" -m pip check') < source.index(
+        'as_root systemctl enable --now firewalld.service'
+    )

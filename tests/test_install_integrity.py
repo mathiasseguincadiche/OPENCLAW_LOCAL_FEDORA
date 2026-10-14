@@ -83,3 +83,11 @@ def test_verified_installer_refuses_unlisted_versions() -> None:
     )
     assert result.returncode == 2
     assert "REFUSED" in result.stderr
+
+
+def test_verified_install_checks_npm_transitive_tree_before_executable() -> None:
+    source = (ROOT / "scripts/linux/15_verified_installer.sh").read_text()
+    assert 'npm ls --global --all --prefix "$HOME/.openclaw"' in source
+    assert source.index('npm ls --global --all --prefix "$HOME/.openclaw"') < source.index(
+        '[[ -x "$HOME/.openclaw/bin/openclaw" ]]'
+    )

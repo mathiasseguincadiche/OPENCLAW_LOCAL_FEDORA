@@ -53,6 +53,12 @@ def main() -> None:
         )
         if install.returncode:
             raise SystemExit(f"NPM_PREFIX_SMOKE=FAIL install: {install.stderr[-1200:]}")
+        tree = subprocess.run(
+            [npm, "ls", "--global", "--all", "--prefix", str(prefix)],
+            capture_output=True, text=True, timeout=20, check=False,
+        )
+        if tree.returncode:
+            raise SystemExit(f"NPM_PREFIX_SMOKE=FAIL npm dependency tree: {tree.stderr[-800:]}")
         executable = prefix / "bin" / "clawfedora-layout-smoke"
         if not executable.is_file() or not executable.is_symlink():
             raise SystemExit("NPM_PREFIX_SMOKE=FAIL CLI not linked in prefix/bin")

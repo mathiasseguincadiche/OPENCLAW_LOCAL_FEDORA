@@ -38,6 +38,12 @@ if [[ "$KIND" == openclaw ]]; then
   # Use user-scoped GLOBAL mode to match the executable used by all services.
   npm install --global --prefix "$HOME/.openclaw" --ignore-scripts \
     --no-audit --no-fund "$ARCHIVE"
+# A verified top-level archive does not guarantee a consistent dependency tree.
+  # Refuse a missing/invalid npm transitive dependency before touching services.
+  if ! npm ls --global --all --prefix "$HOME/.openclaw" >/dev/null; then
+    echo "Arbre de dépendances npm OpenClaw incomplet ou incohérent" >&2
+    exit 2
+  fi
   [[ -x "$HOME/.openclaw/bin/openclaw" ]] || { echo "CLI npm OpenClaw introuvable" >&2; exit 2; }
   TOOL="$HOME/.openclaw/bin/openclaw"
 else

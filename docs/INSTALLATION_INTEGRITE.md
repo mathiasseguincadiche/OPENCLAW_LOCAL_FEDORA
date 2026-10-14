@@ -27,3 +27,31 @@ bash scripts/linux/15_verified_installer.sh ollama
 À la migration réelle, vérifier les chemins de l'exécutable Ollama et du service systemd, les groupes `render/video`, SELinux Enforcing, la version exacte et le fonctionnement de Qwen/Vulkan. La CI vérifie les pins, les refus de digest altéré et les aperçus ; **l'extraction des archives et le redémarrage systemd sur le PC restent à qualifier**.
 
 En cas d'empreinte incorrecte : aucune tentative d'exécution ni installation ne doit suivre. Corriger uniquement après audit explicite d'une nouvelle publication officielle et revue des nouveaux hashes.
+
+
+## Vérification Python du bootstrap (octobre 2026)
+
+Le bootstrap Fedora 44 ne lance plus de mise à niveau implicite non bornée de
+`pip`, `setuptools` et `wheel`. Il vérifie la disponibilité du `pip` du
+venv puis effectue `pip check` après l'installation du projet, **avant**
+d'activer firewalld. Une incohérence des dépendances provoque un arrêt.
+
+**Limite de reproductibilité restante :** l'isolation de construction PEP 517
+peut résoudre des versions plus récentes de `setuptools>=80` et `wheel`,
+et le fichier `pyproject.toml` contient encore des plages de versions
+pour plusieurs dépendances. Une résolution complète verrouillée (avec
+empreintes d'artefacts et installation vérifiée sur Fedora) reste un travail
+distinct avant d'affirmer des installations bit à bit reproductibles.
+
+
+## Contrôle d'intégrité logique npm
+
+Après avoir installé l'archive OpenClaw vérifiée, l'installateur exécute
+`npm ls --global --all` dans le préfixe utilisateur et refuse un arbre
+manquant ou incohérent **avant** de lancer les services. La CI effectue
+le même contrôle sur une archive synthétique hors réseau.
+
+Ce contrôle ne constitue **ni un audit de vulnérabilités ni un verrouillage
+cryptographique des sous-dépendances npm** : les versions transitives
+doivent encore être résolues et épinglées pour promettre une reconstruction
+strictement identique.
