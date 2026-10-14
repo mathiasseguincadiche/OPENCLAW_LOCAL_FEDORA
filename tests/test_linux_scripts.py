@@ -296,6 +296,8 @@ def test_fedora_45_gnome_51_are_required_by_all_installation_entrypoints() -> No
     workflow = _read(".github/workflows/ci.yml")
     assert 'VERSION_ID:-}" != "45"' in bootstrap
     assert "GNOME Shell 51 requis" in bootstrap
+    assert "Fedora 45 stable requis" in bootstrap
+    assert "édition Fedora Workstation requise" in bootstrap
     assert 'XDG_SESSION_TYPE:-}' in bootstrap
     assert '"${VERSION_ID:-}" == 45' in webui
     assert "INSTALL_PLAN Fedora=45 GNOME=51" in install
