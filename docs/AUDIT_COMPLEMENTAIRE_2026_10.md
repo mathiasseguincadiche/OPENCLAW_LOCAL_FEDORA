@@ -1,6 +1,6 @@
 # Audit complémentaire après OpenClaw 2026.10.3
 
-Cet audit distingue les **défauts prouvés dans le code** des **risques à qualifier sur Fedora**. Les tests CI verts du dépôt n'attestent pas que les installateurs distants, la migration WebUI, la B580 ou une restauration ont été éprouvés de bout en bout.
+Cet audit distingue les **défauts prouvés dans le code** des **risques à qualifier sur Fedora**. Les tests CI verts du dépôt n'attestent pas que les installateurs distants, la première installation WebUI 0.12.1, la B580 ou une restauration ont été éprouvés de bout en bout.
 
 ## Défaut corrigé : dépendances de production manquantes
 
@@ -25,7 +25,8 @@ La commande `webui-stop` n'arrête toujours **pas** le Gateway OpenClaw ni Ollam
 
 ## Durcissements supplémentaires fusionnés en octobre
 
-- [#111](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/111) : réseau interne Podman distinct par canary WebUI 0.12 ; production toujours 0.11.4.
+- [#111](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/111) : réseau interne Podman distinct par canary WebUI 0.12, vérification isolée facultative.
+- [#117](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/117) : première installation en Open WebUI 0.12.1-slim ; digest Podman figé dans le service systemd.
 - [#112](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/112) : OpenRouter sans redirection HTTP ni proxy implicite, et conservation prudente de la réservation budgétaire si réponse 3xx.
 - [#113](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/113) : comparateur hors ligne des évaluations humaines des sept agents (scores cloud − local explicités), aucune mesure IA fabriquée.
 - [#114](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/114) : précontrôle de services actifs **et activés au démarrage**, et aucune redirection des sondes de santé 127.0.0.1.
@@ -33,7 +34,7 @@ La commande `webui-stop` n'arrête toujours **pas** le Gateway OpenClaw ni Ollam
 ## Qualifications restant indispensables (non prouvées par GitHub)
 
 1. **Fedora réel / B580 :** GPU Intel Arc, 32K de contexte, latence, pression VRAM, cinq cycles de veille/reprise et fonctionnement sans réseau.
-2. **Open WebUI :** canary isolé 0.12 avec copie SQLite et test navigateur de la préservation des conversations et des plugins ; production toujours épinglée en 0.11.4.
+2. **Open WebUI :** premier déploiement sur 0.12.1-slim, sans migration de 0.11.4 ; valider navigateur, Functions, stockage et audio sur Fedora. Canary isolé uniquement facultatif.
 3. **Vision :** requêtes PNG/JPEG/WebP et PDF scanné via navigateur, qualité visuelle, refus de cloud, état de verrouillage et performance.
 4. **Restaurations :** restauration d'une archive dans une destination vide *distincte*, contrôle des permissions et de la récupération des données ; ne pas considérer la seule création d'une archive comme preuve.
 5. **Sécurité et qualité :** tests d'intégration réels sur le Gateway avec la nouvelle version, gestion des secrets et suivi de consommation cloud dans la limite prévue.
