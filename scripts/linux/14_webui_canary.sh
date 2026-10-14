@@ -87,7 +87,7 @@ NETWORK_ARGS=(--network none)
 APP_HOST=127.0.0.1
 if (( BROWSER )); then
   # Use a unique per-invocation network; a literal dollar sign is not a PID.
-  NET="clawfedora-webui-test-net-$"
+  NET="clawfedora-webui-test-net-$$"
   podman network create --internal "$NET" >/dev/null
   NETWORK_ARGS=(--network "$NET" --publish 127.0.0.1:3001:8080)
   APP_HOST=0.0.0.0
