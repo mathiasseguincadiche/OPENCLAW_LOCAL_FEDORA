@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml)
-[![Fedora 44](https://img.shields.io/badge/Fedora-44-51A2DA?logo=fedora&logoColor=white)](https://fedoraproject.org/)
+[![Fedora 45](https://img.shields.io/badge/Fedora-45-51A2DA?logo=fedora&logoColor=white)](https://fedoraproject.org/)
 [![Licence MIT](https://img.shields.io/badge/Licence-MIT-green.svg)](LICENSE)
 
 > **En bref :** un **atelier IA hybride** sous Fedora : **Qwen 3.5 9B en local** pour l'autonomie et la confidentialité, **DeepSeek V4.1 Flash dans le cloud** pour les analyses DevOps difficiles et les contextes volumineux. **OpenClaw coordonne sept rôles spécialisés** avec des outils et des garde-fous communs. Aucun déploiement automatique sur le PC.
@@ -130,7 +130,7 @@ l'atelier IA.** Une VM Rocky peut servir *indépendamment* aux exercices
 DevOps de l'utilisateur ; elle ne fait pas partie de l'infrastructure
 d'exécution de l'atelier.
 
-Cible : **Fedora 44**, Ryzen 7 7700, 48 Go de RAM, Intel Arc B580 12 Go. Installation sans root, avec SELinux actif.
+Cible après la publication officielle : **Fedora 45 Workstation + GNOME 51 (Wayland)**, Ryzen 7 7700, 48 Go de RAM, Intel Arc B580 12 Go. Installation par l'utilisateur habituel (sudo ponctuel), avec SELinux Enforcing. **Au 14 octobre 2026, Fedora 45 est encore en bêta : la sortie stable est ciblée au 20 octobre, sous réserve des critères de publication.**
 
 ```bash
 git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
