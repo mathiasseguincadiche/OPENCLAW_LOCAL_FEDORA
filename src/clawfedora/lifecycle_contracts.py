@@ -21,8 +21,8 @@ def validate_lifecycle_contracts(repo_root: Path) -> tuple[tuple[str, ...], tupl
     installation = _mapping(policy.get("installation"))
     if installation.get("dry_run_by_default") is not True:
         failures.append("lifecycle: dry-run par défaut requis")
-    if int(installation.get("fedora_release", 0)) != 44:
-        failures.append("lifecycle: Fedora 44 requis")
+    if int(installation.get("fedora_release", 0)) != 45:
+        failures.append("lifecycle: Fedora 45 requis")
     if installation.get("require_selinux_enforcing") is not True:
         failures.append("lifecycle: SELinux Enforcing requis")
     if installation.get("require_user_systemd") is not True:

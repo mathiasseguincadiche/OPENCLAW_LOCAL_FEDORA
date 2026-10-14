@@ -55,10 +55,12 @@ def validate_repository(root: Path) -> ContractReport:
     security = platform.get("security", {})
     if platform.get("deployment_mode") != "fedora-native":
         failures.append("platform: deployment_mode doit être fedora-native")
-    if os_cfg.get("distribution") != "Fedora Linux" or int(os_cfg.get("release", 0)) != 44:
-        failures.append("platform: Fedora Linux 44 requis")
-    if os_cfg.get("desktop") != "GNOME" or int(os_cfg.get("desktop_major", 0)) != 50:
-        failures.append("platform: GNOME 50 requis")
+    if os_cfg.get("distribution") != "Fedora Linux" or int(os_cfg.get("release", 0)) != 45:
+        failures.append("platform: Fedora Linux 45 requis")
+    if os_cfg.get("desktop") != "GNOME" or int(os_cfg.get("desktop_major", 0)) != 51:
+        failures.append("platform: GNOME 51 requis")
+    if os_cfg.get("edition") != "Workstation":
+        failures.append("platform: édition Workstation requise")
     if os_cfg.get("display_server") != "wayland":
         failures.append("platform: Wayland requis")
     if runtime.get("service_manager") != "systemd-user":

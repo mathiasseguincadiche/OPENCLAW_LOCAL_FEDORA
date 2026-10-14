@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 from collections.abc import Sequence
@@ -81,11 +82,11 @@ def _os_release() -> dict[str, str]:
 def collect_audit(strict: bool = False) -> AuditReport:
     checks: list[Check] = []
     os_release = _os_release()
-    fedora44 = os_release.get("ID") == "fedora" and os_release.get("VERSION_ID") == "44"
+    fedora45 = os_release.get("ID") == "fedora" and os_release.get("VERSION_ID") == "45"
     checks.append(
         Check(
-            "os-fedora44",
-            "PASS" if fedora44 else ("FAIL" if strict else "WARN"),
+            "os-fedora45",
+            "PASS" if fedora45 else ("FAIL" if strict else "WARN"),
             f"ID={os_release.get('ID', '?')} VERSION_ID={os_release.get('VERSION_ID', '?')}",
         )
     )
@@ -108,6 +109,17 @@ def collect_audit(strict: bool = False) -> AuditReport:
             "gnome",
             "PASS" if desktop_ok else ("FAIL" if strict else "WARN"),
             f"XDG_CURRENT_DESKTOP={desktop}",
+        )
+    )
+
+    rc, gnome_shell = _run(["gnome-shell", "--version"])
+    match = re.search(r"\b(\d+)(?:\.\d+)?\b", gnome_shell) if rc == 0 else None
+    major = int(match.group(1)) if match else None
+    checks.append(
+        Check(
+            "gnome-shell-51",
+            "PASS" if major == 51 else ("FAIL" if strict else "WARN"),
+            gnome_shell or "GNOME Shell non détecté",
         )
     )
 

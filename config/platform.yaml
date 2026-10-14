@@ -3,10 +3,10 @@ platform_version: 0.1.0
 deployment_mode: fedora-native
 os:
   distribution: Fedora Linux
-  release: 44
+  release: 45
   edition: Workstation
   desktop: GNOME
-  desktop_major: 50
+  desktop_major: 51
   display_server: wayland
 runtime:
   preferred_root: /srv/openclaw-local

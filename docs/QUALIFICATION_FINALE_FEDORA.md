@@ -154,15 +154,23 @@ source et manifeste SHA-256. L'inspection visuelle est obligatoire.
 | Archive et restauration sur copie | Essai local manquant |
 | Inspection PDF / DOCX / Draw.io | Essai visuel manquant |
 
-## 9. Fedora 45 bêta, sans promotion de production
+## 9. Réception de Fedora 45 Workstation / GNOME 51
 
-La CI contient désormais un job `fedora-45-preview` utilisant une
-image de Fedora 45 pour exécuter les contrats et les tests Python. La
-distribution était en **bêta au 12 octobre 2026** : le bootstrap du PC reste
-volontairement restreint à Fedora 44 jusqu'aux tests matériels GNOME 51,
-Intel B580, SELinux, Podman, veille et réseau. Ne pas modifier la vérification
-de distribution du script pour contourner ce verrou.
+Le **système hôte unique** de la première installation est Fedora 45
+Workstation, GNOME Shell 51 sous Wayland. Fedora 44 et GNOME 50 sont
+refusés par le bootstrap, la configuration WebUI et le contrôle matériel.
 
-Ne conclure **QUALIFIÉ** qu'après des preuves datées de chaque domaine.
-Ne jamais stocker de clé, jeton, conversation privée ou secret dans le dossier
-de preuves.
+La CI exécute les tests sous un conteneur Fedora 45
+(`fedora-45-contract`) et vérifie qu'une installation sous Fedora 44
+est refusée (`fedora-44-rejection`). Au **14 octobre 2026**, l'image Fedora
+45 disponible est encore une version de développement/bêta. Cette CI
+valide le code et la cohérence des dépendances Python dans ce conteneur ;
+elle ne simule **ni GNOME Shell graphique, ni SELinux/Podman complets, ni
+la B580 et ses pilotes**.
+
+**Attendre la publication Fedora 45 stable**, actuellement visée le
+**20 octobre 2026** (date susceptible de report), puis tester sur le
+vrai poste le noyau/Mesa, GNOME 51/Wayland, le driver `xe`, Resizable
+BAR, les services et la veille/reprise. Ne conclure **QUALIFIÉ** qu'après
+des preuves datées pour chaque domaine. Ne jamais stocker de clé,
+jeton, conversation privée ou secret dans le dossier de preuves.

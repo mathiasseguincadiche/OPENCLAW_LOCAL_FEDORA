@@ -23,10 +23,19 @@ actifs/activés au démarrage. La CI ne prouve pas les essais machine.
 
 Les objectifs encore ouverts nécessitent soit un verrouillage cryptographique
 intégral des dépendances transitives, soit la phase **finale d'acceptation**
-déjà documentée (Fedora 44/45, Intel B580, navigateur et SQLite WebUI 0.12,
+déjà documentée (Fedora 45 Workstation / GNOME 51, Intel B580, navigateur et SQLite WebUI 0.12,
 véritable fournisseur OpenRouter avec prix/effort, restauration et performance
 des modèles). Ne pas changer le pin de production WebUI, le routage cloud
 ou le plafond de 25 €/mois sur la seule base de ces tests.
+
+## Cible définitive de première installation
+
+Le projet est préparé pour **Fedora 45 Workstation / GNOME 51 sous Wayland**,
+avec l'installation de OpenClaw, Ollama et Open WebUI directement sur cette
+base neuve. Les scripts n'acceptent plus Fedora 44. À la date du
+14 octobre 2026, la sortie stable est seulement programmée au
+20 octobre (éventuel report) : les essais sur conteneur Fedora 45
+restent des prétests et la réception physique suit la publication finale.
 
 ## Le principe : préparer le code, qualifier en dernier
 

@@ -2,7 +2,7 @@ schema_version: 1.0.0
 platform_version: 0.1.0
 installation:
   dry_run_by_default: true
-  fedora_release: 44
+  fedora_release: 45
   require_selinux_enforcing: true
   require_user_systemd: true
   install_gateway_with_openclaw_cli: true

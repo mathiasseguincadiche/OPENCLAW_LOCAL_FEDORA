@@ -1,4 +1,4 @@
-# Test de fumée Open WebUI — Fedora 44
+# Test de fumée Open WebUI — Fedora 45 Workstation + GNOME 51
 
 Ce test valide ce que la CI ne peut pas prouver : l'image Open WebUI réellement exécutée, le
 navigateur, le micro, la B580, le stockage des uploads et le vrai fournisseur cloud. Il se fait
@@ -32,7 +32,7 @@ la bonne lisibilité du diagramme.
 
 Attendu :
 
-- Fedora 44, SELinux `Enforcing`, firewalld actif ;
+- Fedora 45 Workstation + GNOME 51 sur Wayland, SELinux `Enforcing`, firewalld actif ;
 - Qwen entièrement ou majoritairement sur la B580 selon le résultat de `context-probe` ;
 - services OpenClaw, pont, dashboard, Open WebUI et `clawfedora-speech` actifs ;
 - ports 3000, 18789, 18890, 18891 et 18893 en boucle locale seulement ;

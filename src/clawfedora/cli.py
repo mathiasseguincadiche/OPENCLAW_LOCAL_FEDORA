@@ -193,7 +193,7 @@ def build_parser() -> argparse.ArgumentParser:
     validate = subparsers.add_parser("validate", help="valider tous les contrats du dépôt")
     validate.add_argument("--json", action="store_true")
 
-    audit = subparsers.add_parser("audit", help="auditer Fedora 44 et la B580")
+    audit = subparsers.add_parser("audit", help="auditer Fedora 45, GNOME 51 et la B580")
     audit.add_argument("--strict", action="store_true", help="faire échouer les prérequis Fedora")
     audit.add_argument("--json", action="store_true")
 
