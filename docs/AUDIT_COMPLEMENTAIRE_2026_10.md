@@ -27,7 +27,7 @@ La commande `webui-stop` n'arrête toujours **pas** le Gateway OpenClaw ni Ollam
 
 - [#111](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/111) : réseau interne Podman distinct par canary WebUI 0.12 ; production toujours 0.11.4.
 - [#112](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/112) : OpenRouter sans redirection HTTP ni proxy implicite, et conservation prudente de la réservation budgétaire si réponse 3xx.
-- [#113](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/113) : comparateur hors ligne des évaluations humaines des sept agents (scores local − cloud explicités), aucune mesure IA fabriquée.
+- [#113](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/113) : comparateur hors ligne des évaluations humaines des sept agents (scores cloud − local explicités), aucune mesure IA fabriquée.
 - [#114](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/114) : précontrôle de services actifs **et activés au démarrage**, et aucune redirection des sondes de santé 127.0.0.1.
 
 ## Qualifications restant indispensables (non prouvées par GitHub)
