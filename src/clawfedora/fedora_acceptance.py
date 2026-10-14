@@ -76,13 +76,13 @@ def readiness(
         for service in SERVICES
     }
     loopback = {key: health(url) for key, url in LOOPBACK.items()}
-    local_model = command(["systemctl", "--user", "is-active", "--quiet", "ollama.service"])
+    local_model = command(["systemctl", "is-active", "--quiet", "ollama.service"])
     checks = {
         "systemd_user_services": services,
         "loopback_health": loopback,
-        "ollama_user_service_active": local_model,
+        "ollama_system_service_active": local_model,
     }
-    complete = all(services.values()) and all(loopback.values())
+    complete = all(services.values()) and all(loopback.values()) and local_model
     return {
         "schema_version": "1.0.0",
         "observed_at_utc": datetime.now(UTC).isoformat(),

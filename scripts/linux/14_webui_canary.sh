@@ -10,20 +10,27 @@ RUNTIME_ROOT="$(claw_runtime_root)"
 REPO_ROOT="$(claw_repo_root)"
 APPLY=0
 WITH_DB=0
+BROWSER=0
+NET=""
 for arg in "$@"; do
   case "$arg" in
     --apply) APPLY=1 ;;
     --with-db-copy) WITH_DB=1 ;;
-    *) echo "Usage: $0 [--apply] [--with-db-copy]" >&2; exit 2 ;;
+    --browser) BROWSER=1 ;;
+    *) echo "Usage: $0 [--apply] [--with-db-copy] [--browser]" >&2; exit 2 ;;
   esac
 done
-printf 'WEBUI_CANARY image=%s copy_db=%s no_host_mutation=true\\n' "$IMAGE" "$WITH_DB"
+printf 'WEBUI_CANARY image=%s copy_db=%s browser=%s no_host_mutation=true\\n' "$IMAGE" "$WITH_DB" "$BROWSER"
 if (( APPLY == 0 )); then
   echo 'DRY_RUN=PASS (aucune image tirée, aucun conteneur démarré)'
   exit 0
 fi
 
 (( EUID != 0 )) || { echo 'Compte utilisateur requis, pas root' >&2; exit 2; }
+if (( BROWSER )); then
+  (( WITH_DB )) || { echo '--browser exige --with-db-copy' >&2; exit 2; }
+  [[ -t 0 ]] || { echo '--browser exige un terminal interactif pour arrêter proprement le canary' >&2; exit 2; }
+fi
 command -v podman >/dev/null || { echo 'Podman requis' >&2; exit 2; }
 [[ "$(podman info --format '{{.Host.Security.Rootless}}')" == true ]] || {
   echo 'Podman rootless requis' >&2; exit 2;
@@ -36,6 +43,7 @@ TMP="$(mktemp -d -p "${TMPDIR:-/tmp}" clawfedora-webui-canary-XXXXXXXX)"
 NAME="clawfedora-webui-canary-$$"
 cleanup() {
   podman stop --ignore --time 5 "$NAME" >/dev/null 2>&1 || true
+  if [[ -n "$NET" ]]; then podman network rm "$NET" >/dev/null 2>&1 || true; fi
   rm -rf -- "$TMP"
 }
 trap cleanup EXIT
@@ -74,8 +82,16 @@ if [[ ! "$DIGEST" =~ ^ghcr.io/open-webui/open-webui@sha256:[a-f0-9]{64}$ ]]; the
 fi
 printf 'CANDIDATE_IMAGE=%s\\n' "$DIGEST"
 
-# Network-free, throwaway container; host WebUI uses a different name/volume.
-podman run --rm --detach --name "$NAME" --network none \
+# Network-free by default; optional offline-only private browser loopback.
+NETWORK_ARGS=(--network none)
+APP_HOST=127.0.0.1
+if (( BROWSER )); then
+  NET="clawfedora-webui-test-net-$"
+  podman network create --internal "$NET" >/dev/null
+  NETWORK_ARGS=(--network "$NET" --publish 127.0.0.1:3001:8080)
+  APP_HOST=0.0.0.0
+fi
+podman run --rm --detach --name "$NAME" "${NETWORK_ARGS[@]}" \
   --cap-drop ALL --security-opt no-new-privileges --pids-limit 256 \
   --memory 3g --cpus 2 \
   -e OFFLINE_MODE=true -e ENABLE_OLLAMA_API=false \
@@ -83,7 +99,7 @@ podman run --rm --detach --name "$NAME" --network none \
   -e ENABLE_FUNCTIONS=true -e ENABLE_TOOLS=false \
   -e ENABLE_TOOL_SERVERS=false -e ENABLE_SIGNUP=false \
   -e ENABLE_PIP_INSTALL_FRONTMATTER_REQUIREMENTS=false \
-  -e WEBUI_AUTH=true -e HOST=127.0.0.1 -e PORT=8080 \
+  -e WEBUI_AUTH=true -e HOST="$APP_HOST" -e PORT=8080 \
   -e WEBUI_SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_hex(32))')" \
   --volume "$TMP/data:/app/backend/data:Z" "$DIGEST" >/dev/null
 
@@ -127,5 +143,11 @@ report = verify_preservation(before, snapshot(Path(sys.argv[2])))
 print(f"WEBUI_CANARY_DATA=PASS functions={report['functions_preserved']}")
 PY
 fi
-echo 'WEBUI_CANARY_RESULT=PASS (préqualification conteneur, pas validation navigateur)'
+echo 'WEBUI_CANARY_RESULT=PASS (préqualification conteneur, données sur copie uniquement)'
 echo "Aucun digest du déploiement principal n'a été modifié."
+if (( BROWSER )); then
+  echo 'CANARY_BROWSER_URL=http://127.0.0.1:3001 (réseau Podman interne, sans cloud)'
+  echo 'Tester connexion, listes de chats, versions des fonctions, boutons et fichiers.'
+  read -r -p 'Fin des essais navigateur ? Appuyer sur Entrée pour effacer le canary : ' _
+  echo 'CANARY_BROWSER_RESULT=MANUAL_REVIEW_REQUIRED (résultat humain non automatisé)'
+fi

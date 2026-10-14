@@ -33,8 +33,9 @@ def test_precheck_never_claims_real_hardware_qualification(tmp_path: Path) -> No
         "outstanding_manual_proofs"
     ]
     assert all(command[:4] == ["systemctl", "--user", "is-active", "--quiet"]
-               for command in commands)
-    assert all(command[4].endswith(".service") for command in commands)
+               for command in commands[:-1])
+    assert all(command[4].endswith(".service") for command in commands[:-1])
+    assert commands[-1] == ["systemctl", "is-active", "--quiet", "ollama.service"]
     assert set(endpoints) == set(accept.LOOPBACK.values())
 
 
@@ -49,6 +50,19 @@ def test_precheck_fails_closed_on_stopped_service(tmp_path: Path) -> None:
     )
     assert report["precheck"] == "INCOMPLETE"
     assert report["verdict"] == "NOT_END_TO_END_QUALIFIED"
+
+
+def test_precheck_requires_ollama_system_service(tmp_path: Path) -> None:
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    (runtime / ".openclaw-fedora-runtime").touch()
+    report = accept.readiness(
+        ROOT, runtime,
+        command=lambda args: args != ["systemctl", "is-active", "--quiet", "ollama.service"],
+        health=lambda _: True,
+    )
+    assert report["precheck"] == "INCOMPLETE"
+    assert report["checks"]["ollama_system_service_active"] is False
 
 
 def test_precheck_never_contacts_external_network(tmp_path: Path) -> None:
