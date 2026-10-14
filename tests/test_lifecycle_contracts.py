@@ -61,3 +61,13 @@ def test_lifecycle_rejects_unsafe_restore(tmp_path: Path) -> None:
     failures, _ = validate_lifecycle_contracts(root)
     joined = "\n".join(failures)
     assert "écrasement interdite" in joined
+
+
+def test_lifecycle_rejects_fedora_44_as_installation_target(tmp_path: Path) -> None:
+    root = _sandbox(tmp_path)
+    config = root / "config/lifecycle_policy.yaml"
+    payload = yaml.safe_load(config.read_text(encoding="utf-8"))
+    payload["installation"]["fedora_release"] = 44
+    config.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+    failures, _ = validate_lifecycle_contracts(root)
+    assert any("Fedora 45 requis" in failure for failure in failures)
