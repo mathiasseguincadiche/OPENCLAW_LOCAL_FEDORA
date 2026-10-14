@@ -18,6 +18,7 @@ from typing import Any
 
 from clawfedora.core_config import root_contract
 
+
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
     """A local /health response must never send a readiness probe to the internet."""
 
