@@ -44,14 +44,14 @@ def test_openclaw_version_is_written_once_and_locked_exactly() -> None:
 
 
 def test_python_parser_does_not_confuse_neighbor_versions() -> None:
-    assert extract_openclaw_version("OpenClaw 2026.10.2") == "2026.10.2"
+    assert extract_openclaw_version("OpenClaw 2026.10.3") == "2026.10.3"
     assert extract_openclaw_version("OpenClaw 2026.10.20") == "2026.10.20"
-    assert extract_openclaw_version("OpenClaw 2026.10.20") != "2026.10.2"
+    assert extract_openclaw_version("OpenClaw 2026.10.20") != "2026.10.3"
 
     with pytest.raises(ValueError, match="absente ou ambiguë"):
         extract_openclaw_version("OpenClaw version inconnue")
     with pytest.raises(ValueError, match="absente ou ambiguë"):
-        extract_openclaw_version("OpenClaw 2026.10.2 puis 2026.10.20")
+        extract_openclaw_version("OpenClaw 2026.10.3 puis 2026.10.20")
 
 
 def test_shell_parser_extracts_the_whole_version_token() -> None:
@@ -71,7 +71,7 @@ def test_shell_parser_extracts_the_whole_version_token() -> None:
     )
     assert completed.returncode == 0
     assert completed.stdout.strip() == "2026.10.20"
-    assert completed.stdout.strip() != "2026.10.2"
+    assert completed.stdout.strip() != "2026.10.3"
 
 
 def test_install_and_config_scripts_use_exact_openclaw_equality() -> None:
