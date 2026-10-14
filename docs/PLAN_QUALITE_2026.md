@@ -1,7 +1,9 @@
 # Plan de qualité vérifiable — OpenClaw / Fedora / Open WebUI
 
-**Situation :** la version actuellement épinglée est Open WebUI v0.11.4. La v0.12.0 est
-publiée depuis le 10 octobre 2026, mais **pas encore validée** dans ce projet.
+**Situation :** première installation directement prévue sur Open WebUI **v0.12.1-slim** ;
+aucune conversion de 0.11.4 n'est demandée sur une machine encore vierge.
+Le téléchargement est verrouillé au digest effectif par Podman avant de générer systemd,
+mais l'exécution réelle dans le navigateur Fedora reste **non qualifiée**.
 Ce plan ne remplace pas les essais sur le PC cible ni l'état factuel de `STATUS.md`.
 
 ## Principes de livraison
@@ -36,20 +38,17 @@ La documentation de découverte s'organise maintenant autour du [README](../READ
 **Acceptation :** mesures horodatées dans `STATUS.md`, résultats PASS/FAIL
 et journaux assainis ; aucune protection désactivée pour obtenir PASS.
 
-## P1 : mise à niveau Open WebUI 0.12.0
+## P1 : réception de l'installation initiale Open WebUI 0.12.1
 
-- **Ne pas** remplacer le digest de v0.11.4 par un tag mouvant ou une empreinte devinée.
-- Recueillir le digest officiel de l'image `slim` cible et tester son démarrage dans un volume jetable ; la commande `bash scripts/linux/14_webui_canary.sh --apply [--with-db-copy]` prépare désormais cette préqualification.
-- Tester la migration SQLite depuis une copie cohérente de v0.11.4 et la possibilité de restaurer. Le canary `--with-db-copy` contrôle désormais la présence des tables et la conservation des comptes, conversations et fonctions (contenu/activation) dans la base jetable ; il refuse de conclure PASS si une de ces données disparaît.
-- Vérifier l'activation explicite des Functions/Filters : la v0.12.0 introduit `ENABLE_PLUGINS` comme interrupteur maître. Les variables `ENABLE_PLUGINS=true`, `ENABLE_FUNCTIONS=true` et `ENABLE_TOOL_SERVERS=false` sont désormais explicites dans la configuration générée.
-- Tester l'insertion du filtre `clawfedora_files`, `file_handler`, la résolution des chemins, l'appartenance utilisateur et chaque type d'upload.
-- Tester STT/TTS et s'assurer qu'aucun mode vocal distant ne s'active par défaut.
-- Mettre à jour version et digest ensemble dans `config/webui_policy.yaml`; passer tout le smoke test.
+- Configurer **v0.12.1-slim dès la première installation** : aucune migration d'une ancienne base 0.11.4 n'est obligatoire.
+- Vérifier le tag stable à la récupération, puis figer dans systemd la référence exacte `ghcr.io/open-webui/open-webui@sha256:...`; ne jamais utiliser `:latest` ni deviner une empreinte.
+- Le canary isolé demeure facultatif pour vérifier un conteneur jetable ou une éventuelle copie de base ancienne ; `--with-db-copy` n'est pas exigé sans base existante.
+- Vérifier les Functions/Filters sous Open WebUI 0.12.1 et le traitement des fichiers, uploads, actions de projet et STT/TTS.
+- Effectuer la réception réelle navigateur/GPU/stockage/SELinux sur Fedora ; ne pas interpréter la seule CI comme une preuve matérielle.
 
-**Acceptation :** pas de migration destructive, aucun RAG parallèle, tests
-d'intégration réels et retour arrière documenté.
+**Acceptation :** premier déploiement par digest valide et expérience navigateur mesurée, pas de migration fictive.
 
-Source officielle : https://www.openwebui.com/blog/v0-12-0-a-voice-that-talks-back-and-a-face-to-go-with-it
+Source officielle : https://github.com/open-webui/open-webui/releases/tag/v0.12.1
 
 ## P1 : expérience de conversation
 
