@@ -157,7 +157,7 @@ def test_health_reports_all_components(monkeypatch: pytest.MonkeyPatch, tmp_path
 
     def request(url: str, **_kwargs: object) -> dict[str, object]:
         if url.endswith("/api/version"):
-            return {"version": "0.35.1"}
+            return {"version": "0.40.4"}
         return {
             "models": [
                 {"name": model, "digest": "a" * 64, "details": {"quantization_level": "Q4_K_M"}}
@@ -171,7 +171,7 @@ def test_health_reports_all_components(monkeypatch: pytest.MonkeyPatch, tmp_path
 
     def run(command: list[str], **_kwargs: object) -> SimpleNamespace:
         if command[-1] == "--version":
-            output = "OpenClaw 2026.10.2"
+            output = "OpenClaw 2026.10.3"
         elif command[0] == "getenforce":
             output = "Enforcing"
         elif "is-active" in command:
