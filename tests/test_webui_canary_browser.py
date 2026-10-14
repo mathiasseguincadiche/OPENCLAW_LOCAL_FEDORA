@@ -34,3 +34,14 @@ def test_browser_canary_refuses_noninteractive_unsafe_apply(tmp_path: Path) -> N
     assert result.returncode == 2
     assert "terminal interactif" in result.stderr
     assert not runtime.exists()
+
+
+def test_browser_network_is_unique_private_and_never_in_production() -> None:
+    script = SCRIPT.read_text(encoding="utf-8")
+    assert 'NET="clawfedora-webui-test-net-$$"' in script
+    assert 'NET="clawfedora-webui-test-net-$"' not in script
+    assert 'podman network create --internal "$NET"' in script
+    assert '--publish 127.0.0.1:3001:8080' in script
+    assert 'podman network rm "$NET"' in script
+    assert 'ENABLE_OLLAMA_API=false' in script and 'ENABLE_OPENAI_API=false' in script
+    # The real Podman/migrated SQLite/browser functionality is only qualified on Fedora.
