@@ -63,7 +63,7 @@ des conversations à empreintes SHA-256 privées, et refuse une Function modifi�
 Ces preuves ne remplacent **pas** les essais visuels : connexion, rôles,
 actions, uploads, téléchargement, voix, annulation et préservation des sessions
 dans un vrai navigateur restent à constater manuellement sur Fedora.
-Le mode `--browser` publie **uniquement** `127.0.0.1:3001` depuis
+Le mode `--browser` utilise un **réseau Podman interne distinct par exécution**, nettoyé à la sortie, et publie **uniquement** `127.0.0.1:3001` depuis
 un réseau Podman interne isolé et désactive les fournisseurs OpenAI/Ollama.
 La copie de base et le conteneur sont supprimés dès que l'opérateur appuie
 sur Entrée dans le terminal. Ce mode ne remplace pas le véritable Open WebUI
