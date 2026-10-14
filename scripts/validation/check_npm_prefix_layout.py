@@ -31,7 +31,11 @@ def main() -> None:
             ),
             (
                 "package/bin/cli.js",
-                b'#!/usr/bin/env node\\nprocess.stdout.write("NPM_GLOBAL_LAYOUT_OK\\\\n");\\n',
+                bytes([10]).join((
+                    b"#!/usr/bin/env node",
+                    b'process.stdout.write("NPM_GLOBAL_LAYOUT_OK");',
+                    b"",
+                )),
                 0o755,
             ),
         )
