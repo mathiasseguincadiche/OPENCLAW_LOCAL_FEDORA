@@ -172,6 +172,15 @@ def _check_system(repo_root: Path) -> list[GateCheck]:
         )
     )
 
+    workstation = release.get("VARIANT_ID") == "workstation"
+    checks.append(
+        GateCheck(
+            "workstation-edition",
+            "PASS" if workstation else "FAIL",
+            f"VARIANT_ID={release.get('VARIANT_ID', '?')}",
+        )
+    )
+
     major, gnome = _gnome_major()
     checks.append(
         GateCheck(
