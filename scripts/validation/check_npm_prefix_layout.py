@@ -21,8 +21,19 @@ def main() -> None:
         root = Path(directory)
         archive = root / "fixture.tgz"
         contents = (
-            ("package/package.json", b'{"name":"clawfedora-layout-fixture","version":"1.0.0","bin":{"clawfedora-layout-smoke":"bin/cli.js"}}', 0o644),
-            ("package/bin/cli.js", b'#!/usr/bin/env node\nprocess.stdout.write("NPM_GLOBAL_LAYOUT_OK\\n");\n', 0o755),
+            (
+                "package/package.json",
+                (
+                    b'{"name":"clawfedora-layout-fixture","version":"1.0.0",'
+                    b'"bin":{"clawfedora-layout-smoke":"bin/cli.js"}}'
+                ),
+                0o644,
+            ),
+            (
+                "package/bin/cli.js",
+                b'#!/usr/bin/env node\\nprocess.stdout.write("NPM_GLOBAL_LAYOUT_OK\\\\n");\\n',
+                0o755,
+            ),
         )
         with tarfile.open(archive, "w:gz") as package:
             for name, payload, mode in contents:
