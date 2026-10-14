@@ -13,7 +13,7 @@ Cette protection **ne garantit pas** que toutes les dépendances transitives ré
 
 ## Contrôles et procédure
 
-Depuis une installation gérée Fedora 44 :
+Depuis une installation gérée Fedora 45 Workstation (GNOME 51) :
 ```bash
 bash scripts/linux/15_verified_installer.sh openclaw
 bash scripts/linux/15_verified_installer.sh ollama
@@ -31,7 +31,7 @@ En cas d'empreinte incorrecte : aucune tentative d'exécution ni installation ne
 
 ## Vérification Python du bootstrap (octobre 2026)
 
-Le bootstrap Fedora 44 ne lance plus de mise à niveau implicite non bornée de
+Le bootstrap Fedora 45 Workstation (GNOME 51) ne lance plus de mise à niveau implicite non bornée de
 `pip`, `setuptools` et `wheel`. Il vérifie la disponibilité du `pip` du
 venv puis effectue `pip check` après l'installation du projet, **avant**
 d'activer firewalld. Une incohérence des dépendances provoque un arrêt.
