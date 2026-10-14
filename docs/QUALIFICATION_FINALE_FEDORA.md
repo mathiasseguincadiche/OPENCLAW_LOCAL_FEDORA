@@ -17,8 +17,9 @@ clawfedora-fedora-precheck \
 Adapter la variable au chemin réel du runtime. Même si le rapport affiche
 `READY_FOR_MANUAL_TESTS`, son verdict reste obligatoirement
 `NOT_END_TO_END_QUALIFIED`. Il ne lit ni jetons, ni conversations,
-ni détails de matériels ; seules les commandes systemd fixes et les deux
-sondes HTTP 127.0.0.1 sont consultées. Ne pas utiliser ce rapport seul comme
+ni détails de matériels ; seules les commandes systemd fixes (état **actif et activé au démarrage**)
+et les deux sondes HTTP 127.0.0.1 sont consultées. Les sondes refusent toute
+redirection, même depuis une URL locale : aucun suivi vers Internet. Ne pas utiliser ce rapport seul comme
 preuve de fonctionnement.
 
 ## 2. Configuration Fedora et matériel
