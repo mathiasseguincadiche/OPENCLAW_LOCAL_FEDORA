@@ -31,6 +31,10 @@ La CI exécute le **vrai binaire npm 2026.10.2** avec le plugin **2026.10.2** : 
 4. Vérifier : `openclaw --version` doit retourner **2026.10.2**, puis `./menu.sh --action health`, `./menu.sh --action context-probe --apply` et les essais de la [qualification finale](QUALIFICATION_FINALE_FEDORA.md). Tester les sept rôles, la recherche Parallel, une réponse Qwen, la route cloud seulement si autorisée, le mode hors réseau et Open WebUI.
 5. En cas d'échec, **ne pas forcer** Doctor en boucle ni relancer le cloud : les services sont arrêtés. Appliquer la [procédure de retour arrière](fiches/09-entretenir.md), réinstaller le commit précédent avec son pin 2026.9.8 et restaurer **dans un répertoire vide** une sauvegarde contrôlée. Ne jamais écraser directement le répertoire de production.
 
+## Correctif d'installation OpenClaw (préqualification d'une machine vierge)
+
+La commande d'installation npm qui téléchargeait l'archive vérifiée utilisait auparavant le mode **local** (par défaut), tout en cherchant ensuite la commande dans `$HOME/.openclaw/bin/openclaw`. Une installation locale place les exécutables dans `node_modules/.bin`. Le script utilise maintenant explicitement le mode **global à préfixe utilisateur**, sans privilèges root, avec `--ignore-scripts`. Ce mode lie correctement le CLI dans `$HOME/.openclaw/bin`, emplacement déjà utilisé par les unités Fedora. La CI exécute un test npm réel, hors réseau, à partir d'une archive synthétique ; il ne prouve pas une installation complète du vrai programme sur la machine Fedora.
+
 ## Critères de sortie
 
 - Aucun agent ne peut modifier la version ni lancer lui-même l'upgrade.
