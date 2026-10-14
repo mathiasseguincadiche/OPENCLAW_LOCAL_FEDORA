@@ -163,10 +163,10 @@ def _check_system(repo_root: Path) -> list[GateCheck]:
     checks: list[GateCheck] = []
 
     release = _os_release()
-    fedora = release.get("ID") == "fedora" and release.get("VERSION_ID") == "44"
+    fedora = release.get("ID") == "fedora" and release.get("VERSION_ID") == "45"
     checks.append(
         GateCheck(
-            "fedora-44",
+            "fedora-45",
             "PASS" if fedora else "FAIL",
             f"ID={release.get('ID', '?')} VERSION_ID={release.get('VERSION_ID', '?')}",
         )
@@ -175,8 +175,8 @@ def _check_system(repo_root: Path) -> list[GateCheck]:
     major, gnome = _gnome_major()
     checks.append(
         GateCheck(
-            "gnome-50",
-            "PASS" if major == 50 else "FAIL",
+            "gnome-51",
+            "PASS" if major == 51 else "FAIL",
             gnome or "GNOME Shell non détecté",
         )
     )
