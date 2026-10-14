@@ -13,9 +13,9 @@ def test_system_check_passes_expected_fedora_host(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr(
         hardware_gate,
         "_os_release",
-        lambda: {"ID": "fedora", "VERSION_ID": "44"},
+        lambda: {"ID": "fedora", "VERSION_ID": "45"},
     )
-    monkeypatch.setattr(hardware_gate, "_gnome_major", lambda: (50, "GNOME Shell 50.2"))
+    monkeypatch.setattr(hardware_gate, "_gnome_major", lambda: (51, "GNOME Shell 51.0"))
     monkeypatch.setattr(hardware_gate, "_cpu_model", lambda: "AMD Ryzen 7 7700 8-Core Processor")
     monkeypatch.setattr(hardware_gate, "_mem_total_gib", lambda: 47.0)
     monkeypatch.setattr(
@@ -46,8 +46,8 @@ def test_system_check_passes_expected_fedora_host(monkeypatch: pytest.MonkeyPatc
     assert report.ok is True
     assert report.gate == "system"
     assert {item.id for item in report.checks} >= {
-        "fedora-44",
-        "gnome-50",
+        "fedora-45",
+        "gnome-51",
         "wayland",
         "cpu",
         "memory",
@@ -115,3 +115,17 @@ def test_hardware_snapshot_uses_canonical_directory(tmp_path: Path) -> None:
 def test_unknown_hardware_gate_is_rejected() -> None:
     with pytest.raises(ValueError, match="system ou gpu"):
         hardware_gate.collect_hardware_gate(ROOT, "l9")
+
+
+def test_system_gate_rejects_old_fedora_and_gnome(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        hardware_gate, "_os_release", lambda: {"ID": "fedora", "VERSION_ID": "44"}
+    )
+    monkeypatch.setattr(hardware_gate, "_gnome_major", lambda: (50, "GNOME Shell 50.5"))
+    report = hardware_gate.collect_hardware_gate(ROOT, "system")
+    checks = {item.id: item.status for item in report.checks}
+    assert checks["fedora-45"] == "FAIL"
+    assert checks["gnome-51"] == "FAIL"
+    assert report.ok is False
