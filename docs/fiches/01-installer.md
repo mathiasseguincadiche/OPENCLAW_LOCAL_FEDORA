@@ -8,7 +8,7 @@ Pour découvrir **ce que tu installes** avant de lancer les scripts, consulte le
 
 | Élément | Attendu | Vérifier |
 |---|---|---|
-| Système | Fedora 44 Workstation, GNOME, session Wayland | `cat /etc/fedora-release` et `echo "$XDG_SESSION_TYPE"` |
+| Système | Fedora 45 Workstation stable publiée, GNOME 51, session Wayland | `cat /etc/fedora-release`, `gnome-shell --version` et `echo "$XDG_SESSION_TYPE"` |
 | Carte graphique | Intel Arc B580, pilote `xe` | `lspci \| grep -i vga` et `lsmod \| grep '^xe '` |
 | BIOS | Démarrage UEFI, Resizable BAR activé | écran du BIOS |
 | SELinux | `Enforcing` | `getenforce` |
@@ -16,6 +16,8 @@ Pour découvrir **ce que tu installes** avant de lancer les scripts, consulte le
 | Place disque | au moins 15 Go libres pour le modèle et les outils | `df -h /srv` |
 
 Lance l'installation depuis ton compte utilisateur habituel, jamais en root. Le script demande `sudo` seulement quand c'est nécessaire.
+
+Avant le premier lancement, attendre la publication officielle de Fedora 45 (date cible **20 octobre 2026**, susceptible de report). Une image bêta n'a pas été qualifiée en tant que système hôte réel par ce dépôt. Fedora 44 et GNOME 50 sont volontairement refusés lors de l'installation ; aucune installation/migration depuis Fedora 44 n'est nécessaire.
 
 ## Installer
 
