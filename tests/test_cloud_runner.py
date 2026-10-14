@@ -57,7 +57,7 @@ class FakeOpenClaw:
         self.commands.append(command)
         self.environments.append(kwargs.get("env") or {})
         if command[:2] == ["openclaw", "--version"]:
-            return subprocess.CompletedProcess(command, 0, "OpenClaw 2026.10.2 (abc)", "")
+            return subprocess.CompletedProcess(command, 0, "OpenClaw 2026.10.3 (abc)", "")
         if command[:4] == ["openclaw", "config", "get", "agents"]:
             return subprocess.CompletedProcess(command, 0, json.dumps(self.agents), "")
         if command[:4] == ["openclaw", "config", "get", "models.providers"]:
@@ -190,7 +190,7 @@ def test_local_route_is_unchanged_and_never_selects_a_model(
     def request(url: str) -> dict[str, Any]:
         calls.append(url)
         if url.endswith("/api/version"):
-            return {"version": "0.35.1"}
+            return {"version": "0.40.4"}
         return {"models": [{"name": "qwen3.5:9b-q4_K_M", "digest": "sha256:" + "a" * 64,
                             "details": {"quantization_level": "Q4_K_M"}}]}
 
@@ -237,7 +237,7 @@ def test_cloud_json_syntax_error_is_repaired_by_the_local_model(
 
     def request(url: str) -> dict[str, Any]:
         if url.endswith("/api/version"):
-            return {"version": "0.35.1"}
+            return {"version": "0.40.4"}
         return {"models": [{"name": "qwen3.5:9b-q4_K_M", "digest": "sha256:" + "a" * 64,
                             "details": {"quantization_level": "Q4_K_M"}}]}
 
