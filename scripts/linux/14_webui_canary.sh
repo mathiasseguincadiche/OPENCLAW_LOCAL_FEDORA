@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Isolated Open WebUI v0.12.0 migration canary. Never touches the running WebUI volume.
+# Isolated Open WebUI v0.12.1 migration canary. Never touches the running WebUI volume.
 set -Eeuo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 # shellcheck source=scripts/linux/lib/runtime.sh
 source "$SCRIPT_DIR/lib/runtime.sh"
 
-IMAGE="ghcr.io/open-webui/open-webui:v0.12.0-slim"
+# The same exact stable release as the first-install policy; optional isolation smoke.
+IMAGE="ghcr.io/open-webui/open-webui:v0.12.1-slim"
 RUNTIME_ROOT="$(claw_runtime_root)"
 REPO_ROOT="$(claw_repo_root)"
 APPLY=0
