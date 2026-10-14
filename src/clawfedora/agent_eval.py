@@ -113,12 +113,52 @@ def evaluate_report(suite: dict[str, Any], report: object) -> dict[str, Any]:
     }
 
 
+
+def compare_reports(
+    suite: dict[str, Any], local_report: object, cloud_report: object,
+) -> dict[str, Any]:
+    """Compare *human* scoring for identical scenarios; never claim a model winner."""
+    local = evaluate_report(suite, local_report)
+    cloud = evaluate_report(suite, cloud_report)
+    if local["route"] != "local" or cloud["route"] != "cloud":
+        raise EvaluationError("comparaison : fournir un rapport local puis un rapport cloud")
+    assert isinstance(local_report, dict) and isinstance(cloud_report, dict)
+    left = cast(dict[str, Any], local_report)
+    right = cast(dict[str, Any], cloud_report)
+    local_cases = {item["scenario"]: item for item in left["results"]}
+    cloud_cases = {item["scenario"]: item for item in right["results"]}
+    scenario_deltas = {}
+    for scenario in sorted(local_cases):
+        a = local_cases[scenario]["scores"]
+        b = cloud_cases[scenario]["scores"]
+        scenario_deltas[scenario] = {
+            name: b[name] - a[name] for name in CRITERIA
+        }
+    return {
+        "scenarios": local["scenarios"],
+        "local_mean_out_of_4": local["mean_out_of_4"],
+        "cloud_mean_out_of_4": cloud["mean_out_of_4"],
+        "delta_cloud_minus_local": round(
+            cloud["mean_out_of_4"] - local["mean_out_of_4"], 2
+        ),
+        "per_scenario_deltas": scenario_deltas,
+        "assessment": "HUMAN_SCORE_COMPARISON_NOT_RUNTIME_QUALIFICATION",
+        "warning": (
+            "Comparaison de jugements humains uniquement ; ni classement objectif, "
+            "ni supériorité démontrée, ni mesure de coût, latence ou GPU."
+        ),
+    }
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Qualifier les sept agents sans API ni réseau")
     parser.add_argument("--root", type=Path, default=ROOT)
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--plan", action="store_true", help="afficher les sept cas synthétiques")
     group.add_argument("--report", type=Path, help="agréger des notes humaines complètes")
+    group.add_argument(
+        "--compare", nargs=2, type=Path, metavar=("LOCAL_JSON", "CLOUD_JSON"),
+        help="comparer hors ligne deux rapports humains (mêmes sept scénarios)",
+    )
     args = parser.parse_args(argv)
     try:
         suite = load_suite(args.root)
@@ -131,10 +171,17 @@ def main(argv: list[str] | None = None) -> int:
                 "rubric": suite["rubric"],
                 "status": "PLAN_ONLY_NO_MODEL_CALLS",
             }
-        else:
+        elif args.report:
             path = cast(Path, args.report)
             data = evaluate_report(
                 suite, json.loads(path.read_text(encoding="utf-8"))
+            )
+        else:
+            local_path, cloud_path = cast(list[Path], args.compare)
+            data = compare_reports(
+                suite,
+                json.loads(local_path.read_text(encoding="utf-8")),
+                json.loads(cloud_path.read_text(encoding="utf-8")),
             )
         print(json.dumps(data, ensure_ascii=False, indent=2))
         return 0
