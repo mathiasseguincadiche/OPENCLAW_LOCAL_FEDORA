@@ -1,13 +1,13 @@
 # État du projet hybride Qwen + DeepSeek
 
-Dernière mise à jour documentaire : 14 octobre 2026.
+Dernière mise à jour documentaire : 14 octobre 2026 (socle neuf sous versions stables).
 
 ## Où en est-on
 
 | | État |
 |---|---|
 | Code, scripts et configuration | Écrits et testés automatiquement |
-| Configuration acceptée par le vrai OpenClaw 2026.10.2 | Vérifié à chaque modification |
+| Configuration acceptée par le vrai OpenClaw 2026.10.3 | Vérifié à chaque modification |
 | Consignes des rôles non tronquées, prompt dans le contexte | Vérifié à chaque modification |
 | Installation sur le PC Fedora | **À faire** |
 | Carte graphique utilisée, contexte de 32K tenu en mémoire vidéo | **À mesurer** |
