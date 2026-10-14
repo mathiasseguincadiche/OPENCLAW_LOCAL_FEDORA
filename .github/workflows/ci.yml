@@ -53,6 +53,8 @@ jobs:
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "24"
+      - name: Verify offline npm user-prefix executable layout
+        run: python scripts/validation/check_npm_prefix_layout.py
       - name: Install repository
         run: python -m pip install -e .
       - name: Production-only document preview smoke
