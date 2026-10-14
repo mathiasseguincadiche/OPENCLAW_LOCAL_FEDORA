@@ -14,7 +14,7 @@ Avant toute opération de cette fiche, attends la fin d'une génération en cour
 
 La sauvegarde est rangée dans `/srv/openclaw-local/backups`. Elle contient l'état, les projets, les espaces de travail des rôles et tes conversations. Elle ne contient ni le modèle ni l'environnement Python : ils se retéléchargent.
 
-Pour une copie parfaitement cohérente des conversations, arrête d'abord le chat :
+Pour éviter les écritures pendant la sauvegarde, arrête d’abord les **quatre services de l’interface** : Open WebUI, son pont, la voix et le tableau de projets. Cette commande n’arrête pas à elle seule le Gateway OpenClaw ou Ollama ; vérifie qu’aucune génération n’est en cours :
 
 ```bash
 ./menu.sh --action webui-stop --apply

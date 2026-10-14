@@ -62,7 +62,9 @@ elif [[ "$ACTION" == seal ]]; then
   systemctl --user daemon-reload
   systemctl --user start clawfedora-webui.service
 elif [[ "$ACTION" == stop ]]; then
-  systemctl --user stop clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-speech.service
+  # Stop the project dashboard too: it is enabled and started with the WebUI stack.
+  # Leaving it alive can expose project actions during an offline backup or maintenance.
+  systemctl --user stop clawfedora-dashboard.service clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-speech.service
 else
   [[ -f "$RUNTIME_ROOT/state/webui/enabled" ]] || { echo "ERREUR: installer le module avant de le démarrer" >&2; exit 2; }
   systemctl --user start clawfedora-webui-bridge.service clawfedora-speech.service clawfedora-webui.service clawfedora-dashboard.service

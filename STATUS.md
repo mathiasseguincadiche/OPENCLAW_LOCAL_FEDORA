@@ -1,6 +1,6 @@
 # État du projet hybride Qwen + DeepSeek
 
-Dernière mise à jour documentaire : 12 octobre 2026.
+Dernière mise à jour documentaire : 14 octobre 2026.
 
 ## Où en est-on
 
@@ -17,7 +17,7 @@ Dernière mise à jour documentaire : 12 octobre 2026.
 | Cloud avec le vrai OpenRouter (appel réel, coût réel, limite de clé) | **À faire** |
 | Test de fumée du cloud sur le PC ([fiche 12](docs/fiches/12-cloud.md)) | **À faire** |
 | Qualité de DeepSeek V4.1 Flash sur les usages visés | **À mesurer** à l'usage |
-| Open WebUI : conduite complète des projets, uploads, pratique guidée | **Implémenté et couvert par tests automatiques** |
+| Open WebUI : conduite complète des projets, uploads, pratique guidée | **Implémenté et couvert par tests automatiques** ; cycle de vie corrigé (arrêt des quatre services) |
 | Voix locale : Whisper CPU/int8 + TTS local | **Implémenté ; essai micro/latence à faire sur Fedora** |
 
 Tant que les lignes « À faire » et « À mesurer » ne sont pas faites, rien n'est prouvé sur la machine ni avec le vrai fournisseur cloud. La marche à suivre est dans [Premier essai](docs/fiches/02-premier-essai.md).
