@@ -333,9 +333,11 @@ def main() -> None:
     args = parser.parse_args()
     if args.action == "seal":
         seal(args.root, args.runtime_root)
-    print(json.dumps(render(
-        args.root, args.runtime_root, args.unit_root, image_digest=args.image_digest
-    )))
+        print(json.dumps({"sealed": True}))
+    else:
+        print(json.dumps(render(
+            args.root, args.runtime_root, args.unit_root, image_digest=args.image_digest
+        )))
 
 
 if __name__ == "__main__":
