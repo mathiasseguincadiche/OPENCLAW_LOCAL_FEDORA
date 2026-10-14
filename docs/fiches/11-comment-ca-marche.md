@@ -200,7 +200,7 @@ STATUS.md                    vérifié / restant à vérifier
 
 Les tests automatiques peuvent contrôler le code Python, Ruff/mypy, ShellCheck, certaines intégrations simulées et la configuration acceptée par OpenClaw. **Ils ne remplacent pas** les essais sur Fedora, la B580, le navigateur Open WebUI réel, les fichiers originaux, le microphone ou un appel facturé par OpenRouter.
 
-La version déployée d'Open WebUI reste **0.11.4** ; `scripts/linux/14_webui_canary.sh` sert à tester **une copie isolée** avec 0.12.0. Les raccourcis visuels ajoutés sont **en lecture seule**, pas une interface complète d'approbation. Le streaming réel n'est pas encore implémenté.
+La version choisie pour la **première installation** est **0.12.1-slim** ; l'installateur résout son digest officiel et l'inscrit dans l'unité systemd. `scripts/linux/14_webui_canary.sh` est un contrôle isolé facultatif. Les raccourcis visuels ajoutés sont **en lecture seule**, pas une interface complète d'approbation. Le streaming réel n'est pas encore implémenté.
 
 → [État factuel](../../STATUS.md) · [Plan de validation](../PLAN_QUALITE_2026.md) · [Test de fumée sur Fedora](../SMOKE_TEST_WEBUI.md).
 
