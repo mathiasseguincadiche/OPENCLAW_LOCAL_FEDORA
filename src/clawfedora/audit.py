@@ -113,7 +113,7 @@ def collect_audit(strict: bool = False) -> AuditReport:
     )
 
     rc, gnome_shell = _run(["gnome-shell", "--version"])
-    match = re.search(r"\\b(\\d+)(?:\\.\\d+)?\\b", gnome_shell) if rc == 0 else None
+    match = re.search(r"\b(\d+)(?:\.\d+)?\b", gnome_shell) if rc == 0 else None
     major = int(match.group(1)) if match else None
     checks.append(
         Check(
