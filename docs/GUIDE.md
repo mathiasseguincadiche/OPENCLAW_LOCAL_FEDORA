@@ -87,7 +87,7 @@ Pour une application Linux à déployer, l'intérêt est de ne pas mélanger arc
 
 ## 6. Préparer et installer Fedora
 
-Machine ciblée : Ryzen 7 7700, 48 Go de RAM, Intel Arc B580 (12 Go), Fedora 44. Installation et performance réelles **non encore qualifiées** sur ce PC.
+Machine ciblée : Ryzen 7 7700, 48 Go de RAM, Intel Arc B580 (12 Go), Fedora 45 Workstation et GNOME 51. Installation et performance réelles **non encore qualifiées** sur ce PC.
 
 ```bash
 git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
