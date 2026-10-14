@@ -38,15 +38,14 @@ Cinq correctifs ont été **fusionnés après CI, CodeQL et Dependency Review ve
 Les dépendances transitives ne sont pas entièrement verrouillées ; Open WebUI
 est directement défini en `v0.12.1-slim` pour la première installation, avec un digest Podman figé au déploiement ; l'exactitude des
 profils OpenRouter et de la facturation reste à mesurer sur un compte réel.
-Fedora 45 est encore une cible de preview de contrats, **non un hôte installable
-validé par le bootstrap**.
+Le bootstrap et les contrats sont désormais **ciblés exclusivement sur Fedora 45 + GNOME 51/Wayland**. Au 14 octobre 2026, Fedora 45 est encore en bêta : la CI est une validation logicielle de préversion, **pas une preuve de compatibilité avec la publication finale ni le PC**.
 
 ## Baseline de première installation — 14 octobre 2026
 
 - **OpenClaw 2026.10.3** et **Parallel 2026.10.3** épinglés, archives npm vérifiées.
 - **Ollama 0.40.4** épinglé par SHA-256 officiel.
 - **Open WebUI 0.12.1-slim** directement : le tag de version stable n'est pas utilisé dans systemd ; l'installateur résout et fige un `@sha256` via Podman. Aucune migration de 0.11.4 sur un PC encore vierge.
-- **Fedora 44** reste le socle stable. Fedora 45 est encore en phase bêta le 14 octobre 2026 ; les contrôles de préversion ne certifient pas une installation.
+- **Fedora 45 Workstation + GNOME 51/Wayland** est le seul système hôte accepté pour la première installation. Fedora 44 est explicitement refusée. Au 14 octobre 2026, Fedora 45 est encore en bêta : attendre la publication officielle ciblée au **20 octobre 2026** (report possible), puis faire les essais réels.
 - Les tests Fedora/B580, navigateur, STT/TTS, Qwen et OpenRouter réels demeurent à faire en réception finale.
 
 ## Lire et comprendre le projet
