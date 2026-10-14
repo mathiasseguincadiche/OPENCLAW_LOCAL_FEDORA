@@ -5,6 +5,8 @@ import re
 import subprocess
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -232,3 +234,46 @@ def test_cloud_menu_actions_validate_their_values_before_touching_anything() -> 
         )
         assert result.returncode == 2, (action, extra, result.stdout, result.stderr)
         assert "--value" in result.stderr
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="operator script deliberately refuses root")
+def test_webui_stop_covers_all_started_services_without_host_mutation(tmp_path: Path) -> None:
+    """A fake systemctl proves the stop action closes every component started by start."""
+    script = ROOT / "scripts/linux/13_openwebui.sh"
+    runtime = tmp_path / "runtime"
+    (runtime / "state").mkdir(parents=True)
+    (runtime / ".openclaw-fedora-runtime").touch()
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    systemctl = fake_bin / "systemctl"
+    systemctl.write_text(
+        '#!/usr/bin/env bash\nprintf "%s\\n" "$*" >> "$CLAWFEDORA_SYSTEMCTL_LOG"\n',
+        encoding="utf-8",
+    )
+    systemctl.chmod(0o755)
+    log = tmp_path / "systemctl.log"
+    result = subprocess.run(
+        ["bash", str(script), "stop", "--apply"],
+        capture_output=True,
+        text=True,
+        check=False,
+        env={
+            **os.environ,
+            "PATH": f"{fake_bin}:{os.environ['PATH']}",
+            "OPENCLAW_LOCAL_FEDORA_ROOT": str(runtime),
+            "CLAWFEDORA_SYSTEMCTL_LOG": str(log),
+        },
+        timeout=20,
+    )
+    assert result.returncode == 0, result.stderr
+    calls = log.read_text(encoding="utf-8").splitlines()
+    assert len(calls) == 1
+    assert calls[0].startswith("--user stop ")
+    stopped = set(calls[0].split()[2:])
+    assert stopped == {
+        "clawfedora-dashboard.service",
+        "clawfedora-webui.service",
+        "clawfedora-webui-bridge.service",
+        "clawfedora-speech.service",
+    }
+    assert "OPENWEBUI_RESULT=PASS" in result.stdout
