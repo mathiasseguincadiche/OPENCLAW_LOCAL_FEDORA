@@ -44,4 +44,4 @@ def test_october_stabilization_docs_do_not_overclaim_runtime() -> None:
         assert f"#{number}" in audit
     assert "pas des essais sur le PC cible" in status
     assert "dépendances transitives" in programme
-    assert root_contract(ROOT, "webui_policy.yaml")["release"] == "v0.11.4"
+    assert root_contract(ROOT, "webui_policy.yaml")["release"] == "v0.12.1"
