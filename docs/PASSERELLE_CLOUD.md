@@ -179,3 +179,16 @@ Pour **continuer en local**, il faut le décider : « Retirer l'accord cloud » 
 - Le service systemd et le script d'activation n'ont pas tourné sur Fedora ; les contrôles couvrent leur syntaxe et leur ordre, pas leur exécution.
 
 Aucun appel réel vers OpenRouter avec DeepSeek, aucun essai sur le PC Fedora. Les tests utilisent une passerelle factice.
+
+
+## Limite d'egress HTTP et redirections (14 octobre 2026)
+
+La passerelle utilise un client HTTP qui **refuse les redirections 3xx**
+du fournisseur et ignore les proxys hérités de l'environnement de l'hôte.
+Une réponse `Location` ne peut donc pas devenir une seconde destination
+recevant le prompt ou la clé API. Un refus de redirection conserve
+prudemment la réservation budgétaire car la facturation effective est inconnue.
+Les tests automatisés simulent deux serveurs loopback et vérifient que le
+second ne reçoit aucune requête. Ils **ne prouvent pas** la disponibilité,
+le tarif ni la compatibilité `reasoning.effort=xhigh` avec le vrai
+fournisseur OpenRouter, à qualifier en dernier avec le compte réel.
