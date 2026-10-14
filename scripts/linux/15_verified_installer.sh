@@ -34,7 +34,9 @@ if [[ "$KIND" == openclaw ]]; then
   command -v npm >/dev/null || { echo "npm requis pour OpenClaw" >&2; exit 127; }
   # No unreviewed installer script is executed. The core package tarball is verified.
   # npm transitive dependencies remain registry-managed and require further lockfile review.
-  npm install --prefix "$HOME/.openclaw" --no-save --ignore-scripts \
+  # npm local installs link binaries into node_modules/.bin, not prefix/bin.
+  # Use user-scoped GLOBAL mode to match the executable used by all services.
+  npm install --global --prefix "$HOME/.openclaw" --ignore-scripts \
     --no-audit --no-fund "$ARCHIVE"
   [[ -x "$HOME/.openclaw/bin/openclaw" ]] || { echo "CLI npm OpenClaw introuvable" >&2; exit 2; }
   TOOL="$HOME/.openclaw/bin/openclaw"
