@@ -29,17 +29,25 @@ Cinq correctifs ont été **fusionnés après CI, CodeQL et Dependency Review ve
 [#114](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/114)) :
 
 - bootstrap Python sans mise à niveau non bornée, `pip check` et contrôle de cohérence npm ;
-- réseau Podman du canary Open WebUI 0.12 unique par exécution, sans migration de production ;
+- WebUI 0.12.1-slim sélectionné dès l'installation neuve, référence finale verrouillée par digest Podman ; canary isolé facultatif ;
 - passerelle OpenRouter sans redirections ni proxys implicites, plafonds inchangés ;
 - comparaison **humaine** locale/cloud des sept rôles, sans appel modèle ni classement automatique ;
 - précontrôle système sensible aux unités désactivées au démarrage, sondes locales sans redirection.
 
 **Ces résultats sont des preuves de tests du code, pas des essais sur le PC cible**.
 Les dépendances transitives ne sont pas entièrement verrouillées ; Open WebUI
-reste en `v0.11.4` jusqu'à la réception navigateur/SQLite ; l'exactitude des
+est directement défini en `v0.12.1-slim` pour la première installation, avec un digest Podman figé au déploiement ; l'exactitude des
 profils OpenRouter et de la facturation reste à mesurer sur un compte réel.
 Fedora 45 est encore une cible de preview de contrats, **non un hôte installable
 validé par le bootstrap**.
+
+## Baseline de première installation — 14 octobre 2026
+
+- **OpenClaw 2026.10.3** et **Parallel 2026.10.3** épinglés, archives npm vérifiées.
+- **Ollama 0.40.4** épinglé par SHA-256 officiel.
+- **Open WebUI 0.12.1-slim** directement : le tag de version stable n'est pas utilisé dans systemd ; l'installateur résout et fige un `@sha256` via Podman. Aucune migration de 0.11.4 sur un PC encore vierge.
+- **Fedora 44** reste le socle stable. Fedora 45 est encore en phase bêta le 14 octobre 2026 ; les contrôles de préversion ne certifient pas une installation.
+- Les tests Fedora/B580, navigateur, STT/TTS, Qwen et OpenRouter réels demeurent à faire en réception finale.
 
 ## Lire et comprendre le projet
 
