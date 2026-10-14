@@ -287,3 +287,19 @@ def test_bootstrap_avoids_unbounded_toolchain_upgrade_and_checks_prod_deps() -> 
     assert source.index('as_target "$VENV/bin/python" -m pip check') < source.index(
         'as_root systemctl enable --now firewalld.service'
     )
+
+
+def test_fedora_45_gnome_51_are_required_by_all_installation_entrypoints() -> None:
+    bootstrap = _read("scripts/linux/00_bootstrap.sh")
+    webui = _read("scripts/linux/13_openwebui.sh")
+    install = _read("scripts/linux/06_install.sh")
+    workflow = _read(".github/workflows/ci.yml")
+    assert 'VERSION_ID:-}" != "45"' in bootstrap
+    assert "GNOME Shell 51 requis" in bootstrap
+    assert 'XDG_SESSION_TYPE:-}' in bootstrap
+    assert '"${VERSION_ID:-}" == 45' in webui
+    assert "INSTALL_PLAN Fedora=45 GNOME=51" in install
+    assert "fedora-45-contract:" in workflow
+    assert "fedora-44-rejection:" in workflow
+    assert "fedora-45-preview:" not in workflow
+    assert 'grep -F "Fedora 45 requis"' in workflow
