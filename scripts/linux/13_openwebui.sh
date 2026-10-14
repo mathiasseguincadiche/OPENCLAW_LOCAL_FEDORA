@@ -28,7 +28,7 @@ if [[ "$ACTION" == install ]]; then
   # Fedora only; never install Podman or change host services on the review machine.
   # shellcheck disable=SC1091
   source /etc/os-release
-  [[ "${ID:-}" == fedora && "${VERSION_ID:-}" == 44 ]] || { echo "ERREUR: Fedora 44 requis" >&2; exit 2; }
+  [[ "${ID:-}" == fedora && "${VERSION_ID:-}" == 45 ]] || { echo "ERREUR: Fedora 45 requis" >&2; exit 2; }
   [[ "$(getenforce)" == Enforcing ]] || { echo "ERREUR: SELinux Enforcing requis" >&2; exit 2; }
   command -v podman >/dev/null || sudo dnf install -y podman
   command -v espeak-ng >/dev/null || sudo dnf install -y espeak-ng
