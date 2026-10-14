@@ -9,13 +9,17 @@ Cet audit distingue les **défauts prouvés dans le code** des **risques à qual
 - La suite pytest installait `.[dev]` ; elle ne vérifiait pas les imports d'une installation réelle de production.
 - `pypdf` est maintenant une dépendance de production explicite, ainsi que `Pillow` pour l'analyse d'images. La CI `native-openclaw` installe `pip install -e .`, puis exécute `pip check` et une lecture réelle de PDF généré et d'image sans dépendances dev.
 
-## Amélioration prioritaire restante : intégrité des installateurs
+## Intégrité des installateurs — corrigée dans le code, non qualifiée sur Fedora
 
-**Constat confirmé :** `scripts/linux/06_install.sh` télécharge `https://ollama.com/install.sh` et `https://openclaw.ai/install-cli.sh`, puis exécute directement les scripts distants téléchargés. Le contrôle de version **après** installation vérifie la version résultante, mais ne vérifie pas l'empreinte SHA-256 préalablement approuvée des scripts. `scripts/linux/00_bootstrap.sh` utilise aussi `pip install --upgrade pip setuptools wheel` sans version exacte.
+Les anciennes commandes exécutant directement `https://ollama.com/install.sh` ou `https://openclaw.ai/install-cli.sh` ont été **remplacées** en PR #106 par le téléchargement d'archives de versions exactes, avec empreintes figées et vérification avant installation. La PR #108 a corrigé une deuxième anomalie prouvée : le mode `npm install --prefix` local ne créait pas l'exécutable à l'emplacement attendu ; l'installation utilise désormais `--global --prefix` dans le répertoire de l'utilisateur. Le smoke npm utilise une archive synthétique sans réseau et confirme la disposition attendue.
 
-**Travail proposé avant la prochaine installation réelle :** remplacer les installateurs exécutés à distance par un flux d'artefacts audités avec URLs et empreintes figées dans un manifeste de release, vérifier l'intégrité *avant exécution*, exiger des sources officielles et refuser si le manifeste est absent ou incohérent. Une empreinte obtenue dynamiquement au même endroit que l'artefact n'établit pas une vérification indépendante. Ne pas affaiblir SELinux ni déplacer les secrets.
+**Les limites demeurent :** une archive vérifiée ne suffit pas à valider ses dépendances npm transitives ; `00_bootstrap.sh` fait encore `pip install --upgrade pip setuptools wheel` sans verrouillage exact, et le projet n'a pas exécuté l'installation vierge/upgrade réelle Fedora, les contrôles de service Ollama ni les essais B580. Ces opérations feront partie de la réception finale, sans annoncer un succès avant la mesure.
 
-**Statut : à réaliser séparément**, avec essais d'installation vierge et de migration. Il n'est pas prudent de fabriquer une empreinte ou de déclarer les téléchargements déjà vérifiés.
+## Arrêt de l'interface pendant la maintenance — correction du cycle de vie
+
+Le démarrage d'Open WebUI active quatre services (`clawfedora-webui`, `clawfedora-webui-bridge`, `clawfedora-speech` et `clawfedora-dashboard`), mais la branche `stop` oubliait `clawfedora-dashboard`. Ce service pouvait donc rester accessible pendant une sauvegarde dite hors ligne. Le script arrête maintenant les quatre services, et un test avec `systemctl` simulé vérifie la symétrie sans toucher aux services de l'hôte.
+
+La commande `webui-stop` n'arrête toujours **pas** le Gateway OpenClaw ni Ollama ; la réception réelle devra contrôler l'absence d'opération concurrente pendant la sauvegarde.
 
 ## Qualifications restant indispensables (non prouvées par GitHub)
 
