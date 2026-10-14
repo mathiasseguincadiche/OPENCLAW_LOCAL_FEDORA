@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from clawfedora import hardware_gate
+from clawfedora import audit, hardware_gate
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -129,3 +129,34 @@ def test_system_gate_rejects_old_fedora_and_gnome(
     assert checks["fedora-45"] == "FAIL"
     assert checks["gnome-51"] == "FAIL"
     assert report.ok is False
+
+
+@pytest.mark.parametrize(
+    ("release", "shell", "expected_os", "expected_gnome"),
+    [
+        ("45", "GNOME Shell 51.0", "PASS", "PASS"),
+        ("44", "GNOME Shell 50.4", "FAIL", "FAIL"),
+        ("45", "GNOME Shell 50.4", "PASS", "FAIL"),
+    ],
+)
+def test_strict_audit_verifies_fedora_45_and_gnome_51(
+    monkeypatch: pytest.MonkeyPatch,
+    release: str,
+    shell: str,
+    expected_os: str,
+    expected_gnome: str,
+) -> None:
+    monkeypatch.setattr(
+        audit, "_os_release", lambda: {"ID": "fedora", "VERSION_ID": release}
+    )
+
+    def run(command: list[str], timeout: int = 10) -> tuple[int, str]:
+        del timeout
+        if command[:2] == ["gnome-shell", "--version"]:
+            return 0, shell
+        return 127, "non disponible dans la CI"
+
+    monkeypatch.setattr(audit, "_run", run)
+    checks = {item.id: item.status for item in audit.collect_audit(strict=True).checks}
+    assert checks["os-fedora45"] == expected_os
+    assert checks["gnome-shell-51"] == expected_gnome
