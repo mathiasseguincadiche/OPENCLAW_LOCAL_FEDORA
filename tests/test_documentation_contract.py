@@ -41,7 +41,7 @@ def test_october_stabilization_docs_do_not_overclaim_runtime() -> None:
     )
     assert "fait encore `pip install --upgrade pip setuptools wheel`" not in audit
     for number in range(110, 115):
-        assert f"#{number}" in audit or number == 110
+        assert f"#{number}" in audit
     assert "pas des essais sur le PC cible" in status
     assert "dépendances transitives" in programme
     assert root_contract(ROOT, "webui_policy.yaml")["release"] == "v0.11.4"
