@@ -13,7 +13,7 @@ def test_system_check_passes_expected_fedora_host(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr(
         hardware_gate,
         "_os_release",
-        lambda: {"ID": "fedora", "VERSION_ID": "45"},
+        lambda: {"ID": "fedora", "VERSION_ID": "45", "VARIANT_ID": "workstation"},
     )
     monkeypatch.setattr(hardware_gate, "_gnome_major", lambda: (51, "GNOME Shell 51.0"))
     monkeypatch.setattr(hardware_gate, "_cpu_model", lambda: "AMD Ryzen 7 7700 8-Core Processor")
