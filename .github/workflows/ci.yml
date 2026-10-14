@@ -115,53 +115,60 @@ jobs:
       - name: ShellCheck
         run: shellcheck menu.sh scripts/linux/*.sh scripts/linux/lib/*.sh
 
-  fedora-44-contract:
-    name: fedora-44-contract
+  fedora-44-rejection:
+    name: fedora-44-rejection
     runs-on: ubuntu-latest
     container: quay.io/fedora/fedora:44
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
-      - name: Install bootstrap tooling
-        run: dnf install -y git python3 python3-pip python3-virtualenv
+      - name: Install checkout tooling
+        run: dnf install -y git
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Assert Fedora 44 image
+      - name: Confirm legacy Fedora 44 is explicitly refused
         shell: bash
         run: |
           source /etc/os-release
           test "$ID" = fedora
           test "$VERSION_ID" = 44
-      - name: Create isolated venv
-        run: |
-          python3 -m venv /tmp/clawfedora-venv
-          /tmp/clawfedora-venv/bin/python -m pip install -e ".[dev]"
-      - name: Fedora repository contracts
-        run: |
-          /tmp/clawfedora-venv/bin/clawfedora validate
-          /tmp/clawfedora-venv/bin/pytest -q
+          if bash scripts/linux/00_bootstrap.sh >/tmp/bootstrap-rejection.log 2>&1; then
+            cat /tmp/bootstrap-rejection.log
+            echo "Expected Fedora 44 to be rejected" >&2
+            exit 1
+          fi
+          grep -F "Fedora 45 requis" /tmp/bootstrap-rejection.log
 
-
-  fedora-45-preview:
-    name: fedora-45-preview
+  fedora-45-contract:
+    name: fedora-45-contract
     runs-on: ubuntu-latest
     container: quay.io/fedora/fedora:45
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - name: Install beta validation tooling
-        run: dnf install -y git gcc gcc-c++ python3 python3-devel python3-pip python3-virtualenv
+      - name: Install Fedora 45 Python and checkout tooling
+        run: dnf install -y git gcc gcc-c++ python3 python3-devel python3-pip python3-virtualenv shadow-utils
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Assert Fedora 45 preview only
+      - name: Assert Fedora 45 container baseline (pre-release until official launch)
         shell: bash
         run: |
           source /etc/os-release
           test "$ID" = fedora
           test "$VERSION_ID" = 45
-          # Real installer MUST continue refusing Fedora 45 until acceptance on hardware.
-          grep -q 'VERSION_ID:-}" != "44"' scripts/linux/00_bootstrap.sh
-      - name: Python source and contracts in Fedora 45 beta container
+          grep -F 'VERSION_ID:-}" != "45"' scripts/linux/00_bootstrap.sh
+          grep -F 'GNOME Shell 51 requis' scripts/linux/00_bootstrap.sh
+      - name: Verify dry-run and reject unsupported headless apply without host mutation
+        shell: bash
         run: |
-          python3 -m venv /tmp/clawfedora45-preview-venv
-          /tmp/clawfedora45-preview-venv/bin/python -m pip install -e ".[dev]"
-          /tmp/clawfedora45-preview-venv/bin/clawfedora validate
-          /tmp/clawfedora45-preview-venv/bin/pytest -q
+          useradd -m -U claw-ci
+          runuser -u claw-ci -- bash scripts/linux/00_bootstrap.sh | grep -F 'DRY_RUN=PASS'
+          if runuser -u claw-ci -- bash scripts/linux/00_bootstrap.sh --apply >/tmp/headless-rejection.log 2>&1; then
+            echo "GNOME 51/Wayland required: headless apply should fail" >&2
+            exit 1
+          fi
+          grep -F 'GNOME Shell 51 requis' /tmp/headless-rejection.log
+      - name: Test Fedora 45 Python source and contracts in container
+        run: |
+          python3 -m venv /tmp/clawfedora45-venv
+          /tmp/clawfedora45-venv/bin/python -m pip install -e ".[dev]"
+          /tmp/clawfedora45-venv/bin/clawfedora validate
+          /tmp/clawfedora45-venv/bin/pytest -q
