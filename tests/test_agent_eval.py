@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import json
 from copy import deepcopy
 from pathlib import Path
 
 import pytest
 
-from clawfedora.agent_eval import EvaluationError, evaluate_report, load_suite
+from clawfedora.agent_eval import EvaluationError, compare_reports, evaluate_report, load_suite
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -89,3 +90,43 @@ def test_reject_incomplete_or_misleading_reports(change: str, match: str) -> Non
         del results[0]["scores"]["proof"]
     with pytest.raises(EvaluationError, match=match):
         evaluate_report(load_suite(ROOT), report)
+
+
+def test_paired_comparison_keeps_scoring_honest() -> None:
+    local = _valid_report()
+    cloud = deepcopy(local)
+    cloud["route"] = "cloud"
+    cloud["results"][0]["scores"]["clarity"] = 2
+    result = compare_reports(load_suite(ROOT), local, cloud)
+    assert result["scenarios"] == 7
+    assert result["per_scenario_deltas"]["mentor-systemd"]["clarity"] == -2
+    assert result["delta_cloud_minus_local"] < 0
+    assert result["assessment"] == "HUMAN_SCORE_COMPARISON_NOT_RUNTIME_QUALIFICATION"
+    assert "ni supériorité démontrée" in result["warning"]
+
+
+def test_paired_comparison_rejects_swapped_or_incomplete_records() -> None:
+    local = _valid_report()
+    cloud = deepcopy(local)
+    cloud["route"] = "cloud"
+    with pytest.raises(EvaluationError, match="rapport local"):
+        compare_reports(load_suite(ROOT), cloud, local)
+    cloud["results"].pop()
+    with pytest.raises(EvaluationError, match="résultat humain"):
+        compare_reports(load_suite(ROOT), local, cloud)
+
+
+def test_compare_cli_stays_offline_and_reads_two_local_files(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str],
+) -> None:
+    from clawfedora.agent_eval import main
+    local = _valid_report()
+    cloud = deepcopy(local)
+    cloud["route"] = "cloud"
+    first, second = tmp_path / "qwen.json", tmp_path / "deepseek.json"
+    first.write_text(json.dumps(local), encoding="utf-8")
+    second.write_text(json.dumps(cloud), encoding="utf-8")
+    assert main(["--root", str(ROOT), "--compare", str(first), str(second)]) == 0
+    output = json.loads(capsys.readouterr().out)
+    assert output["assessment"] == "HUMAN_SCORE_COMPARISON_NOT_RUNTIME_QUALIFICATION"
+    assert output["delta_cloud_minus_local"] == 0
