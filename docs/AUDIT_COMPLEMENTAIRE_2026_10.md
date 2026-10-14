@@ -13,13 +13,22 @@ Cet audit distingue les **défauts prouvés dans le code** des **risques à qual
 
 Les anciennes commandes exécutant directement `https://ollama.com/install.sh` ou `https://openclaw.ai/install-cli.sh` ont été **remplacées** en PR #106 par le téléchargement d'archives de versions exactes, avec empreintes figées et vérification avant installation. La PR #108 a corrigé une deuxième anomalie prouvée : le mode `npm install --prefix` local ne créait pas l'exécutable à l'emplacement attendu ; l'installation utilise désormais `--global --prefix` dans le répertoire de l'utilisateur. Le smoke npm utilise une archive synthétique sans réseau et confirme la disposition attendue.
 
-**Les limites demeurent :** une archive vérifiée ne suffit pas à valider ses dépendances npm transitives ; `00_bootstrap.sh` fait encore `pip install --upgrade pip setuptools wheel` sans verrouillage exact, et le projet n'a pas exécuté l'installation vierge/upgrade réelle Fedora, les contrôles de service Ollama ni les essais B580. Ces opérations feront partie de la réception finale, sans annoncer un succès avant la mesure.
+**Améliorations fusionnées le 14 octobre 2026 :** la PR [#110](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/110) supprime l'upgrade inconditionnel de `pip/setuptools/wheel` dans le bootstrap, exécute `pip check` et refuse un arbre `npm ls --global --all` incohérent après installation OpenClaw. Ce dernier contrôle détecte des dépendances manquantes, mais n'est pas un verrouillage cryptographique de toutes leurs versions.
+
+**Limites restantes :** la résolution PEP 517 et des transitives npm n'est pas intégralement figée par artefacts et empreintes ; installation vierge, reprise après reboot, tests Ollama/B580 et upgrade réel sur Fedora n'ont pas été effectués ici. Aucun statut de qualification matérielle ne peut en être déduit.
 
 ## Arrêt de l'interface pendant la maintenance — correction du cycle de vie
 
 Le démarrage d'Open WebUI active quatre services (`clawfedora-webui`, `clawfedora-webui-bridge`, `clawfedora-speech` et `clawfedora-dashboard`), mais la branche `stop` oubliait `clawfedora-dashboard`. Ce service pouvait donc rester accessible pendant une sauvegarde dite hors ligne. Le script arrête maintenant les quatre services, et un test avec `systemctl` simulé vérifie la symétrie sans toucher aux services de l'hôte.
 
 La commande `webui-stop` n'arrête toujours **pas** le Gateway OpenClaw ni Ollama ; la réception réelle devra contrôler l'absence d'opération concurrente pendant la sauvegarde.
+
+## Durcissements supplémentaires fusionnés en octobre
+
+- [#111](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/111) : réseau interne Podman distinct par canary WebUI 0.12 ; production toujours 0.11.4.
+- [#112](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/112) : OpenRouter sans redirection HTTP ni proxy implicite, et conservation prudente de la réservation budgétaire si réponse 3xx.
+- [#113](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/113) : comparateur hors ligne des évaluations humaines des sept agents (scores cloud − local explicités), aucune mesure IA fabriquée.
+- [#114](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/114) : précontrôle de services actifs **et activés au démarrage**, et aucune redirection des sondes de santé 127.0.0.1.
 
 ## Qualifications restant indispensables (non prouvées par GitHub)
 

@@ -22,6 +22,25 @@ Dernière mise à jour documentaire : 14 octobre 2026.
 
 Tant que les lignes « À faire » et « À mesurer » ne sont pas faites, rien n'est prouvé sur la machine ni avec le vrai fournisseur cloud. La marche à suivre est dans [Premier essai](docs/fiches/02-premier-essai.md).
 
+## Stabilisation du code du 14 octobre 2026
+
+Cinq correctifs ont été **fusionnés après CI, CodeQL et Dependency Review verts**
+([#110](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/110) à
+[#114](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/114)) :
+
+- bootstrap Python sans mise à niveau non bornée, `pip check` et contrôle de cohérence npm ;
+- réseau Podman du canary Open WebUI 0.12 unique par exécution, sans migration de production ;
+- passerelle OpenRouter sans redirections ni proxys implicites, plafonds inchangés ;
+- comparaison **humaine** locale/cloud des sept rôles, sans appel modèle ni classement automatique ;
+- précontrôle système sensible aux unités désactivées au démarrage, sondes locales sans redirection.
+
+**Ces résultats sont des preuves de tests du code, pas des essais sur le PC cible**.
+Les dépendances transitives ne sont pas entièrement verrouillées ; Open WebUI
+reste en `v0.11.4` jusqu'à la réception navigateur/SQLite ; l'exactitude des
+profils OpenRouter et de la facturation reste à mesurer sur un compte réel.
+Fedora 45 est encore une cible de preview de contrats, **non un hôte installable
+validé par le bootstrap**.
+
 ## Lire et comprendre le projet
 
 Le [README](README.md) présente le projet comme **hybride**, et [la stratégie Qwen + DeepSeek](docs/ARCHITECTURE_HYBRIDE.md) explique quand et pourquoi utiliser chaque moteur ; le [guide](docs/GUIDE.md) permet de découvrir l'atelier dans l'ordre. La fiche [Rôles et outils](docs/fiches/07-roles-et-outils.md) distingue précisément les droits des sept agents ; [Comment ça marche](docs/fiches/11-comment-ca-marche.md) explique les ports, flux et limites de preuve. Le [parcours DevOps](docs/EXEMPLE_PARCOURS_DEVOPS.md) est **fictif et pédagogique**, pas un test effectué.

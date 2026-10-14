@@ -12,6 +12,22 @@ l'infrastructure IA.
 
 **Date de cadrage : 12 octobre 2026.** Cible : un atelier hybride **Qwen local + DeepSeek cloud**, sept rôles DevOps spécialisés, une interface Web cohérente, un moteur de projet sûr, une pédagogie accessible, des résultats **vérifiables**, et **25 €/mois maximum** de budget API.
 
+## État des travaux de finition — 14 octobre 2026
+
+Les changements [#110](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/110)
+à [#114](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/114)
+sont **intégrés et contrôlés automatiquement** : cohérence du bootstrap Python/npm,
+isolation du canary WebUI, destination cloud non redirigeable, comparaison
+hors ligne des évaluations humaines des sept rôles, précontrôle de services
+actifs/activés au démarrage. La CI ne prouve pas les essais machine.
+
+Les objectifs encore ouverts nécessitent soit un verrouillage cryptographique
+intégral des dépendances transitives, soit la phase **finale d'acceptation**
+déjà documentée (Fedora 44/45, Intel B580, navigateur et SQLite WebUI 0.12,
+véritable fournisseur OpenRouter avec prix/effort, restauration et performance
+des modèles). Ne pas changer le pin de production WebUI, le routage cloud
+ou le plafond de 25 €/mois sur la seule base de ces tests.
+
 ## Le principe : préparer le code, qualifier en dernier
 
 On produit les changements **par PR de petite taille** ; une CI de non-régression valide le code au fur et à mesure. Les **tests de réception réels** (Fedora/B580, conteneur Open WebUI, vrai OpenRouter, microphone, performances, restauration) forment **la dernière phase**, une fois les composants stabilisés.

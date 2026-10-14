@@ -31,3 +31,17 @@ def test_public_readme_is_clear_about_unverified_runtime() -> None:
     assert "PC cible reste à valider" in readme
     assert "À mesurer" in status and "OpenRouter" in status
     assert "sans créer de projet" in readme
+
+
+def test_october_stabilization_docs_do_not_overclaim_runtime() -> None:
+    audit = (ROOT / "docs/AUDIT_COMPLEMENTAIRE_2026_10.md").read_text(encoding="utf-8")
+    status = (ROOT / "STATUS.md").read_text(encoding="utf-8")
+    programme = (ROOT / "docs/PROGRAMME_AMELIORATION_2026.md").read_text(
+        encoding="utf-8"
+    )
+    assert "fait encore `pip install --upgrade pip setuptools wheel`" not in audit
+    for number in range(110, 115):
+        assert f"#{number}" in audit
+    assert "pas des essais sur le PC cible" in status
+    assert "dépendances transitives" in programme
+    assert root_contract(ROOT, "webui_policy.yaml")["release"] == "v0.11.4"
