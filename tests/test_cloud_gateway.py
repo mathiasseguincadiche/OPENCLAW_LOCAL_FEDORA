@@ -600,3 +600,47 @@ def test_request_cannot_override_cloud_profile(
         status, raw = post(server, request(**{key: {"effort": "xhigh"}}))
         assert status == 400 and b"unsupported_parameter" in raw
     assert not upstream[0].requests and not budget.reserved
+
+
+def test_redirect_from_provider_never_contacts_a_second_host_or_reuses_key(
+    gateway: tuple[GatewayServer, FakeBudget], upstream: tuple[Upstream, int],
+) -> None:
+    hits: list[str] = []
+
+    class Receiver(BaseHTTPRequestHandler):
+        def log_message(self, format: str, *args: Any) -> None:
+            pass
+
+        def do_GET(self) -> None:
+            hits.append(self.headers.get("Authorization", ""))
+            self.send_response(200)
+            self.end_headers()
+
+        def do_POST(self) -> None:
+            hits.append(self.headers.get("Authorization", ""))
+            self.send_response(200)
+            self.end_headers()
+
+    receiver = ThreadingHTTPServer(("127.0.0.1", 0), Receiver)
+    thread = threading.Thread(target=receiver.serve_forever, daemon=True)
+    thread.start()
+    try:
+        def redirect(handler: BaseHTTPRequestHandler, body: dict[str, Any]) -> None:
+            handler.send_response(302)
+            handler.send_header(
+                "Location", f"http://127.0.0.1:{receiver.server_port}/captured"
+            )
+            handler.end_headers()
+
+        upstream[0].behaviour = redirect
+        server, budget = gateway
+        status, data = post(server, request())
+        assert status == 502 and b"upstream_error" in data
+        assert len(upstream[0].requests) == 1
+        assert hits == []
+        # Ambiguous completion retains the reservation instead of undercounting.
+        assert budget.settled == [(None, "interrupted")]
+        assert UPSTREAM_KEY.encode() not in data
+    finally:
+        receiver.shutdown()
+        receiver.server_close()
