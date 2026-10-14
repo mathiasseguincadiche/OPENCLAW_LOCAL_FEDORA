@@ -59,6 +59,8 @@ def validate_repository(root: Path) -> ContractReport:
         failures.append("platform: Fedora Linux 45 requis")
     if os_cfg.get("desktop") != "GNOME" or int(os_cfg.get("desktop_major", 0)) != 51:
         failures.append("platform: GNOME 51 requis")
+    if os_cfg.get("edition") != "Workstation":
+        failures.append("platform: édition Workstation requise")
     if os_cfg.get("display_server") != "wayland":
         failures.append("platform: Wayland requis")
     if runtime.get("service_manager") != "systemd-user":
