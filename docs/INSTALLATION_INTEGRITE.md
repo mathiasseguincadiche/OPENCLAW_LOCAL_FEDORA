@@ -42,3 +42,16 @@ et le fichier `pyproject.toml` contient encore des plages de versions
 pour plusieurs dépendances. Une résolution complète verrouillée (avec
 empreintes d'artefacts et installation vérifiée sur Fedora) reste un travail
 distinct avant d'affirmer des installations bit à bit reproductibles.
+
+
+## Contrôle d'intégrité logique npm
+
+Après avoir installé l'archive OpenClaw vérifiée, l'installateur exécute
+`npm ls --global --all` dans le préfixe utilisateur et refuse un arbre
+manquant ou incohérent **avant** de lancer les services. La CI effectue
+le même contrôle sur une archive synthétique hors réseau.
+
+Ce contrôle ne constitue **ni un audit de vulnérabilités ni un verrouillage
+cryptographique des sous-dépendances npm** : les versions transitives
+doivent encore être résolues et épinglées pour promettre une reconstruction
+strictement identique.
