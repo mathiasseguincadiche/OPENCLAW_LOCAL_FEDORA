@@ -37,27 +37,27 @@ def test_verifier_fails_closed_on_tampering_version_url_and_missing_digest(
     manifest = {
         "schema": 1,
         "openclaw": {
-            "version": "2026.10.2",
-            "url": "https://registry.npmjs.org/openclaw/-/openclaw-2026.10.2.tgz",
+            "version": "2026.10.3",
+            "url": "https://registry.npmjs.org/openclaw/-/openclaw-2026.10.3.tgz",
             "sha512": hashlib.sha512(archive.read_bytes()).hexdigest(),
         },
     }
     record = tmp_path / "integrity.json"
     record.write_text(json.dumps(manifest))
-    verifier.verify("openclaw", "2026.10.2", archive, record)
+    verifier.verify("openclaw", "2026.10.3", archive, record)
     archive.write_bytes(b"tampered")
     with pytest.raises(ValueError, match="hash mismatch"):
-        verifier.verify("openclaw", "2026.10.2", archive, record)
+        verifier.verify("openclaw", "2026.10.3", archive, record)
     with pytest.raises(ValueError, match="URL/version mismatch"):
-        verifier.checked_entry("openclaw", "2026.10.20", record)
-    manifest["openclaw"]["url"] = "https://evil.example/openclaw-2026.10.2.tgz"
+        verifier.checked_entry("openclaw", "2026.10.30", record)
+    manifest["openclaw"]["url"] = "https://evil.example/openclaw-2026.10.3.tgz"
     record.write_text(json.dumps(manifest))
     with pytest.raises(ValueError, match="URL/version mismatch"):
-        verifier.checked_entry("openclaw", "2026.10.2", record)
+        verifier.checked_entry("openclaw", "2026.10.3", record)
     manifest["openclaw"].pop("sha512")
     record.write_text(json.dumps(manifest))
     with pytest.raises(ValueError, match="incomplete"):
-        verifier.checked_entry("openclaw", "2026.10.2", record)
+        verifier.checked_entry("openclaw", "2026.10.3", record)
 
 
 @pytest.mark.parametrize("kind", ["openclaw", "ollama"])

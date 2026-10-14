@@ -1,11 +1,11 @@
-# Chaîne d'installation vérifiée (OpenClaw 2026.10.2 / Ollama 0.35.1)
+# Chaîne d'installation vérifiée (OpenClaw 2026.10.3 / Ollama 0.40.4)
 
 ## Artefacts et références
 
 Le manifeste `config/install_artifact_integrity.json` verrouille les **URL exactes, versions et empreintes** des archives officielles :
 
-- **OpenClaw 2026.10.2 :** tarball npm depuis `registry.npmjs.org`, SHA-512 figurant dans la [publication officielle](https://github.com/openclaw/openclaw/releases/tag/v2026.10.2).
-- **Ollama 0.35.1 :** `ollama-linux-amd64.tar.zst`, SHA-256 publié par GitHub pour le fichier de la [release v0.35.1](https://github.com/ollama/ollama/releases/tag/v0.35.1).
+- **OpenClaw 2026.10.3 :** tarball npm depuis `registry.npmjs.org`, SHA-512 figurant dans la [publication officielle](https://github.com/openclaw/openclaw/releases/tag/v2026.10.3).
+- **Ollama 0.40.4 :** `ollama-linux-amd64.tar.zst`, SHA-256 publié par GitHub pour le fichier de la [release v0.40.4](https://github.com/ollama/ollama/releases/tag/v0.40.4).
 
 L'installateur `scripts/linux/15_verified_installer.sh` n'exécute **aucun script distant**. Il exige un utilisateur non-root, refuse une URL ou version non présente dans le manifeste, télécharge uniquement par HTTPS, recalcule SHA-256/SHA-512 **avant installation** et s'arrête si l'archive diverge. Ollama est installé depuis l'archive officielle Linux x86_64 vérifiée sous `/usr/local` ; OpenClaw est installé depuis son tarball npm vérifié sous `~/.openclaw` avec `--ignore-scripts`. Les commandes `--apply` modifient la machine : les aperçus sont non mutants.
 
@@ -55,3 +55,7 @@ Ce contrôle ne constitue **ni un audit de vulnérabilités ni un verrouillage
 cryptographique des sous-dépendances npm** : les versions transitives
 doivent encore être résolues et épinglées pour promettre une reconstruction
 strictement identique.
+
+## Première installation, sans migration historique
+
+Sur une machine vierge, l'installateur épingle directement **OpenClaw 2026.10.3** (plugin Parallel 2026.10.3) et **Ollama 0.40.4**. Les URL exactes et empreintes indépendantes viennent des releases officielles et sont vérifiées avant l'installation. Il n'y a pas d'ancienne installation locale à convertir. La compatibilité Intel Arc B580 et les performances sont néanmoins à mesurer sur Fedora réel.

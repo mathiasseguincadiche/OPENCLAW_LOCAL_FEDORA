@@ -18,7 +18,7 @@ def test_ollama_neighbor_version_stops_before_openclaw_or_inference(
 
     def request(url: str) -> dict[str, Any]:
         calls.append(url)
-        return {"version": "0.35.10"}
+        return {"version": "0.40.40"}
 
     def forbidden(*args: Any, **kwargs: Any) -> None:
         pytest.fail("No process should start with an incompatible Ollama")
@@ -38,11 +38,11 @@ def test_openclaw_neighbor_version_stops_before_loading_model(
 
     def request(url: str) -> dict[str, Any]:
         calls.append(url)
-        return {"version": "0.35.1"}
+        return {"version": "0.40.4"}
 
     def run(command: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
         assert command == ["openclaw", "--version"]
-        return subprocess.CompletedProcess(command, 0, "OpenClaw 2026.10.20", "")
+        return subprocess.CompletedProcess(command, 0, "OpenClaw 2026.10.30", "")
 
     monkeypatch.setattr(ollama_api, "request_json", request)
     monkeypatch.setattr(project_worker.subprocess, "run", run)
