@@ -9,7 +9,7 @@
 > création, réponse aux précisions et demande de révision. Les créations
 > et révisions gardent leur code d'approbation indépendant. La soumission
 > de fichiers n'a pas encore de formulaire dédié.
-> Open WebUI reste épinglé à 0.11.4 ; le transport SSE est préparé
+> La nouvelle installation vise Open WebUI 0.12.1-slim, avec digest figé au déploiement ; le transport SSE est préparé
 > mais non activé, et les essais Fedora/navigateur restent à effectuer.
 
 **Statut : implémentation révisée le 12 octobre 2026. Les lots 9 à 15 sont implémentés dans le dépôt.** Les tests automatiques couvrent le pont, les garde-fous, les uploads et le service vocal ; le test de fumée sur le vrai PC Fedora reste nécessaire pour valider l'ergonomie, le micro, la latence et le stockage réel d'Open WebUI.

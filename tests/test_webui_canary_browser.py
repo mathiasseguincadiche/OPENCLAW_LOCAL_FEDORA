@@ -45,3 +45,18 @@ def test_browser_network_is_unique_private_and_never_in_production() -> None:
     assert 'podman network rm "$NET"' in script
     assert 'ENABLE_OLLAMA_API=false' in script and 'ENABLE_OPENAI_API=false' in script
     # The real Podman/migrated SQLite/browser functionality is only qualified on Fedora.
+
+
+def test_canary_uses_same_exact_stable_webui_release_as_first_install() -> None:
+    from clawfedora.core_config import root_contract
+
+    policy = root_contract(ROOT, "webui_policy.yaml")
+    source = SCRIPT.read_text(encoding="utf-8")
+    assert policy["release"] == "v0.12.1"
+    assert policy["image"] == "ghcr.io/open-webui/open-webui:v0.12.1-slim"
+    assert 'IMAGE="ghcr.io/open-webui/open-webui:v0.12.1-slim"' in source
+    installer = (ROOT / "scripts/linux/13_openwebui.sh").read_text(encoding="utf-8")
+    assert 'podman pull "$IMAGE"' in installer
+    assert 'IMAGE_DIGEST="$(podman image inspect "$IMAGE"' in installer
+    assert '--image-digest "$IMAGE_DIGEST"' in installer
+    assert 'podman run --rm' in source

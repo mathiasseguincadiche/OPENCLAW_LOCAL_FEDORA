@@ -49,33 +49,31 @@ Elle ne change **aucun** réglage. L'opérateur décide ensuite si 16K
 est préférable à 32K ; aucune vitesse ou qualité ne peut être affirmée
 sans les mesures sur la vraie B580.
 
-## 3. Migration Open WebUI 0.12 sans bascule de production
+## 3. Première installation WebUI 0.12.1 et réception navigateur
+
+Le socle neuf installe directement **Open WebUI 0.12.1-slim**, sans migration
+historique depuis 0.11.4. Le script `webui-install --apply` télécharge
+l'image du tag stable, obtient son digest de registre et inscrit exclusivement
+la référence `@sha256` dans l'unité systemd. Si aucun digest exploitable
+n'est retourné, l'installation **échoue fermée**.
 
 ```bash
-bash scripts/linux/14_webui_canary.sh
-bash scripts/linux/14_webui_canary.sh --apply --with-db-copy
-# Facultatif, dans un vrai terminal pour tester également l'interface :
-bash scripts/linux/14_webui_canary.sh --apply --with-db-copy --browser
+./menu.sh --action webui-install --apply
+./menu.sh --action webui-status
 ```
 
-Sur l'état WebUI, l'audit vérifie désormais non seulement les comptages
-de lignes mais aussi la conservation des identifiants et des contenus JSON
-des conversations à empreintes SHA-256 privées, et refuse une Function modifiée.
-Ces preuves ne remplacent **pas** les essais visuels : connexion, rôles,
-actions, uploads, téléchargement, voix, annulation et préservation des sessions
-dans un vrai navigateur restent à constater manuellement sur Fedora.
-Le mode `--browser` utilise un **réseau Podman interne distinct par exécution**, nettoyé à la sortie, et publie **uniquement** `127.0.0.1:3001` depuis
-un réseau Podman interne isolé et désactive les fournisseurs OpenAI/Ollama.
-La copie de base et le conteneur sont supprimés dès que l'opérateur appuie
-sur Entrée dans le terminal. Ce mode ne remplace pas le véritable Open WebUI
-de production ni un test complet des fonctions reliées à la passerelle.
+Optionnel : un contrôle isolé sous Podman, sans modifier les données réelles,
+peut être lancé avec `bash scripts/linux/14_webui_canary.sh --apply`.
+`--with-db-copy` ne sert **que si une base préexistante est disponible** :
+ce n'est pas un passage obligatoire pour une machine vierge.
 
-Le canary doit afficher le digest exact de l'image téléchargée, vérifier
-la santé conteneur, le schéma SQLite, les utilisateurs, conversations et
-Functions sur une **copie**. Aucun volume principal n'est modifié.
-Tester ensuite **dans un navigateur isolé** login, modèles, actions de projet,
-pièces jointes, téléchargements et voix. L'épinglage de production reste
-v0.11.4 jusqu'à validation distincte de tous les résultats.
+Lors de la réception réelle, constater la connexion, la création du compte
+administrateur unique, le verrouillage des inscriptions, les Functions/Filters,
+les actions de projet, les uploads, les téléchargements, la voix et les
+réponses du chat. Un test conteneur/SQLite de CI n'en prouve pas le bon
+fonctionnement dans un navigateur Fedora. Le canary `--browser` exige
+une base de test existante, utilise un réseau interne unique et publie
+uniquement `127.0.0.1:3001`.
 
 ## 4. Streaming et contrôle d'accès
 
@@ -149,7 +147,7 @@ source et manifeste SHA-256. L'inspection visuelle est obligatoire.
 | Domaine | État initial |
 |---|---|
 | Fedora / B580 / veille / AV1 | Non qualifié sur la machine |
-| Open WebUI 0.12 / copie SQLite / navigateur | Canary logiciel, essai réel manquant |
+| Open WebUI 0.12.1 / nouveau volume / navigateur | Canary logiciel, essai réel manquant |
 | Streaming SSE / annulation | Code intégré, essai réel manquant |
 | Vision des images et PDF scannés | Code canary intégré, précision et performances B580 non qualifiées |
 | OpenRouter / coût réel | Essai avec accord manquant |

@@ -173,7 +173,7 @@ rollback, ni fonctionnement réel du système. [Guide de vérification et limite
 
 ## Limites : ne pas confondre « codé » et « prouvé »
 
-**Le PC cible reste à valider :** le projet n'a pas encore tourné sur le PC cible dans le cadre des essais de réception documentés. Accélération B580, vraie interface et uploads Open WebUI, voix, sauvegarde/restauration et appels réels OpenRouter restent à qualifier. Les réponses du chat arrivent **en bloc**, la carte ne traite qu'une génération à la fois, et les fichiers proposés ne sont **pas** des déploiements validés. La version déployée reste **Open WebUI 0.11.4** : le canary 0.12.0 est un essai isolé, pas une migration.
+**Le PC cible reste à valider :** le projet n'a pas encore tourné sur le PC cible dans le cadre des essais de réception documentés. Accélération B580, vraie interface et uploads Open WebUI, voix, sauvegarde/restauration et appels réels OpenRouter restent à qualifier. Les réponses du chat arrivent **en bloc**, la carte ne traite qu'une génération à la fois, et les fichiers proposés ne sont **pas** des déploiements validés. La première installation vise directement **Open WebUI 0.12.1-slim**, dont l'image téléchargée est figée au premier démarrage par un digest dans l'unité systemd ; il n'y a pas de migration depuis 0.11.4 sur un PC vierge.
 
 Les tests automatiques ne prouvent pas un résultat sur ton matériel. Voir [état précis](STATUS.md), [test de fumée](docs/SMOKE_TEST_WEBUI.md) et [plan de qualité](docs/PLAN_QUALITE_2026.md).
 

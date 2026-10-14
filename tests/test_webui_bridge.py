@@ -21,6 +21,7 @@ from clawfedora.webui_setup import environment, render, seal
 
 ROOT = Path(__file__).resolve().parents[1]
 TOKEN = "a" * 64
+TEST_IMAGE_DIGEST = "ghcr.io/open-webui/open-webui@sha256:" + "a" * 64
 
 
 def request(server: Any, path: str, data: Any = None, token: str = TOKEN) -> tuple[int, str]:
@@ -139,10 +140,10 @@ def test_setup_pins_limits_preserves_secrets_and_closes_registration(tmp_path: P
     runtime.mkdir()
     (runtime / ".openclaw-fedora-runtime").touch()
     units = tmp_path / "units"
-    value = render(ROOT, runtime, units)
+    value = render(ROOT, runtime, units, image_digest=TEST_IMAGE_DIGEST)
     state = runtime / "state/webui"
     first = (state / "bridge.token").read_text()
-    render(ROOT, runtime, units)
+    render(ROOT, runtime, units, image_digest=TEST_IMAGE_DIGEST)
     assert first == (state / "bridge.token").read_text()
     assert (state / "webui.env").stat().st_mode & 0o077 == 0
     service = (units / "clawfedora-webui.service").read_text()
@@ -174,7 +175,7 @@ def test_setup_pins_limits_preserves_secrets_and_closes_registration(tmp_path: P
     with closing(sqlite3.connect(state / "data/webui.db")) as db, db:
         db.execute('UPDATE "user" SET role="admin"')
     seal(ROOT, runtime)
-    assert render(ROOT, runtime, units)["sealed"] is True
+    assert render(ROOT, runtime, units, image_digest=TEST_IMAGE_DIGEST)["sealed"] is True
     assert "ENABLE_SIGNUP=false" in (state / "webui.env").read_text()
     settings = environment(ROOT, TOKEN, "b" * 64, "c" * 64, sealed=True)
     assert settings["HOST"] == "127.0.0.1"
@@ -417,3 +418,20 @@ def test_standalone_uploads_reach_only_the_local_chat(tmp_path: Path) -> None:
         assert len(prompts) == 1
         server.shutdown()
         thread.join(timeout=5)
+
+
+def test_webui_install_requires_resolved_digest_and_rejects_bad_registry(
+    tmp_path: Path,
+) -> None:
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    (runtime / ".openclaw-fedora-runtime").touch()
+    units = tmp_path / "units"
+    with pytest.raises(ValueError, match="digest immuable"):
+        render(ROOT, runtime, units)
+    with pytest.raises(ValueError, match="digest immuable"):
+        render(
+            ROOT, runtime, units,
+            image_digest="ghcr.io/other/repository@sha256:" + "a" * 64,
+        )
+    assert not (units / "clawfedora-webui.service").exists()

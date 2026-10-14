@@ -131,7 +131,9 @@ def environment(
     }
 
 
-def render(repo_root: Path, runtime: Path, unit_root: Path) -> dict[str, Any]:
+def render(
+    repo_root: Path, runtime: Path, unit_root: Path, *, image_digest: str | None = None,
+) -> dict[str, Any]:
     for path in (repo_root, runtime, unit_root):
         if not path.is_absolute() or not re.fullmatch(r"[A-Za-z0-9_./-]+", str(path)):
             raise ValueError("chemins absolus sans espace ni caractères systemd spéciaux requis")
@@ -161,6 +163,13 @@ def render(repo_root: Path, runtime: Path, unit_root: Path) -> dict[str, Any]:
     env_path.write_text("\n".join(f"{key}={value}" for key, value in env.items()) + "\n")
     env_path.chmod(0o600)
     policy = root_contract(repo_root, "webui_policy.yaml")
+    # Resolve the exact stable release tag only on the first install. Persist a
+    # content-addressed reference in systemd, never a mutable registry tag.
+    selected_image = image_digest if image_digest is not None else str(policy["image"])
+    if not re.fullmatch(
+        r"ghcr[.]io/open-webui/open-webui@sha256:[a-f0-9]{64}", selected_image
+    ):
+        raise ValueError("digest immuable Open WebUI requis avant la génération systemd")
     python = runtime / "runtime/venv/bin/python"
     unit_root.mkdir(parents=True, exist_ok=True)
     common = "\n[Service]\nUMask=0077\nRestart=on-failure\nRestartSec=5\n"
@@ -190,7 +199,7 @@ def render(repo_root: Path, runtime: Path, unit_root: Path) -> dict[str, Any]:
         "--security-opt no-new-privileges "
         + f"--memory {policy['memory_limit']} --cpus {policy['cpu_limit']} --pids-limit 256 "
         + f"--env-file {env_path} --volume {state / 'data'}:/app/backend/data:Z "
-        + f"{policy['image']}\n"
+        + f"{selected_image}\n"
         + "ExecStop=/usr/bin/podman stop --ignore --time 10 clawfedora-webui\n"
         + "TimeoutStartSec=120\nTimeoutStopSec=30\n\n[Install]\nWantedBy=default.target\n"
     )
@@ -216,7 +225,7 @@ def render(repo_root: Path, runtime: Path, unit_root: Path) -> dict[str, Any]:
         unit.write_text(header + content)
     (state / "enabled").touch(mode=0o600)
     return {
-        "image": policy["image"],
+        "image": selected_image,
         "webui": "http://127.0.0.1:3000",
         "projects": "http://127.0.0.1:18890",
         "sealed": (state / "sealed").exists(),
@@ -320,10 +329,15 @@ def main() -> None:
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--runtime-root", type=Path, required=True)
     parser.add_argument("--unit-root", type=Path, required=True)
+    parser.add_argument("--image-digest", type=str)
     args = parser.parse_args()
     if args.action == "seal":
         seal(args.root, args.runtime_root)
-    print(json.dumps(render(args.root, args.runtime_root, args.unit_root)))
+        print(json.dumps({"sealed": True}))
+    else:
+        print(json.dumps(render(
+            args.root, args.runtime_root, args.unit_root, image_digest=args.image_digest
+        )))
 
 
 if __name__ == "__main__":
