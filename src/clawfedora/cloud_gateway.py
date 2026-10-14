@@ -82,6 +82,23 @@ def read_upstream_key(runtime: Path, relative: str) -> str:
     return key
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Never send cloud content or the provider key to a Location header."""
+
+    def redirect_request(
+        self, req: urllib.request.Request, fp: Any, code: int,
+        msg: str, headers: Any, newurl: str,
+    ) -> None:
+        return None
+
+
+# Do not inherit machine-wide HTTP(S) proxies or automatic redirect handlers:
+# the only cloud egress permitted by policy is the configured OpenRouter URL.
+_CLOUD_OPENER = urllib.request.build_opener(
+    urllib.request.ProxyHandler({}), _NoRedirect()
+)
+
+
 class GatewayServer(LocalServer):
     runtime: Path
     token: str
@@ -292,7 +309,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
             stream=streaming, reasoning_profile=profile_name,
         )
         try:
-            with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
+            with _CLOUD_OPENER.open(request, timeout=timeout) as response:
                 if streaming:
                     self._relay_stream(request_id, response, reservation)
                 else:
@@ -301,7 +318,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
             # A 5xx or timeout is ambiguous: the provider may already have billed a
             # generation before its gateway returned an error. Preserve the reserved
             # worst-case amount instead of silently undercounting cloud spending.
-            uncertain = exc.code >= 500 or exc.code == 408
+            uncertain = 300 <= exc.code < 400 or exc.code >= 500 or exc.code == 408
             reservation.settle(None, "interrupted" if uncertain else "failed")
             self._event(request_id, "upstream_error", status=exc.code, uncertain=uncertain)
             self._upstream_error(exc)
