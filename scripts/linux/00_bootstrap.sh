@@ -43,8 +43,8 @@ if [[ ! -r /etc/os-release ]]; then
 fi
 # shellcheck disable=SC1091
 source /etc/os-release
-if [[ "${ID:-}" != "fedora" || "${VERSION_ID:-}" != "44" ]]; then
-  echo "ERREUR: Fedora 44 requis; détecté ID=${ID:-?} VERSION_ID=${VERSION_ID:-?}" >&2
+if [[ "${ID:-}" != "fedora" || "${VERSION_ID:-}" != "45" ]]; then
+  echo "ERREUR: Fedora 45 requis; détecté ID=${ID:-?} VERSION_ID=${VERSION_ID:-?}" >&2
   exit 2
 fi
 
@@ -117,6 +117,18 @@ printf '  kernel: distribution kernel kept as is; this project never builds or i
 if ((APPLY == 0)); then
   echo "DRY_RUN=PASS -- aucune modification effectuée; relancer avec --apply pour appliquer."
   exit 0
+fi
+
+# A new installation is intended for GNOME 51 on Wayland, not a GNOME 50
+# upgrade or a headless container. Dry-runs remain safe for CI containers.
+GNOME_VERSION="$(gnome-shell --version 2>/dev/null || true)"
+if [[ ! "$GNOME_VERSION" =~ ^GNOME[[:space:]]Shell[[:space:]]51([.]|$) ]]; then
+  echo "ERREUR: GNOME Shell 51 requis; détecté ${GNOME_VERSION:-absent}" >&2
+  exit 2
+fi
+if [[ "${XDG_SESSION_TYPE:-}" != "wayland" ]]; then
+  echo "ERREUR: session GNOME Wayland requise (XDG_SESSION_TYPE)" >&2
+  exit 2
 fi
 
 if [[ "$(getenforce 2>/dev/null || true)" != "Enforcing" ]]; then
