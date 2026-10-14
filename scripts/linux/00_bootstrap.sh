@@ -153,12 +153,18 @@ VENV="$RUNTIME_ROOT/runtime/venv"
 if [[ ! -x "$VENV/bin/python" ]]; then
   as_target python3 -m venv "$VENV"
 fi
-as_target "$VENV/bin/python" -m pip install --upgrade pip setuptools wheel
+# Keep Fedora's isolated venv pip: an unbounded upgrade of pip/setuptools/wheel
+# made a reviewed bootstrap unexpectedly install newer build tooling each run.
+# PEP 517 may still resolve build requirements; lock that closure separately.
+as_target "$VENV/bin/python" -m pip --version
 if ((WITH_DEV == 1)); then
   as_target "$VENV/bin/python" -m pip install -e "${REPO_ROOT}[dev]"
 else
   as_target "$VENV/bin/python" -m pip install -e "$REPO_ROOT"
 fi
+
+# Fail before enabling runtime services if the installed Python environment is inconsistent.
+as_target "$VENV/bin/python" -m pip check
 
 as_root systemctl enable --now firewalld.service
 if ! as_root systemctl is-active --quiet firewalld.service; then
