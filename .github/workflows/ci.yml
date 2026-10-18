@@ -37,6 +37,29 @@ jobs:
       - name: Tests with coverage
         run: pytest -q --cov=clawfedora --cov-report=term-missing --cov-fail-under=80
 
+  runtime-lock:
+    name: runtime-lock-python-${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Fresh production install with reviewed constraints
+        run: python -m pip install --constraint config/python-runtime-constraints.txt -e .
+      - name: Verify the full observed production package inventory
+        run: |
+          python -m pip check
+          python scripts/validation/check_python_lock.py --strict
+          python scripts/validation/check_runtime_dependencies.py
+
   native-openclaw:
     name: native-openclaw
     runs-on: ubuntu-latest
