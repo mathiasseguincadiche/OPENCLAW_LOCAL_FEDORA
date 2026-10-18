@@ -44,6 +44,8 @@ if ((EUID == 0)); then
 fi
 
 BOOTSTRAP_ARGS=(--apply --runtime-root "$RUNTIME_ROOT")
+# Installation state, model storage and projects MUST remain on the mounted disk.
+claw_require_storage "$RUNTIME_ROOT"
 ((ENABLE_LINGER == 0)) || BOOTSTRAP_ARGS+=(--enable-linger)
 "$LINUX/00_bootstrap.sh" "${BOOTSTRAP_ARGS[@]}"
 
