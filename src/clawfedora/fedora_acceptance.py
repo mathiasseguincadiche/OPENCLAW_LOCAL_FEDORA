@@ -119,7 +119,7 @@ def readiness(
             "local_Qwen_exact_model_digest_and_no_fallback",
             "Fedora_B580_real_GPU_AV1_and_sleep",
             "OpenRouter_opt_in_cost_reconciliation",
-            "WebUI_v0.12.1_first_install_browser_and_storage",
+            "WebUI_v0.12.3_first_install_browser_and_storage",
             "backup_archive_restore_to_separate_destination",
             "PDF_DOCX_Drawio_visual_inspection",
             "local_image_and_scanned_PDF_vision_accuracy",
