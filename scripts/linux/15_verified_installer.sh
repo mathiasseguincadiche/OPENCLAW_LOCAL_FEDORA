@@ -16,6 +16,7 @@ URL="$("$PYTHON" "$VERIFY" url "$KIND" "$PIN")"
 echo "VERIFIED_INSTALL_PLAN kind=$KIND exact_version=$PIN source=$URL sha_required=true"
 [[ "$MODE" == --apply ]] || { echo "VERIFIED_INSTALL_DRY_RUN=PASS"; exit 0; }
 ((EUID != 0)) || { echo "Installateur vérifié: lancer en utilisateur non root" >&2; exit 2; }
+claw_require_storage "$(claw_runtime_root)"
 command -v curl >/dev/null || { echo "curl requis" >&2; exit 127; }
 [[ "$(uname -m)" == x86_64 ]] || { echo "Architecture x86_64 exigée par le manifeste" >&2; exit 2; }
 umask 077
