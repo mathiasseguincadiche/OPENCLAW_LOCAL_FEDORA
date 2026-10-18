@@ -173,7 +173,7 @@ def render(
     python = runtime / "runtime/venv/bin/python"
     unit_root.mkdir(parents=True, exist_ok=True)
     common = "\n[Service]\nUMask=0077\nRestart=on-failure\nRestartSec=5\n"
-    mount_check = ("ConditionPathIsMountPoint=/IA\n" if runtime == Path("/IA/Openclaw") else "")
+    mount_check = (\n        "RequiresMountsFor=/IA\nConditionPathIsMountPoint=/IA\n"\n        if runtime == Path("/IA/Openclaw") else ""\n    )
     bridge = (
         "[Unit]\nDescription=Atelier IA - admission des conversations\n"
         "After=openclaw-gateway.service\n"
