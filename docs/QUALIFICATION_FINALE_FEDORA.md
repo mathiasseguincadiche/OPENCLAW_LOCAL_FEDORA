@@ -40,11 +40,21 @@ et l'affichage. Aucune prétention de validation de la B580 sans mesure locale.
 ```bash
 clawfedora-gpu-benchmark --root "$PWD"
 clawfedora-gpu-benchmark --root "$PWD" --apply
+# Réception exigeante uniquement sur la vraie B580, après préqualification :
+clawfedora-gpu-benchmark --root "$PWD" --near-limit
+clawfedora-gpu-benchmark --root "$PWD" --near-limit --apply
 ```
 
 Cette commande teste 8K, 16K puis 32K de contexte via Ollama
 **exclusivement local**, enregistre les tokens/s et la part VRAM et
-propose le plus grand contexte entièrement sur GPU parmi les mesures.
+propose le plus grand contexte entièrement sur GPU parmi les mesures,
+mais **le profil normal ne remplit que 60 % du contexte : sa recommandation est provisoire**.
+Le mode `--near-limit` sollicite environ 90 % du contexte et ne reconnaît
+`qualified_near_limit_context` que si le serveur rapporte **au moins 80 % de tokens
+entrants**, une allocation de contexte suffisante et un modèle totalement en VRAM.
+Toute mesure tronquée, offload CPU ou preuve incomplète laisse ce champ vide.
+Même un rapport favorable exige les tests de stabilité et une réception humaine
+sur la vraie machine Fedora 45/B580.
 Elle ne change **aucun** réglage. L'opérateur décide ensuite si 16K
 est préférable à 32K ; aucune vitesse ou qualité ne peut être affirmée
 sans les mesures sur la vraie B580.
