@@ -22,6 +22,7 @@ RELEASE="$("$PYTHON" -c 'from pathlib import Path; from clawfedora.core_config i
 printf 'OPENWEBUI_PLAN action=%s release=%s variant=slim cpu=2 memory=3g loopback=1\n' "$ACTION" "$RELEASE"
 ((APPLY == 1)) || { echo "DRY_RUN=PASS"; exit 0; }
 ((EUID != 0)) || { echo "ERREUR: lancer avec le compte Fedora habituel" >&2; exit 2; }
+claw_require_storage "$RUNTIME_ROOT"
 [[ -f "$RUNTIME_ROOT/.openclaw-fedora-runtime" ]] || { echo "ERREUR: runtime géré absent" >&2; exit 2; }
 claw_lock_worker
 if [[ "$ACTION" == install ]]; then
