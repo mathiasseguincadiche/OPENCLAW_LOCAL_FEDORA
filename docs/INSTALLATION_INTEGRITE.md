@@ -3,6 +3,16 @@
 > **Base de première installation du 18 octobre 2026 :** OpenClaw 2026.10.4 (SHA-512 publié dans le changelog officiel), Ollama 0.40.6 (SHA-256 de la release GitHub officielle), et Open WebUI v0.12.3-slim (digest résolu avant écriture dans systemd). Les références anciennes ci-dessous sont conservées pour l'historique de l'audit. Les dépendances transitives restent partiellement non verrouillées.
 
 
+## Installation neuve : aucune migration cachée
+
+Depuis le 18 octobre 2026, `scripts/linux/06_install.sh` **n'importe plus automatiquement**
+un état historique présent dans `~/.local/state/openclaw-local`. Cela empêche
+une installation vierge Fedora 45 de reprendre des configurations ou des
+données anciennes sans accord. Si une migration est souhaitée, la commande
+`clawfedora-ops migrate-state --source CHEMIN --apply` reste disponible
+**séparément**, après revue des sources et sauvegarde. L'opérateur doit
+choisir le moment de son exécution. Aucun état existant n'est effacé par ce changement.
+
 ## Artefacts et références
 
 Le manifeste `config/install_artifact_integrity.json` verrouille les **URL exactes, versions et empreintes** des archives officielles :
