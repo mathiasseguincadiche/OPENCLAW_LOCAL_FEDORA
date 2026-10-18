@@ -173,9 +173,11 @@ def render(
     python = runtime / "runtime/venv/bin/python"
     unit_root.mkdir(parents=True, exist_ok=True)
     common = "\n[Service]\nUMask=0077\nRestart=on-failure\nRestartSec=5\n"
+    mount_check = ("ConditionPathIsMountPoint=/IA\n" if runtime == Path("/IA/Openclaw") else "")
     bridge = (
         "[Unit]\nDescription=Atelier IA - admission des conversations\n"
         "After=openclaw-gateway.service\n"
+        + mount_check
         + common
         + f"Environment=OPENCLAW_LOCAL_FEDORA_ROOT={runtime}\n"
         + f"ExecStart={python} -m clawfedora.webui_bridge "
@@ -184,6 +186,7 @@ def render(
     )
     speech = (
         "[Unit]\nDescription=Atelier IA - voix locale\n"
+        + mount_check
         + common
         + f"ExecStart={python} -m clawfedora.speech_server "
         + f"--root {repo_root} --runtime-root {runtime} --token-file {state / 'speech.token'}\n"
@@ -193,6 +196,7 @@ def render(
         "[Unit]\nDescription=Atelier IA - Open WebUI personnel\n"
         "After=clawfedora-webui-bridge.service clawfedora-speech.service\n"
         "Requires=clawfedora-webui-bridge.service clawfedora-speech.service\n"
+        + mount_check
         + common
         + "ExecStart=/usr/bin/podman run --rm --name clawfedora-webui "
         "--label io.clawfedora.managed=true --network host --cap-drop ALL "
@@ -205,6 +209,7 @@ def render(
     )
     dashboard = (
         "[Unit]\nDescription=Atelier IA - projets\n"
+        + mount_check
         + common
         + f"ExecStart={python} -m clawfedora.cli --root {repo_root} dashboard "
         + f"--serve --runtime-root {runtime}\n"
