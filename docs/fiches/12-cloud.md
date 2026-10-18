@@ -52,7 +52,7 @@ Un tour où un rôle utilise un outil fait **deux appels facturés** (la demande
 
 Clés privées, jetons (GitHub, GitLab, OpenRouter, Anthropic, Slack, JWT), identifiants de services cloud (AWS, Google, Azure), mots de passe et secrets affectés dans du code ou de la configuration, identifiants intégrés dans une URL, identifiants réels d'abonnement ou de tenant. Les exemples de cours (`password = var.pwd`, un GUID d'exemple, une clé `EXAMPLE`) passent.
 
-Tu peux ajouter **tes propres termes sensibles** (nom d'employeur, serveur interne) dans `/srv/openclaw-local/state/cloud/denylist.txt`, une ligne par terme. Une ligne `re:motif` est une expression régulière. Le fichier est relu dès qu'il change.
+Tu peux ajouter **tes propres termes sensibles** (nom d'employeur, serveur interne) dans `/IA/Openclaw/state/cloud/denylist.txt`, une ligne par terme. Une ligne `re:motif` est une expression régulière. Le fichier est relu dès qu'il change.
 
 ### Ce que le filtre n'arrête pas
 
