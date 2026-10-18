@@ -299,3 +299,29 @@ def test_reconciling_with_the_invoice_can_exhaust_the_month(
     assert run(runtime, "reconcile", "--eur", "25.5") == 0
     assert "level=exhausted" in capsys.readouterr().out
     assert run(runtime, "reconcile", "--eur", "-1") == 2
+
+def test_key_limit_lookup_uses_restricted_egress_and_fixed_origin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Response:
+        def __enter__(self) -> Response:
+            return self
+
+        def __exit__(self, *_args: object) -> None:
+            return None
+
+        def read(self, count: int) -> bytes:
+            assert count == 65537
+            return b'{"data": {"limit": 11}}'
+
+    class Opener:
+        def open(self, request: Any, timeout: float) -> Response:
+            assert request.full_url == "https://openrouter.ai/api/v1/key"
+            assert request.get_header("Authorization") == "Bearer test-key"
+            assert timeout == 15
+            return Response()
+
+    monkeypatch.setattr(activation, "_CLOUD_OPENER", Opener())
+    assert activation.fetch_key_info("https://openrouter.ai/api/v1", "test-key")["limit"] == 11
+    with pytest.raises(ValueError, match="destination"):
+        activation.fetch_key_info("https://elsewhere.invalid/v1", "test-key")

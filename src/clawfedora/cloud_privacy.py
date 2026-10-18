@@ -201,7 +201,12 @@ class PrivacyFilter:
         return [Finding(category, where) for category in sorted(found)]
 
     def scan_request(self, body: dict[str, Any]) -> list[Finding]:
-        """Every message is scanned: nothing is trusted because of who wrote it."""
+        """Inspect ALL forwarded fields, not just message text.
+
+        Tool definitions, parameter schemas and future top-level fields can contain user
+        content too. No field in an upstream payload may bypass the local secret scanner.
+        A nesting depth outside the reviewed JSON envelope fails closed.
+        """
         messages = body.get("messages")
         if not isinstance(messages, list):
             return [Finding("non_text_content", "messages")]
@@ -210,8 +215,43 @@ class PrivacyFilter:
             if not isinstance(message, dict):
                 findings.append(Finding("non_text_content", f"messages[{index}]"))
                 continue
+            # Preserve the role-aware locations and reject multimodal content as before.
             for where, text in _texts(message, index):
                 findings.extend(self.scan_text(text, where))
+
+        def inspect(
+            value: Any, location: str, depth: int, parent_keys: tuple[str, ...] = ()
+        ) -> None:
+            if depth > 32:
+                findings.append(Finding("non_text_content", location))
+            elif isinstance(value, str):
+                findings.extend(self.scan_text(value, location))
+                # JSON schemas can nest a default/value beneath a secret-bearing
+                # parent property (e.g. properties.client_secret.default).
+                for key in parent_keys:
+                    findings.extend(self.scan_text(f"{key} = {value}", location))
+            elif isinstance(value, list):
+                for index, item in enumerate(value):
+                    inspect(item, f"{location}[{index}]", depth + 1, parent_keys)
+            elif isinstance(value, dict):
+                for index, (key, item) in enumerate(value.items()):
+                    # Never put untrusted keys/values into finding locations or logs.
+                    where = f"{location}.field[{index}]"
+                    if not isinstance(key, str):
+                        findings.append(Finding("non_text_content", where))
+                        continue
+                    findings.extend(self.scan_text(key, where))
+                    if isinstance(item, str):
+                        # A JSON property named api_key/password/token can hold a secret
+                        # even when the value alone has no recognisable vendor prefix.
+                        findings.extend(self.scan_text(f"{key} = {item}", where))
+                    inspect(item, where, depth + 1, (*parent_keys[-7:], key))
+            elif value is None or isinstance(value, bool | int | float):
+                pass
+            else:
+                findings.append(Finding("non_text_content", location))
+
+        inspect(body, "request", 0)
         return list(dict.fromkeys(findings))
 
 

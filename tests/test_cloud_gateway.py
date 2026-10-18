@@ -644,3 +644,16 @@ def test_redirect_from_provider_never_contacts_a_second_host_or_reuses_key(
     finally:
         receiver.shutdown()
         receiver.server_close()
+
+def test_secret_in_tool_definition_is_blocked_before_cloud_reservation(
+    gateway: tuple[GatewayServer, FakeBudget], upstream: tuple[Upstream, int]
+) -> None:
+    server, budget = gateway
+    body = request(tools=[{"type": "function", "function": {
+        "name": "query", "description": "use " + GITHUB_TOKEN,
+        "parameters": {"type": "object", "properties": {}},
+    }}])
+    status, answer = post(server, body)
+    assert status == 451 and b"privacy_blocked" in answer
+    assert GITHUB_TOKEN.encode() not in answer
+    assert upstream[0].requests == [] and budget.reserved == []

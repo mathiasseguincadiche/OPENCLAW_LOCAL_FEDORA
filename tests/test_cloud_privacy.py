@@ -165,3 +165,45 @@ def test_a_history_embedded_as_json_is_scanned_in_its_plain_form() -> None:
     twice = json.dumps(history)
     assert "secret_assignment" in categories(body(("user", twice)))
     assert categories(body(("user", r"grep -E '\d+\s*\w' fichier"))) == set()
+
+def test_tool_definitions_and_nested_parameter_schemas_cannot_bypass_privacy() -> None:
+    request = body(("user", "bonjour"))
+    request["tools"] = [
+        {"type": "function", "function": {
+            "name": "search",
+            "description": "internal connection: " + SECRETS["token"],
+            "parameters": {"type": "object", "properties": {"q": {"description": "safe"}}},
+        }}
+    ]
+    assert "token" in categories(request)
+    request["tools"][0]["function"]["description"] = "safe"
+    request["tools"][0]["function"]["parameters"]["properties"]["q"]["description"] = (
+        SECRETS["connection_string"]
+    )
+    assert "connection_string" in categories(request)
+
+
+def test_secret_named_json_properties_are_scanned_even_without_vendor_prefix() -> None:
+    request = body(("user", "bonjour"))
+    request["tools"] = [{"type": "function", "function": {
+        "name": "safe", "parameters": {"properties": {
+            "credential": {"default": "clear"},
+            "client_secret": {"default": rnd(28)},
+        }},
+    }}]
+    assert "secret_assignment" in categories(request)
+    request["tools"][0]["function"]["parameters"]["properties"]["client_secret"]["default"] = (
+        "var.client_secret"
+    )
+    assert "secret_assignment" not in categories(request)
+
+
+def test_unknown_nested_forwarded_text_and_excessive_depth_are_checked() -> None:
+    request = body(("user", "bonjour"))
+    request["future_metadata"] = {"nested": [{"note": SECRETS["token"]}]}
+    assert "token" in categories(request)
+    nested: dict[str, Any] = {"leaf": "safe"}
+    for _ in range(34):
+        nested = {"next": nested}
+    request["future_metadata"] = nested
+    assert "non_text_content" in categories(request)

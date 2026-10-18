@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.cloud_budget import BudgetRefused, Ledger
-from clawfedora.cloud_gateway import Refused, make_server, read_upstream_key
+from clawfedora.cloud_gateway import _CLOUD_OPENER, Refused, make_server, read_upstream_key
 from clawfedora.cloud_privacy import PrivacyFilter
 from clawfedora.cloud_state import (
     CLOUD_STATE,
@@ -272,12 +272,18 @@ def check_together(repo_root: Path) -> Check:
 
 
 def fetch_key_info(base_url: str, key: str, timeout: float = 15.0) -> dict[str, Any]:
-    """Ask the provider about the key (its limit). The only network call of this module."""
+    """Read the key limit on the pinned OpenRouter endpoint, without proxy or redirect."""
+    if base_url.rstrip("/") != "https://openrouter.ai/api/v1":
+        raise ValueError("destination de vérification OpenRouter non autorisée")
     request = urllib.request.Request(
-        base_url.rstrip("/") + "/key", headers={"Authorization": "Bearer " + key}
+        "https://openrouter.ai/api/v1/key", headers={"Authorization": "Bearer " + key}
     )
-    with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
-        value = json.loads(response.read())
+    # Same transport as inference: no ambient proxy and no automatic redirects.
+    with _CLOUD_OPENER.open(request, timeout=timeout) as response:
+        raw = response.read(65537)
+    if len(raw) > 65536:
+        raise ValueError("réponse de vérification OpenRouter trop volumineuse")
+    value = json.loads(raw)
     data = value.get("data") if isinstance(value, dict) else None
     if not isinstance(data, dict):
         raise ValueError("réponse inattendue du fournisseur")
