@@ -20,6 +20,7 @@ if [[ "$ACTION" == "status" ]]; then
 fi
 printf 'DAILY_PROFILE_PLAN action=%s root=%s one_model=1 parallel=1 queue=4 context=contract\n' "$ACTION" "$RUNTIME_ROOT"
 ((APPLY == 1)) || { echo "DRY_RUN=PASS"; exit 0; }
+claw_require_storage "$RUNTIME_ROOT"
 [[ -f "$RUNTIME_ROOT/.openclaw-fedora-runtime" ]] || { echo "ERREUR: runtime non géré" >&2; exit 2; }
 mkdir -p "$RUNTIME_ROOT/state"
 case "$ACTION" in
