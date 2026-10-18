@@ -303,8 +303,6 @@ def test_reconciling_with_the_invoice_can_exhaust_the_month(
 def test_key_limit_lookup_uses_restricted_egress_and_fixed_origin(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import io
-
     class Response:
         def __enter__(self) -> Response:
             return self
