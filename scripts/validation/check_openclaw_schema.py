@@ -12,6 +12,7 @@ from pathlib import Path
 from clawfedora.core_config import root_contract
 from clawfedora.openclaw_config import build_openclaw_patch, prepare_migration_patch
 from clawfedora.version_lock import extract_openclaw_version
+from clawfedora.web_access import set_private_mode
 
 repo = Path(__file__).resolve().parents[2]
 cli = shutil.which("openclaw")
@@ -83,6 +84,40 @@ with tempfile.TemporaryDirectory(prefix="clawfedora-native-schema-") as temporar
             ]
             if blocked:
                 raise SystemExit(f"Plugin validation incomplete: {blocked[:2]}")
+    # Validate the opt-in private search mode with the *actual* pinned OpenClaw schema.
+    # These disposable files never touch the user's runtime or real secrets.
+    (state / ".openclaw-fedora-runtime").write_text("managed\\n")
+    (state / "state").mkdir()
+    set_private_mode(state, True)
+    private_config = build_openclaw_patch(repo, state)
+    private_config["plugins"] = config["plugins"]
+    if (
+        private_config["tools"]["web"]["search"]["enabled"]
+        or private_config["tools"]["web"]["fetch"]["enabled"]
+        or not {"web_search", "web_fetch"} <= set(private_config["tools"]["deny"])
+    ):
+        raise SystemExit("Private Web mode failed closed-tool configuration")
+    if any(
+        {"web_search", "web_fetch"} & set(entry["tools"].get("alsoAllow", []))
+        for entry in private_config["agents"]["entries"].values()
+    ):
+        raise SystemExit("Private Web mode retained an agent search permission")
+    path.write_text(json.dumps(private_config))
+    native_private = subprocess.run(
+        [cli, "config", "validate", "--json"],
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
+    )
+    try:
+        private_payload = json.loads(native_private.stdout)
+    except ValueError as exc:
+        raise SystemExit("Native private Web configuration returned no JSON") from exc
+    if native_private.returncode != 0 or private_payload.get("valid") is not True:
+        raise SystemExit(f"Native schema rejected private Web mode: {private_payload}")
+    set_private_mode(state, False)
     config["agents"]["defaults"].pop("pdfMaxBytesMb", None)
     # The cloud provider (loopback gateway) must also be accepted by the real schema.
     cloud_config = build_openclaw_patch(repo, state, cloud_enabled=True)
