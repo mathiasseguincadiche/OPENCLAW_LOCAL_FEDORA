@@ -19,14 +19,14 @@ def test_ollama_pin_never_accepts_a_neighbor_version() -> None:
             'source "$1"; claw_extract_ollama_version "$2"',
             "bash",
             str(ROOT / "scripts/linux/lib/runtime.sh"),
-            "ollama version is 0.40.40",
+            "ollama version is 0.40.60",
         ],
         capture_output=True,
         text=True,
         check=False,
     )
-    assert result.returncode == 0 and result.stdout.strip() == "0.40.40"
-    assert result.stdout.strip() != "0.40.4"
+    assert result.returncode == 0 and result.stdout.strip() == "0.40.60"
+    assert result.stdout.strip() != "0.40.6"
 
 
 def test_upgrade_dry_run_makes_no_runtime_changes(tmp_path: Path) -> None:
@@ -38,7 +38,7 @@ def test_upgrade_dry_run_makes_no_runtime_changes(tmp_path: Path) -> None:
         text=True,
     )
     assert result.returncode == 0 and "UPGRADE_DRY_RUN=PASS" in result.stdout
-    assert "openclaw=2026.10.3 ollama=0.40.4" in result.stdout and not runtime.exists()
+    assert "openclaw=2026.10.4 ollama=0.40.6" in result.stdout and not runtime.exists()
 
 
 @pytest.mark.skipif(os.geteuid() == 0, reason="operator script deliberately refuses root")

@@ -49,9 +49,9 @@ Elle ne change **aucun** réglage. L'opérateur décide ensuite si 16K
 est préférable à 32K ; aucune vitesse ou qualité ne peut être affirmée
 sans les mesures sur la vraie B580.
 
-## 3. Première installation WebUI 0.12.1 et réception navigateur
+## 3. Première installation WebUI 0.12.3 et réception navigateur
 
-Le socle neuf installe directement **Open WebUI 0.12.1-slim**, sans migration
+Le socle neuf installe directement **Open WebUI 0.12.3-slim**, sans migration
 historique depuis 0.11.4. Le script `webui-install --apply` télécharge
 l'image du tag stable, obtient son digest de registre et inscrit exclusivement
 la référence `@sha256` dans l'unité systemd. Si aucun digest exploitable
@@ -147,7 +147,7 @@ source et manifeste SHA-256. L'inspection visuelle est obligatoire.
 | Domaine | État initial |
 |---|---|
 | Fedora / B580 / veille / AV1 | Non qualifié sur la machine |
-| Open WebUI 0.12.1 / nouveau volume / navigateur | Canary logiciel, essai réel manquant |
+| Open WebUI 0.12.3 / nouveau volume / navigateur | Canary logiciel, essai réel manquant |
 | Streaming SSE / annulation | Code intégré, essai réel manquant |
 | Vision des images et PDF scannés | Code canary intégré, précision et performances B580 non qualifiées |
 | OpenRouter / coût réel | Essai avec accord manquant |

@@ -1,5 +1,8 @@
 # Chaîne d'installation vérifiée (OpenClaw 2026.10.3 / Ollama 0.40.4)
 
+> **Base de première installation du 18 octobre 2026 :** OpenClaw 2026.10.4 (SHA-512 publié dans le changelog officiel), Ollama 0.40.6 (SHA-256 de la release GitHub officielle), et Open WebUI v0.12.3-slim (digest résolu avant écriture dans systemd). Les références anciennes ci-dessous sont conservées pour l'historique de l'audit. Les dépendances transitives restent partiellement non verrouillées.
+
+
 ## Artefacts et références
 
 Le manifeste `config/install_artifact_integrity.json` verrouille les **URL exactes, versions et empreintes** des archives officielles :

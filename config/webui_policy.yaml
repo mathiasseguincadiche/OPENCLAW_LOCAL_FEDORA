@@ -1,7 +1,7 @@
 schema_version: 1.0.0
 platform_version: 0.1.0
-release: v0.12.1
-image: ghcr.io/open-webui/open-webui:v0.12.1-slim
+release: v0.12.3
+image: ghcr.io/open-webui/open-webui:v0.12.3-slim
 variant: slim
 web_port: 3000
 bridge_port: 18891

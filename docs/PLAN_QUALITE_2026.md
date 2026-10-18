@@ -1,6 +1,6 @@
 # Plan de qualité vérifiable — OpenClaw / Fedora / Open WebUI
 
-**Situation :** première installation directement prévue sur Open WebUI **v0.12.1-slim** ;
+**Situation :** première installation directement prévue sur Open WebUI **v0.12.3-slim** ;
 aucune conversion de 0.11.4 n'est demandée sur une machine encore vierge.
 Le téléchargement est verrouillé au digest effectif par Podman avant de générer systemd,
 mais l'exécution réelle dans le navigateur Fedora reste **non qualifiée**.
@@ -38,17 +38,17 @@ La documentation de découverte s'organise maintenant autour du [README](../READ
 **Acceptation :** mesures horodatées dans `STATUS.md`, résultats PASS/FAIL
 et journaux assainis ; aucune protection désactivée pour obtenir PASS.
 
-## P1 : réception de l'installation initiale Open WebUI 0.12.1
+## P1 : réception de l'installation initiale Open WebUI 0.12.3
 
-- Configurer **v0.12.1-slim dès la première installation** : aucune migration d'une ancienne base 0.11.4 n'est obligatoire.
+- Configurer **v0.12.3-slim dès la première installation** : aucune migration d'une ancienne base 0.11.4 n'est obligatoire.
 - Vérifier le tag stable à la récupération, puis figer dans systemd la référence exacte `ghcr.io/open-webui/open-webui@sha256:...`; ne jamais utiliser `:latest` ni deviner une empreinte.
 - Le canary isolé demeure facultatif pour vérifier un conteneur jetable ou une éventuelle copie de base ancienne ; `--with-db-copy` n'est pas exigé sans base existante.
-- Vérifier les Functions/Filters sous Open WebUI 0.12.1 et le traitement des fichiers, uploads, actions de projet et STT/TTS.
+- Vérifier les Functions/Filters sous Open WebUI 0.12.3 et le traitement des fichiers, uploads, actions de projet et STT/TTS.
 - Effectuer la réception réelle navigateur/GPU/stockage/SELinux sur Fedora ; ne pas interpréter la seule CI comme une preuve matérielle.
 
 **Acceptation :** premier déploiement par digest valide et expérience navigateur mesurée, pas de migration fictive.
 
-Source officielle : https://github.com/open-webui/open-webui/releases/tag/v0.12.1
+Source officielle : https://github.com/open-webui/open-webui/releases/tag/v0.12.3
 
 ## P1 : expérience de conversation
 

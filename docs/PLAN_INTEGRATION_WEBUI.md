@@ -1,5 +1,8 @@
 # Plan : tout faire depuis Open WebUI
 
+> **Mise à jour du 18 octobre 2026 :** la première installation visée utilise désormais Open WebUI v0.12.3-slim. Les passages historiques évoquant v0.12.1 décrivent les étapes précédentes ; le verrouillage par digest Podman et les essais navigateur restent exigés.
+
+
 [← Guide actuel](GUIDE.md) · [Fonctionnement réel](fiches/11-comment-ca-marche.md) · [État et limites](../STATUS.md)
 
 > **Ce document conserve le plan historique des lots 9 à 15.** Pour apprendre le
