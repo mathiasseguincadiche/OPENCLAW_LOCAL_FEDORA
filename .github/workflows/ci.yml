@@ -192,6 +192,8 @@ jobs:
       - name: Test Fedora 45 Python source and contracts in container
         run: |
           python3 -m venv /tmp/clawfedora45-venv
-          /tmp/clawfedora45-venv/bin/python -m pip install -e ".[dev]"
+          /tmp/clawfedora45-venv/bin/python -m pip install --constraint config/python-runtime-constraints.txt -e ".[dev]"
+          /tmp/clawfedora45-venv/bin/python -m pip check
+          /tmp/clawfedora45-venv/bin/python scripts/validation/check_python_lock.py
           /tmp/clawfedora45-venv/bin/clawfedora validate
           /tmp/clawfedora45-venv/bin/pytest -q
