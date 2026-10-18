@@ -69,7 +69,7 @@ def benchmark(
         "cloud_used": False,
         "recommendation_requires_human_approval": True,
         "recommended_full_gpu_context": recommended,
-        "recommended_context_is_provisional": not near_limit,
+        "recommended_context_is_provisional": qualified != recommended or recommended is None,
         "near_limit_requested": near_limit,
         "near_limit_fill_target_pct": round(requested_fill * 100),
         "qualified_near_limit_context": qualified,
