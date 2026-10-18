@@ -44,8 +44,8 @@ def probe_context(
     context = int(context_tokens or limits["context_tokens"])
     if context not in ALLOWED_CONTEXTS:
         raise ValueError(f"contexte autorisé: {', '.join(map(str, ALLOWED_CONTEXTS))}")
-    if not 0.1 <= fill_ratio <= 0.8:
-        raise ValueError("fill_ratio entre 0.1 et 0.8")
+    if not 0.1 <= fill_ratio <= 0.95:
+        raise ValueError("fill_ratio entre 0.1 et 0.95")
     model = str(model_plan(repo_root)[0]["runtime_id"])
     repeats = max(1, int(context * fill_ratio / 30))
     answer = request(
@@ -94,6 +94,7 @@ def probe_context(
         "allocated_context_tokens": loaded.get("context_length"),
         "prompt_tokens": prompt_tokens,
         "prompt_fill_pct": round(100 * prompt_tokens / context, 1),
+        "target_fill_pct": round(fill_ratio * 100, 1),
         "resident_gib": round(size / 1024**3, 2),
         "resident_vram_gib": round(size_vram / 1024**3, 2),
         "gpu_share_pct": gpu_share,
