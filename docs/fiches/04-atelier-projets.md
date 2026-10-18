@@ -80,3 +80,28 @@ clawfedora project pause  --project-id mon-projet
 clawfedora project resume --project-id mon-projet --apply
 clawfedora project --help
 ```
+
+
+## Travailler sur plusieurs projets (Projet 1, 2, 3, 4)
+
+Tu peux créer et conserver autant de projets distincts que nécessaire dans l'atelier (la liste
+dans le chat est bornée à 50 éléments). Chaque projet possède son propre identifiant,
+ses documents, son plan, ses tâches, son état et ses preuves.
+
+- `!projets` : afficher les projets existants ;
+- `!projet <identifiant>` : sélectionner le projet voulu **dans cette conversation** ;
+- `!etat` : consulter le projet courant et la progression du worker ;
+- `!quitter` : désélectionner le projet, sans effacer ses données.
+
+Il est possible de garder le projet 1 en pause, de consulter le projet 2,
+de revenir plus tard au premier et de reprendre son état enregistré. Les
+opérations de pause/reprise suivent leurs propres conditions d'état ; consulter
+le tableau de projets et les commandes affichées avant confirmation.
+
+**Limite matérielle volontaire :** plusieurs projets peuvent exister et être
+consultés en alternance, mais le worker est **unique** pour la B580 12 Go.
+Une deuxième génération lancée alors qu'une première tourne reçoit un refus
+explicite ; les travaux ne sont pas exécutés en parallèle et ne sont pas encore
+placés dans une file d'attente durable. Ne pas confondre multi-projets et
+multi-inférences. Toute évolution vers une file séquentielle doit garder ce
+verrou et vérifier l'accord cloud au démarrage effectif de chaque tâche.
