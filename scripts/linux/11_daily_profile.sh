@@ -47,6 +47,9 @@ print(daily_limits(Path(sys.argv[1]))["context_tokens"])
     sudo restorecon -RF "$RUNTIME_ROOT/models/ollama"
     sudo install -d -m 0755 /etc/systemd/system/ollama.service.d
     sudo tee /etc/systemd/system/ollama.service.d/openclaw-daily.conf >/dev/null <<EOF
+[Unit]
+RequiresMountsFor=/IA
+ConditionPathIsMountPoint=/IA
 [Service]
 Environment="OLLAMA_HOST=127.0.0.1:11434"
 Environment="OLLAMA_MODELS=$RUNTIME_ROOT/models/ollama"
@@ -74,6 +77,7 @@ EOF
     mkdir -p "$HOME/.config/systemd/user/openclaw-gateway.service.d"
     cat > "$HOME/.config/systemd/user/openclaw-gateway.service.d/openclaw-daily.conf" <<EOF
 [Unit]
+ConditionPathIsMountPoint=/IA
 ConditionPathExists=!$RUNTIME_ROOT/state/gaming-mode
 [Service]
 UnsetEnvironment=OPENCLAW_CONFIG_PATH
