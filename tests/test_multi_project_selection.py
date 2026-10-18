@@ -53,6 +53,9 @@ def test_switching_projects_in_one_thread_keeps_selection_and_history_distinct()
 
 def test_worker_lock_stays_exclusive_for_all_projects(tmp_path: Path) -> None:
     runtime = tmp_path / "runtime"
-    with worker_lock(runtime), pytest.raises(ValueError, match="déjà actif"):
-        with worker_lock(runtime):
-            pytest.fail("A second inference must not run in parallel on the B580")
+    with (
+        worker_lock(runtime),
+        pytest.raises(ValueError, match="déjà actif"),
+        worker_lock(runtime),
+    ):
+        pytest.fail("A second inference must not run in parallel on the B580")
