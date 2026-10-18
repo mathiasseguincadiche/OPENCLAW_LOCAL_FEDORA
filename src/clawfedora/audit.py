@@ -198,12 +198,12 @@ def collect_audit(strict: bool = False) -> AuditReport:
         )
     )
 
-    preferred_root = Path("/srv/openclaw-local")
+    preferred_root = Path("/IA/Openclaw")
     checks.append(
         Check(
             "runtime-root",
             "PASS" if preferred_root.is_dir() else "WARN",
-            str(preferred_root) if preferred_root.is_dir() else "/srv/openclaw-local non préparé",
+            str(preferred_root) if preferred_root.is_dir() else "/IA/Openclaw non préparé",
         )
     )
 
