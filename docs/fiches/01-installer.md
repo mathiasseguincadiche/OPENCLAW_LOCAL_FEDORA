@@ -13,11 +13,13 @@ Pour découvrir **ce que tu installes** avant de lancer les scripts, consulte le
 | BIOS | Démarrage UEFI, Resizable BAR activé | écran du BIOS |
 | SELinux | `Enforcing` | `getenforce` |
 | Pare-feu | actif | `systemctl is-active firewalld` |
-| Place disque | au moins 15 Go libres pour le modèle et les outils | `df -h /srv` |
+| Place disque | au moins 15 Go libres pour le modèle et les outils | `findmnt --mountpoint /IA && df -h /IA` |
 
 Lance l'installation depuis ton compte utilisateur habituel, jamais en root. Le script demande `sudo` seulement quand c'est nécessaire.
 
 Avant le premier lancement, attendre la publication officielle de Fedora 45 (date cible **20 octobre 2026**, susceptible de report). Une image bêta n'a pas été qualifiée en tant que système hôte réel par ce dépôt. Fedora 44 et GNOME 50 sont volontairement refusés lors de l'installation ; aucune installation/migration depuis Fedora 44 n'est nécessaire.
+
+> **Parcours court recommandé :** [Fedora installé, stockage `/IA/Openclaw`, installation et un seul `quick-check`](../INSTALLATION_SIMPLE_FEDORA45.md). Le reste de cette fiche détaille les étapes facultatives de dépannage.
 
 ## Installer
 
@@ -47,7 +49,7 @@ Ouvre `http://127.0.0.1:3000`, crée ton compte (il est local, aucun mail n'est 
 
 | Étape | Ce qui se passe | Relancer seule |
 |---|---|---|
-| 1. Préparation | Paquets Fedora (Vulkan, outils de contrôle), dossier `/srv/openclaw-local`, environnement Python | `./menu.sh --action bootstrap --apply` |
+| 1. Préparation | Paquets Fedora (Vulkan, outils de contrôle), dossier `/IA/Openclaw`, environnement Python | `./menu.sh --action bootstrap --apply` |
 | 2. Ollama | Installation de la version prévue, configuration du service pour utiliser la B580 en Vulkan | — |
 | 3. OpenClaw | Installation de la version exacte prévue | — |
 | 4. Modèle | Téléchargement de Qwen 3.5 9B (environ 6,6 Go) et enregistrement de son empreinte | `./menu.sh --action models --apply` |
@@ -61,7 +63,7 @@ Les versions installées sont écrites dans `config/runtime_versions.yaml`. L'in
 ## Où sont rangées les données
 
 ```text
-/srv/openclaw-local/
+/IA/Openclaw/
 ├── models/       le modèle Qwen
 ├── workspaces/   un espace de travail par rôle
 ├── projects/     tes projets de l'atelier
