@@ -3,18 +3,18 @@ platform_version: "0.1.0"
 
 # Versions exactes installées et vérifiées. Pour en changer : docs/fiches/08-reglages.md
 openclaw:
-  version: "2026.10.3"
+  version: "2026.10.4"
   lock: exact
   automatic_update: false
   plugins:
     parallel:
       package: "@openclaw/parallel-plugin"
-      version: "2026.10.3"
+      version: "2026.10.4"
       lock: exact
       provider: parallel-free
 
 ollama:
-  version: "0.40.4"
+  version: "0.40.6"
 
 upgrade_policy:
   openclaw_version_locked: true
