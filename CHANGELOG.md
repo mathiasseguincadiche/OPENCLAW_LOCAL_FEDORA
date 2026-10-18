@@ -1,14 +1,14 @@
-## 18 octobre 2026 — socle stable actualisé (qualification matérielle en attente)
-
-- OpenClaw et plugin Parallel : 2026.10.4 ; Ollama : 0.40.6 ; Open WebUI : v0.12.3-slim dès la première installation.
-- Empreintes des archives OpenClaw/Ollama reprises des publications officielles et installateur existant conservé en mode fail-closed.
-- Alignement des tests de versions et du canary WebUI ; essais réels Fedora 45/B580, OpenRouter, navigateur, voix et sauvegarde non encore effectués.
-
 # Historique des versions
 
 Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et la numérotation [SemVer](https://semver.org/lang/fr/). La version courante est dans le fichier `VERSION`.
 
 ## [Non publié]
+
+### 18 octobre 2026 — socle stable actualisé (qualification matérielle en attente)
+
+- OpenClaw et plugin Parallel : 2026.10.4 ; Ollama : 0.40.6 ; Open WebUI : v0.12.3-slim dès la première installation.
+- Empreintes des archives OpenClaw/Ollama reprises des publications officielles et installateur existant conservé en mode fail-closed.
+- Alignement des tests de versions et du canary WebUI ; essais réels Fedora 45/B580, OpenRouter, navigateur, voix et sauvegarde non encore effectués.
 
 ### Améliorations du raisonnement DeepSeek
 - Trois profils d'effort cloud bornés et enregistrés dans l'état privé : `rapide` (low/4K), `equilibre` (medium/8K), `approfondi` (xhigh/32K). Le profil par défaut reste `approfondi` pour préserver le comportement existant.
