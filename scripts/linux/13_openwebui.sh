@@ -45,7 +45,8 @@ if [[ "$ACTION" == install ]]; then
     echo "ERREUR: digest officiel Open WebUI indisponible ou incorrect" >&2
     exit 2
   }
-  "$PYTHON" -m pip install -e "${REPO_ROOT}[speech]"
+  "$PYTHON" -m pip install --constraint "$REPO_ROOT/config/python-runtime-constraints.txt" -e "${REPO_ROOT}[speech]"
+  "$PYTHON" "$REPO_ROOT/scripts/validation/check_python_lock.py" --root "$REPO_ROOT"
   "$PYTHON" -m clawfedora.speech_server --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" --prepare
   "$PYTHON" -m clawfedora.webui_setup render --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" --unit-root "$UNIT_ROOT" --image-digest "$IMAGE_DIGEST"
   mkdir -p "$HOME/.local/share/applications"

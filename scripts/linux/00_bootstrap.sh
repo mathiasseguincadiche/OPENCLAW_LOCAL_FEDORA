@@ -182,13 +182,15 @@ fi
 # PEP 517 may still resolve build requirements; lock that closure separately.
 as_target "$VENV/bin/python" -m pip --version
 if ((WITH_DEV == 1)); then
-  as_target "$VENV/bin/python" -m pip install -e "${REPO_ROOT}[dev]"
+  as_target "$VENV/bin/python" -m pip install --constraint "$REPO_ROOT/config/python-runtime-constraints.txt" -e "${REPO_ROOT}[dev]"
 else
-  as_target "$VENV/bin/python" -m pip install -e "$REPO_ROOT"
+  as_target "$VENV/bin/python" -m pip install --constraint "$REPO_ROOT/config/python-runtime-constraints.txt" -e "$REPO_ROOT"
 fi
 
 # Fail before enabling runtime services if the installed Python environment is inconsistent.
 as_target "$VENV/bin/python" -m pip check
+# Report any drift in the reviewed production Python dependency pins.
+as_target "$VENV/bin/python" "$REPO_ROOT/scripts/validation/check_python_lock.py" --root "$REPO_ROOT"
 
 as_root systemctl enable --now firewalld.service
 if ! as_root systemctl is-active --quiet firewalld.service; then
