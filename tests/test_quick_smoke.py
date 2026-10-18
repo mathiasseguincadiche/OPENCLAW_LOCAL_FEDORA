@@ -36,7 +36,7 @@ def test_complete_local_software_readiness_keeps_cloud_unverified(
     (runtime / ".openclaw-fedora-runtime").touch()
     (runtime / "projects").mkdir()
     monkeypatch.setattr(smoke.os.path, "ismount", lambda _path: True)
-    monkeypatch.setattr(smoke.Path, "__eq__", lambda _self, other: True)
+    monkeypatch.setitem(smoke.report.__globals__, "Path", lambda _value: runtime)
     monkeypatch.setattr(
         smoke, "collect_health",
         lambda _repo, _runtime, *, probe: HealthReport((
@@ -61,7 +61,7 @@ def test_failing_local_probes_never_give_ready_label(
     (runtime / ".openclaw-fedora-runtime").touch()
     (runtime / "projects").mkdir()
     monkeypatch.setattr(smoke.os.path, "ismount", lambda _path: True)
-    monkeypatch.setattr(smoke.Path, "__eq__", lambda _self, other: True)
+    monkeypatch.setitem(smoke.report.__globals__, "Path", lambda _value: runtime)
     monkeypatch.setattr(
         smoke, "collect_health",
         lambda _repo, _runtime, *, probe: HealthReport((
