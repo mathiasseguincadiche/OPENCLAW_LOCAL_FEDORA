@@ -20,7 +20,7 @@ def test_repository_python_constraints_are_exact_and_cover_direct_packages() -> 
     assert lock.verify(ROOT)["verdict"] == "PYTHON_RUNTIME_CONSTRAINTS_PASS"
 
 
-@pytest.mark.parametrize("bad", ["PyYAML>=6", "PyYAML==6\npy-yaml==7", ""])
+@pytest.mark.parametrize("bad", ["PyYAML>=6", "PyYAML==6\npyyaml==7", ""])
 def test_unlocked_invalid_or_empty_constraints_are_rejected(
     tmp_path: Path, bad: str,
 ) -> None:
