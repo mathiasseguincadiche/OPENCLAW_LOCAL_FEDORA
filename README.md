@@ -9,6 +9,8 @@
 
 > **En bref :** un **atelier IA hybride** sous Fedora : **Qwen 3.5 9B en local** pour l'autonomie et la confidentialité, **DeepSeek V4.1 Flash dans le cloud** pour les analyses DevOps difficiles et les contextes volumineux. **OpenClaw coordonne sept rôles spécialisés** avec des outils et des garde-fous communs. Aucun déploiement automatique sur le PC.
 
+> **Confidentialité des recherches :** Qwen fonctionne localement, mais les outils `web_search`/`web_fetch` peuvent contacter Internet. Un [mode Web privé explicite](docs/WEB_ACCESS_PRIVATE_MODE.md) permet de désactiver leurs permissions pour les sept agents ; le basculement nécessite une application de configuration et un redémarrage vérifiés. Ce mode ne désactive pas automatiquement la route DeepSeek cloud.
+
 ## Le principe : deux moteurs complémentaires pour travailler efficacement
 
 | | **Qwen local — autonomie** | **DeepSeek cloud — capacité ciblée** |
