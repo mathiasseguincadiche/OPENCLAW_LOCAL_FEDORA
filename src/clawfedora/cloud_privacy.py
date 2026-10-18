@@ -219,14 +219,18 @@ class PrivacyFilter:
             for where, text in _texts(message, index):
                 findings.extend(self.scan_text(text, where))
 
-        def inspect(value: Any, location: str, depth: int) -> None:
+        def inspect(\n            value: Any, location: str, depth: int, parent_keys: tuple[str, ...] = ()\n        ) -> None:
             if depth > 32:
                 findings.append(Finding("non_text_content", location))
             elif isinstance(value, str):
                 findings.extend(self.scan_text(value, location))
+                # JSON schemas can nest a default/value beneath a secret-bearing
+                # parent property (e.g. properties.client_secret.default).
+                for key in parent_keys:
+                    findings.extend(self.scan_text(f"{key} = {value}", location))
             elif isinstance(value, list):
                 for index, item in enumerate(value):
-                    inspect(item, f"{location}[{index}]", depth + 1)
+                    inspect(item, f"{location}[{index}]", depth + 1, parent_keys)
             elif isinstance(value, dict):
                 for index, (key, item) in enumerate(value.items()):
                     # Never put untrusted keys/values into finding locations or logs.
@@ -239,7 +243,7 @@ class PrivacyFilter:
                         # A JSON property named api_key/password/token can hold a secret
                         # even when the value alone has no recognisable vendor prefix.
                         findings.extend(self.scan_text(f"{key} = {item}", where))
-                    inspect(item, where, depth + 1)
+                    inspect(item, where, depth + 1, (*parent_keys[-7:], key))
             elif value is None or isinstance(value, bool | int | float):
                 pass
             else:
