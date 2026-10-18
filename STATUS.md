@@ -1,5 +1,8 @@
 # État du projet hybride Qwen + DeepSeek
 
+> **Base logicielle du 18 octobre 2026 (révision des versions) :** OpenClaw et plugin Parallel 2026.10.4, Ollama 0.40.6 et Open WebUI 0.12.3-slim sont sélectionnés pour la première installation. Les empreintes officielles SHA-512/SHA-256 d'OpenClaw et d'Ollama sont figées dans `config/install_artifact_integrity.json`. Le tag Open WebUI sera résolu en digest Podman à l'installation. **Cette mise à jour du code ne constitue pas un essai sur Fedora 45/B580 ni une preuve de restauration ou de qualité des agents.** Les paragraphes datés du 14 octobre ci-dessous constituent l'historique de la base précédente, et non les versions courantes.
+
+
 Dernière mise à jour documentaire : 14 octobre 2026 (socle neuf sous versions stables).
 
 ## Où en est-on
