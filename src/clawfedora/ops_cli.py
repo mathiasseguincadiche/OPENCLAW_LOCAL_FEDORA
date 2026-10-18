@@ -50,6 +50,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--runtime-root")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("validate-lifecycle")
+    web_access = sub.add_parser("web-access", help="contrôler les outils Web des agents locaux")
+    web_access.add_argument("mode", choices=("status", "private", "connected"))
+    web_access.add_argument("--apply", action="store_true")
     health = sub.add_parser("health")
     health.add_argument("--probe", action="store_true")
     lock = sub.add_parser(
@@ -89,6 +92,34 @@ def main(argv: list[str] | None = None) -> int:
             print(f"FAIL {failure}")
         print(f"LIFECYCLE_CONTRACT_RESULT={'PASS' if not failures else 'FAIL'}")
         return 0 if not failures else 2
+    if args.command == "web-access":
+        from clawfedora.web_access import private_mode, set_private_mode
+
+        try:
+            current = "private" if private_mode(runtime_root) else "connected"
+            if args.mode == "status":
+                print(
+                    f"WEB_ACCESS_DESIRED={current} "
+                    "GATEWAY_APPLIED=NOT_VERIFIED RESTART=NOT_VERIFIED"
+                )
+                return 0
+            target = args.mode
+            if not args.apply:
+                print(f"WEB_ACCESS_PLAN current={current} target={target} changed=false")
+                return 0
+            changed = set_private_mode(runtime_root, target == "private")
+            print(
+                f"WEB_ACCESS_STAGED={target} changed={str(changed).lower()} "
+                "GATEWAY_APPLIED=NOT_VERIFIED RESTART=REQUIRED"
+            )
+            print(
+                "Appliquer ensuite scripts/linux/03_configure_openclaw.sh --apply, "
+                "redémarrer openclaw-gateway.service et vérifier sa configuration active."
+            )
+        except (OSError, ValueError) as exc:
+            print(f"WEB_ACCESS_RESULT=REFUSED error={exc}")
+            return 2
+        return 0
     if args.command == "health":
         report = collect_health(repo_root, runtime_root, probe=bool(args.probe))
         print(json.dumps(report.payload(), indent=2, ensure_ascii=False))

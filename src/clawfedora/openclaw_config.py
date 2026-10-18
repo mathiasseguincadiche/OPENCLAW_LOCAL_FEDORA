@@ -6,6 +6,7 @@ from typing import Any
 
 from clawfedora.agents import load_agent_specs
 from clawfedora.core_config import CLOUD_PROVIDER_ID, core_contract, daily_limits, root_contract
+from clawfedora.web_access import WEB_TOOLS, private_mode
 
 OLLAMA_KEY_ENV = "OLLAMA_API_KEY"
 
@@ -133,6 +134,7 @@ def build_openclaw_patch(
     routing = core_contract(repo_root, "model_routing.yaml")
     tools = core_contract(repo_root, "tool_policy.yaml")
     web_policy = core_contract(repo_root, "web_policy.yaml")
+    private_web = private_mode(runtime_root)
     openclaw_policy = core_contract(repo_root, "openclaw_policy.yaml")
     limits = daily_limits(repo_root)
     providers: dict[str, Any] = {"ollama": _ollama_provider(catalog, limits)}
@@ -147,6 +149,14 @@ def build_openclaw_patch(
     for spec in load_agent_specs(repo_root):
         route = _mapping(routes.get(spec.agent_id))
         primary_alias = str(route.get("local_primary", spec.model))
+        agent_tools = _agent_tools(spec.agent_id, tools)
+        if private_web:
+            agent_tools["alsoAllow"] = [
+                name for name in agent_tools.get("alsoAllow", []) if name not in WEB_TOOLS
+            ]
+            agent_tools["deny"] = list(dict.fromkeys(
+                [*agent_tools.get("deny", []), *WEB_TOOLS]
+            ))
         agent_list.append(
             {
                 "id": spec.agent_id,
@@ -158,7 +168,7 @@ def build_openclaw_patch(
                 },
                 "experimental": {"localModelLean": False},
                 "subagents": {"allowAgents": []},
-                "tools": _agent_tools(spec.agent_id, tools),
+                "tools": agent_tools,
             }
         )
 
@@ -238,6 +248,7 @@ def build_openclaw_patch(
             # which a 9B model rarely chains reliably. Affordable with the daily context.
             "toolSearch": False,
             "deny": [
+                *(WEB_TOOLS if private_web else ()),
                 "exec",
                 "process",
                 "write",
@@ -261,14 +272,14 @@ def build_openclaw_patch(
             "elevated": {"enabled": bool(global_tools.get("elevated_enabled", False))},
             "web": {
                 "search": {
-                    "enabled": bool(web.get("web_search_enabled", True)),
+                    "enabled": bool(web.get("web_search_enabled", True)) and not private_web,
                     "provider": str(web.get("search_provider", "parallel-free")),
                     "maxResults": int(web.get("max_results", 8)),
                     "timeoutSeconds": int(web.get("search_timeout_seconds", 30)),
                     "cacheTtlMinutes": int(web.get("cache_ttl_minutes", 15)),
                 },
                 "fetch": {
-                    "enabled": bool(web.get("web_fetch_enabled", True)),
+                    "enabled": bool(web.get("web_fetch_enabled", True)) and not private_web,
                     "maxChars": int(web.get("fetch_max_chars", 4000)),
                     "maxCharsCap": int(web.get("fetch_max_chars", 4000)),
                     "timeoutSeconds": 30,
