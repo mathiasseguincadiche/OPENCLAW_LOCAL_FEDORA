@@ -219,7 +219,9 @@ class PrivacyFilter:
             for where, text in _texts(message, index):
                 findings.extend(self.scan_text(text, where))
 
-        def inspect(\n            value: Any, location: str, depth: int, parent_keys: tuple[str, ...] = ()\n        ) -> None:
+        def inspect(
+            value: Any, location: str, depth: int, parent_keys: tuple[str, ...] = ()
+        ) -> None:
             if depth > 32:
                 findings.append(Finding("non_text_content", location))
             elif isinstance(value, str):
