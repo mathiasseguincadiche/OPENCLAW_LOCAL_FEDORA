@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import runpy
 from pathlib import Path
 from types import SimpleNamespace
-import runpy
 
 import pytest
 
