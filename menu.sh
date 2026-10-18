@@ -108,6 +108,7 @@ with_apply() {
   local script="$1"
   shift
   local -a args=("$@")
+  ((APPLY == 0)) || claw_require_storage "$(claw_runtime_root)"
   ((APPLY == 1)) && args+=(--apply)
   "$LINUX/$script" "${args[@]}"
 }
@@ -144,7 +145,7 @@ case "$ACTION" in
       exit 2
     }
     args=(--runtime-root "$(claw_runtime_root)" set-profile --name "$VALUE")
-    ((APPLY == 1)) && args+=(--apply)
+    ((APPLY == 1)) && { claw_require_storage "$(claw_runtime_root)"; args+=(--apply); }
     run_module cloud_cli "${args[@]}"
     ;;
   dashboard) run_cli dashboard --serve ;;
