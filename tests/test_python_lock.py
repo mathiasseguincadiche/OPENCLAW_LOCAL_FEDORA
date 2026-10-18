@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
+import runpy
 
 import pytest
 
-from scripts.validation import check_python_lock as lock
-
 ROOT = Path(__file__).resolve().parents[1]
+lock = SimpleNamespace(**runpy.run_path(str(ROOT / "scripts/validation/check_python_lock.py")))
 
 
 def test_repository_python_constraints_are_exact_and_cover_direct_packages() -> None:
