@@ -77,6 +77,7 @@ EOF
     mkdir -p "$HOME/.config/systemd/user/openclaw-gateway.service.d"
     cat > "$HOME/.config/systemd/user/openclaw-gateway.service.d/openclaw-daily.conf" <<EOF
 [Unit]
+RequiresMountsFor=/IA
 ConditionPathIsMountPoint=/IA
 ConditionPathExists=!$RUNTIME_ROOT/state/gaming-mode
 [Service]

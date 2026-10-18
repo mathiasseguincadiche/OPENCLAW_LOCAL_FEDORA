@@ -335,3 +335,15 @@ def test_default_runtime_is_on_secondary_volume() -> None:
         'as_root "${DNF[@]}" install -y "${PACKAGES[@]}"'
     )
     assert "ConditionPathIsMountPoint=/IA" in _read("scripts/linux/11_daily_profile.sh")
+
+
+def test_secondary_disk_units_wait_for_mount_before_service_start() -> None:
+    webui = _read("src/clawfedora/webui_setup.py")
+    daily = _read("scripts/linux/11_daily_profile.sh")
+    assert "RequiresMountsFor=/IA" in webui
+    assert "ConditionPathIsMountPoint=/IA" in webui
+    assert daily.count("RequiresMountsFor=/IA") >= 2
+    assert daily.count("ConditionPathIsMountPoint=/IA") >= 2
+    assert "/srv/openclaw-local" not in _read("docs/fiches/03-discuter.md")
+    assert "/srv/openclaw-local" not in _read("docs/fiches/06-fichiers-et-schemas.md")
+    assert "/srv/openclaw-local" not in _read("docs/fiches/12-cloud.md")
