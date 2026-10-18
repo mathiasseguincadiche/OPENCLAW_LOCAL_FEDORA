@@ -5,7 +5,7 @@ APPLY=0
 ENABLE_LINGER=0
 WITH_DEV=0
 WITH_KVM=0
-RUNTIME_ROOT="/srv/openclaw-local"
+RUNTIME_ROOT="${OPENCLAW_LOCAL_FEDORA_ROOT:-/IA/Openclaw}"
 RUNTIME_MARKER=".openclaw-fedora-runtime"
 
 usage() {
@@ -36,6 +36,8 @@ while (($#)); do
 done
 
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
+# shellcheck source=scripts/linux/lib/runtime.sh
+source "$REPO_ROOT/scripts/linux/lib/runtime.sh"
 
 if [[ ! -r /etc/os-release ]]; then
   echo "ERREUR: /etc/os-release absent" >&2
@@ -148,6 +150,7 @@ if [[ "$(getenforce 2>/dev/null || true)" != "Enforcing" ]]; then
   exit 2
 fi
 
+claw_require_storage "$RUNTIME_ROOT"
 as_root "${DNF[@]}" install -y "${PACKAGES[@]}"
 
 GROUPS_TO_ADD=(render video)
