@@ -118,6 +118,7 @@ case "$ACTION" in
   health) "$LINUX/07_health.sh" ;;
   quick-check)
     claw_require_storage "$(claw_runtime_root)"
+    export PATH="$HOME/.openclaw/bin:$HOME/.local/bin:$PATH"
     PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON" \
       "$REPO_ROOT/scripts/validation/quick_smoke.py" --root "$REPO_ROOT" \
       --runtime-root "$(claw_runtime_root)"
