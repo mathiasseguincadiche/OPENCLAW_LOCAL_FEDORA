@@ -37,13 +37,13 @@ def test_complete_local_software_readiness_keeps_cloud_unverified(
     (runtime / "projects").mkdir()
     monkeypatch.setattr(smoke.os.path, "ismount", lambda _path: True)
     monkeypatch.setitem(smoke.report.__globals__, "Path", lambda _value: runtime)
-    monkeypatch.setattr(
-        smoke, "collect_health",
+    monkeypatch.setitem(
+        smoke.report.__globals__, "collect_health",
         lambda _repo, _runtime, *, probe: HealthReport((
             HealthCheck("model-gpu-probe", "PASS", "quick"),
         )),
     )
-    monkeypatch.setattr(smoke, "local_ok", lambda _url: True)
+    monkeypatch.setitem(smoke.report.__globals__, "local_ok", lambda _url: True)
     value = smoke.report(ROOT, runtime)
     assert value["verdict"] == "READY_FOR_FIRST_PROJECT"
     assert value["remote_cloud_tested"] is False
@@ -62,11 +62,11 @@ def test_failing_local_probes_never_give_ready_label(
     (runtime / "projects").mkdir()
     monkeypatch.setattr(smoke.os.path, "ismount", lambda _path: True)
     monkeypatch.setitem(smoke.report.__globals__, "Path", lambda _value: runtime)
-    monkeypatch.setattr(
-        smoke, "collect_health",
+    monkeypatch.setitem(
+        smoke.report.__globals__, "collect_health",
         lambda _repo, _runtime, *, probe: HealthReport((
             HealthCheck("model-gpu-probe", "FAIL", "no Vulkan"),
         )),
     )
-    monkeypatch.setattr(smoke, "local_ok", lambda _url: True)
+    monkeypatch.setitem(smoke.report.__globals__, "local_ok", lambda _url: True)
     assert smoke.report(ROOT, runtime)["verdict"] == "REVIEW_REQUIRED"
