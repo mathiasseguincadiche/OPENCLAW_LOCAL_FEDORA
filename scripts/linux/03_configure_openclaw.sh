@@ -73,6 +73,7 @@ if ((APPLY == 0)); then
   exit 0
 fi
 
+claw_require_storage "$RUNTIME_ROOT"
 OPENCLAW="$(command -v openclaw || true)"
 [[ -n "$OPENCLAW" ]] || { echo "ERREUR: openclaw absent du PATH." >&2; exit 127; }
 command -v jq >/dev/null 2>&1 || { echo "ERREUR: jq requis." >&2; exit 127; }

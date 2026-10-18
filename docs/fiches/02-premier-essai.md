@@ -6,6 +6,14 @@ Les contrôles du dépôt ne sont pas un essai sur la carte graphique : distingu
 
 Les tests automatiques du dépôt vérifient que le logiciel est cohérent. Ils ne peuvent pas vérifier ce qui dépend de ton PC : que la B580 est bien utilisée, que le contexte tient dans ses 12 Go et que la vitesse est confortable. Cette fiche produit ces trois réponses.
 
+## Le seul test nécessaire pour commencer
+
+```bash
+./menu.sh --action quick-check
+```
+
+Il vérifie le montage secondaire, une **courte génération Qwen sur la B580**, les services, WebUI et le dossier projets. Si le résultat est `READY_FOR_FIRST_PROJECT`, ouvre Open WebUI, pose une vraie question et crée ton premier projet. **Arrête-toi là si tout fonctionne.** Les benchmarks détaillés ci-dessous sont uniquement des diagnostics facultatifs.
+
 ## 1. Les services tournent-ils ?
 
 ```bash

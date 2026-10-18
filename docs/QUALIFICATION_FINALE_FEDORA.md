@@ -1,5 +1,8 @@
 # Qualification finale Fedora — résultats réels uniquement
 
+> **Parcours utilisateur prioritaire :** [installation Fedora 45 directe + `/IA/Openclaw` + contrôle rapide](INSTALLATION_SIMPLE_FEDORA45.md). Les vérifications approfondies ci-dessous sont une **réception technique facultative** pour diagnostiquer une anomalie ou mesurer finement le GPU. La clé Live n'est pas requise.
+
+
 Ce dossier distingue **précontrôle logiciel** et **réception sur le PC fixe**.
 Les tests GitHub ne prouvent ni les performances de la B580, ni un appel
 OpenRouter, ni la récupération d'une sauvegarde.
@@ -104,8 +107,8 @@ Pour éprouver les deux formats sans aucune donnée personnelle, lancer
 le test **synthétique** en mode aperçu, puis après activation explicite :
 
 ```bash
-clawfedora-vision-smoke --root "$PWD" --runtime-root /srv/openclaw-local
-clawfedora-vision-smoke --root "$PWD" --runtime-root /srv/openclaw-local --apply
+clawfedora-vision-smoke --root "$PWD" --runtime-root /IA/Openclaw
+clawfedora-vision-smoke --root "$PWD" --runtime-root /IA/Openclaw --apply
 ```
 
 Le test génère localement un carré rouge sur fond blanc, puis un PDF d'une

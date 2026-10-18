@@ -6,7 +6,7 @@ claw_repo_root() {
 }
 
 claw_runtime_root() {
-  printf '%s\n' "${OPENCLAW_LOCAL_FEDORA_ROOT:-/srv/openclaw-local}"
+  printf '%s\n' "${OPENCLAW_LOCAL_FEDORA_ROOT:-/IA/Openclaw}"
 }
 
 claw_extract_openclaw_version() {
@@ -88,4 +88,29 @@ claw_lock_worker() {
     exec 9>"$lock_path"
   fi
   flock -n 9 || { echo "ERREUR: tâche ou discussion active; attendre sa fin avant la maintenance" >&2; return 2; }
+}
+
+# The preferred runtime lives on a separately mounted Linux filesystem.
+# Never create /IA/Openclaw on the root filesystem when the secondary disk is absent.
+claw_require_storage() {
+  local root="${1:-$(claw_runtime_root)}"
+  case "$root" in
+    /IA/Openclaw|/IA/Openclaw/*)
+      if [[ -L /IA || -L /IA/Openclaw ]] || ! mountpoint -q /IA; then
+        echo "STORAGE_RESULT=REFUSED: disque secondaire non monté sur /IA" >&2
+        return 2
+      fi
+      local main_dev data_dev
+      main_dev="$(stat -c '%d' /)" || return 2
+      data_dev="$(stat -c '%d' /IA)" || return 2
+      if [[ "$main_dev" == "$data_dev" ]]; then
+        echo "STORAGE_RESULT=REFUSED: /IA n'est pas un système de fichiers distinct" >&2
+        return 2
+      fi
+      if [[ -e "$root" && ! -d "$root" ]]; then
+        echo "STORAGE_RESULT=REFUSED: chemin de données non répertoire" >&2
+        return 2
+      fi
+      ;;
+  esac
 }

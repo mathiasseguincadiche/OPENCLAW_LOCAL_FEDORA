@@ -62,7 +62,7 @@ ollama list
 ./menu.sh --action models --apply
 ```
 
-Message « digest déjà adopté divergent » : le modèle a été retéléchargé dans une version différente de celle enregistrée à l'installation. Si c'est voulu, supprime `/srv/openclaw-local/state/model-identities.json` puis relance `./menu.sh --action install --apply`.
+Message « digest déjà adopté divergent » : le modèle a été retéléchargé dans une version différente de celle enregistrée à l'installation. Si c'est voulu, supprime `/IA/Openclaw/state/model-identities.json` puis relance `./menu.sh --action install --apply`.
 
 ## OpenClaw ne démarre pas
 
@@ -104,13 +104,13 @@ getenforce                                   # doit rester Enforcing
 sudo ausearch -m AVC,USER_AVC -ts recent     # ce qui a été refusé
 ```
 
-Corrige le chemin ou le contexte du fichier concerné. Pour le dossier de l'atelier : `sudo restorecon -RF /srv/openclaw-local`.
+Corrige le chemin ou le contexte du fichier concerné. Pour le dossier de l'atelier : `sudo restorecon -RF /IA/Openclaw`.
 
-## Permission refusée sous `/srv/openclaw-local`
+## Permission refusée sous `/IA/Openclaw`
 
 ```bash
-namei -l /srv/openclaw-local
-ls -ldZ /srv/openclaw-local
+namei -l /IA/Openclaw
+ls -ldZ /IA/Openclaw
 ```
 
 Le dossier doit t'appartenir. Ne règle pas le problème avec `chmod -R 777`.
@@ -118,7 +118,7 @@ Le dossier doit t'appartenir. Ne règle pas le problème avec `chmod -R 777`.
 ## Plus de place
 
 ```bash
-du -sh /srv/openclaw-local/* | sort -h
+du -sh /IA/Openclaw/* | sort -h
 ```
 
 Supprime d'anciennes sauvegardes dans `backups/`.

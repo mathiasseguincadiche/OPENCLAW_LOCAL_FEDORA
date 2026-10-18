@@ -1,6 +1,6 @@
 # Atelier IA hybride — Infrastructure & OPS
 
-> **Avant toute installation sur le SSD :** [préqualification Fedora 45 Live USB en lecture seule](docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md). Tester le matériel depuis « Essayer Fedora », puis réaliser les essais applicatifs et la réception complète seulement après une installation persistante.
+> **Parcours conseillé :** installer directement **Fedora 45 Workstation / GNOME 51**, monter le deuxième disque sur `/IA`, installer l'atelier dans **`/IA/Openclaw/`**, puis lancer **une seule vérification courte** : `./menu.sh --action quick-check`. [Guide d'installation simple](docs/INSTALLATION_SIMPLE_FEDORA45.md). La clé Live est facultative.
 
 <p align="center"><img src=".github/social-preview.svg" alt="Atelier IA hybride Fedora : Qwen local et DeepSeek cloud, sept rôles sous contrôle humain" width="100%"></p>
 
@@ -123,6 +123,9 @@ Les opérations non couvertes utilisent les commandes ou l'Atelier Projets. Le c
 → [Comprendre précisément les deux routes](docs/ARCHITECTURE_HYBRIDE.md) · [Activer et protéger le cloud](docs/fiches/12-cloud.md) · [Pourquoi DeepSeek](docs/DECISION_MODELE.md).
 
 ## Démarrer sur Fedora
+
+**Installation directe :** suivre [l'installation simple Fedora 45](docs/INSTALLATION_SIMPLE_FEDORA45.md), avec volume secondaire `/IA` et données `/IA/Openclaw`. Le premier contrôle utile est `./menu.sh --action quick-check`, pas une campagne de stress.
+
 
 **Architecture cible : Fedora est le système hôte du projet IA.** OpenClaw,
 Ollama, les sept rôles, le moteur de projets, la passerelle cloud et les

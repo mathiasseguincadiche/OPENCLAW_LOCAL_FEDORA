@@ -8,7 +8,7 @@
 - Quand le cloud est actif, seule la passerelle locale (`127.0.0.1:18892`) connaît ta clé OpenRouter et sort vers Internet : elle filtre tout ce qui part (historique et résultats d'outils compris), compte chaque appel facturé et refuse au plafond de 25 € réels par mois. La clé est dans un fichier à droits 0600, jamais dans Git, les journaux, la configuration d'OpenClaw ni les sauvegardes.
 - Un projet de l'atelier n'utilise le cloud qu'avec ton accord explicite, lié à ses sources ; en cas de blocage, il se met en pause au lieu de basculer en local sans te le dire.
 - Les rôles ne peuvent ni exécuter de commande, ni écrire directement un fichier, ni ouvrir un navigateur, ni mettre à jour OpenClaw.
-- Les secrets et les données de l'atelier (`/srv/openclaw-local`) ne sont jamais dans Git.
+- Les secrets et les données de l'atelier (`/IA/Openclaw`) ne sont jamais dans Git.
 - Les versions d'OpenClaw et d'Ollama sont fixées et vérifiées ; rien ne se met à jour seul.
 
 ## Ce qu'il ne garantit pas

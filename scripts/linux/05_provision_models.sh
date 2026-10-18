@@ -24,6 +24,7 @@ if ((APPLY == 0)); then
   exit 0
 fi
 
+claw_require_storage "$(claw_runtime_root)"
 command -v ollama >/dev/null 2>&1 || {
   echo "MODEL_PROVISION_RESULT=FAIL ollama absent" >&2
   exit 2

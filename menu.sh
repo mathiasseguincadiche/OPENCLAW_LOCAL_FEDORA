@@ -23,7 +23,8 @@ Sans --apply, une action qui modifie le système affiche seulement ce qu'elle fe
 
 Installer et utiliser:
   install                Installation complète
-  health                 Vérifier que tout fonctionne
+  health                 Vérifier les services (rapport détaillé)
+  quick-check            Vérification courte : Qwen, B580, WebUI, projets
   context-probe          Mesurer si le contexte tient sur le GPU, et la vitesse
                          (--context 8192|16384|32768 pour comparer une autre taille)
   webui-install          Installer le chat Open WebUI
@@ -107,6 +108,7 @@ with_apply() {
   local script="$1"
   shift
   local -a args=("$@")
+  ((APPLY == 0)) || claw_require_storage "$(claw_runtime_root)"
   ((APPLY == 1)) && args+=(--apply)
   "$LINUX/$script" "${args[@]}"
 }
@@ -114,6 +116,13 @@ with_apply() {
 case "$ACTION" in
   install) with_apply 06_install.sh ;;
   health) "$LINUX/07_health.sh" ;;
+  quick-check)
+    claw_require_storage "$(claw_runtime_root)"
+    export PATH="$HOME/.openclaw/bin:$HOME/.local/bin:$PATH"
+    PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON" \
+      "$REPO_ROOT/scripts/validation/quick_smoke.py" --root "$REPO_ROOT" \
+      --runtime-root "$(claw_runtime_root)"
+    ;;
   context-probe)
     args=(--runtime-root "$(claw_runtime_root)" context-probe)
     [[ -z "$CONTEXT" ]] || args+=(--context "$CONTEXT")
@@ -137,7 +146,7 @@ case "$ACTION" in
       exit 2
     }
     args=(--runtime-root "$(claw_runtime_root)" set-profile --name "$VALUE")
-    ((APPLY == 1)) && args+=(--apply)
+    ((APPLY == 1)) && { claw_require_storage "$(claw_runtime_root)"; args+=(--apply); }
     run_module cloud_cli "${args[@]}"
     ;;
   dashboard) run_cli dashboard --serve ;;

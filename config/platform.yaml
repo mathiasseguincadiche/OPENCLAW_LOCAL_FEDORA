@@ -9,9 +9,9 @@ os:
   desktop_major: 51
   display_server: wayland
 runtime:
-  preferred_root: /srv/openclaw-local
-  fallback_root: ~/.local/share/openclaw-local
-  state_root: ~/.local/state/openclaw-local
+  preferred_root: /IA/Openclaw
+  mountpoint: /IA
+  state_root: /IA/Openclaw/state
   config_root: ~/.config/openclaw-local
   service_manager: systemd-user
   shell: bash

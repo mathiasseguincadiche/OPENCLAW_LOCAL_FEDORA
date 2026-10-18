@@ -82,10 +82,9 @@ def resolve_runtime_root(explicit: str | Path | None = None) -> Path:
     configured = os.environ.get("OPENCLAW_LOCAL_FEDORA_ROOT")
     if configured:
         return Path(configured).expanduser().resolve()
-    preferred = Path("/srv/openclaw-local")
-    if preferred.is_dir():
-        return preferred.resolve()
-    return (Path.home() / ".local" / "share" / "openclaw-local").resolve()
+    # Keep Python, Bash, models, projects and WebUI on a single declared root.
+    # Never silently fall back to the system disk when /IA is not mounted.
+    return Path("/IA/Openclaw")
 
 
 def openclaw_environment(runtime: Path | None = None) -> dict[str, str]:

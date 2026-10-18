@@ -16,6 +16,7 @@ run_ops() {
   fi
 }
 
+claw_require_storage "$RUNTIME_ROOT"
 case "${1:-}" in
   backup)
     shift

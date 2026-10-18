@@ -308,3 +308,30 @@ def test_fedora_45_gnome_51_are_required_by_all_installation_entrypoints() -> No
     assert "fedora-44-rejection:" in workflow
     assert "fedora-45-preview:" not in workflow
     assert 'grep -F "Fedora 45 requis"' in workflow
+
+def test_secondary_storage_guard_refuses_missing_mount() -> None:
+    shell = ROOT / "scripts/linux/lib/runtime.sh"
+    script = 'source "$1"; claw_require_storage /IA/Openclaw'
+    check = subprocess.run(["bash", "-c", script, "bash", str(shell)], capture_output=True,
+                           text=True, check=False, cwd=ROOT)
+    # CI uses rootfs only. If /IA happens to be a genuine separate mount, it is valid.
+    if not Path("/IA").is_mount():
+        assert check.returncode == 2
+        assert "STORAGE_RESULT=REFUSED" in check.stderr
+    arbitrary = subprocess.run(
+        ["bash", "-c", 'source "$1"; claw_require_storage /tmp/example-test-runtime',
+         "bash", str(shell)],
+        capture_output=True, text=True, check=False, cwd=ROOT,
+    )
+    assert arbitrary.returncode == 0
+
+
+def test_default_runtime_is_on_secondary_volume() -> None:
+    assert 'OPENCLAW_LOCAL_FEDORA_ROOT:-/IA/Openclaw' in _read(
+        "scripts/linux/lib/runtime.sh"
+    )
+    bootstrap = _read("scripts/linux/00_bootstrap.sh")
+    assert bootstrap.index('claw_require_storage "$RUNTIME_ROOT"') < bootstrap.index(
+        'as_root "${DNF[@]}" install -y "${PACKAGES[@]}"'
+    )
+    assert "ConditionPathIsMountPoint=/IA" in _read("scripts/linux/11_daily_profile.sh")
