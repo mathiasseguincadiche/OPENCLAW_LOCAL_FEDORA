@@ -80,9 +80,12 @@ OPENCLAW_VERSION="$(claw_extract_openclaw_version "$OPENCLAW_VERSION_TEXT" || tr
 
 unset OPENCLAW_CONFIG_PATH
 PYTHON="$(claw_python)"
+# First installation must never import legacy user data without an explicit opt-in.
+# Use clawfedora-ops migrate-state --source PATH --apply separately if ever required.
 LEGACY_STATE="${XDG_STATE_HOME:-$HOME/.local/state}/openclaw-local"
-if [[ -d "$LEGACY_STATE" && ! -e "$RUNTIME_ROOT/state/openclaw" ]]; then
-  "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" migrate-state --source "$LEGACY_STATE" --apply
+if [[ -d "$LEGACY_STATE" ]]; then
+  echo "INSTALL_INFO: ancien état détecté mais NON importé automatiquement : $LEGACY_STATE" >&2
+  echo "INSTALL_INFO: migration uniquement sur décision explicite avec clawfedora-ops migrate-state" >&2
 fi
 "$LINUX/05_provision_models.sh" --apply
 "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" models-lock --apply

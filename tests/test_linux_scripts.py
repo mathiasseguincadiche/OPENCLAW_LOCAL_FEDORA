@@ -123,6 +123,9 @@ def test_full_install_is_explicit_and_pinned() -> None:
     assert "05_provision_models.sh" in text
     assert "03_configure_openclaw.sh" in text
     assert "openclaw gateway install" in text
+    assert 'migrate-state --source "$LEGACY_STATE" --apply' not in text
+    assert 'ancien état détecté mais NON importé automatiquement' in text
+    assert "migrate-state --source PATH --apply" in text
     assert "systemctl --user enable --now openclaw-gateway.service" in text
 
 
