@@ -107,6 +107,7 @@ printf '  packages: %s\n' "${PACKAGES[*]}"
 printf '  diagrams: native editable Draw.io XML and local SVG; no extra package\n'
 printf '  groups: render video libvirt\n'
 printf '  managed venv: %s/runtime/venv\n' "$RUNTIME_ROOT"
+printf '  secondary mount required: /IA (before --apply)\n'
 printf '  runtime dirs: models workspaces projects proofs state backups\n'
 printf '  managed marker: %s/%s\n' "$RUNTIME_ROOT" "$RUNTIME_MARKER"
 printf '  GPU stack: xe + Mesa/Vulkan\n'
