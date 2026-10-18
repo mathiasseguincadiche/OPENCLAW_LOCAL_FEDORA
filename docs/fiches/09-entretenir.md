@@ -38,9 +38,9 @@ scripts/linux/08_backup_restore.sh restore ARCHIVE DESTINATION
 
 La destination doit être un dossier vide : la restauration n'écrase jamais des données existantes. Vérifie le contenu restauré avant de le mettre à la place de `/srv/openclaw-local`, puis relance `./menu.sh --action install --apply` et `./menu.sh --action health`.
 
-## Vérification isolée facultative d'Open WebUI 0.12.1
+## Vérification isolée facultative d'Open WebUI 0.12.3
 
-La première installation choisit **Open WebUI 0.12.1** directement et
+La première installation choisit **Open WebUI 0.12.3** directement et
 épingle par digest l'image téléchargée dans le service. Sur une machine
 vierge, **aucune migration de 0.11.4 n'est nécessaire** et il n'est pas
 obligatoire d'exécuter le canary avant l'installation.
