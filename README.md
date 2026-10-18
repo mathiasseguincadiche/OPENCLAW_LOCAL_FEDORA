@@ -1,5 +1,7 @@
 # Atelier IA hybride — Infrastructure & OPS
 
+> **Avant toute installation sur le SSD :** [préqualification Fedora 45 Live USB en lecture seule](docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md). Tester le matériel depuis « Essayer Fedora », puis réaliser les essais applicatifs et la réception complète seulement après une installation persistante.
+
 <p align="center"><img src=".github/social-preview.svg" alt="Atelier IA hybride Fedora : Qwen local et DeepSeek cloud, sept rôles sous contrôle humain" width="100%"></p>
 
 [![CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml)
