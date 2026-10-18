@@ -15,7 +15,7 @@ from clawfedora.lifecycle import collect_health
 
 ENDPOINTS = {
     "WebUI": "http://127.0.0.1:3000/health",
-    "Projects": "http://127.0.0.1:18890/health",
+    "Projects": "http://127.0.0.1:18890/api/status",
 }
 
 
