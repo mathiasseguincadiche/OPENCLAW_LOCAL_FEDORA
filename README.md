@@ -124,6 +124,9 @@ Les opérations non couvertes utilisent les commandes ou l'Atelier Projets. Le c
 
 ## Démarrer sur Fedora
 
+**Installation directe :** suivre [l'installation simple Fedora 45](docs/INSTALLATION_SIMPLE_FEDORA45.md), avec volume secondaire `/IA` et données `/IA/Openclaw`. Le premier contrôle utile est `./menu.sh --action quick-check`, pas une campagne de stress.
+
+
 **Architecture cible : Fedora est le système hôte du projet IA.** OpenClaw,
 Ollama, les sept rôles, le moteur de projets, la passerelle cloud et les
 données fonctionnent côté Fedora. Open WebUI est prévu en **conteneur
