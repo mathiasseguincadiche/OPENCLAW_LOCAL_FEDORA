@@ -38,7 +38,7 @@ if [[ "$ACTION" == install ]]; then
   fi
   IMAGE="$($PYTHON -c 'from pathlib import Path; from clawfedora.core_config import root_contract; import sys; print(root_contract(Path(sys.argv[1]), "webui_policy.yaml")["image"])' "$REPO_ROOT")"
   podman pull "$IMAGE"
-  # The stable v0.12.1-slim tag is selected by policy but must never be
+  # The stable v0.12.3-slim tag is selected by policy but must never be
   # written to the live service definition: lock the exact downloaded digest.
   IMAGE_DIGEST="$(podman image inspect "$IMAGE" --format '{{index .RepoDigests 0}}')"
   [[ "$IMAGE_DIGEST" =~ ^ghcr[.]io/open-webui/open-webui@sha256:[a-f0-9]{64}$ ]] || {
