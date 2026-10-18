@@ -16,29 +16,50 @@ Probe = Callable[..., dict[str, Any]]
 
 
 def benchmark(
-    repo: Path, *, context_sizes: tuple[int, ...], probe: Probe = probe_context
+    repo: Path, *, context_sizes: tuple[int, ...], near_limit: bool = False,
+    probe: Probe = probe_context,
 ) -> dict[str, Any]:
     if not context_sizes or len(context_sizes) > 3 or any(
         context not in (8192, 16384, 32768) for context in context_sizes
     ):
         raise ValueError("contextes autorisés: 8192, 16384, 32768 (maximum 3)")
+    requested_fill = 0.9 if near_limit else 0.6
     results: list[dict[str, Any]] = []
     for context in context_sizes:
-        result = probe(repo, context_tokens=context, fill_ratio=0.6)
+        result = probe(repo, context_tokens=context, fill_ratio=requested_fill)
         if result.get("verdict") not in {
             "FULL_GPU", "PARTIAL_CPU_OFFLOAD", "CPU_ONLY", "PROMPT_TRUNCATED"
         }:
             raise ValueError("résultat du GPU non certifiable")
-        results.append({
+        actual_fill = result.get("prompt_fill_pct")
+        allocated = result.get("allocated_context_tokens")
+        # A 60% test is insufficient to certify a 32K context. Even in
+        # near-limit mode, refuse a false FULL_GPU when the server truncated
+        # the intended prompt or allocated a smaller context.
+        validated = bool(
+            near_limit
+            and result["verdict"] == "FULL_GPU"
+            and isinstance(actual_fill, (float, int)) and not isinstance(actual_fill, bool)
+            and float(actual_fill) >= 80.0
+            and isinstance(allocated, int) and allocated >= context
+        )
+        entry = {
             key: result.get(key)
             for key in (
-                "context_tokens", "prompt_tokens", "gpu_share_pct",
+                "context_tokens", "prompt_tokens", "prompt_fill_pct",
+                "allocated_context_tokens", "gpu_share_pct",
                 "resident_gib", "resident_vram_gib",
                 "prompt_tokens_per_second", "output_tokens_per_second", "verdict",
             )
-        })
+        }
+        entry["near_limit_qualified"] = validated
+        results.append(entry)
     recommended = max(
         (r["context_tokens"] for r in results if r["verdict"] == "FULL_GPU"),
+        default=None,
+    )
+    qualified = max(
+        (r["context_tokens"] for r in results if r["near_limit_qualified"]),
         default=None,
     )
     return {
@@ -48,6 +69,11 @@ def benchmark(
         "cloud_used": False,
         "recommendation_requires_human_approval": True,
         "recommended_full_gpu_context": recommended,
+        "recommended_context_is_provisional": qualified != recommended or recommended is None,
+        "near_limit_requested": near_limit,
+        "near_limit_fill_target_pct": round(requested_fill * 100),
+        "qualified_near_limit_context": qualified,
+        "hardware_qualification": "PENDING_REAL_FEDORA_B580_ACCEPTANCE",
         "results": results,
     }
 
@@ -56,6 +82,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Mesurer Qwen local sur la B580 sans mutation")
     parser.add_argument("--root", required=True, type=Path)
     parser.add_argument("--contexts", default="8192,16384,32768")
+    parser.add_argument(
+        "--near-limit", action="store_true",
+        help="Essai exigeant 90%% du contexte ; jamais exécuté sans --apply",
+    )
     parser.add_argument(
         "--apply", action="store_true", help="Effectuer les inférences Ollama locales"
     )
@@ -69,10 +99,14 @@ def main(argv: list[str] | None = None) -> int:
         if not args.apply:
             print(json.dumps({
                 "verdict": "DRY_RUN", "contexts": contexts,
+                "near_limit_requested": bool(args.near_limit),
                 "cloud_used": False, "model_calls": 0, "config_modified": False,
             }))
             return 0
-        print(json.dumps(benchmark(args.root, context_sizes=contexts), ensure_ascii=False, indent=2))
+        print(json.dumps(
+            benchmark(args.root, context_sizes=contexts, near_limit=args.near_limit),
+            ensure_ascii=False, indent=2,
+        ))
     except (ValueError, OSError, TimeoutError) as exc:
         print(json.dumps({"verdict": "REFUSED", "reason": str(exc)}, ensure_ascii=False))
         return 2
