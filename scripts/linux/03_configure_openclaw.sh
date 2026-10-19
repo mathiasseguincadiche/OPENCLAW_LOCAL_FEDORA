@@ -102,11 +102,17 @@ if ! "$OPENCLAW" config validate --json >/dev/null; then
   "$OPENCLAW" config validate --json >/dev/null
 fi
 
+# Parallel must be loaded from the same vetted npm-ci tree as OpenClaw.
+# Never invoke the registry-backed plugin update/install path here.
+PARALLEL_LOCAL="$HOME/.openclaw/lib/node_modules/@openclaw/parallel-plugin"
+[[ -f "$PARALLEL_LOCAL/package.json" ]] || {
+  echo "ERREUR: plugin Parallel verrouillé absent du npm-ci" >&2
+  exit 2
+}
+"$PYTHON" "$REPO_ROOT/scripts/validation/check_dependency_artifact_locks.py"
 PLUGIN_JSON="$($OPENCLAW plugins list --json)"
 if ! jq -e '.plugins[]? | select(.id == "parallel")' >/dev/null <<<"$PLUGIN_JSON"; then
-  "$OPENCLAW" plugins install "npm:@openclaw/parallel-plugin@$PARALLEL_PIN" --pin
-else
-  "$OPENCLAW" plugins update "@openclaw/parallel-plugin@$PARALLEL_PIN"
+  "$OPENCLAW" plugins install --link "$PARALLEL_LOCAL" --force
 fi
 PLUGIN_JSON="$($OPENCLAW plugins list --json)"
 if [[ "$(jq -r '.plugins[]? | select(.id == "parallel") | .enabled' <<<"$PLUGIN_JSON" | head -n1)" != "true" ]]; then
