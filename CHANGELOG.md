@@ -4,6 +4,12 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Protection du disque secondaire `/IA` contre les redirections de chemins
+
+- `claw_require_storage` refuse les chemins contenant traversées `..` ou des liens symboliques et les liens dans les dossiers sensibles (modèles, projets, configuration, services, sauvegardes). Les dossiers inexistants restent acceptés lors d'une installation neuve.
+- Régressions de traversée de chemin vérifiées par des tests shell sans accès réseau ni écriture sur le disque cible. Les tests de stockage réel nécessitent toujours Fedora et le volume secondaire monté.
+
+
 ### Mode Web privé — transition vérifiée avant réception matérielle
 
 - Nouveau menu `web-private` / `web-connected` : aperçu sans modification, arrêt préventif du Gateway, verrou des travaux, application native, contrôle privé du fichier de configuration et redémarrage vérifié.

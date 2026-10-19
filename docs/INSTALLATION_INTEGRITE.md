@@ -13,7 +13,7 @@ Pour la procédure quotidienne, suivre [Installer Fedora et vérifier l'atelier]
 | Ollama `0.40.6` | Archive Linux x86_64 officielle | SHA-256 vérifié **avant extraction** |
 | Open WebUI `v0.12.3-slim` | Image `ghcr.io/open-webui/open-webui` | Résolution en digest SHA-256 au premier déploiement ; unité systemd enregistrée avec le digest |
 | Python de production | `pip` avec fichier de contraintes | Versions directes et transitives communes contrôlées par [le verrou Python](PYTHON_RUNTIME_LOCK.md) |
-| Runtime et données | Second disque monté sous `/IA` | Refus avant installation si `/IA` n'est pas le montage distinct attendu ; services conditionnés au montage |
+| Runtime et données | Second disque monté sous `/IA` | Refus avant installation si `/IA` n'est pas le montage distinct attendu ; rejet des chemins non canoniques et liens symboliques dans les dossiers gérés ; services conditionnés au montage |
 
 ## Pourquoi l'installateur vérifie les archives
 
