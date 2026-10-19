@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - hardening/dependency-integrity-20261019
+concurrency:
+  group: dependency-lock-bootstrap-hardening/dependency-integrity-20261019
+  cancel-in-progress: true
 permissions:
   contents: write
 jobs:
@@ -36,5 +39,7 @@ jobs:
           git add config/npm-runtime/package-lock.json config/python-runtime-hashes.txt config/python-build-hashes.txt
           if ! git diff --cached --quiet; then
             git commit -m 'build(lock): generate npm and Python integrity candidate baselines'
+            git fetch origin hardening/dependency-integrity-20261019
+            git rebase origin/hardening/dependency-integrity-20261019
             git push origin HEAD:hardening/dependency-integrity-20261019
           fi
