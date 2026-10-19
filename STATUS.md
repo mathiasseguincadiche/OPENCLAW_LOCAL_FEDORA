@@ -1,6 +1,6 @@
 # État du projet — Atelier IA hybride Fedora
 
-**Référence logicielle : 18 octobre 2026.** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
+**Référence logicielle : 19 octobre 2026.** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
 ## Résumé vérifiable
 
@@ -50,7 +50,7 @@ Les benchmarks poussés, la série de cycles veille/reprise et les canaries (voi
 - **Cloud désactivé par défaut** ; pas de bascule locale vers DeepSeek cachée. Un accord cloud sur un projet ne garantit pas qu’un contenu privé soit publiable.
 - Les outils `web_search` et `web_fetch` peuvent accéder à Internet même en mode local ; un [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) est pilotable par `web-private --apply`, avec contrôle de la configuration enregistrée et du redémarrage du Gateway ; son absence d'egress réseau réel reste à vérifier.
 - Le streaming SSE et la vision avancée sont disponibles sous **canary contrôlé**, pas activés ni qualifiés par défaut.
-- Le verrou Python fixe des versions transitives de production, **pas tous les hashes de wheels** ; npm et les extras voix ne sont pas intégralement verrouillés. Voir [les limites de reproductibilité](docs/PYTHON_RUNTIME_LOCK.md).
+- Les dépendances Python de production et de voix sont maintenant épinglées par versions et SHA-256 des wheels officielles ; OpenClaw et Parallel utilisent un arbre npm `npm ci` verrouillé par SHA-512 et une archive directe vérifiée. Les bibliothèques `inBundle` sont couvertes par l'archive parente. **La vérification de la compatibilité réelle sur Fedora et une attestation indépendante de la provenance des éditeurs restent hors de portée de ces verrous.** Voir [le périmètre exact](docs/PYTHON_RUNTIME_LOCK.md).
 - Les sauvegardes locales ne sont **pas chiffrées** et résident initialement sur le même volume ; garder une copie externe protégée.
 - Les fichiers proposés par les agents ne sont pas la preuve d’un déploiement Terraform/Ansible réussi.
 
@@ -60,7 +60,7 @@ Les benchmarks poussés, la série de cycles veille/reprise et les canaries (voi
 | --- | --- |
 | [#122](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/122) | Qualification réelle Fedora 45 / B580 |
 | [#123](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/123) | Réception WebUI, fournisseur OpenRouter, voix et restauration réelle |
-| [#126](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/126) | Intégrité réseau et verrouillage transitif complet |
+| [#126](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/126) | Tests réseau réels et qualification de la chaîne d'approvisionnement sur Fedora |
 | [#124](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/124) | File persistante multi-projets facultative |
 
 Les anciennes étapes d’octobre (OpenClaw 2026.10.3, Ollama 0.40.4, WebUI 0.12.1, migration depuis Fedora 44) appartiennent à [l’historique de 2026](docs/archives/2026/README.md), **pas aux versions de la nouvelle installation**.
