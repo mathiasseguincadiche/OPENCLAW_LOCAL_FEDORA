@@ -56,7 +56,7 @@ Ouvre `http://127.0.0.1:3000`, crée ton compte (il est local, aucun mail n'est 
 | 5. Rôles | Dépôt des consignes des sept rôles dans leurs espaces de travail | `./menu.sh --action agents` |
 | 6. Configuration | Application de la configuration OpenClaw générée par le dépôt | `./menu.sh --action configure-openclaw --apply` |
 | 7. Service | Démarrage du Gateway OpenClaw comme service de ton compte | — |
-| 8. Vérification | Contrôle de santé avec une courte génération | `./menu.sh --action health` |
+| 8. Vérification | Contrôle de santé avec une courte génération | `./menu.sh --action quick-check` |
 
 Les versions installées sont écrites dans `config/runtime_versions.yaml`. L'installation refuse de continuer si une autre version est présente : voir [Réglages](08-reglages.md) pour en changer volontairement.
 
@@ -85,4 +85,4 @@ Rien de tout cela n'est dans Git. Le dépôt contient le code et la configuratio
 
 ## Ensuite
 
-Passe au [premier essai](02-premier-essai.md) : c'est lui qui dit si la carte graphique travaille et à quelle vitesse.
+Lance **`./menu.sh --action quick-check`**, puis ouvre Open WebUI pour poser une question réelle et créer ton premier projet. Les benchmarks détaillés de [Premier essai](02-premier-essai.md) sont facultatifs et utiles seulement pour diagnostiquer un problème de performances.
