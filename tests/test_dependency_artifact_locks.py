@@ -16,6 +16,10 @@ def test_production_hashes_exactly_match_pins() -> None:
     assert lock["check_python"](ROOT) == 23
 
 
+def test_speech_artifacts_are_locked_for_python_313() -> None:
+    assert lock["check_speech"](ROOT) == 21
+
+
 def test_locked_npm_packages_come_from_registry_or_verified_bundle() -> None:
     direct, bundled = lock["check_npm"](ROOT)
     assert direct >= 400
@@ -67,3 +71,16 @@ def test_locked_npm_installer_preserves_verified_archive_and_cli() -> None:
     assert 'npm ls --global --all --prefix "$PREFIX"' in closure
     assert "plugins install --link" in configure
     assert "plugins update" not in configure
+
+
+def test_speech_hash_tampering_fails_closed(tmp_path: Path) -> None:
+    (tmp_path / "config").mkdir()
+    (tmp_path / "config/python-speech-constraints.txt").write_text(
+        (ROOT / "config/python-speech-constraints.txt").read_text()
+    )
+    original = (ROOT / "config/python-speech-hashes.txt").read_text()
+    (tmp_path / "config/python-speech-hashes.txt").write_text(
+        original.replace("--hash=sha256:", "--sha256:", 1)
+    )
+    with pytest.raises(ValueError, match="SHA256|directive"):
+        lock["check_speech"](tmp_path)
