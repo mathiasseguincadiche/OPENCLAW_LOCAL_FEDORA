@@ -32,20 +32,16 @@ curl --fail --location --silent --show-error --proto '=https' --proto-redir '=ht
   --connect-timeout 15 --max-time 900 --output "$ARCHIVE" "$URL"
 "$PYTHON" "$VERIFY" verify "$KIND" "$PIN" "$ARCHIVE"
 if [[ "$KIND" == openclaw ]]; then
-  command -v npm >/dev/null || { echo "npm requis pour OpenClaw" >&2; exit 127; }
-  # No unreviewed installer script is executed. The core package tarball is verified.
-  # npm transitive dependencies remain registry-managed and require further lockfile review.
-  # npm local installs link binaries into node_modules/.bin, not prefix/bin.
-  # Use user-scoped GLOBAL mode to match the executable used by all services.
-  npm install --global --prefix "$HOME/.openclaw" --ignore-scripts \
-    --no-audit --no-fund "$ARCHIVE"
-# A verified top-level archive does not guarantee a consistent dependency tree.
-  # Refuse a missing/invalid npm transitive dependency before touching services.
-  if ! npm ls --global --all --prefix "$HOME/.openclaw" >/dev/null; then
-    echo "Arbre de dépendances npm OpenClaw incomplet ou incohérent" >&2
-    exit 2
-  fi
-  [[ -x "$HOME/.openclaw/bin/openclaw" ]] || { echo "CLI npm OpenClaw introuvable" >&2; exit 2; }
+  # The directly downloaded tarball is verified against its reviewed SHA-512
+  # above. Install its full transitive npm closure from the *same* immutable
+  # package version using the versioned npm-ci lock (not npm install --global,
+  # which ignores project lockfiles).
+  bash "$SCRIPT_DIR/18_npm_closure.sh" --apply
+  # Refuse an incomplete or extraneous global tree before starting services.
+  npm ls --global --all --prefix "$HOME/.openclaw" >/dev/null
+  [[ -x "$HOME/.openclaw/bin/openclaw" ]] || {
+    echo "CLI npm OpenClaw introuvable" >&2; exit 2;
+  }
   TOOL="$HOME/.openclaw/bin/openclaw"
 else
   command -v zstd >/dev/null || { echo "zstd requis pour Ollama" >&2; exit 127; }
