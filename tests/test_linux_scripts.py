@@ -347,3 +347,31 @@ def test_secondary_disk_units_wait_for_mount_before_service_start() -> None:
     assert "/srv/openclaw-local" not in _read("docs/fiches/03-discuter.md")
     assert "/srv/openclaw-local" not in _read("docs/fiches/06-fichiers-et-schemas.md")
     assert "/srv/openclaw-local" not in _read("docs/fiches/12-cloud.md")
+
+
+def test_storage_guard_refuses_ia_path_traversal_before_mount_lookup() -> None:
+    """A path beginning under /IA must not resolve outside the data volume."""
+    for candidate in (
+        "/IA/Openclaw/../other",
+        "/IA/Openclaw/../../tmp/escape",
+        "/IA/Openclaw/projects/../state",
+    ):
+        result = subprocess.run(
+            ["bash", "-c", 'source scripts/linux/lib/runtime.sh; claw_require_storage "$1"', "_", candidate],
+            cwd=ROOT, capture_output=True, text=True, check=False,
+        )
+        assert result.returncode == 2
+        assert "chemin runtime non canonique ou lié" in result.stderr
+
+
+def test_storage_guard_checks_all_sensitive_directory_redirects() -> None:
+    """Static coverage complements a real mount/symlink test on native Fedora."""
+    shell = _read("scripts/linux/lib/runtime.sh")
+    for directory in (
+        "models/ollama", "projects", "workspaces", "state/openclaw",
+        "state/webui/data", "state/cloud", "runtime/venv",
+        "runtime/generated", "proofs", "backups",
+    ):
+        assert directory in shell
+    assert '[[ -L "/IA/Openclaw/$component" ]]' in shell
+    assert shell.index("canonical=") < shell.index("mountpoint -q /IA")
