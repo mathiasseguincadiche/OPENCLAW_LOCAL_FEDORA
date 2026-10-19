@@ -96,6 +96,14 @@ claw_require_storage() {
   local root="${1:-$(claw_runtime_root)}"
   case "$root" in
     /IA/Openclaw|/IA/Openclaw/*)
+      # Reject dot traversal and symlink resolution before looking at any runtime
+      # directory. A path that *starts* under /IA may otherwise escape to /tmp.
+      local canonical component
+      canonical="$(realpath -m -- "$root")" || return 2
+      if [[ "$canonical" != "$root" ]]; then
+        echo "STORAGE_RESULT=REFUSED: chemin runtime non canonique ou lié" >&2
+        return 2
+      fi
       if [[ -L /IA || -L /IA/Openclaw ]] || ! mountpoint -q /IA; then
         echo "STORAGE_RESULT=REFUSED: disque secondaire non monté sur /IA" >&2
         return 2
@@ -107,6 +115,19 @@ claw_require_storage() {
         echo "STORAGE_RESULT=REFUSED: /IA n'est pas un système de fichiers distinct" >&2
         return 2
       fi
+      # Never silently redirect model files, projects, secrets, backups, or the
+      # Python environment to the system SSD via an existing directory symlink.
+      # Missing directories are fine during a genuinely fresh installation.
+      for component in \
+        models models/ollama projects workspaces \
+        state state/openclaw state/webui state/webui/data \
+        state/cloud state/web-access runtime runtime/venv \
+        runtime/generated proofs backups; do
+        if [[ -L "/IA/Openclaw/$component" ]]; then
+          echo "STORAGE_RESULT=REFUSED: répertoire runtime lié interdit: $component" >&2
+          return 2
+        fi
+      done
       if [[ -e "$root" && ! -d "$root" ]]; then
         echo "STORAGE_RESULT=REFUSED: chemin de données non répertoire" >&2
         return 2
