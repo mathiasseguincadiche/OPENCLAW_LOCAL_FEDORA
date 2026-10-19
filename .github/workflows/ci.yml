@@ -197,3 +197,104 @@ jobs:
           /tmp/clawfedora45-venv/bin/python scripts/validation/check_python_lock.py
           /tmp/clawfedora45-venv/bin/clawfedora validate
           /tmp/clawfedora45-venv/bin/pytest -q
+
+  lock-candidates:
+    name: lock-candidates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.13"
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+      - name: Produce exact npm closure candidate from selected versions
+        run: |
+          mkdir -p /tmp/claw-closure
+          python - <<'PY'
+          import json
+          import pathlib
+          import yaml
+          manifest = yaml.safe_load(pathlib.Path("config/runtime_versions.yaml").read_text())
+          p = {
+              "name": "clawfedora-runtime-closure",
+              "version": "0.1.0",
+              "private": True,
+              "dependencies": {
+                  "openclaw": manifest["openclaw"]["version"],
+                  "@openclaw/parallel-plugin": manifest["openclaw"]["plugins"]["parallel"]["version"],
+              },
+          }
+          pathlib.Path("/tmp/claw-closure/package.json").write_text(json.dumps(p, indent=2) + "\n")
+          PY
+          npm install --package-lock-only --prefix /tmp/claw-closure --ignore-scripts --no-audit --no-fund
+          npm ci --prefix /tmp/claw-closure --ignore-scripts --no-audit --no-fund
+          npm ls --all --prefix /tmp/claw-closure >/dev/null
+      - name: Export fully hashed Python production closure candidates
+        run: |
+          python - <<'PY'
+          import concurrent.futures
+          import json
+          import pathlib
+          import re
+          import urllib.request
+
+          roots = {}
+          for line in pathlib.Path("config/python-runtime-constraints.txt").read_text().splitlines():
+              line = line.strip()
+              if not line or line.startswith("#"):
+                  continue
+              name, version = line.split("==", 1)
+              roots[name] = version
+
+          def get_one(item):
+              name, version = item
+              url = "https://pypi.org/pypi/" + name + "/" + version + "/json"
+              with urllib.request.urlopen(url, timeout=25) as res:
+                  data = json.load(res)
+              hashes = set()
+              for file in data["urls"]:
+                  filename = file["filename"].lower()
+                  if file["packagetype"] == "sdist":
+                      hashes.add(file["digests"]["sha256"])
+                  elif file["packagetype"] == "bdist_wheel" and (
+                      ("none-any.whl" in filename)
+                      or ("x86_64" in filename and "linux" in filename)
+                  ):
+                      hashes.add(file["digests"]["sha256"])
+              if not hashes:
+                  raise RuntimeError("No Linux x86_64 or source artifact: " + name)
+              return name, version, sorted(hashes)
+
+          with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+              rows = list(pool.map(get_one, roots.items()))
+          output = "# Reviewed public PyPI sdist and Linux x86_64 wheel SHA-256 hashes.\n"
+          output += "# Generated from the exact production versions in python-runtime-constraints.txt.\n"
+          for name, version, hashes in sorted(rows):
+              output += name + "==" + version
+              for digest in hashes:
+                  output += " \\\n    --hash=sha256:" + digest
+              output += "\n"
+          pathlib.Path("/tmp/python-runtime-hashes.txt").write_text(output)
+          print("PYTHON_HASH_PACKAGES=" + str(len(rows)))
+          PY
+      - name: Emit lockfile candidates for review (temporary acquisition job)
+        run: |
+          python - <<'PY'
+          import pathlib
+          for label, name in [
+              ("NPM_LOCK", "/tmp/claw-closure/package-lock.json"),
+              ("NPM_MANIFEST", "/tmp/claw-closure/package.json"),
+              ("PYTHON_LOCK", "/tmp/python-runtime-hashes.txt"),
+          ]:
+              content = pathlib.Path(name).read_text()
+              print(f"{label}_BEGIN")
+              for index in range(0, len(content), 2000):
+                  print(f"{label}_CHUNK|" + content[index:index + 2000].replace("\n", "\\n"))
+              print(f"{label}_END")
+          PY
