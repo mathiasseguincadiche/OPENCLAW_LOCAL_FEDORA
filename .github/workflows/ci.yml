@@ -215,6 +215,7 @@ jobs:
           node-version: "24"
       - name: Produce exact npm closure candidate from selected versions
         run: |
+          python -m pip install "PyYAML==6.0.3"
           mkdir -p /tmp/claw-closure
           python - <<'PY'
           import json
