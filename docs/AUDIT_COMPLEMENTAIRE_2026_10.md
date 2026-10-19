@@ -1,5 +1,8 @@
 # Audit complémentaire après OpenClaw 2026.10.3
 
+> **Archive de conception 2026 — non normative.** Ce document conserve les décisions et audits historiques. Ses anciennes versions, procédures et priorités ne décrivent pas nécessairement le socle courant. Consulter [l'état actuel](../STATUS.md), le [sommaire des archives](archives/2026/README.md) et [l'installation Fedora 45](INSTALLATION_SIMPLE_FEDORA45.md) avant toute commande.
+
+
 Cet audit distingue les **défauts prouvés dans le code** des **risques à qualifier sur Fedora**. Les tests CI verts du dépôt n'attestent pas que les installateurs distants, la première installation WebUI 0.12.1, la B580 ou une restauration ont été éprouvés de bout en bout.
 
 ## Défaut corrigé : dépendances de production manquantes
