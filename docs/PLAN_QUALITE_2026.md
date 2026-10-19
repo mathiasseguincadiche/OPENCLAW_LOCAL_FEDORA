@@ -1,5 +1,8 @@
 # Plan de qualité vérifiable — OpenClaw / Fedora / Open WebUI
 
+> **Archive de conception 2026 — non normative.** Ce document conserve les décisions et audits historiques. Ses anciennes versions, procédures et priorités ne décrivent pas nécessairement le socle courant. Consulter [l'état actuel](../STATUS.md), le [sommaire des archives](archives/2026/README.md) et [l'installation Fedora 45](INSTALLATION_SIMPLE_FEDORA45.md) avant toute commande.
+
+
 **Situation :** première installation directement prévue sur Open WebUI **v0.12.3-slim** ;
 aucune conversion de 0.11.4 n'est demandée sur une machine encore vierge.
 Le téléchargement est verrouillé au digest effectif par Podman avant de générer systemd,

@@ -1,19 +1,22 @@
 schema_version: 1
 repository:
-  description: "Atelier IA local — Infrastructure & OPS : une IA sur son PC pour discuter, apprendre le DevOps et mener des projets, avec Qwen partagé par sept rôles OpenClaw sur Fedora 45 GNOME 51, et un cloud facultatif borné à 25 € par mois."
+  description: "Atelier IA hybride DevOps sur Fedora 45 : Qwen 3.5 local, DeepSeek cloud facultatif, 7 rôles OpenClaw, Intel Arc B580 et projets sur /IA."
   homepage: null
   topics:
     - fedora
     - fedora-linux
     - openclaw
     - local-ai
+    - local-first
     - llm
+    - infrastructure-as-code
     - multi-agent
     - vulkan
     - intel-arc
     - intel-arc-b580
     - ollama
     - openrouter
+    - open-webui
     - devops
     - python
     - systemd

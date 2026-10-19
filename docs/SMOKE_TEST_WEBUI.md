@@ -1,4 +1,6 @@
-# Test de fumée Open WebUI — Fedora 45 Workstation + GNOME 51
+# Réception avancée Open WebUI — Fedora 45 Workstation / GNOME 51
+
+> **Facultatif lors de la première installation.** Pour commencer rapidement, suivre [l’installation simple](INSTALLATION_SIMPLE_FEDORA45.md), exécuter `./menu.sh --action quick-check`, puis essayer une vraie conversation et un projet. Ce protocole approfondi sert à qualifier les options supplémentaires (voix, formulaires, streaming, cloud, sauvegarde).
 
 Ce test valide ce que la CI ne peut pas prouver : l'image Open WebUI réellement exécutée, le
 navigateur, le micro, la B580, le stockage des uploads et le vrai fournisseur cloud. Il se fait
@@ -24,9 +26,8 @@ la bonne lisibilité du diagramme.
 
 ```bash
 ./menu.sh --action install --apply
-./menu.sh --action context-probe --apply
 ./menu.sh --action webui-install --apply
-./menu.sh --action health
+./menu.sh --action quick-check
 ./menu.sh --action webui-status
 ```
 

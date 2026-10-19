@@ -1,237 +1,68 @@
-# État du projet hybride Qwen + DeepSeek
+# État du projet — Atelier IA hybride Fedora
 
-> **Base logicielle du 18 octobre 2026 (révision des versions) :** OpenClaw et plugin Parallel 2026.10.4, Ollama 0.40.6 et Open WebUI 0.12.3-slim sont sélectionnés pour la première installation. Les empreintes officielles SHA-512/SHA-256 d'OpenClaw et d'Ollama sont figées dans `config/install_artifact_integrity.json`. Le tag Open WebUI sera résolu en digest Podman à l'installation. **Cette mise à jour du code ne constitue pas un essai sur Fedora 45/B580 ni une preuve de restauration ou de qualité des agents.** Les paragraphes datés du 14 octobre ci-dessous constituent l'historique de la base précédente, et non les versions courantes.
+**Référence logicielle : 18 octobre 2026.** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
+## Résumé vérifiable
 
-Dernière mise à jour documentaire : 14 octobre 2026 (socle neuf sous versions stables).
+| Dimension | Statut | Preuve ou limite |
+| --- | --- | --- |
+| **Code, règles et installation** | Vérifié par CI | Tests Python 3.12/3.13, ShellCheck, contrats Fedora 45 et validation OpenClaw native |
+| **Dernière CI examinée** | Succès, 18 octobre 2026 | [Exécution #39173154017](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39173154017) — 9 jobs réussis, 962 tests, 85,71 % de couverture |
+| **Analyse statique** | Succès | [CodeQL #39173153872](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39173153872), Python et JavaScript |
+| **Montage et stockage `/IA/Openclaw/`** | Implémenté, pas encore qualifié sur le poste | Refus d’installation/démarrage si le montage secondaire attendu manque |
+| **Fedora 45 / GNOME 51 / B580** | **À faire** | Installation et vérification de l’OS, pilote `xe`, Vulkan, affichage, veille sur le PC réel |
+| **Qwen local et contexte 8K–32K** | Implémenté | Inférence courte dans `quick-check` ; débit réel, VRAM et contexte optimal **À mesurer** |
+| **Open WebUI 0.12.3** | Implémenté/testé en simulation ou intégration partielle | Navigateur, boutons, fichiers et microphone **À faire** en réception réelle |
+| **Sept rôles et projets multiples** | Contrats et tests automatisés | Qualité pédagogique et usage réel des projets **À mesurer** |
+| **Cloud OpenRouter / DeepSeek** | Filtre, budget, accords simulés et testés | Appel fournisseur et facturation réels **À faire**, uniquement avec accord |
+| **Sauvegarde / restauration** | Tests de restauration et SQLite fictif réussis | Restauration du vrai état de l’installation **À faire** |
 
-## Où en est-on
+Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n’a pas encore été réceptionné sur cette machine**.
 
-| | État |
-|---|---|
-| Code, scripts et configuration | Écrits et testés automatiquement |
-| Configuration acceptée par le vrai OpenClaw 2026.10.3 | Vérifié à chaque modification |
-| Consignes des rôles non tronquées, prompt dans le contexte | Vérifié à chaque modification |
-| Installation sur le PC Fedora | **À faire** |
-| Carte graphique utilisée, contexte de 32K tenu en mémoire vidéo | **À mesurer** |
-| Vitesse et qualité des réponses de Qwen | **À mesurer** |
-| Recherche Web des rôles (fournisseur gratuit `parallel-free`) | Configuration validée avec le vrai OpenClaw ; fonctionnement réel **à vérifier** ([Premier essai](docs/fiches/02-premier-essai.md)) |
-| Cloud : filtre, budget, activation, accord par projet, pause visible | Écrits et testés avec le vrai OpenClaw et un faux fournisseur |
-| Cloud avec le vrai OpenRouter (appel réel, coût réel, limite de clé) | **À faire** |
-| Test de fumée du cloud sur le PC ([fiche 12](docs/fiches/12-cloud.md)) | **À faire** |
-| Qualité de DeepSeek V4.1 Flash sur les usages visés | **À mesurer** à l'usage |
-| Open WebUI : conduite complète des projets, uploads, pratique guidée | **Implémenté et couvert par tests automatiques** ; cycle de vie corrigé (arrêt des quatre services) |
-| Voix locale : Whisper CPU/int8 + TTS local | **Implémenté ; essai micro/latence à faire sur Fedora** |
+## Versions déclarées pour la première installation
 
-Tant que les lignes « À faire » et « À mesurer » ne sont pas faites, rien n'est prouvé sur la machine ni avec le vrai fournisseur cloud. La marche à suivre est dans [Premier essai](docs/fiches/02-premier-essai.md).
+| Couche | Version/configuration dans le dépôt |
+| --- | --- |
+| Hôte | Fedora 45 Workstation, GNOME 51, Wayland |
+| OpenClaw + plugin Parallel | `2026.10.4` |
+| Ollama | `0.40.6` |
+| Open WebUI | `v0.12.3-slim`, image résolue par digest à l’installation |
+| Modèle local obligatoire | `qwen3.5:9b-q4_K_M` |
+| Route cloud facultative | `deepseek/deepseek-v4.1-flash` via OpenRouter |
+| Budget cloud | 25 €/mois, activation et consentement explicites |
+| Racine des données | `/IA/Openclaw/` sur le deuxième disque monté sous `/IA` |
 
-## Stabilisation du code du 14 octobre 2026
+**Sources canoniques :** [versions](config/runtime_versions.yaml), [modèles](config/model_catalog.yaml), [plateforme](config/platform.yaml), [politique WebUI](config/webui_policy.yaml) et [politique cloud](config/core/cloud_policy.yaml). Le verrou des versions de production Python est décrit [ici](docs/PYTHON_RUNTIME_LOCK.md). **Une version déclarée n’est pas la preuve de sa présence sur le PC.**
 
-Cinq correctifs ont été **fusionnés après CI, CodeQL et Dependency Review verts**
-([#110](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/110) à
-[#114](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/114)) :
+## Démarrer sans campagne de tests lourds
 
-- bootstrap Python sans mise à niveau non bornée, `pip check` et contrôle de cohérence npm ;
-- WebUI 0.12.1-slim sélectionné dès l'installation neuve, référence finale verrouillée par digest Podman ; canary isolé facultatif ;
-- passerelle OpenRouter sans redirections ni proxys implicites, plafonds inchangés ;
-- comparaison **humaine** locale/cloud des sept rôles, sans appel modèle ni classement automatique ;
-- précontrôle système sensible aux unités désactivées au démarrage, sondes locales sans redirection.
+1. Installer Fedora 45 stable et monter le disque secondaire sur `/IA`.
+2. Installer l’atelier et WebUI selon [la procédure simple](docs/INSTALLATION_SIMPLE_FEDORA45.md).
+3. Exécuter **`./menu.sh --action quick-check`** : une réponse Qwen courte, vérification de la B580, des services, des interfaces et des projets.
+4. Poser une question réelle dans Open WebUI et créer un projet de test. Si le résultat est satisfaisant, commencer à travailler.
 
-**Ces résultats sont des preuves de tests du code, pas des essais sur le PC cible**.
-Les dépendances transitives ne sont pas entièrement verrouillées ; Open WebUI
-est directement défini en `v0.12.1-slim` pour la première installation, avec un digest Podman figé au déploiement ; l'exactitude des
-profils OpenRouter et de la facturation reste à mesurer sur un compte réel.
-Le bootstrap et les contrats sont désormais **ciblés exclusivement sur Fedora 45 + GNOME 51/Wayland**. Au 14 octobre 2026, Fedora 45 est encore en bêta : la CI est une validation logicielle de préversion, **pas une preuve de compatibilité avec la publication finale ni le PC**.
+Les benchmarks poussés, la série de cycles veille/reprise et les canaries (voix, streaming, vision) sont disponibles dans [les diagnostics avancés](docs/validation/README.md), **sans obligation au premier lancement**.
 
-## Baseline de première installation — 14 octobre 2026
+## Protections et limites du fonctionnement
 
-- **OpenClaw 2026.10.3** et **Parallel 2026.10.3** épinglés, archives npm vérifiées.
-- **Ollama 0.40.4** épinglé par SHA-256 officiel.
-- **Open WebUI 0.12.1-slim** directement : le tag de version stable n'est pas utilisé dans systemd ; l'installateur résout et fige un `@sha256` via Podman. Aucune migration de 0.11.4 sur un PC encore vierge.
-- **Fedora 45 Workstation + GNOME 51/Wayland** est le seul système hôte accepté pour la première installation. Fedora 44 est explicitement refusée. Au 14 octobre 2026, Fedora 45 est encore en bêta : attendre la publication officielle ciblée au **20 octobre 2026** (report possible), puis faire les essais réels.
-- Les tests Fedora/B580, navigateur, STT/TTS, Qwen et OpenRouter réels demeurent à faire en réception finale.
+- **Une génération à la fois** : les projets sont persistants et indépendants, mais l’exécution GPU est partagée ; aucune file FIFO durable n’est garantie.
+- **Pas de déploiement autonome** : les agents produisent des propositions, scripts et documents ; l’utilisateur approuve et exécute les actions sensibles.
+- **Cloud désactivé par défaut** ; pas de bascule locale vers DeepSeek cachée. Un accord cloud sur un projet ne garantit pas qu’un contenu privé soit publiable.
+- Les outils `web_search` et `web_fetch` peuvent accéder à Internet même en mode local ; un [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) est prévu.
+- Le streaming SSE et la vision avancée sont disponibles sous **canary contrôlé**, pas activés ni qualifiés par défaut.
+- Le verrou Python fixe des versions transitives de production, **pas tous les hashes de wheels** ; npm et les extras voix ne sont pas intégralement verrouillés. Voir [les limites de reproductibilité](docs/PYTHON_RUNTIME_LOCK.md).
+- Les sauvegardes locales ne sont **pas chiffrées** et résident initialement sur le même volume ; garder une copie externe protégée.
+- Les fichiers proposés par les agents ne sont pas la preuve d’un déploiement Terraform/Ansible réussi.
 
-## Lire et comprendre le projet
+## Travaux restant ouverts, sans bloquer le premier usage
 
-Le [README](README.md) présente le projet comme **hybride**, et [la stratégie Qwen + DeepSeek](docs/ARCHITECTURE_HYBRIDE.md) explique quand et pourquoi utiliser chaque moteur ; le [guide](docs/GUIDE.md) permet de découvrir l'atelier dans l'ordre. La fiche [Rôles et outils](docs/fiches/07-roles-et-outils.md) distingue précisément les droits des sept agents ; [Comment ça marche](docs/fiches/11-comment-ca-marche.md) explique les ports, flux et limites de preuve. Le [parcours DevOps](docs/EXEMPLE_PARCOURS_DEVOPS.md) est **fictif et pédagogique**, pas un test effectué.
+| Suivi | Pourquoi c’est encore ouvert |
+| --- | --- |
+| [#122](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/122) | Qualification réelle Fedora 45 / B580 |
+| [#123](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/123) | Réception WebUI, fournisseur OpenRouter, voix et restauration réelle |
+| [#126](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/126) | Intégrité réseau et verrouillage transitif complet |
+| [#124](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/124) | File persistante multi-projets facultative |
 
-Les deux diagrammes de `docs/diagrams/` sont des **représentations logiques du code**, non des preuves d'exécution physique. Les critères et mesures manquants restent ceux décrits dans ce document.
+Les anciennes étapes d’octobre (OpenClaw 2026.10.3, Ollama 0.40.4, WebUI 0.12.1, migration depuis Fedora 44) appartiennent à [l’historique de 2026](docs/archives/2026/README.md), **pas aux versions de la nouvelle installation**.
 
-## Profils de raisonnement DeepSeek
-
-Le code propose trois **profils globaux** de raisonnement DeepSeek,
-`rapide` (`low`/4K), `equilibre` (`medium`/8K) et `approfondi`
-(`xhigh`/32K, valeur historique par défaut). Seul l'opérateur
-peut enregistrer un changement via `cloud-set-profile --value ... --apply`.
-Le fichier est privé, le verrou worker interdit de changer le profil
-durant une génération normale et la passerelle plafonne la réponse
-**avant** la réservation du budget. Les contrôles du consentement,
-de la confidentialité et de prix ne sont pas modifiés.
-
-**À qualifier en dernier :** bonne application de `reasoning.effort`
-par le véritable hébergeur DeepSeek sous OpenRouter, facture, latence,
-qualité réelle des sorties et impact sur les itérations. Le réglage
-reste global et manuel, jamais une sélection automatique par tâche.
-
-## Choix de modèle assisté
-
-La commande `!modele` et le raccourci Open WebUI **Quel modèle choisir ?**
-fournissent un **conseil déterministe local** selon des catégories métier.
-Ils ne consultent aucune conversation, ne modifient pas le modèle sélectionné,
-n'envoient rien au cloud et **ne valident pas** la confidentialité des sources.
-L'interface réelle et la pertinence des conseils restent à vérifier lors des
-essais finaux. La sélection automatique par tâche n'est toujours pas implémentée.
-
-## Qualification de l'efficacité du système hybride
-
-**Objectif technique :** Qwen local pour les tâches courantes et privées, DeepSeek cloud pour les dossiers publics difficiles et les analyses multi-fichiers. Les sept rôles partagent les mêmes outils ; la route est choisie explicitement et le consentement cloud d'un projet s'applique au **projet**.
-
-**Ce qui est vérifié :** la présence des deux routes dans les politiques, les filtres et budgets simulés, les règles de blocage et l'absence de bascule locale → cloud cachée.
-
-**Ce qui n'est pas vérifié :** la qualité comparative Qwen/DeepSeek, l'amélioration réelle du temps de travail, le coût facturé et la sélection du fournisseur sur le véritable PC. Le routage automatique par difficulté/tâche n'est **pas implémenté**.
-
-→ [Pourquoi l'architecture est hybride](docs/ARCHITECTURE_HYBRIDE.md) · [Comment comparer les modèles](docs/DECISION_MODELE.md).
-
-## Qualité des explications en local
-
-Rien n'est encore mesuré sur ta machine. Les résultats publics de DeepSeek V4.1 Flash sont très solides sur les tâches agentiques, le code et l'usage d'outils, mais ils ne constituent pas un test direct de pédagogie face à Qwen 3.5 9B. La règle reste donc simple : Qwen local par défaut pour le quotidien et le confidentiel ; DeepSeek cloud, sur demande, pour les questions publiques complexes, les longues analyses et les tâches où un modèle plus puissant apporte une vraie valeur. La comparaison sur tes propres questions décidera ensuite s'il faut donner plus de place au mentor cloud. Voir [Quel modèle pour expliquer](docs/DECISION_MODELE.md) et [Apprendre](docs/fiches/05-apprendre.md).
-
-## Mesures sur le PC
-
-À remplir après `./menu.sh --action context-probe --apply`.
-
-| Date | Contexte | Verdict | Tokens/s en sortie | Tokens/s en lecture | Mémoire vidéo |
-|---|---|---|---|---|---|
-| | 32 768 | | | | |
-
-## Vérification des preuves de CI publiques
-
-La commande `clawfedora-ci-proof` vérifie en lecture seule le **statut global**
-d'un pipeline public GitHub/GitLab via l'API officielle, après comparaison
-de l'identifiant d'exécution et du SHA du commit. L'option `--jobs` fournit
-désormais une liste bornée des métadonnées de jobs publics rattachés au pipeline ;
-toute pagination non vérifiable est refusée. Elle **ne télécharge pas**
-de journaux et ne valide pas les artefacts, les déploiements ou les backups.
-Sa logique est testée sur de faux API ; les appels réels sur Fedora et les
-connecteurs privés restent à qualifier. [Guide](docs/PREUVES_CI_GITHUB_GITLAB.md).
-
-## Exécuteur de validation DevOps
-
-**Ce validateur est totalement facultatif, et non une dépendance du système IA natif Fedora.**
-Le code du [validateur DevOps isolé](docs/LABORATOIRE_DEVOPS.md) fournit
-une CLI séparée des agents, avec exécution Podman contrôlée et
-approbation `--apply`. Si l'utilisateur souhaite s'en servir, il reste
-à qualifier une image OCI de validateurs **sans imposer Rocky Linux**
-et les essais Podman réels. Aucun agent ne lance Terraform, Ansible
-ou la CI sur l'hôte.
-
-## Évaluation des agents, préparation
-
-Le dépôt comporte une **suite synthétique fixe de sept scénarios métier**, une CLI `clawfedora-evals` et un format de revue humaine. Cela vérifie la structure du plan et la complétude des notes, **pas** la qualité réelle de Qwen ou DeepSeek. Les résultats comparatifs seront établis seulement lors de la qualification finale. [Mode d'emploi](docs/EVALUATION_AGENTS.md) · [Programme global](docs/PROGRAMME_AMELIORATION_2026.md).
-
-## Documents de conversation et exports vérifiables
-
-Le chat **local sans projet** peut désormais produire des aperçus de petits PDF
-contenant du texte et de fichiers Office (DOCX, PPTX, XLSX), sous limites de
-taille et de contexte. Sans activation, les images PNG/JPEG/WebP ne fournissent que leurs
-**métadonnées vérifiées**. La nouvelle voie de **vision locale Qwen** est
-strictement canary (marqueur privé 0600) et ne touche jamais OpenRouter ;
-les images et PDF scannés courts peuvent alors être décrits par Qwen
-après prévalidation et verrou worker. La précision visuelle sur B580 n'est
-**pas encore qualifiée**. Les PDF
-scannés sans texte, les archives et les usages cloud avec fichiers restent
-refusés dans cette voie. Tests simulés intégrés (PR #97), rendu réel Open WebUI
-à vérifier sur Fedora.
-
-La commande humaine `clawfedora-doc-bundle` assemble jusqu'à 16 sections
-Markdown relues en source éditable, PDF, DOCX et manifeste SHA-256, sans
-écrasement ni exécution d'agent (PR #93). L'outil Draw.io accepte désormais
-un fichier éditable de **1 à 8 vues indépendantes** (PR #98), dont seule la
-première est représentée dans le SVG/Mermaid d'aperçu. Les qualités visuelles
-et pédagogiques des exports doivent encore être inspectées manuellement.
-
-## Pilotage visuel des projets Open WebUI
-
-Le plugin Action propose **six boutons en lecture seule**, dont **Voir les sources**, **huit
-boutons de transition** (analyse, plan, lancer, pause, reprise, audit,
-relecture, préparation de livraison), plus trois formulaires : **Créer
-un projet**, **Répondre à une précision** et **Demander une révision**.
-Une action mutante exige la confirmation du navigateur ; la création,
-la révision et la livraison conservent ensuite la phrase d'approbation
-indépendante, émise par le pont. Les tests couvrent des dialogues simulés,
-les appels du pont, l'absence d'historique transmis par les boutons et
-les cas d'annulation. **Le rendu sur le véritable Open WebUI et la
-fiabilité de ses dialogues restent non qualifiés sur Fedora.**
-Le formulaire de révision ne change aucun livrable au premier clic :
-le moteur calcule les tâches affectées et émet un code distinct à saisir
-dans le chat. La soumission guidée de fichiers reste disponible par
-commande, sans formulaire dédié.
-
-## Streaming SSE natif — PR #89 et #90
-
-Le streaming est **raccordé au pont Open WebUI dans le code** pour le chat
-simple du Mentor Qwen local ; il est **désactivé par défaut**. L'activation
-canary volontaire exige un marqueur privé `0600`, la prévalidation
-OpenClaw/Ollama/modèle/rôles, un Gateway en boucle locale et son jeton
-opérateur privé côté serveur. Les commandes, projets, autres rôles,
-pièces jointes et appels DeepSeek conservent leur chemin habituel. La
-révocation canary force `enabled=false` dans le patch du Gateway. Les PR
-[#89](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/89)
-et [#90](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/90)
-sont fusionnées, avec CI/CodeQL verts. **Aucun flux réel n'a encore été
-qualifié sur Fedora/Open WebUI** : ne pas confondre canary disponible,
-activation et validation physique. [Activation et rollback](docs/STREAMING_SSE_PREPARATION.md).
-
-## Séparation entre l'atelier IA Fedora et une VM de formation
-
-**Le projet IA fonctionne sur Fedora :** OpenClaw et ses sept rôles,
-Ollama/Qwen, la passerelle DeepSeek, le moteur de projets et les données
-sont hébergés sur Fedora ; Open WebUI utilise Podman rootless
-sur ce même hôte. **Rocky Linux n'est ni un système hôte requis,
-ni une VM nécessaire, ni une dépendance de lancement de l'atelier.**
-Une VM Rocky de formation, si utilisée, appartient à un parcours
-DevOps externe au projet IA. Les priorités du dépôt sont désormais
-**canary et qualification du streaming Open WebUI**, cohérence des documents,
-puis **pilotage visuel des projets**.
-
-## Limites connues
-
-- Par défaut, les réponses du chat arrivent d'un bloc via le CLI ; le streaming SSE natif est raccordé en canary privé et reste à qualifier sur Fedora.
-- Une seule génération à la fois : le chat et l'atelier ne travaillent pas en même temps.
-- Le chat local transmet les 32 000 derniers octets de la conversation ; la route DeepSeek peut transmettre jusqu'à environ 3 Mio d'historique dans la limite du contexte cloud de 1 048 576 tokens.
-- Si le contexte doit être réduit à 16K, le chat ne garde plus qu'environ 500 mots d'historique. Voir [Réglages](docs/fiches/08-reglages.md).
-- Les rôles n'exécutent rien : les scripts proposés sont à lancer soi-même.
-- Cloud : le coût est une estimation prudente (facteur 1,3 € par dollar), pas une facture. Le relevé OpenRouter fait foi : l'enregistrer avec `cloud-reconcile`.
-- Cloud : le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allure. En cas de doute, rester en local.
-- Cloud : le choix par défaut du chat reste local ; rien ne part tant que le modèle « · cloud » n'est pas choisi. Le coût d'une discussion cloud n'est pas rattaché à un projet.
-- Les lots 9 à 15 d'[Open WebUI](docs/PLAN_INTEGRATION_WEBUI.md) sont implémentés : lecture/cadrage, exécution, audits, pratique guidée, livraison, uploads, import de secours et voix locale. Le rendu réel de l'interface, le micro, la latence vocale et les préfixes `!` / `/` restent à vérifier au test de fumée sur le PC.
-
-## Remise en ordre d'octobre 2026
-
-Le dépôt avait accumulé beaucoup de mécanismes sans rapport avec l'usage visé. Cette remise en ordre a :
-
-- corrigé le contexte, qui était saturé par les consignes avant le premier message (8 192 → 32 768 tokens) ;
-- fait parvenir aux rôles leurs consignes entières, alors qu'elles étaient tronquées ;
-- ajouté un contrôle qui exécute le vrai OpenClaw, pour que ce type de défaut ne repasse pas inaperçu ;
-- interdit au modèle l'outil qui lui permettait de mettre à jour OpenClaw ;
-- retiré ce qui ne servait pas l'usage quotidien : niveaux de « qualification » L2 à L8, comparaisons de modèles, moteur llama.cpp de rechange, compilation d'un noyau, ancien suivi de coûts cloud, télémétrie (le cloud revient, borné et facultatif, avec la migration hybride ci-dessous) ;
-- remplacé l'ancienne documentation dispersée par un guide et des fiches thématiques (le parcours de découverte a ensuite été enrichi).
-
-Le dépôt est passé d'environ 15 500 à 9 200 lignes de Python. Tout ce qui a été retiré reste dans l'historique Git.
-
-## Migration hybride d'octobre 2026
-
-Le plan est dans [PLAN_MIGRATION_HYBRIDE.md](docs/PLAN_MIGRATION_HYBRIDE.md) et la conception dans [PASSERELLE_CLOUD.md](docs/PASSERELLE_CLOUD.md). Une branche et une pull request par lot, sans fusion automatique :
-
-| Lot | Contenu |
-|---|---|
-| 1 | Correctif de l'attente des 8 outils + plan |
-| 2 | Consignes des rôles V2.3, contrôles de taille et de contrat |
-| 3 | Fondation de la passerelle cloud (désactivée par défaut) |
-| 4 | Exécuteur avec route cloud explicite, sans repli du local vers le cloud |
-| 5 | Passerelle locale, filtre de confidentialité, modes Apprendre et Travail |
-| 6 | Budget de 25 € réels, journal de tous les appels, activation contrôlée |
-| 7 | Atelier : accord par projet, pause visible, modèle et coût affichés |
-| 8 | Documentation, et sauvegardes qui n'emportent plus la clé du fournisseur |
-
-Hors périmètre pour l'instant, chacun sur nouvel accord : validateurs comme outils d'agent, contrôle des citations, Mistral Large 4 avec sous-plafond, registre de compétences, laboratoire d'exécution.
+[← Présentation](README.md) · [Documentation](docs/README.md) · [Historique des versions](CHANGELOG.md)

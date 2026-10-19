@@ -1,5 +1,8 @@
 # Archive historique — Migration OpenClaw 2026.9.8 → 2026.10.2
 
+> **Archive de conception 2026 — non normative.** Ce document conserve les décisions et audits historiques. Ses anciennes versions, procédures et priorités ne décrivent pas nécessairement le socle courant. Consulter [l'état actuel](../STATUS.md), le [sommaire des archives](archives/2026/README.md) et [l'installation Fedora 45](INSTALLATION_SIMPLE_FEDORA45.md) avant toute commande.
+
+
 > **Historique seulement.** Une installation neuve utilise désormais OpenClaw et
 > Parallel **2026.10.3**, Ollama **0.40.4** et Open WebUI **0.12.1**.
 > Aucun des passages ci-dessous n'est requis pour une machine jamais installée.

@@ -87,22 +87,28 @@ Pour une application Linux à déployer, l'intérêt est de ne pas mélanger arc
 
 ## 6. Préparer et installer Fedora
 
-Machine ciblée : Ryzen 7 7700, 48 Go de RAM, Intel Arc B580 (12 Go), Fedora 45 Workstation et GNOME 51. Installation et performance réelles **non encore qualifiées** sur ce PC.
+**Parcours recommandé :** installer Fedora 45 Workstation stable / GNOME 51 sur le SSD système, puis monter le second disque durablement sous **`/IA`**. Les données de l'atelier sont installées dans **`/IA/Openclaw/`**. La machine cible (Ryzen 7 7700, 48 Go, Arc B580) n'a pas encore fait l'objet d'une réception physique.
 
 ```bash
+findmnt --mountpoint /IA   # vérifier que le second disque est monté
 git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
 cd OPENCLAW_LOCAL_FEDORA
-./menu.sh --action install                 # d'abord un aperçu
+./menu.sh --action install                 # aperçu
 ./menu.sh --action install --apply
-./menu.sh --action health
-./menu.sh --action check-gpu
-./menu.sh --action context-probe --apply
-./menu.sh --action webui-install --apply
 ```
 
-**Où aller après installation :** Open WebUI `http://127.0.0.1:3000` ; Atelier Projets `http://127.0.0.1:18890`. Ces adresses sont **locales à ton PC**.
+Après reconnexion à la session Fedora pour prendre en compte les groupes GPU :
 
-→ [Installer sans deviner](fiches/01-installer.md) · [Mesurer vitesse et GPU](fiches/02-premier-essai.md).
+```bash
+./menu.sh --action webui-install --apply
+# Ouvrir http://127.0.0.1:3000 et créer le compte local
+./menu.sh --action webui-seal --apply
+./menu.sh --action quick-check
+```
+
+**Un seul contrôle rapide suffit pour commencer :** vérifier les services, la B580 et une courte réponse Qwen, puis essayer une vraie question dans WebUI et un petit projet. Les benchmarks 8K/16K/32K, stress tests et canaries ne sont pas des prérequis au premier usage.
+
+→ [Installer sans deviner](INSTALLATION_SIMPLE_FEDORA45.md) · [Réception technique facultative](validation/README.md).
 
 ## 7. Documents, dessins et validations : ne pas mélanger
 
@@ -130,9 +136,9 @@ La recherche Web d'un agent peut interroger Internet **même avec Qwen** : elle 
 
 ## 9. Quel est le vrai niveau de maturité ?
 
-Le code et les tests automatiques existent. En revanche, les performances GPU, la vraie compatibilité du conteneur Open WebUI, la voix, les uploads et le fournisseur cloud doivent être **essayés sur le PC Fedora**. Le chat ne diffuse pas encore les tokens progressivement et la migration 0.12 d'Open WebUI reste une **préqualification isolée**.
+Le code et les tests automatiques existent. Les performances GPU, la vraie compatibilité du conteneur Open WebUI, la voix, les uploads, la restauration et le fournisseur cloud doivent encore être **essayés sur le PC Fedora**. Le streaming SSE est préparé mais désactivé par défaut ; aucune migration WebUI historique n'est requise pour une installation neuve sous **Open WebUI 0.12.3**.
 
-→ [Ce qui est testé ou non](../STATUS.md) · [Test de fumée](SMOKE_TEST_WEBUI.md) · [Chantiers restants](PLAN_QUALITE_2026.md).
+→ [État actuel](../STATUS.md) · [Validation facultative](validation/README.md) · [Historique des plans](archives/2026/README.md).
 
 ## La bibliothèque, par besoin
 

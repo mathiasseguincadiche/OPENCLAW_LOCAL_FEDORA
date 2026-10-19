@@ -1,5 +1,8 @@
 # Plan : tout faire depuis Open WebUI
 
+> **Archive de conception 2026 — non normative.** Ce document conserve les décisions et audits historiques. Ses anciennes versions, procédures et priorités ne décrivent pas nécessairement le socle courant. Consulter [l'état actuel](../STATUS.md), le [sommaire des archives](archives/2026/README.md) et [l'installation Fedora 45](INSTALLATION_SIMPLE_FEDORA45.md) avant toute commande.
+
+
 > **Mise à jour du 18 octobre 2026 :** la première installation visée utilise désormais Open WebUI v0.12.3-slim. Les passages historiques évoquant v0.12.1 décrivent les étapes précédentes ; le verrouillage par digest Podman et les essais navigateur restent exigés.
 
 

@@ -4,6 +4,14 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 18 octobre 2026 — stockage secondaire, parcours court et refonte documentaire
+
+- PR [#135](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/135) et [#136](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/136) : runtime et projets dans `/IA/Openclaw/` sur disque monté ; lancement des services ordonné après ce montage ; commande `quick-check` pour une réception courte, sans stress test obligatoire.
+- PR [#127](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/127) à [#133](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/133) : mode Web privé explicite, migrations d’état opt-in, verrou de versions Python, vérifications Fedora 45, distinction des tests GPU 60 %/90 % et restauration synthétique de quatre projets et de la base WebUI.
+- Refonte documentaire : README raccourci et hiérarchisé, sommaires utilisateur / références techniques / validations facultatives / archives, `STATUS.md` actualisé, guide de premier démarrage sans tests coûteux et références d’intégrité synchronisées.
+- Les essais matériels Fedora/B580, la qualité réelle des agents et les appels/factures cloud ne sont toujours **pas** certifiés par la CI.
+
+
 ### 18 octobre 2026 — socle stable actualisé (qualification matérielle en attente)
 
 - OpenClaw et plugin Parallel : 2026.10.4 ; Ollama : 0.40.6 ; Open WebUI : v0.12.3-slim dès la première installation.
