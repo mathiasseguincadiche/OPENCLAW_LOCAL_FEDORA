@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+import json
+import os
+import runpy
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -105,3 +110,73 @@ def test_unmanaged_runtime_and_linked_directory_are_refused(tmp_path: Path) -> N
     (runtime / "state/web-access").symlink_to(tmp_path)
     with pytest.raises(ValueError, match="lié"):
         set_private_mode(runtime, True)
+
+# The native mode switch uses the same verifier against the *saved* OpenClaw
+# config, before restarting the Gateway. This test makes no network requests.
+web_verify = runpy.run_path(str(ROOT / "scripts/validation/verify_web_config.py"))
+
+
+@pytest.mark.parametrize("private", [True, False])
+def test_saved_native_config_matches_desired_web_policy(
+    tmp_path: Path, private: bool,
+) -> None:
+    runtime = managed(tmp_path)
+    if private:
+        set_private_mode(runtime, True)
+    patch = build_openclaw_patch(ROOT, runtime)
+    web_verify["verify_policy"](patch, private=private)
+    corrupt = json.loads(json.dumps(patch))
+    corrupt["tools"]["web"]["search"]["enabled"] = private
+    with pytest.raises(ValueError, match="globale"):
+        web_verify["verify_policy"](corrupt, private=private)
+    if private:
+        corrupt = json.loads(json.dumps(patch))
+        first = next(iter(corrupt["agents"]["entries"].values()))
+        first["tools"]["alsoAllow"].append("web_fetch")
+        with pytest.raises(ValueError, match="rôle"):
+            web_verify["verify_policy"](corrupt, private=True)
+
+
+def test_native_web_verifier_refuses_open_permissions_and_symlinks(tmp_path: Path) -> None:
+    runtime = managed(tmp_path)
+    set_private_mode(runtime, True)
+    patch = build_openclaw_patch(ROOT, runtime)
+    config = tmp_path / "openclaw.json"
+    config.write_text(json.dumps(patch), encoding="utf-8")
+    config.chmod(0o600)
+    web_verify["verify_file"](config, private=True)
+    command = [sys.executable, str(ROOT / "scripts/validation/verify_web_config.py"),
+               "--config", str(config), "--mode", "private"]
+    good = subprocess.run(command, capture_output=True, text=True, check=False)
+    assert good.returncode == 0
+    assert "WEB_CONFIG_RESULT=PASS" in good.stdout
+    config.chmod(0o644)
+    bad = subprocess.run(command, capture_output=True, text=True, check=False)
+    assert bad.returncode == 2
+    assert "REFUSED" in bad.stdout
+    assert "openclaw.json" not in bad.stdout
+    config.chmod(0o600)
+    link = tmp_path / "linked.json"
+    link.symlink_to(config)
+    with pytest.raises(ValueError, match="lié"):
+        web_verify["verify_file"](link, private=True)
+
+
+def test_private_mode_switch_is_dry_run_and_requires_explicit_apply() -> None:
+    env = {**os.environ, "OPENCLAW_LOCAL_FEDORA_ROOT": "/unmounted-private-test"}
+    for action in ("web-private", "web-connected"):
+        result = subprocess.run(
+            [str(ROOT / "menu.sh"), "--action", action],
+            capture_output=True, text=True, env=env, check=False,
+        )
+        assert result.returncode == 0, result.stderr
+        assert "WEB_ACCESS_DRY_RUN=PASS" in result.stdout
+    shell = (ROOT / "scripts/linux/17_web_access.sh").read_text(encoding="utf-8")
+    assert shell.index("systemctl --user stop openclaw-gateway.service") < shell.index(
+        'ops "$ACTION" --apply'
+    ) < shell.index('systemctl --user restart openclaw-gateway.service')
+    assert shell.index("verify_web_config.py") < shell.index(
+        'systemctl --user restart openclaw-gateway.service'
+    )
+    assert "WEB_ACCESS_RESULT=PASS" in shell
+    assert "claw_lock_worker" in shell
