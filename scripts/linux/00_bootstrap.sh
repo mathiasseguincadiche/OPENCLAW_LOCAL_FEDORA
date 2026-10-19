@@ -185,10 +185,20 @@ fi
 # made a reviewed bootstrap unexpectedly install newer build tooling each run.
 # PEP 517 may still resolve build requirements; lock that closure separately.
 as_target "$VENV/bin/python" -m pip --version
+# Install all 23 exact production packages with reviewed PyPI SHA-256
+# artifacts. Pip verifies downloaded bytes, including any selected sdist.
+# PEP517 build isolation is not yet a closed hash chain (tracked separately).
+as_target "$VENV/bin/python" "$REPO_ROOT/scripts/validation/check_dependency_artifact_locks.py"
+as_target "$VENV/bin/python" -m pip install --require-hashes \
+  -r "$REPO_ROOT/config/python-runtime-hashes.txt"
 if ((WITH_DEV == 1)); then
-  as_target "$VENV/bin/python" -m pip install --constraint "$REPO_ROOT/config/python-runtime-constraints.txt" -e "${REPO_ROOT}[dev]"
+  # Developer extras are intentionally out of the production hash scope.
+  as_target "$VENV/bin/python" -m pip install \
+    --constraint "$REPO_ROOT/config/python-runtime-constraints.txt" \
+    -e "${REPO_ROOT}[dev]"
 else
-  as_target "$VENV/bin/python" -m pip install --constraint "$REPO_ROOT/config/python-runtime-constraints.txt" -e "$REPO_ROOT"
+  # Prevent a second, unhashed resolver from pulling hidden production deps.
+  as_target "$VENV/bin/python" -m pip install --no-deps -e "$REPO_ROOT"
 fi
 
 # Fail before enabling runtime services if the installed Python environment is inconsistent.
