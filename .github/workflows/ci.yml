@@ -266,14 +266,14 @@ jobs:
 
           with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
               rows = list(pool.map(collect, parts.items()))
-          output = "# Fedora 45 Linux x86_64 speech dependencies, verified SHA-256.\\n"
+          output = "# Fedora 45 Linux x86_64 speech extras, reviewed SHA-256.\n"
           for name, version, hashes in sorted(rows):
               output += name + "==" + version
               for digest in hashes:
-                  output += " \\\\n    --hash=sha256:" + digest
-              output += "\\n"
+                  output += " \\\n    --hash=sha256:" + digest
+              output += "\n"
           print("SPEECH_LOCK_BEGIN")
           for i in range(0, len(output), 2000):
-              print("SPEECH_LOCK_CHUNK|" + output[i:i + 2000].replace("\\n", "\\\\n"))
+              print("SPEECH_LOCK_CHUNK|" + output[i:i + 2000].replace("\n", "\\n"))
           print("SPEECH_LOCK_END")
           PY
