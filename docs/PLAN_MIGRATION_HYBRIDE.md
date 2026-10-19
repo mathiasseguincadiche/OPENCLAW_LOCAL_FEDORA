@@ -1,5 +1,8 @@
 # Plan de migration hybride (OpenRouter + Qwen local)
 
+> **Archive de conception 2026 — non normative.** Ce document conserve les décisions et audits historiques. Ses anciennes versions, procédures et priorités ne décrivent pas nécessairement le socle courant. Consulter [l'état actuel](../STATUS.md), le [sommaire des archives](archives/2026/README.md) et [l'installation Fedora 45](INSTALLATION_SIMPLE_FEDORA45.md) avant toute commande.
+
+
 **Statut : les 8 lots sont implémentés et fusionnés dans `main` (9 octobre 2026). Ce qui n'est pas prouvé : le vrai OpenRouter, le PC Fedora, la qualité du modèle cloud actuel (voir la section 9 et la [fiche 12](fiches/12-cloud.md)).**
 Le dépôt reste 100 % local tant que le cloud n'est pas activé explicitement (voir « Garde-fou d'activation »).
 
