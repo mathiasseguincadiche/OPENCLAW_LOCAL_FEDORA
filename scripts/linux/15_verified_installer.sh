@@ -33,20 +33,33 @@ curl --fail --location --silent --show-error --proto '=https' --proto-redir '=ht
 "$PYTHON" "$VERIFY" verify "$KIND" "$PIN" "$ARCHIVE"
 if [[ "$KIND" == openclaw ]]; then
   command -v npm >/dev/null || { echo "npm requis pour OpenClaw" >&2; exit 127; }
-  # No unreviewed installer script is executed. The core package tarball is verified.
-  # npm transitive dependencies remain registry-managed and require further lockfile review.
-  # npm local installs link binaries into node_modules/.bin, not prefix/bin.
-  # Use user-scoped GLOBAL mode to match the executable used by all services.
-  npm install --global --prefix "$HOME/.openclaw" --ignore-scripts \
-    --no-audit --no-fund "$ARCHIVE"
-# A verified top-level archive does not guarantee a consistent dependency tree.
-  # Refuse a missing/invalid npm transitive dependency before touching services.
-  if ! npm ls --global --all --prefix "$HOME/.openclaw" >/dev/null; then
-    echo "Arbre de dépendances npm OpenClaw incomplet ou incohérent" >&2
-    exit 2
-  fi
-  [[ -x "$HOME/.openclaw/bin/openclaw" ]] || { echo "CLI npm OpenClaw introuvable" >&2; exit 2; }
+  # npm ci consumes a REVIEWED SHA512 package-lock including every registry
+  # dependency and npm-bundled child (protected by its parent archive). Unlike
+  # global npm install, it must refuse a changed transitive resolution.
+  "$PYTHON" "$REPO_ROOT/scripts/validation/check_supply_chain_locks.py"
+  "$PYTHON" "$REPO_ROOT/scripts/validation/verify_npm_artifact.py" verify openclaw "$ARCHIVE"
+  NODE_ROOT="$HOME/.openclaw/managed-runtime"
+  [[ ! -L "$HOME/.openclaw" && ! -L "$NODE_ROOT" ]] || {
+    echo "ERREUR: installation npm liée interdite" >&2; exit 2;
+  }
+  install -d -m 0700 "$HOME/.openclaw" "$NODE_ROOT" "$HOME/.openclaw/bin"
+  cp "$REPO_ROOT/config/npm-runtime/package.json" "$NODE_ROOT/package.json"
+  cp "$REPO_ROOT/config/npm-runtime/package-lock.json" "$NODE_ROOT/package-lock.json"
+  npm ci --prefix "$NODE_ROOT" --ignore-scripts --no-audit --no-fund
+  npm ls --all --prefix "$NODE_ROOT" >/dev/null || {
+    echo "Arbre npm verrouillé incohérent" >&2; exit 2;
+  }
+  [[ -x "$NODE_ROOT/node_modules/.bin/openclaw" ]] || {
+    echo "Binaire OpenClaw verrouillé absent" >&2; exit 2;
+  }
   TOOL="$HOME/.openclaw/bin/openclaw"
+  if [[ -e "$TOOL" || -L "$TOOL" ]]; then
+    [[ -L "$TOOL" && "$(readlink -- "$TOOL")" == "$NODE_ROOT/node_modules/.bin/openclaw" ]] || {
+      echo "ERREUR: commande OpenClaw préexistante non gérée" >&2; exit 2;
+    }
+  else
+    ln -s -- "$NODE_ROOT/node_modules/.bin/openclaw" "$TOOL"
+  fi
 else
   command -v zstd >/dev/null || { echo "zstd requis pour Ollama" >&2; exit 127; }
   command -v sudo >/dev/null || { echo "sudo requis pour Ollama" >&2; exit 127; }
