@@ -108,6 +108,16 @@ jobs:
         run: python scripts/validation/check_prompt_size.py
       - name: Native cloud route
         run: python scripts/validation/check_cloud_route.py
+      - name: Native Parallel plugin from SHA512-verified npm tarball
+        shell: bash
+        run: |
+          PLUGIN_URL="$(python scripts/validation/verify_npm_artifact.py url parallel)"
+          curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' --output "$RUNNER_TEMP/parallel-plugin.tgz" "$PLUGIN_URL"
+          python scripts/validation/verify_npm_artifact.py verify parallel "$RUNNER_TEMP/parallel-plugin.tgz"
+          export OPENCLAW_STATE_DIR="$RUNNER_TEMP/parallel-smoke-state"
+          mkdir -p "$OPENCLAW_STATE_DIR"
+          openclaw plugins install "npm-pack:$RUNNER_TEMP/parallel-plugin.tgz" --force
+          openclaw plugins list --json | jq -e '.plugins[]? | select(.id == "parallel" and .version == "2026.10.4")' >/dev/null
 
   python:
     name: python-${{ matrix.python-version }}
