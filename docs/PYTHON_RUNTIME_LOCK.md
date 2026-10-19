@@ -4,12 +4,12 @@ Les dépendances Python déclarées dans `pyproject.toml` ne sont pas toutes
 épinglées : PyYAML, par exemple, accepte une plage de versions. La fermeture
 Python **observée et installée** par la CI native Ubuntu/Python 3.12 au
 commit `13843fcc` a été inscrite dans
-`config/python-runtime-constraints.txt` (23 dépendances directes ou transitives).
+`config/python-runtime-constraints.txt` (24 dépendances directes, transitives ou de build).
 
 Le bootstrap Fedora 45 installe désormais le projet avec
 `pip install --constraint config/python-runtime-constraints.txt -e .` ;
 le module voix conserve les mêmes contraintes pour la partie commune.
-`scripts/validation/check_python_lock.py` compare les 23 versions exactes
+`scripts/validation/check_python_lock.py` compare les 24 versions exactes
 aux distributions installées et refuse les écarts. Une CI de production vierge
 exécute cette vérification en mode strict, sur **Python 3.12 et 3.13**.
 
@@ -23,7 +23,7 @@ python scripts/validation/check_python_lock.py --strict
 Le mode `--strict` suppose un environnement Python **dédié et vierge**,
 sans dépendances de développement ni composants voix. Dans le venv Fedora
 courant, exécuter sans `--strict` lorsque le module voix est installé ;
-toute divergence dans les 23 pins reste bloquante.
+toute divergence dans les 24 pins reste bloquante.
 
 ## Limites documentées — à ne pas confondre avec une fermeture à 100 %
 
