@@ -14,7 +14,7 @@ Les tests automatiques du dépôt vérifient que le logiciel est cohérent. Ils 
 
 Il vérifie le montage secondaire, une **courte génération Qwen sur la B580**, les services, WebUI et le dossier projets. Si le résultat est `READY_FOR_FIRST_PROJECT`, ouvre Open WebUI, pose une vraie question et crée ton premier projet. **Arrête-toi là si tout fonctionne.** Les benchmarks détaillés ci-dessous sont uniquement des diagnostics facultatifs.
 
-## 1. Les services tournent-ils ?
+## Diagnostic facultatif 1. Les services tournent-ils ?
 
 ```bash
 ./menu.sh --action health
@@ -22,7 +22,7 @@ Il vérifie le montage secondaire, une **courte génération Qwen sur la B580**,
 
 Chaque ligne commence par `PASS` ou `FAIL`. Un `FAIL` indique le composant en cause : va à [Dépanner](10-depanner.md).
 
-## 2. La carte graphique est-elle utilisée ?
+## Diagnostic facultatif 2. La carte graphique est-elle utilisée ?
 
 ```bash
 ./menu.sh --action check-gpu
@@ -31,7 +31,7 @@ journalctl -u ollama -b | grep -i -E "vulkan|B580|vram"
 
 Attendu : la B580 apparaît comme périphérique Vulkan dans le journal d'Ollama. Si seul le processeur apparaît, arrête-toi ici : sans carte graphique, les réponses seraient trop lentes pour être utilisables.
 
-## 3. Le contexte tient-il sur la carte, et à quelle vitesse ?
+## Diagnostic facultatif 3. Le contexte tient-il sur la carte, et à quelle vitesse ?
 
 ```bash
 ./menu.sh --action context-probe --apply
