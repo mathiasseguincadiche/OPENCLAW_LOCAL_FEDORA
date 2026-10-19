@@ -23,7 +23,7 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 
 | Couche | Version/configuration dans le dépôt |
 | --- | --- |
-| Hôte | Fedora 45 Workstation, GNOME 51, Wayland |
+| Hôte | Fedora 45 Workstation, GNOME 51, Wayland ; Python système 3.15 |\n| Runtime Python IA | Venv isolé Python 3.13 fourni par Fedora (compatibilité voix) |
 | OpenClaw + plugin Parallel | `2026.10.4` |
 | Ollama | `0.40.6` |
 | Open WebUI | `v0.12.3-slim`, image résolue par digest à l’installation |
