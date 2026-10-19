@@ -22,6 +22,8 @@ Le projet **ne lance pas de script distant `curl | bash`** pour installer OpenCl
 
 Dans le lock npm, les bibliothèques `inBundle` font partie du tarball parent authentifié par SHA-512 ; elles n'ont pas chacune une archive indépendante à télécharger. Les dépendances npm non incluses dans un bundle ont un `resolved` HTTPS et une empreinte. Les verrous Python contiennent les empreintes des wheels publiées pour ces versions, et aucun `sdist` n'est admis en installation de production/voix.
 
+Fedora 45 utilise Python **3.15** pour son système ; le bootstrap crée un venv de l'atelier avec **Python 3.13** installé en parallèle pour garantir les wheels compatibles. Aucune modification de `/usr/bin/python3` ni compilation depuis `sdist` n'est nécessaire.
+
 Les garanties ne sont pas absolues : le registre/éditeur amont n'est pas cryptographiquement attesté par une signature indépendante ; les paquets Fedora, outils de développement et modules WebUI ont des mécanismes distincts ; un paquet épinglé peut présenter une vulnérabilité. La CI valide une résolution **compatible avec ses environnements**, pas la qualité réelle de la B580 ou l'interface sur le PC utilisateur.
 
 ## Politique de mise à niveau
