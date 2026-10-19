@@ -14,7 +14,7 @@
 
 Les wheels Python de production et de voix sont **tous pinés par version et par SHA-256** dans les fichiers de requirements ; les manifests contiennent les hashes de chaque wheel officiel publié pour les versions retenues, pas seulement la wheel de la CI. Les sources `sdist` sont exclues en production et voix ; aucune dépendance de build PEP 517 ne doit être téléchargée implicitement lors de l'installation de l'application locale.
 
-La CI contrôle la validité des manifestes, la cohérence des versions et les installations propres Python 3.12/3.13, Fedora 45 et Node 24. Elle ne prouve pas la compatibilité avec toutes les versions de Python ou toutes les plateformes possibles.
+La CI contrôle la validité des manifestes, la cohérence des versions et les installations propres Python 3.12/3.13, Fedora 45 et Node 24. Sur Fedora 45, le système conserve **Python 3.15** ; l'atelier emploie son propre venv **Python 3.13** installé comme paquet Fedora séparé. Certaines wheels (notamment pyjson5 2.0.1) ne sont pas publiées pour CPython 3.15, donc interdire les sources compilées sur le Python système serait incompatible avec cette version du projet. Elle ne prouve pas la compatibilité avec toutes les versions de Python ou toutes les plateformes possibles.
 
 ## Procédure d'utilisation normale
 
