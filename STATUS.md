@@ -1,14 +1,14 @@
 # État du projet — Atelier IA hybride Fedora
 
-**Référence logicielle : 18 octobre 2026.** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
+**Référence logicielle : 19 octobre 2026.** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
 ## Résumé vérifiable
 
 | Dimension | Statut | Preuve ou limite |
 | --- | --- | --- |
 | **Code, règles et installation** | Vérifié par CI | Tests Python 3.12/3.13, ShellCheck, contrats Fedora 45 et validation OpenClaw native |
-| **Dernière CI examinée** | Succès, 18 octobre 2026 | [Exécution #39173154017](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39173154017) — 9 jobs réussis, 962 tests, 85,71 % de couverture |
-| **Analyse statique** | Succès | [CodeQL #39173153872](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39173153872), Python et JavaScript |
+| **Dernière CI examinée** | Succès, 19 octobre 2026 | [Exécution #39201731977](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39201731977) — 10 jobs réussis sur le commit post-fusion #141 |
+| **Analyse statique** | Succès | [CodeQL #39201731883](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39201731883), Python et JavaScript |
 | **Montage et stockage `/IA/Openclaw/`** | Implémenté, pas encore qualifié sur le poste | Refus si le volume secondaire manque, si le runtime contient des traversées de chemin ou si des répertoires sensibles sont des liens symboliques |
 | **Fedora 45 / GNOME 51 / B580** | **À faire** | Installation et vérification de l’OS, pilote `xe`, Vulkan, affichage, veille sur le PC réel |
 | **Qwen local et contexte 8K–32K** | Implémenté | Inférence courte dans `quick-check` ; débit réel, VRAM et contexte optimal **À mesurer** |
@@ -23,7 +23,8 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 
 | Couche | Version/configuration dans le dépôt |
 | --- | --- |
-| Hôte | Fedora 45 Workstation, GNOME 51, Wayland ; Python système 3.15 |\n| Runtime Python IA | Venv isolé Python 3.13 fourni par Fedora (compatibilité voix) |
+| Hôte | Fedora 45 Workstation, GNOME 51, Wayland ; Python système 3.15 |
+| Runtime Python IA | Venv isolé Python 3.13 fourni par Fedora (compatibilité voix) |
 | OpenClaw + plugin Parallel | `2026.10.4` |
 | Ollama | `0.40.6` |
 | Open WebUI | `v0.12.3-slim`, image résolue par digest à l’installation |
@@ -50,7 +51,7 @@ Les benchmarks poussés, la série de cycles veille/reprise et les canaries (voi
 - **Cloud désactivé par défaut** ; pas de bascule locale vers DeepSeek cachée. Un accord cloud sur un projet ne garantit pas qu’un contenu privé soit publiable.
 - Les outils `web_search` et `web_fetch` peuvent accéder à Internet même en mode local ; un [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) est pilotable par `web-private --apply`, avec contrôle de la configuration enregistrée et du redémarrage du Gateway ; son absence d'egress réseau réel reste à vérifier.
 - Le streaming SSE et la vision avancée sont disponibles sous **canary contrôlé**, pas activés ni qualifiés par défaut.
-- Le verrou Python fixe les versions et hashes SHA-256 des artefacts de production ; le verrou npm SHA-512 est appliqué par `npm ci`. Les dépendances temporaires de compilation PEP 517, les paquets Fedora et les extras voix/dev ne sont pas tous figés. Voir [les limites de reproductibilité](docs/PYTHON_RUNTIME_LOCK.md).
+- Le verrou Python fixe les versions et hashes SHA-256 des artefacts de production ; le verrou npm SHA-512 est appliqué par `npm ci`. Les extras voix sont verrouillés par SHA-256 et testés en CI Fedora 45 / Python 3.13. Les dépendances temporaires de compilation PEP 517, les paquets Fedora et les outils de développement ne sont pas intégralement figés. Voir [les limites de reproductibilité](docs/PYTHON_RUNTIME_LOCK.md).
 - Les sauvegardes locales ne sont **pas chiffrées** et résident initialement sur le même volume ; garder une copie externe protégée.
 - Les fichiers proposés par les agents ne sont pas la preuve d’un déploiement Terraform/Ansible réussi.
 
