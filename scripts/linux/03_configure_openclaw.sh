@@ -104,11 +104,28 @@ fi
 
 PLUGIN_JSON="$($OPENCLAW plugins list --json)"
 if ! jq -e '.plugins[]? | select(.id == "parallel")' >/dev/null <<<"$PLUGIN_JSON"; then
-  "$OPENCLAW" plugins install "npm:@openclaw/parallel-plugin@$PARALLEL_PIN" --pin
+  # Never let the plugin manager resolve an independent floating npm install.
+  # Install the exact published npm tarball after checking its SHA512 against
+  # the same reviewed lock used by npm ci for OpenClaw.
+  PLUGIN_URL="$("$PYTHON" "$REPO_ROOT/scripts/validation/verify_npm_artifact.py" url parallel)"
+  PLUGIN_TMP="$(mktemp -d -p "${TMPDIR:-/tmp}" clawfedora-plugin-XXXXXXXX)"
+  trap 'rm -rf -- "$PLUGIN_TMP"' EXIT
+  curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' \
+    --connect-timeout 15 --max-time 300 --output "$PLUGIN_TMP/parallel.tgz" "$PLUGIN_URL"
+  "$PYTHON" "$REPO_ROOT/scripts/validation/verify_npm_artifact.py" \
+    verify parallel "$PLUGIN_TMP/parallel.tgz"
+  # --force acknowledges local npm-pack provenance; its contents are the
+  # upstream npm artifact whose exact SHA512 was checked above.
+  "$OPENCLAW" plugins install "npm-pack:$PLUGIN_TMP/parallel.tgz" --force
 else
-  "$OPENCLAW" plugins update "@openclaw/parallel-plugin@$PARALLEL_PIN"
+  echo "PLUGIN_INFO: parallel déjà présent, aucune mise à jour implicite depuis npm"
 fi
 PLUGIN_JSON="$($OPENCLAW plugins list --json)"
+PLUGIN_VERSION="$(jq -r '.plugins[]? | select(.id == "parallel") | .version // empty' <<<"$PLUGIN_JSON" | head -n1)"
+[[ "$PLUGIN_VERSION" == "$PARALLEL_PIN" ]] || {
+  echo "ERREUR: version du plugin Parallel différente du verrou" >&2
+  exit 2
+}
 if [[ "$(jq -r '.plugins[]? | select(.id == "parallel") | .enabled' <<<"$PLUGIN_JSON" | head -n1)" != "true" ]]; then
   "$OPENCLAW" plugins enable parallel
 fi
