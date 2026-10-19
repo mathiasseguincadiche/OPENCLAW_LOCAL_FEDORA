@@ -1,0 +1,10 @@
+{
+  "name": "clawfedora-openclaw-runtime-lock",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Reviewed dependency closure for the native Fedora 45 OpenClaw runtime",
+  "dependencies": {
+    "openclaw": "2026.10.4",
+    "@openclaw/parallel-plugin": "2026.10.4"
+  }
+}
