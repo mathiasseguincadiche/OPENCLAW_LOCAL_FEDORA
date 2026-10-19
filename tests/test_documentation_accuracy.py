@@ -81,3 +81,12 @@ def test_historical_plans_are_identified_as_non_normative() -> None:
     for name in plans:
         path = ROOT / "docs" / name
         assert "Archive de conception 2026" in path.read_text(encoding="utf-8")
+
+
+def test_release_documentation_uses_real_line_breaks() -> None:
+    """Reject literal backslash-n left by programmatic Markdown updates."""
+    for name in ("STATUS.md", "docs/PYTHON_RUNTIME_LOCK.md"):
+        content = (ROOT / name).read_text(encoding="utf-8")
+        assert "\\n" not in content, f"{name}: escaped newline instead of Markdown line break"
+    status_lines = (ROOT / "STATUS.md").read_text(encoding="utf-8").splitlines()
+    assert any(line.startswith("| Runtime Python IA |") for line in status_lines)
