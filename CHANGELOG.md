@@ -8,6 +8,7 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 - Fermeture npm native exacte de OpenClaw 2026.10.4 et Parallel 2026.10.4 : `package-lock.json` version 3, résolution par `npm ci --ignore-scripts`, toutes les archives de registre sous SHA-512 ; paquets bundled couverts par l'archive parent.
 - Téléchargement du plugin Parallel depuis l'archive officielle avec vérification SHA-512 **avant** installation par le gestionnaire OpenClaw, sans `plugins update` flottant.
+- Fedora 45 garde Python 3.15 pour l'OS ; venv Python 3.13 spécifique à l'atelier, nécessaire aux wheels disponibles sans compilation depuis des sources.
 - Fermetures Python production/voix par `--require-hashes --only-binary` (SHA-256 des wheels officielles). Outillage PEP 517 intégré au verrou ; installation du code local avec `--no-deps --no-build-isolation`.
 - Générateur explicite de verrous pour les futures montées de version ; contrôle statique, tests de falsification et installation complète dans des environnements CI propres.
 - Les paquets Fedora, outils de développement et la réception matérielle B580 restent hors périmètre de ce verrou.
