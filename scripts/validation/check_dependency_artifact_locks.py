@@ -6,7 +6,6 @@ npm ci; real RPM/PEP517 build dependencies remain out of scope.
 from __future__ import annotations
 
 import base64
-import hashlib
 import json
 import re
 from pathlib import Path
