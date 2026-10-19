@@ -1,41 +1,33 @@
-# Installation : provenance et intégrité des composants
+# Installation vérifiée : versions, artefacts et dépendances
 
-**Référence du socle neuf (18 octobre 2026)** : Fedora 45 Workstation / GNOME 51, OpenClaw **2026.10.4**, plugin Parallel **2026.10.4**, Ollama **0.40.6**, Open WebUI **v0.12.3-slim**. Ces valeurs correspondent au [manifeste des versions](../config/runtime_versions.yaml) et à la [politique WebUI](../config/webui_policy.yaml). **Elles ne prouvent pas une installation réussie sur le PC cible.**
+**Révision : 19 octobre 2026.** Pour une installation neuve : Fedora 45 Workstation / GNOME 51, OpenClaw et plugin Parallel **2026.10.4**, Ollama **0.40.6** et Open WebUI **v0.12.3-slim**. [Versions canoniques](../config/runtime_versions.yaml) · [Politique WebUI](../config/webui_policy.yaml).
 
-Pour la procédure quotidienne, suivre [Installer Fedora et vérifier l'atelier](INSTALLATION_SIMPLE_FEDORA45.md) : le second disque doit être monté sur `/IA` et le runtime réside sous `/IA/Openclaw/`. **Les contrôles ci-dessous décrivent la sécurité de la chaîne d'installation, ils ne forment pas une deuxième installation à exécuter.**
+Pour l'utilisateur, seule la [procédure simple Fedora 45](INSTALLATION_SIMPLE_FEDORA45.md) est nécessaire. Les protections ci-dessous sont appliquées **automatiquement par les installateurs**, sans campagne de tests supplémentaire.
 
-## Composants et contrôles disponibles
+## Vérifications pendant l'installation
 
-| Élément | Origine et méthode | Garantie réellement apportée |
-| --- | --- | --- |
-| OpenClaw `2026.10.4` | Archive npm officielle | URL, version et SHA-512 figés dans [le manifeste d’intégrité](../config/install_artifact_integrity.json) |
-| Plugin Parallel `2026.10.4` | Extension OpenClaw configurée | Version fixée dans `runtime_versions.yaml`, conformité du schéma testée avec OpenClaw natif |
-| Ollama `0.40.6` | Archive Linux x86_64 officielle | SHA-256 vérifié **avant extraction** |
-| Open WebUI `v0.12.3-slim` | Image `ghcr.io/open-webui/open-webui` | Résolution en digest SHA-256 au premier déploiement ; unité systemd enregistrée avec le digest |
-| Python de production | `pip` avec fichier de contraintes | Versions directes et transitives communes contrôlées par [le verrou Python](PYTHON_RUNTIME_LOCK.md) |
-| Runtime et données | Second disque monté sous `/IA` | Refus avant installation si `/IA` n'est pas le montage distinct attendu ; rejet des chemins non canoniques et liens symboliques dans les dossiers gérés ; services conditionnés au montage |
+| Composant | Vérification effectuée |
+| --- | --- |
+| **OpenClaw** | Archive officielle npm en HTTPS, SHA-512 du [manifeste direct](../config/install_artifact_integrity.json) ; arbre npm complet imposé par `npm ci` avec SHA-512 du [package-lock](../config/npm-runtime/package-lock.json) |
+| **Plugin Parallel** | Tarball officiel npm exact téléchargé en HTTPS, SHA-512 comparé au verrou avant installation locale par OpenClaw ; version 2026.10.4 revérifiée |
+| **Ollama** | Archive Linux x86_64 officielle vérifiée par SHA-256 avant extraction |
+| **Python de production** | [Wheels SHA-256](../config/python-runtime-hashes.txt), `pip --require-hashes --only-binary`, fermeture de versions communes et outils PEP 517 fixés ; installation du code local sans résolution PEP 517 implicite |
+| **Voix** | [Fermeture voix](../config/python-speech-hashes.txt), incluant `faster-whisper` et ses transitives ; mêmes contrôles `--require-hashes` |
+| **Open WebUI** | Image `ghcr.io` sélectionnée par version ; **digest relevé et verrouillé dans le service lors du premier déploiement**, pas pré-publié dans Git |
+| **Stockage** | Volumes `/IA` distinct et monté, chemins canoniques sous `/IA/Openclaw`, rejet des liens sensibles, services conditionnés au montage |
 
-## Pourquoi l'installateur vérifie les archives
+## Garantie exacte
 
-`scripts/linux/15_verified_installer.sh` n'exécute pas de script `curl | bash` téléchargé à la volée. Il vérifie l'archive autorisée et son empreinte officielle avant installation. OpenClaw est installé dans le préfixe utilisateur `~/.openclaw` avec `--ignore-scripts` ; le binaire Ollama est extrait sous `/usr/local`.
+Le projet **ne lance pas de script distant `curl | bash`** pour installer OpenClaw/Ollama. Les commandes de paquetage utilisent un environnement privé, n'exécutent pas les scripts npm d'installation, contrôlent l'arbre installé et refusent toute erreur d'empreinte.
 
-Après l'installation npm, `npm ls --global --all` rejette un arbre manquant ou incohérent. Cette vérification de cohérence **n'est pas** un audit complet des transitives npm ni une preuve de reconstruction cryptographique identique.
+Dans le lock npm, les bibliothèques `inBundle` font partie du tarball parent authentifié par SHA-512 ; elles n'ont pas chacune une archive indépendante à télécharger. Les dépendances npm non incluses dans un bundle ont un `resolved` HTTPS et une empreinte. Les verrous Python contiennent les empreintes des wheels publiées pour ces versions, et aucun `sdist` n'est admis en installation de production/voix.
 
-Le bootstrap Python ne fait pas de mise à niveau globale non bornée de `pip` / `setuptools` / `wheel`. Il applique `config/python-runtime-constraints.txt`, puis exécute `pip check` et le contrôleur de dérive. Le contrôle est également exercé dans la CI Fedora 45 et sur Python 3.12/3.13.
+Les garanties ne sont pas absolues : le registre/éditeur amont n'est pas cryptographiquement attesté par une signature indépendante ; les paquets Fedora, outils de développement et modules WebUI ont des mécanismes distincts ; un paquet épinglé peut présenter une vulnérabilité. La CI valide une résolution **compatible avec ses environnements**, pas la qualité réelle de la B580 ou l'interface sur le PC utilisateur.
 
-## Ce qui n'est pas totalement verrouillé
+## Politique de mise à niveau
 
-- Les **empreintes de chaque wheel Python** ne sont pas toutes figées ; les dépendances de construction PEP 517 peuvent varier selon la résolution et la plateforme.
-- La **fermeture transitive npm** n'a pas de registre de hashes complet indépendant ; les paquets annexes de voix ont leur propre résolution.
-- L'image Open WebUI est figée **lors de son déploiement**, pas par un digest préétabli et signé dans le dépôt.
-- L'installateur et les services Fedora 45/GNOME 51 doivent encore être observés sur la machine réelle, notamment GPU/Vulkan, SELinux, WebUI et modèle.
+Les versions principales sont déclarées dans [`runtime_versions.yaml`](../config/runtime_versions.yaml). Toute évolution doit actualiser **ensemble** le manifeste des archives, le `package-lock.json`, les verrous Python concernés, les tests et les notes de version dans une PR. [Procédure de régénération des verrous](PYTHON_RUNTIME_LOCK.md).
 
-Ces limites sont suivies dans [l'état actuel](../STATUS.md) et dans [l'issue de reproductibilité #126](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/126). Aucune documentation ne doit qualifier ces dépendances de « 100 % reproductibles » avant des preuves suffisantes.
+Une installation neuve n'importe aucun ancien état. Toute migration depuis un ancien disque ou une ancienne version reste opt-in via `clawfedora-ops migrate-state --source CHEMIN --apply`, après sauvegarde.
 
-## Installation neuve et migrations
-
-Une installation Fedora neuve **n'importe pas silencieusement** les anciens états. Une éventuelle reprise se fait uniquement par `clawfedora-ops migrate-state --source CHEMIN --apply` après examen des sources et sauvegarde. Ne jamais lancer cette migration simplement pour suivre un guide d'installation neuve.
-
-En cas d'échec d'empreinte, ne pas contourner les protections. Vérifier les publications officielles, corriger le manifeste par une PR spécifique puis repasser la CI. Les anciennes instructions d'installation sous OpenClaw 2026.10.3/Ollama 0.40.4 relèvent uniquement de [l'historique](archives/2026/README.md).
-
-[← Documentation](README.md) · [Installation simple](INSTALLATION_SIMPLE_FEDORA45.md) · [Verrou Python](PYTHON_RUNTIME_LOCK.md)
+**État de réception :** aucun déploiement réel Fedora 45/GNOME 51/B580 n'a encore été attesté. [État et limites](../STATUS.md) · [Tests avancés facultatifs](validation/README.md).
