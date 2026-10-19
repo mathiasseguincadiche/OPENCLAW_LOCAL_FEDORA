@@ -80,9 +80,15 @@ def verify(root: Path = ROOT) -> dict[str, int]:
         if value.get("inBundle") is True:
             # These npm-bundled descendants are integrity-covered by their
             # closest parent tarball, not by separate registry digests.
-            path = name.rsplit("/node_modules/", 1)[0]
-            if path not in registry or not registry[path].get("integrity"):
-                raise ValueError("paquet npm bundled sans archive parente signée")
+            parent = name
+            covered = False
+            while "/node_modules/" in parent:
+                parent = parent.rsplit("/node_modules/", 1)[0]
+                if parent in registry and registry[parent].get("integrity"):
+                    covered = True
+                    break
+            if not covered:
+                raise ValueError("paquet npm bundled sans archive parente vérifiée")
             bundled += 1
             continue
         if value.get("link"):
