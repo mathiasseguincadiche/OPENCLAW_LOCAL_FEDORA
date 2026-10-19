@@ -48,7 +48,7 @@ Les benchmarks poussés, la série de cycles veille/reprise et les canaries (voi
 - **Une génération à la fois** : les projets sont persistants et indépendants, mais l’exécution GPU est partagée ; aucune file FIFO durable n’est garantie.
 - **Pas de déploiement autonome** : les agents produisent des propositions, scripts et documents ; l’utilisateur approuve et exécute les actions sensibles.
 - **Cloud désactivé par défaut** ; pas de bascule locale vers DeepSeek cachée. Un accord cloud sur un projet ne garantit pas qu’un contenu privé soit publiable.
-- Les outils `web_search` et `web_fetch` peuvent accéder à Internet même en mode local ; un [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) est prévu.
+- Les outils `web_search` et `web_fetch` peuvent accéder à Internet même en mode local ; un [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) est pilotable par `web-private --apply`, avec contrôle de la configuration enregistrée et du redémarrage du Gateway ; son absence d'egress réseau réel reste à vérifier.
 - Le streaming SSE et la vision avancée sont disponibles sous **canary contrôlé**, pas activés ni qualifiés par défaut.
 - Le verrou Python fixe des versions transitives de production, **pas tous les hashes de wheels** ; npm et les extras voix ne sont pas intégralement verrouillés. Voir [les limites de reproductibilité](docs/PYTHON_RUNTIME_LOCK.md).
 - Les sauvegardes locales ne sont **pas chiffrées** et résident initialement sur le même volume ; garder une copie externe protégée.
