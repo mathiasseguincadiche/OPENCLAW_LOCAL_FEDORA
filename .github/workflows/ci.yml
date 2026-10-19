@@ -299,3 +299,20 @@ jobs:
                   print(f"{label}_CHUNK|" + content[index:index + 2000].replace("\n", "\\n"))
               print(f"{label}_END")
           PY
+
+  voice-fedora45-probe:
+    name: voice-fedora45-probe
+    runs-on: ubuntu-latest
+    container: quay.io/fedora/fedora:45
+    timeout-minutes: 15
+    steps:
+      - name: Fedora tools and checkout
+        run: dnf install -y git gcc gcc-c++ python3 python3-devel python3-pip python3-virtualenv
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Probe pinned production and speech dependencies on Python 3.15
+        run: |
+          python3 -m venv /tmp/claw-voice-venv
+          /tmp/claw-voice-venv/bin/python -m pip install --constraint config/python-runtime-constraints.txt -e ".[speech]"
+          /tmp/claw-voice-venv/bin/python -m pip check
+          /tmp/claw-voice-venv/bin/python -V
