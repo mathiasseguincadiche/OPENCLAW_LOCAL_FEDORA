@@ -87,7 +87,10 @@ def test_verified_installer_refuses_unlisted_versions() -> None:
 
 def test_verified_install_checks_npm_transitive_tree_before_executable() -> None:
     source = (ROOT / "scripts/linux/15_verified_installer.sh").read_text()
-    assert 'npm ls --global --all --prefix "$HOME/.openclaw"' in source
-    assert source.index('npm ls --global --all --prefix "$HOME/.openclaw"') < source.index(
-        '[[ -x "$HOME/.openclaw/bin/openclaw" ]]'
+    assert 'npm ci --prefix "$NODE_ROOT" --ignore-scripts' in source
+    assert 'npm ls --all --prefix "$NODE_ROOT"' in source
+    assert source.index('npm ci --prefix "$NODE_ROOT"') < source.index(
+        'npm ls --all --prefix "$NODE_ROOT"'
     )
+    assert 'verify_npm_artifact.py" verify openclaw' in source
+    assert "npm install --global" not in source
