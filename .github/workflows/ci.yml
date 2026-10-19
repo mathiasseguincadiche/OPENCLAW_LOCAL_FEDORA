@@ -63,6 +63,12 @@ jobs:
           python -m pip check
           python scripts/validation/check_python_lock.py --strict
           python scripts/validation/check_runtime_dependencies.py
+      - name: Install optional speech with SHA256-only closure
+        run: |
+          python -m pip install --require-hashes --only-binary=:all: -r config/python-speech-hashes.txt
+          python -m pip check
+          python scripts/validation/check_python_lock.py
+          python -c "import faster_whisper, onnxruntime; print('SPEECH_WHEEL_CLOSURE=PASS')"
 
   native-openclaw:
     name: native-openclaw
