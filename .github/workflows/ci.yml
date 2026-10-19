@@ -29,7 +29,9 @@ jobs:
       - name: Install
         run: python -m pip install -e ".[dev]"
       - name: Repository contracts
-        run: clawfedora validate
+        run: |
+          clawfedora validate
+          python scripts/validation/check_dependency_artifact_locks.py
       - name: Ruff
         run: ruff check src tests scripts/validation
       - name: Mypy
@@ -53,7 +55,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Fresh production install with reviewed constraints
-        run: python -m pip install --constraint config/python-runtime-constraints.txt -e .
+        run: |
+          python -m pip install --require-hashes -r config/python-runtime-hashes.txt
+          python -m pip install --no-deps -e .
       - name: Verify the full observed production package inventory
         run: |
           python -m pip check
@@ -91,7 +95,12 @@ jobs:
           PARALLEL_VERSION="$(python -c 'from pathlib import Path; from clawfedora.core_config import root_contract; print(root_contract(Path.cwd(), "runtime_versions.yaml")["openclaw"]["plugins"]["parallel"]["version"])')"
           NATIVE_ROOT="$RUNNER_TEMP/native-openclaw"
           mkdir -p "$NATIVE_ROOT"
-          npm install --ignore-scripts --prefix "$NATIVE_ROOT" "openclaw@$OPENCLAW_VERSION" "@openclaw/parallel-plugin@$PARALLEL_VERSION"
+          cp config/npm-runtime/package.json config/npm-runtime/package-lock.json "$NATIVE_ROOT/"
+          python scripts/validation/check_dependency_artifact_locks.py
+          npm ci --ignore-scripts --no-audit --no-fund --engine-strict --prefix "$NATIVE_ROOT"
+          npm ls --all --prefix "$NATIVE_ROOT" >/dev/null
+          "$NATIVE_ROOT/node_modules/.bin/openclaw" --version | grep -F "$OPENCLAW_VERSION"
+          node -e 'const p=require(process.argv[1]);if(p.version!==process.argv[2])process.exit(2)' "$NATIVE_ROOT/node_modules/@openclaw/parallel-plugin/package.json" "$PARALLEL_VERSION"
           echo "$NATIVE_ROOT/node_modules/.bin" >> "$GITHUB_PATH"
           echo "OPENCLAW_SCHEMA_PARALLEL_PATH=$NATIVE_ROOT/node_modules/@openclaw/parallel-plugin" >> "$GITHUB_ENV"
       - name: Native schema validation
@@ -168,7 +177,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Install Fedora 45 Python and checkout tooling
-        run: dnf install -y git gcc gcc-c++ python3 python3-devel python3-pip python3-virtualenv shadow-utils util-linux
+        run: dnf install -y git gcc gcc-c++ python3 python3-devel python3-pip python3-virtualenv python3.13 python3.13-devel shadow-utils util-linux
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Assert Fedora 45 container baseline (pre-release until official launch)
@@ -189,6 +198,13 @@ jobs:
             exit 1
           fi
           grep -E 'GNOME Shell 51 requis|Fedora 45 stable requis' /tmp/headless-rejection.log
+      - name: Verify PyPI artifact SHA-256 installation with native Fedora 45 Python
+        run: |
+          python3.13 -m venv /tmp/clawfedora45-hashed-venv
+          /tmp/clawfedora45-hashed-venv/bin/python -m pip install --require-hashes -r config/python-runtime-hashes.txt
+          /tmp/clawfedora45-hashed-venv/bin/python -m pip install --no-deps -e .
+          /tmp/clawfedora45-hashed-venv/bin/python -m pip check
+          /tmp/clawfedora45-hashed-venv/bin/python scripts/validation/check_python_lock.py --strict
       - name: Test Fedora 45 Python source and contracts in container
         run: |
           python3 -m venv /tmp/clawfedora45-venv
@@ -197,3 +213,21 @@ jobs:
           /tmp/clawfedora45-venv/bin/python scripts/validation/check_python_lock.py
           /tmp/clawfedora45-venv/bin/clawfedora validate
           /tmp/clawfedora45-venv/bin/pytest -q
+
+  voice-fedora45-probe:
+    name: voice-fedora45-probe
+    runs-on: ubuntu-latest
+    container: quay.io/fedora/fedora:45
+    timeout-minutes: 15
+    steps:
+      - name: Fedora tools and checkout
+        run: dnf install -y git gcc gcc-c++ python3 python3-devel python3-pip python3-virtualenv python3.13 python3.13-devel
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Probe pinned production and speech dependencies on managed Python 3.13
+        run: |
+          python3.13 -m venv /tmp/claw-voice-venv
+          /tmp/claw-voice-venv/bin/python -m pip install --require-hashes -r config/python-runtime-hashes.txt -r config/python-speech-hashes.txt
+          /tmp/claw-voice-venv/bin/python -m pip install --no-deps -e ".[speech]"
+          /tmp/claw-voice-venv/bin/python -m pip check
+          /tmp/claw-voice-venv/bin/python -V

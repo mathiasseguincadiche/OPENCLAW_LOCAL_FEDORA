@@ -48,3 +48,9 @@ En contribuant, tu acceptes le [code de conduite](CODE_OF_CONDUCT.md).
 - Un script qui modifie le système affiche d'abord ce qu'il ferait ; il n'agit qu'avec `--apply`.
 - La documentation change en même temps que le code : une fiche par sujet dans `docs/fiches/`.
 - Les actions GitHub sont référencées par leur empreinte complète.
+
+## Réviser les verrous d'installation
+
+Toute nouvelle version d'OpenClaw ou de Parallel impose une PR incluant `config/npm-runtime/package.json`, le `package-lock.json` généré par `npm install --package-lock-only --ignore-scripts` et le manifeste des empreintes officielles. Comparer les changements transitifs, puis exécuter `npm ci --ignore-scripts --engine-strict` avant validation. **Ne pas lancer de mise à jour globale npm en contournant le lock.**
+
+Les 23 paquets Python de production ont leurs SHA-256 dans `config/python-runtime-hashes.txt`. Régénérer ce fichier exclusivement depuis les métadonnées officielles PyPI, comparer les versions au fichier `python-runtime-constraints.txt`, vérifier les hashes via `pip install --require-hashes` et tester explicitement Fedora 45/Python 3.15. Les extras voix, build PEP517 et DNF nécessitent une revue distincte.

@@ -1,0 +1,9 @@
+{
+  "name": "clawfedora-runtime-closure",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "openclaw": "2026.10.4",
+    "@openclaw/parallel-plugin": "2026.10.4"
+  }
+}

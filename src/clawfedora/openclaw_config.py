@@ -197,7 +197,10 @@ def build_openclaw_patch(
         "plugins": {
             "allow": ["parallel", "clawfedora-toolkit", "memory-core"],
             "slots": {"memory": "none"},
-            "load": {"paths": [str(runtime_root / "runtime/extensions/clawfedora-toolkit")]},
+            "load": {"paths": [
+                str(Path.home() / ".openclaw/lib/node_modules/@openclaw/parallel-plugin"),
+                str(runtime_root / "runtime/extensions/clawfedora-toolkit"),
+            ]},
             "entries": {
                 "memory-core": {"enabled": False},
                 "clawfedora-toolkit": {"enabled": True},

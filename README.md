@@ -92,7 +92,7 @@ Les exécutables système, certaines données npm et le stockage Podman peuvent 
 ## État, limites et documentation
 
 - **Vérifié automatiquement :** contrats Fedora 45, Python, scripts shell, politiques des rôles, intégration native OpenClaw, régressions et CodeQL. Les versions sélectionnées sont définies dans [la configuration](config/runtime_versions.yaml) et [la politique WebUI](config/webui_policy.yaml) (Open WebUI 0.12.3).
-- **À qualifier sur le PC réel :** performances et stabilité B580, navigateur, micro/voix, projets complets, backups réels et appels OpenRouter avec coût mesuré. Le projet **n'a pas encore tourné sur le PC** dans le cadre de la réception prévue.
+- **Verrouillage des dépendances :** [production Python avec SHA-256 et npm avec SHA-512](docs/PYTHON_RUNTIME_LOCK.md), avec limites de build PEP 517 et extras voix.\n- **À qualifier sur le PC réel :** performances et stabilité B580, navigateur, micro/voix, projets complets, backups réels et appels OpenRouter avec coût mesuré. Le projet **n'a pas encore tourné sur le PC** dans le cadre de la réception prévue.
 - **Limites connues :** une seule génération à la fois ; streaming token par token préparé en canary, désactivé par défaut ; l'IA conseille et prépare mais ne déploie pas les infrastructures proposées.
 
 | Commencer | Approfondir |

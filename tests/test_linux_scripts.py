@@ -98,7 +98,8 @@ def test_openclaw_config_is_dry_run_by_default_and_fail_closed() -> None:
     assert "config validate --json" in text
     assert "agents list --json" in text
     assert "plugins inspect parallel --runtime --json" in text
-    assert "plugins update" in text
+    assert 'plugins install --link "$PARALLEL_LOCAL" --force' in text
+    assert "plugins update" not in text
 
 
 def test_openclaw_agent_inventory_accepts_supported_json_shapes() -> None:

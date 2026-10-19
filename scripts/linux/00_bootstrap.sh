@@ -88,7 +88,7 @@ fi
 
 PACKAGES=(
   git curl wget rsync jq tar zstd unzip nodejs npm pciutils usbutils lm_sensors poppler-utils shellcheck gitleaks
-  python3 python3-pip python3-virtualenv
+  python3 python3-pip python3-virtualenv python3.13 python3.13-devel
   vulkan-tools mesa-vulkan-drivers
   firewalld policycoreutils-python-utils acl openssl lsof procps-ng util-linux
 )
@@ -179,16 +179,30 @@ as_root restorecon -RF "$RUNTIME_ROOT" || true
 
 VENV="$RUNTIME_ROOT/runtime/venv"
 if [[ ! -x "$VENV/bin/python" ]]; then
-  as_target python3 -m venv "$VENV"
+  # Fedora 45 uses Python 3.15 for the OS. The optional speech engine
+  # ctranslate2 currently lacks cp315 artifacts. Keep the atelier isolated in
+  # a Fedora-packaged Python 3.13 venv, without changing system Python.
+  as_target python3.13 -m venv "$VENV"
 fi
 # Keep Fedora's isolated venv pip: an unbounded upgrade of pip/setuptools/wheel
 # made a reviewed bootstrap unexpectedly install newer build tooling each run.
 # PEP 517 may still resolve build requirements; lock that closure separately.
 as_target "$VENV/bin/python" -m pip --version
+as_target "$VENV/bin/python" -c 'import sys; assert sys.version_info[:2] == (3, 13), "Python 3.13 requis"'
+# Install all 23 exact production packages with reviewed PyPI SHA-256
+# artifacts. Pip verifies downloaded bytes, including any selected sdist.
+# PEP517 build isolation is not yet a closed hash chain (tracked separately).
+as_target "$VENV/bin/python" "$REPO_ROOT/scripts/validation/check_dependency_artifact_locks.py"
+as_target "$VENV/bin/python" -m pip install --require-hashes \
+  -r "$REPO_ROOT/config/python-runtime-hashes.txt"
 if ((WITH_DEV == 1)); then
-  as_target "$VENV/bin/python" -m pip install --constraint "$REPO_ROOT/config/python-runtime-constraints.txt" -e "${REPO_ROOT}[dev]"
+  # Developer extras are intentionally out of the production hash scope.
+  as_target "$VENV/bin/python" -m pip install \
+    --constraint "$REPO_ROOT/config/python-runtime-constraints.txt" \
+    -e "${REPO_ROOT}[dev]"
 else
-  as_target "$VENV/bin/python" -m pip install --constraint "$REPO_ROOT/config/python-runtime-constraints.txt" -e "$REPO_ROOT"
+  # Prevent a second, unhashed resolver from pulling hidden production deps.
+  as_target "$VENV/bin/python" -m pip install --no-deps -e "$REPO_ROOT"
 fi
 
 # Fail before enabling runtime services if the installed Python environment is inconsistent.

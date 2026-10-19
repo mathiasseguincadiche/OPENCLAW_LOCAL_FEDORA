@@ -23,7 +23,7 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 
 | Couche | Version/configuration dans le dépôt |
 | --- | --- |
-| Hôte | Fedora 45 Workstation, GNOME 51, Wayland |
+| Hôte | Fedora 45 Workstation, GNOME 51, Wayland ; Python système 3.15 |\n| Runtime Python IA | Venv isolé Python 3.13 fourni par Fedora (compatibilité voix) |
 | OpenClaw + plugin Parallel | `2026.10.4` |
 | Ollama | `0.40.6` |
 | Open WebUI | `v0.12.3-slim`, image résolue par digest à l’installation |
@@ -50,7 +50,7 @@ Les benchmarks poussés, la série de cycles veille/reprise et les canaries (voi
 - **Cloud désactivé par défaut** ; pas de bascule locale vers DeepSeek cachée. Un accord cloud sur un projet ne garantit pas qu’un contenu privé soit publiable.
 - Les outils `web_search` et `web_fetch` peuvent accéder à Internet même en mode local ; un [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) est pilotable par `web-private --apply`, avec contrôle de la configuration enregistrée et du redémarrage du Gateway ; son absence d'egress réseau réel reste à vérifier.
 - Le streaming SSE et la vision avancée sont disponibles sous **canary contrôlé**, pas activés ni qualifiés par défaut.
-- Le verrou Python fixe des versions transitives de production, **pas tous les hashes de wheels** ; npm et les extras voix ne sont pas intégralement verrouillés. Voir [les limites de reproductibilité](docs/PYTHON_RUNTIME_LOCK.md).
+- Le verrou Python fixe les versions et hashes SHA-256 des artefacts de production ; le verrou npm SHA-512 est appliqué par `npm ci`. Les dépendances temporaires de compilation PEP 517, les paquets Fedora et les extras voix/dev ne sont pas tous figés. Voir [les limites de reproductibilité](docs/PYTHON_RUNTIME_LOCK.md).
 - Les sauvegardes locales ne sont **pas chiffrées** et résident initialement sur le même volume ; garder une copie externe protégée.
 - Les fichiers proposés par les agents ne sont pas la preuve d’un déploiement Terraform/Ansible réussi.
 
