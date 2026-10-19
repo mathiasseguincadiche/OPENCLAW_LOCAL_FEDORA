@@ -1,0 +1,3 @@
+# Exact build backend wheels, preinstalled before local editable build with --no-build-isolation.
+setuptools==80.9.0
+wheel==0.45.1

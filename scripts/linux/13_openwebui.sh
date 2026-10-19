@@ -50,10 +50,12 @@ if [[ "$ACTION" == install ]]; then
   # verify all 23 production and 21 speech artifacts by SHA256 before enabling
   # the speech service. No second unrestricted dependency resolution.
   "$PYTHON" "$REPO_ROOT/scripts/validation/check_dependency_artifact_locks.py"
-  "$PYTHON" -m pip install --require-hashes \
+  "$PYTHON" -m pip install --require-hashes --only-binary=:all: \
+    -r "$REPO_ROOT/config/python-build-hashes.txt"
+  "$PYTHON" -m pip install --require-hashes --only-binary=:all: \
     -r "$REPO_ROOT/config/python-runtime-hashes.txt" \
     -r "$REPO_ROOT/config/python-speech-hashes.txt"
-  "$PYTHON" -m pip install --no-deps -e "${REPO_ROOT}[speech]"
+  "$PYTHON" -m pip install --no-build-isolation --no-deps -e "${REPO_ROOT}[speech]"
   "$PYTHON" "$REPO_ROOT/scripts/validation/check_python_lock.py" --root "$REPO_ROOT"
   "$PYTHON" -m clawfedora.speech_server --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" --prepare
   "$PYTHON" -m clawfedora.webui_setup render --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" --unit-root "$UNIT_ROOT" --image-digest "$IMAGE_DIGEST"
