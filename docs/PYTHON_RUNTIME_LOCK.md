@@ -1,14 +1,14 @@
 # Dépendances : fermeture versionnée et empreintes d'artefacts
 
-## Production Python — Fedora 45 (Python 3.15)
+## Production Python — Fedora 45 (runtime Python 3.13 isolé)
 
 Le projet contient deux fichiers complémentaires :
 - [`python-runtime-constraints.txt`](../config/python-runtime-constraints.txt) : versions exactes des **23 dépendances de production**.
 - [`python-runtime-hashes.txt`](../config/python-runtime-hashes.txt) : SHA-256 publics des archives sources et wheels **Linux x86_64** publiés par PyPI pour ces versions.
 
-Le bootstrap commence par `pip install --require-hashes -r config/python-runtime-hashes.txt`. Cette commande refuse un paquet sans hash validé, puis installe le projet avec `pip install --no-deps -e .`, sans résolution supplémentaire des dépendances de production.
+Fedora 45 garde **Python 3.15 pour le système**. L'atelier utilise un venv séparé basé sur **Python 3.13 fourni par Fedora**, afin de conserver la compatibilité avec la bibliothèque vocale CTranslate2, actuellement non distribuée pour cp315. Aucun Python système n'est rétrogradé.\n\nLe bootstrap commence par `pip install --require-hashes -r config/python-runtime-hashes.txt`. Cette commande refuse un paquet sans hash validé, puis installe le projet avec `pip install --no-deps -e .`, sans résolution supplémentaire des dépendances de production.
 
-**Contrôles en CI :** intégrité des manifests, installation Python 3.12/3.13 sur Ubuntu, installation réelle des distributions hashées sous Fedora 45 / Python 3.15, `pip check`, vérification des versions et tests. Le fichier des hashes contient des archives **sources** lorsque les wheels Python 3.15 n'existent pas encore : dans ce cas, la compilation peut nécessiter des outils ou dépendances PEP 517 non couverts par ces hashes.
+**Contrôles en CI :** intégrité des manifests, installation Python 3.12/3.13 sur Ubuntu, installation réelle des distributions hashées sous Fedora 45 / Python 3.13, `pip check`, vérification des versions et tests. Le fichier des hashes contient des archives **sources** lorsque les wheels compatibles n'existent pas encore : dans ce cas, la compilation peut nécessiter des outils ou dépendances PEP 517 non couverts par ces hashes.
 
 ## npm — OpenClaw et plugin Parallel
 
@@ -20,7 +20,7 @@ Une PR de changement de version doit mettre à jour le fichier d'intégrité dir
 
 ## Périmètre non démontré par les manifests
 
-Les paquets Fedora (DNF/RPM) et les dépendances temporaires de compilation PEP 517 ne sont pas figés par SHA-256 ici. Les extras `[dev]` et les composants optionnels `[speech]` nécessitent un examen distinct, y compris leur compatibilité Fedora 45 / Python 3.15. Les tests GitHub ne prouvent ni le débit sur la B580, ni le comportement SELinux dans une session GNOME réelle.
+Les paquets Fedora (DNF/RPM) et les dépendances temporaires de compilation PEP 517 ne sont pas figés par SHA-256 ici. Les extras `[dev]` et les composants optionnels `[speech]` nécessitent un examen distinct, y compris leur compatibilité Fedora 45 / Python 3.13. Les tests GitHub ne prouvent ni le débit sur la B580, ni le comportement SELinux dans une session GNOME réelle.
 
 Une empreinte SHA-256 vérifie l'intégrité **relativement à la valeur approuvée dans Git** ; elle ne prouve pas qu'un paquet tiers est exempt de vulnérabilités ni que son auteur est digne de confiance.
 
