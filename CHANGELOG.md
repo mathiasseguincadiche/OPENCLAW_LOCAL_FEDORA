@@ -4,6 +4,13 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Mode Web privé — transition vérifiée avant réception matérielle
+
+- Nouveau menu `web-private` / `web-connected` : aperçu sans modification, arrêt préventif du Gateway, verrou des travaux, application native, contrôle privé du fichier de configuration et redémarrage vérifié.
+- Le contrôle refuse le mauvais état des outils `web_search` et `web_fetch` dans les sept rôles, les droits de fichier trop ouverts et les chemins liés. La CI teste ces contrats sans lancer de modèle ni contacter Internet.
+- La preuve d'absence effective de trafic réseau reste à faire sur Fedora ; aucun changement de fournisseur cloud ou de politique de consentement.
+
+
 ### 18 octobre 2026 — stockage secondaire, parcours court et refonte documentaire
 
 - PR [#135](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/135) et [#136](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/136) : runtime et projets dans `/IA/Openclaw/` sur disque monté ; lancement des services ordonné après ce montage ; commande `quick-check` pour une réception courte, sans stress test obligatoire.

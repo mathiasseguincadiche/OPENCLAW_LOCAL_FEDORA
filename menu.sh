@@ -31,6 +31,9 @@ Installer et utiliser:
   webui-seal             Fermer les inscriptions après le premier compte
   webui-start|webui-stop Démarrer ou arrêter le chat
   webui-status           État du chat et de l'atelier
+  web-status             Mode Web désiré (ne certifie pas le réseau)
+  web-private            Couper la recherche Web des sept rôles, appliquer et vérifier
+  web-connected          Réactiver volontairement la recherche Web des rôles
   cloud-status           État du cloud optionnel, de la clé et du budget du mois
   cloud-profile          Afficher le profil de raisonnement DeepSeek actuel
   cloud-set-profile      Préparer/changer le profil via --value
@@ -131,6 +134,11 @@ case "$ACTION" in
     ;;
   webui-install|webui-start|webui-stop|webui-seal|webui-status)
     with_apply 13_openwebui.sh "${ACTION#webui-}"
+    ;;
+  web-status|web-private|web-connected)
+    args=()
+    ((APPLY == 0)) || args+=(--apply)
+    bash "$LINUX/17_web_access.sh" "${ACTION#web-}" "${args[@]}"
     ;;
   cloud-status|cloud-set-key|cloud-enable|cloud-disable|cloud-reconcile)
     args=()

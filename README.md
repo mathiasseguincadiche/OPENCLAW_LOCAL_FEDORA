@@ -41,7 +41,7 @@ Le chat peut aussi analyser de petits fichiers texte **sans créer de projet**. 
 
 ![Les sept rôles spécialisés](docs/diagrams/atelier-roles.svg)
 
-**Sécurité et consentement :** aucun repli automatique du local vers le cloud. Le budget configuré est plafonné à **25 €/mois**, complété par un prépaiement et une limite chez le fournisseur. Les outils de recherche Web peuvent contacter Internet **même si Qwen est local** ; le [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) permet de les désactiver explicitement. Le filtre de confidentialité ne peut pas garantir qu'aucune information sensible ne sortira si l'utilisateur autorise le cloud.
+**Sécurité et consentement :** aucun repli automatique du local vers le cloud. Le budget configuré est plafonné à **25 €/mois**, complété par un prépaiement et une limite chez le fournisseur. Les outils de recherche Web peuvent contacter Internet **même si Qwen est local** ; le [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) permet de les désactiver explicitement avec `./menu.sh --action web-private --apply`, après installation. Le filtre de confidentialité ne peut pas garantir qu'aucune information sensible ne sortira si l'utilisateur autorise le cloud.
 
 → [Architecture détaillée](docs/fiches/11-comment-ca-marche.md) · [Pourquoi Qwen et DeepSeek ?](docs/ARCHITECTURE_HYBRIDE.md) · [Outils des rôles](docs/fiches/07-roles-et-outils.md)
 

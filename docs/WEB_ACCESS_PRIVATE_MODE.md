@@ -17,51 +17,32 @@ cloud**, laquelle reste soumise à l'activation de la passerelle et au consentem
 spécifique du projet. Pour empêcher toute sortie Internet, utiliser en complément
 des règles réseau système adaptées et révoquer les accords cloud concernés.
 
-## Préparer le mode privé
+## Passer en mode privé : une commande contrôlée
 
-Après installation native et sur le compte utilisateur propriétaire du runtime :
+Sur Fedora 45 installé, avec le disque secondaire **monté sur `/IA`** et aucun projet en cours :
 
-\`\`\`bash
-clawfedora-ops web-access status
-clawfedora-ops web-access private
-clawfedora-ops web-access private --apply
-\`\`\`
+```bash
+./menu.sh --action web-private             # aperçu, ne change rien
+./menu.sh --action web-private --apply     # verrou + arrêt Gateway + patch + vérification + redémarrage
+./menu.sh --action web-status              # mode souhaité, sans preuve réseau
+```
 
-La dernière commande écrit **uniquement le choix voulu** dans
-\`state/web-access/private.enabled\` avec permissions \`0600\`, et annonce
-\`GATEWAY_APPLIED=NOT_VERIFIED\`. Tant que le correctif de configuration n'est
-pas appliqué et que le Gateway n'est pas redémarré, le mode privé ne peut pas
-être considéré comme effectif.
+**Le basculement avec `--apply` est fail-closed** : le script refuse un runtime non géré, verrouille le worker, arrête le Gateway **avant** de changer le mode voulu, réapplique le contrat natif, vérifie le fichier `openclaw.json` (outils Web désactivés globalement et pour les sept rôles), puis redémarre et confirme que le Gateway est actif. Un échec intermédiaire **laisse le Gateway arrêté** ; consulter les journaux, corriger le problème, puis relancer la commande. Seul `WEB_ACCESS_RESULT=PASS` confirme la réussite de cette procédure.
 
-Ensuite, sur le vrai Fedora et après avoir vérifié qu'aucun projet ne tourne :
+`web-status` retourne toujours l'état **souhaité**, pas une certification du service actif ni du trafic. Le contrôle de fichier est une preuve de **configuration enregistrée**, pas une preuve d'absence d'egress réseau. Le cloud DeepSeek demeure un réglage distinct ; révoquer les accords cloud si une absence totale de sortie est nécessaire.
 
-\`\`\`bash
-bash scripts/linux/03_configure_openclaw.sh --apply
-systemctl --user restart openclaw-gateway.service
-clawfedora-ops web-access status
-\`\`\`
+## Repasser explicitement au mode connecté
 
-Vérifier également **dans la configuration effective** les deux propriétés :
-\`tools.web.search.enabled=false\` et \`tools.web.fetch.enabled=false\`,
-les outils \`web_search\` et \`web_fetch\` dans \`tools.deny\`, et leur absence
-des \`alsoAllow\` des sept agents. Ne jamais déclarer \`MODE_PRIVÉ_ACTIF\`
-avant cette inspection. Ne pas afficher ou publier le contenu complet de
-\`openclaw.json\` : il peut contenir des informations sensibles.
+```bash
+./menu.sh --action web-connected             # aperçu
+./menu.sh --action web-connected --apply     # réactivation volontaire vérifiée
+```
 
-## Repasser au mode connecté
+La même séquence de sécurité s'applique. Le retour au mode Web connecté n'est **jamais automatique** lors d'une mise à jour ou d'un redémarrage. Des recherches peuvent alors quitter le PC même lorsque le modèle d'inférence choisi est Qwen local.
 
-Le retour est **explicite**, et ne se fait pas automatiquement à l'occasion
-d'une mise à jour :
+## Procédure avancée en cas de panne
 
-\`\`\`bash
-clawfedora-ops web-access connected --apply
-bash scripts/linux/03_configure_openclaw.sh --apply
-systemctl --user restart openclaw-gateway.service
-\`\`\`
-
-Le même contrôle de la configuration effective est nécessaire, cette fois
-avec \`web_search\`/\`web_fetch\` autorisés selon le contrat versionné.
-La recherche Web peut quitter l'ordinateur, même quand le modèle reste local.
+`clawfedora-ops web-access private|connected --apply` ne fait que **préparer le marqueur** ; son message `GATEWAY_APPLIED=NOT_VERIFIED` signifie que la configuration du Gateway n'est pas encore appliquée. Préférer le menu ci-dessus, qui regroupe vérification et redémarrage. Ne jamais publier le contenu de `openclaw.json` ou une capture qui contiendrait des secrets.
 
 ## Limites de preuve
 
