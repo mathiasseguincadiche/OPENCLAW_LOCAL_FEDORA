@@ -47,7 +47,7 @@ Le chat peut aussi analyser de petits fichiers texte **sans créer de projet**. 
 
 ## Installation : le chemin le plus court
 
-**Plateforme visée :** Fedora 45 Workstation, GNOME 51, Wayland, AMD Ryzen 7 7700, 48 Go RAM, Intel Arc B580 12 Go. Fedora est le système hôte du projet IA. **Aucune installation de Rocky Linux** ou VM n'est nécessaire ; Open WebUI tourne sous **Podman rootless sur ce même Fedora**.
+**Plateforme visée :** Fedora 45 Workstation, GNOME 51, Wayland, AMD Ryzen 7 7700, 48 Go RAM, Intel Arc B580 12 Go. L'atelier utilise un venv Python 3.13 dédié, sans modifier le Python 3.15 du système. Fedora est le système hôte du projet IA. **Aucune installation de Rocky Linux** ou VM n'est nécessaire ; Open WebUI tourne sous **Podman rootless sur ce même Fedora**.
 
 1. Installer Fedora 45 Workstation sur le SSD système après sa publication officielle.
 2. Monter le **disque secondaire** de façon permanente sur `/IA` (via UUID). Ne pas formater un disque contenant des données.
