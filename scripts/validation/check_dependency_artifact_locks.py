@@ -53,6 +53,39 @@ def check_python(root: Path) -> int:
     return len(pins)
 
 
+def check_speech(root: Path) -> int:
+    config = root / "config"
+    pins = {}
+    for line in (config / "python-speech-constraints.txt").read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#"):
+            match = PIN.fullmatch(line)
+            if match is None:
+                raise ValueError("invalid speech version pin")
+            pins[canonical(match[1])] = match[2]
+    hashed = (config / "python-speech-hashes.txt").read_text()
+    rows = hashed.replace("\\\n", " ").splitlines()
+    checked = {}
+    for line in rows:
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        match = PIN.match(line)
+        if match is None or not HASH.search(line):
+            raise ValueError("speech package without version or SHA256")
+        if HASH.sub("", line[match.end():]).strip():
+            raise ValueError("unexpected speech lock directive")
+        key = canonical(match[1])
+        if key in checked:
+            raise ValueError("duplicate speech package")
+        checked[key] = match[2]
+    if checked != pins or len(pins) < 15:
+        raise ValueError("speech SHA256 hashes do not cover reviewed closure")
+    if pins.get("faster-whisper") != "1.2.1" or "ctranslate2" not in pins:
+        raise ValueError("required speech packages not pinned")
+    return len(pins)
+
+
 def check_npm(root: Path) -> tuple[int, int]:
     base = root / "config/npm-runtime"
     lock = json.loads((base / "package-lock.json").read_text())
@@ -106,13 +139,14 @@ def check_npm(root: Path) -> tuple[int, int]:
 def main() -> int:
     try:
         python_count = check_python(ROOT)
+        speech_count = check_speech(ROOT)
         npm_count, bundled = check_npm(ROOT)
     except (ValueError, OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
         print("DEPENDENCY_LOCK_RESULT=REFUSED " + type(exc).__name__)
         return 2
     print(
         f"DEPENDENCY_LOCK_RESULT=PASS python={python_count} "
-        f"npm_hashed={npm_count} npm_bundled={bundled}"
+        f"speech={speech_count} npm_hashed={npm_count} npm_bundled={bundled}"
     )
     return 0
 
