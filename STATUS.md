@@ -7,8 +7,8 @@
 | Dimension | Statut | Preuve ou limite |
 | --- | --- | --- |
 | **Code, règles et installation** | Vérifié par CI | Tests Python 3.12/3.13, ShellCheck, contrats Fedora 45 et validation OpenClaw native |
-| **Dernière CI examinée** | Succès, 19 octobre 2026 | [Exécution #39201731977](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39201731977) — 10 jobs réussis, 979 tests, 85,71 % de couverture |
-| **Analyse statique** | Succès | [CodeQL #39173153872](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39173153872), Python et JavaScript |
+| **Dernière CI examinée** | Succès, 19 octobre 2026 | [Exécution #39202922538](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39202922538) — 10 jobs réussis sur `main` après fusion de #143 |
+| **Analyse statique** | Succès | [CodeQL #39202922487](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39202922487), Python et JavaScript |
 | **Montage et stockage `/IA/Openclaw/`** | Implémenté, pas encore qualifié sur le poste | Refus si le volume secondaire manque, si le runtime contient des traversées de chemin ou si des répertoires sensibles sont des liens symboliques |
 | **Fedora 45 / GNOME 51 / B580** | **À faire** | Installation et vérification de l’OS, pilote `xe`, Vulkan, affichage, veille sur le PC réel |
 | **Qwen local et contexte 8K–32K** | Implémenté | Inférence courte dans `quick-check` ; débit réel, VRAM et contexte optimal **À mesurer** |
