@@ -27,6 +27,10 @@ df -h /IA
 Le résultat doit décrire le **deuxième disque** et pas `/`.
 Le programme refuse de poursuivre si `/IA` n'est pas monté ou si le
 point de montage correspond au même système de fichiers que `/`.
+Il refuse également les chemins avec traversée `..` ou liens symboliques,
+ainsi que les redirections par liens dans les répertoires sensibles
+(`models`, `projects`, `state`, `runtime`, `backups`, etc.). **Ne pas utiliser
+un lien symbolique pour déplacer une partie des données hors de `/IA`.**
 On ne lance aucun script d'installation avant ce contrôle.
 
 ## 2. Installer l'atelier
