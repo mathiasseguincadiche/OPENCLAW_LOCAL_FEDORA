@@ -177,7 +177,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Install Fedora 45 Python and checkout tooling
-        run: dnf install -y git gcc gcc-c++ python3 python3-devel python3-pip python3-virtualenv shadow-utils util-linux
+        run: dnf install -y git gcc gcc-c++ python3 python3-devel python3-pip python3-virtualenv python3.13 python3.13-devel shadow-utils util-linux
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Assert Fedora 45 container baseline (pre-release until official launch)
@@ -200,7 +200,7 @@ jobs:
           grep -E 'GNOME Shell 51 requis|Fedora 45 stable requis' /tmp/headless-rejection.log
       - name: Verify PyPI artifact SHA-256 installation with native Fedora 45 Python
         run: |
-          python3 -m venv /tmp/clawfedora45-hashed-venv
+          python3.13 -m venv /tmp/clawfedora45-hashed-venv
           /tmp/clawfedora45-hashed-venv/bin/python -m pip install --require-hashes -r config/python-runtime-hashes.txt
           /tmp/clawfedora45-hashed-venv/bin/python -m pip install --no-deps -e .
           /tmp/clawfedora45-hashed-venv/bin/python -m pip check
@@ -221,12 +221,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Fedora tools and checkout
-        run: dnf install -y git gcc gcc-c++ python3 python3-devel python3-pip python3-virtualenv
+        run: dnf install -y git gcc gcc-c++ python3 python3-devel python3-pip python3-virtualenv python3.13 python3.13-devel
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Probe pinned production and speech dependencies on Python 3.15
+      - name: Probe pinned production and speech dependencies on managed Python 3.13
         run: |
-          python3 -m venv /tmp/claw-voice-venv
+          python3.13 -m venv /tmp/claw-voice-venv
           /tmp/claw-voice-venv/bin/python -m pip install --constraint config/python-runtime-constraints.txt -e ".[speech]"
           /tmp/claw-voice-venv/bin/python -m pip check
           /tmp/claw-voice-venv/bin/python -V
