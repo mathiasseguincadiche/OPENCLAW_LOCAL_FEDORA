@@ -1,6 +1,6 @@
 # Installation : provenance et intégrité des composants
 
-**Référence du socle neuf (18 octobre 2026)** : Fedora 45 Workstation / GNOME 51, OpenClaw **2026.10.4**, plugin Parallel **2026.10.4**, Ollama **0.40.6**, Open WebUI **v0.12.3-slim**. Ces valeurs correspondent au [manifeste des versions](../config/runtime_versions.yaml) et à la [politique WebUI](../config/webui_policy.yaml). **Elles ne prouvent pas une installation réussie sur le PC cible.**
+**Référence du socle neuf (19 octobre 2026)** : Fedora 45 Workstation / GNOME 51, OpenClaw **2026.10.4**, plugin Parallel **2026.10.4**, Ollama **0.40.6**, Open WebUI **v0.12.3-slim**. Ces valeurs correspondent au [manifeste des versions](../config/runtime_versions.yaml) et à la [politique WebUI](../config/webui_policy.yaml). **Elles ne prouvent pas une installation réussie sur le PC cible.**
 
 Pour la procédure quotidienne, suivre [Installer Fedora et vérifier l'atelier](INSTALLATION_SIMPLE_FEDORA45.md) : le second disque doit être monté sur `/IA` et le runtime réside sous `/IA/Openclaw/`. **Les contrôles ci-dessous décrivent la sécurité de la chaîne d'installation, ils ne forment pas une deuxième installation à exécuter.**
 
@@ -19,14 +19,14 @@ Pour la procédure quotidienne, suivre [Installer Fedora et vérifier l'atelier]
 
 `scripts/linux/15_verified_installer.sh` n'exécute pas de script `curl | bash` téléchargé à la volée. Il vérifie l'archive autorisée et son empreinte officielle avant installation. OpenClaw est installé dans le préfixe utilisateur `~/.openclaw` avec `--ignore-scripts` ; le binaire Ollama est extrait sous `/usr/local`.
 
-Après l'installation npm, `npm ls --global --all` rejette un arbre manquant ou incohérent. Cette vérification de cohérence **n'est pas** un audit complet des transitives npm ni une preuve de reconstruction cryptographique identique.
+La fermeture npm est installée par `npm ci --ignore-scripts --engine-strict` à partir du `package-lock.json` approuvé, puis contrôlée en staging avant promotion. Le plugin Parallel utilise ce même arbre npm verrouillé, sans résolution indépendante. Les descendants embarqués (`inBundle`) sont couverts par l'empreinte de leur archive parente.
 
-Le bootstrap Python ne fait pas de mise à niveau globale non bornée de `pip` / `setuptools` / `wheel`. Il applique `config/python-runtime-constraints.txt`, puis exécute `pip check` et le contrôleur de dérive. Le contrôle est également exercé dans la CI Fedora 45 et sur Python 3.12/3.13.
+Le bootstrap Python ne fait pas de mise à niveau globale non bornée de `pip` / `setuptools` / `wheel`. Il impose les versions et SHA-256 de `config/python-runtime-hashes.txt` via `pip --require-hashes`, puis exécute `pip check` et le contrôleur de dérive dans le venv Python 3.13 dédié. Le contrôle est également exercé dans la CI Fedora 45 et sur Python 3.12/3.13.
 
 ## Ce qui n'est pas totalement verrouillé
 
-- Les wheels et sources **Python de production** disposent de SHA-256 ; les dépendances de build PEP 517 et les extras voix/dev ne sont pas entièrement figés ; les dépendances de construction PEP 517 peuvent varier selon la résolution et la plateforme.
-- La **fermeture transitive npm** dispose d'un package-lock SHA-512 appliqué par `npm ci` ; les paquets annexes de voix ont leur propre résolution.
+- Les wheels et archives sources Python de production sont protégées par SHA-256. Les dépendances temporaires de construction PEP 517 et les extras de développement ne sont pas tous figés ; une compilation depuis une archive source peut faire intervenir un outillage de build distinct.
+- La fermeture transitive npm dispose d'un `package-lock.json` SHA-512 appliqué par `npm ci`. Les **21 dépendances de voix** ont aussi un [verrou de versions et SHA-256](../config/python-speech-hashes.txt) vérifié sur Fedora 45/Python 3.13.
 - L'image Open WebUI est figée **lors de son déploiement**, pas par un digest préétabli et signé dans le dépôt.
 - L'installateur et les services Fedora 45/GNOME 51 doivent encore être observés sur la machine réelle, notamment GPU/Vulkan, SELinux, WebUI et modèle.
 

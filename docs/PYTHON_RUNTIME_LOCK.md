@@ -22,7 +22,7 @@ Une PR de changement de version doit mettre à jour le fichier d'intégrité dir
 
 ## Périmètre non démontré par les manifests
 
-Les paquets Fedora (DNF/RPM) et les dépendances temporaires de compilation PEP 517 ne sont pas figés par SHA-256 ici. L'extra optionnel `[speech]` dispose d'un verrou SHA-256 et d'une sonde d'installation Fedora 45 / Python 3.13 réussie en CI. Les outils `[dev]` ne sont pas couverts par le même verrou et nécessitent une vérification distincte. Les tests GitHub ne prouvent ni le débit sur la B580, ni le comportement SELinux dans une session GNOME réelle.
+Les paquets Fedora (DNF/RPM) et les dépendances temporaires de compilation PEP 517 ne sont pas figés par SHA-256 ici. Les **21 dépendances optionnelles de voix** ont désormais leurs versions et empreintes SHA-256 dans [le verrou dédié](../config/python-speech-hashes.txt), avec une validation automatisée sur Fedora 45/Python 3.13. Les extras de développement `[dev]`, les dépendances de construction PEP 517 et les RPM restent hors du verrouillage cryptographique complet. La réception voix réelle (microphone, modèles, latence) est encore à effectuer sur le PC. Les tests GitHub ne prouvent ni le débit sur la B580, ni le comportement SELinux dans une session GNOME réelle.
 
 Une empreinte SHA-256 vérifie l'intégrité **relativement à la valeur approuvée dans Git** ; elle ne prouve pas qu'un paquet tiers est exempt de vulnérabilités ni que son auteur est digne de confiance.
 
