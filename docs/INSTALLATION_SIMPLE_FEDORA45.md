@@ -45,6 +45,8 @@ cd OPENCLAW_LOCAL_FEDORA
 ```
 
 Le bootstrap vérifie le second disque avant d'installer des paquets.
+Il installe un **Python 3.13 dédié à l'atelier** pour les wheels épinglées ;
+le Python 3.15 fourni par Fedora 45 n'est ni remplacé ni rétrogradé.
 Il crée `/IA/Openclaw` et ses répertoires, installe les versions épinglées
 d'Ollama/OpenClaw, le modèle Qwen local, les sept agents et le Gateway.
 Le téléchargement du modèle et des logiciels demande Internet.
