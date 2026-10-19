@@ -46,7 +46,12 @@ if [[ "$ACTION" == install ]]; then
     echo "ERREUR: digest officiel Open WebUI indisponible ou incorrect" >&2
     exit 2
   }
-  "$PYTHON" -m pip install --constraint "$REPO_ROOT/config/python-runtime-constraints.txt" -e "${REPO_ROOT}[speech]"
+  # Speech is optional, but activation must use the exact reviewed wheel
+  # closure. Never resolve speech transitives afresh at WebUI installation.
+  "$PYTHON" "$REPO_ROOT/scripts/validation/check_supply_chain_locks.py"
+  "$PYTHON" -m pip install --require-hashes --only-binary=:all: \
+    -r "$REPO_ROOT/config/python-speech-hashes.txt"
+  "$PYTHON" -m pip check
   "$PYTHON" "$REPO_ROOT/scripts/validation/check_python_lock.py" --root "$REPO_ROOT"
   "$PYTHON" -m clawfedora.speech_server --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" --prepare
   "$PYTHON" -m clawfedora.webui_setup render --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" --unit-root "$UNIT_ROOT" --image-digest "$IMAGE_DIGEST"
