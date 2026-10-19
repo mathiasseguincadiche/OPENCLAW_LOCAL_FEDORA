@@ -4,6 +4,15 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 19 octobre 2026 — dépendances de production et de voix vérifiées par empreinte
+
+- Fermeture npm native exacte de OpenClaw 2026.10.4 et Parallel 2026.10.4 : `package-lock.json` version 3, résolution par `npm ci --ignore-scripts`, toutes les archives de registre sous SHA-512 ; paquets bundled couverts par l'archive parent.
+- Téléchargement du plugin Parallel depuis l'archive officielle avec vérification SHA-512 **avant** installation par le gestionnaire OpenClaw, sans `plugins update` flottant.
+- Fermetures Python production/voix par `--require-hashes --only-binary` (SHA-256 des wheels officielles). Outillage PEP 517 intégré au verrou ; installation du code local avec `--no-deps --no-build-isolation`.
+- Générateur explicite de verrous pour les futures montées de version ; contrôle statique, tests de falsification et installation complète dans des environnements CI propres.
+- Les paquets Fedora, outils de développement et la réception matérielle B580 restent hors périmètre de ce verrou.
+
+
 ### Protection du disque secondaire `/IA` contre les redirections de chemins
 
 - `claw_require_storage` refuse les chemins contenant traversées `..` ou des liens symboliques et les liens dans les dossiers sensibles (modèles, projets, configuration, services, sauvegardes). Les dossiers inexistants restent acceptés lors d'une installation neuve.
