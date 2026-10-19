@@ -140,3 +140,7 @@ Par défaut, OpenClaw et le chat s'arrêtent quand tu fermes ta session. Pour le
 ```bash
 scripts/linux/06_install.sh --apply --enable-linger
 ```
+
+## Recherche Web : mode privé ou connecté
+
+L'inférence Qwen peut rester locale même si les outils Web consultent Internet. Pour interdire les outils Web des **sept rôles** après installation, lancer `./menu.sh --action web-private --apply`. La procédure applique le nouveau contrat et vérifie que le Gateway redémarre ; le cloud DeepSeek est **indépendant** et nécessite une autorisation distincte. Voir [la procédure et ses limites](../WEB_ACCESS_PRIVATE_MODE.md).
