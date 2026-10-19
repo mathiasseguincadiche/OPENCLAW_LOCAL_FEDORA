@@ -189,11 +189,13 @@ fi
 # PEP 517 may still resolve build requirements; lock that closure separately.
 as_target "$VENV/bin/python" -m pip --version
 as_target "$VENV/bin/python" -c 'import sys; assert sys.version_info[:2] == (3, 13), "Python 3.13 requis"'
-# Install all 23 exact production packages with reviewed PyPI SHA-256
-# artifacts. Pip verifies downloaded bytes, including any selected sdist.
-# PEP517 build isolation is not yet a closed hash chain (tracked separately).
+# Production is wheel-only: verify every artifact digest, including the
+# PEP 517 editable build backend. Refuse source packages needing unpinned build
+# isolation. The repository source itself is reviewed by the Git commit.
 as_target "$VENV/bin/python" "$REPO_ROOT/scripts/validation/check_dependency_artifact_locks.py"
-as_target "$VENV/bin/python" -m pip install --require-hashes \
+as_target "$VENV/bin/python" -m pip install --require-hashes --only-binary=:all: \
+  -r "$REPO_ROOT/config/python-build-hashes.txt"
+as_target "$VENV/bin/python" -m pip install --require-hashes --only-binary=:all: \
   -r "$REPO_ROOT/config/python-runtime-hashes.txt"
 if ((WITH_DEV == 1)); then
   # Developer extras are intentionally out of the production hash scope.
@@ -202,7 +204,7 @@ if ((WITH_DEV == 1)); then
     -e "${REPO_ROOT}[dev]"
 else
   # Prevent a second, unhashed resolver from pulling hidden production deps.
-  as_target "$VENV/bin/python" -m pip install --no-deps -e "$REPO_ROOT"
+  as_target "$VENV/bin/python" -m pip install --no-build-isolation --no-deps -e "$REPO_ROOT"
 fi
 
 # Fail before enabling runtime services if the installed Python environment is inconsistent.

@@ -16,6 +16,24 @@ def test_production_hashes_exactly_match_pins() -> None:
     assert lock["check_python"](ROOT) == 23
 
 
+def test_build_backend_is_pinned_and_sha256_verified() -> None:
+    assert lock["check_build"](ROOT) == 2
+
+
+def test_build_hash_removal_is_refused(tmp_path: Path) -> None:
+    config = tmp_path / "config"
+    config.mkdir()
+    (config / "python-build-constraints.txt").write_text(
+        (ROOT / "config/python-build-constraints.txt").read_text()
+    )
+    lock_file = (ROOT / "config/python-build-hashes.txt").read_text()
+    (config / "python-build-hashes.txt").write_text(
+        lock_file.replace("--hash=sha256:", "--sha256:", 1)
+    )
+    with pytest.raises(ValueError, match="SHA256|option"):
+        lock["check_build"](tmp_path)
+
+
 def test_speech_artifacts_are_locked_for_python_313() -> None:
     assert lock["check_speech"](ROOT) == 21
 
@@ -84,3 +102,13 @@ def test_speech_hash_tampering_fails_closed(tmp_path: Path) -> None:
     )
     with pytest.raises(ValueError, match="SHA256|directive"):
         lock["check_speech"](tmp_path)
+
+def test_runtime_installers_never_build_unhashed_source_distributions() -> None:
+    bootstrap = (ROOT / "scripts/linux/00_bootstrap.sh").read_text()
+    voice = (ROOT / "scripts/linux/13_openwebui.sh").read_text()
+    ci = (ROOT / ".github/workflows/ci.yml").read_text()
+    for source in (bootstrap, voice, ci):
+        assert "python-build-hashes.txt" in source
+        assert "--require-hashes --only-binary=:all:" in source
+        assert "--no-build-isolation --no-deps -e" in source
+

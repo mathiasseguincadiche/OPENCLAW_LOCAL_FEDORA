@@ -4,6 +4,13 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 19 octobre 2026 — fermeture de la chaîne de construction Python
+
+- Ajout des SHA-256 vérifiés de `setuptools 80.9.0` et `wheel 0.45.1`.
+- Bootstrap Fedora, CI et service de voix : distribution binaire uniquement (`--only-binary=:all:`), `--require-hashes`, puis installation locale sans isolation PEP 517 ni résolution supplémentaire.
+- Tests de modification d'empreintes et contrôle de l'installation wheel-only ; RPM et extras de développement restent hors de ce périmètre.
+
+
 ### 19 octobre 2026 — fermeture de dépendances appliquée à l'installation
 
 - Fermeture npm OpenClaw/Parallel enregistrée dans `config/npm-runtime/package-lock.json` : intégrités SHA-512 et dépendances embarquées, installation `npm ci` en staging plutôt que résolution globale libre.

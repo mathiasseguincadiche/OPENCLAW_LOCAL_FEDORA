@@ -53,6 +53,41 @@ def check_python(root: Path) -> int:
     return len(pins)
 
 
+def check_build(root: Path) -> int:
+    """Require exact reviewed SHA256 artifacts for the isolated PEP517 backend."""
+    config = root / "config"
+    pins: dict[str, str] = {}
+    for line in (config / "python-build-constraints.txt").read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        match = PIN.fullmatch(line)
+        if match is None:
+            raise ValueError("invalid pinned Python build backend")
+        key = canonical(match[1])
+        if key in pins:
+            raise ValueError("duplicate Python build pin")
+        pins[key] = match[2]
+    logical = (config / "python-build-hashes.txt").read_text().replace("\\\n", " ").splitlines()
+    hashes: dict[str, str] = {}
+    for line in logical:
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        match = PIN.match(line)
+        if match is None or not HASH.search(line):
+            raise ValueError("Python build backend missing SHA256")
+        if HASH.sub("", line[match.end():]).strip():
+            raise ValueError("unexpected Python build lock option")
+        key = canonical(match[1])
+        if key in hashes:
+            raise ValueError("duplicate Python build hash")
+        hashes[key] = match[2]
+    if pins != hashes or set(pins) != {"setuptools", "wheel"}:
+        raise ValueError("Python build hash list diverges from exact backend pins")
+    return len(hashes)
+
+
 def check_speech(root: Path) -> int:
     config = root / "config"
     pins = {}
@@ -139,6 +174,7 @@ def check_npm(root: Path) -> tuple[int, int]:
 def main() -> int:
     try:
         python_count = check_python(ROOT)
+        build_count = check_build(ROOT)
         speech_count = check_speech(ROOT)
         npm_count, bundled = check_npm(ROOT)
     except (ValueError, OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
@@ -146,7 +182,7 @@ def main() -> int:
         return 2
     print(
         f"DEPENDENCY_LOCK_RESULT=PASS python={python_count} "
-        f"speech={speech_count} npm_hashed={npm_count} npm_bundled={bundled}"
+        f"build={build_count} speech={speech_count} npm_hashed={npm_count} npm_bundled={bundled}"
     )
     return 0
 
