@@ -63,7 +63,11 @@ def verify(root: Path = ROOT) -> dict[str, int]:
     policy = json.loads((root / "config/install_artifact_integrity.json").read_text(encoding="utf-8"))
     npm = json.loads((root / "config/npm-runtime/package-lock.json").read_text(encoding="utf-8"))
     package = json.loads((root / "config/npm-runtime/package.json").read_text(encoding="utf-8"))
-    if (\n        npm.get("lockfileVersion") != 3\n        or npm.get("packages", {}).get("", {}).get("dependencies")\n        != package["dependencies"]\n    ):
+    if (
+        npm.get("lockfileVersion") != 3
+        or npm.get("packages", {}).get("", {}).get("dependencies")
+        != package["dependencies"]
+    ):
         raise ValueError("npm lock et paquet racine différents")
     targets = {
         "openclaw": version["openclaw"]["version"],
