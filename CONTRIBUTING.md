@@ -13,7 +13,7 @@ make ci
 
 Toute PR qui change un comportement, une version ou un chemin doit mettre à jour **le document utilisateur correspondant**, le [sommaire](docs/README.md) si la navigation change, et le [statut](STATUS.md) si le niveau de preuve change. Vérifier les liens internes et que les commandes sont exécutables : `./menu.sh --action quick-check` vérifie une installation existante, il ne doit pas être lancé dans la CI ni être présenté comme obligatoire avant installation.
 
-Les nouvelles pages doivent avoir un titre unique, un objectif clair, des commandes copiables et des limites explicitement nommées. Préférer un renvoi vers le guide de référence à la duplication d'une procédure. Les versions viennent de `config/runtime_versions.yaml`, `config/webui_policy.yaml` et `config/model_catalog.yaml` ; **aucun numéro périmé** ne doit rester dans un guide opérationnel.
+Les nouvelles pages doivent avoir un titre unique, un objectif clair, des commandes copiables et des limites explicitement nommées. Préférer un renvoi vers le guide de référence à la duplication d'une procédure. Les versions viennent de `config/runtime_versions.yaml`, `config/webui_policy.yaml` et `config/model_catalog.yaml`. Tout changement de version doit également réviser `config/npm-runtime/package-lock.json`, `config/python-runtime-hashes.txt` et `config/python-speech-hashes.txt` si concernés, puis exécuter `python scripts/validation/check_supply_chain_locks.py` ; **aucun numéro périmé** ne doit rester dans un guide opérationnel.
 
 Les plans historiques sont indexés dans [Archives 2026](docs/archives/2026/README.md) ; ne pas supprimer un fichier référencé par un test ou une ancienne issue sans vérifier et corriger ses liens.
 
