@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 PIN = re.compile(r"^([A-Za-z0-9][A-Za-z0-9_.-]*)==([A-Za-z0-9][A-Za-z0-9_.+!-]*)")
-HASH = re.compile(r"^--hash=sha256:([a-fA-F0-9]{64})(?:\\\\)?$")
+HASH = re.compile(r"^--hash=sha256:([a-fA-F0-9]{64})$")
 SRI = re.compile(r"^sha512-([A-Za-z0-9+/]+={0,2})$")
 
 
@@ -87,16 +87,12 @@ def check_python(root: Path) -> dict[str, int]:
 
 
 def check_npm(root: Path) -> dict[str, int]:
-    import tomllib
-
     manifest = json.loads(_read(root / "config/npm-runtime/package.json"))
     lock = json.loads(_read(root / "config/npm-runtime/package-lock.json"))
-    versions = tomllib.loads(_read(root / "pyproject.toml"))
-    del versions  # The npm pins are checked against the runtime version YAML below.
     runtime = _read(root / "config/runtime_versions.yaml")
     import re as _re
-    openclaw_version = _re.search(r'(?m)^openclaw:\\s*\\n\\s+version: "([^"]+)"', runtime)
-    parallel_version = _re.search(r'(?m)^\\s+parallel:\\s*\\n\\s+package: "[^"]+"\\s*\\n\\s+version: "([^"]+)"', runtime)
+    openclaw_version = _re.search(r'(?m)^openclaw:\s*\n  version: "([^"]+)"', runtime)
+    parallel_version = _re.search(r'(?m)^    parallel:\s*\n      package: "[^"]+"\s*\n      version: "([^"]+)"', runtime)
     if not openclaw_version or not parallel_version:
         raise ValueError("versions npm attendues absentes")
     expected = {
