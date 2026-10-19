@@ -181,14 +181,21 @@ VENV="$RUNTIME_ROOT/runtime/venv"
 if [[ ! -x "$VENV/bin/python" ]]; then
   as_target python3 -m venv "$VENV"
 fi
-# Keep Fedora's isolated venv pip: an unbounded upgrade of pip/setuptools/wheel
-# made a reviewed bootstrap unexpectedly install newer build tooling each run.
-# PEP 517 may still resolve build requirements; lock that closure separately.
+# Production dependency *files* and PEP517 build tooling are now hashed.
+# No source build and no unlisted distribution may be resolved here.
 as_target "$VENV/bin/python" -m pip --version
+as_target "$VENV/bin/python" "$REPO_ROOT/scripts/validation/check_supply_chain_locks.py"
+as_target "$VENV/bin/python" -m pip install --require-hashes --only-binary=:all: \
+  -r "$REPO_ROOT/config/python-runtime-hashes.txt"
+# The project source is local and reviewed in this checkout, not a remote wheel:
+# reuse already pinned setuptools/wheel with no isolated PEP517 resolution.
+as_target "$VENV/bin/python" -m pip install --no-deps --no-build-isolation -e "$REPO_ROOT"
 if ((WITH_DEV == 1)); then
-  as_target "$VENV/bin/python" -m pip install --constraint "$REPO_ROOT/config/python-runtime-constraints.txt" -e "${REPO_ROOT}[dev]"
-else
-  as_target "$VENV/bin/python" -m pip install --constraint "$REPO_ROOT/config/python-runtime-constraints.txt" -e "$REPO_ROOT"
+  # Dev extras are a separate optional toolchain and intentionally not part of
+  # the production or speech lock / base installation guarantees.
+  as_target "$VENV/bin/python" -m pip install \
+    --constraint "$REPO_ROOT/config/python-runtime-constraints.txt" \
+    -e "${REPO_ROOT}[dev]"
 fi
 
 # Fail before enabling runtime services if the installed Python environment is inconsistent.
