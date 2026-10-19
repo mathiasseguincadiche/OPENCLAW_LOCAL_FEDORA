@@ -12,7 +12,7 @@ Pour la procédure quotidienne, suivre [Installer Fedora et vérifier l'atelier]
 | Plugin Parallel `2026.10.4` | Extension OpenClaw configurée | Version fixée dans `runtime_versions.yaml`, conformité du schéma testée avec OpenClaw natif |
 | Ollama `0.40.6` | Archive Linux x86_64 officielle | SHA-256 vérifié **avant extraction** |
 | Open WebUI `v0.12.3-slim` | Image `ghcr.io/open-webui/open-webui` | Résolution en digest SHA-256 au premier déploiement ; unité systemd enregistrée avec le digest |
-| Python de production | `pip` avec fichier de contraintes | Versions directes et transitives communes contrôlées par [le verrou Python](PYTHON_RUNTIME_LOCK.md) |
+| Python de production | `pip` avec fichier de contraintes | Versions exactes et hashes SHA-256 des distributions de production contrôlées par [le verrou Python](PYTHON_RUNTIME_LOCK.md) |
 | Runtime et données | Second disque monté sous `/IA` | Refus avant installation si `/IA` n'est pas le montage distinct attendu ; rejet des chemins non canoniques et liens symboliques dans les dossiers gérés ; services conditionnés au montage |
 
 ## Pourquoi l'installateur vérifie les archives
@@ -25,8 +25,8 @@ Le bootstrap Python ne fait pas de mise à niveau globale non bornée de `pip` /
 
 ## Ce qui n'est pas totalement verrouillé
 
-- Les **empreintes de chaque wheel Python** ne sont pas toutes figées ; les dépendances de construction PEP 517 peuvent varier selon la résolution et la plateforme.
-- La **fermeture transitive npm** n'a pas de registre de hashes complet indépendant ; les paquets annexes de voix ont leur propre résolution.
+- Les wheels et sources **Python de production** disposent de SHA-256 ; les dépendances de build PEP 517 et les extras voix/dev ne sont pas entièrement figés ; les dépendances de construction PEP 517 peuvent varier selon la résolution et la plateforme.
+- La **fermeture transitive npm** dispose d'un package-lock SHA-512 appliqué par `npm ci` ; les paquets annexes de voix ont leur propre résolution.
 - L'image Open WebUI est figée **lors de son déploiement**, pas par un digest préétabli et signé dans le dépôt.
 - L'installateur et les services Fedora 45/GNOME 51 doivent encore être observés sur la machine réelle, notamment GPU/Vulkan, SELinux, WebUI et modèle.
 
