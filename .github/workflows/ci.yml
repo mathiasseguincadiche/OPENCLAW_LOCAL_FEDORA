@@ -29,7 +29,9 @@ jobs:
       - name: Install
         run: python -m pip install -e ".[dev]"
       - name: Repository contracts
-        run: clawfedora validate
+        run: |
+          clawfedora validate
+          python scripts/validation/check_supply_chain_locks.py
       - name: Ruff
         run: ruff check src tests scripts/validation
       - name: Mypy
@@ -52,8 +54,10 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Fresh production install with reviewed constraints
-        run: python -m pip install --constraint config/python-runtime-constraints.txt -e .
+      - name: Fresh production install with SHA256 wheels and pinned PEP517 build
+        run: |
+          python -m pip install --require-hashes --only-binary=:all: -r config/python-runtime-hashes.txt
+          python -m pip install --no-deps --no-build-isolation -e .
       - name: Verify the full observed production package inventory
         run: |
           python -m pip check
@@ -91,7 +95,11 @@ jobs:
           PARALLEL_VERSION="$(python -c 'from pathlib import Path; from clawfedora.core_config import root_contract; print(root_contract(Path.cwd(), "runtime_versions.yaml")["openclaw"]["plugins"]["parallel"]["version"])')"
           NATIVE_ROOT="$RUNNER_TEMP/native-openclaw"
           mkdir -p "$NATIVE_ROOT"
-          npm install --ignore-scripts --prefix "$NATIVE_ROOT" "openclaw@$OPENCLAW_VERSION" "@openclaw/parallel-plugin@$PARALLEL_VERSION"
+          cp config/npm-runtime/package.json config/npm-runtime/package-lock.json "$NATIVE_ROOT/"
+          npm ci --ignore-scripts --no-audit --no-fund --prefix "$NATIVE_ROOT"
+          npm ls --all --prefix "$NATIVE_ROOT" >/dev/null
+          test "$(node -p "require('$NATIVE_ROOT/node_modules/openclaw/package.json').version")" = "$OPENCLAW_VERSION"
+          test "$(node -p "require('$NATIVE_ROOT/node_modules/@openclaw/parallel-plugin/package.json').version")" = "$PARALLEL_VERSION"
           echo "$NATIVE_ROOT/node_modules/.bin" >> "$GITHUB_PATH"
           echo "OPENCLAW_SCHEMA_PARALLEL_PATH=$NATIVE_ROOT/node_modules/@openclaw/parallel-plugin" >> "$GITHUB_ENV"
       - name: Native schema validation
@@ -192,7 +200,10 @@ jobs:
       - name: Test Fedora 45 Python source and contracts in container
         run: |
           python3 -m venv /tmp/clawfedora45-venv
-          /tmp/clawfedora45-venv/bin/python -m pip install --constraint config/python-runtime-constraints.txt -e ".[dev]"
+          /tmp/clawfedora45-venv/bin/python -m pip install --require-hashes --only-binary=:all: -r config/python-runtime-hashes.txt
+          /tmp/clawfedora45-venv/bin/python -m pip install --no-deps --no-build-isolation -e .
+          # Development-only test tools are outside the production/voice lock.
+          /tmp/clawfedora45-venv/bin/python -m pip install -e ".[dev]" --constraint config/python-runtime-constraints.txt
           /tmp/clawfedora45-venv/bin/python -m pip check
           /tmp/clawfedora45-venv/bin/python scripts/validation/check_python_lock.py
           /tmp/clawfedora45-venv/bin/clawfedora validate
