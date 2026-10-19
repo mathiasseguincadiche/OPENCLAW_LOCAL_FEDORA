@@ -357,7 +357,13 @@ def test_storage_guard_refuses_ia_path_traversal_before_mount_lookup() -> None:
         "/IA/Openclaw/projects/../state",
     ):
         result = subprocess.run(
-            ["bash", "-c", 'source scripts/linux/lib/runtime.sh; claw_require_storage "$1"', "_", candidate],
+            [
+                "bash",
+                "-c",
+                'source scripts/linux/lib/runtime.sh; claw_require_storage "$1"',
+                "_",
+                candidate,
+            ],
             cwd=ROOT, capture_output=True, text=True, check=False,
         )
         assert result.returncode == 2
