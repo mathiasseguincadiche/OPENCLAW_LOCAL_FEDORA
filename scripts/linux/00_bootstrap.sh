@@ -88,7 +88,7 @@ fi
 
 PACKAGES=(
   git curl wget rsync jq tar zstd unzip nodejs npm pciutils usbutils lm_sensors poppler-utils shellcheck gitleaks
-  python3 python3-pip python3-virtualenv
+  python3 python3-pip python3-virtualenv python3.13
   vulkan-tools mesa-vulkan-drivers
   firewalld policycoreutils-python-utils acl openssl lsof procps-ng util-linux
 )
@@ -179,8 +179,15 @@ as_root restorecon -RF "$RUNTIME_ROOT" || true
 
 VENV="$RUNTIME_ROOT/runtime/venv"
 if [[ ! -x "$VENV/bin/python" ]]; then
-  as_target python3 -m venv "$VENV"
+  # Fedora 45 ships Python 3.15, but the reviewed native wheel closure targets
+  # CPython 3.13. Never mutate or downgrade Fedora's system interpreter.
+  as_target python3.13 -m venv "$VENV"
 fi
+# A reused managed venv must not silently be Python 3.15 from a prior run.
+[[ "$("$VENV/bin/python" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')" == "3.13" ]] || {
+  echo "ERREUR: runtime Python 3.13 requis; migration du venv hors installation automatique" >&2
+  exit 2
+}
 # Production dependency *files* and PEP517 build tooling are now hashed.
 # No source build and no unlisted distribution may be resolved here.
 as_target "$VENV/bin/python" -m pip --version
