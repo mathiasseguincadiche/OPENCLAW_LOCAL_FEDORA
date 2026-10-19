@@ -7,7 +7,7 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 ### 19 octobre 2026 — fermeture de dépendances appliquée à l'installation
 
 - Fermeture npm OpenClaw/Parallel enregistrée dans `config/npm-runtime/package-lock.json` : intégrités SHA-512 et dépendances embarquées, installation `npm ci` en staging plutôt que résolution globale libre.
-- Production Python : `--require-hashes` avec les SHA-256 des artefacts PyPI, suivi d'une installation du projet en `--no-deps`. CI dédiée Fedora 45 / Python 3.15.
+- Fedora 45 conserve Python 3.15 pour le système ; un venv isolé Python **3.13** est utilisé pour le runtime IA, afin de conserver la compatibilité de l'audio CTranslate2.\n- Production Python : `--require-hashes` avec les SHA-256 des artefacts PyPI, suivi d'une installation du projet en `--no-deps`. CI dédiée Fedora 45 / Python 3.15.
 - Les RPM Fedora, les exigences PEP 517 temporaires et les extras voix/dev demandent encore leur propre qualification ; cette modification ne prouve pas l'installation sur le PC réel.
 
 
