@@ -1,29 +1,71 @@
-# Dépendances : fermeture versionnée et empreintes d'artefacts
+# Dépendances : versions et empreintes vérifiées
 
-## Production Python — Fedora 45 (runtime Python 3.13 isolé)
+Le dépôt conserve les versions exactes et les SHA-256 des distributions nécessaires
+à l'installation du projet. La procédure refuse les archives non approuvées ;
+aucune mise à jour automatique des dépendances n'est effectuée.
 
-Le projet contient deux fichiers complémentaires :
-- [`python-runtime-constraints.txt`](../config/python-runtime-constraints.txt) : versions exactes des **23 dépendances de production**.
-- [`python-runtime-hashes.txt`](../config/python-runtime-hashes.txt) : SHA-256 publics des archives sources et wheels **Linux x86_64** publiés par PyPI pour ces versions.
+## Python 3.13 isolé sur Fedora 45
 
-Fedora 45 garde **Python 3.15 pour le système**. L'atelier utilise un venv séparé basé sur **Python 3.13 fourni par Fedora**, afin de conserver la compatibilité avec la bibliothèque vocale CTranslate2, actuellement non distribuée pour cp315. Aucun Python système n'est rétrogradé.
+Fedora 45 conserve son Python système, sans rétrogradation. Le runtime IA,
+séparé dans `/IA/Openclaw/runtime/venv/`, utilise le Python 3.13 distribué
+par Fedora pour rester compatible avec les composants optionnels de voix.
 
-Le bootstrap commence par `pip install --require-hashes -r config/python-runtime-hashes.txt`. Cette commande refuse un paquet sans hash validé, puis installe le projet avec `pip install --no-deps -e .`, sans résolution supplémentaire des dépendances de production.
+| Ensemble | Verrou de versions | Empreintes |
+| --- | --- | --- |
+| Production (23 packages) | [Contraintes Python](../config/python-runtime-constraints.txt) | [SHA-256 runtime](../config/python-runtime-hashes.txt) |
+| Voix facultative (21 packages) | [Contraintes voix](../config/python-speech-constraints.txt) | [SHA-256 voix](../config/python-speech-hashes.txt) |
+| Outils de construction (setuptools/wheel) | [Contraintes de build](../config/python-build-constraints.txt) | [SHA-256 de build](../config/python-build-hashes.txt) |
 
-**Contrôles en CI :** intégrité des manifests, installation Python 3.12/3.13 sur Ubuntu, installation réelle des distributions hashées sous Fedora 45 / Python 3.13, `pip check`, vérification des versions et tests. Le fichier des hashes contient des archives **sources** lorsque les wheels compatibles n'existent pas encore : dans ce cas, la compilation peut nécessiter des outils ou dépendances PEP 517 non couverts par ces hashes.
+Le bootstrap installe d'abord **setuptools et wheel depuis leurs wheels
+hashées**, puis les paquets de production avec
+`pip install --require-hashes --only-binary=:all:`. Cette combinaison refuse
+les distributions sources qui auraient pu télécharger implicitement d'autres
+outils de construction. Le projet local est ensuite installé avec
+`pip install --no-build-isolation --no-deps -e .` : le backend de build
+n'est ni téléchargé ni mis à niveau dans un environnement PEP 517 temporaire.
 
-## npm — OpenClaw et plugin Parallel
+L'installation optionnelle de la voix suit le même principe, en ajoutant
+sa fermeture indépendante de 21 paquets. Elle reste **désactivable**, sans
+modifier les sept rôles ni le premier démarrage normal de Qwen.
 
-- [Manifeste exact](../config/npm-runtime/package.json) : deux dépendances directes, `openclaw@2026.10.4` et `@openclaw/parallel-plugin@2026.10.4`.
-- [Verrou npm v3](../config/npm-runtime/package-lock.json) : toutes les versions transitives, URLs du registre, hashes SHA-512 et paquets embarqués (leurs octets sont inclus dans une archive parente authentifiée).
-- L'installateur vérifie d'abord l'archive OpenClaw et son SHA-512 direct, puis utilise **`npm ci --ignore-scripts --engine-strict`** dans un dossier de staging privé. Il vérifie la CLI et le plugin avant promotion dans `~/.openclaw/lib/node_modules`. Le plugin Parallel est lié **depuis ce même arbre verrouillé**, sans commande de mise à jour npm indépendante.
+Pour contrôler le dépôt, sans réseau ni installation :
 
-Une PR de changement de version doit mettre à jour le fichier d'intégrité directe, les versions, le `package-lock.json`, les SHA Python si nécessaire, lancer `npm ci`, `pip --require-hashes` et tous les contrôles. **Ne pas utiliser `npm install -g` pour contourner le verrou : npm global n'utilise pas le `package-lock.json` local.**
+```bash
+python scripts/validation/check_dependency_artifact_locks.py
+```
 
-## Périmètre non démontré par les manifests
+## npm : OpenClaw et Parallel
 
-Les paquets Fedora (DNF/RPM) et les dépendances temporaires de compilation PEP 517 ne sont pas figés par SHA-256 ici. Les **21 dépendances optionnelles de voix** ont désormais leurs versions et empreintes SHA-256 dans [le verrou dédié](../config/python-speech-hashes.txt), avec une validation automatisée sur Fedora 45/Python 3.13. Les extras de développement `[dev]`, les dépendances de construction PEP 517 et les RPM restent hors du verrouillage cryptographique complet. La réception voix réelle (microphone, modèles, latence) est encore à effectuer sur le PC. Les tests GitHub ne prouvent ni le débit sur la B580, ni le comportement SELinux dans une session GNOME réelle.
+- [Manifeste npm](../config/npm-runtime/package.json) : OpenClaw et
+  Parallel aux versions exactes de `config/runtime_versions.yaml`.
+- [Lock npm v3](../config/npm-runtime/package-lock.json) : archives avec
+  version, provenance et SHA-512 ; les sous-paquets `inBundle` sont
+  inclus dans une archive parente vérifiée.
+- L'installateur contrôle l'archive officielle OpenClaw puis effectue
+  `npm ci --ignore-scripts --engine-strict` dans un répertoire temporaire
+  avant de promouvoir la fermeture vérifiée. Parallel est chargé depuis
+  le même arbre npm verrouillé ; aucune résolution npm indépendante.
 
-Une empreinte SHA-256 vérifie l'intégrité **relativement à la valeur approuvée dans Git** ; elle ne prouve pas qu'un paquet tiers est exempt de vulnérabilités ni que son auteur est digne de confiance.
+## Ce que ces verrous ne prouvent pas
 
-[← Références](reference/README.md) · [Installation](INSTALLATION_SIMPLE_FEDORA45.md) · [État des preuves](../STATUS.md)
+Les fichiers validés prouvent la cohérence des **versions, sources et
+empreintes examinées**, mais non l'absence de vulnérabilités dans les paquets
+tiers, la provenance humaine de leur publication ni le résultat matériel
+sur la B580. Les RPM de Fedora, le Python et le gestionnaire de paquets
+du système ne sont pas verrouillés octet par octet par Git. Les outils de
+développement `.[dev]` restent hors de la fermeture Python de production.
+L'installation et la restauration sur le PC réel restent à vérifier.
+
+## Mise à niveau contrôlée
+
+Une nouvelle version impose une PR qui réactualise les contraintes et leurs
+SHA, le lock npm, les empreintes directes des archives, puis passe :
+CI Python 3.12/3.13, conteneur Fedora 45 (runtime Python 3.13 et voix),
+installation native OpenClaw/Parallel, ShellCheck, CodeQL et Dependency Review.
+
+**Ne jamais contourner un refus de hash avec un `pip install` ou
+`npm install` non verrouillé.** Diagnostiquer la version, le téléchargement
+ou le manifeste avant de réessayer.
+
+[← Références](reference/README.md) ·
+[Installation](INSTALLATION_SIMPLE_FEDORA45.md) · [État actuel](../STATUS.md)

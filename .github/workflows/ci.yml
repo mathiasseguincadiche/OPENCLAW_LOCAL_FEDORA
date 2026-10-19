@@ -56,8 +56,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Fresh production install with reviewed constraints
         run: |
-          python -m pip install --require-hashes -r config/python-runtime-hashes.txt
-          python -m pip install --no-deps -e .
+          python -m pip install --require-hashes --only-binary=:all: -r config/python-build-hashes.txt
+          python -m pip install --require-hashes --only-binary=:all: -r config/python-runtime-hashes.txt
+          python -m pip install --no-build-isolation --no-deps -e .
       - name: Verify the full observed production package inventory
         run: |
           python -m pip check
@@ -201,8 +202,9 @@ jobs:
       - name: Verify PyPI artifact SHA-256 installation with native Fedora 45 Python
         run: |
           python3.13 -m venv /tmp/clawfedora45-hashed-venv
-          /tmp/clawfedora45-hashed-venv/bin/python -m pip install --require-hashes -r config/python-runtime-hashes.txt
-          /tmp/clawfedora45-hashed-venv/bin/python -m pip install --no-deps -e .
+          /tmp/clawfedora45-hashed-venv/bin/python -m pip install --require-hashes --only-binary=:all: -r config/python-build-hashes.txt
+          /tmp/clawfedora45-hashed-venv/bin/python -m pip install --require-hashes --only-binary=:all: -r config/python-runtime-hashes.txt
+          /tmp/clawfedora45-hashed-venv/bin/python -m pip install --no-build-isolation --no-deps -e .
           /tmp/clawfedora45-hashed-venv/bin/python -m pip check
           /tmp/clawfedora45-hashed-venv/bin/python scripts/validation/check_python_lock.py --strict
       - name: Test Fedora 45 Python source and contracts in container
@@ -227,7 +229,8 @@ jobs:
       - name: Probe pinned production and speech dependencies on managed Python 3.13
         run: |
           python3.13 -m venv /tmp/claw-voice-venv
-          /tmp/claw-voice-venv/bin/python -m pip install --require-hashes -r config/python-runtime-hashes.txt -r config/python-speech-hashes.txt
-          /tmp/claw-voice-venv/bin/python -m pip install --no-deps -e ".[speech]"
+          /tmp/claw-voice-venv/bin/python -m pip install --require-hashes --only-binary=:all: -r config/python-build-hashes.txt
+          /tmp/claw-voice-venv/bin/python -m pip install --require-hashes --only-binary=:all: -r config/python-runtime-hashes.txt -r config/python-speech-hashes.txt
+          /tmp/claw-voice-venv/bin/python -m pip install --no-build-isolation --no-deps -e ".[speech]"
           /tmp/claw-voice-venv/bin/python -m pip check
           /tmp/claw-voice-venv/bin/python -V
