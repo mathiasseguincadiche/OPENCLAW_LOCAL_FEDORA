@@ -186,7 +186,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Install Fedora 45 Python and checkout tooling
-        run: dnf install -y git gcc gcc-c++ python3 python3-devel python3-pip python3-virtualenv shadow-utils util-linux
+        run: dnf install -y git gcc gcc-c++ python3 python3-devel python3-pip python3-virtualenv python3.13 shadow-utils util-linux
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Assert Fedora 45 container baseline (pre-release until official launch)
@@ -209,7 +209,7 @@ jobs:
           grep -E 'GNOME Shell 51 requis|Fedora 45 stable requis' /tmp/headless-rejection.log
       - name: Test Fedora 45 Python source and contracts in container
         run: |
-          python3 -m venv /tmp/clawfedora45-venv
+          python3.13 -m venv /tmp/clawfedora45-venv
           /tmp/clawfedora45-venv/bin/python -m pip install --require-hashes --only-binary=:all: -r config/python-runtime-hashes.txt
           /tmp/clawfedora45-venv/bin/python -m pip install --no-deps --no-build-isolation -e .
           # Development-only test tools are outside the production/voice lock.
