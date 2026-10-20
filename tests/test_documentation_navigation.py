@@ -112,7 +112,7 @@ def test_hybrid_documentation_describes_both_configured_engines() -> None:
     assert models["qwen-max"]["provider"] == "ollama"
     assert models["cloud-main"]["provider"] == "cloud-gateway"
     assert models["cloud-main"]["runtime_id"] == cloud["model"]["upstream_id"]
-    assert cloud["model"]["upstream_id"] == "deepseek/deepseek-v4.1-flash"
+    assert cloud["model"]["upstream_id"] == "deepseek/deepseek-v4.1-flash-1017"
     assert routing["policy"]["cloud_enabled_by_default"] is False
     assert routing["policy"]["local_to_cloud_fallback"] == "forbidden"
     assert set(routing["agents"]) == set(

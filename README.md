@@ -7,7 +7,7 @@
 [![Fedora 45](https://img.shields.io/badge/Fedora-45-51A2DA?logo=fedora&logoColor=white)](https://fedoraproject.org/)
 [![Licence MIT](https://img.shields.io/badge/Licence-MIT-green.svg)](LICENSE)
 
-**Un atelier IA personnel conçu pour apprendre le DevOps infrastructure, préparer des déploiements, analyser des configurations et mener plusieurs projets documentés.** Sept rôles OpenClaw partagent un moteur **Qwen 3.5 9B local**, avec **DeepSeek V4.1 Flash via OpenRouter** comme option cloud explicitement autorisée.
+**Un atelier IA personnel conçu pour apprendre le DevOps infrastructure, préparer des déploiements, analyser des configurations et mener plusieurs projets documentés.** Sept rôles OpenClaw partagent un moteur **Qwen 3.5 9B local**, avec **DeepSeek V4.1 Flash 1017 via OpenRouter** comme option cloud explicitement autorisée.
 
 > **État actuel :** CI logicielle opérationnelle ; **le PC cible reste à valider**. Les tests automatisés ne prouvent pas encore les performances réelles de l'Intel Arc B580, le navigateur, la voix ni la facturation cloud. [État détaillé](STATUS.md).
 
@@ -32,7 +32,7 @@ Le chat peut aussi analyser de petits fichiers texte **sans créer de projet**. 
 | Composant | Fonction | État initial |
 | --- | --- | --- |
 | **Qwen 3.5 9B Q4_K_M + Ollama** | Réponses locales, GPU Intel Arc B580/Vulkan | Actif par défaut après installation |
-| **DeepSeek V4.1 Flash + OpenRouter** | Analyse de dossiers complexes et longs contextes | Cloud **désactivé** avant activation explicite |
+| **DeepSeek V4.1 Flash 1017 + OpenRouter** | Analyse de dossiers complexes et longs contextes | Cloud **désactivé** avant activation explicite |
 | **OpenClaw** | Coordination, outils contrôlés et consignes des rôles | Sept rôles spécialisés |
 | **Open WebUI** | Interface de discussion : `127.0.0.1:3000` | Podman rootless |
 | **Atelier Projets** | Organisation et suivi : `127.0.0.1:18890` | Projets indépendants |
@@ -40,6 +40,8 @@ Le chat peut aussi analyser de petits fichiers texte **sans créer de projet**. 
 **Les sept rôles :** Mentor infrastructure/OPS, Expert recherche, Architecte solutions, Ingénieur DevOps, Ingénieur sécurité, Rédacteur pédagogique et Auditeur qualité.
 
 ![Les sept rôles spécialisés](docs/diagrams/atelier-roles.svg)
+
+**Pédagogie et sobriété :** les consignes privilégient une réponse utile, un petit exemple OPS et une vérification concrète plutôt que des pages répétitives. Les profils cloud `rapide`, `equilibre` et `approfondi` sont choisis manuellement ; `approfondi` reste le défaut historique. [Consignes](docs/PROMPTS.md) · [Réglages](docs/fiches/08-reglages.md).
 
 **Sécurité et consentement :** aucun repli automatique du local vers le cloud. Le budget configuré est plafonné à **25 €/mois**, complété par un prépaiement et une limite chez le fournisseur. Les outils de recherche Web peuvent contacter Internet **même si Qwen est local** ; le [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) permet de les désactiver explicitement avec `./menu.sh --action web-private --apply`, après installation. Le filtre de confidentialité ne peut pas garantir qu'aucune information sensible ne sortira si l'utilisateur autorise le cloud.
 

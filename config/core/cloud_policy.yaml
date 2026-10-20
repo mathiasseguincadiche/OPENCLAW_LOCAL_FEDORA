@@ -45,12 +45,14 @@ limits:
   max_tools: 64
 model:
   alias: cloud-main
-  upstream_id: deepseek/deepseek-v4.1-flash
-  display_name: DeepSeek V4.1 Flash (cloud, via passerelle locale)
+  upstream_id: deepseek/deepseek-v4.1-flash-1017
+  display_name: DeepSeek V4.1 Flash 1017 (cloud, via passerelle locale)
   # Le cloud n'est pas bridé aux limites du petit modèle local : DeepSeek reçoit un contexte
   # large pour les dépôts, documents et boucles d'outils complexes, avec une sortie ample.
   context_tokens: 1048576
   max_output_tokens: 32768
+  # Tarifs ci-dessous = plafonds de sécurité, non prix public garanti.
+  # Vérifier un endpoint 1017 compatible confidentialité, outils et raisonnement.
   # Ces tarifs servent aussi de plafond OpenRouter : la réservation budgétaire et le routage
   # partagent donc exactement le même pire cas autorisé.
   pricing_usd_per_million:

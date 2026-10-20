@@ -2,7 +2,7 @@
 
 [← Guide](../GUIDE.md) · [Schéma des routes](11-comment-ca-marche.md) · [État réel](../../STATUS.md)
 
-L'atelier est **hybride par conception** : **Qwen local** sert le travail quotidien privé, tandis que **DeepSeek V4.1 Flash dans le cloud** est prévu pour les tâches **plus exigeantes** — revue de modules Terraform/Ansible, architecture complexe, longs diagnostics et audit de documents publics. DeepSeek est appelé par **OpenRouter**, à travers une passerelle locale qui impose les permissions, le filtre et le budget.
+L'atelier est **hybride par conception** : **Qwen local** sert le travail quotidien privé, tandis que **DeepSeek V4.1 Flash 1017 dans le cloud** est prévu pour les tâches **plus exigeantes** — revue de modules Terraform/Ansible, architecture complexe, longs diagnostics et audit de documents publics. DeepSeek est appelé par **OpenRouter**, à travers une passerelle locale qui impose les permissions, le filtre et le budget.
 
 Le cloud reste **facultatif au sens du consentement**, mais **central dans la stratégie de capacité**. L'objectif est une meilleure qualité et moins de reprises quand la difficulté justifie le service distant ; **cela reste à démontrer par des essais**, pas une promesse de performance automatique.
 
@@ -63,6 +63,8 @@ Les messages de blocage nomment la **catégorie** trouvée (« jeton d'accès »
 ### Où part ce que tu envoies
 
 DeepSeek V4.1 Flash est appelé via OpenRouter. La passerelle impose `data_collection: deny`, `require_parameters: true`, un tri `throughput` et un `max_price` correspondant au pire coût réservé. Si aucun endpoint ne respecte ces contraintes, l'appel échoue : le projet ne relâche jamais automatiquement la confidentialité ou le plafond de prix. Vérifie aussi les conditions du fournisseur réellement retenu lors du premier essai.
+
+**Instantané 1017 :** l'identité épinglée est `deepseek/deepseek-v4.1-flash-1017` (17 octobre 2026). Les prix 0,25 $ / 0,75 $ par million de tokens représentent les **plafonds de sécurité**, pas un prix garanti. Au premier appel réel, vérifier l'endpoint, le raisonnement et le coût, sans relâcher `data_collection: deny` ou `require_parameters` pour contourner un refus.
 
 ## Le budget : 25 € réels par mois
 

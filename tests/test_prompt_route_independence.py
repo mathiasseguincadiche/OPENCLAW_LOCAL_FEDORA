@@ -33,3 +33,14 @@ def test_no_provider_name_or_automatic_route_claim_in_shared_prompts() -> None:
         assert "Le modèle choisit le fournisseur" not in prompt
     route = core_contract(ROOT, "model_routing.yaml")["policy"]
     assert route["local_to_cloud_fallback"] == "forbidden"
+
+
+def test_pedagogy_is_concrete_without_unnecessary_length() -> None:
+    pedagogy = (ROOT / "agents/_shared/PEDAGOGY.md").read_text(encoding="utf-8")
+    mentor = (ROOT / "agents/chef-operations/AGENTS.md").read_text(encoding="utf-8")
+    writer = (ROOT / "agents/redacteur-pedagogique/AGENTS.md").read_text(encoding="utf-8")
+    assert "exemple court Linux/OPS" in pedagogy
+    assert "comment en vérifier l'effet" in pedagogy
+    assert "délégation superflue" in mentor
+    assert "sans sacrifier les étapes critiques" in writer
+    assert not validate_agent_assets(ROOT)

@@ -7,12 +7,12 @@
 Imagine une **équipe de sept spécialités** réunie autour d'un même dossier : elle dispose **de deux moteurs d'inférence complémentaires**, mais garde les mêmes missions et outils autorisés.
 
 - **Qwen local** : traitement quotidien privé, raisonnements ciblés, zéro coût API.
-- **DeepSeek V4.1 Flash cloud** : **capacité de raisonnement et contexte renforcés**, prévus pour les tâches complexes, les analyses longues et les contributions multi-fichiers qui le justifient.
+- **DeepSeek V4.1 Flash 1017 cloud** : **capacité de raisonnement et contexte renforcés**, prévus pour les tâches complexes, les analyses longues et les contributions multi-fichiers qui le justifient.
 - **OpenClaw + worker** : une couche commune de consignes, outils, ordonnanceur et protections. Les sept agents **ne constituent pas sept modèles distincts**.
 
 La route cloud n'est ni obligatoire ni choisie automatiquement par agent. [Stratégie hybride et cas d'usage](../ARCHITECTURE_HYBRIDE.md).
 
-- **Le modèle** est le moteur qui rédige et raisonne : **Qwen 3.5 9B Q4_K_M** via Ollama en local, ou **DeepSeek V4.1 Flash** via OpenRouter si tu as activé le cloud et autorisé son usage.
+- **Le modèle** est le moteur qui rédige et raisonne : **Qwen 3.5 9B Q4_K_M** via Ollama en local, ou **DeepSeek V4.1 Flash 1017** via OpenRouter si tu as activé le cloud et autorisé son usage.
 - **Le rôle** indique la mission, les règles et les outils auxquels le modèle a droit. Changer de rôle **ne change pas automatiquement de modèle**.
 - **Le worker** (moteur du projet) choisit l'ordre des tâches, fournit les éléments autorisés et récupère les résultats. Les agents **ne s'appellent pas entre eux**.
 - **Toi** : tu approuves les étapes et décides si le résultat convient. Un fichier rédigé n'est pas un logiciel installé.

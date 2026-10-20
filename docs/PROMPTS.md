@@ -37,7 +37,7 @@ au chef (11743 mesurés sur le zip brut, soit 257 de marge). La fusion est donc 
 | Méthode détaillée de chaque rôle | Reprise, sans les paragraphes « contrat technique » répétés dans chaque rôle (factorisés dans `TOOLS.md` et `CONTRACT.md`) |
 | Suivi de compétences, révisions espacées, laboratoire, Skills | Hors périmètre de ce lot (voir `PLAN_MIGRATION_HYBRIDE.md`) ; les consignes disent qu'aucun rappel ni mémoire automatique n'existe |
 
-Tailles mesurées après fusion (unités UTF-16 d'OpenClaw, limite 12000) : de 11158 (recherche) à
+Tailles mesurées lors de la fusion V2.3 initiale (unités UTF-16 d'OpenClaw, limite 12000) : de 11158 (recherche) à
 11543 (chef, DevOps), soit au moins 457 de marge. Le chef avec l'historique maximal du chat
 atteint 21684 tokens estimés sur 32768 de contexte, sortie de 4096 comprise.
 
@@ -75,6 +75,14 @@ Les consignes communes doivent rester **indépendantes du fournisseur**, car les
 La règle pédagogique a été précisée : **trois notions nouvelles par séquence guidée**, mais aucune limite arbitraire à la profondeur d'une **explication directe demandée**. Le contexte, les droits aux outils, l'accord cloud et le budget restent définis par l'application, jamais par un prompt.
 
 Les valeurs actuelles sont dans `config/core/openclaw_policy.yaml` et `config/core/cloud_policy.yaml`, non dans les fichiers `agents/_shared/`. La qualité réelle doit être contrôlée sur les scénarios d'évaluation, pas déduite de la formulation des instructions.
+
+## Ajustement du 20 octobre 2026 — pédagogie et sobriété
+
+Les consignes communes renforcent la réponse utile et l'exemple **court, concret et vérifiable** dans Linux/OPS. Le mentor évite une délégation superflue ; le rédacteur supprime les répétitions sans omettre le diagnostic, les risques ou le rollback. Ces règles sont **indépendantes du fournisseur** ; elles concernent Qwen et DeepSeek V4.1 Flash 1017. Elles ne demandent ni quiz imposé ni réponse volontairement incomplète.
+
+**Qualification à faire avec des appels réels :** utiliser les mêmes demandes publiques sur les deux routes, par exemple : expliquer `terraform plan` versus `apply`, diagnostiquer un journal GitHub Actions synthétique, relier Ansible à une VM Rocky Linux, décrire un rollback et le rôle des secrets. Comparer exactitude, clarté, exemples, vérifications, nombre de tours, tokens et coût. La grille par rôle existante reste dans la suite d'évaluation du dépôt. Ces mesures ne sont **pas encore réalisées** sur Fedora.
+
+Pour économiser des tokens cloud, l'opérateur peut choisir **manuellement** `equilibre` (medium / 8192 tokens de sortie maximum), après installation : `./menu.sh --action cloud-set-profile --value equilibre --apply`. `approfondi` (xhigh / 32768) reste le défaut historique et se réactive sur les incidents difficiles. Il s'agit de plafonds, pas de budgets consommés automatiquement. Les vérifications restent obligatoires même lorsqu'on cherche une réponse concise.
 
 ## Liberté pédagogique
 

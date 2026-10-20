@@ -1,6 +1,6 @@
 # État du projet — Atelier IA hybride Fedora
 
-**Référence logicielle : 19 octobre 2026.** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
+**Référence logicielle : 20 octobre 2026.** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
 ## Résumé vérifiable
 
@@ -14,7 +14,7 @@
 | **Qwen local et contexte 8K–32K** | Implémenté | Inférence courte dans `quick-check` ; débit réel, VRAM et contexte optimal **À mesurer** |
 | **Open WebUI 0.12.3** | Implémenté/testé en simulation ou intégration partielle | Navigateur, boutons, fichiers et microphone **À faire** en réception réelle |
 | **Sept rôles et projets multiples** | Contrats et tests automatisés | Qualité pédagogique et usage réel des projets **À mesurer** |
-| **Cloud OpenRouter / DeepSeek** | Filtre, budget, accords simulés et testés | Appel fournisseur et facturation réels **À faire**, uniquement avec accord |
+| **Cloud OpenRouter / DeepSeek V4.1 Flash 1017** | Instantané épinglé du 17 octobre ; filtres et budget testés en simulation | Appel OpenRouter réel, compatibilité `data_collection: deny`, `reasoning.effort`, coût et facturation **À faire** avec accord |
 | **Sauvegarde / restauration** | Tests de restauration et SQLite fictif réussis | Restauration du vrai état de l’installation **À faire** |
 
 Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n’a pas encore été réceptionné sur cette machine**.
@@ -29,7 +29,7 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 | Ollama | `0.40.6` |
 | Open WebUI | `v0.12.3-slim`, image résolue par digest à l’installation |
 | Modèle local obligatoire | `qwen3.5:9b-q4_K_M` |
-| Route cloud facultative | `deepseek/deepseek-v4.1-flash` via OpenRouter |
+| Route cloud facultative | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter |
 | Budget cloud | 25 €/mois, activation et consentement explicites |
 | Racine des données | `/IA/Openclaw/` sur le deuxième disque monté sous `/IA` |
 
