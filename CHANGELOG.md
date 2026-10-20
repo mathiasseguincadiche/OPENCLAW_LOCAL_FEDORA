@@ -4,6 +4,13 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 20 octobre 2026 — pédagogie ciblée et DeepSeek V4.1 Flash 1017
+
+- Modèle cloud épinglé à `deepseek/deepseek-v4.1-flash-1017` sans ajout de fournisseur ni changement du plafond de 25 €.
+- Alignement des contrats, tests et documents sur l'identité du nouveau modèle ; endpoint réel et facturation à qualifier sur Fedora.
+- Consignes du mentor et du rédacteur renforcées pour des explications courtes, concrètes, vérifiables et sans répétition inutile.
+- Guide d'usage des profils d'effort manuels pour préserver le coût ; les permissions, le consentement et les garde-fous restent inchangés.
+
 ### 19 octobre 2026 — fermeture de la chaîne de construction Python
 
 - Ajout des SHA-256 vérifiés de `setuptools 80.9.0` et `wheel 0.45.1`.
