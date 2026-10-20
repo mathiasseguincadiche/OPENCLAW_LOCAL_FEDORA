@@ -6,7 +6,7 @@ Chaque réglage appartient à une couche précise (interface, pont, moteur de pr
 
 ## Deux profils de capacité, une seule politique de sécurité
 
-Qwen 3.5 9B est la route locale par défaut. DeepSeek V4.1 Flash est la route cloud de capacité, choisie explicitement pour les tâches exigeantes et seulement lorsque la confidentialité et le coût le permettent. Le modèle utilisé ne change **pas** les outils autorisés au rôle.
+Qwen 3.5 9B est la route locale par défaut. DeepSeek V4.1 Flash 1017 est la route cloud de capacité, choisie explicitement pour les tâches exigeantes et seulement lorsque la confidentialité et le coût le permettent. Le modèle utilisé ne change **pas** les outils autorisés au rôle.
 
 Le choix des modèles est fixé dans `config/model_catalog.yaml` et `config/core/model_routing.yaml` ; la passerelle et le budget sont déclarés dans `config/core/cloud_policy.yaml`. La route cloud n'est **pas** sélectionnée automatiquement selon la complexité de chaque tâche. [Comprendre la stratégie hybride](../ARCHITECTURE_HYBRIDE.md).
 
@@ -71,7 +71,7 @@ Fichier : `config/core/cloud_policy.yaml`. `./menu.sh --action validate` refuse 
 | `budget.eur_per_usd` | 1,3 | Facteur prudent (change, frais d'achat de crédits, TVA). Doit rester ≥ 1. |
 | `budget.alert_ratio` | 0,8 | Seuil d'alerte (80 % du plafond). |
 | `budget.recommended_key_limit_usd` | 12 | Limite de clé conseillée. La limite déclarée ne peut pas dépasser `monthly_cap_eur / eur_per_usd` (≈ 19,2 $). |
-| `model` | `deepseek/deepseek-v4.1-flash` | Modèle cloud épinglé. |
+| `model` | `deepseek/deepseek-v4.1-flash-1017` | Modèle cloud épinglé. |
 | `model.context_tokens` | 1 048 576 | Contexte cloud distinct du 32K local. |
 | `model.max_output_tokens` | 32 768 | Sortie cloud plus large pour les analyses et livrables complexes. |
 | `default_reasoning_profile` | `approfondi` | Comportement cloud historique (`xhigh`) sans changement implicite. |
@@ -81,6 +81,8 @@ Fichier : `config/core/cloud_policy.yaml`. `./menu.sh --action validate` refuse 
 | `provider.max_price` | 0,25 $ entrée / 0,75 $ sortie par M tokens | Hard cap fournisseur, identique au pire coût réservé localement. |
 | `provider.data_collection` | `deny` | Écarte les routes qui ne respectent pas ce réglage. |
 | `gateway.port` | 18892 | Boucle locale seulement. |
+
+**Sobriété cloud :** sélectionner `equilibre` (medium/8K) manuellement pour des explications courantes lorsque c'est suffisant. `approfondi` reste le défaut pour compatibilité, sans routage automatique ni changement de la limite de 25 €.
 
 Le raisonnement long du modèle local reste désactivé pour préserver la latence et la VRAM.
 DeepSeek offre un **profil approfondi `xhigh` par défaut**, et deux profils

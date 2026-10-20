@@ -4,7 +4,9 @@
 
 **Deux choix différents :** le **rôle** détermine la mission et les outils, tandis que le **modèle** détermine où s'effectue le raisonnement. Les sept rôles existent sur Qwen ; si tu actives le cloud, ils peuvent aussi emprunter la route DeepSeek, sans élargir leurs droits.
 
-Décision mise à jour le **10 octobre 2026**. Elle remplace le choix GLM-5.3 Flash fait la veille, sans changer l'architecture de sécurité : le local reste le choix par défaut, le cloud reste facultatif et passe toujours par la passerelle locale.
+Décision initiale du **10 octobre 2026**, instantané épinglé actualisé le **20 octobre 2026**. Elle remplace le choix GLM-5.3 Flash fait la veille, sans changer l'architecture de sécurité : le local reste le choix par défaut, le cloud reste facultatif et passe toujours par la passerelle locale.
+
+**Instantané retenu :** `deepseek/deepseek-v4.1-flash-1017` (17 octobre 2026), [référencé sur OpenRouter](https://openrouter.ai/deepseek/deepseek-v4.1-flash-1017). Même architecture, pas de troisième IA, mêmes protections et 25 €/mois au maximum. La qualité pédagogique et la facturation réelles restent à évaluer.
 
 ## La question
 
@@ -21,12 +23,12 @@ Pour apprendre le DevOps, relire un dépôt, raisonner sur une architecture et p
 | Contexte utilisé par ce projet | 32 768 tokens et sortie maximale de 4 096 tokens. | 1 048 576 tokens déclarés, sortie maximale de 32 768 tokens, raisonnement `xhigh` imposé par la passerelle. |
 | Images dans ce projet | Autorisées en local. | **Interdites pour l'instant**, même si le modèle les accepte : le filtre de confidentialité ne sait pas inspecter une image. |
 
-DeepSeek annonce pour V4.1 Flash notamment **90,6 sur Terminal-Bench 2.1**, **74,2 sur DeepSWE v1.1** et **65,4 sur NL2Repo-Bench**. Ce sont des indicateurs intéressants pour un atelier DevOps et des agents de code, mais ils ne prouvent pas qu'il enseigne mieux à un débutant.
+Les scores ci-dessous concernaient la famille V4.1 Flash : ils ne prouvent pas un gain propre à 1017. DeepSeek annonce pour V4.1 Flash notamment **90,6 sur Terminal-Bench 2.1**, **74,2 sur DeepSWE v1.1** et **65,4 sur NL2Repo-Bench**. Ce sont des indicateurs intéressants pour un atelier DevOps et des agents de code, mais ils ne prouvent pas qu'il enseigne mieux à un débutant.
 
 Sources :
 - DeepSeek, annonce V4.1 Flash : https://deepseek.com/en/news/deepseek-v4-1-flash/
 - DeepSeek API, changelog : https://api-docs.deepseek.com/updates/
-- OpenRouter, modèle épinglé : https://openrouter.ai/deepseek/deepseek-v4.1-flash
+- OpenRouter, modèle épinglé : https://openrouter.ai/deepseek/deepseek-v4.1-flash-1017
 
 ## Ce qui n'est pas établi
 
@@ -45,6 +47,14 @@ Un modèle local compact peut être suffisant pour comprendre un service Linux, 
 **Cette stratégie hybride n'est pas un routeur intelligent déjà implémenté.** Dans le chat, l'utilisateur sélectionne le modèle ; dans un projet, l'accord cloud couvre le projet et ses sources, pas un routage automatique par tâche. Les sept spécialistes restent identiques sur Qwen ou DeepSeek. Une estimation de « difficulté » par rôle sans accord cloud n'existe pas.
 
 → [Architecture hybride : scénarios, critères de décision et trajet détaillé](ARCHITECTURE_HYBRIDE.md).
+
+## Clarté pédagogique et économie de tokens
+
+Les consignes communes ont été renforcées : réponse directe, explication du mécanisme, exemple Linux/OPS concis et vérification pertinente. Une question simple ne déclenche ni quiz obligatoire ni les sept agents. Comparer la pédagogie sur les mêmes scénarios avant de changer de fournisseur.
+
+`approfondi` (xhigh, plafond 32768 tokens de sortie) reste la configuration par défaut pour ne pas changer silencieusement le comportement. L'opérateur peut **choisir** `equilibre` (medium, 8192 tokens au maximum) pour des questions cloud courantes avec `./menu.sh --action cloud-set-profile --value equilibre --apply`. Cette sélection n'est ni automatique ni imposée à un rôle. Un plafond de sortie n'est pas une consommation fixe.
+
+Les valeurs **0,25 $ en entrée et 0,75 $ en sortie par million** restent des *plafonds de sécurité*, non des tarifs garantis : un fournisseur refusant `data_collection: deny`, `require_parameters`, le raisonnement demandé ou les limites tarifaires doit provoquer un refus explicite. Vérification live requise avant d'annoncer la migration comme qualifiée.
 
 ## La décision
 
@@ -69,7 +79,7 @@ La migration change le modèle, pas la passerelle. OpenClaw continue à parler �
 6. compter le coût réel renvoyé par le fournisseur ;
 7. refuser en mode fail-closed si un garde-fou manque.
 
-Le modèle est épinglé à **`deepseek/deepseek-v4.1-flash`**. On n'utilise pas un alias « latest » afin qu'une nouvelle version ne remplace pas silencieusement le modèle validé.
+Le modèle est épinglé à **`deepseek/deepseek-v4.1-flash-1017`**. On n'utilise pas un alias « latest » afin qu'une nouvelle version ne remplace pas silencieusement le modèle validé.
 
 ## Pourquoi les images restent locales
 

@@ -12,12 +12,14 @@ C'est précisément **la raison d'être de DeepSeek V4.1 Flash** dans ce projet 
 
 > **Le but n'est pas d'être « 100 % local à tout prix » ni « 100 % cloud ». Le but est de faire un travail DevOps utile, compréhensible et vérifiable, en choisissant le bon niveau de ressources.**
 
+L'instantané cloud 1017 (17 octobre 2026) ne prouve pas une meilleure pédagogie sans essai réel. Les budgets, consentements, permissions et règles de confidentialité restent inchangés.
+
 ## Les deux moteurs ont des missions complémentaires
 
 | | **Qwen local** | **DeepSeek cloud** |
 |---|---|---|
 | Rôle dans la stratégie | Socle du quotidien, confidentialité, autonomie | Renfort de raisonnement et de contexte pour les tâches complexes |
-| Où la demande est traitée | Ollama sur le PC Fedora, modèle `qwen3.5:9b-q4_K_M` | OpenRouter vers `deepseek/deepseek-v4.1-flash`, après passerelle locale |
+| Où la demande est traitée | Ollama sur le PC Fedora, modèle `qwen3.5:9b-q4_K_M` | OpenRouter vers `deepseek/deepseek-v4.1-flash-1017`, après passerelle locale |
 | Ressources | GPU B580, VRAM à mesurer | Service distant, requêtes facturées |
 | Contexte déclaré dans les politiques | **32 768 tokens** ; sortie **4 096** | **1 048 576 tokens** ; sortie **32 768** |
 | Documents métiers privés | À privilégier ; attention aux recherches Web demandées | **Ne pas envoyer** sans certitude sur les droits, la confidentialité et l'accord de projet |

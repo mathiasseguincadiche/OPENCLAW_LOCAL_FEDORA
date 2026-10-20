@@ -279,7 +279,7 @@ Dans le chat, choisir « · cloud (DeepSeek) » et poser une question **publique
 Vérifier :
 
 - provenance cloud visible ;
-- modèle réellement servi = `deepseek/deepseek-v4.1-flash` ;
+- modèle réellement servi = `deepseek/deepseek-v4.1-flash-1017` ;
 - contexte cloud déclaré à 1 048 576 tokens, sortie 32 768 ;
 - la passerelle impose `reasoning.effort=xhigh` ;
 - routage `throughput` sous `provider.max_price` ;
@@ -314,3 +314,8 @@ Vérifier que :
 Le lot Open WebUI est validé sur la machine seulement si tous les cas ci-dessus passent sans
 désactiver un garde-fou. Reporter les mesures et anomalies dans `STATUS.md` avant de déclarer
 l'installation Fedora « vérifiée ».
+
+
+## Réception de l'instantané DeepSeek 1017 (20 octobre 2026)
+
+Après activation **volontaire** sur Fedora, comparer une explication Terraform et une revue de YAML synthétique en modes local et cloud. Contrôler dans les journaux que l'identité servie est `deepseek/deepseek-v4.1-flash-1017`, que le fournisseur respecte `data_collection: deny`, `require_parameters`, le raisonnement demandé et les plafonds tarifaires. Tester un appel d'outil et rapprocher le coût du journal local avec OpenRouter. En cas de refus, **ne pas** desserrer les contrôles : documenter l'erreur. Les tests CI avec fournisseur simulé ne remplacent pas cette qualification réelle, soumise à l'accord de dépense de l'utilisateur.
