@@ -1,0 +1,46 @@
+schema_version: 1
+name: qualification-pedagogie-dialogues
+data_classification: synthetic_public
+criteria:
+  clarity: "Vocabulaire adapté, exemples concrets, absence de jargon superflu"
+  depth: "Mécanismes, causalité, prérequis, vérifications et limites techniques"
+  interaction: "Reformulation pertinente, mémoire du contexte et réponses aux objections"
+  accuracy: "Justesse, sources fiables, incertitude et tests non inventés"
+scenarios:
+  - id: ansible-idempotence
+    role: chef-operations
+    turns:
+      - "Explique l'idempotence Ansible à une personne qui sait administrer systemd sous Linux."
+      - "Je ne comprends pas la différence avec un script Bash, reprends autrement sans recommencer tout le cours."
+      - "Relie maintenant cette notion au provisioning Terraform et à une VM Rocky Linux."
+    expected:
+      - "Reconnaître qu'un script Bash peut aussi être idempotent."
+      - "Comparer l'état souhaité, le second passage sans changement et les vérifications."
+      - "Conserver le contexte Linux et répondre à la confusion."
+  - id: terraform-validation
+    role: ingenieur-devops
+    turns:
+      - "Explique les étapes terraform fmt, validate, plan et apply sur une infrastructure Azure fictive."
+      - "Pourquoi validate PASS ne prouve-t-il pas que la VM tourne ? Donne une analogie précise."
+      - "Décris comment vérifier le déploiement réel et le rollback sans inventer de résultat."
+    expected:
+      - "Distinguer vérification syntaxique, planification, exécution et preuve distante."
+      - "Expliquer les limites de chaque commande et les risques."
+  - id: pipeline-failure
+    role: chef-operations
+    turns:
+      - "Mon pipeline GitHub Actions fictif échoue sur un test Python: comment raisonner pour identifier la cause ?"
+      - "Je suis perdu entre dépendances, configuration du runner et erreur du code; donne un exemple comparatif."
+      - "Fais-moi un petit runbook vérifiable, sans prétendre avoir consulté mes logs réels."
+    expected:
+      - "Adapter la réponse au retour de confusion sans répéter la première réponse."
+      - "Distinguer causes potentielles, preuves et actions de diagnostic."
+  - id: network-security
+    role: ingenieur-securite
+    turns:
+      - "Explique le principe des moindres privilèges pour une CI/CD qui déploie sur AWS."
+      - "Pourquoi les secrets GitHub Actions ne suffisent-ils pas à garantir une CI sûre ?"
+      - "Construis un exemple concret de contrôles et précise lesquels ne sont pas réellement exécutés."
+    expected:
+      - "Relier permissions, provenance des actions, permissions IAM et approbations."
+      - "Conserver les mises en garde et séparer recommandations des faits vérifiés."
