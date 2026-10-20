@@ -54,3 +54,12 @@ def test_constraint_file_rejects_links(tmp_path: Path) -> None:
     alias.symlink_to(real)
     with pytest.raises(ValueError, match="lié"):
         lock.constraints(alias)
+
+
+def test_ci_unlocked_python_installs_are_prevented() -> None:
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    constraints = "--constraint config/python-runtime-constraints.txt"
+    assert workflow.count(f'run: python -m pip install {constraints} -e ".[dev]"') == 2
+    assert f"run: python -m pip install {constraints} -e .\n" in workflow
+    assert 'run: python -m pip install -e ".[dev]"' not in workflow
+    assert "run: python -m pip install -e .\n" not in workflow

@@ -4,6 +4,10 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 20 octobre 2026 — CI Python reproductible
+
+- Les jobs Python 3.12/3.13, quality et native-openclaw installent les dépendances en appliquant les contraintes Python vérifiées du dépôt. Corrige la dérive `wcwidth` détectée par les tests (0.9.3 téléchargé contre 0.9.2 verrouillé), sans réécrire les empreintes de production.
+
 ### 20 octobre 2026 — pédagogie ciblée et DeepSeek V4.1 Flash 1017
 
 - Modèle cloud épinglé à `deepseek/deepseek-v4.1-flash-1017` sans ajout de fournisseur ni changement du plafond de 25 €.

@@ -27,7 +27,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Install
-        run: python -m pip install -e ".[dev]"
+        run: python -m pip install --constraint config/python-runtime-constraints.txt -e ".[dev]"
       - name: Repository contracts
         run: |
           clawfedora validate
@@ -84,7 +84,7 @@ jobs:
       - name: Verify offline npm user-prefix executable layout
         run: python scripts/validation/check_npm_prefix_layout.py
       - name: Install repository
-        run: python -m pip install -e .
+        run: python -m pip install --constraint config/python-runtime-constraints.txt -e .
       - name: Production-only document preview smoke
         run: |
           python -m pip check
@@ -128,7 +128,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
       - name: Install
-        run: python -m pip install -e ".[dev]"
+        run: python -m pip install --constraint config/python-runtime-constraints.txt -e ".[dev]"
       - name: Contracts and tests
         run: |
           clawfedora validate
