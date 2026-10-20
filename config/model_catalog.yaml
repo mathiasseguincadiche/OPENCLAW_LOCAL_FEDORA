@@ -19,7 +19,7 @@ models:
     required: true
   cloud-main:
     provider: cloud-gateway
-    runtime_id: deepseek/deepseek-v4.1-flash
+    runtime_id: deepseek/deepseek-v4.1-flash-1017
     family: deepseek
     input:
     - text

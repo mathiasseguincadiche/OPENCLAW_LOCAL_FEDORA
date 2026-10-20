@@ -156,12 +156,12 @@ def test_enabled_configuration_routes_the_cloud_through_the_loopback_gateway() -
     serialized = json.dumps(patch)
     assert "openrouter.ai" not in serialized and "sk-or" not in serialized
     (model,) = provider["models"]
-    assert model["id"] == "deepseek/deepseek-v4.1-flash"
+    assert model["id"] == "deepseek/deepseek-v4.1-flash-1017"
     assert model["contextTokens"] == 1048576 and model["maxTokens"] == 32768
     assert model["cost"] == {"input": 0.25, "output": 0.75, "cacheRead": 0, "cacheWrite": 0}
     defaults = patch["agents"]["defaults"]
     assert defaults["modelPolicy"]["allow"] == [
-        defaults["model"]["primary"], "cloudgw/deepseek/deepseek-v4.1-flash",
+        defaults["model"]["primary"], "cloudgw/deepseek/deepseek-v4.1-flash-1017",
     ]
     # Every role keeps the local model as its only primary: cloud is chosen per run.
     for agent in AGENT_IDS:
@@ -173,7 +173,7 @@ def test_cloud_model_reference_matches_the_policy() -> None:
     from clawfedora.core_config import core_contract
 
     assert cloud_model_ref(core_contract(ROOT, "cloud_policy.yaml")) == (
-        "cloudgw/deepseek/deepseek-v4.1-flash"
+        "cloudgw/deepseek/deepseek-v4.1-flash-1017"
     )
 
 
