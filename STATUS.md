@@ -13,7 +13,7 @@
 | **Fedora 45 / GNOME 51 / B580** | **À faire** | Installation et vérification de l’OS, pilote `xe`, Vulkan, affichage, veille sur le PC réel |
 | **Qwen local et contexte 8K–32K** | Implémenté | Inférence courte dans `quick-check` ; débit réel, VRAM et contexte optimal **À mesurer** |
 | **Open WebUI 0.12.3** | Implémenté/testé en simulation ou intégration partielle | Navigateur, boutons, fichiers et microphone **À faire** en réception réelle |
-| **Sept rôles et projets multiples** | Contrats et tests automatisés | Qualité pédagogique et usage réel des projets **À mesurer** |
+| **Sept rôles et projets multiples** | Contrats et tests automatisés ; scénarios pédagogiques multi-tours /20 et préférences approuvées | Réponses réelles, interactivité et qualité comparative Gemini/DeepSeek **À mesurer**, sans note automatique |
 | **Cloud OpenRouter / DeepSeek V4.1 Flash 1017** | Instantané épinglé du 17 octobre ; filtres et budget testés en simulation | Appel OpenRouter réel, compatibilité `data_collection: deny`, `reasoning.effort`, coût et facturation **À faire** avec accord |
 | **Sauvegarde / restauration** | Tests de restauration et SQLite fictif réussis | Restauration du vrai état de l’installation **À faire** |
 
@@ -34,6 +34,8 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 | Racine des données | `/IA/Openclaw/` sur le deuxième disque monté sous `/IA` |
 
 **Sources canoniques :** [versions](config/runtime_versions.yaml), [modèles](config/model_catalog.yaml), [plateforme](config/platform.yaml), [politique WebUI](config/webui_policy.yaml) et [politique cloud](config/core/cloud_policy.yaml). Le verrou des versions de production Python est décrit [ici](docs/PYTHON_RUNTIME_LOCK.md). **Une version déclarée n’est pas la preuve de sa présence sur le PC.**
+
+**Nouvelle qualification pédagogique :** `clawfedora-pedagogy --plan` produit quatre scénarios de trois tours et une grille humaine clarté/profondeur/interactivité/exactitude (/5 chacun). La commande ne lance aucun modèle et ne dépense aucun crédit. Les préférences de style et un résumé d'acquis sont enregistrés seulement sur validation humaine depuis le tableau de bord ; elles n'équivalent pas à une mémoire automatique. Voir [le protocole](docs/EVALUATION_PEDAGOGIE.md).
 
 ## Démarrer sans campagne de tests lourds
 

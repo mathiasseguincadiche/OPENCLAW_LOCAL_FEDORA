@@ -2,6 +2,8 @@
 
 [← Guide](GUIDE.md) · [Architecture hybride](ARCHITECTURE_HYBRIDE.md) · [Rôles](fiches/07-roles-et-outils.md)
 
+**Suite complémentaire :** pour mesurer la clarté, la profondeur, l'interactivité et l'exactitude des **dialogues à plusieurs tours**, utiliser [l'évaluation pédagogique sur 20](EVALUATION_PEDAGOGIE.md) et `clawfedora-pedagogy --plan`. La présente suite historique demeure inchangée pour les sept rôles et la sécurité.
+
 ## Le problème à résoudre
 
 Une CI verte vérifie le **logiciel**, pas la qualité des explications de Qwen ni des analyses DeepSeek. Des consignes bien écrites ne suffisent donc pas à conclure « 10/10 ». Pour rendre les améliorations des prompts **mesurables**, le dépôt contient désormais une **suite fixe de sept scénarios DevOps synthétiques**, un par agent.

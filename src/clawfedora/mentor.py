@@ -14,7 +14,10 @@ from clawfedora.project_common import (
     write_json,
 )
 
-FIELDS = ("background", "focus", "difficulties", "evidence", "next_step")
+FIELDS = (
+    "background", "focus", "difficulties", "evidence", "next_step",
+    "explanation_style", "learning_summary",
+)
 
 
 def profile(runtime: Path) -> dict[str, Any]:

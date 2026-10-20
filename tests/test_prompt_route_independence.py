@@ -44,3 +44,12 @@ def test_pedagogy_is_concrete_without_unnecessary_length() -> None:
     assert "délégation superflue" in mentor
     assert "sans sacrifier les étapes critiques" in writer
     assert not validate_agent_assets(ROOT)
+
+
+def test_multiturn_teaching_prompts_remain_model_neutral() -> None:
+    for role in AGENT_IDS:
+        content = effective_instructions(ROOT, role)
+        assert "changer d’angle" in content
+        for vendor in ("DeepSeek", "Gemini", "OpenRouter", "Qwen"):
+            assert vendor not in content
+    assert not validate_agent_assets(ROOT)
