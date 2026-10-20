@@ -115,3 +115,35 @@ def test_linked_project_selection_cannot_escape_managed_inventory(
     with pytest.raises(ValueError, match="lien symbolique"):
         save_profile(runtime, {"human_approved": True, "project_id": "example"})
     assert not (runtime / "state/mentor.json").exists()
+
+
+def test_approved_teaching_preferences_are_bounded_and_reused(tmp_path: Path) -> None:
+    note = save_profile(
+        tmp_path,
+        {
+            "human_approved": True,
+            "explanation_style": "Comparer Bash et Ansible sans jargon.",
+            "learning_summary": "J'ai compris les états déclaratifs, pas le rollback.",
+        },
+    )
+    assert note["origin"] == "human"
+    assert note["skill_acquired"] is False
+    assert "Comparer Bash" in context(tmp_path)
+    assert "pas le rollback" in context(tmp_path)
+    with pytest.raises(ValueError):
+        save_profile(tmp_path, {"human_approved": True, "learning_summary": "x" * 501})
+
+
+def test_chat_prompt_reformulates_after_confusion_without_fake_memory() -> None:
+    prompt_data = {
+        "model": MODEL_IDS[0],
+        "messages": [
+            {"role": "user", "content": "Explique Ansible sur Rocky Linux."},
+            {"role": "assistant", "content": "Ansible décrit un état souhaité."},
+            {"role": "user", "content": "Je n'ai pas compris, compare avec Bash."},
+        ],
+    }
+    _role, prompt = chat_prompt(prompt_data)
+    assert "reformuler sous un autre angle" in prompt
+    assert "sans répéter tout le cours" in prompt
+    assert "compare avec Bash" in prompt
