@@ -4,6 +4,13 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 20 octobre 2026 — qualification pédagogique multi-tours et préférences du mentor
+
+- Nouvelle suite hors ligne `clawfedora-pedagogy`: quatre critères 0–5, quatre scénarios de trois tours, comparaison humaine Qwen/DeepSeek/référence externe et refus des rapports incomplets.
+- Continuité volontaire: deux notes approuvées dans le tableau de bord (manière préférée d'apprendre et résumé d'acquis), sans stockage automatique ni exfiltration autonome.
+- Reformulation de blocage dans les prompts communs, mentor/rédacteur et pont de chat; tests contractuels et documentation d'acceptation.
+- Pas de troisième IA, pas de hausse du budget 25 €, pas de test de qualité réelle prétendu.
+
 ### 20 octobre 2026 — CI Python reproductible
 
 - Les jobs Python 3.12/3.13, quality et native-openclaw installent les dépendances en appliquant les contraintes Python vérifiées du dépôt. Corrige la dérive `wcwidth` détectée par les tests (0.9.3 téléchargé contre 0.9.2 verrouillé), sans réécrire les empreintes de production.

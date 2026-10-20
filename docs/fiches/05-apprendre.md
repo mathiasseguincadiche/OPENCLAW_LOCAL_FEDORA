@@ -73,6 +73,10 @@ Dans un projet, chaque tâche suit l'un de ces modes :
 
 Tant que ton travail n'est pas relu, les tâches suivantes attendent.
 
+## Adapter ton mentor à ta manière d'apprendre
+
+Dans les notes du mentor sur le tableau de bord, deux champs nouveaux et facultatifs permettent de préciser **ta manière préférée d'apprendre** (profondeur, analogies, exemples) et **les acquis à conserver** d'une session à l'autre. Tu confirmes leur enregistrement ; l'IA ne les sauvegarde pas automatiquement. En cas d'incompréhension, le mentor doit changer d'angle plutôt que répéter. Pour vérifier ce comportement sur de véritables conversations : [évaluation pédagogique /20](../EVALUATION_PEDAGOGIE.md).
+
 ## Tes notes de suivi
 
 Dans un projet, « Mon accompagnement et la continuité du chat » contient cinq notes courtes : tes acquis, ton sujet, ta difficulté, tes observations, ta prochaine étape. Tu les écris toi-même ; aucun modèle ne les modifie. Le mentor les reçoit pour reprendre là où tu en étais.

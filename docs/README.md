@@ -12,6 +12,7 @@
 | Discuter avec Qwen | [Fiche 03 — Discussion](fiches/03-discuter.md) |
 | Créer ou reprendre un projet | [Fiche 04 — Atelier Projets](fiches/04-atelier-projets.md) |
 | Savoir ce qui est réellement testé | [État et limites](../STATUS.md) |
+| Comparer la pédagogie DeepSeek/Qwen/Gemini sur 20 | [Conversations pédagogiques et grille 5/5](EVALUATION_PEDAGOGIE.md) |
 
 ## Les 12 fiches pédagogiques
 

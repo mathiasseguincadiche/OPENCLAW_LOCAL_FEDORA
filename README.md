@@ -41,6 +41,8 @@ Le chat peut aussi analyser de petits fichiers texte **sans créer de projet**. 
 
 ![Les sept rôles spécialisés](docs/diagrams/atelier-roles.svg)
 
+**Qualification de la pédagogie :** quatre dimensions (clarté, profondeur, interactivité, exactitude), scénarios de discussion sur trois tours et score humain /20, sans appel automatique au cloud. [Protocole](docs/EVALUATION_PEDAGOGIE.md).
+
 **Pédagogie et sobriété :** les consignes privilégient une réponse utile, un petit exemple OPS et une vérification concrète plutôt que des pages répétitives. Les profils cloud `rapide`, `equilibre` et `approfondi` sont choisis manuellement ; `approfondi` reste le défaut historique. [Consignes](docs/PROMPTS.md) · [Réglages](docs/fiches/08-reglages.md).
 
 **Sécurité et consentement :** aucun repli automatique du local vers le cloud. Le budget configuré est plafonné à **25 €/mois**, complété par un prépaiement et une limite chez le fournisseur. Les outils de recherche Web peuvent contacter Internet **même si Qwen est local** ; le [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) permet de les désactiver explicitement avec `./menu.sh --action web-private --apply`, après installation. Le filtre de confidentialité ne peut pas garantir qu'aucune information sensible ne sortira si l'utilisateur autorise le cloud.
