@@ -76,6 +76,8 @@ def build_parser() -> argparse.ArgumentParser:
         "context-probe", help="mesurer si un contexte tient entièrement sur le GPU"
     )
     probe.add_argument("--context", type=int, choices=(8192, 16384, 32768))
+    probe.add_argument("--fill-ratio", type=float, default=0.6)
+    probe.add_argument("--verify-near-limit", action="store_true")
     probe.add_argument("--apply", action="store_true")
     return parser
 
@@ -171,13 +173,21 @@ def main(argv: list[str] | None = None) -> int:
 
         context = int(args.context or daily_limits(repo_root)["context_tokens"])
         if not args.apply:
-            print(f"CONTEXT_PROBE_PLAN context={context} generation=1 model_reload=possible")
+            print(f"CONTEXT_PROBE_PLAN context={context} fill_ratio={args.fill_ratio} "
+                  "generation=1 model_reload=possible")
             return 0
         # Same lock as chats and projects: one generation at a time on the GPU.
         with worker_lock(runtime_root):
-            measure = probe_context(repo_root, context)
+            measure = probe_context(
+                repo_root, context, fill_ratio=args.fill_ratio,
+                verify_near_limit=bool(args.verify_near_limit),
+            )
         print(json.dumps(measure, indent=2, ensure_ascii=False))
         print(f"CONTEXT_PROBE_RESULT={measure['verdict']} context={context}")
+        if args.verify_near_limit:
+            print("ACCEPTANCE_32K=" + (
+                "PASS" if measure["near_limit_32k_verified"] else "FAIL"
+            ))
         return 0 if measure["verdict"] == "FULL_GPU" else 1
     return 2
 

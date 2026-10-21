@@ -4,6 +4,16 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 21 octobre 2026 — pré-check obligatoire et recette Qwen 32K
+
+- Ajout de `./menu.sh --action precheck` (sans installation) : Fedora 45/GNOME 51/Wayland, stockage `/IA`, Ryzen, RAM, B580/pilote `xe`, SELinux, UEFI, session systemd, dépendances installables et Internet. Le contrôle est relancé automatiquement par `install --apply` **avant toute installation de paquets**.
+- Ajout d'une réception **volontaire après l'installation WebUI** : `./menu.sh --action acceptance-32k --apply`, qui combine `quick-check` et un test Qwen proche de 32 768 tokens avec preuve de remplissage et de VRAM ; défauts de troncature, absence de réponse et offload CPU explicitement refusés.
+- Correction des droits d'exécution Git de huit scripts Fedora. La CI contrôle désormais que les scripts appelés directement sont exécutables, afin d'éviter `Permission denied` sur un clonage frais.
+- Guides et tests de non-régression synchronisés ; les contrôles du menu reconnaissent les actions avec chiffres comme `acceptance-32k` et l'ordre pré-check puis installation.
+- **Aucun succès matériel réel n'est encore déclaré** ; le test 32K requiert une génération locale explicitement demandée sur Fedora.
+
+
+
 ### 21 octobre 2026 — validation du premier démarrage à partir du README
 
 - Relecture du chemin README → `menu.sh` → installation Fedora → Open WebUI → `quick-check` et activation cloud facultative.

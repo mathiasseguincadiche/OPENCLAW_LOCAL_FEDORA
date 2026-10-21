@@ -78,6 +78,7 @@ cd "$HOME"
 git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
 cd "$HOME/OPENCLAW_LOCAL_FEDORA"
 
+./menu.sh --action precheck              # analyse la machine et les dépendances, sans installation
 ./menu.sh --action install               # affiche le plan, ne teste PAS le matériel
 ./menu.sh --action install --apply       # installation autorisée, peut demander sudo
 ```
@@ -92,7 +93,12 @@ cd "$HOME/OPENCLAW_LOCAL_FEDORA"
 # Créer le compte administrateur à http://127.0.0.1:3000
 ./menu.sh --action webui-seal --apply
 ./menu.sh --action quick-check
+
+# Qualification complète du modèle local en contexte proche de 32K (non cloud)
+./menu.sh --action acceptance-32k --apply
 ```
+
+Le **pré-check est relancé automatiquement** par `install --apply` avant l’installation de paquets ou la modification des services. Il distingue les défauts bloquants (`FAIL`) des dépendances installables et éléments à vérifier (`REVIEW`). La réception 32K est une **étape distincte, plus exigeante** : elle tente une réponse Qwen avec un contexte fixé à 32 768 tokens, vise un remplissage de 90 %, mesure les tokens réellement traités, l'allocation et la VRAM, puis refuse les réponses vides, les troncatures et l'offload CPU. Elle peut être longue ; ne pas la confondre avec la note pédagogique /20 ni avec un essai DeepSeek.
 
 **Si `RECEPTION=READY_FOR_FIRST_PROJECT`**, ouvrir Open WebUI, poser une question réelle et créer un petit projet. Le contrôle réalise **une génération locale courte**, vérifie GPU, modèles, services, interfaces et stockage. Pas de stress test 32K ou d'appel cloud imposé. En cas d'échec, consulter le [diagnostic](docs/fiches/10-depanner.md), sans tout réinstaller.
 

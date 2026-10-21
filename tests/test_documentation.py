@@ -42,11 +42,11 @@ def test_guide_links_to_every_sheet_and_sheets_link_back() -> None:
 
 def test_documented_menu_actions_and_scripts_exist() -> None:
     menu = (ROOT / "menu.sh").read_text(encoding="utf-8")
-    known = set(re.findall(r"^  ([a-z|-]+)\)", menu, flags=re.M))
+    known = set(re.findall(r"^  ([a-z0-9|-]+)\)", menu, flags=re.M))
     actions = {name for group in known for name in group.split("|")}
     for document in DOCUMENTS:
         text = document.read_text(encoding="utf-8")
-        for action in re.findall(r"menu\.sh --action ([a-z-]+)", text):
+        for action in re.findall(r"menu\.sh --action ([a-z0-9-]+)", text):
             assert action in actions, f"{document.name}: action inconnue {action}"
         for script in re.findall(r"scripts/linux/(\d\d_[a-z_]+\.sh)", text):
             assert (ROOT / "scripts/linux" / script).is_file(), f"{document.name}: {script}"

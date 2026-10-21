@@ -23,6 +23,7 @@ RUNTIME_ROOT="$(claw_runtime_root)"
 
 cat <<EOF
 INSTALL_PLAN Fedora=45 GNOME=51 runtime=$RUNTIME_ROOT
+  0. pré-check machine sans modification
   1. paquets Fedora, dossier de données et environnement Python
   2. Ollama $OLLAMA_PIN, configuré pour la B580 en Vulkan
   3. OpenClaw $OPENCLAW_PIN exactement
@@ -37,6 +38,7 @@ if ((APPLY == 0)); then
   exit 0
 fi
 
+"$LINUX/19_preinstall_check.sh"
 claw_require_storage "$RUNTIME_ROOT"
 if ((EUID == 0)); then
   echo "INSTALL_RESULT=FAIL run as the Fedora desktop user, not root" >&2

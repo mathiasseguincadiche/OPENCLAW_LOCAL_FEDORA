@@ -22,9 +22,11 @@ Usage: ./menu.sh --action ACTION [--apply] [--purge-data] [--context N] [--value
 Sans --apply, une action qui modifie le système affiche seulement ce qu'elle ferait.
 
 Installer et utiliser:
-  install                Installation complète
+  precheck              Pré-check matériel, OS, disque et dépendances (lecture seule)
+  install                Pré-check puis installation complète
   health                 Vérifier les services (rapport détaillé)
   quick-check            Vérification courte : Qwen, B580, WebUI, projets
+  acceptance-32k         Réception Qwen près de la limite 32K (--apply explicite)
   context-probe          Mesurer si le contexte tient sur le GPU, et la vitesse
                          (--context 8192|16384|32768 pour comparer une autre taille)
   webui-install          Installer le chat Open WebUI
@@ -117,7 +119,11 @@ with_apply() {
 }
 
 case "$ACTION" in
-  install) with_apply 06_install.sh ;;
+  precheck) "$LINUX/19_preinstall_check.sh" ;;
+  install)
+    ((APPLY == 0)) || "$LINUX/19_preinstall_check.sh"
+    with_apply 06_install.sh
+    ;;
   health) "$LINUX/07_health.sh" ;;
   quick-check)
     claw_require_storage "$(claw_runtime_root)"
@@ -125,6 +131,18 @@ case "$ACTION" in
     PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON" \
       "$REPO_ROOT/scripts/validation/quick_smoke.py" --root "$REPO_ROOT" \
       --runtime-root "$(claw_runtime_root)"
+    ;;
+  acceptance-32k)
+    if ((APPLY == 0)); then
+      echo "ACCEPTANCE_32K_PLAN=quick-check + near-limit 32768 context, --apply required"
+      exit 0
+    fi
+    claw_require_storage "$(claw_runtime_root)"
+    PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON" \
+      "$REPO_ROOT/scripts/validation/quick_smoke.py" --root "$REPO_ROOT" \
+      --runtime-root "$(claw_runtime_root)"
+    run_ops --runtime-root "$(claw_runtime_root)" context-probe --context 32768 \
+      --fill-ratio 0.90 --verify-near-limit --apply
     ;;
   context-probe)
     args=(--runtime-root "$(claw_runtime_root)" context-probe)

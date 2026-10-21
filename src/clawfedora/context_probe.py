@@ -37,6 +37,7 @@ def probe_context(
     context_tokens: int | None = None,
     *,
     fill_ratio: float = 0.6,
+    verify_near_limit: bool = False,
     request: Request = ollama_api.request_json,
 ) -> dict[str, Any]:
     """Fill a share of the context, generate a short answer and read the GPU share."""
@@ -46,6 +47,8 @@ def probe_context(
         raise ValueError(f"contexte autorisé: {', '.join(map(str, ALLOWED_CONTEXTS))}")
     if not 0.1 <= fill_ratio <= 0.95:
         raise ValueError("fill_ratio entre 0.1 et 0.95")
+    if verify_near_limit and (context != 32768 or fill_ratio < 0.85):
+        raise ValueError("réception 32K exige contexte 32768 et remplissage >= 85 %")
     model = str(model_plan(repo_root)[0]["runtime_id"])
     repeats = max(1, int(context * fill_ratio / 30))
     answer = request(
@@ -81,6 +84,15 @@ def probe_context(
     truncated = prompt_tokens >= context - 128
     if truncated:
         verdict = "PROMPT_TRUNCATED"
+    elif verify_near_limit and prompt_tokens < int(context * 0.75):
+        verdict = "CONTEXT_UNDERFILLED"
+    elif verify_near_limit and not (
+        isinstance(loaded.get("context_length"), int)
+        and loaded["context_length"] >= context
+    ):
+        verdict = "CONTEXT_ALLOCATION_UNVERIFIED"
+    elif verify_near_limit and not str(answer.get("response", "")).strip():
+        verdict = "EMPTY_MODEL_RESPONSE"
     elif size_vram >= size:
         verdict = "FULL_GPU"
     elif size_vram > 0:
@@ -95,6 +107,7 @@ def probe_context(
         "prompt_tokens": prompt_tokens,
         "prompt_fill_pct": round(100 * prompt_tokens / context, 1),
         "target_fill_pct": round(fill_ratio * 100, 1),
+        "near_limit_32k_verified": bool(verify_near_limit and verdict == "FULL_GPU"),
         "resident_gib": round(size / 1024**3, 2),
         "resident_vram_gib": round(size_vram / 1024**3, 2),
         "gpu_share_pct": gpu_share,

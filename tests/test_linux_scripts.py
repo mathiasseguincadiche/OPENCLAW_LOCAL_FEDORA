@@ -392,3 +392,25 @@ def test_ollama_service_receives_gpu_groups_after_fedora_bootstrap() -> None:
     assert 'getent group "$gpu_group"' in profile
     assert 'sudo systemctl restart ollama.service' in profile
     assert '"$LINUX/11_daily_profile.sh" configure-ollama --apply' in installer
+
+
+def test_fresh_install_precheck_is_prior_to_package_changes() -> None:
+    menu = _read("menu.sh")
+    install = _read("scripts/linux/06_install.sh")
+    pre = _read("scripts/validation/preinstall_host.py")
+    assert 'precheck) "$LINUX/19_preinstall_check.sh"' in menu
+    assert 'acceptance-32k)' in menu
+    assert '"$LINUX/19_preinstall_check.sh"' in install
+    assert install.index('"$LINUX/19_preinstall_check.sh"') < (
+        install.index('"$LINUX/00_bootstrap.sh"')
+    )
+    assert "import yaml" not in pre
+    assert "PRECHECK=" in pre
+    assert "READY_TO_INSTALL" in pre
+    assert "0xe20b" in pre
+
+
+def test_every_fedora_shell_entrypoint_has_executable_bit() -> None:
+    # Some formerly 0644 scripts are invoked directly by menu.sh and installer.
+    for path in (ROOT / "scripts/linux").glob("*.sh"):
+        assert os.access(path, os.X_OK), f"Permission denied on fresh clone: {path}"

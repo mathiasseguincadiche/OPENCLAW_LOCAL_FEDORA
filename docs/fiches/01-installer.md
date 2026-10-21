@@ -29,12 +29,13 @@ command -v git >/dev/null 2>&1 || sudo dnf5 install -y git
 cd "$HOME"
 git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
 cd "$HOME/OPENCLAW_LOCAL_FEDORA"
+./menu.sh --action precheck           # vérifie OS, machine, disque et dépendances sans modification
 ./menu.sh --action install            # affiche le plan, sans vérification complète
 ./menu.sh --action install --apply    # installe et contrôle les vrais prérequis
 ./menu.sh --action validate           # après le bootstrap Python et ses dépendances
 ```
 
-Lancer ces commandes **après** la vérification du montage `/IA` dans le [guide court](../INSTALLATION_SIMPLE_FEDORA45.md). Ne pas exécuter `validate` avant le bootstrap sur un Fedora vierge : ce contrôle importe notamment PyYAML, qui n'est pas garanti avant l'installation du venv. L'aperçu `install` seul ne prouve pas la compatibilité B580 ; le `--apply` et le `quick-check` final la vérifient à des niveaux différents.
+Lancer ces commandes **après** la vérification du montage `/IA` dans le [guide court](../INSTALLATION_SIMPLE_FEDORA45.md). Ne pas exécuter `validate` avant le bootstrap sur un Fedora vierge : ce contrôle importe notamment PyYAML, qui n'est pas garanti avant l'installation du venv. Le pré-check refuse les prérequis bloquants, mais les paquets encore absents sont simplement signalés et installés lors du bootstrap. Le même contrôle est imposé par `install --apply` avant toute installation de dépendance. L'aperçu `install` seul ne prouve pas la compatibilité B580 ; le `--apply` et le `quick-check` final la vérifient à des niveaux différents.
 
 Après l'installation, ferme ta session et rouvre-la une fois : tu viens d'être ajouté aux groupes `render` et `video`, et ils ne s'appliquent qu'à une nouvelle session.
 
@@ -91,4 +92,4 @@ Rien de tout cela n'est dans Git. Le dépôt contient le code et la configuratio
 
 ## Ensuite
 
-Lance **`./menu.sh --action quick-check`**, puis ouvre Open WebUI pour poser une question réelle et créer ton premier projet. Les benchmarks détaillés de [Premier essai](02-premier-essai.md) sont facultatifs et utiles seulement pour diagnostiquer un problème de performances.
+Lance **`./menu.sh --action quick-check`**, puis **`./menu.sh --action acceptance-32k --apply`** pour qualifier Qwen proche de 32 768 tokens et l'occupation VRAM. Le test 32K est local et peut être long. Puis ouvre Open WebUI pour poser une question réelle et créer ton premier projet. Les benchmarks détaillés de [Premier essai](02-premier-essai.md) sont facultatifs et utiles seulement pour diagnostiquer un problème de performances.

@@ -189,7 +189,11 @@ def test_menu_is_executable_and_invokes_the_expected_installation_stages() -> No
     install = (ROOT / "scripts/linux/06_install.sh").read_text(encoding="utf-8")
     webui = (ROOT / "scripts/linux/13_openwebui.sh").read_text(encoding="utf-8")
     for step in (
-        "install) with_apply 06_install.sh",
+        (
+            "  install)\n"
+            '    ((APPLY == 0)) || "$LINUX/19_preinstall_check.sh"\n'
+            "    with_apply 06_install.sh"
+        ),
         "with_apply 13_openwebui.sh",
         "claw_require_storage",
     ):
@@ -202,3 +206,18 @@ def test_menu_is_executable_and_invokes_the_expected_installation_stages() -> No
         assert step in install
     assert "command -v podman" in webui
     assert "systemctl --user restart clawfedora-webui-bridge.service" in webui
+
+
+def test_readme_has_precheck_install_smoke_and_32k_acceptance_in_order() -> None:
+    for path in ("README.md", "docs/INSTALLATION_SIMPLE_FEDORA45.md"):
+        content = (ROOT / path).read_text(encoding="utf-8")
+        commands = (
+            "./menu.sh --action precheck",
+            "./menu.sh --action install --apply",
+            "./menu.sh --action webui-install --apply",
+            "./menu.sh --action webui-seal --apply",
+            "./menu.sh --action quick-check",
+            "./menu.sh --action acceptance-32k --apply",
+        )
+        positions = [content.index(command) for command in commands]
+        assert positions == sorted(positions), path

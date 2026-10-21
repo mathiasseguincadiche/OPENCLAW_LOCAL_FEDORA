@@ -14,6 +14,17 @@ Les tests automatiques du dépôt vérifient que le logiciel est cohérent. Ils 
 
 Il vérifie le montage secondaire, une **courte génération Qwen sur la B580**, les services, WebUI et le dossier projets. Si le résultat est `READY_FOR_FIRST_PROJECT`, ouvre Open WebUI, pose une vraie question et crée ton premier projet. **Arrête-toi là si tout fonctionne.** Les benchmarks détaillés ci-dessous sont uniquement des diagnostics facultatifs.
 
+## Réception 32K demandée pour le premier lancement
+
+Le `quick-check` ne suffit **pas** à certifier 32 768 tokens : sa génération est courte. Après l'installation de WebUI et la reconnexion GNOME, depuis la racine du dépôt :
+
+```bash
+./menu.sh --action acceptance-32k         # plan, pas de génération
+./menu.sh --action acceptance-32k --apply # vrai test de génération locale longue
+```
+
+Ce test configure 32K, **vise environ 90 % d'entrée** et vérifie le remplissage observé, l'allocation mémoire du modèle, une réponse effective et la part GPU. Le signal de réussite est `ACCEPTANCE_32K=PASS` ; s'il échoue, relever la raison (`CONTEXT_UNDERFILLED`, `CONTEXT_ALLOCATION_UNVERIFIED`, `PROMPT_TRUNCATED`, `PARTIAL_CPU_OFFLOAD`, `EMPTY_MODEL_RESPONSE`) puis comparer avec les tests 16K ci-dessous. Il s'agit d'une preuve matérielle **ponctuelle**, pas d'un score de pertinence. Compléter par de vraies conversations multi-tours et la [grille sur 20](../EVALUATION_PEDAGOGIE.md). Le cloud n'est jamais appelé pendant cette recette.
+
 ## Diagnostic facultatif 1. Les services tournent-ils ?
 
 ```bash
@@ -37,7 +48,7 @@ Attendu : la B580 apparaît comme périphérique Vulkan dans le journal d'Ollama
 ./menu.sh --action context-probe --apply
 ```
 
-La commande remplit environ 60 % du contexte, génère une courte réponse et affiche un rapport. Trois lignes comptent :
+La commande de diagnostic historique remplit environ 60 % du contexte (et ne suffit pas à la recette 32K ci-dessus), génère une courte réponse et affiche un rapport. Trois lignes comptent :
 
 | Ligne | Lecture |
 |---|---|
