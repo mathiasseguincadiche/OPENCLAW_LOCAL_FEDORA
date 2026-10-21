@@ -11,6 +11,8 @@ Cette section s’adresse à une personne souhaitant vérifier **pourquoi** l’
 | Recherche Web privée | [Mode Web privé](../WEB_ACCESS_PRIVATE_MODE.md) |
 | Recherche, preuves et citations | [Recherche locale et sources](../RECHERCHE_LOCALE_SOURCES.md) |
 | Taille des prompts et outils | [Prompts](../PROMPTS.md) · [Sept rôles](../../config/core/agents.yaml) |
+| Préférences d’apprentissage approuvées | [Guide Apprendre](../fiches/05-apprendre.md) · [Fiche mentor dans le code](../../src/clawfedora/mentor.py) |
+| Contrats d’évaluation (technique et pédagogique) | [Sept scénarios techniques](../EVALUATION_AGENTS.md) · [Dialogues pédagogiques /20](../EVALUATION_PEDAGOGIE.md) · [Jeux de tests](../../config/evals/) |
 | Streaming expérimental | [SSE canary](../STREAMING_SSE_PREPARATION.md) |
 | Justification des modèles | [Décision de modèle](../DECISION_MODELE.md) |
 | Fichiers et responsabilités | [Architecture expliquée](../fiches/11-comment-ca-marche.md) · [Sécurité](../../SECURITY.md) |

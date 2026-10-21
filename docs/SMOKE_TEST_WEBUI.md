@@ -22,6 +22,14 @@ et le [parcours DevOps](EXEMPLE_PARCOURS_DEVOPS.md) sur GitHub ou en rendu Markd
 Ce contrôle est **humain et visuel** : un test XML ou une CI verte ne garantit pas
 la bonne lisibilité du diagramme.
 
+## 0 bis. Tester la pédagogie sur plusieurs tours (facultatif)
+
+Après installation et activation volontaire de la route souhaitée, lancer **hors ligne** `clawfedora-pedagogy --plan` pour obtenir les quatre scénarios publics. Dans Open WebUI, poser chaque série de **trois questions dans le même fil** : demander une première explication, signaler une incompréhension puis demander une application technique. Vérifier la reformulation, l'absence de répétition gratuite, la continuité et l'exactitude des commandes. Comparer les réponses enregistrées avec une revue humaine `/5` sur chacun des quatre critères (voir [protocole](EVALUATION_PEDAGOGIE.md)).
+
+Dans l'Atelier Projets, approuver les deux notes « manière d'apprendre » et « acquis à conserver », puis ouvrir un nouveau fil avec le mentor. Vérifier que les préférences apparaissent dans la réponse adaptée, sans que l'IA n'ait écrit ou certifié elle-même la fiche. Tester aussi un champ supérieur à 500 caractères : il doit être refusé.
+
+**La CI ne valide ni la compréhension réelle ni la qualité d'un fournisseur :** enregistrer résultats, critiques et consommation observée séparément. Aucun secret dans les exemples transmis au cloud.
+
 ## 1. Préparer et contrôler les services
 
 ```bash

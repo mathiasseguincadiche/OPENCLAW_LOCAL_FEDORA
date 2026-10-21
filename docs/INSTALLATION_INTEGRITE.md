@@ -25,7 +25,7 @@ Le bootstrap Python ne fait pas de mise à niveau globale non bornée de `pip` /
 
 ## Ce qui n'est pas totalement verrouillé
 
-- Les wheels et archives sources Python de production sont protégées par SHA-256. Les dépendances temporaires de construction PEP 517 et les extras de développement ne sont pas tous figés ; une compilation depuis une archive source peut faire intervenir un outillage de build distinct.
+- L'installation Python de production refuse les distributions sources (`--only-binary`) et vérifie les versions ainsi que les SHA-256 des wheels. `setuptools` et `wheel` sont eux aussi fixés par versions et SHA-256 via les [contraintes de construction](../config/python-build-constraints.txt) et leurs [empreintes](../config/python-build-hashes.txt). Le projet est installé avec `--no-build-isolation --no-deps -e .` : aucune dépendance PEP 517 éphémère non verrouillée n'est téléchargée. Les paquets RPM de Fedora et les extras de développement ne sont pas couverts par cette chaîne de verrous.
 - La fermeture transitive npm dispose d'un `package-lock.json` SHA-512 appliqué par `npm ci`. Les **21 dépendances de voix** ont aussi un [verrou de versions et SHA-256](../config/python-speech-hashes.txt) vérifié sur Fedora 45/Python 3.13.
 - L'image Open WebUI est figée **lors de son déploiement**, pas par un digest préétabli et signé dans le dépôt.
 - L'installateur et les services Fedora 45/GNOME 51 doivent encore être observés sur la machine réelle, notamment GPU/Vulkan, SELinux, WebUI et modèle.

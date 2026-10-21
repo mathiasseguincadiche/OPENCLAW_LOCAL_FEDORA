@@ -30,6 +30,7 @@ Les fiches sont un **parcours de référence**, pas douze étapes obligatoires �
 ## Approfondir, sans alourdir le premier démarrage
 
 - [Architecture hybride Qwen / DeepSeek](ARCHITECTURE_HYBRIDE.md) et [schémas éditables](diagrams/).
+- [Qualification pédagogique et comparaison des conversations](EVALUATION_PEDAGOGIE.md) (score humain /20 ; pas de validation d'un modèle par la CI).
 - [Références d’ingénierie](reference/README.md) : intégrité des composants, sécurité, cloud, prompts, fonctionnement interne.
 - [Réception et tests avancés facultatifs](validation/README.md) : GPU, WebUI, voix, sauvegardes, qualité des agents.
 - [Parcours DevOps de démonstration](EXEMPLE_PARCOURS_DEVOPS.md) : exemple pédagogique et non preuve d’un déploiement réel.

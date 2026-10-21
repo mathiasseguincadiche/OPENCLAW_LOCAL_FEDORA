@@ -7,8 +7,8 @@
 | Dimension | Statut | Preuve ou limite |
 | --- | --- | --- |
 | **Code, règles et installation** | Vérifié par CI | Tests Python 3.12/3.13, ShellCheck, contrats Fedora 45 et validation OpenClaw native |
-| **Dernière CI examinée** | Succès, 19 octobre 2026 | [Exécution #39202922538](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39202922538) — 10 jobs réussis sur `main` après fusion de #143 |
-| **Analyse statique** | Succès | [CodeQL #39202922487](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39202922487), Python et JavaScript |
+| **Référence de CI contrôlée le 20 octobre 2026** | Succès | [PR #148](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/148) : 14 contrôles réussis avant fusion ; [commit principal](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/3766d7b8d8e6c00d5f15494ab8685894274173e6) : 12 contrôles réussis après fusion. Instantané daté, pas garantie des prochaines CI. |
+| **Analyse statique** | Succès sur cette référence | CodeQL Python et JavaScript passés sur la [PR #148](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/148) ; une nouvelle PR doit repasser ces contrôles |
 | **Montage et stockage `/IA/Openclaw/`** | Implémenté, pas encore qualifié sur le poste | Refus si le volume secondaire manque, si le runtime contient des traversées de chemin ou si des répertoires sensibles sont des liens symboliques |
 | **Fedora 45 / GNOME 51 / B580** | **À faire** | Installation et vérification de l’OS, pilote `xe`, Vulkan, affichage, veille sur le PC réel |
 | **Qwen local et contexte 8K–32K** | Implémenté | Inférence courte dans `quick-check` ; débit réel, VRAM et contexte optimal **À mesurer** |
