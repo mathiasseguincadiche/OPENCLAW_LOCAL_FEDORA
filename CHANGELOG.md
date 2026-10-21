@@ -4,6 +4,18 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 21 octobre 2026 — validation du premier démarrage à partir du README
+
+- Relecture du chemin README → `menu.sh` → installation Fedora → Open WebUI → `quick-check` et activation cloud facultative.
+- Ajout du prérequis `git` avec installation conditionnelle sous Fedora 45, et clonage explicitement dans le dossier personnel.
+- Correction du guide qui lançait `validate` avant l'installation des dépendances Python (dont PyYAML) ; désormais exécutable après bootstrap.
+- Clarification de la différence entre aperçu `install` et qualification réelle des prérequis, des droits `sudo`, du montage `/IA` et des points d'entrée CLI.
+- Après déconnexion/reconnexion GNOME (groupes GPU), ajout du `cd "$HOME/OPENCLAW_LOCAL_FEDORA"` avant `webui-install`, pour éviter l'appel de `./menu.sh` depuis un nouveau terminal ouvert au mauvais endroit.
+- Le service système Ollama obtient explicitement les groupes périphériques `render` et `video` dans son unité systemd, conformément au besoin d'accès GPU de son compte propre, sans ajout permanent de groupes à ce compte ; test et diagnostic associé.
+- Tests empêchant la réapparition de ces erreurs dans les guides destinés à une installation vierge.
+
+
+
 ### 20 octobre 2026 — sécurité Pillow en sortie d'audit documentaire
 
 - Dependency Review a signalé huit CVE sur Pillow 12.3.0 ; mise à jour de la dépendance directe et du verrou Python vers **Pillow 13.0.0**, version corrective indiquée par `pip-audit`.

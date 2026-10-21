@@ -17,25 +17,31 @@ Pour découvrir **ce que tu installes** avant de lancer les scripts, consulte le
 
 Lance l'installation depuis ton compte utilisateur habituel, jamais en root. Le script demande `sudo` seulement quand c'est nécessaire.
 
-Avant le premier lancement, attendre la publication officielle de Fedora 45 (date cible **20 octobre 2026**, susceptible de report). Une image bêta n'a pas été qualifiée en tant que système hôte réel par ce dépôt. Fedora 44 et GNOME 50 sont volontairement refusés lors de l'installation ; aucune installation/migration depuis Fedora 44 n'est nécessaire.
+Utiliser une image **stable officiellement publiée** de Fedora 45 Workstation ; ne pas confondre une image bêta et le système hôte cible du dépôt. Une installation réelle sur le PC reste à réceptionner. Fedora 44 et GNOME 50 sont volontairement refusés lors de l'installation ; aucune installation/migration depuis Fedora 44 n'est nécessaire.
 
 > **Parcours court recommandé :** [Fedora installé, stockage `/IA/Openclaw`, installation et un seul `quick-check`](../INSTALLATION_SIMPLE_FEDORA45.md). Le reste de cette fiche détaille les étapes facultatives de dépannage.
 
 ## Installer
 
 ```bash
+# Git peut ne pas être présent sur un Fedora tout juste installé.
+command -v git >/dev/null 2>&1 || sudo dnf5 install -y git
+cd "$HOME"
 git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
-cd OPENCLAW_LOCAL_FEDORA
-./menu.sh --action validate           # vérifie les fichiers de configuration du dépôt
-./menu.sh --action install            # affiche ce qui sera fait, sans rien modifier
-./menu.sh --action install --apply
+cd "$HOME/OPENCLAW_LOCAL_FEDORA"
+./menu.sh --action install            # affiche le plan, sans vérification complète
+./menu.sh --action install --apply    # installe et contrôle les vrais prérequis
+./menu.sh --action validate           # après le bootstrap Python et ses dépendances
 ```
+
+Lancer ces commandes **après** la vérification du montage `/IA` dans le [guide court](../INSTALLATION_SIMPLE_FEDORA45.md). Ne pas exécuter `validate` avant le bootstrap sur un Fedora vierge : ce contrôle importe notamment PyYAML, qui n'est pas garanti avant l'installation du venv. L'aperçu `install` seul ne prouve pas la compatibilité B580 ; le `--apply` et le `quick-check` final la vérifient à des niveaux différents.
 
 Après l'installation, ferme ta session et rouvre-la une fois : tu viens d'être ajouté aux groupes `render` et `video`, et ils ne s'appliquent qu'à une nouvelle session.
 
-Pour ajouter le chat Open WebUI :
+Pour ajouter le chat Open WebUI **dans un nouveau terminal après la reconnexion** :
 
 ```bash
+cd "$HOME/OPENCLAW_LOCAL_FEDORA"
 ./menu.sh --action webui-install --apply
 ```
 
@@ -81,7 +87,7 @@ Rien de tout cela n'est dans Git. Le dépôt contient le code et la configuratio
 - Elle n'ouvre aucun port sur le réseau : tout écoute sur `127.0.0.1`, donc uniquement depuis ton PC.
 - Elle ne désactive ni SELinux ni le pare-feu.
 - Elle ne touche pas au noyau.
-- Elle ne garde pas les services actifs quand ta session est fermée, sauf si tu ajoutes `--enable-linger` à `scripts/linux/06_install.sh`.
+- Elle ne garde pas les services de ton compte actifs après fermeture de session par défaut. Pour un service actif hors session, le *lingering* est un choix explicite de configuration utilisateur (`sudo loginctl enable-linger "$USER"`), non activé par le parcours court ; inutile pour la première réception.
 
 ## Ensuite
 

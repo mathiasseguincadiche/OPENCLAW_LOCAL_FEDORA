@@ -382,3 +382,13 @@ def test_storage_guard_checks_all_sensitive_directory_redirects() -> None:
         assert directory in shell
     assert '[[ -L "/IA/Openclaw/$component" ]]' in shell
     assert shell.index("canonical=") < shell.index("mountpoint -q /IA")
+
+
+def test_ollama_service_receives_gpu_groups_after_fedora_bootstrap() -> None:
+    """The console user's render membership does not grant GPU access to Ollama."""
+    profile = _read("scripts/linux/11_daily_profile.sh")
+    installer = _read("scripts/linux/06_install.sh")
+    assert "SupplementaryGroups=render video" in profile
+    assert 'getent group "$gpu_group"' in profile
+    assert 'sudo systemctl restart ollama.service' in profile
+    assert '"$LINUX/11_daily_profile.sh" configure-ollama --apply' in installer
