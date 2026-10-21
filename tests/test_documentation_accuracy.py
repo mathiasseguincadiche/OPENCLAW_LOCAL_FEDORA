@@ -144,3 +144,56 @@ def test_install_guide_uses_real_line_breaks_instead_of_escaped_newlines() -> No
     )
     assert "\\nLe Python" not in guide
     assert "\\nen **Python" not in guide
+
+
+def test_first_installation_guide_does_not_require_missing_python_dependencies() -> None:
+    """A clean Workstation has no promise of git or project PyYAML before bootstrap."""
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    full = (ROOT / "docs/INSTALLATION_SIMPLE_FEDORA45.md").read_text(
+        encoding="utf-8"
+    )
+    handout = (ROOT / "docs/fiches/01-installer.md").read_text(
+        encoding="utf-8"
+    )
+    for document in (readme, full, handout):
+        assert "command -v git >/dev/null 2>&1 || sudo dnf5 install -y git" in document
+        assert 'cd "$HOME"' in document
+        assert 'cd "$HOME/OPENCLAW_LOCAL_FEDORA"' in document
+        assert document.index("cd \"$HOME\"") < document.index("git clone")
+        assert document.index("git clone") < document.index(
+            "./menu.sh --action install --apply"
+        )
+        assert "findmnt --mountpoint /IA" in document
+    assert "python3.13 -m venv" in (ROOT / "scripts/linux/00_bootstrap.sh").read_text(
+        encoding="utf-8"
+    )
+    install_commands = handout.split("## Installer\n", 1)[1].split(
+        "## Ce que fait l'installation", 1
+    )[0]
+    assert install_commands.index("./menu.sh --action install --apply") < (
+        install_commands.index("./menu.sh --action validate")
+    )
+
+
+def test_menu_is_executable_and_invokes_the_expected_installation_stages() -> None:
+    import stat
+
+    launcher = ROOT / "menu.sh"
+    assert launcher.stat().st_mode & stat.S_IXUSR
+    menu = launcher.read_text(encoding="utf-8")
+    install = (ROOT / "scripts/linux/06_install.sh").read_text(encoding="utf-8")
+    webui = (ROOT / "scripts/linux/13_openwebui.sh").read_text(encoding="utf-8")
+    for step in (
+        "install) with_apply 06_install.sh",
+        "with_apply 13_openwebui.sh",
+        "claw_require_storage",
+    ):
+        assert step in menu
+    for step in (
+        '"$LINUX/00_bootstrap.sh"',
+        '"$LINUX/05_provision_models.sh"',
+        '"$LINUX/03_configure_openclaw.sh"',
+    ):
+        assert step in install
+    assert "command -v podman" in webui
+    assert "systemctl --user restart clawfedora-webui-bridge.service" in webui

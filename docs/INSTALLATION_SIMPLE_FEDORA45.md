@@ -37,14 +37,29 @@ On ne lance aucun script d'installation avant ce contrôle.
 
 ## 2. Installer l'atelier
 
-Dans le terminal Fedora (compte normal, pas root) :
+Dans un terminal de la session **GNOME 51 Wayland**, avant le clonage :
 
 ```bash
+cat /etc/fedora-release
+gnome-shell --version
+printf 'Session : %s\n' "${XDG_SESSION_TYPE:-inconnue}"
+getenforce
+```
+
+Attendus : Fedora 45 Workstation stable, GNOME Shell 51, session `wayland`, SELinux `Enforcing`. Si l'un manque, corriger l'environnement avant de lancer le script. Le contrôle du montage `/IA` de l'étape 1 est obligatoire ; l'aperçu d'installation seul **ne vérifie pas le GPU ni tous les prérequis**.
+
+Dans le terminal Fedora (compte normal, pas root), installer `git` **seulement s'il est absent**, puis cloner le dépôt dans le dossier personnel :
+
+```bash
+command -v git >/dev/null 2>&1 || sudo dnf5 install -y git
+cd "$HOME"
 git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
-cd OPENCLAW_LOCAL_FEDORA
-./menu.sh --action install        # aperçu, aucune modification
+cd "$HOME/OPENCLAW_LOCAL_FEDORA"
+./menu.sh --action install        # plan seulement ; ne certifie pas la compatibilité matérielle
 ./menu.sh --action install --apply
 ```
+
+**Ne pas lancer directement les scripts du répertoire `scripts/linux/` :** le lanceur `menu.sh` sélectionne la procédure et propage `--apply` au bon script. Ne pas recopier `git clone` si le dépôt existe déjà ; ouvrir son dossier. Les opérations de préparation peuvent demander le mot de passe `sudo`, télécharger plusieurs Go et nécessitent une connexion Internet. L'installateur ne reformate aucun disque, n'active pas DeepSeek et ne remplace pas ton Python système.
 
 Le bootstrap vérifie le second disque avant d'installer des paquets.
 Il crée `/IA/Openclaw` et ses répertoires, installe les versions épinglées
@@ -92,7 +107,9 @@ si l'on veut mesurer des performances plus finement.
 
 Le cloud DeepSeek n'est **pas activé automatiquement**. Un appel réel
 nécessite une clé et une activation explicites ; aucun test de cloud
-ne peut être déclaré réussi sans cet accord.
+ne peut être déclaré réussi sans cet accord. Après la réception locale,
+utiliser [la fiche Cloud](fiches/12-cloud.md#activer-le-cloud) pour la saisie
+masquée de la clé OpenRouter, la limite en dollars et l'activation consentie.
 
 ## Stockage exact
 

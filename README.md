@@ -57,15 +57,32 @@ Le chat peut aussi analyser de petits fichiers texte **sans créer de projet**. 
 
 1. Installer Fedora 45 Workstation sur le SSD système après sa publication officielle.
 2. Monter le **disque secondaire** de façon permanente sur `/IA` (via UUID). Ne pas formater un disque contenant des données.
-3. Vérifier `findmnt --mountpoint /IA` avant tout `--apply`. Le runtime est `/IA/Openclaw/`.
+3. Vérifier `findmnt --mountpoint /IA` avant tout `--apply`. Le runtime est `/IA/Openclaw/`. Ne pas reformater un disque contenant des données ; l'installateur ne prépare pas le partitionnement pour toi.
+
+**Précontrôles dans un terminal de la session GNOME Wayland** (les valeurs attendues sont Fedora 45, GNOME 51, `wayland`, SELinux `Enforcing` et un volume distinct monté sous `/IA`) :
 
 ```bash
-git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
-cd OPENCLAW_LOCAL_FEDORA
-
-./menu.sh --action install               # aperçu non destructif
-./menu.sh --action install --apply       # installation autorisée
+cat /etc/fedora-release
+gnome-shell --version
+printf 'Session : %s\n' "${XDG_SESSION_TYPE:-inconnue}"
+getenforce
+findmnt --mountpoint /IA
+df -h /IA
 ```
+
+**Vérifie les sorties avant de poursuivre.** Si `git` n'est pas déjà installé sur ton Fedora neuf, installe-le une seule fois avec la commande ci-dessous. Le gestionnaire de paquets peut demander ton mot de passe sudo ; les autres paquets sont ensuite gérés par l'installateur.
+
+```bash
+command -v git >/dev/null 2>&1 || sudo dnf5 install -y git
+cd "$HOME"
+git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
+cd "$HOME/OPENCLAW_LOCAL_FEDORA"
+
+./menu.sh --action install               # affiche le plan, ne teste PAS le matériel
+./menu.sh --action install --apply       # installation autorisée, peut demander sudo
+```
+
+Le lanceur **`menu.sh` est le seul point d'entrée à utiliser** pour cette première installation : inutile d'exécuter manuellement `scripts/linux/00_bootstrap.sh` ou `06_install.sh`. Si le dossier existe déjà, n'exécute pas `git clone` une seconde fois : ouvre ce dossier et examine ses modifications avant de le mettre à jour. La commande `install` sans `--apply` n'est **pas** un diagnostic Fedora/GPU complet ; les vrais prérequis sont vérifiés pendant `--apply`. L'installateur installe et verrouille OpenClaw, Ollama et Qwen, mais **n'active pas le cloud**.
 
 Se reconnecter à la session Fedora pour appliquer les groupes GPU `render`/`video`, puis :
 
@@ -77,6 +94,8 @@ Se reconnecter à la session Fedora pour appliquer les groupes GPU `render`/`vid
 ```
 
 **Si `RECEPTION=READY_FOR_FIRST_PROJECT`**, ouvrir Open WebUI, poser une question réelle et créer un petit projet. Le contrôle réalise **une génération locale courte**, vérifie GPU, modèles, services, interfaces et stockage. Pas de stress test 32K ou d'appel cloud imposé. En cas d'échec, consulter le [diagnostic](docs/fiches/10-depanner.md), sans tout réinstaller.
+
+**Ensuite, facultativement :** pour utiliser DeepSeek via ta clé OpenRouter, suivre [l'activation cloud contrôlée](docs/fiches/12-cloud.md#activer-le-cloud). Ce n'est ni une condition du premier démarrage local ni un appel cloud automatique. Pour diagnostiquer un échec, consulter [la fiche dépannage](docs/fiches/10-depanner.md).
 
 [**Guide d'installation détaillé et stockage `/IA/Openclaw`**](docs/INSTALLATION_SIMPLE_FEDORA45.md)
 
