@@ -10,6 +10,7 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 - Ajout du prérequis `git` avec installation conditionnelle sous Fedora 45, et clonage explicitement dans le dossier personnel.
 - Correction du guide qui lançait `validate` avant l'installation des dépendances Python (dont PyYAML) ; désormais exécutable après bootstrap.
 - Clarification de la différence entre aperçu `install` et qualification réelle des prérequis, des droits `sudo`, du montage `/IA` et des points d'entrée CLI.
+- Après déconnexion/reconnexion GNOME (groupes GPU), ajout du `cd "$HOME/OPENCLAW_LOCAL_FEDORA"` avant `webui-install`, pour éviter l'appel de `./menu.sh` depuis un nouveau terminal ouvert au mauvais endroit.
 - Tests empêchant la réapparition de ces erreurs dans les guides destinés à une installation vierge.
 
 

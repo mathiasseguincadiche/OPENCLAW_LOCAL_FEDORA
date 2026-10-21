@@ -84,9 +84,10 @@ cd "$HOME/OPENCLAW_LOCAL_FEDORA"
 
 Le lanceur **`menu.sh` est le seul point d'entrée à utiliser** pour cette première installation : inutile d'exécuter manuellement `scripts/linux/00_bootstrap.sh` ou `06_install.sh`. Si le dossier existe déjà, n'exécute pas `git clone` une seconde fois : ouvre ce dossier et examine ses modifications avant de le mettre à jour. La commande `install` sans `--apply` n'est **pas** un diagnostic Fedora/GPU complet ; les vrais prérequis sont vérifiés pendant `--apply`. L'installateur installe et verrouille OpenClaw, Ollama et Qwen, mais **n'active pas le cloud**.
 
-Se reconnecter à la session Fedora pour appliquer les groupes GPU `render`/`video`, puis :
+Se reconnecter à la session Fedora pour appliquer les groupes GPU `render`/`video`, puis **ouvrir un nouveau terminal et revenir dans le dépôt GitHub** :
 
 ```bash
+cd "$HOME/OPENCLAW_LOCAL_FEDORA"
 ./menu.sh --action webui-install --apply
 # Créer le compte administrateur à http://127.0.0.1:3000
 ./menu.sh --action webui-seal --apply

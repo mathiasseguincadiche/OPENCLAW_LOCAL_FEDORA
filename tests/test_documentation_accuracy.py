@@ -164,6 +164,11 @@ def test_first_installation_guide_does_not_require_missing_python_dependencies()
             "./menu.sh --action install --apply"
         )
         assert "findmnt --mountpoint /IA" in document
+        # A new GNOME login starts in HOME, not in the git clone's directory.
+        webui = document.index("./menu.sh --action webui-install --apply")
+        assert document.rfind('cd "$HOME/OPENCLAW_LOCAL_FEDORA"', 0, webui) > (
+            document.index("./menu.sh --action install --apply")
+        )
     assert "python3.13 -m venv" in (ROOT / "scripts/linux/00_bootstrap.sh").read_text(
         encoding="utf-8"
     )

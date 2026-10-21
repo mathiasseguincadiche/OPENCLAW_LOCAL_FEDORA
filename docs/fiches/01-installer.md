@@ -38,9 +38,10 @@ Lancer ces commandes **après** la vérification du montage `/IA` dans le [guide
 
 Après l'installation, ferme ta session et rouvre-la une fois : tu viens d'être ajouté aux groupes `render` et `video`, et ils ne s'appliquent qu'à une nouvelle session.
 
-Pour ajouter le chat Open WebUI :
+Pour ajouter le chat Open WebUI **dans un nouveau terminal après la reconnexion** :
 
 ```bash
+cd "$HOME/OPENCLAW_LOCAL_FEDORA"
 ./menu.sh --action webui-install --apply
 ```
 
@@ -86,7 +87,7 @@ Rien de tout cela n'est dans Git. Le dépôt contient le code et la configuratio
 - Elle n'ouvre aucun port sur le réseau : tout écoute sur `127.0.0.1`, donc uniquement depuis ton PC.
 - Elle ne désactive ni SELinux ni le pare-feu.
 - Elle ne touche pas au noyau.
-- Elle ne garde pas les services actifs quand ta session est fermée, sauf si tu ajoutes `--enable-linger` à `scripts/linux/06_install.sh`.
+- Elle ne garde pas les services de ton compte actifs après fermeture de session par défaut. Pour un service actif hors session, le *lingering* est un choix explicite de configuration utilisateur (`sudo loginctl enable-linger "$USER"`), non activé par le parcours court ; inutile pour la première réception.
 
 ## Ensuite
 

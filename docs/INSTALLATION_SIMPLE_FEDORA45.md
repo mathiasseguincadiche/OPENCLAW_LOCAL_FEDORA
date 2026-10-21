@@ -69,9 +69,10 @@ Le téléchargement du modèle et des logiciels demande Internet.
 **Déconnecter puis reconnecter la session GNOME** pour prendre en compte
 les groupes GPU `render` et `video`.
 
-Installer ensuite les deux interfaces (sur le même Fedora) :
+Après reconnexion, le nouveau terminal revient normalement dans ton dossier personnel. **Revenir explicitement dans le dépôt** avant d'appeler `./menu.sh` :
 
 ```bash
+cd "$HOME/OPENCLAW_LOCAL_FEDORA"
 ./menu.sh --action webui-install --apply
 ```
 
