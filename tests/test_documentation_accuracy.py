@@ -103,9 +103,11 @@ def test_documented_menu_actions_exist_in_the_shipped_menu() -> None:
     pattern = re.compile(r"\./menu\.sh\s+--action\s+([a-z][a-z0-9_-]*)")
     stale = []
     for path in DOCS:
-        if path.name.endswith(".md") and path.parent == ROOT / "docs":
-            if "Archive de conception 2026" in path.read_text(encoding="utf-8"):
-                continue
+        if (
+            path.parent == ROOT / "docs"
+            and "Archive de conception 2026" in path.read_text(encoding="utf-8")
+        ):
+            continue
         for match in pattern.finditer(path.read_text(encoding="utf-8")):
             if match.group(1) not in choices:
                 stale.append(f"{path.relative_to(ROOT)}: {match.group(1)}")
