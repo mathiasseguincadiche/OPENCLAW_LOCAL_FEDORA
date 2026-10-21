@@ -55,9 +55,12 @@ command -v git >/dev/null 2>&1 || sudo dnf5 install -y git
 cd "$HOME"
 git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
 cd "$HOME/OPENCLAW_LOCAL_FEDORA"
+./menu.sh --action precheck       # audit machine AVANT toute installation (lecture seule)
 ./menu.sh --action install        # plan seulement ; ne certifie pas la compatibilité matérielle
 ./menu.sh --action install --apply
 ```
+
+**Lire le verdict du pré-check :** `PRECHECK=READY_TO_INSTALL` autorise la suite, `PRECHECK=BLOCKED` impose de corriger les `FAIL` (Fedora/GNOME, matériel B580/xe, UEFI, SELinux, `/IA`, RAM ou session) avant tout déploiement ; les `REVIEW` portent sur les paquets que le bootstrap installera, Internet, ReBAR et les mesures GPU encore à effectuer. **Le même pré-check est exécuté à nouveau dans `install --apply` avant toute installation de paquets**, pour éviter un oubli accidentel.
 
 **Ne pas lancer directement les scripts du répertoire `scripts/linux/` :** le lanceur `menu.sh` sélectionne la procédure et propage `--apply` au bon script. Ne pas recopier `git clone` si le dépôt existe déjà ; ouvrir son dossier. Les opérations de préparation peuvent demander le mot de passe `sudo`, télécharger plusieurs Go et nécessitent une connexion Internet. L'installateur ne reformate aucun disque, n'active pas DeepSeek et ne remplace pas ton Python système.
 
@@ -115,6 +118,17 @@ nécessite une clé et une activation explicites ; aucun test de cloud
 ne peut être déclaré réussi sans cet accord. Après la réception locale,
 utiliser [la fiche Cloud](fiches/12-cloud.md#activer-le-cloud) pour la saisie
 masquée de la clé OpenRouter, la limite en dollars et l'activation consentie.
+
+## 4. Qualification réelle du contexte 32K sur la B580
+
+Après `quick-check`, lancer la recette **avec accord explicite**, toujours depuis le dépôt :
+
+```bash
+./menu.sh --action acceptance-32k         # plan sans génération
+./menu.sh --action acceptance-32k --apply # test long local, aucune requête cloud
+```
+
+La commande refait le contrôle court puis demande à Qwen une réponse sur un contexte `32768` **proche de sa limite** (cible 90 %). Pour réussir, elle exige notamment des tokens d'entrée effectivement comptabilisés (au moins 75 % du contexte), un contexte alloué confirmé, une sortie non vide, aucune troncature et un modèle intégralement en VRAM. Le rapport donne les débits d'entrée/sortie, les tokens et la part GPU. **Un `ACCEPTANCE_32K=PASS` confirme cette mesure matérielle ponctuelle**, pas la qualité des explications en français ni la stabilité sur de longues sessions. Un échec 32K n'annule pas automatiquement le succès du `quick-check` : diagnostiquer la VRAM et éventuellement essayer 16K, sans déclarer 32K acquis. Voir [Premier essai](fiches/02-premier-essai.md) et [évaluation pédagogique](EVALUATION_PEDAGOGIE.md).
 
 ## Stockage exact
 

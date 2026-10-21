@@ -60,3 +60,43 @@ def test_probe_cli_is_a_plan_without_apply(
     code = ops_cli.main(["--root", str(ROOT), "--runtime-root", str(tmp_path), "context-probe"])
     assert code == 0
     assert "CONTEXT_PROBE_PLAN context=32768" in capsys.readouterr().out
+
+
+def test_near_limit_32k_requires_real_answer_allocation_and_fill() -> None:
+    def realistic(prompt: int, *, output: str = "Résumé.", allocation: int = 32768,
+                  vram: int = 8 * 1024**3) -> Any:
+        def request(url: str, *, payload: dict[str, Any] | None = None,
+                    timeout: float = 10) -> Any:
+            if url.endswith("/api/generate"):
+                assert payload is not None
+                assert payload["options"]["num_ctx"] == 32768
+                assert payload["options"]["num_predict"] == 128
+                return {
+                    "prompt_eval_count": prompt, "response": output,
+                    "eval_count": 10, "eval_duration": 1_000_000_000,
+                    "prompt_eval_duration": 8_000_000_000,
+                }
+            return {"models": [{
+                "name": MODEL, "size": 8 * 1024**3,
+                "size_vram": vram, "context_length": allocation,
+            }]}
+        return request
+
+    good = probe_context(ROOT, fill_ratio=0.9, verify_near_limit=True,
+                         request=realistic(29000))
+    assert good["verdict"] == "FULL_GPU"
+    assert good["near_limit_32k_verified"] is True
+    for prompt, kwargs, expected in (
+        (19000, {}, "CONTEXT_UNDERFILLED"),
+        (29000, {"allocation": 16384}, "CONTEXT_ALLOCATION_UNVERIFIED"),
+        (29000, {"output": ""}, "EMPTY_MODEL_RESPONSE"),
+        (32760, {}, "PROMPT_TRUNCATED"),
+        (29000, {"vram": 4 * 1024**3}, "PARTIAL_CPU_OFFLOAD"),
+    ):
+        state = probe_context(ROOT, fill_ratio=0.9, verify_near_limit=True,
+                              request=realistic(prompt, **kwargs))
+        assert state["verdict"] == expected
+        assert state["near_limit_32k_verified"] is False
+    with pytest.raises(ValueError, match="réception 32K"):
+        probe_context(ROOT, fill_ratio=0.6, verify_near_limit=True,
+                      request=realistic(29000))
