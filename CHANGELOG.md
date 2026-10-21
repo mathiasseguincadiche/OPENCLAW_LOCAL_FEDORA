@@ -11,6 +11,7 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 - Correction du guide qui lançait `validate` avant l'installation des dépendances Python (dont PyYAML) ; désormais exécutable après bootstrap.
 - Clarification de la différence entre aperçu `install` et qualification réelle des prérequis, des droits `sudo`, du montage `/IA` et des points d'entrée CLI.
 - Après déconnexion/reconnexion GNOME (groupes GPU), ajout du `cd "$HOME/OPENCLAW_LOCAL_FEDORA"` avant `webui-install`, pour éviter l'appel de `./menu.sh` depuis un nouveau terminal ouvert au mauvais endroit.
+- Le service système Ollama obtient explicitement les groupes périphériques `render` et `video` dans son unité systemd, conformément au besoin d'accès GPU de son compte propre, sans ajout permanent de groupes à ce compte ; test et diagnostic associé.
 - Tests empêchant la réapparition de ces erreurs dans les guides destinés à une installation vierge.
 
 

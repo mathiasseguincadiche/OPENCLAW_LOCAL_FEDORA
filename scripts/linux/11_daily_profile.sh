@@ -42,6 +42,16 @@ from clawfedora.core_config import daily_limits
 print(daily_limits(Path(sys.argv[1]))["context_tokens"])
 ' "$(claw_repo_root)")"
     [[ "$CONTEXT_TOKENS" =~ ^[0-9]+$ ]] || { echo "ERREUR: contexte quotidien illisible" >&2; exit 2; }
+    # The Ollama *service account* also needs access to /dev/dri/renderD*.
+    # Session group changes for TARGET_USER do not grant GPU access to ollama.
+    # Restrict this capability to the managed systemd service (no permanent
+    # modification of the system account's supplementary groups).
+    for gpu_group in render video; do
+      getent group "$gpu_group" >/dev/null || {
+        echo "ERREUR: groupe GPU Fedora absent: $gpu_group" >&2
+        exit 2
+      }
+    done
     # Models belong to the service user; preserve SELinux protections.
     sudo install -d -m 0750 -o ollama -g ollama "$RUNTIME_ROOT/models/ollama"
     sudo restorecon -RF "$RUNTIME_ROOT/models/ollama"
@@ -51,6 +61,7 @@ print(daily_limits(Path(sys.argv[1]))["context_tokens"])
 RequiresMountsFor=/IA
 ConditionPathIsMountPoint=/IA
 [Service]
+SupplementaryGroups=render video
 Environment="OLLAMA_HOST=127.0.0.1:11434"
 Environment="OLLAMA_MODELS=$RUNTIME_ROOT/models/ollama"
 Environment="OLLAMA_VULKAN=1"

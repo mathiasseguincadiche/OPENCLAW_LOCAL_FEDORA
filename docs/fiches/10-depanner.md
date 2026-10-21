@@ -33,6 +33,18 @@ vulkaninfo --summary                     # Vulkan la voit-il ?
 | Pas de `renderD*` accessible | Tu n'as pas rouvert ta session depuis l'installation (groupes `render` et `video`) |
 | Vulkan ne la voit pas | `rpm -q mesa-vulkan-drivers` |
 
+### Ollama voit la B580, mais ne peut pas ouvrir les périphériques GPU
+
+Le service Ollama tourne avec un **compte système différent** de ta session GNOME. Le script `configure-ollama` lui attribue les groupes `render` et `video` **uniquement dans son unité systemd**, sans modifier durablement le compte. En cas d'accès refusé à `/dev/dri/renderD*`, examiner :
+
+```bash
+systemctl show ollama.service -p SupplementaryGroups
+ls -l /dev/dri/renderD*
+journalctl -u ollama.service -b --no-pager | grep -Ei 'permission|vulkan|render|device'
+```
+
+Si l'unité ne contient pas les groupes attendus, après le montage de `/IA` et la vérification des journaux, relancer l'installation gérée (`./menu.sh --action install --apply`) depuis le répertoire GitHub, ou [réparer](09-entretenir.md), plutôt que d'ouvrir les permissions GPU à tous les comptes (`chmod 666`). Une CI verte ne garantit pas encore ce comportement sur la B580 réelle.
+
 ## Ollama ne répond pas
 
 ```bash

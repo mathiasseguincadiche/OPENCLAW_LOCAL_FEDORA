@@ -65,6 +65,10 @@ Le bootstrap vérifie le second disque avant d'installer des paquets.
 Il crée `/IA/Openclaw` et ses répertoires, installe les versions épinglées
 d'Ollama/OpenClaw, le modèle Qwen local, les sept agents et le Gateway.
 Le téléchargement du modèle et des logiciels demande Internet.
+La configuration GPU du service Ollama accorde explicitement les groupes
+`render` et `video` à **son compte système dans l'unité systemd** ; les groupes
+de ta session utilisateur ne remplacent pas ceux du service. La réception
+`quick-check` doit encore confirmer l'utilisation de la B580 réelle.
 
 **Déconnecter puis reconnecter la session GNOME** pour prendre en compte
 les groupes GPU `render` et `video`.
