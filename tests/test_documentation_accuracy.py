@@ -189,7 +189,11 @@ def test_menu_is_executable_and_invokes_the_expected_installation_stages() -> No
     install = (ROOT / "scripts/linux/06_install.sh").read_text(encoding="utf-8")
     webui = (ROOT / "scripts/linux/13_openwebui.sh").read_text(encoding="utf-8")
     for step in (
-        "  install)\n    ((APPLY == 0)) || \"$LINUX/19_preinstall_check.sh\"\n    with_apply 06_install.sh",
+        (
+            "  install)\n"
+            '    ((APPLY == 0)) || "$LINUX/19_preinstall_check.sh"\n'
+            "    with_apply 06_install.sh"
+        ),
         "with_apply 13_openwebui.sh",
         "claw_require_storage",
     ):
