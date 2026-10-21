@@ -140,6 +140,12 @@ Le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allu
 
 **Le modèle peut se tromper avec assurance.** Pour une version, une commande sensible ou un chiffre, demande la source ou vérifie.
 
+## Retrouver ton contexte et adapter les explications
+
+Pour aider le mentor à reprendre une notion d'une séance à l'autre, renseigne dans **Atelier Projets → Mon accompagnement et la continuité du chat** les champs « Ma manière préférée d’apprendre » et « Ce que je veux conserver des échanges », puis approuve l'enregistrement. Ces notes restent sous ton contrôle, sont bornées à 500 caractères chacune et ne sont jamais rédigées automatiquement par le modèle. Le mentor les relit dans le contexte local, même si tu choisis ensuite une autre route d'inférence ; ne saisis donc pas de secret dans une note destinée au cloud.
+
+Si tu écris « je n'ai pas compris », les consignes lui demandent de **changer d'angle** (comparaison ou contre-exemple) plutôt que répéter la première réponse. C'est un comportement attendu, à mesurer par de véritables dialogues : [grille pédagogique /20](../EVALUATION_PEDAGOGIE.md).
+
 ## Bien demander
 
 Un modèle de cette taille répond mieux à une demande précise et courte.

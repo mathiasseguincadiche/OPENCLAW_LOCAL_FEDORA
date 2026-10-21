@@ -95,6 +95,10 @@ de confidentialité et les limites de budget ne peuvent pas être diminuées.
 
 Pour changer le plafond, baisse-le : tu ne peux pas dépasser 25 €. Après toute modification : `./menu.sh --action validate`, puis `./menu.sh --action cloud-enable --value 12 --apply` pour revalider.
 
+## Préférences d'apprentissage et mémoire approuvée
+
+Dans l'Atelier Projets, **Mon accompagnement et la continuité du chat** comporte cinq notes de suivi et deux champs de pédagogie : `explanation_style` (manière souhaitée d'apprendre) et `learning_summary` (acquis qu'on veut conserver). Les sept champs sont facultatifs, chacun limité à 500 caractères ; seul l'utilisateur peut valider leur enregistrement. La fiche est injectée au mentor comme donnée de contexte, sans certifier d'acquis et sans création automatique d'une mémoire par l'IA. Voir [Apprendre](05-apprendre.md) et [qualification pédagogique /20](../EVALUATION_PEDAGOGIE.md).
+
 ## Voix locale
 
 `config/webui_policy.yaml` fixe Whisper `small` sur **CPU/int8**, français, port 18893 en

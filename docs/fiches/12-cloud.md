@@ -209,6 +209,10 @@ Pour **poursuivre en local**, tu dois le décider : clique **Retirer l'accord cl
 
 Chaque projet affiche le dernier modèle utilisé, le nombre d'appels cloud et un coût **estimé prudent**. Le pied de page affiche la dépense du mois sur 25 €.
 
+## Mesurer la pédagogie plutôt que supposer un meilleur modèle
+
+Le profil `approfondi` offre davantage de place à la sortie, mais ne garantit ni une réponse plus juste ni une meilleure pédagogie que Gemini. Pour comparer Qwen et DeepSeek **sur des conversations à trois tours**, utiliser [les scénarios publics et la grille sur 20](../EVALUATION_PEDAGOGIE.md) ; l'évaluation elle-même ne facture rien. Ne sélectionner DeepSeek que lorsque le routage est activé avec accord, dans le budget de 25 €/mois et pour des demandes autorisées par le filtre de confidentialité.
+
 ## Quand ça ne va pas
 
 | Symptôme | Piste |

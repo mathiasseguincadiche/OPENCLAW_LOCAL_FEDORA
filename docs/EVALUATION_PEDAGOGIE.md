@@ -95,7 +95,13 @@ de changer d'angle, de comparer ou de donner un contre-exemple, plutôt que rép
 Ce sont des comportements **souhaités**, pas une certification de qualité avant
 les conversations réelles.
 
-## 5. Coût, vérification et limites
+## 5. Conditions d'acceptation et lecture du résultat
+
+L'objectif n'est considéré comme **observé** que si chaque critère obtient 5/5 **sur les réponses réellement enregistrées**, relues avec des sources attribuables. Noter explicitement les points de confusion, les citations inexactes, les répétitions et les corrections obtenues aux tours 2 et 3 ; garder un exemple d'échec pour calibrer les évaluateurs. Les notes sont subjectives, même avec une grille structurée : plusieurs scénarios et si possible plusieurs relecteurs indépendants réduisent ce biais sans l'annuler.
+
+Les deux suites restent distinctes : `clawfedora-evals` vérifie les sept rôles sur leurs pratiques professionnelles ; `clawfedora-pedagogy` observe les quatre qualités de conversation. Une CI verte ne calcule pas de note pédagogique.
+
+## 6. Coût, vérification et limites
 
 Le plafond cloud reste 25 €/mois, avec activation explicite et profils
 `rapide`, `equilibre` et `approfondi`. Aucun troisième fournisseur n'a été ajouté,

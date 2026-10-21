@@ -2,7 +2,9 @@
 
 ## Choix retenu
 
-Fedora 45 Workstation / GNOME 51 est installé **normalement sur le SSD système**.\nLe Python 3.15 du système n'est pas modifié : l'atelier utilise un venv isolé\nen **Python 3.13** (fourni par Fedora) pour rester compatible avec la voix.
+Fedora 45 Workstation / GNOME 51 est installé **normalement sur le SSD système**.
+Le Python 3.15 du système n'est pas modifié : l'atelier utilise un venv isolé
+en **Python 3.13** (fourni par Fedora) pour rester compatible avec la voix.
 Le deuxième disque, formaté en système de fichiers Linux (ext4, Btrfs ou XFS), est
 monté au démarrage sous **`/IA`**. L'atelier utilise **`/IA/Openclaw/`**.
 Pas de clé Live ni de benchmarks longs imposés.

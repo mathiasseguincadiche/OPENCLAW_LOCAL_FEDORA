@@ -42,6 +42,10 @@ dans le contexte, plutôt que quatre passages du module Terraform.
 - **la recherche reste sur le PC** ; choisir ensuite DeepSeek pour discuter
   de sources privées demeure interdit sans accord clair et approprié.
 
+## Portée pour les explications pédagogiques
+
+La recherche SQLite FTS5 fournit **jusqu'à quatre passages et 4 000 caractères au total**, avec chemins, pages et lignes. Elle aide à retrouver une preuve dans les documents d'un projet ; elle ne constitue ni une mémoire automatique de conversation ni une recherche sémantique garantie. Pour continuer d'une séance à l'autre, l'utilisateur enregistre **volontairement** les acquis utiles dans sa [fiche mentor](fiches/05-apprendre.md), sans envoyer le contenu privé au cloud par défaut. Pour une revue d'exactitude, confronter les citations aux sources et ne pas confondre un extrait trouvé avec un test technique.
+
 ## Comment qualifier la pertinence, à la fin
 
 Préparer plusieurs mini-corpus synthétiques avec une question attendue,

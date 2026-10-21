@@ -15,6 +15,8 @@ Pour la procédure quotidienne, suivre [Installer Fedora et vérifier l'atelier]
 | Python de production | `pip` avec fichier de contraintes | Versions exactes et hashes SHA-256 des distributions de production contrôlées par [le verrou Python](PYTHON_RUNTIME_LOCK.md) |
 | Runtime et données | Second disque monté sous `/IA` | Refus avant installation si `/IA` n'est pas le montage distinct attendu ; rejet des chemins non canoniques et liens symboliques dans les dossiers gérés ; services conditionnés au montage |
 
+**Correctif de sécurité du 20 octobre 2026 :** Pillow **13.0.0** remplace 12.3.0 après le signalement de huit vulnérabilités dans Dependency Review. La nouvelle version est fixée dans `pyproject.toml`, `config/python-runtime-constraints.txt` et `config/python-runtime-hashes.txt` ; les SHA-256 des artefacts Linux x86_64 Python 3.12/3.13 proviennent de [PyPI](https://pypi.org/project/pillow/13.0.0/). Ce changement doit passer intégralement la CI et ne modifie pas la politique du cloud.
+
 ## Pourquoi l'installateur vérifie les archives
 
 `scripts/linux/15_verified_installer.sh` n'exécute pas de script `curl | bash` téléchargé à la volée. Il vérifie l'archive autorisée et son empreinte officielle avant installation. OpenClaw est installé dans le préfixe utilisateur `~/.openclaw` avec `--ignore-scripts` ; le binaire Ollama est extrait sous `/usr/local`.
@@ -25,7 +27,7 @@ Le bootstrap Python ne fait pas de mise à niveau globale non bornée de `pip` /
 
 ## Ce qui n'est pas totalement verrouillé
 
-- Les wheels et archives sources Python de production sont protégées par SHA-256. Les dépendances temporaires de construction PEP 517 et les extras de développement ne sont pas tous figés ; une compilation depuis une archive source peut faire intervenir un outillage de build distinct.
+- L'installation Python de production refuse les distributions sources (`--only-binary`) et vérifie les versions ainsi que les SHA-256 des wheels. `setuptools` et `wheel` sont eux aussi fixés par versions et SHA-256 via les [contraintes de construction](../config/python-build-constraints.txt) et leurs [empreintes](../config/python-build-hashes.txt). Le projet est installé avec `--no-build-isolation --no-deps -e .` : aucune dépendance PEP 517 éphémère non verrouillée n'est téléchargée. Les paquets RPM de Fedora et les extras de développement ne sont pas couverts par cette chaîne de verrous.
 - La fermeture transitive npm dispose d'un `package-lock.json` SHA-512 appliqué par `npm ci`. Les **21 dépendances de voix** ont aussi un [verrou de versions et SHA-256](../config/python-speech-hashes.txt) vérifié sur Fedora 45/Python 3.13.
 - L'image Open WebUI est figée **lors de son déploiement**, pas par un digest préétabli et signé dans le dépôt.
 - L'installateur et les services Fedora 45/GNOME 51 doivent encore être observés sur la machine réelle, notamment GPU/Vulkan, SELinux, WebUI et modèle.

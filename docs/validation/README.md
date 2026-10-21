@@ -16,7 +16,8 @@ Elle vérifie les composants essentiels (montage `/IA`, courte génération Qwen
 | --- | --- |
 | La B580 chauffe, le contexte semble trop grand, la veille échoue | [Qualification Fedora 45 et GPU](../QUALIFICATION_FINALE_FEDORA.md) |
 | WebUI, voix, boutons, streaming ou import de fichiers posent problème | [Réception WebUI avancée](../SMOKE_TEST_WEBUI.md) |
-| Mesurer les réponses des sept agents | [Grille d’évaluation](../EVALUATION_AGENTS.md) |
+| Mesurer les réponses des sept agents | [Grille d’évaluation technique /4](../EVALUATION_AGENTS.md) |
+| Mesurer clarté, profondeur, interactivité et exactitude sur plusieurs échanges | [Qualification pédagogique sur 20](../EVALUATION_PEDAGOGIE.md) : `clawfedora-pedagogy --plan` (hors ligne, aucune requête payante) |
 | Vérifier la vision locale après activation volontaire | [Canary vision](../VISION_LOCALE_CANARY.md) |
 | Comparer une CI à une preuve officielle | [Provenance GitHub/GitLab](../PREUVES_CI_GITHUB_GITLAB.md) |
 | Exécuter des validateurs DevOps isolés (optionnel) | [Laboratoire DevOps](../LABORATOIRE_DEVOPS.md) |

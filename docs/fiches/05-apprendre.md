@@ -79,7 +79,7 @@ Dans les notes du mentor sur le tableau de bord, deux champs nouveaux et faculta
 
 ## Tes notes de suivi
 
-Dans un projet, « Mon accompagnement et la continuité du chat » contient cinq notes courtes : tes acquis, ton sujet, ta difficulté, tes observations, ta prochaine étape. Tu les écris toi-même ; aucun modèle ne les modifie. Le mentor les reçoit pour reprendre là où tu en étais.
+Dans un projet, « Mon accompagnement et la continuité du chat » contient **sept champs facultatifs** : cinq notes de suivi (acquis, sujet, difficultés, observations et prochaine étape) ainsi que ta manière préférée d'apprendre et les acquis à conserver des échanges précédents. Tu les écris toi-même ; aucun modèle ne les modifie. Le mentor les reçoit pour reprendre là où tu en étais.
 
 ## Relier les outils au métier
 

@@ -4,6 +4,8 @@
 
 **Objectif de ce guide :** comprendre **pourquoi Qwen local et DeepSeek cloud coexistent**, savoir à qui poser une question, comment choisir une route d'inférence et distinguer ce qui est **proposé** de ce qui est **réellement vérifié**. Pas besoin de connaître OpenClaw pour commencer.
 
+**Pour mesurer ta progression dans la qualité des réponses** : [scénarios multi-tours et notation clarté/profondeur/interactivité/exactitude sur 20](EVALUATION_PEDAGOGIE.md). C'est une grille humaine, pas une note calculée par l'IA ni une garantie de supériorité face à Gemini.
+
 ## 1. Pourquoi un atelier plutôt qu'un simple chatbot ?
 
 Tu peux utiliser l'IA de deux façons :

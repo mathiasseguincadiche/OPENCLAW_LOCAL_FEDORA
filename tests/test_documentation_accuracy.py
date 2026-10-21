@@ -90,3 +90,57 @@ def test_release_documentation_uses_real_line_breaks() -> None:
         assert "\\n" not in content, f"{name}: escaped newline instead of Markdown line break"
     status_lines = (ROOT / "STATUS.md").read_text(encoding="utf-8").splitlines()
     assert any(line.startswith("| Runtime Python IA |") for line in status_lines)
+
+
+def test_documented_menu_actions_exist_in_the_shipped_menu() -> None:
+    """Reject stale --action commands in current public guides."""
+    menu = (ROOT / "menu.sh").read_text(encoding="utf-8")
+    action_block = menu.split('case "$ACTION" in', 1)[1]
+    choices = set()
+    for match in re.finditer(r"^  ([a-z][a-z0-9_-]*(?:\|[a-z0-9_-]+)*)\)", action_block, re.M):
+        choices.update(match.group(1).split("|"))
+    assert {"install", "quick-check", "cloud-status", "validate"} <= choices
+    pattern = re.compile(r"\./menu\.sh\s+--action\s+([a-z][a-z0-9_-]*)")
+    stale = []
+    for path in DOCS:
+        if (
+            path.parent == ROOT / "docs"
+            and "Archive de conception 2026" in path.read_text(encoding="utf-8")
+        ):
+            continue
+        for match in pattern.finditer(path.read_text(encoding="utf-8")):
+            if match.group(1) not in choices:
+                stale.append(f"{path.relative_to(ROOT)}: {match.group(1)}")
+    assert not stale, "Actions documentées inconnues:\n" + "\n".join(stale)
+
+
+def test_pedagogy_and_preferences_are_documented_in_public_entrypoints() -> None:
+    policy = yaml.safe_load((ROOT / "config/evals/pedagogy_conversations.yaml").read_text(
+        encoding="utf-8"
+    ))
+    assert len(policy["scenarios"]) == 4
+    assert all(len(item["turns"]) >= 3 for item in policy["scenarios"])
+    guide = (ROOT / "docs/EVALUATION_PEDAGOGIE.md").read_text(encoding="utf-8")
+    assert "clawfedora-pedagogy --plan" in guide
+    for word in ("Clarté", "Profondeur", "Interactivité", "Exactitude"):
+        assert word in guide
+    for name in (
+        "README.md",
+        "docs/README.md",
+        "docs/GUIDE.md",
+        "docs/validation/README.md",
+        "docs/fiches/05-apprendre.md",
+        "docs/fiches/12-cloud.md",
+    ):
+        assert "EVALUATION_PEDAGOGIE.md" in (ROOT / name).read_text(encoding="utf-8")
+    for field in ("explanation_style", "learning_summary"):
+        assert field in (ROOT / "src/clawfedora/mentor.py").read_text(encoding="utf-8")
+        assert field in (ROOT / "docs/fiches/08-reglages.md").read_text(encoding="utf-8")
+
+
+def test_install_guide_uses_real_line_breaks_instead_of_escaped_newlines() -> None:
+    guide = (ROOT / "docs/INSTALLATION_SIMPLE_FEDORA45.md").read_text(
+        encoding="utf-8"
+    )
+    assert "\\nLe Python" not in guide
+    assert "\\nen **Python" not in guide
