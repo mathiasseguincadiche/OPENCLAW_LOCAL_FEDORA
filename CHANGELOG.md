@@ -4,6 +4,15 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 20 octobre 2026 — audit transversal et synchronisation documentaire
+
+- Revue transversale des 43 pages Markdown de `docs/` en place avant cette PR : navigation, versions, commandes de base, archives et liens aux sources de vérité.
+- Mise à jour de `STATUS.md` (référence CI #148), du guide d'installation (sauts de ligne), et du guide d'intégrité Python (verrou réel des outils de build).
+- Documentation consolidée des sept champs du mentor, des évaluations pédagogiques /20 et des contrôles de réception Fedora/OpenRouter ; archives historiques conservées.
+- Ajout de tests de non-régression pour les commandes du menu, les références pédagogiques et les lignes d'installation, plus un rapport d'audit transparent sur les limites de la vérification.
+
+
+
 ### 20 octobre 2026 — qualification pédagogique multi-tours et préférences du mentor
 
 - Nouvelle suite hors ligne `clawfedora-pedagogy`: quatre critères 0–5, quatre scénarios de trois tours, comparaison humaine Qwen/DeepSeek/référence externe et refus des rapports incomplets.

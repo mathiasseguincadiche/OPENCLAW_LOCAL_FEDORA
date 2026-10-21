@@ -9,6 +9,12 @@ make ci
 
 `make ci` vérifie les fichiers de configuration, le style et le typage du code Python, les scripts shell, et lance les tests.
 
+## Politique de synchronisation documentaire
+
+Lorsqu'une PR touche une version, un rôle, une commande, une limite, la politique cloud ou un parcours d'apprentissage, vérifier les **sources de vérité** (`config/`, `menu.sh`, `src/`) puis mettre à jour dans la même PR : [état et preuves](STATUS.md), [sommaire](docs/README.md), [guides actuels](docs/GUIDE.md), [12 fiches](docs/fiches/), [références](docs/reference/README.md), [validation](docs/validation/README.md) et [historique](CHANGELOG.md) selon ce qui change. Les plans marqués « Archive de conception 2026 » sont des instantanés historiques : ne pas réécrire leurs anciennes versions ; ajouter au besoin un renvoi vers [l'état actuel](STATUS.md).
+
+Ne déclarer une qualification du PC, un résultat de modèle ou une facture comme **vérifié** que si la preuve réelle existe. Les liens internes et les actions du menu sont contrôlés par les tests, pas les URL distantes ni l'exécution des commandes sur Fedora.
+
 ## Contrôles documentaires
 
 Toute PR qui change un comportement, une version ou un chemin doit mettre à jour **le document utilisateur correspondant**, le [sommaire](docs/README.md) si la navigation change, et le [statut](STATUS.md) si le niveau de preuve change. Vérifier les liens internes et que les commandes sont exécutables : `./menu.sh --action quick-check` vérifie une installation existante, il ne doit pas être lancé dans la CI ni être présenté comme obligatoire avant installation.

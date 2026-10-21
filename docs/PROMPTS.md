@@ -129,6 +129,12 @@ Le backend de ce lot reste Ollama/Qwen local, sans secours cloud. Le modèle exi
 `docs/PLAN_MIGRATION_HYBRIDE.md` (lot 1) : aucune clé ni requête cloud n'est ajoutée ici.
 Les consignes ne mentionnent aucun modèle précis, pour rester exactes après cette migration.
 
+## Pédagogie multi-tours — version fusionnée
+
+Le contrat commun demande désormais de changer d'angle quand l'utilisateur ne comprend pas (comparaison, contre-exemple, mécanisme), plutôt que de répéter mot pour mot ; le pont Open WebUI ajoute la même instruction en conversation. Cette directive est **indépendante de Qwen et DeepSeek**. La fiche mentor intègre les préférences `explanation_style` et `learning_summary` approuvées, transmises comme informations d'adaptation et jamais comme preuve de compétence.
+
+La nouvelle commande `clawfedora-pedagogy --plan` expose quatre conversations DevOps synthétiques de trois tours, tandis que `--report` / `--compare` valident des notes humaines sur 20. Ce logiciel ne réalise aucune évaluation automatique de Gemini et ne prouve pas une note maximale ; [protocole](EVALUATION_PEDAGOGIE.md). Les prompts complets restent sous `bootstrap_max_chars: 12000` défini dans `config/core/openclaw_policy.yaml`.
+
 ## Vérification
 
 ```bash

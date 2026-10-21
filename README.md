@@ -41,6 +41,8 @@ Le chat peut aussi analyser de petits fichiers texte **sans créer de projet**. 
 
 ![Les sept rôles spécialisés](docs/diagrams/atelier-roles.svg)
 
+**Documentation contrôlée :** [sommaire et sources de vérité](docs/README.md) · [audit transversal du 20 octobre 2026](docs/AUDIT_DOCUMENTATION_2026_10.md). Les plans historiques restent des archives ; les essais Fedora/cloud restent à réaliser.
+
 **Qualification de la pédagogie :** quatre dimensions (clarté, profondeur, interactivité, exactitude), scénarios de discussion sur trois tours et score humain /20, sans appel automatique au cloud. [Protocole](docs/EVALUATION_PEDAGOGIE.md).
 
 **Pédagogie et sobriété :** les consignes privilégient une réponse utile, un petit exemple OPS et une vérification concrète plutôt que des pages répétitives. Les profils cloud `rapide`, `equilibre` et `approfondi` sont choisis manuellement ; `approfondi` reste le défaut historique. [Consignes](docs/PROMPTS.md) · [Réglages](docs/fiches/08-reglages.md).
