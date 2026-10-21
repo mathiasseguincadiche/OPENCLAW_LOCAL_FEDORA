@@ -15,6 +15,8 @@ Pour la procédure quotidienne, suivre [Installer Fedora et vérifier l'atelier]
 | Python de production | `pip` avec fichier de contraintes | Versions exactes et hashes SHA-256 des distributions de production contrôlées par [le verrou Python](PYTHON_RUNTIME_LOCK.md) |
 | Runtime et données | Second disque monté sous `/IA` | Refus avant installation si `/IA` n'est pas le montage distinct attendu ; rejet des chemins non canoniques et liens symboliques dans les dossiers gérés ; services conditionnés au montage |
 
+**Correctif de sécurité du 20 octobre 2026 :** Pillow **13.0.0** remplace 12.3.0 après le signalement de huit vulnérabilités dans Dependency Review. La nouvelle version est fixée dans `pyproject.toml`, `config/python-runtime-constraints.txt` et `config/python-runtime-hashes.txt` ; les SHA-256 des artefacts Linux x86_64 Python 3.12/3.13 proviennent de [PyPI](https://pypi.org/project/pillow/13.0.0/). Ce changement doit passer intégralement la CI et ne modifie pas la politique du cloud.
+
 ## Pourquoi l'installateur vérifie les archives
 
 `scripts/linux/15_verified_installer.sh` n'exécute pas de script `curl | bash` téléchargé à la volée. Il vérifie l'archive autorisée et son empreinte officielle avant installation. OpenClaw est installé dans le préfixe utilisateur `~/.openclaw` avec `--ignore-scripts` ; le binaire Ollama est extrait sous `/usr/local`.

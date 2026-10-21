@@ -4,6 +4,13 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 20 octobre 2026 — sécurité Pillow en sortie d'audit documentaire
+
+- Dependency Review a signalé huit CVE sur Pillow 12.3.0 ; mise à jour de la dépendance directe et du verrou Python vers **Pillow 13.0.0**, version corrective indiquée par `pip-audit`.
+- SHA-256 revus pour les wheels Linux x86_64 Python 3.12/3.13 et l'archive source (références publiques PyPI du 16 octobre 2026), sans désactiver la vérification des hashes ni élargir les permissions du système.
+- Mise à jour du test de verrou ; recette CI complète à exécuter avant fusion.
+
+
 ### 20 octobre 2026 — audit transversal et synchronisation documentaire
 
 - Revue transversale des 43 pages Markdown de `docs/` en place avant cette PR : navigation, versions, commandes de base, archives et liens aux sources de vérité.

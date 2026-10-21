@@ -15,7 +15,7 @@ lock = SimpleNamespace(**runpy.run_path(str(ROOT / "scripts/validation/check_pyt
 def test_repository_python_constraints_are_exact_and_cover_direct_packages() -> None:
     entries = lock.constraints(ROOT / "config/python-runtime-constraints.txt")
     assert len(entries) >= 20
-    assert entries["pillow"] == "12.3.0"
+    assert entries["pillow"] == "13.0.0"
     assert entries["pyyaml"] == "6.0.3"
     assert entries["pypdf"] == "6.19.0"
     assert lock.verify(ROOT)["verdict"] == "PYTHON_RUNTIME_CONSTRAINTS_PASS"
@@ -49,7 +49,7 @@ def test_runtime_drift_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_constraint_file_rejects_links(tmp_path: Path) -> None:
     real = tmp_path / "real.txt"
-    real.write_text("pillow==12.3.0", encoding="utf-8")
+    real.write_text("pillow==13.0.0", encoding="utf-8")
     alias = tmp_path / "alias.txt"
     alias.symlink_to(real)
     with pytest.raises(ValueError, match="lié"):

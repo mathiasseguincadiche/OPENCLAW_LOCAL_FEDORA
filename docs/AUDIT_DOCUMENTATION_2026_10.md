@@ -114,6 +114,10 @@ anciennes ne sont pas remplacées par les nouvelles.
 | `docs/reference/README.md` | Actualisé |
 | `docs/validation/README.md` | Actualisé |
 
+## Incident de sécurité détecté par la CI documentaire
+
+Lors de cette révision, le job **Dependency Review** a signalé huit vulnérabilités affectant Pillow 12.3.0, avec correction annoncée en 13.0.0. Ce défaut ne concerne pas un lien Markdown, mais empêche une livraison fiable : la dépendance, le verrou de versions, les empreintes SHA-256 et le test contractuel ont donc été synchronisés dans cette même PR. Les deux roues Linux x86_64 pour Python 3.12 et 3.13 proviennent de la fiche [PyPI Pillow 13.0.0](https://pypi.org/project/pillow/13.0.0/), ainsi que le SHA-256 de l'archive source. La nouvelle CI doit prouver que le déploiement sous contraintes est reproductible. Aucune vulnérabilité n'est ignorée volontairement.
+
 ## Limites connues et règles de maintenance
 
 1. Le dépôt décrit l'installation prévue, **pas** une installation déjà
