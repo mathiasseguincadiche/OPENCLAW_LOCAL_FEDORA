@@ -30,6 +30,7 @@ Les fiches sont un **parcours de référence**, pas douze étapes obligatoires �
 ## Approfondir, sans alourdir le premier démarrage
 
 - [Architecture hybride Qwen / DeepSeek](ARCHITECTURE_HYBRIDE.md) et [schémas éditables](diagrams/).
+- [Audit transversal de la documentation — 20 octobre 2026](AUDIT_DOCUMENTATION_2026_10.md) (43 pages préexistantes revues, corrections et limites de preuve).
 - [Qualification pédagogique et comparaison des conversations](EVALUATION_PEDAGOGIE.md) (score humain /20 ; pas de validation d'un modèle par la CI).
 - [Références d’ingénierie](reference/README.md) : intégrité des composants, sécurité, cloud, prompts, fonctionnement interne.
 - [Réception et tests avancés facultatifs](validation/README.md) : GPU, WebUI, voix, sauvegardes, qualité des agents.
