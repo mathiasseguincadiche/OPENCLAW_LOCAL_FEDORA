@@ -120,7 +120,10 @@ with_apply() {
 
 case "$ACTION" in
   precheck) "$LINUX/19_preinstall_check.sh" ;;
-  install) with_apply 06_install.sh ;;
+  install)
+    ((APPLY == 0)) || "$LINUX/19_preinstall_check.sh"
+    with_apply 06_install.sh
+    ;;
   health) "$LINUX/07_health.sh" ;;
   quick-check)
     claw_require_storage "$(claw_runtime_root)"

@@ -167,13 +167,13 @@ source et manifeste SHA-256. L'inspection visuelle est obligatoire.
 | Archive et restauration sur copie | Essai local manquant |
 | Inspection PDF / DOCX / Draw.io | Essai visuel manquant |
 
-## 8 ter. Vérifier les 32K réellement mesurés
-
-Après la première réception locale `quick-check`, exécuter `./menu.sh --action acceptance-32k --apply` (uniquement sur Fedora cible, après la création du compte WebUI). Exiger `ACCEPTANCE_32K=PASS` et examiner `prompt_tokens`, `allocated_context_tokens`, `resident_vram_gib`, `gpu_share_pct` et les débits. L'ancien diagnostic `context-probe` à 60 % ne prouve pas le 32K proche de la limite. Une réponse du modèle est exigée mais son exactitude n'est pas notée ici : compléter par le protocole pédagogique humain. Aucune génération cloud pendant ce contrôle.
-
 ## 8 bis. Qualité pédagogique en conditions réelles
 
 Lancer `clawfedora-pedagogy --plan` **sans appel API**. Dans le chat réel, tester les quatre scénarios à trois tours sur Qwen et, avec accord explicite et budget, sur DeepSeek 1017. Utiliser [la grille /20](EVALUATION_PEDAGOGIE.md) pour noter clarté, profondeur, interactivité et exactitude. Vérifier la mémorisation **volontaire** des préférences via la fiche mentor. La CI ne produit aucune note authentique ni preuve de performance face à Gemini.
+
+## 8 ter. Vérifier les 32K réellement mesurés
+
+Après la première réception locale `quick-check`, exécuter `./menu.sh --action acceptance-32k --apply` (uniquement sur Fedora cible, après la création du compte WebUI). Exiger `ACCEPTANCE_32K=PASS` et examiner `prompt_tokens`, `allocated_context_tokens`, `resident_vram_gib`, `gpu_share_pct` et les débits. L'ancien diagnostic `context-probe` à 60 % ne prouve pas le 32K proche de la limite. Une réponse du modèle est exigée mais son exactitude n'est pas notée ici : compléter par le protocole pédagogique humain. Aucune génération cloud pendant ce contrôle.
 
 ## 9. Réception de Fedora 45 Workstation / GNOME 51
 

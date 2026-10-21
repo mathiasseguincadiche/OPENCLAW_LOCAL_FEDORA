@@ -38,8 +38,8 @@ if ((APPLY == 0)); then
   exit 0
 fi
 
-claw_require_storage "$RUNTIME_ROOT"
 "$LINUX/19_preinstall_check.sh"
+claw_require_storage "$RUNTIME_ROOT"
 if ((EUID == 0)); then
   echo "INSTALL_RESULT=FAIL run as the Fedora desktop user, not root" >&2
   exit 2
