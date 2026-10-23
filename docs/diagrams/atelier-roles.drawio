@@ -71,8 +71,8 @@
         <mxCell id="c22" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=15;fontStyle=0;fontColor=#406275;strokeColor=none;fillColor=none;" vertex="1" value="Expliquer et mettre en forme">
           <mxGeometry x="852.00" y="389.55" width="222.42" height="19.50" as="geometry" />
         </mxCell>
-        <mxCell id="c23" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=14;fontStyle=0;fontColor=#406275;strokeColor=none;fillColor=none;" vertex="1" value="Markdown • PDF • DOCX">
-          <mxGeometry x="852.00" y="411.58" width="179.06" height="18.20" as="geometry" />
+        <mxCell id="c23" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=14;fontStyle=0;fontColor=#406275;strokeColor=none;fillColor=none;" vertex="1" value="Markdown • PDF • DOCX • ODT">
+          <mxGeometry x="852.00" y="411.58" width="226.57" height="18.20" as="geometry" />
         </mxCell>
         <mxCell id="c24" parent="1" style="rounded=1;arcSize=12;html=0;fillColor=#e3eef4;strokeColor=#8fb2c1;strokeWidth=2;" vertex="1" value="">
           <mxGeometry x="832.0" y="487.0" width="325.0" height="98.0" as="geometry" />

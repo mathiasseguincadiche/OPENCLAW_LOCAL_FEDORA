@@ -106,6 +106,8 @@ jobs:
           echo "OPENCLAW_SCHEMA_PARALLEL_PATH=$NATIVE_ROOT/node_modules/@openclaw/parallel-plugin" >> "$GITHUB_ENV"
       - name: Native schema validation
         run: python scripts/validation/check_openclaw_schema.py
+      - name: Native managed tools including ODT export
+        run: python scripts/validation/check_agent_toolkit.py
       - name: Native prompt limits
         run: python scripts/validation/check_prompt_size.py
       - name: Native cloud route

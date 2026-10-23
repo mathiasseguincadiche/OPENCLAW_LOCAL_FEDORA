@@ -48,7 +48,7 @@ La route cloud n'est ni obligatoire ni choisie automatiquement par agent. [Strat
 | « Comment organiser Azure, le réseau et les flux ? » | **Architecte** | Deux options, un ADR et un schéma |
 | « Écris un pipeline et explique chaque étape » | **DevOps** | Fichiers séparés, validations et rollback |
 | « Quels secrets ou ports peuvent poser problème ? » | **Sécurité** | Menaces, preuves et mesures proportionnées |
-| « Prépare un runbook clair à présenter » | **Rédacteur** | Markdown éditable, exports PDF/DOCX |
+| « Prépare un runbook clair à présenter » | **Rédacteur** | Markdown éditable, exports PDF/DOCX/ODT |
 | « Est-ce vraiment conforme aux exigences ? » | **Auditeur** | Critères, preuves manquantes et verdict |
 
 Le modèle peut se tromper : **un bon choix de rôle améliore le cadrage, pas la certitude**.
@@ -63,7 +63,7 @@ Le modèle peut se tromper : **un bon choix de rôle améliore le cadrage, pas l
 | `clawfedora_outline` | Propose une **trame métier** : brief, ADR, runbook, audit, etc. | Que la trame est un document terminé |
 | `clawfedora_ci_report` | Lit/interprète un rapport de CI fourni | Que le rapport vient bien d'une exécution authentifiée |
 | `clawfedora_tool_status` | Signale les outils et formats accessibles selon le rôle | Que le logiciel externe a été exécuté |
-| `clawfedora_artifact` | Produit de vrais fichiers locaux : Markdown/TXT et exports PDF/DOCX/TXT | Que le texte est exact, testé ou déployé |
+| `clawfedora_artifact` | Produit de vrais fichiers locaux : Markdown/TXT et exports PDF/DOCX/ODT/TXT | Que le texte est exact, testé ou déployé |
 
 Les fichiers et pages Web sont des **sources**, pas des instructions capables de changer les règles de sécurité.
 
@@ -97,7 +97,7 @@ La matrice d'accès qui fait foi est dans [`config/core/tool_policy.yaml`](../..
 
 **Sa méthode :** poser la question vérifiable, privilégier docs officielles/changelogs, dater les sources, distinguer **confirmé / probable / à tester**. Une page Web n'atteste jamais que ton PC se comporte ainsi.
 
-**Outils :** `web_search`, `web_fetch`, lecture, `clawfedora_search`, trame « sources », notes Markdown/PDF/DOCX.
+**Outils :** `web_search`, `web_fetch`, lecture, `clawfedora_search`, trame « sources », notes Markdown/PDF/DOCX/ODT.
 
 **Exemple :** « Quelle version de Terraform documente cette option ? Donne la référence officielle et la date. »
 
@@ -145,7 +145,7 @@ La matrice d'accès qui fait foi est dans [`config/core/tool_policy.yaml`](../..
 
 **Sa méthode :** public → contexte → prérequis → étapes → résultats attendus → erreurs possibles → retour arrière. Signaler les contradictions plutôt que les masquer.
 
-**Outils :** lecture, recherche, trames « guide »/« explication », `clawfedora_lint` sur Markdown, `clawfedora_artifact` pour Markdown source et PDF/DOCX.
+**Outils :** lecture, recherche, trames « guide »/« explication », `clawfedora_lint` sur Markdown, `clawfedora_artifact` pour Markdown source et PDF/DOCX/ODT.
 
 **Exemple :** « Fais un runbook compréhensible par un administrateur Linux qui découvre les pipelines. »
 

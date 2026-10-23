@@ -34,6 +34,15 @@ Pour contrôler le dépôt, sans réseau ni installation :
 python scripts/validation/check_dependency_artifact_locks.py
 ```
 
+## Export et lecture ODT
+
+L’ODT est produit localement au format OpenDocument 1.3 avec les modules ZIP/XML
+de Python. La lecture utilise aussi `defusedxml`, déjà verrouillé en production.
+Aucun nouveau paquet, LibreOffice ou processus externe n’est requis sur Fedora.
+Le contrôle de dépendances de production vérifie aussi un aller-retour ODT.
+La structure XML des exports est vérifiée ponctuellement avec les
+[schémas officiels OASIS 1.3](https://docs.oasis-open.org/office/OpenDocument/v1.3/os/schemas/).
+
 ## npm : OpenClaw et Parallel
 
 - [Manifeste npm](../config/npm-runtime/package.json) : OpenClaw et

@@ -8,7 +8,7 @@ Demander un document ou une configuration produit un vrai fichier, téléchargea
 
 | Rôle | Fichiers |
 |---|---|
-| Tous | Markdown, texte, PDF et DOCX |
+| Tous | Markdown, texte, PDF, DOCX et ODT |
 | Architecte | En plus : schémas Draw.io et SVG, ébauches YAML, JSON, Terraform |
 | DevOps | En plus : YAML (Ansible, CI, Compose, Kubernetes), Terraform, scripts shell et Python, Dockerfile, modèles Jinja, unités systemd |
 | Sécurité | En plus : configurations de droits et de politiques |
@@ -16,10 +16,10 @@ Demander un document ou une configuration produit un vrai fichier, téléchargea
 
 ## Dans le chat
 
-Demande le format : « Explique-moi les artefacts d'une CI, puis fournis une fiche en Markdown, PDF
-et DOCX. » Les liens de téléchargement s'ajoutent à la réponse. Ils sont valables 24 heures.
+Demande le format : « Explique-moi les artefacts d'une CI, puis fournis une fiche en Markdown, PDF,
+DOCX et ODT. » Les liens de téléchargement s'ajoutent à la réponse. Ils sont valables 24 heures.
 
-Sans projet sélectionné, le chat local accepte jusqu'à quatre petits fichiers texte ou de code totalisant 12 000 octets ; ils servent uniquement à la question courante. Cette voie courte ne prend pas en charge PDF, Office, archives ni images, et elle est toujours refusée en cloud. Les fichiers demeurent dans le stockage Open WebUI jusqu'à leur suppression ou selon sa politique de conservation.
+Sans projet sélectionné, le chat local accepte jusqu'à quatre pièces jointes, avec un budget de texte extrait de 12 000 octets au total. Les textes et petits fichiers de code sont lus directement ; PDF, DOCX, PPTX, XLSX et **ODT** disposent d'une extraction textuelle bornée (2 Mio par document). Pour ODT, seuls les textes sont lus : la mise en page et les images ne sont pas analysées, aucun objet externe ni macro n'est exécuté. Les archives restent exclues de cette voie courte, et les images sont limitées aux métadonnées hors canary vision. Les pièces jointes de chat libre sont toujours refusées en cloud. Elles restent dans le stockage Open WebUI jusqu'à leur suppression ou selon sa politique de conservation.
 
 Pour **apporter des sources** à un projet, sélectionne-le puis joins les fichiers avant
 `!analyser`. Open WebUI n'indexe pas ces fichiers dans sa propre RAG : un filtre géré transmet
@@ -38,9 +38,10 @@ Précise les formats dans ta demande. Le plan liste alors les fichiers attendus,
 deliverables/guide/guide.md
 deliverables/guide/guide.pdf
 deliverables/guide/guide.docx
+deliverables/guide/guide.odt
 ```
 
-Le Markdown est la source ; le PDF et le DOCX en sont tirés. Pour modifier le document, modifie le Markdown dans le projet : changer le DOCX dans Word ne met pas à jour les autres formats.
+Le Markdown est la source ; le PDF, le DOCX et l’ODT en sont tirés. Pour modifier le document, modifie le Markdown dans le projet : changer le DOCX dans Word ou l’ODT dans LibreOffice ne met pas à jour les autres formats.
 
 ## Travail guidé depuis le chat
 
@@ -50,10 +51,22 @@ fichiers **portant les noms attendus**, puis envoie
 nouvelles sources : ils passent au spécialiste pour retour, puis aux audits globaux seulement si
 les critères sont remplis.
 
+## Importer un ODT dans un projet
+
+Un fichier `.odt` joint à la création du projet ou ajouté aux sources passe par
+l’ingestion canonique. L’original est conservé et son texte alimente le contexte ;
+la mise en page, les images, les objets et les macros ne sont pas interprétés.
+Un document illisible ou hors limites est signalé **UNREADABLE**, sans prétendre
+avoir été analysé. Pour l’ODT : 8 Mio par fichier, 100 membres ZIP, 4 Mio au total
+après décompression, 1 Mio pour chaque XML lu et ratio de compression maximal 100.
+La création depuis le navigateur impose aussi son plafond de 8 Mo de pièces
+jointes au total ; le chat libre conserve sa limite plus basse de 2 Mio.
+Les documents chiffrés et les répétitions de cellules ne sont pas pris en charge.
+
 ## Limites
 
-- Un appel produit au plus 12 000 octets de contenu et trois exports. Pour un document long, demande-le section par section.
-- Le rendu gère titres hiérarchisés, paragraphes, citations, listes, tableaux simples et blocs de code ; le DOCX comprend un pied de page. Les images ne sont pas intégrées. Le rendu est plus lisible mais ne remplace pas une inspection visuelle avant remise.
+- Un appel produit au plus 12 000 octets de contenu et quatre exports. Pour un document long, demande-le section par section.
+- Le rendu gère titres hiérarchisés, paragraphes, citations, listes, tableaux simples et blocs de code ; les DOCX et ODT comprennent un pied de page. Les images ne sont pas intégrées. Le rendu est plus lisible mais ne remplace pas une inspection visuelle avant remise.
 - Un fichier généré n'est pas un fichier testé. Les fichiers JSON, YAML, Python, TOML et XML sont vérifiés sur leur syntaxe. Terraform, Dockerfile, shell et Jinja sont produits comme du texte : vérifie-les avec leurs propres outils.
 - Une image est traitée localement. Elle ne part jamais vers DeepSeek tant que le filtre de confidentialité ne sait pas inspecter son contenu.
 

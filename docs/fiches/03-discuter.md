@@ -159,13 +159,13 @@ Exemple : « Je connais les services systemd. Explique-moi ce qu'un rôle Ansibl
 
 ## Analyser un petit fichier sans créer de projet
 
-Dans une discussion **locale**, tu peux joindre jusqu'à **quatre petites pièces jointes** : fichiers texte/code (Terraform, YAML, Markdown, Python, Bash, etc.) ou aperçus bornés de PDF texte et Office (DOCX, PPTX, XLSX), avec un budget cumulé de **12 000 octets de contenu texte**. Un document PDF/Office ne doit pas dépasser **2 Mio**. Le pont contrôle le fichier d'origine puis place son contenu dans le contexte de cette question uniquement : rien n'est enregistré dans un projet et aucun document n'est envoyé à DeepSeek. Les fichiers envoyés restent néanmoins dans le stockage normal d'Open WebUI et suivent sa politique de conservation.
+Dans une discussion **locale**, tu peux joindre jusqu'à **quatre petites pièces jointes** : fichiers texte/code (Terraform, YAML, Markdown, Python, Bash, etc.) ou aperçus bornés de PDF texte et Office (DOCX, PPTX, XLSX) et OpenDocument (ODT), avec un budget cumulé de **12 000 octets de contenu texte**. Un document PDF/Office/ODT ne doit pas dépasser **2 Mio**. Le pont contrôle le fichier d'origine puis place son contenu dans le contexte de cette question uniquement : rien n'est enregistré dans un projet et aucun document n'est envoyé à DeepSeek. Les fichiers envoyés restent néanmoins dans le stockage normal d'Open WebUI et suivent sa politique de conservation.
 
 **Par défaut**, les PDF scannés sans texte ne sont pas analysés en chat libre et les PNG/JPEG/WebP ne fournissent que leurs dimensions et leur format. **En canary privé activé explicitement**, un PDF scanné d'au plus deux pages ou une image admissible peut passer par le Qwen local épinglé, sans fallback cloud, et sa description est clairement indiquée comme automatique/non vérifiée. [Activation et rollback](../VISION_LOCALE_CANARY.md). Pour les archives, documents volumineux et besoins visuels complexes, utilise l'ingestion canonique d'un projet. Un changement de modèle vers « cloud » avec des pièces jointes hors projet est explicitement refusé. Pour analyser un fichier de projet, sélectionne le projet et importe les pièces jointes **avant** l'analyse.
 
 ## Obtenir un fichier
 
-Demande le format explicitement : « Fournis une fiche en Markdown, PDF et DOCX » ou « Génère un `main.tf` commenté ». Des liens de téléchargement s'ajoutent à la réponse. Ils sont valables 24 heures : télécharge les fichiers pour les garder. Voir [Fichiers et schémas](06-fichiers-et-schemas.md).
+Demande le format explicitement : « Fournis une fiche en Markdown, PDF, DOCX et ODT » ou « Génère un `main.tf` commenté ». Des liens de téléchargement s'ajoutent à la réponse. Ils sont valables 24 heures : télécharge les fichiers pour les garder. Voir [Fichiers et schémas](06-fichiers-et-schemas.md).
 
 ## Interroger un projet depuis le chat
 

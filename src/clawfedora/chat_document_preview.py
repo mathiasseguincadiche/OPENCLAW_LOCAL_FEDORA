@@ -22,8 +22,9 @@ MAX_IMAGE_PIXELS = 12_000_000
 
 PDF_SUFFIXES = frozenset({".pdf"})
 OFFICE_SUFFIXES = frozenset({".docx", ".pptx", ".xlsx"})
+ODT_SUFFIXES = frozenset({".odt"})
 IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".webp"})
-SUPPORTED_SUFFIXES = PDF_SUFFIXES | OFFICE_SUFFIXES | IMAGE_SUFFIXES
+SUPPORTED_SUFFIXES = PDF_SUFFIXES | OFFICE_SUFFIXES | ODT_SUFFIXES | IMAGE_SUFFIXES
 
 _SLIDE = re.compile(r"ppt/slides/slide[0-9]{1,3}\.xml$")
 _SHEET = re.compile(r"xl/worksheets/sheet[0-9]{1,3}\.xml$")
@@ -49,6 +50,17 @@ def preview_document(path: Path, name: str, budget: int) -> dict[str, Any]:
     if suffix in PDF_SUFFIXES:
         content = _pdf(raw, budget)
         return {"type": "pdf-text", "note": "Texte PDF uniquement, sans OCR", "text": content}
+    if suffix in ODT_SUFFIXES:
+        from clawfedora.odt_documents import extract_text
+
+        content = extract_text(raw, max_chars=budget)
+        if len(content.encode("utf-8")) > budget:
+            raise ValueError("texte ODT dépasse le contexte local : utiliser un projet")
+        return {
+            "type": "odt-text",
+            "note": "Texte ODT uniquement, sans mise en page ni images",
+            "text": content,
+        }
     if suffix in OFFICE_SUFFIXES:
         content = _office(raw, suffix, budget)
         return {

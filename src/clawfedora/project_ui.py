@@ -41,6 +41,7 @@ UPLOAD_FORMATS = {
     ".jpg": ".jpg",
     ".jpeg": ".jpeg",
     ".docx": ".docx",
+    ".odt": ".odt",
     ".yaml": ".yaml",
     ".yml": ".yml",
     ".json": ".json",
@@ -186,7 +187,7 @@ def propose(
                 "Proposer 1 à 4 tâches "
                 "courtes, spécialistes uniquement si utiles, dépendances explicites, chemins "
                 "livrables au format demandé: .md/.txt, .yaml/.yml, .tf, .sh, Dockerfile, .j2, "
-                ".json/.ini/.toml/.xml/.py selon le rôle; PDF/DOCX avec source .md de même nom "
+                ".json/.ini/.toml/.xml/.py selon le rôle; PDF/DOCX/ODT avec source .md de même nom "
                 "obligatoire dans le même dossier. Le plugin clawfedora_artifact génère les fichiers "
                 f"et leurs références sans dupliquer le contenu dans les {output_tokens} tokens. "
                 "Schémas: diagrams/<id>/fichier.drawio (source éditable), "

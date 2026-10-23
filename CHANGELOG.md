@@ -4,6 +4,13 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 23 octobre 2026 — documents OpenDocument (ODT)
+
+- Export ODT éditable depuis la même source Markdown que PDF/DOCX/TXT : titres, paragraphes, listes, citations, tableaux simples et code, sans nouvelle dépendance de production.
+- Format raccordé à l’outil des sept rôles, aux liens de téléchargement du chat, aux projets et à l’assemblage de sections, avec empreintes et contrôle de la source.
+- Import textuel ODT local en chat et dans les projets ; bornes ZIP/XML, refus des documents chiffrés ou mal formés, sans chargement de ressources externes ni exécution de macros.
+- Consignes, README, fiches et schéma des rôles (SVG/Draw.io) harmonisés. Le Markdown reste la source canonique ; l’import ne préserve pas la présentation ni les images.
+
 ### 22 octobre 2026 — cohérence de la documentation après la PR #152
 
 - Harmonisation du parcours README → installation → premier essai : `quick-check` suffit pour commencer ; la réception 32K reste volontaire et nécessaire pour déclarer cette capacité mesurée.

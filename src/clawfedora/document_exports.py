@@ -13,7 +13,8 @@ from typing import Any
 from markdown_it import MarkdownIt
 
 EXPORT_PREFIX = "@document-export:"
-EXPORTS = {".pdf", ".docx", ".txt"}
+EXPORT_KINDS = frozenset({"pdf", "docx", "odt", "txt"})
+EXPORTS = {"." + kind for kind in EXPORT_KINDS}
 
 
 def blocks(markdown: str) -> list[tuple[str, Any]]:
@@ -85,13 +86,17 @@ def export(markdown: str, kind: str) -> bytes:
             + "\n"
         ).encode()
     try:
+        if kind == "odt":
+            from clawfedora.odt_documents import render
+
+            return render(parts)
         if kind == "docx":
             return _docx(parts)
         if kind == "pdf":
             return _pdf(parts)
     except Exception as exc:
         raise ValueError("export hors limites ou moteur indisponible") from exc
-    raise ValueError("export pdf/docx/txt requis")
+    raise ValueError("export pdf/docx/odt/txt requis")
 
 
 def output_bytes(relative: str, files: dict[str, str]) -> bytes:
@@ -109,9 +114,9 @@ def output_bytes(relative: str, files: dict[str, str]) -> bytes:
         ):
             raise ValueError("export: source .md attendue dans la même tâche et le même dossier")
         return export(files[source], suffix[1:])
-    if suffix in {".pdf", ".docx"}:
+    if suffix in EXPORTS - {".txt"}:
         raise ValueError(
-            "PDF/DOCX: fournir une source .md et une référence d’export, pas du texte renommé"
+            "PDF/DOCX/ODT: fournir une source .md et une référence d’export, pas du texte renommé"
         )
     return content.encode()
 

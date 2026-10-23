@@ -296,10 +296,10 @@ def _validate_plan(tasks: list[dict[str, Any]]) -> None:
         _outputs_are_namespaced(task_id, task["expected_outputs"])
         for output in task["expected_outputs"]:
             if (
-                Path(output).suffix.lower() in {".pdf", ".docx"}
+                Path(output).suffix.lower() in {".pdf", ".docx", ".odt"}
                 and str(Path(output).with_suffix(".md")) not in task["expected_outputs"]
             ):
-                raise ValueError("PDF/DOCX: la source .md de même nom est requise dans le plan")
+                raise ValueError("PDF/DOCX/ODT: la source .md de même nom est requise dans le plan")
         dependencies[task_id] = [str(item) for item in task.get("depends_on", [])]
     for task_id, values in dependencies.items():
         unknown = [value for value in values if value not in ids]

@@ -9,6 +9,7 @@ from typing import Any
 
 import pytest
 
+from clawfedora.document_exports import export
 from clawfedora.project_worker import worker_lock
 from clawfedora.webui_bridge import (
     CLOUD_MODEL_IDS,
@@ -387,19 +388,21 @@ def test_full_deepseek_window_accepts_large_history_but_qwen_stays_bounded(
         thread.join(timeout=5)
 
 
-def test_standalone_uploads_reach_only_the_local_chat(tmp_path: Path) -> None:
+@pytest.mark.parametrize("extension", ["tf", "odt"])
+def test_standalone_uploads_reach_only_the_local_chat(tmp_path: Path, extension: str) -> None:
     prompts: list[str] = []
 
     def runner(_role: str, prompt: str, _session: str) -> dict[str, Any]:
         prompts.append(prompt)
         return {"text": "Ce Terraform déclare une ressource."}
 
-    upload = tmp_path / "state/webui/data/uploads/example.tf"
+    upload = tmp_path / f"state/webui/data/uploads/example.{extension}"
     upload.parent.mkdir(parents=True)
-    upload.write_text('resource "null_resource" "example" {}', encoding="utf-8")
+    content = 'resource "null_resource" "example" {}'
+    upload.write_bytes(export(content, "odt") if extension == "odt" else content.encode())
     descriptor = {
-        "id": "file-example", "filename": "example.tf",
-        "path": "/app/backend/data/uploads/example.tf", "size": upload.stat().st_size,
+        "id": "file-example", "filename": upload.name,
+        "path": "/app/backend/data/uploads/" + upload.name, "size": upload.stat().st_size,
     }
     with make_server(
         ROOT, tmp_path, TOKEN, 0, runner=runner, cloud_ready=lambda: True

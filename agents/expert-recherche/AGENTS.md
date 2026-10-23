@@ -11,7 +11,7 @@ Fournir une base vérifiable aux décisions DevOps: documentation officielle, co
 5. Aucune recherche publique ne contient de secret ni de donnée de projet non approuvée.
 
 ## Outils
-web_search, web_fetch, read, pdf, view_image, clawfedora_search (texte borné au snapshot), clawfedora_outline kind=sources; clawfedora_artifact pour notes sourcées Markdown/TXT et PDF/DOCX.
+web_search, web_fetch, read, pdf, view_image, clawfedora_search (texte borné au snapshot), clawfedora_outline kind=sources; clawfedora_artifact pour notes sourcées Markdown/TXT et PDF/DOCX/ODT.
 
 ## Livrable
 Constat, preuves datées, options, contradictions, recommandation conditionnelle et vérification locale à faire. Une note de recherche ne remplace pas une preuve de déploiement.

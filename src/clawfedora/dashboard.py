@@ -357,7 +357,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     if path.stat().st_size > 8_000_000:
                         raise ValueError("fichier trop volumineux pour le téléchargement web")
                     self._send(
-                        200, path.read_bytes(), "application/octet-stream", attachment=path.name
+                        200,
+                        path.read_bytes(),
+                        "application/vnd.oasis.opendocument.text"
+                        if path.suffix.lower() == ".odt"
+                        else "application/octet-stream",
+                        attachment=path.name,
                     )
                     return
         raise ValueError("fichier absent du projet")

@@ -16,7 +16,7 @@ import yaml
 from defusedxml.ElementTree import fromstring
 
 from clawfedora.core_config import AGENT_IDS
-from clawfedora.document_exports import export
+from clawfedora.document_exports import EXPORT_KINDS, export
 from clawfedora.project_common import assert_no_symlinks, now, read_json, sha256_file, write_json
 
 DOCUMENT_FORMATS = {"markdown": "md", "text": "txt"}
@@ -47,13 +47,13 @@ def produce(workspace: Path, role: str, data: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("contenu UTF-8 non vide, sans NUL, limité à 12000 octets")
     if (
         not isinstance(exports, list)
-        or len(exports) > 3
-        or any(x not in {"pdf", "docx", "txt"} for x in exports)
+        or len(exports) > len(EXPORT_KINDS)
+        or any(x not in EXPORT_KINDS for x in exports)
         or len(set(exports)) != len(exports)
         or exports
         and kind != "markdown"
     ):
-        raise ValueError("exports pdf/docx/txt uniquement depuis une source Markdown")
+        raise ValueError("exports pdf/docx/odt/txt uniquement depuis une source Markdown")
     # Jinja/HCL/INI/Dockerfile are preserved, not interpreted as executable configuration.
     try:
         if kind == "json":
@@ -137,7 +137,7 @@ def produce(workspace: Path, role: str, data: dict[str, Any]) -> dict[str, Any]:
         "receipt": proof.relative_to(workspace).as_posix(),
         "source_format": extension,
         "instruction": "Retourner les références comme contenus JSON des chemins attendus. "
-        "Pour PDF/DOCX/TXT dérivés, prévoir aussi la source .md dans le même dossier. "
+        "Pour PDF/DOCX/ODT/TXT dérivés, prévoir aussi la source .md dans le même dossier. "
         "Dans le chat, la passerelle ajoute les liens de téléchargement.",
         "scope": "fichiers produits, code non exécuté, déploiement non testé",
     }
@@ -173,7 +173,7 @@ def read_artifact(
         raise ValueError("artefact non produit par ce rôle")
     record = records[extension]
     expected = f"{identifier}.artifact.{extension}.data"
-    if record.get("name") != expected or extension not in {*formats(role).values(), "pdf", "docx"}:
+    if record.get("name") != expected or extension not in {*formats(role).values(), *EXPORT_KINDS}:
         raise ValueError("format ou chemin d’artefact invalide")
     path = managed.get(expected)
     if path is None or path.stat().st_size > 2_000_000 or sha256_file(path) != record["sha256"]:

@@ -20,6 +20,7 @@ from clawfedora.agents import deploy_workspaces
 from clawfedora.document_exports import EXPORT_PREFIX, export, output_bytes
 from clawfedora.file_artifacts import produce, read_artifact
 from clawfedora.learning import checkpoints, initialize, submit
+from clawfedora.odt_documents import extract_text
 from clawfedora.project_common import read_json, write_json
 from clawfedora.project_worker import _collect, _resolve_tool_files, run_project_tasks
 from clawfedora.webui_bridge import make_server
@@ -32,7 +33,7 @@ SOURCE = (
 
 
 def test_actual_document_formats_share_content_and_are_reproducible() -> None:
-    for kind in ("pdf", "docx", "txt"):
+    for kind in ("pdf", "docx", "odt", "txt"):
         raw = export(SOURCE, kind)
         assert export(SOURCE, kind) == raw
         if kind == "pdf":
@@ -44,6 +45,9 @@ def test_actual_document_formats_share_content_and_are_reproducible() -> None:
             docx = Document(io.BytesIO(raw))
             assert docx.paragraphs[0].style.name == "Heading 1"
             assert docx.tables[0].cell(1, 1).text == "Versionner"
+        elif kind == "odt":
+            assert "Déploiement OPS" in extract_text(raw)
+            assert "Versionner" in extract_text(raw)
         else:
             assert "# Déploiement" not in raw.decode()
             assert "Git | Versionner" in raw.decode()
@@ -57,7 +61,7 @@ def test_untrusted_markdown_is_literal_without_external_reads(monkeypatch: Any) 
 
     monkeypatch.setattr(socket, "create_connection", forbidden)
     source = '# Guide\n\n![secret](file:///etc/passwd)\n\n<img src="http://127.0.0.1/secret">\n'
-    for kind in ("pdf", "docx", "txt"):
+    for kind in ("pdf", "docx", "odt", "txt"):
         assert export(source, kind)
     with pytest.raises(ValueError):
         export("a" * 60001, "pdf")
@@ -76,7 +80,7 @@ def test_artifact_references_bind_role_task_source_and_real_bytes(tmp_path: Path
             "format": "markdown",
             "filename": "fiche-ops.md",
             "content": SOURCE,
-            "exports": ["pdf", "docx", "txt"],
+            "exports": ["pdf", "docx", "odt", "txt"],
         },
     )
     response = {
@@ -89,6 +93,7 @@ def test_artifact_references_bind_role_task_source_and_real_bytes(tmp_path: Path
     _collect(ROOT, project, task, response)
     assert PdfReader(project / "deliverables/guide/guide.pdf").pages[0].extract_text()
     assert Document(project / "deliverables/guide/guide.docx").tables
+    assert "Versionner" in extract_text((project / "deliverables/guide/guide.odt").read_bytes())
     assert (project / "deliverables/guide/guide.md").read_text() == SOURCE
     reference = result["references"]["pdf"]
     for before, role_name, files in [
@@ -163,7 +168,7 @@ def test_guided_feedback_publishes_exact_reviewed_binary_exports(
     task_path = project / "context/tasks/design-choice.json"
     packet = read_json(task_path)
     packet["task"]["expected_outputs"] = [
-        f"deliverables/design-choice/report.{ext}" for ext in ("md", "pdf", "docx")
+        f"deliverables/design-choice/report.{ext}" for ext in ("md", "pdf", "docx", "odt")
     ]
     write_json(task_path, packet)
     initialize(project, "guided")
@@ -175,7 +180,7 @@ def test_guided_feedback_publishes_exact_reviewed_binary_exports(
             role,
             runtime / "workspaces" / role,
             "clawfedora_artifact",
-            {"format": "markdown", "content": SOURCE, "exports": ["pdf", "docx"]},
+            {"format": "markdown", "content": SOURCE, "exports": ["pdf", "docx", "odt"]},
         )
         return {
             "files": {p: result["references"][Path(p).suffix[1:]] for p in task["expected_outputs"]},
@@ -215,7 +220,7 @@ def test_chat_returns_signed_downloads_without_operator_token(tmp_path: Path) ->
                 "format": "markdown",
                 "filename": "fiche-ops.md",
                 "content": SOURCE,
-                "exports": ["pdf", "docx", "txt"],
+                "exports": ["pdf", "docx", "odt", "txt"],
             },
         )
         return {"text": "Voici le guide."}
@@ -240,12 +245,18 @@ def test_chat_returns_signed_downloads_without_operator_token(tmp_path: Path) ->
         text = json.loads(response.read())["choices"][0]["message"]["content"]
         assert token not in text
         urls = re.findall(r"\]\((http://[^)]+)\)", text)
-        assert len(urls) == 4
+        assert len(urls) == 5
         pdf_url = next(urlsplit(url) for url in urls if "/pdf?" in url)
         conn.request("GET", pdf_url.path + "?" + pdf_url.query)
         result = conn.getresponse()
         assert result.status == 200 and result.read().startswith(b"%PDF-")
         assert "fiche-ops.pdf" in result.getheader("Content-Disposition")
+        odt_url = next(urlsplit(url) for url in urls if "/odt?" in url)
+        conn.request("GET", odt_url.path + "?" + odt_url.query)
+        odt_response = conn.getresponse()
+        assert odt_response.status == 200
+        assert odt_response.getheader("Content-Type") == "application/vnd.oasis.opendocument.text"
+        assert "Déploiement OPS" in extract_text(odt_response.read())
         conn.request(
             "GET", pdf_url.path + "?" + pdf_url.query.replace("signature=", "signature=wrong")
         )

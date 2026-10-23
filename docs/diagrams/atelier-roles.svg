@@ -27,7 +27,7 @@
 <rect x="832" y="347" width="325" height="98" rx="14" fill="#e3eef4" stroke="#8fb2c1" stroke-width="2"/>
 <text x="852" y="380" fill="#23495b" font-size="20" font-weight="700">Rédacteur pédagogique</text>
 <text x="852" y="405" fill="#406275" font-size="15">Expliquer et mettre en forme</text>
-<text x="852" y="426" fill="#406275" font-size="14">Markdown • PDF • DOCX</text>
+<text x="852" y="426" fill="#406275" font-size="14">Markdown • PDF • DOCX • ODT</text>
 <rect x="832" y="487" width="325" height="98" rx="14" fill="#e3eef4" stroke="#8fb2c1" stroke-width="2"/>
 <text x="852" y="520" fill="#23495b" font-size="20" font-weight="700">Auditeur qualité</text>
 <text x="852" y="545" fill="#406275" font-size="15">Critères, preuves et écarts</text>
