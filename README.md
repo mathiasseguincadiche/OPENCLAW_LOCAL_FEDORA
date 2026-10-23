@@ -96,14 +96,20 @@ cd "/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA"
 # Créer le compte administrateur à http://127.0.0.1:3000
 ./menu.sh --action webui-seal --apply
 ./menu.sh --action quick-check
-
-# Qualification complète du modèle local en contexte proche de 32K (non cloud)
-./menu.sh --action acceptance-32k --apply
 ```
 
-Le **pré-check est relancé automatiquement** par `install --apply` avant l’installation de paquets ou la modification des services. Il distingue les défauts bloquants (`FAIL`) des dépendances installables et éléments à vérifier (`REVIEW`). La réception 32K est une **étape distincte, plus exigeante** : elle tente une réponse Qwen avec un contexte fixé à 32 768 tokens, vise un remplissage de 90 %, mesure les tokens réellement traités, l'allocation et la VRAM, puis refuse les réponses vides, les troncatures et l'offload CPU. Elle peut être longue ; ne pas la confondre avec la note pédagogique /20 ni avec un essai DeepSeek.
+Le **pré-check est relancé automatiquement** par `install --apply` avant l’installation de paquets ou la modification des services. Il distingue les défauts bloquants (`FAIL`) des dépendances installables et éléments à vérifier (`REVIEW`).
 
 **Si `RECEPTION=READY_FOR_FIRST_PROJECT`**, ouvrir Open WebUI, poser une question réelle et créer un petit projet. Le contrôle réalise **une génération locale courte**, vérifie GPU, modèles, services, interfaces et stockage. Pas de stress test 32K ou d'appel cloud imposé. En cas d'échec, consulter le [diagnostic](docs/fiches/10-depanner.md), sans tout réinstaller.
+
+**Facultatif : qualifier le contexte 32K.** Ce test local, distinct du premier démarrage, peut être long. Il ne conditionne pas le début du travail après un `quick-check` réussi :
+
+```bash
+./menu.sh --action acceptance-32k         # plan, aucune génération
+./menu.sh --action acceptance-32k --apply # mesure longue sur la B580, sans cloud
+```
+
+La réception tente une réponse Qwen avec un contexte fixé à 32 768 tokens, vise un remplissage de 90 %, mesure les tokens réellement traités, l'allocation et la VRAM, puis refuse les réponses vides, les troncatures et l'offload CPU. Un `quick-check` réussi ne certifie pas la capacité 32K. Voir [le protocole et ses limites](docs/fiches/02-premier-essai.md).
 
 **Ensuite, facultativement :** pour utiliser DeepSeek via ta clé OpenRouter, suivre [l'activation cloud contrôlée](docs/fiches/12-cloud.md#activer-le-cloud). Ce n'est ni une condition du premier démarrage local ni un appel cloud automatique. Pour diagnostiquer un échec, consulter [la fiche dépannage](docs/fiches/10-depanner.md).
 
@@ -113,6 +119,7 @@ Le **pré-check est relancé automatiquement** par `install --apply` avant l’i
 
 ```text
 /data/IA/Openclaw/
+├── sources/             # dépôt Git et code source de l'atelier
 ├── models/ollama/       # modèle IA local
 ├── projects/            # projets, sources et livrables
 ├── workspaces/          # espaces des agents

@@ -74,6 +74,7 @@ Les versions installées sont écrites dans `config/runtime_versions.yaml`. L'in
 
 ```text
 /data/IA/Openclaw/
+├── sources/      dépôt Git et code source de l'atelier
 ├── models/       le modèle Qwen
 ├── workspaces/   un espace de travail par rôle
 ├── projects/     tes projets de l'atelier
@@ -83,7 +84,8 @@ Les versions installées sont écrites dans `config/runtime_versions.yaml`. L'in
 └── runtime/      environnement Python et fichiers générés
 ```
 
-Rien de tout cela n'est dans Git. Le dépôt contient le code et la configuration ; ce dossier contient tes données.
+Seul le dépôt dans `sources/OPENCLAW_LOCAL_FEDORA` est suivi par Git. Les modèles,
+projets, conversations et autres données du runtime restent en dehors de ce dépôt.
 
 ## Ce que l'installation ne fait pas
 
@@ -95,4 +97,6 @@ Rien de tout cela n'est dans Git. Le dépôt contient le code et la configuratio
 
 ## Ensuite
 
-Lance **`./menu.sh --action quick-check`**, puis **`./menu.sh --action acceptance-32k --apply`** pour qualifier Qwen proche de 32 768 tokens et l'occupation VRAM. Le test 32K est local et peut être long. Puis ouvre Open WebUI pour poser une question réelle et créer ton premier projet. Les benchmarks détaillés de [Premier essai](02-premier-essai.md) sont facultatifs et utiles seulement pour diagnostiquer un problème de performances.
+Lance **`./menu.sh --action quick-check`**. Si le résultat est `READY_FOR_FIRST_PROJECT`, ouvre Open WebUI, pose une question réelle et crée ton premier projet.
+
+Pour mesurer ensuite la capacité 32K de la B580, tu peux lancer **`./menu.sh --action acceptance-32k --apply`** : ce test local, potentiellement long, est **facultatif pour commencer à travailler**. Un `quick-check` réussi ne certifie pas 32 768 tokens. Le protocole 32K et les autres diagnostics sont détaillés dans [Premier essai](02-premier-essai.md).

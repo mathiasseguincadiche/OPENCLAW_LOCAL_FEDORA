@@ -173,7 +173,7 @@ Lancer `clawfedora-pedagogy --plan` **sans appel API**. Dans le chat réel, test
 
 ## 8 ter. Vérifier les 32K réellement mesurés
 
-Après la première réception locale `quick-check`, exécuter `./menu.sh --action acceptance-32k --apply` (uniquement sur Fedora cible, après la création du compte WebUI). Exiger `ACCEPTANCE_32K=PASS` et examiner `prompt_tokens`, `allocated_context_tokens`, `resident_vram_gib`, `gpu_share_pct` et les débits. L'ancien diagnostic `context-probe` à 60 % ne prouve pas le 32K proche de la limite. Une réponse du modèle est exigée mais son exactitude n'est pas notée ici : compléter par le protocole pédagogique humain. Aucune génération cloud pendant ce contrôle.
+Pour qualifier la capacité 32K après la première réception locale `quick-check`, exécuter volontairement `./menu.sh --action acceptance-32k --apply` (uniquement sur Fedora cible, après la création du compte WebUI). Cette mesure est **facultative pour commencer à travailler** ; elle est nécessaire pour déclarer la capacité 32K mesurée sur le PC. Exiger alors `ACCEPTANCE_32K=PASS` et examiner `prompt_tokens`, `allocated_context_tokens`, `resident_vram_gib`, `gpu_share_pct` et les débits. L'ancien diagnostic `context-probe` à 60 % ne prouve pas le 32K proche de la limite. Une réponse du modèle est exigée mais son exactitude n'est pas notée ici : compléter par le protocole pédagogique humain. Aucune génération cloud pendant ce contrôle.
 
 ## 9. Réception de Fedora 45 Workstation / GNOME 51
 
