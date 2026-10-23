@@ -312,11 +312,11 @@ def test_fedora_45_gnome_51_are_required_by_all_installation_entrypoints() -> No
 
 def test_secondary_storage_guard_refuses_missing_mount() -> None:
     shell = ROOT / "scripts/linux/lib/runtime.sh"
-    script = 'source "$1"; claw_require_storage /IA/Openclaw'
+    script = 'source "$1"; claw_require_storage /data/IA/Openclaw'
     check = subprocess.run(["bash", "-c", script, "bash", str(shell)], capture_output=True,
                            text=True, check=False, cwd=ROOT)
-    # CI uses rootfs only. If /IA happens to be a genuine separate mount, it is valid.
-    if not Path("/IA").is_mount():
+    # CI uses rootfs only. If /data happens to be a genuine separate mount, it is valid.
+    if not Path("/data").is_mount():
         assert check.returncode == 2
         assert "STORAGE_RESULT=REFUSED" in check.stderr
     arbitrary = subprocess.run(
@@ -324,38 +324,41 @@ def test_secondary_storage_guard_refuses_missing_mount() -> None:
          "bash", str(shell)],
         capture_output=True, text=True, check=False, cwd=ROOT,
     )
-    assert arbitrary.returncode == 0
+    assert arbitrary.returncode == 2
 
 
 def test_default_runtime_is_on_secondary_volume() -> None:
-    assert 'OPENCLAW_LOCAL_FEDORA_ROOT:-/IA/Openclaw' in _read(
-        "scripts/linux/lib/runtime.sh"
-    )
+    import json
+
+    storage = json.loads(_read("config/storage.json"))
+    assert storage["runtime_root"] == "/data/IA/Openclaw"
+    assert storage["mountpoint"] == "/data"
+    assert "claw_storage root" in _read("scripts/linux/lib/runtime.sh")
     bootstrap = _read("scripts/linux/00_bootstrap.sh")
     assert bootstrap.index('claw_require_storage "$RUNTIME_ROOT"') < bootstrap.index(
         'as_root "${DNF[@]}" install -y "${PACKAGES[@]}"'
     )
-    assert "ConditionPathIsMountPoint=/IA" in _read("scripts/linux/11_daily_profile.sh")
+    daily = _read("scripts/linux/11_daily_profile.sh")
+    assert 'claw_storage units --runtime-root "$RUNTIME_ROOT"' in daily
 
 
 def test_secondary_disk_units_wait_for_mount_before_service_start() -> None:
     webui = _read("src/clawfedora/webui_setup.py")
     daily = _read("scripts/linux/11_daily_profile.sh")
-    assert "RequiresMountsFor=/IA" in webui
-    assert "ConditionPathIsMountPoint=/IA" in webui
-    assert daily.count("RequiresMountsFor=/IA") >= 2
-    assert daily.count("ConditionPathIsMountPoint=/IA") >= 2
+    assert "mount_unit_lines(runtime, repo_root)" in webui
+    assert daily.count('claw_storage units --runtime-root "$RUNTIME_ROOT"') == 2
+    assert "ConditionPathIsMountPoint={mount}" in _read("src/clawfedora/storage.py")
     assert "/srv/openclaw-local" not in _read("docs/fiches/03-discuter.md")
     assert "/srv/openclaw-local" not in _read("docs/fiches/06-fichiers-et-schemas.md")
     assert "/srv/openclaw-local" not in _read("docs/fiches/12-cloud.md")
 
 
 def test_storage_guard_refuses_ia_path_traversal_before_mount_lookup() -> None:
-    """A path beginning under /IA must not resolve outside the data volume."""
+    """A path beginning under /data must not resolve outside the data volume."""
     for candidate in (
-        "/IA/Openclaw/../other",
-        "/IA/Openclaw/../../tmp/escape",
-        "/IA/Openclaw/projects/../state",
+        "/data/IA/Openclaw/../other",
+        "/data/IA/Openclaw/../../tmp/escape",
+        "/data/IA/Openclaw/projects/../state",
     ):
         result = subprocess.run(
             [
@@ -373,15 +376,15 @@ def test_storage_guard_refuses_ia_path_traversal_before_mount_lookup() -> None:
 
 def test_storage_guard_checks_all_sensitive_directory_redirects() -> None:
     """Static coverage complements a real mount/symlink test on native Fedora."""
-    shell = _read("scripts/linux/lib/runtime.sh")
+    from clawfedora.storage import SENSITIVE_DIRECTORIES
+
     for directory in (
         "models/ollama", "projects", "workspaces", "state/openclaw",
         "state/webui/data", "state/cloud", "runtime/venv",
-        "runtime/generated", "proofs", "backups",
+        "runtime/generated", "runtime/podman/storage", "proofs", "backups",
     ):
-        assert directory in shell
-    assert '[[ -L "/IA/Openclaw/$component" ]]' in shell
-    assert shell.index("canonical=") < shell.index("mountpoint -q /IA")
+        assert directory in SENSITIVE_DIRECTORIES
+    assert 'claw_storage check --runtime-root' in _read("scripts/linux/lib/runtime.sh")
 
 
 def test_ollama_service_receives_gpu_groups_after_fedora_bootstrap() -> None:

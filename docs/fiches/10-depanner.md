@@ -43,7 +43,7 @@ ls -l /dev/dri/renderD*
 journalctl -u ollama.service -b --no-pager | grep -Ei 'permission|vulkan|render|device'
 ```
 
-Si l'unité ne contient pas les groupes attendus, après le montage de `/IA` et la vérification des journaux, relancer l'installation gérée (`./menu.sh --action install --apply`) depuis le répertoire GitHub, ou [réparer](09-entretenir.md), plutôt que d'ouvrir les permissions GPU à tous les comptes (`chmod 666`). Une CI verte ne garantit pas encore ce comportement sur la B580 réelle.
+Si l'unité ne contient pas les groupes attendus, après le montage de `/data` et la vérification des journaux, relancer l'installation gérée (`./menu.sh --action install --apply`) depuis le répertoire GitHub, ou [réparer](09-entretenir.md), plutôt que d'ouvrir les permissions GPU à tous les comptes (`chmod 666`). Une CI verte ne garantit pas encore ce comportement sur la B580 réelle.
 
 ## Ollama ne répond pas
 
@@ -74,7 +74,7 @@ ollama list
 ./menu.sh --action models --apply
 ```
 
-Message « digest déjà adopté divergent » : le modèle a été retéléchargé dans une version différente de celle enregistrée à l'installation. Si c'est voulu, supprime `/IA/Openclaw/state/model-identities.json` puis relance `./menu.sh --action install --apply`.
+Message « digest déjà adopté divergent » : le modèle a été retéléchargé dans une version différente de celle enregistrée à l'installation. Si c'est voulu, supprime `/data/IA/Openclaw/state/model-identities.json` puis relance `./menu.sh --action install --apply`.
 
 ## OpenClaw ne démarre pas
 
@@ -116,13 +116,13 @@ getenforce                                   # doit rester Enforcing
 sudo ausearch -m AVC,USER_AVC -ts recent     # ce qui a été refusé
 ```
 
-Corrige le chemin ou le contexte du fichier concerné. Pour le dossier de l'atelier : `sudo restorecon -RF /IA/Openclaw`.
+Corrige le chemin ou le contexte du fichier concerné. Pour le dossier de l'atelier : `sudo restorecon -RF /data/IA/Openclaw`.
 
-## Permission refusée sous `/IA/Openclaw`
+## Permission refusée sous `/data/IA/Openclaw`
 
 ```bash
-namei -l /IA/Openclaw
-ls -ldZ /IA/Openclaw
+namei -l /data/IA/Openclaw
+ls -ldZ /data/IA/Openclaw
 ```
 
 Le dossier doit t'appartenir. Ne règle pas le problème avec `chmod -R 777`.
@@ -130,7 +130,7 @@ Le dossier doit t'appartenir. Ne règle pas le problème avec `chmod -R 777`.
 ## Plus de place
 
 ```bash
-du -sh /IA/Openclaw/* | sort -h
+du -sh /data/IA/Openclaw/* | sort -h
 ```
 
 Supprime d'anciennes sauvegardes dans `backups/`.

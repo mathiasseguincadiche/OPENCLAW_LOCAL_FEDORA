@@ -15,6 +15,7 @@ printf 'UPGRADE_PLAN runtime=%s openclaw=%s ollama=%s\n' "$RUNTIME_ROOT" "$(claw
 echo "Arrêt des services, sauvegarde cohérente, convergence des versions, migration et health --probe."
 ((APPLY == 1)) || { echo "UPGRADE_DRY_RUN=PASS"; exit 0; }
 ((EUID != 0)) || { echo "ERREUR: lancer avec le compte Fedora habituel" >&2; exit 2; }
+claw_require_storage "$RUNTIME_ROOT"
 [[ -f "$RUNTIME_ROOT/.openclaw-fedora-runtime" ]] || { echo "ERREUR: installation gérée absente" >&2; exit 2; }
 [[ ! -e "$RUNTIME_ROOT/state/gaming-mode" ]] || { echo "ERREUR: reprendre le profil quotidien avant la migration" >&2; exit 2; }
 mkdir -p "$RUNTIME_ROOT/state"

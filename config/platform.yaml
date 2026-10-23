@@ -9,9 +9,7 @@ os:
   desktop_major: 51
   display_server: wayland
 runtime:
-  preferred_root: /IA/Openclaw
-  mountpoint: /IA
-  state_root: /IA/Openclaw/state
+  storage_contract: config/storage.json
   config_root: ~/.config/openclaw-local
   service_manager: systemd-user
   shell: bash

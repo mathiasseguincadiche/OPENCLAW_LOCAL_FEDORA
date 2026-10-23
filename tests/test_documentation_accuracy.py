@@ -48,7 +48,7 @@ def test_current_versions_documented_without_updating_history() -> None:
         assert versions["openclaw"]["version"] in text
         assert versions["ollama"]["version"] in text
         assert str(webui["release"]) in text
-        assert "/IA/Openclaw" in text
+        assert "/data/IA/Openclaw" in text
     assert "32K" not in (ROOT / "docs/INSTALLATION_SIMPLE_FEDORA45.md").read_text(
         encoding="utf-8"
     ).split("## 3. Un seul contrôle rapide", 1)[0]
@@ -59,7 +59,7 @@ def test_public_navigation_and_quick_check_match_runtime() -> None:
     docs = (ROOT / "docs/README.md").read_text(encoding="utf-8")
     guide = (ROOT / "docs/GUIDE.md").read_text(encoding="utf-8")
     menu = (ROOT / "menu.sh").read_text(encoding="utf-8")
-    assert "/IA/Openclaw" in main and "/IA/Openclaw" in docs and "/IA/Openclaw" in guide
+    assert all("/data/IA/Openclaw" in text for text in (main, docs, guide))
     assert "quick-check)" in menu
     for content in (main, docs, guide):
         assert "./menu.sh --action quick-check" in content
@@ -157,16 +157,16 @@ def test_first_installation_guide_does_not_require_missing_python_dependencies()
     )
     for document in (readme, full, handout):
         assert "command -v git >/dev/null 2>&1 || sudo dnf5 install -y git" in document
-        assert 'cd "$HOME"' in document
-        assert 'cd "$HOME/OPENCLAW_LOCAL_FEDORA"' in document
-        assert document.index("cd \"$HOME\"") < document.index("git clone")
-        assert document.index("git clone") < document.index(
+        assert "mountpoint -q /data" in document
+        assert 'cd "/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA"' in document
+        assert document.index("mountpoint -q /data") < document.index("sources clone")
+        assert document.index("sources clone") < document.index(
             "./menu.sh --action install --apply"
         )
-        assert "findmnt --mountpoint /IA" in document
+        assert "findmnt --mountpoint /data" in document
         # A new GNOME login starts in HOME, not in the git clone's directory.
         webui = document.index("./menu.sh --action webui-install --apply")
-        assert document.rfind('cd "$HOME/OPENCLAW_LOCAL_FEDORA"', 0, webui) > (
+        assert document.rfind('cd "/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA"', 0, webui) > (
             document.index("./menu.sh --action install --apply")
         )
     assert "python3.13 -m venv" in (ROOT / "scripts/linux/00_bootstrap.sh").read_text(

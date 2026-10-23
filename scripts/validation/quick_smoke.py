@@ -5,13 +5,13 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
 
 from clawfedora.lifecycle import collect_health
+from clawfedora.storage import load_settings, require_storage
 
 ENDPOINTS = {
     "WebUI": "http://127.0.0.1:3000/health",
@@ -39,8 +39,7 @@ def local_ok(url: str) -> bool:
 
 
 def report(repo: Path, runtime: Path) -> dict[str, Any]:
-    if runtime != Path("/IA/Openclaw") or not os.path.ismount("/IA"):
-        raise ValueError("disque secondaire /IA non monté ou runtime incorrect")
+    require_storage(runtime, load_settings(repo))
     if not (runtime / ".openclaw-fedora-runtime").is_file():
         raise ValueError("atelier IA non installé")
     health = collect_health(repo, runtime, probe=True)
@@ -63,7 +62,7 @@ def report(repo: Path, runtime: Path) -> dict[str, Any]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, required=True)
-    parser.add_argument("--runtime-root", type=Path, default=Path("/IA/Openclaw"))
+    parser.add_argument("--runtime-root", type=Path, default=load_settings().runtime_root)
     args = parser.parse_args(argv)
     try:
         payload = report(args.root, args.runtime_root)

@@ -24,8 +24,7 @@ host:
     data:
       model: Crucial T705
       interface: PCIe 5.0 NVMe
-      preferred_mount: /IA
-      atelier_root: /IA/Openclaw
+      storage_contract: config/storage.json
 firmware:
   uefi_required: true
   iommu_recommended: true

@@ -33,7 +33,8 @@ if (( BROWSER )); then
   [[ -t 0 ]] || { echo '--browser exige un terminal interactif pour arrêter proprement le canary' >&2; exit 2; }
 fi
 command -v podman >/dev/null || { echo 'Podman requis' >&2; exit 2; }
-[[ "$(podman info --format '{{.Host.Security.Rootless}}')" == true ]] || {
+claw_require_storage "$RUNTIME_ROOT"
+[[ "$(claw_podman info --format '{{.Host.Security.Rootless}}')" == true ]] || {
   echo 'Podman rootless requis' >&2; exit 2;
 }
 [[ -f "$RUNTIME_ROOT/.openclaw-fedora-runtime" ]] || {
@@ -43,8 +44,8 @@ command -v podman >/dev/null || { echo 'Podman requis' >&2; exit 2; }
 TMP="$(mktemp -d -p "${TMPDIR:-/tmp}" clawfedora-webui-canary-XXXXXXXX)"
 NAME="clawfedora-webui-canary-$$"
 cleanup() {
-  podman stop --ignore --time 5 "$NAME" >/dev/null 2>&1 || true
-  if [[ -n "$NET" ]]; then podman network rm "$NET" >/dev/null 2>&1 || true; fi
+  claw_podman stop --ignore --time 5 "$NAME" >/dev/null 2>&1 || true
+  if [[ -n "$NET" ]]; then claw_podman network rm "$NET" >/dev/null 2>&1 || true; fi
   rm -rf -- "$TMP"
 }
 trap cleanup EXIT
@@ -75,8 +76,8 @@ PY
   chmod 600 "$TMP/before.json"
 fi
 
-podman pull "$IMAGE"
-DIGEST="$(podman image inspect "$IMAGE" --format '{{index .RepoDigests 0}}')"
+claw_podman pull "$IMAGE"
+DIGEST="$(claw_podman image inspect "$IMAGE" --format '{{index .RepoDigests 0}}')"
 if [[ ! "$DIGEST" =~ ^ghcr.io/open-webui/open-webui@sha256:[a-f0-9]{64}$ ]]; then
   echo 'Impossible de déterminer une empreinte immuable vérifiable' >&2
   exit 2
@@ -89,11 +90,11 @@ APP_HOST=127.0.0.1
 if (( BROWSER )); then
   # Use a unique per-invocation network; a literal dollar sign is not a PID.
   NET="clawfedora-webui-test-net-$$"
-  podman network create --internal "$NET" >/dev/null
+  claw_podman network create --internal "$NET" >/dev/null
   NETWORK_ARGS=(--network "$NET" --publish 127.0.0.1:3001:8080)
   APP_HOST=0.0.0.0
 fi
-podman run --rm --detach --name "$NAME" "${NETWORK_ARGS[@]}" \
+claw_podman run --rm --detach --name "$NAME" "${NETWORK_ARGS[@]}" \
   --cap-drop ALL --security-opt no-new-privileges --pids-limit 256 \
   --memory 3g --cpus 2 \
   -e OFFLINE_MODE=true -e ENABLE_OLLAMA_API=false \
@@ -107,7 +108,7 @@ podman run --rm --detach --name "$NAME" "${NETWORK_ARGS[@]}" \
 
 READY=0
 for _ in {1..45}; do
-  if podman exec "$NAME" python -c \
+  if claw_podman exec "$NAME" python -c \
       'from urllib.request import urlopen; urlopen("http://127.0.0.1:8080/health", timeout=2)' \
       >/dev/null 2>&1; then
     READY=1
@@ -116,7 +117,7 @@ for _ in {1..45}; do
   sleep 2
 done
 if (( READY == 0 )); then
-  podman logs --tail 30 "$NAME" >&2 || true
+  claw_podman logs --tail 30 "$NAME" >&2 || true
   echo 'WEBUI_CANARY_RESULT=FAIL (démarrage ou /health)' >&2
   exit 1
 fi

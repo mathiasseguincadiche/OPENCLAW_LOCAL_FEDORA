@@ -16,6 +16,7 @@ def _sandbox(tmp_path: Path) -> Path:
     shutil.copy(ROOT / "VERSION", tmp_path / "VERSION")
     for source in (ROOT / "config").glob("*.yaml"):
         shutil.copy(source, tmp_path / "config" / source.name)
+    shutil.copy(ROOT / "config/storage.json", tmp_path / "config/storage.json")
     return tmp_path
 
 

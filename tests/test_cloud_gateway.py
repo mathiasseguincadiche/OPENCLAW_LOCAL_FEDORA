@@ -410,8 +410,16 @@ def test_provider_errors_are_mapped_and_preserve_ambiguous_reservations(
 
 
 def test_an_unreachable_provider_keeps_the_worst_case_estimate(
-    tmp_path: Path,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    from urllib.error import URLError
+
+    from clawfedora.cloud_gateway import _CLOUD_OPENER
+
+    def unreachable(*_args: Any, **_kwargs: Any) -> Any:
+        raise URLError("simulated provider connection failure")
+
+    monkeypatch.setattr(_CLOUD_OPENER, "open", unreachable)
     (tmp_path / "state").mkdir()
     budget = FakeBudget()
     server = make_server(ROOT, tmp_path, budget=budget, activation_check=lambda: None, port=0,
@@ -494,7 +502,8 @@ def test_every_billed_call_is_counted_with_its_real_cost(
 
 
 def test_a_server_error_or_unreachable_provider_keeps_the_worst_case(
-    counted: tuple[GatewayServer, Any], upstream: tuple[Upstream, int]
+    counted: tuple[GatewayServer, Any], upstream: tuple[Upstream, int],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     server, ledger = counted
     upstream[0].behaviour = upstream[0].status(500)
@@ -502,7 +511,12 @@ def test_a_server_error_or_unreachable_provider_keeps_the_worst_case(
     summary = ledger.summary()
     assert summary.calls_uncertain == 1 and summary.spent_usd > 0
     assert summary.calls_failed == 0
-    server.upstream_base_url = "http://127.0.0.1:9/v1"
+    from clawfedora.cloud_gateway import _CLOUD_OPENER
+
+    def unreachable(*_args: Any, **_kwargs: Any) -> Any:
+        raise TimeoutError("simulated provider timeout")
+
+    monkeypatch.setattr(_CLOUD_OPENER, "open", unreachable)
     assert post(server, request())[0] == 504
     summary = ledger.summary()
     assert summary.calls_uncertain == 2 and summary.spent_usd > 0

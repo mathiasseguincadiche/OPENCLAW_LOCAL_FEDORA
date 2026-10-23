@@ -17,7 +17,7 @@ def test_repository_python_constraints_are_exact_and_cover_direct_packages() -> 
     assert len(entries) >= 20
     assert entries["pillow"] == "13.0.0"
     assert entries["pyyaml"] == "6.0.3"
-    assert entries["pypdf"] == "6.19.0"
+    assert entries["pypdf"] == "6.21.2"
     assert lock.verify(ROOT)["verdict"] == "PYTHON_RUNTIME_CONSTRAINTS_PASS"
 
 

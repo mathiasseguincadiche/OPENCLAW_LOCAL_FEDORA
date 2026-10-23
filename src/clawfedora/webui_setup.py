@@ -15,6 +15,14 @@ from typing import Any
 
 from clawfedora.core_config import root_contract
 from clawfedora.project_common import assert_no_symlinks
+from clawfedora.storage import (
+    load_settings,
+    mount_unit_lines,
+    podman_config,
+    render_podman_storage,
+    require_storage,
+    service_storage_check,
+)
 
 
 def _secret(path: Path) -> str:
@@ -172,11 +180,12 @@ def render(
         raise ValueError("digest immuable Open WebUI requis avant la génération systemd")
     python = runtime / "runtime/venv/bin/python"
     unit_root.mkdir(parents=True, exist_ok=True)
-    common = "\n[Service]\nUMask=0077\nRestart=on-failure\nRestartSec=5\n"
-    mount_check = (
-        "RequiresMountsFor=/IA\nConditionPathIsMountPoint=/IA\n"
-        if runtime == Path("/IA/Openclaw") else ""
+    common = (
+        "\n[Service]\nUMask=0077\nRestart=on-failure\nRestartSec=5\n"
+        + service_storage_check(runtime, repo_root)
     )
+    mount_check = mount_unit_lines(runtime, repo_root)
+    render_podman_storage(runtime)
     bridge = (
         "[Unit]\nDescription=Atelier IA - admission des conversations\n"
         "After=openclaw-gateway.service\n"
@@ -201,13 +210,15 @@ def render(
         "Requires=clawfedora-webui-bridge.service clawfedora-speech.service\n"
         + mount_check
         + common
-        + "ExecStart=/usr/bin/podman run --rm --name clawfedora-webui "
+        + f"Environment=CONTAINERS_STORAGE_CONF={podman_config(runtime)}\n"
+        + f"Environment=TMPDIR={runtime / 'runtime/podman/tmp'}\n"
+        + "ExecStart=/usr/bin/podman --remote=false run --rm --name clawfedora-webui "
         "--label io.clawfedora.managed=true --network host --cap-drop ALL "
         "--security-opt no-new-privileges "
         + f"--memory {policy['memory_limit']} --cpus {policy['cpu_limit']} --pids-limit 256 "
         + f"--env-file {env_path} --volume {state / 'data'}:/app/backend/data:Z "
         + f"{selected_image}\n"
-        + "ExecStop=/usr/bin/podman stop --ignore --time 10 clawfedora-webui\n"
+        + "ExecStop=/usr/bin/podman --remote=false stop --ignore --time 10 clawfedora-webui\n"
         + "TimeoutStartSec=120\nTimeoutStopSec=30\n\n[Install]\nWantedBy=default.target\n"
     )
     dashboard = (
@@ -339,6 +350,7 @@ def main() -> None:
     parser.add_argument("--unit-root", type=Path, required=True)
     parser.add_argument("--image-digest", type=str)
     args = parser.parse_args()
+    require_storage(args.runtime_root, load_settings(args.root))
     if args.action == "seal":
         seal(args.root, args.runtime_root)
         print(json.dumps({"sealed": True}))

@@ -20,7 +20,9 @@ claw_require_storage "$(claw_runtime_root)"
 command -v curl >/dev/null || { echo "curl requis" >&2; exit 127; }
 [[ "$(uname -m)" == x86_64 ]] || { echo "Architecture x86_64 exigée par le manifeste" >&2; exit 2; }
 umask 077
-TMP="$(mktemp -d -p "${TMPDIR:-/tmp}" clawfedora-verified-release-XXXXXXXX)"
+DOWNLOAD_ROOT="$(claw_runtime_root)/runtime/downloads"
+install -d -m 0700 "$DOWNLOAD_ROOT"
+TMP="$(mktemp -d -p "$DOWNLOAD_ROOT" clawfedora-verified-release-XXXXXXXX)"
 trap 'rm -rf -- "$TMP"' EXIT
 if [[ "$KIND" == openclaw ]]; then
   ARCHIVE="$TMP/openclaw-$PIN.tgz"

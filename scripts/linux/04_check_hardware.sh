@@ -13,6 +13,7 @@ esac
 
 REPO_ROOT="$(claw_repo_root)"
 RUNTIME_ROOT="$(claw_runtime_root)"
+claw_require_storage "$RUNTIME_ROOT"
 PYTHON="$(claw_python)"
 
 if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then

@@ -261,7 +261,10 @@ def test_the_unit_refuses_an_unmanaged_runtime_and_unsafe_paths(
 
 # -- command line -------------------------------------------------------------------
 def run(runtime: Path, *args: str) -> int:
-    return cloud_cli.main(["--root", str(ROOT), "--runtime-root", str(runtime), *args])
+    # CLI behaviour against a temporary runtime; mount refusal has separate coverage.
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(cloud_cli, "require_storage", lambda *_args: None)
+        return cloud_cli.main(["--root", str(ROOT), "--runtime-root", str(runtime), *args])
 
 
 def test_the_command_line_reads_the_key_from_the_environment_not_the_arguments(

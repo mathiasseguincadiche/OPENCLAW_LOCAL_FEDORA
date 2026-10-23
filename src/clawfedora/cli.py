@@ -14,6 +14,7 @@ from clawfedora.core_contracts import validate_core_contracts
 from clawfedora.hardware_gate import collect_hardware_gate, write_hardware_evidence
 from clawfedora.openclaw_config import build_openclaw_patch, write_openclaw_patch
 from clawfedora.project_cli import add_project_parser, run_project_command
+from clawfedora.storage import load_settings, require_storage
 
 
 def _root_from_args(value: str | None) -> Path:
@@ -85,6 +86,7 @@ def _hardware(
     try:
         report = collect_hardware_gate(root, gate)
         runtime = resolve_runtime_root(runtime_value)
+        require_storage(runtime, load_settings(root))
         evidence = write_hardware_evidence(
             report,
             runtime / "proofs" / "hardware",
@@ -133,6 +135,7 @@ def _agents_validate(root: Path, as_json: bool) -> int:
 def _agents_deploy(root: Path, runtime_value: str | None, as_json: bool) -> int:
     runtime_root = resolve_runtime_root(runtime_value)
     try:
+        require_storage(runtime_root, load_settings(root))
         deployed = deploy_workspaces(root, runtime_root)
     except (OSError, PermissionError, ValueError) as exc:
         if as_json:
@@ -255,6 +258,7 @@ def main(argv: list[str] | None = None) -> int:
         runtime = resolve_runtime_root(args.runtime_root)
         try:
             if args.serve:
+                require_storage(runtime, load_settings(root))
                 serve(root, runtime, args.port)
             else:
                 print(json.dumps(snapshot(root, runtime), ensure_ascii=False))

@@ -7,6 +7,7 @@ source "$SCRIPT_DIR/lib/runtime.sh"
 
 REPO_ROOT="$(claw_repo_root)"
 RUNTIME_ROOT="$(claw_runtime_root)"
+claw_require_storage "$RUNTIME_ROOT"
 PYTHON="$(claw_python)"
 
 "$PYTHON" -m clawfedora.cli --root "$REPO_ROOT" agents deploy --runtime-root "$RUNTIME_ROOT"

@@ -5,9 +5,10 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
-MIN_DISK = 15 * 1024**3
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 
 def text(path: str | Path) -> str:
@@ -28,6 +29,8 @@ def cmd(*args: str) -> tuple[int, str]:
 
 
 def collect() -> list[tuple[str, str, str]]:
+    from clawfedora.storage import free_bytes, load_settings, require_storage
+
     result: list[tuple[str, str, str]] = []
 
     def add(key: str, passed: bool, detail: str, advisory: bool = False) -> None:
@@ -60,17 +63,26 @@ def collect() -> list[tuple[str, str, str]]:
     add("b580", gpu is not None, "Intel Arc B580 PCI 8086:e20b requise")
     add("driver-xe", gpu is not None and (gpu / "driver").exists()
         and (gpu / "driver").resolve().name == "xe", "Pilote xe lié à la B580 requis")
-    ia, runtime = Path("/IA"), Path("/IA/Openclaw")
-    mounted = ia.is_mount() and ia.stat().st_dev != Path("/").stat().st_dev
-    linked = any((runtime / p).is_symlink() for p in (
-        ".", "models", "models/ollama", "projects", "workspaces",
-        "state", "state/openclaw", "state/webui", "state/webui/data",
-        "state/cloud", "state/web-access", "runtime", "runtime/venv",
-        "runtime/generated", "proofs", "backups"
-    )) or ia.is_symlink() or runtime.is_symlink()
-    add("storage", mounted and not linked, "/IA doit être un volume distinct non lié")
-    available = os.statvfs(ia).f_bavail * os.statvfs(ia).f_frsize if mounted else 0
-    add("disk-free", available >= MIN_DISK, "15 GiB libres minimum sur /IA")
+    settings = load_settings()
+    runtime, mount = settings.runtime_root, settings.mountpoint
+    try:
+        require_storage(runtime, settings)
+        add("storage", True, f"{mount} monté, EXT4, distinct du système; runtime={runtime}")
+        add("disk-free", free_bytes(mount) >= settings.minimum_data_gib * 1024**3,
+            f"{settings.minimum_data_gib} GiB libres minimum sur {mount}")
+        parent = runtime
+        while not parent.exists():
+            parent = parent.parent
+        access = os.access(parent, os.X_OK) and (not runtime.exists()
+                                                or os.access(runtime, os.W_OK))
+        add("storage-access", access, "Accès au runtime ou à son parent existant requis")
+        add("storage-create", os.access(parent, os.W_OK),
+            "Si nécessaire, bootstrap créera uniquement les dossiers IA avec sudo",
+            advisory=True)
+    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+        add("storage", False, str(exc))
+    add("system-free", free_bytes(Path("/")) >= settings.minimum_system_gib * 1024**3,
+        f"{settings.minimum_system_gib} GiB libres minimum sur le SSD système")
     for tool in ("dnf5", "sudo", "python3", "systemctl"):
         add("required-" + tool, shutil.which(tool) is not None,
             "Outil Fedora requis avant l'installation")
@@ -92,8 +104,8 @@ def main() -> int:
     print("PRECHECK_PLAN=READ_ONLY no_install=true no_network_calls=true")
     try:
         result = collect()
-    except OSError:
-        print("PRECHECK=BLOCKED: lecture du poste impossible")
+    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as exc:
+        print(f"PRECHECK=BLOCKED: {exc}")
         return 2
     for name, status, note in result:
         print(f"{status:<6} {name:<25} {note}")

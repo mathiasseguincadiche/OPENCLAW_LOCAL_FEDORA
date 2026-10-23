@@ -96,8 +96,14 @@ def test_profile_unknown_or_loosened_policy_is_refused(
         chosen_profile(tmp_path, tampered)
 
 
-def test_cli_dry_run_and_explicit_apply(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_cli_dry_run_and_explicit_apply(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from clawfedora import cloud_cli
     from clawfedora.cloud_cli import main
+
+    # Isolated profile persistence; physical storage refusal has separate tests.
+    monkeypatch.setattr(cloud_cli, "require_storage", lambda *_args: None)
 
     prefix = ["--root", str(ROOT), "--runtime-root", str(tmp_path)]
     assert main([*prefix, "profile"]) == 0

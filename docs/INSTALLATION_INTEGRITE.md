@@ -2,7 +2,7 @@
 
 **Référence du socle neuf (19 octobre 2026)** : Fedora 45 Workstation / GNOME 51, OpenClaw **2026.10.4**, plugin Parallel **2026.10.4**, Ollama **0.40.6**, Open WebUI **v0.12.3-slim**. Ces valeurs correspondent au [manifeste des versions](../config/runtime_versions.yaml) et à la [politique WebUI](../config/webui_policy.yaml). **Elles ne prouvent pas une installation réussie sur le PC cible.**
 
-Pour la procédure quotidienne, suivre [Installer Fedora et vérifier l'atelier](INSTALLATION_SIMPLE_FEDORA45.md) : le second disque doit être monté sur `/IA` et le runtime réside sous `/IA/Openclaw/`. **Les contrôles ci-dessous décrivent la sécurité de la chaîne d'installation, ils ne forment pas une deuxième installation à exécuter.**
+Pour la procédure quotidienne, suivre [Installer Fedora et vérifier l'atelier](INSTALLATION_SIMPLE_FEDORA45.md) : le second disque doit être monté sur `/data` et le runtime réside sous `/data/IA/Openclaw/`. **Les contrôles ci-dessous décrivent la sécurité de la chaîne d'installation, ils ne forment pas une deuxième installation à exécuter.**
 
 ## Composants et contrôles disponibles
 
@@ -13,7 +13,7 @@ Pour la procédure quotidienne, suivre [Installer Fedora et vérifier l'atelier]
 | Ollama `0.40.6` | Archive Linux x86_64 officielle | SHA-256 vérifié **avant extraction** |
 | Open WebUI `v0.12.3-slim` | Image `ghcr.io/open-webui/open-webui` | Résolution en digest SHA-256 au premier déploiement ; unité systemd enregistrée avec le digest |
 | Python de production | `pip` avec fichier de contraintes | Versions exactes et hashes SHA-256 des distributions de production contrôlées par [le verrou Python](PYTHON_RUNTIME_LOCK.md) |
-| Runtime et données | Second disque monté sous `/IA` | Refus avant installation si `/IA` n'est pas le montage distinct attendu ; rejet des chemins non canoniques et liens symboliques dans les dossiers gérés ; services conditionnés au montage |
+| Runtime et données | Second disque monté sous `/data` | Refus avant installation si `/data` n'est pas le montage distinct attendu ; rejet des chemins non canoniques et liens symboliques dans les dossiers gérés ; services conditionnés au montage |
 
 **Correctif de sécurité du 20 octobre 2026 :** Pillow **13.0.0** remplace 12.3.0 après le signalement de huit vulnérabilités dans Dependency Review. La nouvelle version est fixée dans `pyproject.toml`, `config/python-runtime-constraints.txt` et `config/python-runtime-hashes.txt` ; les SHA-256 des artefacts Linux x86_64 Python 3.12/3.13 proviennent de [PyPI](https://pypi.org/project/pillow/13.0.0/). Ce changement doit passer intégralement la CI et ne modifie pas la politique du cloud.
 

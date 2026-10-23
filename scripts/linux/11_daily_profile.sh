@@ -58,8 +58,7 @@ print(daily_limits(Path(sys.argv[1]))["context_tokens"])
     sudo install -d -m 0755 /etc/systemd/system/ollama.service.d
     sudo tee /etc/systemd/system/ollama.service.d/openclaw-daily.conf >/dev/null <<EOF
 [Unit]
-RequiresMountsFor=/IA
-ConditionPathIsMountPoint=/IA
+$(claw_storage units --runtime-root "$RUNTIME_ROOT")
 [Service]
 SupplementaryGroups=render video
 Environment="OLLAMA_HOST=127.0.0.1:11434"
@@ -73,7 +72,14 @@ Environment="OLLAMA_CONTEXT_LENGTH=$CONTEXT_TOKENS"
 Environment="OLLAMA_KEEP_ALIVE=3m"
 EOF
     # Grant directory traversal only, not access to user projects or secrets.
-    sudo setfacl -m u:ollama:--x "$RUNTIME_ROOT" "$RUNTIME_ROOT/models"
+    # Include /data/IA and every parent up to the declared mount; grant traversal only.
+    parent="$RUNTIME_ROOT"
+    mount="$(claw_mountpoint)"
+    while [[ "$parent" != "$mount" ]]; do
+      sudo setfacl -m u:ollama:--x "$parent"
+      parent="$(dirname -- "$parent")"
+    done
+    sudo setfacl -m u:ollama:--x "$mount" "$RUNTIME_ROOT/models"
     # Vulkan: without this capability Ollama cannot read free VRAM and only estimates it.
     # A file capability is lost when the binary is replaced: reapplied on every configure.
     OLLAMA_BIN="$(readlink -f "$(command -v ollama)")"
@@ -88,10 +94,10 @@ EOF
     mkdir -p "$HOME/.config/systemd/user/openclaw-gateway.service.d"
     cat > "$HOME/.config/systemd/user/openclaw-gateway.service.d/openclaw-daily.conf" <<EOF
 [Unit]
-RequiresMountsFor=/IA
-ConditionPathIsMountPoint=/IA
+$(claw_storage units --runtime-root "$RUNTIME_ROOT")
 ConditionPathExists=!$RUNTIME_ROOT/state/gaming-mode
 [Service]
+$(claw_storage service --runtime-root "$RUNTIME_ROOT")
 UnsetEnvironment=OPENCLAW_CONFIG_PATH
 Environment="OPENCLAW_STATE_DIR=$STATE_ROOT"
 Environment="OPENCLAW_LOCAL_FEDORA_ROOT=$RUNTIME_ROOT"

@@ -6,6 +6,8 @@ from typing import Any, cast
 
 import yaml
 
+from clawfedora.storage import load_settings
+
 AGENT_IDS = (
     "chef-operations",
     "expert-recherche",
@@ -78,13 +80,8 @@ def daily_limits(repo_root: Path) -> dict[str, Any]:
 
 def resolve_runtime_root(explicit: str | Path | None = None) -> Path:
     if explicit is not None:
-        return Path(explicit).expanduser().resolve()
-    configured = os.environ.get("OPENCLAW_LOCAL_FEDORA_ROOT")
-    if configured:
-        return Path(configured).expanduser().resolve()
-    # Keep Python, Bash, models, projects and WebUI on a single declared root.
-    # Never silently fall back to the system disk when /IA is not mounted.
-    return Path("/IA/Openclaw")
+        return Path(explicit).expanduser()
+    return load_settings().runtime_root
 
 
 def openclaw_environment(runtime: Path | None = None) -> dict[str, str]:

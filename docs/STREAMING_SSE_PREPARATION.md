@@ -100,7 +100,7 @@ CI verte, API configurée et streaming confirmé dans le navigateur.**
    runtime ; ne pas le placer dans Git :
 
    ```bash
-   RUNTIME_ROOT="/IA/Openclaw"
+   RUNTIME_ROOT="/data/IA/Openclaw"
    # Adapter RUNTIME_ROOT si l'installation utilise le chemin utilisateur.
    install -m 0600 /dev/null "$RUNTIME_ROOT/state/webui/native-sse.enabled"
    printf 'local-mentor-sse-v1\n' > "$RUNTIME_ROOT/state/webui/native-sse.enabled"

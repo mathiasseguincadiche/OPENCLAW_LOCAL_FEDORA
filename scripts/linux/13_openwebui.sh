@@ -18,6 +18,15 @@ if [[ "$ACTION" == status ]]; then
   echo "Discussions: http://127.0.0.1:3000 ; Projets: http://127.0.0.1:18890"
   exit 0
 fi
+# Stopping needs neither a mounted disk nor an importable managed Python.
+if [[ "$ACTION" == stop ]]; then
+  echo "OPENWEBUI_PLAN action=stop"
+  ((APPLY == 1)) || { echo "DRY_RUN=PASS"; exit 0; }
+  ((EUID != 0)) || { echo "ERREUR: lancer avec le compte Fedora habituel" >&2; exit 2; }
+  systemctl --user stop clawfedora-dashboard.service clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-speech.service
+  echo "OPENWEBUI_RESULT=PASS"
+  exit 0
+fi
 RELEASE="$("$PYTHON" -c 'from pathlib import Path; from clawfedora.core_config import root_contract; import sys; print(root_contract(Path(sys.argv[1]), "webui_policy.yaml")["release"])' "$REPO_ROOT")"
 printf 'OPENWEBUI_PLAN action=%s release=%s variant=slim cpu=2 memory=3g loopback=1\n' "$ACTION" "$RELEASE"
 ((APPLY == 1)) || { echo "DRY_RUN=PASS"; exit 0; }
@@ -33,15 +42,21 @@ if [[ "$ACTION" == install ]]; then
   [[ "$(getenforce)" == Enforcing ]] || { echo "ERREUR: SELinux Enforcing requis" >&2; exit 2; }
   command -v podman >/dev/null || sudo dnf install -y podman
   command -v espeak-ng >/dev/null || sudo dnf install -y espeak-ng
-  [[ "$(podman info --format '{{.Host.Security.Rootless}}')" == true ]] || { echo "ERREUR: Podman rootless requis" >&2; exit 2; }
-  if podman container exists clawfedora-webui; then
-    [[ "$(podman inspect --format '{{index .Config.Labels "io.clawfedora.managed"}}' clawfedora-webui)" == true ]] || { echo "ERREUR: nom de conteneur déjà utilisé" >&2; exit 2; }
+  claw_storage podman --runtime-root "$RUNTIME_ROOT" >/dev/null
+  # Dedicated equivalence: preserve enforcing and all other Podman stores.
+  PODMAN_ROOT="$RUNTIME_ROOT/runtime/podman"
+  sudo semanage fcontext -a -e "$HOME/.local/share/containers" "$PODMAN_ROOT" 2>/dev/null || \
+    sudo semanage fcontext -m -e "$HOME/.local/share/containers" "$PODMAN_ROOT"
+  sudo restorecon -RF "$PODMAN_ROOT"
+  [[ "$(claw_podman info --format '{{.Host.Security.Rootless}}')" == true ]] || { echo "ERREUR: Podman rootless requis" >&2; exit 2; }
+  if claw_podman container exists clawfedora-webui; then
+    [[ "$(claw_podman inspect --format '{{index .Config.Labels "io.clawfedora.managed"}}' clawfedora-webui)" == true ]] || { echo "ERREUR: nom de conteneur déjà utilisé" >&2; exit 2; }
   fi
   IMAGE="$($PYTHON -c 'from pathlib import Path; from clawfedora.core_config import root_contract; import sys; print(root_contract(Path(sys.argv[1]), "webui_policy.yaml")["image"])' "$REPO_ROOT")"
-  podman pull "$IMAGE"
+  claw_podman pull "$IMAGE"
   # The stable v0.12.3-slim tag is selected by policy but must never be
   # written to the live service definition: lock the exact downloaded digest.
-  IMAGE_DIGEST="$(podman image inspect "$IMAGE" --format '{{index .RepoDigests 0}}')"
+  IMAGE_DIGEST="$(claw_podman image inspect "$IMAGE" --format '{{index .RepoDigests 0}}')"
   [[ "$IMAGE_DIGEST" =~ ^ghcr[.]io/open-webui/open-webui@sha256:[a-f0-9]{64}$ ]] || {
     echo "ERREUR: digest officiel Open WebUI indisponible ou incorrect" >&2
     exit 2
@@ -79,10 +94,6 @@ elif [[ "$ACTION" == seal ]]; then
   "$PYTHON" -m clawfedora.webui_setup seal --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" --unit-root "$UNIT_ROOT"
   systemctl --user daemon-reload
   systemctl --user start clawfedora-webui.service
-elif [[ "$ACTION" == stop ]]; then
-  # Stop the project dashboard too: it is enabled and started with the WebUI stack.
-  # Leaving it alive can expose project actions during an offline backup or maintenance.
-  systemctl --user stop clawfedora-dashboard.service clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-speech.service
 else
   [[ -f "$RUNTIME_ROOT/state/webui/enabled" ]] || { echo "ERREUR: installer le module avant de le démarrer" >&2; exit 2; }
   systemctl --user start clawfedora-webui-bridge.service clawfedora-speech.service clawfedora-webui.service clawfedora-dashboard.service

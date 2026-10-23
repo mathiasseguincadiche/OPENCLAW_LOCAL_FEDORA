@@ -252,7 +252,7 @@ route afin de ne pas créer une seconde vérité documentaire.
 Les sources deviennent immuables dès que l'analyse commence. Un upload tardif est refusé au lieu de
 modifier silencieusement le projet ou son accord cloud. Si le navigateur ne transmet pas correctement
 le fichier original, dépose-le dans
-`/IA/Openclaw/state/chat-import/inbox/<projet>/` puis tape `!importer`.
+`/data/IA/Openclaw/state/chat-import/inbox/<projet>/` puis tape `!importer`.
 
 La dictée utilise Whisper **local** sur le CPU en int8 ; la lecture à voix haute utilise également
 un service local. Le texte dicté est relu avant envoi et le mode appel mains libres reste désactivé.
@@ -272,4 +272,4 @@ les tâches, les fichiers et les preuves. Aucune des deux interfaces n'a plus d'
 ./menu.sh --action webui-start --apply
 ```
 
-Tes conversations sont conservées dans `/IA/Openclaw/state/webui` et entrent dans les [sauvegardes](09-entretenir.md).
+Tes conversations sont conservées dans `/data/IA/Openclaw/state/webui` et entrent dans les [sauvegardes](09-entretenir.md).

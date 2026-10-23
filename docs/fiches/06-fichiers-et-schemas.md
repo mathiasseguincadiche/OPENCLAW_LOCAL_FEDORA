@@ -28,7 +28,7 @@ puis l'ajoute à l'ingestion canonique du projet. Les sources sont figées aprè
 l'analyse.
 
 Plan B : copie le fichier dans
-`/IA/Openclaw/state/chat-import/inbox/<projet>/` puis tape `!importer`.
+`/data/IA/Openclaw/state/chat-import/inbox/<projet>/` puis tape `!importer`.
 
 ## Dans un projet
 

@@ -25,6 +25,7 @@ from clawfedora.cloud_budget import BudgetRefused, load_ledger, month_key
 from clawfedora.cloud_profiles import chosen_profile, profiles, set_profile
 from clawfedora.cloud_state import cloud_status, read_activation
 from clawfedora.core_config import core_contract, resolve_runtime_root
+from clawfedora.storage import load_settings, require_storage
 
 KEY_ENVIRONMENT = "CLAWFEDORA_PROVIDER_KEY"
 
@@ -116,6 +117,10 @@ def main(argv: list[str] | None = None) -> int:
     root = args.root.resolve()
     runtime = resolve_runtime_root(args.runtime_root)
     try:
+        if getattr(args, "apply", False) or args.command in {
+            "set-key", "disable", "reconcile", "render-unit",
+        }:
+            require_storage(runtime, load_settings(root))
         if args.command == "status":
             return _status(root, runtime)
         if args.command == "profile":

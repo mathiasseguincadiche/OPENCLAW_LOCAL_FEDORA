@@ -164,7 +164,7 @@ Dans une nouvelle conversation sans projet :
    et vérifier que seules les métadonnées sont décrites. Un PDF scanné
    doit être refusé sans activation. **Canary de vision explicitement activé :**
    lancer d'abord `clawfedora-vision-smoke --root "$PWD"
-   --runtime-root /IA/Openclaw --apply` sur une image et un
+   --runtime-root /data/IA/Openclaw --apply` sur une image et un
    PDF synthétiques, puis joindre une vraie image publique sans données
    privées. Vérifier les objets/couleurs décrits et l'absence de repli
    cloud. Le simple retour d'une réponse ne prouve pas la précision.
@@ -217,8 +217,8 @@ Si l'upload via Open WebUI ne transmet pas correctement le fichier original avec
 épinglée :
 
 ```bash
-mkdir -p /IA/Openclaw/state/chat-import/inbox/smoke-webui
-cp /chemin/vers/source.pdf /IA/Openclaw/state/chat-import/inbox/smoke-webui/
+mkdir -p /data/IA/Openclaw/state/chat-import/inbox/smoke-webui
+cp /chemin/vers/source.pdf /data/IA/Openclaw/state/chat-import/inbox/smoke-webui/
 ```
 
 Puis dans le chat :

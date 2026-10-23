@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from clawfedora import cli
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,7 +22,10 @@ def test_agents_validate_cli_passes() -> None:
     assert cli.main(["--root", str(ROOT), "agents", "validate", "--json"]) == 0
 
 
-def test_agents_deploy_cli_uses_explicit_runtime(tmp_path: Path) -> None:
+def test_agents_deploy_cli_uses_explicit_runtime(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(cli, "require_storage", lambda *_args: None)
     assert (
         cli.main(
             [

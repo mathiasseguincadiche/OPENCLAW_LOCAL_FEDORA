@@ -23,6 +23,7 @@ from typing import Any
 
 from clawfedora.core_config import root_contract
 from clawfedora.local_http import LocalServer
+from clawfedora.storage import load_settings, require_storage
 
 MAX_TEXT = 20_000
 
@@ -260,6 +261,7 @@ def main() -> None:
     parser.add_argument("--token-file", type=Path)
     parser.add_argument("--prepare", action="store_true")
     args = parser.parse_args()
+    require_storage(args.runtime_root, load_settings(args.root))
     if args.prepare:
         prepare(args.root, args.runtime_root)
         print("SPEECH_PREPARE=PASS")

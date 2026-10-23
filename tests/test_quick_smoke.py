@@ -21,9 +21,9 @@ def test_only_exact_loopback_probes_allowed() -> None:
 def test_unmounted_secondary_storage_fails_before_ai_probe(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(smoke.os.path, "ismount", lambda _path: False)
+    monkeypatch.setattr(Path, "is_mount", lambda _path: False)
     with pytest.raises(ValueError, match="secondaire"):
-        smoke.report(tmp_path, Path("/IA/Openclaw"))
+        smoke.report(ROOT, Path("/data/IA/Openclaw"))
 
 
 def test_complete_local_software_readiness_keeps_cloud_unverified(
@@ -35,8 +35,7 @@ def test_complete_local_software_readiness_keeps_cloud_unverified(
     runtime.mkdir()
     (runtime / ".openclaw-fedora-runtime").touch()
     (runtime / "projects").mkdir()
-    monkeypatch.setattr(smoke.os.path, "ismount", lambda _path: True)
-    monkeypatch.setitem(smoke.report.__globals__, "Path", lambda _value: runtime)
+    monkeypatch.setitem(smoke.report.__globals__, "require_storage", lambda *_args: None)
     monkeypatch.setitem(
         smoke.report.__globals__, "collect_health",
         lambda _repo, _runtime, *, probe: HealthReport((
@@ -60,8 +59,7 @@ def test_failing_local_probes_never_give_ready_label(
     runtime.mkdir()
     (runtime / ".openclaw-fedora-runtime").touch()
     (runtime / "projects").mkdir()
-    monkeypatch.setattr(smoke.os.path, "ismount", lambda _path: True)
-    monkeypatch.setitem(smoke.report.__globals__, "Path", lambda _value: runtime)
+    monkeypatch.setitem(smoke.report.__globals__, "require_storage", lambda *_args: None)
     monkeypatch.setitem(
         smoke.report.__globals__, "collect_health",
         lambda _repo, _runtime, *, probe: HealthReport((

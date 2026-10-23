@@ -34,6 +34,7 @@ from clawfedora.cloud_profiles import ProfileRefused, chosen_profile
 from clawfedora.cloud_state import CLOUD_STATE, ensure_gateway_token, require_cloud_ready
 from clawfedora.core_config import core_contract
 from clawfedora.local_http import LocalServer
+from clawfedora.storage import load_settings, require_storage
 
 ALLOWED_FIELDS = frozenset({
     "model", "messages", "tools", "tool_choice", "stream", "stream_options", "max_tokens",
@@ -444,6 +445,7 @@ def main() -> None:
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--runtime-root", type=Path, required=True)
     args = parser.parse_args()
+    require_storage(args.runtime_root, load_settings(args.root))
     # The real budget: a call is reserved before it leaves and settled with its real usage.
     server = make_server(
         args.root,
