@@ -69,3 +69,13 @@ ou le manifeste avant de réessayer.
 
 [← Références](reference/README.md) ·
 [Installation](INSTALLATION_SIMPLE_FEDORA45.md) · [État actuel](../STATUS.md)
+
+## Correctif de sécurité PDF du 22 octobre 2026
+
+Le contrôle de dépendances de la PR de stockage a signalé huit avis concernant
+`pypdf==6.19.0`, déjà présent dans le dépôt. La version de production passe à
+**`pypdf==6.21.2`**, avec ses deux empreintes SHA-256 PyPI mises à jour dans le
+verrou et les contraintes. Les versions OpenClaw, Parallel, Ollama et WebUI
+restent conservées. Aucun avis de sécurité n’est ignoré dans la CI.
+
+Source : [publication officielle pypdf 6.21.2](https://github.com/py-pdf/pypdf/releases/tag/6.21.2).
