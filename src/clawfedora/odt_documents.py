@@ -108,9 +108,11 @@ def _styles() -> bytes:
         _node(style, "style:paragraph-properties", {"fo:margin-left": "0.5cm"})
         _node(style, "style:text-properties", {"style:font-name": font, "fo:font-size": size})
     bullet = _node(styles, "text:list-style", {"style:name": "Bullet"})
-    level = _node(bullet, "text:list-level-style-bullet", {"text:level": "1", "text:bullet-char": "•"})
+    bullet_level = _node(
+        bullet, "text:list-level-style-bullet", {"text:level": "1", "text:bullet-char": "•"}
+    )
     _node(
-        level,
+        bullet_level,
         "style:list-level-properties",
         {"text:space-before": "0.2cm", "text:min-label-width": "0.4cm"},
     )
