@@ -198,12 +198,14 @@ def collect_audit(strict: bool = False) -> AuditReport:
         )
     )
 
-    preferred_root = Path("/IA/Openclaw")
+    from clawfedora.storage import load_settings
+
+    preferred_root = load_settings().runtime_root
     checks.append(
         Check(
             "runtime-root",
             "PASS" if preferred_root.is_dir() else "WARN",
-            str(preferred_root) if preferred_root.is_dir() else "/IA/Openclaw non préparé",
+            str(preferred_root) if preferred_root.is_dir() else f"{preferred_root} non préparé",
         )
     )
 

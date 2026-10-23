@@ -28,6 +28,7 @@ from clawfedora.project_engine import (
 from clawfedora.project_intake import create_project
 from clawfedora.project_revision import impact, revise
 from clawfedora.project_worker import review_project, run_project_tasks, worker_lock
+from clawfedora.storage import load_settings, require_storage
 
 
 def _load_object(path: str) -> dict[str, Any]:
@@ -337,6 +338,8 @@ def _selftest(repo_root: Path) -> dict[str, Any]:
 def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
     try:
         command = str(args.project_command)
+        if command != "selftest":
+            require_storage(_runtime(args), load_settings(repo_root))
         if command == "create":
             project = create_project(
                 repo_root,

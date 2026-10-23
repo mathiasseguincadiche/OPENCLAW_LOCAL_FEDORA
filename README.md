@@ -56,27 +56,30 @@ Le chat peut aussi analyser de petits fichiers texte **sans créer de projet**. 
 **Plateforme visée :** Fedora 45 Workstation, GNOME 51, Wayland, AMD Ryzen 7 7700, 48 Go RAM, Intel Arc B580 12 Go. Fedora est le système hôte du projet IA. **Aucune installation de Rocky Linux** ou VM n'est nécessaire ; Open WebUI tourne sous **Podman rootless sur ce même Fedora**.
 
 1. Installer Fedora 45 Workstation sur le SSD système après sa publication officielle.
-2. Monter le **disque secondaire** de façon permanente sur `/IA` (via UUID). Ne pas formater un disque contenant des données.
-3. Vérifier `findmnt --mountpoint /IA` avant tout `--apply`. Le runtime est `/IA/Openclaw/`. Ne pas reformater un disque contenant des données ; l'installateur ne prépare pas le partitionnement pour toi.
+2. Monter le **disque secondaire** de façon permanente sur `/data` (via UUID). Ne pas formater un disque contenant des données.
+3. Vérifier `findmnt --mountpoint /data` avant tout `--apply`. Le runtime est `/data/IA/Openclaw/`. Ne pas reformater un disque contenant des données ; l'installateur ne prépare pas le partitionnement pour toi.
 
-**Précontrôles dans un terminal de la session GNOME Wayland** (les valeurs attendues sont Fedora 45, GNOME 51, `wayland`, SELinux `Enforcing` et un volume distinct monté sous `/IA`) :
+**Précontrôles dans un terminal de la session GNOME Wayland** (les valeurs attendues sont Fedora 45, GNOME 51, `wayland`, SELinux `Enforcing` et un volume distinct monté sous `/data`) :
 
 ```bash
 cat /etc/fedora-release
 gnome-shell --version
 printf 'Session : %s\n' "${XDG_SESSION_TYPE:-inconnue}"
 getenforce
-findmnt --mountpoint /IA
-df -h /IA
+findmnt --mountpoint /data
+df -h /data
 ```
 
 **Vérifie les sorties avant de poursuivre.** Si `git` n'est pas déjà installé sur ton Fedora neuf, installe-le une seule fois avec la commande ci-dessous. Le gestionnaire de paquets peut demander ton mot de passe sudo ; les autres paquets sont ensuite gérés par l'installateur.
 
 ```bash
 command -v git >/dev/null 2>&1 || sudo dnf5 install -y git
-cd "$HOME"
-git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
-cd "$HOME/OPENCLAW_LOCAL_FEDORA"
+# Chaque étape dépend du contrôle du vrai volume secondaire.
+mountpoint -q /data &&
+  test "$(stat -c '%d' /data)" != "$(stat -c '%d' /)" &&
+  sudo install -d -m 0750 -o "$(id -un)" -g "$(id -gn)" /data/IA/Openclaw/sources &&
+  git -C /data/IA/Openclaw/sources clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
+cd "/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA"
 
 ./menu.sh --action precheck              # analyse la machine et les dépendances, sans installation
 ./menu.sh --action install               # affiche le plan, ne teste PAS le matériel
@@ -88,7 +91,7 @@ Le lanceur **`menu.sh` est le seul point d'entrée à utiliser** pour cette prem
 Se reconnecter à la session Fedora pour appliquer les groupes GPU `render`/`video`, puis **ouvrir un nouveau terminal et revenir dans le dépôt GitHub** :
 
 ```bash
-cd "$HOME/OPENCLAW_LOCAL_FEDORA"
+cd "/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA"
 ./menu.sh --action webui-install --apply
 # Créer le compte administrateur à http://127.0.0.1:3000
 ./menu.sh --action webui-seal --apply
@@ -104,12 +107,12 @@ Le **pré-check est relancé automatiquement** par `install --apply` avant l’i
 
 **Ensuite, facultativement :** pour utiliser DeepSeek via ta clé OpenRouter, suivre [l'activation cloud contrôlée](docs/fiches/12-cloud.md#activer-le-cloud). Ce n'est ni une condition du premier démarrage local ni un appel cloud automatique. Pour diagnostiquer un échec, consulter [la fiche dépannage](docs/fiches/10-depanner.md).
 
-[**Guide d'installation détaillé et stockage `/IA/Openclaw`**](docs/INSTALLATION_SIMPLE_FEDORA45.md)
+[**Guide d'installation détaillé et stockage `/data/IA/Openclaw`**](docs/INSTALLATION_SIMPLE_FEDORA45.md)
 
 ## Où vont les données ?
 
 ```text
-/IA/Openclaw/
+/data/IA/Openclaw/
 ├── models/ollama/       # modèle IA local
 ├── projects/            # projets, sources et livrables
 ├── workspaces/          # espaces des agents
@@ -119,7 +122,9 @@ Le **pré-check est relancé automatiquement** par `install --apply` avant l’i
 └── backups/             # sauvegardes (à copier aussi hors du disque)
 ```
 
-Les exécutables système, certaines données npm et le stockage Podman peuvent résider hors de `/IA/Openclaw`. Le démarrage des services gérés est conditionné au montage de `/IA`.
+Les modèles, projets, conversations, sources et images Podman WebUI restent sur le SSD secondaire. Le stockage Podman dédié est `runtime/podman/storage` ; le conteneur utilise une configuration privée, sans changer celle de tes autres conteneurs. Ollama reste installé sous `/usr/local` et les paquets npm OpenClaw sous `~/.openclaw`. Les services attendent le montage de `/data`.
+
+Les chemins proviennent de [config/storage.json](config/storage.json), commun aux scripts et à Python. Le pré-check contrôle EXT4, les options de montage, les redirections et l'espace libre sur les deux SSD. [Stockage, permissions et sauvegarde](docs/STOCKAGE_DATA.md).
 
 ## État, limites et documentation
 

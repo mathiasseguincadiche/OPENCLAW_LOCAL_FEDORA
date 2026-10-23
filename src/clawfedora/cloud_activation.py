@@ -38,6 +38,7 @@ from clawfedora.cloud_state import (
 from clawfedora.core_config import core_contract
 from clawfedora.core_contracts import validate_core_contracts
 from clawfedora.project_common import assert_no_symlinks
+from clawfedora.storage import mount_unit_lines, service_storage_check
 
 KEY_PATTERN = re.compile(r"sk-or-[A-Za-z0-9_\-]{12,}")
 SELFTEST_KEY = "sk-or-selftest-" + "x" * 24
@@ -390,7 +391,9 @@ def render_unit(repo_root: Path, runtime: Path, unit_root: Path) -> Path:
     unit.write_text(
         header
         + "[Unit]\nDescription=Atelier IA - passerelle cloud locale (filtre et budget)\n"
+        + mount_unit_lines(runtime, repo_root)
         + "\n[Service]\nUMask=0077\nRestart=on-failure\nRestartSec=5\n"
+        + service_storage_check(runtime, repo_root)
         + f"Environment=OPENCLAW_LOCAL_FEDORA_ROOT={runtime}\n"
         + f"ExecStart={python} -m clawfedora.cloud_gateway "
         + f"--root {repo_root} --runtime-root {runtime}\n"

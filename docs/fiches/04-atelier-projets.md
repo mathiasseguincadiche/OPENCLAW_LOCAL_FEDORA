@@ -70,10 +70,10 @@ Clique **Mettre en pause**. La tâche en cours se termine, puis le travail s'arr
 
 ## En ligne de commande
 
-Tout ce que fait l'interface existe aussi dans le terminal. La commande `clawfedora` est installée dans `/IA/Openclaw/runtime/venv/bin` ; ajoute ce dossier à ton `PATH` ou donne le chemin complet.
+Tout ce que fait l'interface existe aussi dans le terminal. La commande `clawfedora` est installée dans `/data/IA/Openclaw/runtime/venv/bin` ; ajoute ce dossier à ton `PATH` ou donne le chemin complet.
 
 ```bash
-export PATH="/IA/Openclaw/runtime/venv/bin:$PATH"
+export PATH="/data/IA/Openclaw/runtime/venv/bin:$PATH"
 clawfedora project status --project-id mon-projet
 clawfedora project search --project-id mon-projet --query "reverse proxy"
 clawfedora project pause  --project-id mon-projet

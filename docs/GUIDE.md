@@ -89,10 +89,10 @@ Pour une application Linux à déployer, l'intérêt est de ne pas mélanger arc
 
 ## 6. Préparer et installer Fedora
 
-**Parcours recommandé :** installer Fedora 45 Workstation stable / GNOME 51 sur le SSD système, puis monter le second disque durablement sous **`/IA`**. Les données de l'atelier sont installées dans **`/IA/Openclaw/`**. La machine cible (Ryzen 7 7700, 48 Go, Arc B580) n'a pas encore fait l'objet d'une réception physique.
+**Parcours recommandé :** installer Fedora 45 Workstation stable / GNOME 51 sur le SSD système, puis monter le second disque durablement sous **`/data`**. Les données de l'atelier sont installées dans **`/data/IA/Openclaw/`**. La machine cible (Ryzen 7 7700, 48 Go, Arc B580) n'a pas encore fait l'objet d'une réception physique.
 
 ```bash
-findmnt --mountpoint /IA   # vérifier que le second disque est monté
+findmnt --mountpoint /data   # vérifier que le second disque est monté
 git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
 cd OPENCLAW_LOCAL_FEDORA
 ./menu.sh --action install                 # aperçu

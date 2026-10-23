@@ -348,9 +348,13 @@ def test_the_overview_reports_cloud_state_and_budget(
 
 
 def test_the_command_line_shows_requires_acknowledgement_and_revokes(
-    workshop: tuple[Path, Path, Base], capsys: pytest.CaptureFixture[str]
+    workshop: tuple[Path, Path, Base], capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    from clawfedora import project_cli
     from clawfedora.cli import main
+
+    monkeypatch.setattr(project_cli, "require_storage", lambda *_args: None)
 
     runtime, project, _ = workshop
     activate(runtime)

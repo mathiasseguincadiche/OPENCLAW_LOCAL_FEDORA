@@ -1,6 +1,6 @@
 # Documentation de l’Atelier IA
 
-**Point d’entrée unique** : cette page oriente vers la procédure adaptée à ton besoin, sans demander de lire toute l’architecture. L’environnement cible est **Fedora 45 Workstation / GNOME 51**, avec les données de l’atelier sur le volume secondaire **`/IA/Openclaw/`**.
+**Point d’entrée unique** : cette page oriente vers la procédure adaptée à ton besoin, sans demander de lire toute l’architecture. L’environnement cible est **Fedora 45 Workstation / GNOME 51**, avec les données de l’atelier sur le volume secondaire **`/data/IA/Openclaw/`**.
 
 ## Commencer simplement
 
@@ -42,3 +42,5 @@ Les fiches sont un **parcours de référence**, pas douze étapes obligatoires �
 [Contribuer](../CONTRIBUTING.md) · [Politique de sécurité](../SECURITY.md) · [Historique des changements](../CHANGELOG.md) · [Code source](../src/) · [Scripts](../scripts/) · [Tests](../tests/)
 
 **Règle de lecture** : un test de CI réussi n’équivaut pas à une réception du logiciel sur le PC Fedora/Intel Arc B580. Les fonctions facultatives ou expérimentales sont identifiées comme telles.
+
+[Stockage EXT4 sur `/data`, permissions et sauvegarde](STOCKAGE_DATA.md).

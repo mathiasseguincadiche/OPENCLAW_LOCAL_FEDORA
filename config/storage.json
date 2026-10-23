@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "mountpoint": "/data",
+  "runtime_root": "/data/IA/Openclaw",
+  "filesystem": "ext4",
+  "volume_uuid": "",
+  "minimum_data_gib": 15,
+  "minimum_system_gib": 8
+}

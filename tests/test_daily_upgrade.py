@@ -41,15 +41,34 @@ def test_upgrade_dry_run_makes_no_runtime_changes(tmp_path: Path) -> None:
     assert "openclaw=2026.10.4 ollama=0.40.6" in result.stdout and not runtime.exists()
 
 
+def _operator_scripts(tmp_path: Path) -> Path:
+    """Isolate upgrade ordering from real mounts, packages and services."""
+    repo = tmp_path / "repo"
+    scripts = repo / "scripts/linux"
+    (scripts / "lib").mkdir(parents=True)
+    (repo / "config").mkdir()
+    for name in ("12_upgrade.sh", "lib/runtime.sh"):
+        shutil.copy2(ROOT / "scripts/linux" / name, scripts / name)
+    shutil.copy2(ROOT / "config/runtime_versions.yaml", repo / "config/runtime_versions.yaml")
+    helper = repo / "src/clawfedora/storage.py"
+    helper.parent.mkdir(parents=True)
+    helper.write_text(
+        'import os, sys\n'
+        'if sys.argv[1] == "root": print(os.environ["OPENCLAW_LOCAL_FEDORA_ROOT"])\n'
+    )
+    return scripts
+
+
 @pytest.mark.skipif(os.geteuid() == 0, reason="operator script deliberately refuses root")
 def test_upgrade_refuses_to_interrupt_worker(tmp_path: Path) -> None:
+    scripts = _operator_scripts(tmp_path)
     runtime = tmp_path / "runtime"
     (runtime / "state").mkdir(parents=True)
     (runtime / ".openclaw-fedora-runtime").touch()
     with (runtime / "state/worker.lock").open("w") as handle:
         fcntl.flock(handle, fcntl.LOCK_EX)
         result = subprocess.run(
-            ["bash", str(ROOT / "scripts/linux/12_upgrade.sh"), "--apply"],
+            ["bash", str(scripts / "12_upgrade.sh"), "--apply"],
             env={**os.environ, "OPENCLAW_LOCAL_FEDORA_ROOT": str(runtime)},
             capture_output=True,
             text=True,
@@ -59,13 +78,7 @@ def test_upgrade_refuses_to_interrupt_worker(tmp_path: Path) -> None:
 
 @pytest.mark.skipif(os.geteuid() == 0, reason="operator script deliberately refuses root")
 def test_upgrade_backs_up_before_install_and_stops_on_failure(tmp_path: Path) -> None:
-    repo = tmp_path / "repo"
-    scripts = repo / "scripts/linux"
-    (scripts / "lib").mkdir(parents=True)
-    (repo / "config").mkdir()
-    for name in ("12_upgrade.sh", "lib/runtime.sh"):
-        shutil.copy2(ROOT / "scripts/linux" / name, scripts / name)
-    shutil.copy2(ROOT / "config/runtime_versions.yaml", repo / "config/runtime_versions.yaml")
+    scripts = _operator_scripts(tmp_path)
     log = tmp_path / "events"
     for name, text in {
         "08_backup_restore.sh": 'echo backup >> "$UPGRADE_TEST_LOG"',

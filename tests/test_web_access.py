@@ -83,8 +83,10 @@ def test_untrusted_markers_refuse_web_configuration_instead_of_silent_revert(
 
 
 def test_web_access_cli_only_stages_and_never_claims_running_gateway(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str],
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # This test isolates staging; the actual mount guard is exercised in test_storage.
+    monkeypatch.setattr(ops_cli, "require_storage", lambda *_args: None)
     runtime = managed(tmp_path)
     args = ["--root", str(ROOT), "--runtime-root", str(runtime), "web-access"]
     assert ops_cli.main([*args, "private"]) == 0

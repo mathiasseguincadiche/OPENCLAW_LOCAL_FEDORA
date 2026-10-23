@@ -8,7 +8,7 @@ Utiliser la procédure [Installation simple](../INSTALLATION_SIMPLE_FEDORA45.md)
 ./menu.sh --action quick-check
 ```
 
-Elle vérifie les composants essentiels (montage `/IA`, courte génération Qwen locale, carte B580 utilisée, Gateway, WebUI et projets). En cas de `READY_FOR_FIRST_PROJECT`, **poser une vraie question dans WebUI et créer un premier projet**. Pas de benchmark ni de cloud nécessaires pour commencer.
+Elle vérifie les composants essentiels (montage `/data`, courte génération Qwen locale, carte B580 utilisée, Gateway, WebUI et projets). En cas de `READY_FOR_FIRST_PROJECT`, **poser une vraie question dans WebUI et créer un premier projet**. Pas de benchmark ni de cloud nécessaires pour commencer.
 
 ## Quand approfondir ?
 

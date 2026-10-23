@@ -7,7 +7,7 @@ aucune mise à jour automatique des dépendances n'est effectuée.
 ## Python 3.13 isolé sur Fedora 45
 
 Fedora 45 conserve son Python système, sans rétrogradation. Le runtime IA,
-séparé dans `/IA/Openclaw/runtime/venv/`, utilise le Python 3.13 distribué
+séparé dans `/data/IA/Openclaw/runtime/venv/`, utilise le Python 3.13 distribué
 par Fedora pour rester compatible avec les composants optionnels de voix.
 
 | Ensemble | Verrou de versions | Empreintes |

@@ -175,7 +175,7 @@ case "$ACTION" in
     ((APPLY == 1)) && { claw_require_storage "$(claw_runtime_root)"; args+=(--apply); }
     run_module cloud_cli "${args[@]}"
     ;;
-  dashboard) run_cli dashboard --serve ;;
+  dashboard) claw_require_storage "$(claw_runtime_root)"; run_cli dashboard --serve ;;
   gaming) with_apply 11_daily_profile.sh gaming ;;
   daily) with_apply 11_daily_profile.sh daily ;;
   backup) "$LINUX/08_backup_restore.sh" backup ;;

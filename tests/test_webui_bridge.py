@@ -247,14 +247,17 @@ def test_client_tool_catalog_and_overrides_are_never_forwarded() -> None:
 
 def test_maintenance_refuses_active_inference_and_reuses_inherited_lock(tmp_path: Path) -> None:
     import os
+    import shlex
     import subprocess
 
     (tmp_path / ".openclaw-fedora-runtime").touch()
     script = ROOT / "scripts/linux/lib/runtime.sh"
     env = {**os.environ, "OPENCLAW_LOCAL_FEDORA_ROOT": str(tmp_path)}
+    # Isolate locking from the separately tested physical storage guard.
+    command = 'source "$1"; claw_require_storage() { :; }; claw_lock_worker'
     with worker_lock(tmp_path):
         result = subprocess.run(
-            ["bash", "-c", 'source "$1"; claw_lock_worker', "maintenance", str(script)],
+            ["bash", "-c", command, "maintenance", str(script)],
             env=env,
             text=True,
             capture_output=True,
@@ -265,7 +268,7 @@ def test_maintenance_refuses_active_inference_and_reuses_inherited_lock(tmp_path
         [
             "bash",
             "-c",
-            'source "$1"; claw_lock_worker; bash -c \'source "$1"; claw_lock_worker\' child "$1"',
+            command + "; bash -c " + shlex.quote(command) + ' child "$1"',
             "maintenance",
             str(script),
         ],

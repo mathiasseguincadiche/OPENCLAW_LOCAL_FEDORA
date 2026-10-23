@@ -19,7 +19,7 @@ des règles réseau système adaptées et révoquer les accords cloud concernés
 
 ## Passer en mode privé : une commande contrôlée
 
-Sur Fedora 45 installé, avec le disque secondaire **monté sur `/IA`** et aucun projet en cours :
+Sur Fedora 45 installé, avec le disque secondaire **monté sur `/data`** et aucun projet en cours :
 
 ```bash
 ./menu.sh --action web-private             # aperçu, ne change rien

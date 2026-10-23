@@ -5,9 +5,17 @@ claw_repo_root() {
   cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd -P
 }
 
-claw_runtime_root() {
-  printf '%s\n' "${OPENCLAW_LOCAL_FEDORA_ROOT:-/IA/Openclaw}"
+# Use the system standard library even before the managed venv exists.
+claw_storage() {
+  local python
+  python="$(command -v python3 2>/dev/null)" || {
+    echo "ERREUR: python3 requis pour vérifier le stockage." >&2; return 127;
+  }
+  "$python" -I -S "$(claw_repo_root)/src/clawfedora/storage.py" "$@"
 }
+
+claw_runtime_root() { claw_storage root; }
+claw_mountpoint() { claw_storage mount; }
 
 claw_extract_openclaw_version() {
   local output="${1:-}"
@@ -76,6 +84,7 @@ PY
 claw_lock_worker() {
   local runtime_root lock_path expected_identity inherited_identity
   runtime_root="$(claw_runtime_root)"
+  claw_require_storage "$runtime_root"
   lock_path="$runtime_root/state/worker.lock"
   [[ -f "$runtime_root/.openclaw-fedora-runtime" ]] || { echo "ERREUR: runtime géré requis" >&2; return 2; }
   [[ ! -L "$runtime_root" && ! -L "$runtime_root/state" && ! -L "$lock_path" ]] || { echo "ERREUR: verrou lié interdit" >&2; return 2; }
@@ -90,48 +99,18 @@ claw_lock_worker() {
   flock -n 9 || { echo "ERREUR: tâche ou discussion active; attendre sa fin avant la maintenance" >&2; return 2; }
 }
 
-# The preferred runtime lives on a separately mounted Linux filesystem.
-# Never create /IA/Openclaw on the root filesystem when the secondary disk is absent.
+# The guard covers every explicit root, not only the preferred path.
 claw_require_storage() {
-  local root="${1:-$(claw_runtime_root)}"
-  case "$root" in
-    /IA/Openclaw|/IA/Openclaw/*)
-      # Reject dot traversal and symlink resolution before looking at any runtime
-      # directory. A path that *starts* under /IA may otherwise escape to /tmp.
-      local canonical component
-      canonical="$(realpath -m -- "$root")" || return 2
-      if [[ "$canonical" != "$root" ]]; then
-        echo "STORAGE_RESULT=REFUSED: chemin runtime non canonique ou lié" >&2
-        return 2
-      fi
-      if [[ -L /IA || -L /IA/Openclaw ]] || ! mountpoint -q /IA; then
-        echo "STORAGE_RESULT=REFUSED: disque secondaire non monté sur /IA" >&2
-        return 2
-      fi
-      local main_dev data_dev
-      main_dev="$(stat -c '%d' /)" || return 2
-      data_dev="$(stat -c '%d' /IA)" || return 2
-      if [[ "$main_dev" == "$data_dev" ]]; then
-        echo "STORAGE_RESULT=REFUSED: /IA n'est pas un système de fichiers distinct" >&2
-        return 2
-      fi
-      # Never silently redirect model files, projects, secrets, backups, or the
-      # Python environment to the system SSD via an existing directory symlink.
-      # Missing directories are fine during a genuinely fresh installation.
-      for component in \
-        models models/ollama projects workspaces \
-        state state/openclaw state/webui state/webui/data \
-        state/cloud state/web-access runtime runtime/venv \
-        runtime/generated proofs backups; do
-        if [[ -L "/IA/Openclaw/$component" ]]; then
-          echo "STORAGE_RESULT=REFUSED: répertoire runtime lié interdit: $component" >&2
-          return 2
-        fi
-      done
-      if [[ -e "$root" && ! -d "$root" ]]; then
-        echo "STORAGE_RESULT=REFUSED: chemin de données non répertoire" >&2
-        return 2
-      fi
-      ;;
-  esac
+  claw_storage check --runtime-root "${1:-$(claw_runtime_root)}"
+}
+
+claw_podman() {
+  local runtime_root config
+  runtime_root="$(claw_runtime_root)"
+  config="$runtime_root/runtime/generated/webui-storage.conf"
+  [[ -f "$config" && ! -L "$config" ]] || {
+    echo "ERREUR: stockage Podman WebUI non préparé" >&2; return 2;
+  }
+  TMPDIR="$runtime_root/runtime/podman/tmp" \
+    CONTAINERS_STORAGE_CONF="$config" command podman --remote=false "$@"
 }

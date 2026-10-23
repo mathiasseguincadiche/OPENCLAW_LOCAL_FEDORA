@@ -6,6 +6,8 @@ from typing import Any
 
 import yaml
 
+from clawfedora.storage import load_settings, validate_layout
+
 
 @dataclass(frozen=True)
 class ContractReport:
@@ -49,6 +51,12 @@ def validate_repository(root: Path) -> ContractReport:
         if str(payload.get("platform_version", "")) != version:
             failures.append(f"{name}: platform_version != VERSION ({version})")
 
+    try:
+        storage = load_settings(root, use_environment=False)
+        validate_layout(storage.runtime_root, storage)
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        failures.append(f"storage: {exc}")
+
     platform = contracts["platform"]
     os_cfg = platform.get("os", {})
     runtime = platform.get("runtime", {})
@@ -63,6 +71,8 @@ def validate_repository(root: Path) -> ContractReport:
         failures.append("platform: édition Workstation requise")
     if os_cfg.get("display_server") != "wayland":
         failures.append("platform: Wayland requis")
+    if runtime.get("storage_contract") != "config/storage.json":
+        failures.append("platform: contrat de stockage partagé requis")
     if runtime.get("service_manager") != "systemd-user":
         failures.append("platform: systemd-user requis pour le cycle de vie OpenClaw")
     if security.get("selinux_required") != "enforcing":

@@ -12,7 +12,7 @@ Avant toute opération de cette fiche, attends la fin d'une génération en cour
 ./menu.sh --action backup
 ```
 
-La sauvegarde est rangée dans `/IA/Openclaw/backups`. Elle contient l'état, les projets, les espaces de travail des rôles et tes conversations. Elle ne contient ni le modèle ni l'environnement Python : ils se retéléchargent.
+La sauvegarde est rangée dans `/data/IA/Openclaw/backups`. Elle contient l'état, les projets, les espaces de travail des rôles et tes conversations. Elle ne contient ni les modèles, ni l’environnement Python, ni les sources Git, ni les images Podman : ces composants se réinstallent. Conserve la référence Git utilisée.
 
 Pour éviter les écritures pendant la sauvegarde, arrête d’abord les **quatre services de l’interface** : Open WebUI, son pont, la voix et le tableau de projets. Cette commande n’arrête pas à elle seule le Gateway OpenClaw ou Ollama ; vérifie qu’aucune génération n’est en cours :
 
@@ -36,7 +36,7 @@ Les sauvegardes **ne sont pas chiffrées** : elles peuvent contenir tes conversa
 scripts/linux/08_backup_restore.sh restore ARCHIVE DESTINATION
 ```
 
-La destination doit être un dossier vide : la restauration n'écrase jamais des données existantes. Vérifie le contenu restauré avant de le mettre à la place de `/IA/Openclaw`, puis relance `./menu.sh --action install --apply` et `./menu.sh --action health`.
+La destination doit être un dossier vide : la restauration n'écrase jamais des données existantes. Vérifie le contenu restauré avant de le mettre à la place de `/data/IA/Openclaw`, puis relance `./menu.sh --action install --apply` et `./menu.sh --action health`.
 
 ## Vérification isolée facultative d'Open WebUI 0.12.3
 
@@ -88,8 +88,8 @@ La réparation sauvegarde, redépose les consignes des rôles, réapplique la co
 ## Surveiller la place
 
 ```bash
-df -h /IA/Openclaw
-du -sh /IA/Openclaw/* | sort -h
+df -h /data/IA/Openclaw
+du -sh /data/IA/Openclaw/* | sort -h
 ```
 
 Ce qui grossit : `backups/` (supprime les anciennes sauvegardes dont tu n'as plus besoin) et `projects/`.
@@ -102,4 +102,4 @@ Ce qui grossit : `backups/` (supprime les anciennes sauvegardes dont tu n'as plu
 ./menu.sh --action uninstall --apply --purge-data  # supprime aussi les données
 ```
 
-La purge ne touche qu'au dossier `/IA/Openclaw`.
+La purge ne touche qu'au dossier `/data/IA/Openclaw`.

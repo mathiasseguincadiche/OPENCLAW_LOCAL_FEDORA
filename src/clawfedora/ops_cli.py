@@ -16,6 +16,7 @@ from clawfedora.lifecycle import (
     restore_backup,
 )
 from clawfedora.lifecycle_contracts import validate_lifecycle_contracts
+from clawfedora.storage import load_settings, require_storage
 
 
 def _root(value: str | None) -> Path:
@@ -86,6 +87,12 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     repo_root = _root(args.root)
     runtime_root = resolve_runtime_root(args.runtime_root)
+    if getattr(args, "apply", False) or args.command in {"backup", "restore", "health"}:
+        try:
+            require_storage(runtime_root, load_settings(repo_root))
+        except (OSError, ValueError) as exc:
+            print(f"STORAGE_RESULT=REFUSED: {exc}")
+            return 2
     if args.command == "validate-lifecycle":
         failures, warnings = validate_lifecycle_contracts(repo_root)
         for warning in warnings:

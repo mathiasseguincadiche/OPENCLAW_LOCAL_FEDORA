@@ -28,6 +28,7 @@ from clawfedora.local_http import LocalServer
 from clawfedora.mentor import context as mentor_context
 from clawfedora.project_control import write_progress
 from clawfedora.project_worker import AgentRunner, openclaw_runner, worker_lock
+from clawfedora.storage import load_settings, require_storage
 from clawfedora.webui_stream import progressive_completion
 
 MODEL_IDS = tuple(f"openclaw/{role}" for role in AGENT_IDS)
@@ -783,6 +784,7 @@ def main() -> None:
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--runtime-root", type=Path, required=True)
     args = parser.parse_args()
+    require_storage(args.runtime_root, load_settings(args.root))
     token_file = args.runtime_root / "state/webui/bridge.token"
     if token_file.is_symlink() or token_file.stat().st_mode & 0o077:
         raise PermissionError("jeton privé 0600 requis")

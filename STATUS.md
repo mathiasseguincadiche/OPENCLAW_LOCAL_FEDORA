@@ -1,6 +1,6 @@
 # État du projet — Atelier IA hybride Fedora
 
-**Référence logicielle : 20 octobre 2026.** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
+**Référence logicielle : 22 octobre 2026.** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
 ## Résumé vérifiable
 
@@ -9,7 +9,7 @@
 | **Code, règles et installation** | Vérifié par CI | Tests Python 3.12/3.13, ShellCheck, contrats Fedora 45 et validation OpenClaw native |
 | **Référence de CI contrôlée le 20 octobre 2026** | Succès | [PR #148](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/148) : 14 contrôles réussis avant fusion ; [commit principal](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/3766d7b8d8e6c00d5f15494ab8685894274173e6) : 12 contrôles réussis après fusion. Instantané daté, pas garantie des prochaines CI. |
 | **Analyse statique** | Succès sur cette référence | CodeQL Python et JavaScript passés sur la [PR #148](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/148) ; une nouvelle PR doit repasser ces contrôles |
-| **Montage et stockage `/IA/Openclaw/`** | Implémenté, pas encore qualifié sur le poste | Refus si le volume secondaire manque, si le runtime contient des traversées de chemin ou si des répertoires sensibles sont des liens symboliques |
+| **Montage et stockage `/data/IA/Openclaw/`** | Configuration commune Bash/Python/services, à qualifier sur le poste | EXT4 distinct du système, absence du disque refusée, UUID optionnel, liens interdits, stockage Podman dédié ; [procédure](docs/STOCKAGE_DATA.md) |
 | **Fedora 45 / GNOME 51 / B580** | **À faire** | Installation et vérification de l’OS, pilote `xe`, Vulkan, affichage, veille sur le PC réel |
 | **Qwen local et contexte 8K–32K** | Implémenté | Inférence courte dans `quick-check` ; débit réel, VRAM et contexte optimal **À mesurer** |
 | **Open WebUI 0.12.3** | Implémenté/testé en simulation ou intégration partielle | Navigateur, boutons, fichiers et microphone **À faire** en réception réelle |
@@ -31,7 +31,7 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 | Modèle local obligatoire | `qwen3.5:9b-q4_K_M` |
 | Route cloud facultative | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter |
 | Budget cloud | 25 €/mois, activation et consentement explicites |
-| Racine des données | `/IA/Openclaw/` sur le deuxième disque monté sous `/IA` |
+| Racine des données | `/data/IA/Openclaw/` sur le deuxième disque monté sous `/data` |
 
 **Sources canoniques :** [versions](config/runtime_versions.yaml), [modèles](config/model_catalog.yaml), [plateforme](config/platform.yaml), [politique WebUI](config/webui_policy.yaml) et [politique cloud](config/core/cloud_policy.yaml). Le verrou des versions de production Python est décrit [ici](docs/PYTHON_RUNTIME_LOCK.md). **Une version déclarée n’est pas la preuve de sa présence sur le PC.**
 
@@ -39,7 +39,7 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 
 ## Démarrer sans campagne de tests lourds
 
-1. Installer Fedora 45 stable et monter le disque secondaire sur `/IA`.
+1. Installer Fedora 45 stable et monter le disque secondaire sur `/data`.
 2. Installer l’atelier et WebUI selon [la procédure simple](docs/INSTALLATION_SIMPLE_FEDORA45.md).
 3. Exécuter **`./menu.sh --action quick-check`** : une réponse Qwen courte, vérification de la B580, des services, des interfaces et des projets.
 4. Poser une question réelle dans Open WebUI et créer un projet de test. Si le résultat est satisfaisant, commencer à travailler.
