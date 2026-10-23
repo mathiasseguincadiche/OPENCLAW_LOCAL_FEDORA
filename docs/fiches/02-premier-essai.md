@@ -14,9 +14,9 @@ Les tests automatiques du dépôt vérifient que le logiciel est cohérent. Ils 
 
 Il vérifie le montage secondaire, une **courte génération Qwen sur la B580**, les services, WebUI et le dossier projets. Si le résultat est `READY_FOR_FIRST_PROJECT`, ouvre Open WebUI, pose une vraie question et crée ton premier projet. **Arrête-toi là si tout fonctionne.** Les benchmarks détaillés ci-dessous sont uniquement des diagnostics facultatifs.
 
-## Réception 32K demandée pour le premier lancement
+## Facultatif : mesurer le contexte 32K sur la B580
 
-Le `quick-check` ne suffit **pas** à certifier 32 768 tokens : sa génération est courte. Après l'installation de WebUI et la reconnexion GNOME, depuis la racine du dépôt :
+Le `quick-check` suffit pour commencer, mais **ne certifie pas 32 768 tokens** : sa génération est courte. Si tu souhaites mesurer cette capacité, après l'installation de WebUI et la reconnexion GNOME, depuis la racine du dépôt :
 
 ```bash
 ./menu.sh --action acceptance-32k         # plan, pas de génération

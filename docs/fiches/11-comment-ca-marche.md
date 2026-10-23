@@ -38,6 +38,8 @@ L'atelier sépare **quatre responsabilités** :
 
 Une flèche indique un **échange de données ou de commandes contrôlées**, pas un droit d'écriture ou d'exécution. Le schéma représente l'architecture **prévue par le code**, pas un test réussi sur le vrai PC.
 
+**Sources éditables :** [architecture hybride](../diagrams/atelier-architecture.drawio) et [sept rôles](../diagrams/atelier-roles.drawio). Les blocs, textes et flèches sont des objets Draw.io. Pour modifier un schéma, éditer sa source, réexporter l'aperçu SVG correspondant et vérifier les deux dans la même PR ; conserver aussi le titre et la description accessibles du SVG.
+
 ## À quoi servent les composants ?
 
 | Composant | Sa responsabilité | Sa limite importante |

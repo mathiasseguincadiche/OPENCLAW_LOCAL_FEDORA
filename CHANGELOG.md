@@ -4,6 +4,20 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 22 octobre 2026 — cohérence de la documentation après la PR #152
+
+- Harmonisation du parcours README → installation → premier essai : `quick-check` suffit pour commencer ; la réception 32K reste volontaire et nécessaire pour déclarer cette capacité mesurée.
+- Correction des dernières références actives à `/IA/Openclaw` et au clonage dans le dossier personnel ; les sources sont sous `/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA` et les données restent hors du dépôt Git.
+- Synchronisation des sources Draw.io avec les aperçus SVG : Qwen local, DeepSeek cloud sur accord, passerelle et sept rôles ; les blocs, textes et flèches restent éditables.
+- Actualisation de `STATUS.md` avec les liens de CI et CodeQL réussis après fusion de la PR #152. Les anciens chemins et versions des entrées datées ci-dessous restent historiques.
+
+### 22 octobre 2026 — stockage `/data` et sécurité PDF — PR #152
+
+- Configuration commune `config/storage.json` : volume EXT4 distinct monté sur `/data`, runtime `/data/IA/Openclaw`, seuils d'espace libre sur les deux SSD et UUID facultatif. Scripts et services refusent l'absence du disque et les redirections interdites.
+- Stockage Podman privé pour les images et couches Open WebUI sur le SSD secondaire, avec permissions et contextes SELinux dédiés ; configuration des autres conteneurs conservée.
+- Dépendance PDF `pypdf` passée de 6.19.0 à 6.21.2 avec ses empreintes corrigées, à la suite des avis de sécurité détectés par Dependency Review ; aucun avis ignoré.
+- Guides de stockage, installation et sauvegarde mis à jour. Les régressions automatisées passent ; la réception réelle Fedora/B580, WebUI et restauration reste à effectuer.
+
 ### 21 octobre 2026 — pré-check obligatoire et recette Qwen 32K
 
 - Ajout de `./menu.sh --action precheck` (sans installation) : Fedora 45/GNOME 51/Wayland, stockage `/IA`, Ryzen, RAM, B580/pilote `xe`, SELinux, UEFI, session systemd, dépendances installables et Internet. Le contrôle est relancé automatiquement par `install --apply` **avant toute installation de paquets**.

@@ -122,9 +122,9 @@ ne peut être déclaré réussi sans cet accord. Après la réception locale,
 utiliser [la fiche Cloud](fiches/12-cloud.md#activer-le-cloud) pour la saisie
 masquée de la clé OpenRouter, la limite en dollars et l'activation consentie.
 
-## 4. Qualification réelle du contexte 32K sur la B580
+## 4. Facultatif : qualifier le contexte 32K sur la B580
 
-Après `quick-check`, lancer la recette **avec accord explicite**, toujours depuis le dépôt :
+Un `quick-check` réussi suffit pour commencer à travailler. Pour mesurer ensuite la capacité 32K de la B580, lancer cette recette **facultative, avec accord explicite**, toujours depuis le dépôt :
 
 ```bash
 ./menu.sh --action acceptance-32k         # plan sans génération
@@ -137,6 +137,7 @@ La commande refait le contrôle court puis demande à Qwen une réponse sur un c
 
 ```text
 /data/IA/Openclaw/
+├── sources/OPENCLAW_LOCAL_FEDORA/ Dépôt Git et code source de l'atelier
 ├── models/ollama/     Modèle Qwen et autres téléchargements Ollama
 ├── projects/          Projet 1, Projet 2, Projet 3, Projet 4…
 ├── workspaces/        Espace de travail de chaque agent
@@ -145,6 +146,7 @@ La commande refait le contrôle court puis demande à Qwen une réponse sur un c
 ├── state/cloud/       Paramètres locaux de la passerelle cloud
 ├── runtime/venv/      Python isolé du projet
 ├── runtime/generated/ Configurations générées
+├── runtime/podman/storage/ Images et couches Open WebUI
 ├── proofs/            Rapports
 └── backups/           Archives de sauvegarde
 ```
@@ -153,8 +155,9 @@ La commande refait le contrôle court puis demande à Qwen une réponse sur un c
 Ollama `/usr/local/bin/ollama`, le lanceur npm OpenClaw dans
 `~/.openclaw/` et la configuration du compte dans son dossier personnel.
 Les fichiers volumineux et données de projets restent sur le second disque.
-Le code Git cloné dans `~/OPENCLAW_LOCAL_FEDORA` reste sur le système
-tant que l'opérateur ne le déplace pas volontairement.
+Le code Git est cloné dans `/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA`.
+Conserver ce chemin stable : l'environnement Python utilise ces sources en mode
+éditable. Voir [stockage, permissions et sauvegarde](STOCKAGE_DATA.md).
 
 Les unités systemd gérées empêchent le démarrage si `/data` n'est plus un
 point de montage. Ne pas le démonter pendant un projet ou une génération.

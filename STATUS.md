@@ -7,8 +7,8 @@
 | Dimension | Statut | Preuve ou limite |
 | --- | --- | --- |
 | **Code, règles et installation** | Vérifié par CI | Tests Python 3.12/3.13, ShellCheck, contrats Fedora 45 et validation OpenClaw native |
-| **Référence de CI contrôlée le 20 octobre 2026** | Succès | [PR #148](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/148) : 14 contrôles réussis avant fusion ; [commit principal](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/3766d7b8d8e6c00d5f15494ab8685894274173e6) : 12 contrôles réussis après fusion. Instantané daté, pas garantie des prochaines CI. |
-| **Analyse statique** | Succès sur cette référence | CodeQL Python et JavaScript passés sur la [PR #148](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/148) ; une nouvelle PR doit repasser ces contrôles |
+| **Référence de CI après fusion de la PR #152** | Succès | [Commit `7ec96df`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/7ec96dfab520e04d48197eb31e9bcbb7dc00e71e), contrôlé le 22 octobre 2026 : [les dix jobs de CI ont réussi](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39892100239). Instantané daté, pas garantie des prochaines CI. |
+| **Analyse statique** | Succès sur cette référence | [CodeQL Python et JavaScript après fusion](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39892100178) réussi sur le même commit ; une nouvelle PR doit repasser ces contrôles |
 | **Montage et stockage `/data/IA/Openclaw/`** | Configuration commune Bash/Python/services, à qualifier sur le poste | EXT4 distinct du système, absence du disque refusée, UUID optionnel, liens interdits, stockage Podman dédié ; [procédure](docs/STOCKAGE_DATA.md) |
 | **Fedora 45 / GNOME 51 / B580** | **À faire** | Installation et vérification de l’OS, pilote `xe`, Vulkan, affichage, veille sur le PC réel |
 | **Qwen local et contexte 8K–32K** | Implémenté | Inférence courte dans `quick-check` ; débit réel, VRAM et contexte optimal **À mesurer** |
@@ -33,7 +33,7 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 | Budget cloud | 25 €/mois, activation et consentement explicites |
 | Racine des données | `/data/IA/Openclaw/` sur le deuxième disque monté sous `/data` |
 
-**Sources canoniques :** [versions](config/runtime_versions.yaml), [modèles](config/model_catalog.yaml), [plateforme](config/platform.yaml), [politique WebUI](config/webui_policy.yaml) et [politique cloud](config/core/cloud_policy.yaml). Le verrou des versions de production Python est décrit [ici](docs/PYTHON_RUNTIME_LOCK.md). **Une version déclarée n’est pas la preuve de sa présence sur le PC.**
+**Sources canoniques :** [versions](config/runtime_versions.yaml), [modèles](config/model_catalog.yaml), [plateforme](config/platform.yaml), [stockage](config/storage.json), [politique WebUI](config/webui_policy.yaml) et [politique cloud](config/core/cloud_policy.yaml). Le verrou des versions de production Python est décrit [ici](docs/PYTHON_RUNTIME_LOCK.md). **Une version déclarée n’est pas la preuve de sa présence sur le PC.**
 
 **Nouvelle qualification pédagogique :** `clawfedora-pedagogy --plan` produit quatre scénarios de trois tours et une grille humaine clarté/profondeur/interactivité/exactitude (/5 chacun). La commande ne lance aucun modèle et ne dépense aucun crédit. Les préférences de style et un résumé d'acquis sont enregistrés seulement sur validation humaine depuis le tableau de bord ; elles n'équivalent pas à une mémoire automatique. Voir [le protocole](docs/EVALUATION_PEDAGOGIE.md).
 
