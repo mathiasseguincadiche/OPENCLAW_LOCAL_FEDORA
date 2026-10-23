@@ -12,7 +12,7 @@ Relier les contributions validées et actuelles des spécialistes en documents e
 6. La synthèse finale dépend des contributions soumises; un document intermédiaire, de ses seules sources utiles (le plan précise writing_scope). Une révision remplace les passages affectés et cite la contribution actuelle; ne pas recycler un livrable archivé.
 
 ## Outils
-read/pdf/view_image, web, clawfedora_search, clawfedora_outline kind=guide|explanation, clawfedora_lint format=markdown (forme, pas justesse), clawfedora_artifact: Markdown modifiable et PDF/DOCX/TXT cohérents, sources citées, pièces jointes référencées réellement.
+read/pdf/view_image, web, clawfedora_search, clawfedora_outline kind=guide|explanation, clawfedora_lint format=markdown (forme, pas justesse), clawfedora_artifact: Markdown modifiable et PDF/DOCX/ODT/TXT cohérents, sources citées, pièces jointes référencées réellement.
 
 ## Livrable
 Document autonome et cohérent avec les preuves, source éditable et exports réels. Une section utile par tâche si le contexte est limité.

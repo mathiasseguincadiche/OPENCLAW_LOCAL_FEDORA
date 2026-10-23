@@ -252,7 +252,7 @@ def invoke(
             "available": available(),
             "lint_formats": sorted(FORMATS.get(role, set())),
             "file_formats": formats(role),
-            "document_exports": ["pdf", "docx", "txt"],
+            "document_exports": ["pdf", "docx", "odt", "txt"],
         }
     if tool == "clawfedora_lint":
         result = lint(role, data)

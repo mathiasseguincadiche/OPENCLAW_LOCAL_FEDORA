@@ -139,7 +139,7 @@ Un bon runbook devrait répondre à cinq questions, dans cet ordre :
 4. **Comment savoir ?** Résultats attendus, observabilité et diagnostics d'échec.
 5. **Et si ça échoue ?** Conditions d'arrêt et procédure de rollback.
 
-La **source Markdown** est modifiable ; les versions PDF/DOCX sont des exports. Une belle mise en page ne change pas le niveau de vérification des commandes.
+La **source Markdown** est modifiable ; les versions PDF/DOCX/ODT sont des exports. Une belle mise en page ne change pas le niveau de vérification des commandes.
 
 ## Étape 6 — l'auditeur compare preuves et exigences
 

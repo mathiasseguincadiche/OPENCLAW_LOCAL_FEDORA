@@ -83,6 +83,7 @@ def build_bundle(parts: list[Path], dest: Path, name: str, *, apply: bool = Fals
         f"{name}.md": source.encode("utf-8"),
         f"{name}.pdf": export(source, "pdf"),
         f"{name}.docx": export(source, "docx"),
+        f"{name}.odt": export(source, "odt"),
     }
     hashes = {file: hashlib.sha256(data).hexdigest() for file, data in result.items()}
     manifest: dict[str, Any] = {

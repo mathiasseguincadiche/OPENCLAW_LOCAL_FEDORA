@@ -26,6 +26,7 @@ ajouter `--apply` pour produire :
 - `guide-devops.md` — source éditable assemblée, titres et tableaux conservés ;
 - `guide-devops.pdf` — rendu imprimable ;
 - `guide-devops.docx` — document éditable ;
+- `guide-devops.odt` — document OpenDocument éditable dans LibreOffice ;
 - `guide-devops.manifest.json` — empreintes SHA-256 de la source et des exports.
 
 ## Garanties et limites
@@ -39,7 +40,7 @@ ajouter `--apply` pour produire :
 - Le séparateur entre sections est une règle Markdown horizontale.
 - Cette fonction assemble des **sources relues** ; elle ne démontre ni la
   justesse des schémas ni la qualité pédagogique. Vérifier visuellement les
-  tableaux, retours à la ligne, blocs de code et pagination PDF/DOCX sur les
+  tableaux, retours à la ligne, blocs de code et pagination PDF/DOCX/ODT sur les
   véritables livrables avant soutenance ou livraison.
 
 L'assemblage hors ligne n'augmente pas automatiquement le plafond de production

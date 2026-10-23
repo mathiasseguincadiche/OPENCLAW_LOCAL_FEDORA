@@ -49,7 +49,7 @@ if(registry.tools.length!==8) throw new Error('Native tool registration incomple
 for (const [name,role,params] of [
  ['clawfedora_artifact','redacteur-pedagogique',{format:'markdown',
   content:'# Guide\\n\\nUne étape.\\n',
-  exports:['pdf','docx','txt']}],
+  exports:['pdf','docx','odt','txt']}],
  ['clawfedora_outline','ingenieur-devops',{kind:'runbook',title:'Sauvegarde'}],
  ['clawfedora_diagram','architecte-solutions',{nodes:['Atelier','Ollama'],edges:[[0,1]]}],
  ['clawfedora_check','auditeur-qualite',{format:'yaml',content:'server: 127.0.0.1'}],
@@ -63,6 +63,11 @@ for (const [name,role,params] of [
  if(!tool) throw new Error('Missing factory '+name);
  const result=await tool.execute('verification',params);
  if(!result.content?.[0]?.text) throw new Error('Missing result '+name);
+ if(name==='clawfedora_artifact') {
+  const value=JSON.parse(result.content[0].text);
+  if(!value.references?.odt?.startsWith('@tool-file:'))
+   throw new Error('Missing managed ODT export reference');
+ }
  if(name==='clawfedora_diagram') {
   const value=JSON.parse(result.content[0].text);
   if(!value.drawio_reference?.startsWith('@tool-drawio:') ||

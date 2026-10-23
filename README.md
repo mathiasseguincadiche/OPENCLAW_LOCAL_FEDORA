@@ -19,7 +19,7 @@
 | **Préparer** une infrastructure | Architecture, scripts, configurations, runbooks et points de contrôle |
 | **Travailler sur un projet** | Sources, plan, tâches, approbations, état persistant et livrables |
 | **Vérifier** la qualité | Audit de risques, cohérence et rapports de preuves sans déploiement implicite |
-| **Documenter** un résultat | Markdown éditable, exports PDF/DOCX et schémas Draw.io |
+| **Documenter** un résultat | Markdown éditable, exports PDF/DOCX/ODT et schémas Draw.io |
 
 Le chat peut aussi analyser de petits fichiers texte **sans créer de projet**. Les projets restent indépendants ; une seule génération d'inférence est exécutée à la fois pour préserver la B580 et sa VRAM.
 

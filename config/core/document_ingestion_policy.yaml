@@ -18,6 +18,10 @@ formats:
     extensions: [.docx, .pptx, .xlsx]
     method: local_zip_xml_extract
     initial_status: READ
+  opendocument:
+    extensions: [.odt]
+    method: local_odt_text_extract
+    initial_status: READ
   archive:
     extensions: [.zip]
     method: local_safe_archive_extract
@@ -34,4 +38,4 @@ limits:
   archive_max_compression_ratio: 200
   nested_archives_are_opaque: true
 coverage_statuses: [READ, PARTIAL, UNREADABLE]
-coverage_methods: [local_text_extract, local_zip_xml_extract, local_safe_archive_extract, pdf, view_image, raw_file]
+coverage_methods: [local_text_extract, local_zip_xml_extract, local_odt_text_extract, local_safe_archive_extract, pdf, view_image, raw_file]

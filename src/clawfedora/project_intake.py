@@ -313,6 +313,19 @@ def build_ingestion_index(project: Path, repo_root: Path) -> Path:
                     text_limit,
                     limits,
                 )
+            elif kind == "opendocument":
+                from clawfedora.odt_documents import MAX_INPUT, extract_text
+
+                if source.stat().st_size > MAX_INPUT:
+                    raise ValueError("ODT : fichier limité à 8 Mio")
+                text = extract_text(source.read_bytes(), max_chars=text_limit)
+                output = artifact_root / "extracted.txt"
+                output.write_text(text, encoding="utf-8")
+                detail = {
+                    "representation": output.name,
+                    "truncated": False,
+                    "scope": "text-only-no-layout-images-or-macro-execution",
+                }
             elif kind == "archive":
                 detail = _archive_extract(
                     source,
@@ -348,7 +361,6 @@ def build_ingestion_index(project: Path, repo_root: Path) -> Path:
     path = project / "context" / "ingestion" / "index.json"
     write_json(path, index)
     return path
-
 
 
 def append_intake_items(

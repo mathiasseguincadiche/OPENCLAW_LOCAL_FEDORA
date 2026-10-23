@@ -467,6 +467,7 @@ def _resolve_tool_files(
                 "txt": {".txt"},
                 "pdf": {".pdf"},
                 "docx": {".docx"},
+                "odt": {".odt"},
                 "yaml": {".yaml", ".yml"},
                 "json": {".json"},
                 "py": {".py"},
@@ -482,7 +483,9 @@ def _resolve_tool_files(
                 extension == "dockerfile" and Path(output).name == "Dockerfile"
             ):
                 raise ValueError("extension du fichier différente du format produit")
-            if extension in {"pdf", "docx"} or extension == "txt" and proof["format"] == "markdown":
+            if extension in {"pdf", "docx", "odt"} or (
+                extension == "txt" and proof["format"] == "markdown"
+            ):
                 source = str(Path(output).with_suffix(".md"))
                 if original.get(source) != f"@tool-file:{identifier}:md":
                     raise ValueError("export: inclure la source Markdown du même outil")
@@ -653,7 +656,8 @@ def run_project_tasks(
                 f"Consulte d'abord context/retrieval/{task_id}.json pour les passages pertinents. "
                 "Les critères seront vérifiés séparément par auditeur-qualite. "
                 "Produire le format demandé avec clawfedora_artifact; renvoyer ses références. "
-                "PDF/DOCX: inclure la source .md de même nom; les exports sont dérivés localement. "
+                "PDF/DOCX/ODT: inclure la source .md de même nom; "
+                "les exports sont dérivés localement. "
                 "Schéma de sortie: "
                 + json.dumps(response_schema("task\n" + json.dumps(task)), ensure_ascii=False)
                 + "\n"

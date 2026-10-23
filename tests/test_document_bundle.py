@@ -10,6 +10,7 @@ from docx import Document
 from pypdf import PdfReader
 
 from clawfedora.document_bundle import assemble, build_bundle
+from clawfedora.odt_documents import extract_text
 
 
 def test_bundle_keeps_editable_source_and_exact_binary_provenance(tmp_path: Path) -> None:
@@ -24,13 +25,14 @@ def test_bundle_keeps_editable_source_and_exact_binary_provenance(tmp_path: Path
     assert list(out.iterdir()) == []
     actual = build_bundle([first, second], out, "runbook", apply=True)
     assert actual["dry_run"] is False
-    assert len(actual["files"]) == 4
+    assert len(actual["files"]) == 5
     md = (out / "runbook.md").read_text()
     assert "# Introduction" in md and "## Procédure" in md
     assert "---" in md
     assert PdfReader(io.BytesIO((out / "runbook.pdf").read_bytes())).pages
     document = Document(io.BytesIO((out / "runbook.docx").read_bytes()))
     assert any(p.text == "Procédure" for p in document.paragraphs)
+    assert "Procédure" in extract_text((out / "runbook.odt").read_bytes())
     manifest = json.loads((out / "runbook.manifest.json").read_text())
     for name, digest in manifest["exports"].items():
         assert hashlib.sha256((out / name).read_bytes()).hexdigest() == digest
@@ -52,12 +54,13 @@ def test_duplicate_and_oversized_sections_are_refused(tmp_path: Path) -> None:
         assemble([src])
 
 
-def test_export_is_all_or_nothing_when_target_exists(tmp_path: Path) -> None:
+@pytest.mark.parametrize("extension", ["pdf", "docx", "odt"])
+def test_export_is_all_or_nothing_when_target_exists(tmp_path: Path, extension: str) -> None:
     src = tmp_path / "part.md"
     src.write_text("# Hello\n\ntext")
     out = tmp_path / "out"
     out.mkdir()
-    existing = out / "guide.pdf"
+    existing = out / f"guide.{extension}"
     existing.write_bytes(b"original")
     with pytest.raises(ValueError, match="existe déjà"):
         build_bundle([src], out, "guide", apply=True)
