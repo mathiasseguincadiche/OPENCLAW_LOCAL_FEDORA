@@ -367,6 +367,22 @@ class BridgeHandler(BaseHTTPRequestHandler):
             return
         if not self._authorized():
             self._send(401, {"error": {"message": "authentification locale requise"}})
+        elif self.path.split("?", 1)[0] == "/v1/atelier":
+            from urllib.parse import parse_qs, urlsplit
+
+            from clawfedora.usage_view import overview
+
+            try:
+                query = parse_qs(urlsplit(self.path).query, keep_blank_values=True)
+                if set(query) - {"project"} or len(query.get("project", [])) > 1:
+                    raise ValueError("Choisissez un seul projet.")
+                self._send(200, overview(
+                    self.server.repo_root, self.server.runtime,
+                    query.get("project", [""])[0] or None,
+                ))
+            except (OSError, ValueError, KeyError, TypeError):
+                self._send(400, {"error": {"message":
+                    "État indisponible. Actualisez la liste et choisissez un projet existant."}})
         elif self.path == "/v1/models":
             self._send(
                 200,

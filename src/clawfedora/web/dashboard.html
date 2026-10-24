@@ -19,7 +19,7 @@
         </div>
         <span id="profile" class="badge">Connexion…</span>
       </header>
-      <nav aria-label="Espaces de travail"><a id="discussions" href="http://127.0.0.1:3000" target="_blank" rel="noopener" hidden>Ouvrir les discussions Open WebUI</a><a href="#create-heading">Créer un projet</a></nav>
+      <nav aria-label="Espaces de travail"><a id="discussions" href="http://127.0.0.1:3000" target="_blank" rel="noopener" hidden>Ouvrir les discussions Open WebUI</a><a id="open-create" href="#create-heading">Créer un projet</a></nav>
       <section class="resources" aria-label="Ressources de l’ordinateur">
         <article>
           <span>Mémoire de l’ordinateur</span><strong id="ram">—</strong>
@@ -34,10 +34,11 @@
       <p id="activity" class="activity" aria-live="polite">
         Chargement de l’état…
       </p>
+      <p id="activity-hint" class="intro"></p>
       <p id="cloud-budget" class="cloud-line" aria-live="polite"></p>
       <p id="message" role="status"></p>
       <section aria-labelledby="create-heading">
-        <h2 id="create-heading">Créer un projet</h2>
+        <details id="create-panel"><summary id="create-heading">Créer un projet</summary>
         <form id="create-form">
           <label for="project-title">Titre</label><input id="project-title" maxlength="200" required>
           <label for="project-brief">Demande, contraintes et résultats attendus</label><textarea id="project-brief" rows="4" maxlength="12000" required placeholder="Ex. Comparer deux stratégies de sauvegarde Fedora, puis documenter le choix, la restauration et les preuves à collecter."></textarea>
@@ -47,13 +48,17 @@
           <p>Les documents deviennent des entrées protégées. Leur import ne prouve pas qu’un agent les a lus.</p>
           <button type="submit">Créer dans l’atelier</button>
         </form>
+        </details>
       </section>
       <section aria-labelledby="projects-heading">
         <h2 id="projects-heading">Mes projets</h2>
+        <label for="selected">Projet ouvert dans cet atelier</label>
+        <select id="selected"><option value="">Choisir un projet…</option></select>
         <div id="projects"></div>
       </section>
       <section id="project-editor" hidden aria-labelledby="editor-heading">
         <h2 id="editor-heading">Piloter le projet</h2><p id="editor-state"></p>
+        <p id="editor-next" class="next-step"></p>
         <div id="editor-actions" class="buttons"></div>
         <p>Les propositions restent à vérifier et à approuver. Une discussion Open WebUI ne change pas l’état du projet. Les audits distinguent vérifications statiques et tests réellement exécutés.</p>
         <div id="proposal"></div><div id="clarifications"></div>
@@ -62,8 +67,7 @@
       </section>
       <section class="knowledge" aria-labelledby="knowledge-heading">
         <h2 id="knowledge-heading">Retrouver et conserver</h2>
-        <label for="selected">Projet</label
-        ><select id="selected"></select>
+        <p>Les recherches et les décisions concernent le projet ouvert ci-dessus.</p>
         <form id="search-form">
           <label for="query"
             >Rechercher dans les documents et les décisions</label

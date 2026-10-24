@@ -60,19 +60,26 @@ Redémarrer Open WebUI et confirmer qu'un second compte ne peut pas être créé
 Après `webui-seal --apply`, dans le navigateur :
 - vérifier que les filtres et actions `clawfedora_files` et
   `clawfedora_project_actions` sont présents, actifs et globaux ;
-- vérifier que **Voir les projets**, **État du projet**, **Voir les sources**,
-  **Commandes disponibles**, **Quel modèle choisir ?** et
-  **Budget DeepSeek** apparaissent sous les messages ;
-- cliquer sur chacun, vérifier le retour en notification et l'absence
-  d'appels au modèle, de dépense cloud ou de transition de projet ;
-- sélectionner un projet de test puis **Voir les sources** : vérifier les noms
-  des fichiers importés et leur état, sans afficher leur contenu ni modifier
-  l'index ; tester l'absence de projet et l'inventaire modifié ;
-- les six boutons **en lecture seule** doivent continuer à fonctionner sans
-  confirmation ni transition de projet ;
-- sélectionner un projet fictif de test, puis vérifier la présence des huit
-  actions **Analyser**, **Plan**, **Lancer**, **Pause**, **Reprendre**,
-  **Auditer**, **Relire**, **Préparer la livraison** ;
+- vérifier les six entrées **Choisir un projet**, **Projet et prochaine étape**,
+  **Activité de l’atelier**, **Créer un projet**, **Actions du projet** et
+  **Sources, modèles et aide** ;
+- ouvrir **Choisir un projet sous la dernière réponse**, sélectionner un projet
+  de test et recharger la page : sélection conservée, texte de la réponse et
+  liens de téléchargement préservés, aucun appel au modèle ni transition du projet ;
+- annuler la sélection, tester une liste vide et un projet supprimé : aucun
+  choix fictif ni modification de fichiers ;
+- dans un fil déjà maintenu en local par le filtre, changer de projet puis
+  sélectionner le modèle cloud : le maintien en local doit rester effectif ;
+- utiliser **Projet et prochaine étape**, puis **Activité de l’atelier** pendant
+  une génération : retour disponible, activité et temps connu cohérents avec
+  l’Atelier Projets, sans nouvel appel IA ni sortie de prompt ou de secret ;
+- ouvrir **Sources, modèles et aide** et tester chaque consultation. Pour les
+  sources, tester un projet absent et un inventaire modifié ; le contenu des
+  documents ne doit pas être présenté comme une nouvelle analyse ;
+- ouvrir **Actions du projet** et vérifier analyse, précisions, plan, préparation
+  de validation, lancement, pause, reprise, audit, relecture, révision et livraison ;
+- choisir une action dans le menu : sa confirmation distincte doit encore
+  nommer le projet concerné ;
 - **annuler** chaque confirmation : aucune commande ni transition ne doit suivre ;
 - déconnecter le navigateur pendant un dialogue : aucun déclenchement ;
 - vérifier que `WEBSOCKET_EVENT_CALLER_TIMEOUT=300` est conservé
@@ -93,10 +100,10 @@ Après `webui-seal --apply`, dans le navigateur :
   titre multiligne et une description démesurée : aucun projet créé, aucun
   appel au modèle, aucune fuite d'historique ni d'identifiants ;
 - sélectionner un projet, répondre à une question de cadrage via
-  **Répondre à une précision**, puis vérifier que l'annulation, une
+  **Actions du projet → Répondre à une précision**, puis vérifier que l'annulation, une
   erreur de navigateur et un numéro invalide n'envoient rien ;
 - sélectionner une tâche déjà planifiée, demander une révision via
-  **Demander une révision**, puis vérifier que le navigateur affiche le
+  **Actions du projet → Demander une révision**, puis vérifier que le navigateur affiche le
   numéro de tâche et le motif à saisir ; annuler chacun des champs ou
   la confirmation et vérifier qu'aucune révision n'est créée ;
 - confirmer le dialogue de révision : vérifier que le pont énumère
@@ -106,10 +113,23 @@ Après `webui-seal --apply`, dans le navigateur :
   code valide sur un projet de test ;
 - vérifier que l'Action installée se nomme « ClawFedora — contrôle des projets »
   et que sa description ne prétend plus limiter les boutons à la lecture seule ;
-- comparer `!budget` et le bouton Budget DeepSeek : mêmes montants du
+- comparer `!budget` et Sources, modèles et aide → Consulter le budget DeepSeek : mêmes montants du
   journal local, aucune génération IA ni appel OpenRouter ;
 - saisir un relevé fournisseur factice uniquement dans un laboratoire de test
   séparé, vérifier que l'estimation ne devient **jamais** une facture annoncée.
+
+### Cohérence du dossier dans l’Atelier Projets
+
+- Avec deux projets, ouvrir le premier par sa carte puis le second par le
+  sélecteur : titre du dossier, recherche et cible d’une décision doivent suivre
+  le même choix explicite.
+- Lancer une recherche, changer de projet avant son retour : les anciens
+  résultats ne doivent pas apparaître sous le nouveau projet.
+- Ouvrir rapidement deux dossiers : la dernière ouverture demandée doit gagner.
+- Pendant une génération, vérifier l’activité et le temps écoulé, ainsi que la
+  désactivation des actions de génération ; la consultation du dossier reste possible.
+- Sur écran étroit, vérifier l’absence de débordement horizontal. Le formulaire
+  de création doit pouvoir s’ouvrir et conserver la saisie pendant le rafraîchissement.
 
 ## 1 ter. Streaming incrémental — raccordement opt-in
 

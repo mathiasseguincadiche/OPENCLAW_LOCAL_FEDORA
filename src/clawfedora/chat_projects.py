@@ -22,7 +22,6 @@ from typing import Any
 from clawfedora import chat_approvals, chat_proposals, project_cloud
 from clawfedora.knowledge import search
 from clawfedora.project_common import assert_no_symlinks, project_path, read_json
-from clawfedora.project_control import progress
 from clawfedora.project_intake import validate_input_integrity
 from clawfedora.project_worker import worker_lock
 
@@ -276,13 +275,15 @@ def status_text(repo_root: Path, runtime: Path, project: Path) -> str:
     run_job = chat_run.job_line(runtime, project.name)
     if run_job:
         lines.append(run_job)
-    step = chat_flow.next_step(runtime, project)
+    from clawfedora.usage_view import activity, project_hint
+
+    step = project_hint(runtime, project)
     if step:
         lines.append(f"Prochaine étape : {step}")
-    working = progress(runtime)
+    working = activity(runtime)
     if working.get("active") and working.get("project_id") == project.name:
-        lines.append(f"Un traitement est en cours : {_cell(working.get('phase', ''), 30)} "
-                     f"{_cell(working.get('task_id', ''), 40)}".rstrip())
+        elapsed = " · depuis " + working["elapsed_label"] if working["elapsed_label"] else ""
+        lines.append(working["label"] + elapsed + ". " + working["hint"])
     return "\n".join(lines)
 
 

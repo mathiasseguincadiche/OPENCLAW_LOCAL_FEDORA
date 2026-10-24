@@ -1,5 +1,15 @@
 "use strict";
 const $ = (id) => document.getElementById(id);
+let workerBusy = false;
+let gamingProfile = false;
+function updateEditorActions() {
+  for (const button of document.querySelectorAll("#editor-actions button[data-idle]")) {
+    button.disabled = button.dataset.pending === "true" || workerBusy ||
+      (gamingProfile && button.dataset.generation === "true");
+    button.title = workerBusy ? "Attendez la fin de l’activité en cours." :
+      gamingProfile && button.dataset.generation === "true" ? "L’IA est suspendue en mode jeu." : "";
+  }
+}
 const states = {
   INTAKE_READY: "Documents reçus",
   ANALYZED: "Demande analysée",
@@ -11,23 +21,6 @@ const states = {
   REVIEW: "Relecture attendue",
   PACKAGING: "Livraison en préparation",
   COMPLETE: "Terminé",
-};
-const phases = {
-  chat: "Une discussion utilise le modèle local",
-  proposed: "Proposition prête à vérifier et approuver",
-  preparing: "Préparation et recherche documentaire",
-  running: "Une spécialité travaille",
-  paused: "Travail en pause",
-  failed: "Une tâche demande votre attention",
-  awaiting_validation: "Livrables prêts pour la validation",
-  reviewing: "L’auditeur examine les livrables",
-  reviewed: "Audit enregistré",
-  interrupted: "Travail interrompu — reprise possible",
-  awaiting_practice: "À vous de compléter et vérifier cette étape",
-  awaiting_feedback: "Travail reçu : retour du spécialiste à demander",
-  feedback: "Relecture ciblée de votre travail",
-  feedback_ready: "Retour disponible : lire puis poursuivre",
-  awaiting_next_step: "Étape soumise — préparez la suivante",
 };
 const eur = (n) => Number(n).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + " €";
 function cloudLine(cloud) {
@@ -99,9 +92,14 @@ async function refresh() {
       data.models.map((m) => m.name).join(", ") || "Aucun modèle chargé";
     $("discussions").hidden = !data.webui_installed;
     const worker = data.worker;
+    workerBusy = worker.active;
+    gamingProfile = data.profile === "gaming";
+    updateEditorActions();
+    const activity = data.activity;
     $("activity").textContent =
-      (phases[worker.phase] || "Aucun travail actif") +
-      (worker.active && worker.task_id ? " · " + worker.task_id : "");
+      activity.label + (activity.elapsed_label ? " · depuis " + activity.elapsed_label : "") +
+      (activity.project_id ? " · projet " + activity.project_id : "");
+    $("activity-hint").textContent = activity.hint;
     const cloud = data.cloud || {};
     $("cloud-budget").textContent = !cloud.ready
       ? "Cloud : désactivé (tout reste en local)"
@@ -119,8 +117,15 @@ async function refresh() {
       " / " +
       data.versions.ollama;
     const selected = $("selected").value;
+    if (!$("create-panel").dataset.initialized) {
+      $("create-panel").open = !data.projects.length;
+      $("create-panel").dataset.initialized = "true";
+    }
     $("projects").replaceChildren();
     $("selected").replaceChildren();
+    const empty = node("option", "Choisir un projet…");
+    empty.value = "";
+    $("selected").append(empty);
     for (const project of data.projects) {
       const option = node("option", project.title);
       option.value = project.project_id;
@@ -144,6 +149,8 @@ async function refresh() {
         ),
       );
       detail.append(node("p", cloudLine(project.cloud), "cloud-line"));
+      if (project.next_step)
+        detail.append(node("p", "Prochaine étape : " + project.next_step.replaceAll("`", ""), "next-step"));
       if (project.cloud && project.cloud.pause)
         detail.append(node("p", "Pause cloud : " + project.cloud.pause.message, "error"));
       if (project.total) {
@@ -167,6 +174,14 @@ async function refresh() {
         project.awaiting_practice ||
         data.profile === "gaming" ||
         !["ASSIGNED", "IN_PROGRESS"].includes(project.status);
+      const unavailable = worker.active ? "Une activité est en cours : attendez sa fin." :
+        data.profile === "gaming" ? "L’IA est suspendue en mode jeu." :
+        project.awaiting_practice ? "Complétez et soumettez d’abord votre étape guidée." :
+        "Ouvrez le projet pour préparer et approuver les étapes précédentes.";
+      if (resume.disabled) {
+        resume.title = unavailable;
+        detail.append(node("p", unavailable));
+      }
       pause.addEventListener("click", () =>
         action("/api/pause", { project_id: project.project_id }),
       );
@@ -181,6 +196,12 @@ async function refresh() {
     }
     if (data.projects.some((p) => p.project_id === selected))
       $("selected").value = selected;
+    if (openedProject && !data.projects.some((p) => p.project_id === openedProject)) {
+      openedProject = null;
+      editorSequence++;
+      $("project-editor").hidden = true;
+      $("hits").replaceChildren();
+    }
     if (!data.projects.length)
       $("projects").append(
         node(
@@ -193,7 +214,7 @@ async function refresh() {
   }
 }
 $("index").addEventListener("click", async () => {
-  if (!$("selected").value) return;
+  if (!$("selected").value) { tell("Choisissez d’abord un projet dans Mes projets.", true); return; }
   const report = await action("/api/index", {
     project_id: $("selected").value,
   });
@@ -209,15 +230,17 @@ $("index").addEventListener("click", async () => {
 $("search-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   $("hits").replaceChildren();
-  if (!$("selected").value) return;
+  const projectId = $("selected").value;
+  if (!projectId) { tell("Choisissez d’abord un projet dans Mes projets.", true); return; }
   try {
     const hits = await api(
       "/api/search?" +
         new URLSearchParams({
-          project: $("selected").value,
+          project: projectId,
           q: $("query").value,
         }),
     );
+    if ($("selected").value !== projectId) return;
     if (!hits.length)
       $("hits").append(
         node(
@@ -269,7 +292,7 @@ $("search-form").addEventListener("submit", async (event) => {
 });
 $("note-form").addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (!$("selected").value) return;
+  if (!$("selected").value) { tell("Choisissez d’abord un projet dans Mes projets.", true); return; }
   const saved = await action("/api/remember", {
     project_id: $("selected").value,
     title: $("note-title").value,
@@ -288,6 +311,17 @@ setInterval(refresh, 5000);
 
 let openedProject = null;
 let editorSequence = 0;
+$("selected").addEventListener("change", () => {
+  const id = $("selected").value;
+  if (id) loadProject(id);
+  else {
+    openedProject = null;
+    editorSequence++;
+    $("project-editor").hidden = true;
+    $("hits").replaceChildren();
+    tell("Choisissez un projet pour ouvrir son dossier, ses recherches et ses décisions.");
+  }
+});
 function field(form, label, value, multiline = false) {
   const wrap = node("label", label), input = node(multiline ? "textarea" : "input");
   input.value = value || "";
@@ -299,21 +333,31 @@ function field(form, label, value, multiline = false) {
 async function loadProject(id) {
   try {
     const sequence = ++editorSequence;
+    $("selected").value = openedProject || "";
+    $("project-editor").hidden = true;
+    tell("Ouverture du projet…");
     const data = await api("/api/project?" + new URLSearchParams({ project: id }));
     if (sequence !== editorSequence) return;
     openedProject = id;
+    $("selected").value = id;
+    $("hits").replaceChildren();
     $("project-editor").hidden = false;
     $("editor-heading").textContent = data.manifest.title;
     $("editor-state").textContent = states[data.manifest.status] || data.manifest.status;
+    $("editor-next").textContent = "Prochaine étape : " + (data.next_step || "Consultez les actions disponibles.").replaceAll("`", "");
     $("editor-actions").replaceChildren();
     const addAction = (label, path, extra = {}) => {
       const button = node("button", label);
+      button.dataset.idle = "true";
+      button.dataset.generation = String(path !== "/api/complete");
       button.addEventListener("click", async () => {
         const sequence = editorSequence;
+        button.dataset.pending = "true";
         button.disabled = true;
         const result = await action(path, { project_id: id, ...extra });
         if (result && sequence === editorSequence) { tell("Action reçue. Actualisez le dossier pour consulter le résultat."); await loadProject(id); }
-        button.disabled = false;
+        delete button.dataset.pending;
+        updateEditorActions();
       });
       $("editor-actions").append(button);
     };
@@ -326,6 +370,7 @@ async function loadProject(id) {
     if (data.manifest.status === "VALIDATING") addAction("Lancer la validation", "/api/audit", { kind: "validation" });
     if (data.manifest.status === "REVIEW") addAction("Lancer la relecture", "/api/audit", { kind: "review" });
     if (data.manifest.status === "PACKAGING") addAction("J’approuve la livraison finale", "/api/complete", { human_approved: true });
+    updateEditorActions();
     renderCloud(id);
     $("artifacts").replaceChildren();
     for (const file of data.files) {
@@ -353,6 +398,7 @@ async function loadProject(id) {
     await renderMentor(id);
     if (sequence !== editorSequence) return;
     renderLearning(id, data);
+    tell("Projet ouvert : " + data.manifest.title);
     renderRevision(id, data);
   } catch (error) { tell(error.message, true); }
 }
@@ -437,9 +483,10 @@ $("create-form").addEventListener("submit", async event => {
       files.push({ name: file.name, content: btoa(raw) });
     }
     const result = await action("/api/create", { title: $("project-title").value, brief: $("project-brief").value, files, learning_mode: $("learning-mode").value, learning_goals: $("learning-goals").value.split("\n").map(s => s.trim()).filter(Boolean) });
-    if (result) { $("create-form").reset(); await loadProject(result.project_id); tell("Projet créé; préparez son cadrage."); }
+    if (result) { $("create-form").reset(); $("create-panel").open = false; await loadProject(result.project_id); tell("Projet créé; préparez son cadrage."); }
   } catch (error) { tell(error.message, true); }
 });
+$("open-create").addEventListener("click", () => { $("create-panel").open = true; });
 
 async function renderMentor(id) {
   const area = $("mentor"); area.replaceChildren();

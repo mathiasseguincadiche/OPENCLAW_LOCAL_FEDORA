@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import json
 import threading
 from contextlib import closing
@@ -212,11 +213,20 @@ def test_setup_pins_limits_preserves_secrets_and_closes_registration(tmp_path: P
     metadata = json.loads(raw_meta)
     assert "confirmation humaine" in metadata["description"]
     assert "code à usage unique" in metadata["description"]
-    assert '"id": "create"' in source
-    assert '"id": "answer"' in source
-    assert '"id": "revise"' in source
-    assert '"id": "deliver"' in source
-    assert '"id": "budget"' in source
+    module = ast.parse(source)
+    action_class = next(n for n in module.body if isinstance(n, ast.ClassDef) and n.name == "Action")
+    toolbar = next(n.value for n in action_class.body if isinstance(n, ast.Assign)
+                   and any(isinstance(t, ast.Name) and t.id == "actions" for t in n.targets))
+    assert {item["id"] for item in ast.literal_eval(toolbar)} == {
+        "choose", "status", "activity", "create", "project_actions", "resources",
+    }
+    menu = next(n.value for n in module.body if isinstance(n, ast.Assign)
+                and any(isinstance(t, ast.Name) and t.id == "PROJECT_MENU" for t in n.targets))
+    assert {"answer", "revise", "deliver", "validate"} <= ast.literal_eval(menu).keys()
+    assert source == (ROOT / "plugins/openwebui/clawfedora_project_actions.py").read_text()
+    resources = next(n.value for n in module.body if isinstance(n, ast.Assign)
+                     and any(isinstance(t, ast.Name) and t.id == "RESOURCE_MENU" for t in n.targets))
+    assert {"budget", "models", "help", "sources"} <= ast.literal_eval(resources).keys()
     assert all(
         settings[key] == "false"
         for key in (

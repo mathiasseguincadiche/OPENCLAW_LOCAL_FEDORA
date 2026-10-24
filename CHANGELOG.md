@@ -4,6 +4,13 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 24 octobre 2026 — parcours WebUI et visibilité du travail
+
+- Six raccourcis regroupés : sélection visuelle du projet conservée dans le fil sans effacer la réponse, état et prochaine étape, activité, création et menus d’actions/aide.
+- Vue locale authentifiée en lecture seule pour les métadonnées et l’activité ; aucun historique, document ou jeton opérateur transmis à cette consultation, aucun modèle appelé.
+- Atelier Projets : un sélecteur commun au dossier, aux recherches et aux décisions ; résultats tardifs d’un autre projet ignorés, prochaine étape affichée, raisons d’indisponibilité et temps écoulé connu. Le formulaire de création se replie lorsque des projets existent.
+- Confirmations, phrases à usage unique, filtrage cloud et verrou de génération conservés. Streaming et arrêt effectif restent un chantier distinct à qualifier sur Fedora.
+
 ### 23 octobre 2026 — documents OpenDocument (ODT)
 
 - Export ODT éditable depuis la même source Markdown que PDF/DOCX/TXT : titres, paragraphes, listes, citations, tableaux simples et code, sans nouvelle dépendance de production.

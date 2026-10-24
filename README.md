@@ -43,6 +43,8 @@ Le chat peut aussi analyser de petits fichiers texte **sans créer de projet**. 
 
 **Documentation contrôlée :** [sommaire et sources de vérité](docs/README.md) · [audit transversal du 20 octobre 2026](docs/AUDIT_DOCUMENTATION_2026_10.md). Les plans historiques restent des archives ; les essais Fedora/cloud restent à réaliser.
 
+**Prise en main WebUI :** six raccourcis regroupent le choix du projet, la prochaine étape, l’activité, la création et les menus d’actions et d’aide. [Parcours de discussion](docs/fiches/03-discuter.md#six-raccourcis-pour-commencer).
+
 **Qualification de la pédagogie :** quatre dimensions (clarté, profondeur, interactivité, exactitude), scénarios de discussion sur trois tours et score humain /20, sans appel automatique au cloud. [Protocole](docs/EVALUATION_PEDAGOGIE.md).
 
 **Pédagogie et sobriété :** les consignes privilégient une réponse utile, un petit exemple OPS et une vérification concrète plutôt que des pages répétitives. Les profils cloud `rapide`, `equilibre` et `approfondi` sont choisis manuellement ; `approfondi` reste le défaut historique. [Consignes](docs/PROMPTS.md) · [Réglages](docs/fiches/08-reglages.md).
