@@ -23,6 +23,7 @@ from clawfedora.project_control import is_paused, progress, request_pause, worke
 from clawfedora.project_engine import current_status, transition_project
 from clawfedora.project_revision import impact, revise
 from clawfedora.project_worker import review_project, run_project_tasks, worker_lock
+from clawfedora.usage_view import activity, project_hint
 
 
 def _cloud_brief(repo_root: Path, runtime: Path, project: Path) -> dict[str, Any]:
@@ -61,6 +62,7 @@ def snapshot(repo_root: Path, runtime: Path) -> dict[str, Any]:
                     "awaiting_practice": bool(awaiting(path.parent)),
                     "awaiting_feedback": bool(pending_feedback(path.parent)),
                     "cloud": _cloud_brief(repo_root, runtime, path.parent),
+                    "next_step": project_hint(runtime, path.parent),
                 }
             )
         except (OSError, ValueError, KeyError):
@@ -101,6 +103,7 @@ def snapshot(repo_root: Path, runtime: Path) -> dict[str, Any]:
         "ollama_available": ollama_available,
         "gateway_available": gateway_available,
         "worker": progress(runtime),
+        "activity": activity(runtime),
         "cloud": project_cloud.overview(repo_root, runtime),
         "projects": projects,
         "mentor": profile(runtime),
@@ -202,7 +205,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 query = parse_qs(url.query)
                 project = self._project(query["project"][0])
                 if url.path == "/api/project":
-                    self._send(200, project_ui.details(project))
+                    details = project_ui.details(project)
+                    details["next_step"] = project_hint(self.server.runtime, project)
+                    self._send(200, details)
                 else:
                     self._artifact(project, query.get("path", [""])[0])
             elif url.path == "/api/cloud":

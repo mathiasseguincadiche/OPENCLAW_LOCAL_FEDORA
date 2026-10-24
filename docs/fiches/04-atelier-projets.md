@@ -6,6 +6,19 @@ L'atelier, à l'adresse `http://127.0.0.1:18890`, sert aux travaux qui dépassen
 
 Si Open WebUI n'est pas installé, lance l'atelier seul avec `./menu.sh --action dashboard` et garde le terminal ouvert.
 
+## Se repérer dans l’atelier
+
+Le sélecteur **Projet ouvert dans cet atelier** et les boutons **Ouvrir le projet**
+affichent le même dossier. Les recherches et les décisions concernent ce projet.
+Un changement de projet efface les anciens résultats de recherche affichés ;
+une réponse de recherche tardive provenant d’un autre projet est ignorée.
+Ce sélecteur ne change pas le projet sélectionné dans une conversation WebUI.
+
+La prochaine étape apparaît sur la carte et dans le dossier. Le suivi en haut
+indique l’activité partagée et le temps écoulé connu ; une action indisponible
+explique la condition à remplir. Le formulaire de création est replié lorsque
+des projets existent ; **Créer un projet** l’ouvre et le conserve pendant la saisie.
+
 ## Le parcours d'un projet
 
 **Une façon de s'y retrouver :** le mentor **cadre**, l'architecte **conçoit**, le DevOps **prépare**, la sécurité **relit les risques**, le rédacteur **explique** et l'auditeur **vérifie les preuves**. Ces spécialistes ne sont appelés que si la tâche le justifie ; ce sont des rôles du même modèle, pas sept IA simultanées. [Le détail des rôles](07-roles-et-outils.md).

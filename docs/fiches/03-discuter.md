@@ -4,25 +4,44 @@
 
 Open WebUI est l'interface de discussion, à l'adresse `http://127.0.0.1:3000`. Elle sert aux questions de tous les jours, comme tu le ferais avec Claude ou ChatGPT.
 
-## Boutons de lecture rapide (Open WebUI)
+## Six raccourcis pour commencer
 
-Après la création de ton compte administrateur et `webui-seal --apply`, cinq
-raccourcis **en lecture seule** peuvent apparaître sous les réponses : **Voir les projets**,
-**État du projet**, **Commandes disponibles**, **Quel modèle choisir ?** et
-**Budget DeepSeek**. Ils interrogent le pont local authentifié
-et affichent une notification, sans modifier le projet, sans utiliser le modèle
-et sans dépenser de tokens. Ils ne remplacent pas encore les commandes de création,
-d'approbation et de livraison ni l'Atelier Projets : ces opérations gardent
-leurs confirmations humaines.
+Après la création du compte administrateur et `webui-seal --apply`, six entrées
+regroupent les actions sous les réponses :
 
-La présence et le bon fonctionnement de ces boutons doivent être vérifiés dans
-le vrai navigateur (voir `docs/SMOKE_TEST_WEBUI.md`). Le bouton
-**Quel modèle choisir ?** affiche une orientation statique locale et **n'analyse
-pas l'historique du chat** : il ne transmet aucun prompt privé à un modèle,
-ne choisit pas le fournisseur à ta place et ne donne pas d'autorisation cloud.
-Le bouton **Budget DeepSeek** indique le plafond et les dépenses conservatrices
-du **journal local**, sans requête au modèle ni facture récupérée automatiquement
-chez OpenRouter.
+| Raccourci | Utilité |
+|---|---|
+| **Choisir un projet** | Choisir dans une liste, sans retenir son identifiant |
+| **Projet et prochaine étape** | Lire l’état, les tâches et la suite proposée |
+| **Activité de l’atelier** | Consulter le travail en cours et le temps écoulé connu |
+| **Créer un projet** | Préparer le titre et le besoin, puis demander sa confirmation |
+| **Actions du projet** | Ouvrir le menu analyse, plan, validation, lancement, pause, relecture et livraison |
+| **Sources, modèles et aide** | Consulter les sources, la liste des projets, le conseil de modèle, le budget et les commandes |
+
+Utilise **Choisir un projet sous la dernière réponse** de la conversation : le
+projet choisi apparaît en tête de cette réponse, dont le texte est conservé.
+Ce choix est enregistré dans ce fil ; il ne modifie ni les fichiers, ni les
+accords cloud du projet. Annuler la liste ne change rien. La commande
+`!projet <id>` reste disponible. Sur une réponse plus ancienne, le choix ne
+remplace pas les sélections figurant dans les réponses suivantes.
+
+Les consultations ne lancent aucun modèle ni appel cloud. L’activité utilise
+le verrou partagé et l’étape signalée par l’atelier ; le temps écoulé s’affiche
+seulement si son horodatage est exploitable. Aucun pourcentage de génération
+n’est inventé. Ce raccourci reste consultable pendant qu’un traitement travaille ;
+il ne transforme pas le bouton Arrêter en annulation effective.
+
+Le conseil **Quel modèle choisir ?**, dans **Sources, modèles et aide**, reste
+une orientation statique locale : il ne consulte pas l’historique, ne choisit
+pas le fournisseur et ne donne pas d’accord cloud. **Consulter le budget DeepSeek**
+lit le journal local, sans récupérer automatiquement la facture OpenRouter.
+
+Sur une installation existante, après la mise à jour du dépôt, relance
+`./menu.sh --action webui-seal --apply` pour réinstaller la Function gérée et
+redémarrer WebUI. Le pont et le tableau de bord doivent aussi utiliser le code
+mis à jour ; la procédure normale de mise à niveau redémarre les services.
+Les menus natifs et leur persistance restent à qualifier dans le vrai Open WebUI
+Fedora : [protocole navigateur](../SMOKE_TEST_WEBUI.md).
 
 ## Piloter les projets avec les boutons de confirmation
 
@@ -34,10 +53,11 @@ génère une phrase `approuver creation CODE` valable 15 minutes, à
 recopier séparément dans le chat. Le formulaire ne sollicite aucun
 modèle IA et ne contacte pas OpenRouter.
 
-Après sélection d'un projet dans le chat (`!projet <id>`), huit actions
-visuelles supplémentaires sont prévues sous les réponses : **Analyser le projet**,
-**Préparer le plan**, **Lancer les tâches**, **Mettre en pause**, **Reprendre**,
-**Auditer**, **Relire** et **Préparer la livraison**.
+Après sélection d’un projet, ouvre **Actions du projet**, puis choisis
+l’opération dans la liste. Le menu rappelle la prochaine étape connue. Les actions
+existantes y sont regroupées, avec **Relire et préparer la validation** pour
+consulter le brouillon et préparer sa confirmation humaine. Le pont vérifie
+l’état du projet au moment de l’action ; le menu ne donne aucune autorisation.
 
 Ces actions ne sont **pas** des instructions données au modèle. Chaque clic
 demande d'abord une **confirmation explicite dans le navigateur**. Un clic
@@ -52,17 +72,17 @@ si une tâche est déjà en cours ou si le cloud n'est pas autorisé. Le navigat
 **ne reçoit aucun accès direct aux API privilégiées d'OpenClaw**.
 
 **Préparer la livraison** ne livre pas automatiquement : le pont crée encore
-une phrase d'approbation à usage unique, à taper séparément dans le chat. Les
-Le bouton **Répondre à une précision** demande le numéro visible avec
+une phrase d’approbation à usage unique, à taper séparément dans le chat.
+L’action **Répondre à une précision**, dans **Actions du projet**, demande le numéro visible avec
 `!questions` (entre 1 et 30), puis votre réponse (jusqu'à 1 500 caractères).
-Il demande une confirmation explicite avant de transmettre uniquement
+Elle demande une confirmation explicite avant de transmettre uniquement
 le numéro et le texte au pont local. Le moteur vérifie l'existence de
 la question et l'état du projet ; un numéro inventé n'autorise rien.
 L'annulation d'un champ ou du dialogue ne déclenche aucune commande.
 
-Les autres actions qui demandent des informations supplémentaires
-(révision, soumission de fichiers) restent accessibles par commande
-ou par l'Atelier Projets.
+**Demander une révision** figure aussi dans **Actions du projet** ; le formulaire
+demande la tâche et le motif avant la confirmation. Les soumissions de fichiers
+restent accessibles par commande ou par l’Atelier Projets.
 
 La compatibilité des dialogues, l'affichage effectif des boutons et le
 comportement après coupure du navigateur devront être vérifiés sur le véritable
@@ -85,7 +105,7 @@ et la passerelle de confidentialité/budget restent obligatoires.
 
 ## Suivre le budget de DeepSeek sans quitter le chat
 
-Tape `!budget`, ou utilise le bouton **Budget DeepSeek**. Le pont lit le journal
+Tape `!budget`, ou ouvre **Sources, modèles et aide → Consulter le budget DeepSeek**. Le pont lit le journal
 local des réservations et relevés déjà enregistrés : **montant engagé prudent,
 plafond de 25 €, reste estimé et nombre d'appels incertains**. Ce n'est pas la
 facture OpenRouter en temps réel : les crédits prépayés, la limite de clé et

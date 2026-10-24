@@ -1,6 +1,6 @@
 # État du projet — Atelier IA hybride Fedora
 
-**Référence logicielle : 23 octobre 2026.** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
+**Référence logicielle : 24 octobre 2026.** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
 ## Résumé vérifiable
 
@@ -15,6 +15,7 @@
 | **Open WebUI 0.12.3** | Implémenté/testé en simulation ou intégration partielle | Navigateur, boutons, fichiers et microphone **À faire** en réception réelle |
 | **Sept rôles et projets multiples** | Contrats et tests automatisés ; scénarios pédagogiques multi-tours /20 et préférences approuvées | Réponses réelles, interactivité et qualité comparative Gemini/DeepSeek **À mesurer**, sans note automatique |
 | **Cloud OpenRouter / DeepSeek V4.1 Flash 1017** | Instantané épinglé du 17 octobre ; filtres et budget testés en simulation | Appel OpenRouter réel, compatibilité `data_collection: deny`, `reasoning.effort`, coût et facturation **À faire** avec accord |
+| **Parcours WebUI simplifié** | Implémenté, réception Open WebUI Fedora à effectuer | Six raccourcis, choix du projet et activité locale ; l’Atelier Projets partage le contexte de dossier/recherche/décisions. Voir [la prise en main](docs/fiches/03-discuter.md). |
 | **Documents ODT** | Export éditable et import textuel implémentés | Source Markdown, téléchargements et provenance communs ; limites d’import [documentées](docs/fiches/06-fichiers-et-schemas.md). Réception dans le navigateur Fedora à effectuer. |
 | **Sauvegarde / restauration** | Tests de restauration et SQLite fictif réussis | Restauration du vrai état de l’installation **À faire** |
 

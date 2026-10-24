@@ -85,6 +85,14 @@ h2 {
   background: #e8eee7;
   border-radius: 0 8px 8px 0;
 }
+.next-step {
+  color: var(--accent);
+  font-weight: 600;
+}
+#create-heading {
+  font-size: 22px;
+  font-weight: 700;
+}
 .project {
   padding: 20px 0;
   border-bottom: 1px solid var(--line);

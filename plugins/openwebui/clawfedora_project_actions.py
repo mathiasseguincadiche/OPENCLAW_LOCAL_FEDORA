@@ -14,10 +14,12 @@ import json
 import os
 import re
 from typing import Any
+from urllib.parse import urlencode
 
 # Only fixed commands are exposed. The bridge performs all project-state checks.
 # Every state-changing button requires an affirmative browser confirmation first.
 PROJECT_ACTIONS = {
+    "validate": ("!valider", "Afficher le brouillon et préparer sa confirmation humaine ?"),
     "analyze": ("!analyser", "Lancer l'analyse du projet sélectionné ?"),
     "plan": ("!planifier", "Préparer un plan pour le projet sélectionné ?"),
     "start": ("!lancer", "Démarrer les tâches du projet approuvé ?"),
@@ -36,6 +38,93 @@ READ_ONLY_ACTIONS = {
     "models": "!modele",
     "budget": "!budget",
 }
+
+PROJECT_MENU = {
+    "analyze": "Analyser les sources", "answer": "Répondre à une précision",
+    "plan": "Préparer le plan", "validate": "Relire et préparer la validation",
+    "start": "Lancer les tâches", "pause": "Mettre en pause", "resume": "Reprendre",
+    "audit": "Valider les livrables", "review": "Relire le projet",
+    "revise": "Demander une révision", "deliver": "Préparer la livraison",
+}
+RESOURCE_MENU = {
+    "projects": "Lister les projets", "sources": "Voir les sources du projet",
+    "models": "Quel modèle choisir ?", "budget": "Consulter le budget DeepSeek",
+    "help": "Toutes les commandes",
+}
+
+
+def _project_id(history: object) -> str | None:
+    marker = _project_marker(history)
+    if marker is None:
+        return None
+    identifier = marker.removeprefix("📁 Projet : ").removesuffix(" · pont")
+    if re.fullmatch(r"[a-z0-9][a-z0-9-]{1,62}[a-z0-9]", identifier) is None:
+        raise ValueError("Projet non reconnu. Utilisez Choisir un projet.")
+    return identifier
+
+
+def atelier_view(key: str, current: str | None = None, *, port: int = 18891) -> dict[str, Any]:
+    """Read only bounded metadata from the authenticated local bridge."""
+    if not isinstance(key, str) or len(key) < 32:
+        raise ValueError("jeton du pont local absent")
+    path = "/v1/atelier" + ("?" + urlencode({"project": current}) if current else "")
+    connection = http.client.HTTPConnection("127.0.0.1", port, timeout=8)
+    try:
+        connection.request("GET", path, headers={"Authorization": "Bearer " + key})
+        response = connection.getresponse()
+        raw = response.read(64_001)
+        if response.status != 200 or len(raw) > 64_000:
+            raise ValueError("État indisponible. Actualisez ou choisissez un projet existant.")
+        value = json.loads(raw)
+        if not isinstance(value, dict) or not isinstance(value.get("projects"), list):
+            raise ValueError("État de l’atelier invalide")
+        if len(value["projects"]) > 50 or not isinstance(value.get("activity"), dict):
+            raise ValueError("État de l’atelier hors limites")
+        return value
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError("Atelier indisponible. Vérifiez son état dans l’Atelier Projets.") from exc
+    finally:
+        connection.close()
+
+
+async def _choose(call: Any, title: str, message: str, choices: dict[str, str]) -> str | None:
+    if call is None:
+        raise ValueError("formulaire navigateur indisponible")
+    answer = await call({"type": "input", "data": {
+        "title": title, "message": message, "placeholder": "Choisir…",
+        "input": {"type": "select", "options": [
+            {"value": key, "label": label} for key, label in choices.items()
+        ]},
+    }})
+    if type(answer) is not str or not answer.strip():
+        return None
+    if answer not in choices:
+        raise ValueError("Choix non proposé. Ouvrez de nouveau le menu.")
+    return answer
+
+
+def _selection(body: dict[str, Any], identifier: str) -> dict[str, Any]:
+    """Update only this answer's context marker; preserve its content and the other turns."""
+    messages = body.get("messages")
+    if not isinstance(messages, list) or not messages:
+        raise ValueError("Utilisez ce bouton sous une réponse de la conversation.")
+    last = messages[-1]
+    if (
+        not isinstance(last, dict) or last.get("role") != "assistant"
+        or not isinstance(last.get("id"), str) or not last["id"]
+        or last["id"] != body.get("id") or not isinstance(last.get("content"), str)
+    ):
+        raise ValueError("Réponse de conversation non reconnue : utilisez le dernier message.")
+    content = last["content"]
+    head, separator, rest = content.partition("\n\n")
+    bridge = head.endswith(" · pont") and head.startswith("📁")
+    if re.fullmatch(r"📁 Projet : [a-z0-9][a-z0-9-]{1,62}[a-z0-9](?: · pont)?", head) or (
+        head == "📁 Aucun projet · pont"
+    ):
+        content = rest if separator else ""
+    marker = "📁 Projet : " + identifier + (" · pont" if bridge else "")
+    return {"messages": [{"id": last["id"], "role": "assistant",
+                          "content": marker + "\n\n" + content}]}
 
 
 def _project_marker(history: object) -> str | None:
@@ -157,23 +246,12 @@ def read_only_bridge(
 
 class Action:
     actions = [
-        {"id": "projects", "name": "Voir les projets"},
-        {"id": "status", "name": "État du projet"},
-        {"id": "sources", "name": "Voir les sources"},
-        {"id": "help", "name": "Commandes disponibles"},
-        {"id": "models", "name": "Quel modèle choisir ?"},
-        {"id": "budget", "name": "Budget DeepSeek"},
+        {"id": "choose", "name": "Choisir un projet"},
+        {"id": "status", "name": "Projet et prochaine étape"},
+        {"id": "activity", "name": "Activité de l’atelier"},
         {"id": "create", "name": "Créer un projet"},
-        {"id": "answer", "name": "Répondre à une précision"},
-        {"id": "revise", "name": "Demander une révision"},
-        {"id": "analyze", "name": "Analyser le projet"},
-        {"id": "plan", "name": "Préparer le plan"},
-        {"id": "start", "name": "Lancer les tâches"},
-        {"id": "pause", "name": "Mettre en pause"},
-        {"id": "resume", "name": "Reprendre"},
-        {"id": "audit", "name": "Auditer"},
-        {"id": "review", "name": "Relire"},
-        {"id": "deliver", "name": "Préparer la livraison"},
+        {"id": "project_actions", "name": "Actions du projet"},
+        {"id": "resources", "name": "Sources, modèles et aide"},
     ]
 
     async def action(
@@ -184,11 +262,78 @@ class Action:
         __event_emitter__: Any = None,
         __event_call__: Any = None,
         **_: Any,
-    ) -> None:
+    ) -> dict[str, Any] | None:
         if (__user__ or {}).get("role") != "admin":
             raise ValueError("action interdite")
         secret = os.environ.get("OPENAI_API_KEY", "")
         history = body.get("messages")
+        if __id__ == "choose":
+            view = await asyncio.to_thread(atelier_view, secret)
+            choices = {
+                str(row["id"]): f"{row['title']} · {row['state']} ({row['id']})"
+                for row in view["projects"]
+                if isinstance(row, dict) and isinstance(row.get("id"), str)
+                and re.fullmatch(r"[a-z0-9][a-z0-9-]{1,62}[a-z0-9]", row["id"])
+            }
+            if not choices:
+                if __event_emitter__ is not None:
+                    await __event_emitter__({"type": "notification", "data": {
+                        "type": "info", "content": "Aucun projet. Utilisez Créer un projet.",
+                    }})
+                return None
+            chosen = await _choose(
+                __event_call__, "Choisir le projet de cette conversation",
+                "Choisissez un projet. Ses fichiers restent inchangés. "
+                "Utilisez le bouton sous la dernière réponse pour les prochains échanges.", choices,
+            )
+            if chosen is None:
+                return None
+            refreshed = await asyncio.to_thread(atelier_view, secret, chosen)
+            if (refreshed.get("selected") or {}).get("id") != chosen:
+                raise ValueError("Ce projet n’est plus disponible. Actualisez la liste.")
+            # Native Open WebUI action responses persist the updated answer. A notification
+            # alone would show the selection without preserving it in the conversation.
+            result = _selection(body, chosen)
+            if __event_emitter__ is not None:
+                await __event_emitter__({"type": "notification", "data": {
+                    "type": "info", "content": "Projet sélectionné : " + chosen +
+                    ". Consultez Projet et prochaine étape pour continuer.",
+                }})
+            return result
+        if __id__ == "activity":
+            view = await asyncio.to_thread(atelier_view, secret)
+            state = view["activity"]
+            output = str(state["label"])
+            if state.get("elapsed_label"):
+                output += " · depuis " + str(state["elapsed_label"])
+            if state.get("project_id"):
+                output += " · projet " + str(state["project_id"])
+            output += "\n" + str(state["hint"])
+            if __event_emitter__ is not None:
+                await __event_emitter__({"type": "notification", "data": {
+                    "type": "info", "content": output,
+                }})
+            return None
+        if __id__ == "project_actions":
+            current = _project_id(history)
+            if current is None:
+                raise ValueError("Utilisez Choisir un projet, puis ouvrez Actions du projet.")
+            view = await asyncio.to_thread(atelier_view, secret, current)
+            selected = view.get("selected") or {}
+            __id__ = await _choose(
+                __event_call__, "Actions du projet « " + current + " »",
+                str(selected.get("next_step", "Consultez l’état du projet avant de continuer.")),
+                PROJECT_MENU,
+            )
+            if __id__ is None:
+                return None
+        elif __id__ == "resources":
+            __id__ = await _choose(
+                __event_call__, "Sources, modèles et aide",
+                "Ces consultations ne lancent aucune génération ni appel cloud.", RESOURCE_MENU,
+            )
+            if __id__ is None:
+                return None
         if __id__ in READ_ONLY_ACTIONS:
             output = await asyncio.to_thread(
                 read_only_bridge, READ_ONLY_ACTIONS[__id__], history, key=secret
@@ -333,7 +478,7 @@ class Action:
                 raise ValueError("projet non sélectionné")
             confirmed = await __event_call__(
                 {"type": "confirmation", "data": {
-                    "title": "Action de projet", "message": warning,
+                    "title": "Projet « " + str(_project_id(history)) + " »", "message": warning,
                 }}
             )
             if confirmed is not True:

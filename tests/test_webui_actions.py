@@ -146,7 +146,7 @@ def test_mutating_button_requires_positive_browser_confirmation(monkeypatch: Any
     ))
     assert commands == ["!lancer"]
     assert prompts == [{"type": "confirmation", "data": {
-        "title": "Action de projet", "message": "Démarrer les tâches du projet approuvé ?",
+        "title": "Projet « mon-projet »", "message": "Démarrer les tâches du projet approuvé ?",
     }}]
     assert emitted[0]["data"]["type"] == "info"
 
