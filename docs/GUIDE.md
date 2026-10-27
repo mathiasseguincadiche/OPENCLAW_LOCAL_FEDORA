@@ -89,32 +89,32 @@ Pour une application Linux à déployer, l'intérêt est de ne pas mélanger arc
 
 ## 6. Préparer et installer Fedora
 
-**Parcours recommandé :** installer Fedora 45 Workstation stable / GNOME 51 sur le SSD système, puis monter le second disque durablement sous **`/data`**. Les données de l'atelier sont installées dans **`/data/IA/Openclaw/`**. La machine cible (Ryzen 7 7700, 48 Go, Arc B580) n'a pas encore fait l'objet d'une réception physique.
+**Premier essai prévu :** démarrer Fedora 45 Workstation / GNOME 51 en Live USB
+et suivre le [contrôle matériel autonome](LIVE_USB_FEDORA45_PREQUALIFICATION.md).
+Cette étape ne teste pas encore OpenClaw, Qwen ou WebUI ; elle ne nécessite aucune
+installation de l'atelier ni écriture sur les SSD internes par le script.
+
+**Pour l'atelier complet :** suivre ensuite le [guide d'installation unique](INSTALLATION_SIMPLE_FEDORA45.md)
+sur Fedora installé, avec le disque secondaire monté sous **`/data`** et le runtime
+**`/data/IA/Openclaw/`**. Le guide regroupe les prérequis, le clonage, les contrôles,
+l'installation et la reconnexion nécessaire avant WebUI.
+
+Après installation et configuration du compte WebUI, depuis le dépôt :
 
 ```bash
-findmnt --mountpoint /data   # vérifier que le second disque est monté
-git clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
-cd OPENCLAW_LOCAL_FEDORA
-./menu.sh --action install                 # aperçu
-./menu.sh --action install --apply
-```
-
-Après reconnexion à la session Fedora pour prendre en compte les groupes GPU :
-
-```bash
-./menu.sh --action webui-install --apply
-# Ouvrir http://127.0.0.1:3000 et créer le compte local
-./menu.sh --action webui-seal --apply
 ./menu.sh --action quick-check
 ```
 
-**Un seul contrôle rapide suffit pour commencer :** vérifier les services, la B580 et une courte réponse Qwen, puis essayer une vraie question dans WebUI et un petit projet. Les benchmarks 8K/16K/32K, stress tests et canaries ne sont pas des prérequis au premier usage.
+Un résultat `READY_FOR_FIRST_PROJECT` ouvre le premier essai de discussion et de petit
+projet. Il reste à vérifier les [défauts ouverts de l'audit](AUDIT_SOURCE_2026_10_27.md),
+les réponses réelles et la restauration avant de considérer l'atelier fiable au quotidien.
+Les benchmarks et canaries restent facultatifs.
 
-→ [Installer sans deviner](INSTALLATION_SIMPLE_FEDORA45.md) · [Réception technique facultative](validation/README.md).
+→ [Réception détaillée et limites des preuves](validation/README.md).
 
 ## 7. Documents, dessins et validations : ne pas mélanger
 
-- **Markdown** : la source éditable d'un guide. Le PDF et le DOCX sont des exports issus de cette source.
+- **Markdown** : la source éditable d'un guide. Le PDF, le DOCX et l’ODT sont des exports issus de cette source.
 - **Draw.io** : le schéma éditable de l'architecte. Le SVG n'est qu'un aperçu qui ne se resynchronise pas automatiquement.
 - **Contrôle statique** : peut signaler des erreurs JSON/YAML/Python, Bash, Markdown ou secrets selon l'agent. Cela **n'exécute ni Terraform ni Ansible**.
 - **Preuve d'exécution** : un résultat réellement obtenu sur la plateforme cible, daté et attribuable à la bonne version.
@@ -151,7 +151,7 @@ Le code et les tests automatiques existent. Les performances GPU, la vraie compa
 | Discuter, charger un petit fichier, utiliser les commandes | [03 — Discuter](fiches/03-discuter.md) |
 | Gérer les sources, les tâches et les approbations | [04 — Atelier Projets](fiches/04-atelier-projets.md) |
 | Comprendre sans exercices imposés | [05 — Apprendre](fiches/05-apprendre.md) |
-| Produire PDF, DOCX, Terraform et Draw.io | [06 — Fichiers et schémas](fiches/06-fichiers-et-schemas.md) |
+| Produire PDF, DOCX, ODT, Terraform et Draw.io | [06 — Fichiers et schémas](fiches/06-fichiers-et-schemas.md) |
 | Choisir un agent et comprendre ses outils | [07 — Rôles et outils](fiches/07-roles-et-outils.md) |
 | Configurer les limites | [08 — Réglages](fiches/08-reglages.md) |
 | Sauvegarder et mettre à jour | [09 — Entretenir](fiches/09-entretenir.md) |

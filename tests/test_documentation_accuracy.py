@@ -148,14 +148,14 @@ def test_install_guide_uses_real_line_breaks_instead_of_escaped_newlines() -> No
 
 def test_first_installation_guide_does_not_require_missing_python_dependencies() -> None:
     """A clean Workstation has no promise of git or project PyYAML before bootstrap."""
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
     full = (ROOT / "docs/INSTALLATION_SIMPLE_FEDORA45.md").read_text(
         encoding="utf-8"
     )
     handout = (ROOT / "docs/fiches/01-installer.md").read_text(
         encoding="utf-8"
     )
-    for document in (readme, full, handout):
+    # Installation commands live in operational guides; the README links to them.
+    for document in (full, handout):
         assert "command -v git >/dev/null 2>&1 || sudo dnf5 install -y git" in document
         assert "mountpoint -q /data" in document
         assert 'cd "/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA"' in document
@@ -208,8 +208,8 @@ def test_menu_is_executable_and_invokes_the_expected_installation_stages() -> No
     assert "systemctl --user restart clawfedora-webui-bridge.service" in webui
 
 
-def test_readme_has_precheck_install_smoke_and_32k_acceptance_in_order() -> None:
-    for path in ("README.md", "docs/INSTALLATION_SIMPLE_FEDORA45.md"):
+def test_install_guide_has_precheck_install_smoke_and_32k_acceptance_in_order() -> None:
+    for path in ("docs/INSTALLATION_SIMPLE_FEDORA45.md",):
         content = (ROOT / path).read_text(encoding="utf-8")
         commands = (
             "./menu.sh --action precheck",
@@ -221,3 +221,16 @@ def test_readme_has_precheck_install_smoke_and_32k_acceptance_in_order() -> None
         )
         positions = [content.index(command) for command in commands]
         assert positions == sorted(positions), path
+
+
+def test_readme_routes_live_prequalification_and_installation_to_separate_guides() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md" in readme
+    assert "docs/INSTALLATION_SIMPLE_FEDORA45.md" in readme
+    assert "docs/AUDIT_SOURCE_2026_10_27.md" in readme
+    assert "bash scripts/linux/16_live_usb_preflight.sh" in readme
+    # The hardware-only Live probe must not become an installer recipe.
+    live = (ROOT / "docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md").read_text(encoding="utf-8")
+    assert "\\`" not in live
+    assert "INSTALLATION_AUTHORIZED=false" in live
+    assert "OpenClaw, Qwen et Open WebUI" in live

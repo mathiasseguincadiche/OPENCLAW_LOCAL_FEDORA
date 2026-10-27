@@ -4,7 +4,7 @@
 
 Le projet conserve tes sources et tes décisions : **sauvegarder** ne signifie pas encore **avoir testé une restauration**. Toute preuve de restauration doit venir d'un essai réel.
 
-Avant toute opération de cette fiche, attends la fin d'une génération en cours ou mets ton projet en pause : ces commandes refusent de s'exécuter pendant que le modèle travaille.
+Avant toute opération de cette fiche, attends la fin effective d'une génération et ferme les interfaces. La pause de projet est coopérative : elle n'interrompt pas immédiatement une génération. L'[audit du 27 octobre](../AUDIT_SOURCE_2026_10_27.md) relève que la sauvegarde et la réparation n'acquièrent pas toutes le verrou du worker ; leur refus automatique pendant une génération n'est donc pas garanti. La réparation, la désinstallation et la purge présentent aussi des défauts ouverts : traiter ces points avant de les qualifier sur des données utiles.
 
 ## Sauvegarder
 
@@ -102,4 +102,4 @@ Ce qui grossit : `backups/` (supprime les anciennes sauvegardes dont tu n'as plu
 ./menu.sh --action uninstall --apply --purge-data  # supprime aussi les données
 ```
 
-La purge ne touche qu'au dossier `/data/IA/Openclaw`.
+La purge cible les données gérées sous `/data/IA/Openclaw`, mais ne constitue pas une suppression complète du dossier : sources, sauvegardes et certaines données de runtime restent présentes. Les droits du répertoire des modèles peuvent actuellement provoquer un arrêt partiel après suppression d'autres données. Ne pas utiliser cette purge comme preuve de nettoyage complet avant correction et essai isolé.

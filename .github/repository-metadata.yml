@@ -1,6 +1,6 @@
 schema_version: 1
 repository:
-  description: "Atelier IA hybride DevOps sur Fedora 45 : Qwen 3.5 local, DeepSeek cloud facultatif, 7 rôles OpenClaw, Intel Arc B580 et projets sur /IA."
+  description: "Atelier IA hybride DevOps sur Fedora 45 : Qwen 3.5 local, DeepSeek cloud facultatif, 7 rôles OpenClaw, Intel Arc B580 et projets sur /data/IA/Openclaw."
   homepage: null
   topics:
     - fedora

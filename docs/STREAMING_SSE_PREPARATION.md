@@ -4,7 +4,8 @@
 
 ## Situation exacte
 
-L'API Chat Completions native d'OpenClaw 2026.9.8 accepte le streaming
+Le canary cible OpenClaw **2026.10.4**, version épinglée dans
+`config/runtime_versions.yaml`. L'API Chat Completions native expose le streaming
 `text/event-stream`. **Mais ce point d'entrée dispose de privilèges
 d'opérateur**, y compris sous authentification par jeton. Il ne doit
 **jamais** être exposé directement au navigateur, à Open WebUI, aux sept
@@ -72,7 +73,7 @@ configuration OpenClaw, jamais depuis une réponse du modèle.
    terminaison `finish_reason=stop` seulement après succès,
    erreur visible sinon, aucune injection de faux marqueur projet.
 7. Valider la version OpenClaw épinglée et l'instance Open WebUI actuellement
-   épinglée en canary ; la migration v0.12 reste une qualification séparée.
+   épinglée (**Open WebUI 0.12.3**) en canary ; une ancienne migration ne vaut pas réception de cette version.
    Réaliser ensuite les essais finaux sur Fedora.
 
 Le code livré n'active pas automatiquement l'API opérateur : le marqueur

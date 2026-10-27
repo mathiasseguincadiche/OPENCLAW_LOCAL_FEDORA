@@ -2,12 +2,17 @@
 
 ## Choix retenu
 
+**Avant cette installation :** le premier essai prévu se fait en
+[Live USB Fedora 45 / GNOME 51](LIVE_USB_FEDORA45_PREQUALIFICATION.md).
+Il préqualifie le matériel ; il ne teste pas l'atelier complet. Lire aussi
+les [corrections ouvertes de l'audit](AUDIT_SOURCE_2026_10_27.md) avant la réception.
+
 Fedora 45 Workstation / GNOME 51 est installé **normalement sur le SSD système**.
 Le Python 3.15 du système n'est pas modifié : l'atelier utilise un venv isolé
 en **Python 3.13** (fourni par Fedora) pour rester compatible avec la voix.
 Le deuxième disque, formaté en EXT4, est
 monté au démarrage sous **`/data`**. L'atelier utilise **`/data/IA/Openclaw/`**.
-Pas de clé Live ni de benchmarks longs imposés.
+La clé Live constitue l'étape matérielle préalable retenue ; les benchmarks longs restent facultatifs.
 
 ## 1. Préparer le deuxième disque une seule fois
 

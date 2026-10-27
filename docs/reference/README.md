@@ -17,7 +17,8 @@ Cette section s’adresse à une personne souhaitant vérifier **pourquoi** l’
 | Justification des modèles | [Décision de modèle](../DECISION_MODELE.md) |
 | Fichiers et responsabilités | [Architecture expliquée](../fiches/11-comment-ca-marche.md) · [Sécurité](../../SECURITY.md) |
 
-Pour la revue transversale des guides et le tableau des sources de vérité, lire [l'audit documentaire du 20 octobre 2026](../AUDIT_DOCUMENTATION_2026_10.md).
+Pour les constats actuels, lire [l'audit du code source du 27 octobre 2026](../AUDIT_SOURCE_2026_10_27.md).
+La [revue documentaire du 20 octobre](../AUDIT_DOCUMENTATION_2026_10.md) conserve son périmètre historique.
 
 Les fichiers YAML/JSON du dossier `config/` et le code de `src/` font foi lorsqu’une version, un plafond ou un chemin change. La documentation doit suivre **la même PR**.
 

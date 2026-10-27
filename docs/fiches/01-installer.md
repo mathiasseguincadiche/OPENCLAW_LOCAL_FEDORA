@@ -4,6 +4,10 @@
 
 Pour découvrir **ce que tu installes** avant de lancer les scripts, consulte le schéma des composants et le rôle d'OpenClaw/Ollama.
 
+**Premier essai prévu :** [Live USB Fedora 45 / GNOME 51](../LIVE_USB_FEDORA45_PREQUALIFICATION.md).
+Il vérifie le matériel sans installer l'atelier. Cette fiche s'applique ensuite à Fedora installé,
+avec les [défauts ouverts de l'audit](../AUDIT_SOURCE_2026_10_27.md) à traiter avant réception complète.
+
 ## Ce qu'il faut avant de commencer
 
 | Élément | Attendu | Vérifier |

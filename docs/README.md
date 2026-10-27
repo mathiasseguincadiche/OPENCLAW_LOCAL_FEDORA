@@ -7,11 +7,13 @@
 | Je veux… | Ouvrir |
 | --- | --- |
 | Comprendre le projet en quelques minutes | [Présentation](../README.md) puis [Guide de découverte](GUIDE.md) |
+| Essayer Fedora sur la machine avant installation | [Live USB : contrôle matériel et limites](LIVE_USB_FEDORA45_PREQUALIFICATION.md) |
 | Installer Fedora et l’atelier | [Installation simple et vérification unique](INSTALLATION_SIMPLE_FEDORA45.md) |
 | Vérifier que mon installation fonctionne | [Premiers essais](fiches/02-premier-essai.md) : **`./menu.sh --action quick-check`** |
 | Discuter avec Qwen | [Fiche 03 — Discussion](fiches/03-discuter.md) |
 | Créer ou reprendre un projet | [Fiche 04 — Atelier Projets](fiches/04-atelier-projets.md) |
 | Savoir ce qui est réellement testé | [État et limites](../STATUS.md) |
+| Lire les défauts et priorités avant la réception | [Audit du code source — 27 octobre 2026](AUDIT_SOURCE_2026_10_27.md) |
 | Comparer la pédagogie DeepSeek/Qwen/Gemini sur 20 | [Conversations pédagogiques et grille 5/5](EVALUATION_PEDAGOGIE.md) |
 
 ## Les 12 fiches pédagogiques
@@ -30,7 +32,8 @@ Les fiches sont un **parcours de référence**, pas douze étapes obligatoires �
 ## Approfondir, sans alourdir le premier démarrage
 
 - [Architecture hybride Qwen / DeepSeek](ARCHITECTURE_HYBRIDE.md) et [schémas éditables](diagrams/).
-- [Audit transversal de la documentation — 20 octobre 2026](AUDIT_DOCUMENTATION_2026_10.md) (43 pages préexistantes revues, corrections et limites de preuve).
+- [Audit du code source — 27 octobre 2026](AUDIT_SOURCE_2026_10_27.md) : maturité, anomalies reproduites, priorités et périmètre du test Live.
+- [Revue documentaire du 20 octobre 2026](AUDIT_DOCUMENTATION_2026_10.md) : instantané historique des 43 pages alors présentes ; l'état courant est dans `STATUS.md`.
 - [Qualification pédagogique et comparaison des conversations](EVALUATION_PEDAGOGIE.md) (score humain /20 ; pas de validation d'un modèle par la CI).
 - [Références d’ingénierie](reference/README.md) : intégrité des composants, sécurité, cloud, prompts, fonctionnement interne.
 - [Réception et tests avancés facultatifs](validation/README.md) : GPU, WebUI, voix, sauvegardes, qualité des agents.
