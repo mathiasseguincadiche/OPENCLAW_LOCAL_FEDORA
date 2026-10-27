@@ -4,6 +4,14 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 27 octobre 2026 — audit de maturité et documentation simplifiée
+
+- Audit du code source, des scripts, des protections et des interfaces sur la référence fusionnée #155 ; défauts reproduits et priorités distinctes des limites encore à mesurer sur le PC.
+- README raccourci : présentation, interfaces, essai Live USB, installation et liens utiles. Les commandes complètes d'installation restent dans les guides opérationnels.
+- Parcours documentaire aligné sur le premier essai matériel en Live USB Fedora 45 / GNOME 51, sans le présenter comme un test complet de l'atelier ; blocs Markdown du guide Live réparés et calendrier Fedora sourcé.
+- État des preuves actualisé, ODT rappelé dans le guide, version du canary SSE et métadonnées de stockage corrigées ; tests de navigation adaptés à la suppression des recettes dupliquées.
+- Cette révision documente les anomalies ; elle ne les corrige pas dans le moteur ou les scripts de maintenance.
+
 ### 24 octobre 2026 — parcours WebUI et visibilité du travail
 
 - Six raccourcis regroupés : sélection visuelle du projet conservée dans le fil sans effacer la réponse, état et prochaine étape, activité, création et menus d’actions/aide.

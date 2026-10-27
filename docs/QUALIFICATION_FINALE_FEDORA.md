@@ -1,6 +1,6 @@
 # Qualification finale Fedora — résultats réels uniquement
 
-> **Parcours utilisateur prioritaire :** [installation Fedora 45 directe + `/data/IA/Openclaw` + contrôle rapide](INSTALLATION_SIMPLE_FEDORA45.md). Les vérifications approfondies ci-dessous sont une **réception technique facultative** pour diagnostiquer une anomalie ou mesurer finement le GPU. La clé Live n'est pas requise.
+> **Parcours retenu :** [préqualification matérielle en Live USB](LIVE_USB_FEDORA45_PREQUALIFICATION.md), puis [installation Fedora 45 + `/data/IA/Openclaw` + contrôle rapide](INSTALLATION_SIMPLE_FEDORA45.md). Les vérifications ci-dessous portent sur l'atelier installé. Le contrôle Live seul ne les remplace pas. Consulter les [défauts ouverts](AUDIT_SOURCE_2026_10_27.md) avant de prononcer la réception.
 
 
 Ce dossier distingue **précontrôle logiciel** et **réception sur le PC fixe**.

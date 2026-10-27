@@ -1,155 +1,86 @@
 # Atelier IA hybride — Infrastructure & OPS
 
-<p align="center"><img src=".github/social-preview.svg" alt="Atelier IA Fedora, Qwen local et DeepSeek cloud, sept rôles spécialisés" width="100%"></p>
+<p align="center"><img src=".github/social-preview.svg" alt="Atelier IA Fedora : Qwen local, DeepSeek cloud facultatif et sept rôles OpenClaw" width="100%"></p>
 
 [![CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml)
 [![Fedora 45](https://img.shields.io/badge/Fedora-45-51A2DA?logo=fedora&logoColor=white)](https://fedoraproject.org/)
 [![Licence MIT](https://img.shields.io/badge/Licence-MIT-green.svg)](LICENSE)
 
-**Un atelier IA personnel conçu pour apprendre le DevOps infrastructure, préparer des déploiements, analyser des configurations et mener plusieurs projets documentés.** Sept rôles OpenClaw partagent un moteur **Qwen 3.5 9B local**, avec **DeepSeek V4.1 Flash 1017 via OpenRouter** comme option cloud explicitement autorisée.
+**Un atelier IA personnel pour apprendre, préparer et documenter des projets DevOps sur Fedora.** OpenClaw organise sept rôles autour de **Qwen 3.5 9B local**. **DeepSeek via OpenRouter** apporte une route cloud facultative, sur autorisation explicite.
 
-> **État actuel :** CI logicielle opérationnelle ; **le PC cible reste à valider**. Les tests automatisés ne prouvent pas encore les performances réelles de l'Intel Arc B580, le navigateur, la voix ni la facturation cloud. [État détaillé](STATUS.md).
+[Découvrir](docs/GUIDE.md) · [Tester en Live USB](docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md) · [Installer](docs/INSTALLATION_SIMPLE_FEDORA45.md) · [Documentation](docs/README.md) · [État du projet](STATUS.md)
 
-## Ce que l'atelier permet de faire
+> **En qualification : le PC cible reste à valider.** L'audit du 27 octobre relève des corrections à réaliser avant un usage quotidien. Le projet n'a pas encore tourné sur le PC dans le cadre de cette réception. [Constats et priorités](docs/AUDIT_SOURCE_2026_10_27.md).
 
-| Besoin | Résultat visé |
+## Ce que tu peux faire
+
+- **Discuter et apprendre** : poser une question ou analyser de petits fichiers sans créer de projet.
+- **Préparer une infrastructure** : architectures, configurations, scripts, runbooks et points de contrôle.
+- **Organiser un projet** : sources, plan, tâches, validations humaines et livrables persistants.
+- **Rédiger et vérifier** : Markdown, exports PDF/DOCX/ODT, schémas Draw.io et audits de cohérence.
+
+L'IA explique et propose. Les actions sensibles et la livraison restent soumises à ta validation ; l'atelier ne déploie pas automatiquement l'infrastructure préparée.
+
+## Trois façons de travailler
+
+| Interface | Usage |
 | --- | --- |
-| **Comprendre** Linux, réseau, Terraform, Ansible | Explications adaptées, exemples, exercices seulement sur demande |
-| **Préparer** une infrastructure | Architecture, scripts, configurations, runbooks et points de contrôle |
-| **Travailler sur un projet** | Sources, plan, tâches, approbations, état persistant et livrables |
-| **Vérifier** la qualité | Audit de risques, cohérence et rapports de preuves sans déploiement implicite |
-| **Documenter** un résultat | Markdown éditable, exports PDF/DOCX/ODT et schémas Draw.io |
+| **Open WebUI 0.12.3** — `http://127.0.0.1:3000` | Le chat : rôles, pièces jointes et six raccourcis pour les projets |
+| **Atelier Projets** — `http://127.0.0.1:18890` | Les sources, étapes, décisions et livrables |
+| **Terminal** — `./menu.sh` | Installation, contrôles, services et maintenance ; [CLI des projets](docs/fiches/04-atelier-projets.md#en-ligne-de-commande) |
 
-Le chat peut aussi analyser de petits fichiers texte **sans créer de projet**. Les projets restent indépendants ; une seule génération d'inférence est exécutée à la fois pour préserver la B580 et sa VRAM.
+Les projets restent indépendants. Une seule génération utilise le moteur à la fois. Le chat répond en un bloc par défaut ; le streaming reste expérimental.
 
-## Comment ça fonctionne
+## Commencer
 
-![Schéma des interfaces, rôles, modèles, passerelle cloud et stockage](docs/diagrams/atelier-architecture.svg)
+### 1. Essayer Fedora sur la machine
 
-**Deux routes, sept spécialités, validation humaine.** OpenClaw fournit les consignes et les outils autorisés aux rôles ; Ollama fait tourner le modèle local et la passerelle cloud vérifie les conditions d'accès à DeepSeek. Les outils proposés ne disposent pas d'un accès libre au terminal ni d'un droit de déploiement sur l'hôte.
-
-| Composant | Fonction | État initial |
-| --- | --- | --- |
-| **Qwen 3.5 9B Q4_K_M + Ollama** | Réponses locales, GPU Intel Arc B580/Vulkan | Actif par défaut après installation |
-| **DeepSeek V4.1 Flash 1017 + OpenRouter** | Analyse de dossiers complexes et longs contextes | Cloud **désactivé** avant activation explicite |
-| **OpenClaw** | Coordination, outils contrôlés et consignes des rôles | Sept rôles spécialisés |
-| **Open WebUI** | Interface de discussion : `127.0.0.1:3000` | Podman rootless |
-| **Atelier Projets** | Organisation et suivi : `127.0.0.1:18890` | Projets indépendants |
-
-**Les sept rôles :** Mentor infrastructure/OPS, Expert recherche, Architecte solutions, Ingénieur DevOps, Ingénieur sécurité, Rédacteur pédagogique et Auditeur qualité.
-
-![Les sept rôles spécialisés](docs/diagrams/atelier-roles.svg)
-
-**Documentation contrôlée :** [sommaire et sources de vérité](docs/README.md) · [audit transversal du 20 octobre 2026](docs/AUDIT_DOCUMENTATION_2026_10.md). Les plans historiques restent des archives ; les essais Fedora/cloud restent à réaliser.
-
-**Prise en main WebUI :** six raccourcis regroupent le choix du projet, la prochaine étape, l’activité, la création et les menus d’actions et d’aide. [Parcours de discussion](docs/fiches/03-discuter.md#six-raccourcis-pour-commencer).
-
-**Qualification de la pédagogie :** quatre dimensions (clarté, profondeur, interactivité, exactitude), scénarios de discussion sur trois tours et score humain /20, sans appel automatique au cloud. [Protocole](docs/EVALUATION_PEDAGOGIE.md).
-
-**Pédagogie et sobriété :** les consignes privilégient une réponse utile, un petit exemple OPS et une vérification concrète plutôt que des pages répétitives. Les profils cloud `rapide`, `equilibre` et `approfondi` sont choisis manuellement ; `approfondi` reste le défaut historique. [Consignes](docs/PROMPTS.md) · [Réglages](docs/fiches/08-reglages.md).
-
-**Sécurité et consentement :** aucun repli automatique du local vers le cloud. Le budget configuré est plafonné à **25 €/mois**, complété par un prépaiement et une limite chez le fournisseur. Les outils de recherche Web peuvent contacter Internet **même si Qwen est local** ; le [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) permet de les désactiver explicitement avec `./menu.sh --action web-private --apply`, après installation. Le filtre de confidentialité ne peut pas garantir qu'aucune information sensible ne sortira si l'utilisateur autorise le cloud.
-
-→ [Architecture détaillée](docs/fiches/11-comment-ca-marche.md) · [Pourquoi Qwen et DeepSeek ?](docs/ARCHITECTURE_HYBRIDE.md) · [Outils des rôles](docs/fiches/07-roles-et-outils.md)
-
-## Installation : le chemin le plus court
-
-**Plateforme visée :** Fedora 45 Workstation, GNOME 51, Wayland, AMD Ryzen 7 7700, 48 Go RAM, Intel Arc B580 12 Go. Fedora est le système hôte du projet IA. **Aucune installation de Rocky Linux** ou VM n'est nécessaire ; Open WebUI tourne sous **Podman rootless sur ce même Fedora**.
-
-1. Installer Fedora 45 Workstation sur le SSD système après sa publication officielle.
-2. Monter le **disque secondaire** de façon permanente sur `/data` (via UUID). Ne pas formater un disque contenant des données.
-3. Vérifier `findmnt --mountpoint /data` avant tout `--apply`. Le runtime est `/data/IA/Openclaw/`. Ne pas reformater un disque contenant des données ; l'installateur ne prépare pas le partitionnement pour toi.
-
-**Précontrôles dans un terminal de la session GNOME Wayland** (les valeurs attendues sont Fedora 45, GNOME 51, `wayland`, SELinux `Enforcing` et un volume distinct monté sous `/data`) :
+Le premier essai prévu utilise **Fedora 45 Workstation / GNOME 51 / Wayland en Live USB**. Le contrôle autonome observe le matériel sans installer l'atelier :
 
 ```bash
-cat /etc/fedora-release
-gnome-shell --version
-printf 'Session : %s\n' "${XDG_SESSION_TYPE:-inconnue}"
-getenforce
-findmnt --mountpoint /data
-df -h /data
+# Depuis une copie du dépôt dans la session Live, sans sudo
+bash scripts/linux/16_live_usb_preflight.sh
 ```
 
-**Vérifie les sorties avant de poursuivre.** Si `git` n'est pas déjà installé sur ton Fedora neuf, installe-le une seule fois avec la commande ci-dessous. Le gestionnaire de paquets peut demander ton mot de passe sudo ; les autres paquets sont ensuite gérés par l'installateur.
+Suivre le [guide Live USB](docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md) pour préparer le média et conserver le rapport. **Un résultat favorable préqualifie le matériel ; il ne valide pas encore OpenClaw, Qwen ou WebUI.** La date de publication de Fedora doit être vérifiée sur le site officiel avant de choisir l'ISO.
+
+### 2. Installer l'atelier
+
+Sur Fedora installé, suivre le [guide d'installation](docs/INSTALLATION_SIMPLE_FEDORA45.md), qui regroupe la préparation du stockage, le précontrôle, l'installation et la création du compte WebUI. Le runtime et ses projets utilisent **`/data/IA/Openclaw/`**, sur le disque secondaire EXT4.
+
+Après installation et configuration de WebUI, depuis le dépôt :
 
 ```bash
-command -v git >/dev/null 2>&1 || sudo dnf5 install -y git
-# Chaque étape dépend du contrôle du vrai volume secondaire.
-mountpoint -q /data &&
-  test "$(stat -c '%d' /data)" != "$(stat -c '%d' /)" &&
-  sudo install -d -m 0750 -o "$(id -un)" -g "$(id -gn)" /data/IA/Openclaw/sources &&
-  git -C /data/IA/Openclaw/sources clone https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA.git
-cd "/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA"
-
-./menu.sh --action precheck              # analyse la machine et les dépendances, sans installation
-./menu.sh --action install               # affiche le plan, ne teste PAS le matériel
-./menu.sh --action install --apply       # installation autorisée, peut demander sudo
-```
-
-Le lanceur **`menu.sh` est le seul point d'entrée à utiliser** pour cette première installation : inutile d'exécuter manuellement `scripts/linux/00_bootstrap.sh` ou `06_install.sh`. Si le dossier existe déjà, n'exécute pas `git clone` une seconde fois : ouvre ce dossier et examine ses modifications avant de le mettre à jour. La commande `install` sans `--apply` n'est **pas** un diagnostic Fedora/GPU complet ; les vrais prérequis sont vérifiés pendant `--apply`. L'installateur installe et verrouille OpenClaw, Ollama et Qwen, mais **n'active pas le cloud**.
-
-Se reconnecter à la session Fedora pour appliquer les groupes GPU `render`/`video`, puis **ouvrir un nouveau terminal et revenir dans le dépôt GitHub** :
-
-```bash
-cd "/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA"
-./menu.sh --action webui-install --apply
-# Créer le compte administrateur à http://127.0.0.1:3000
-./menu.sh --action webui-seal --apply
 ./menu.sh --action quick-check
 ```
 
-Le **pré-check est relancé automatiquement** par `install --apply` avant l’installation de paquets ou la modification des services. Il distingue les défauts bloquants (`FAIL`) des dépendances installables et éléments à vérifier (`REVIEW`).
+Si le contrôle affiche `RECEPTION=READY_FOR_FIRST_PROJECT`, poser une vraie question dans WebUI et créer un petit projet de test. Les défauts ouverts et les critères de réception restent indiqués dans [STATUS](STATUS.md).
 
-**Si `RECEPTION=READY_FOR_FIRST_PROJECT`**, ouvrir Open WebUI, poser une question réelle et créer un petit projet. Le contrôle réalise **une génération locale courte**, vérifie GPU, modèles, services, interfaces et stockage. Pas de stress test 32K ou d'appel cloud imposé. En cas d'échec, consulter le [diagnostic](docs/fiches/10-depanner.md), sans tout réinstaller.
+**Machine cible :** Ryzen 7 7700, 48 Go de RAM, Intel Arc B580 12 Go. Fedora est le système hôte du projet IA ; Open WebUI tourne sous Podman rootless sur ce même Fedora. Aucune installation de Rocky Linux n'est nécessaire. [Stockage et prérequis](docs/STOCKAGE_DATA.md).
 
-**Facultatif : qualifier le contexte 32K.** Ce test local, distinct du premier démarrage, peut être long. Il ne conditionne pas le début du travail après un `quick-check` réussi :
+## Local au quotidien, cloud sur décision
 
-```bash
-./menu.sh --action acceptance-32k         # plan, aucune génération
-./menu.sh --action acceptance-32k --apply # mesure longue sur la B580, sans cloud
-```
+Qwen travaille sur la machine avec Ollama. DeepSeek V4.1 Flash 1017 constitue une option pour les dossiers complexes : aucun repli automatique du local vers le cloud. L'activation, les accords de projet et le budget sont contrôlés par la passerelle locale ; le plafond configuré est de **25 €/mois**, à compléter par une limite fournisseur et du prépaiement.
 
-La réception tente une réponse Qwen avec un contexte fixé à 32 768 tokens, vise un remplissage de 90 %, mesure les tokens réellement traités, l'allocation et la VRAM, puis refuse les réponses vides, les troncatures et l'offload CPU. Un `quick-check` réussi ne certifie pas la capacité 32K. Voir [le protocole et ses limites](docs/fiches/02-premier-essai.md).
+Une recherche Web peut contacter Internet même avec Qwen local. Le [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) désactive ces outils. Le filtre de confidentialité reste une aide ; il ne garantit pas qu'un contenu autorisé pour le cloud soit publiable.
 
-**Ensuite, facultativement :** pour utiliser DeepSeek via ta clé OpenRouter, suivre [l'activation cloud contrôlée](docs/fiches/12-cloud.md#activer-le-cloud). Ce n'est ni une condition du premier démarrage local ni un appel cloud automatique. Pour diagnostiquer un échec, consulter [la fiche dépannage](docs/fiches/10-depanner.md).
+[Comprendre les deux routes](docs/ARCHITECTURE_HYBRIDE.md) · [Activer le cloud](docs/fiches/12-cloud.md) · [Sécurité](SECURITY.md)
 
-[**Guide d'installation détaillé et stockage `/data/IA/Openclaw`**](docs/INSTALLATION_SIMPLE_FEDORA45.md)
+## Sept rôles, un même atelier
 
-## Où vont les données ?
+Mentor infrastructure/OPS · Expert recherche · Architecte solutions · Ingénieur DevOps · Ingénieur sécurité · Rédacteur pédagogique · Auditeur qualité.
 
-```text
-/data/IA/Openclaw/
-├── sources/             # dépôt Git et code source de l'atelier
-├── models/ollama/       # modèle IA local
-├── projects/            # projets, sources et livrables
-├── workspaces/          # espaces des agents
-├── state/               # configurations, WebUI et états locaux
-├── runtime/             # environnement Python géré
-├── proofs/              # rapports
-└── backups/             # sauvegardes (à copier aussi hors du disque)
-```
+Chaque rôle reçoit ses consignes et ses outils autorisés. [Découvrir leurs responsabilités](docs/fiches/07-roles-et-outils.md) · [Voir l'architecture](docs/fiches/11-comment-ca-marche.md).
 
-Les modèles, projets, conversations, sources et images Podman WebUI restent sur le SSD secondaire. Le stockage Podman dédié est `runtime/podman/storage` ; le conteneur utilise une configuration privée, sans changer celle de tes autres conteneurs. Ollama reste installé sous `/usr/local` et les paquets npm OpenClaw sous `~/.openclaw`. Les services attendent le montage de `/data`.
+## Documentation
 
-Les chemins proviennent de [config/storage.json](config/storage.json), commun aux scripts et à Python. Le pré-check contrôle EXT4, les options de montage, les redirections et l'espace libre sur les deux SSD. [Stockage, permissions et sauvegarde](docs/STOCKAGE_DATA.md).
-
-## État, limites et documentation
-
-- **Vérifié automatiquement :** contrats Fedora 45, Python, scripts shell, politiques des rôles, intégration native OpenClaw, régressions et CodeQL. Les versions sélectionnées sont définies dans [la configuration](config/runtime_versions.yaml) et [la politique WebUI](config/webui_policy.yaml) (Open WebUI 0.12.3).
-- **Verrouillage des dépendances :** [production Python avec SHA-256 et npm avec SHA-512](docs/PYTHON_RUNTIME_LOCK.md), avec fermetures séparées pour la production et les 21 paquets de voix, et des limites documentées pour les dépendances de build PEP 517.
-- **À qualifier sur le PC réel :** performances et stabilité B580, navigateur, micro/voix, projets complets, backups réels et appels OpenRouter avec coût mesuré. Le projet **n'a pas encore tourné sur le PC** dans le cadre de la réception prévue.
-- **Limites connues :** une seule génération à la fois ; streaming token par token préparé en canary, désactivé par défaut ; l'IA conseille et prépare mais ne déploie pas les infrastructures proposées.
-
-| Commencer | Approfondir |
+| Besoin | Guide |
 | --- | --- |
-| [Sommaire de la documentation](docs/README.md) | [Architecture et flux](docs/fiches/11-comment-ca-marche.md) |
-| [Guide pédagogique](docs/GUIDE.md) | [Les sept rôles et leurs outils](docs/fiches/07-roles-et-outils.md) |
-| [Premier projet DevOps](docs/EXEMPLE_PARCOURS_DEVOPS.md) | [Cloud, consentement et budget](docs/fiches/12-cloud.md) |
-| [Installer et vérifier](docs/INSTALLATION_SIMPLE_FEDORA45.md) | [Validation technique facultative](docs/validation/README.md) |
-| [État vérifié et limites](STATUS.md) | [Historique et anciennes décisions](docs/archives/2026/README.md) |
+| Prendre en main le chat et les projets | [Discussion](docs/fiches/03-discuter.md) · [Atelier Projets](docs/fiches/04-atelier-projets.md) |
+| Produire ou importer des documents | [Fichiers, exports et schémas](docs/fiches/06-fichiers-et-schemas.md) |
+| Juger la qualité des explications | [Évaluation pédagogique](docs/EVALUATION_PEDAGOGIE.md) |
+| Diagnostiquer ou préparer la réception | [Dépannage](docs/fiches/10-depanner.md) · [Validation](docs/validation/README.md) |
+| Comprendre les versions et protections | [Références techniques](docs/reference/README.md) · [État et limites](STATUS.md) |
 
-[Contribuer](CONTRIBUTING.md) · [Sécurité](SECURITY.md) · [Historique](CHANGELOG.md) · [Licence MIT](LICENSE)
-
-> **Principe du projet :** l'IA explique et propose ; les règles encadrent, les preuves sont vérifiables, l'humain décide.
+[Contribuer](CONTRIBUTING.md) · [Historique](CHANGELOG.md) · [Licence MIT](LICENSE)

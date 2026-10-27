@@ -1,14 +1,17 @@
 # État du projet — Atelier IA hybride Fedora
 
-**Référence logicielle : 24 octobre 2026.** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
+**Référence auditée : 27 octobre 2026, commit `9e6322b` (PR #155).** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
 ## Résumé vérifiable
 
 | Dimension | Statut | Preuve ou limite |
 | --- | --- | --- |
-| **Code, règles et installation** | Vérifié par CI | Tests Python 3.12/3.13, ShellCheck, contrats Fedora 45 et validation OpenClaw native |
-| **Référence de CI après fusion de la PR #152** | Succès | [Commit `7ec96df`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/7ec96dfab520e04d48197eb31e9bcbb7dc00e71e), contrôlé le 22 octobre 2026 : [les dix jobs de CI ont réussi](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39892100239). Instantané daté, pas garantie des prochaines CI. |
-| **Analyse statique** | Succès sur cette référence | [CodeQL Python et JavaScript après fusion](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/39892100178) réussi sur le même commit ; une nouvelle PR doit repasser ces contrôles |
+| **Code, règles et installation** | Contrats automatisés réussis ; défauts ouverts | Tests Python 3.12/3.13, ShellCheck, contrats Fedora 45 et validation OpenClaw native ; voir l’audit ci-dessous |
+| **Référence de CI après fusion de la PR #155** | Succès | [Commit `9e6322b`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/9e6322b13a9af2d84baaf51b279e81919b73f94f), vérifié le 27 octobre : [dix jobs réussis](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/40119337966), 1 104 tests dans le job quality, couverture 85,80 %. Instantané daté, pas garantie des prochaines CI. |
+| **Analyse statique** | Succès sur cette référence | [CodeQL après fusion](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/40119338118) réussi ; une nouvelle PR doit repasser ces contrôles |
+| **Audit approfondi du 27 octobre** | Corrections requises avant réception complète | [Constats, preuves et priorités](docs/AUDIT_SOURCE_2026_10_27.md). Des tests verts ne couvrent pas tous les scénarios de panne ou de concurrence. |
+| **Dépendances npm existantes** | Revue et mise à jour requises | Scan du 27 octobre : 10 entrées signalées (7 élevées, 3 modérées) ; dépendances indirectes et effet agrégé OpenClaw, exploitabilité à analyser. [Résultat et limites](docs/AUDIT_SOURCE_2026_10_27.md). |
+| **Premier essai en Live USB** | Préqualification matérielle prévue | [Procédure autonome](docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md) ; aucun OpenClaw/Qwen/WebUI lancé par ce contrôle |
 | **Montage et stockage `/data/IA/Openclaw/`** | Configuration commune Bash/Python/services, à qualifier sur le poste | EXT4 distinct du système, absence du disque refusée, UUID optionnel, liens interdits, stockage Podman dédié ; [procédure](docs/STOCKAGE_DATA.md) |
 | **Fedora 45 / GNOME 51 / B580** | **À faire** | Installation et vérification de l’OS, pilote `xe`, Vulkan, affichage, veille sur le PC réel |
 | **Qwen local et contexte 8K–32K** | Implémenté | Inférence courte dans `quick-check` ; débit réel, VRAM et contexte optimal **À mesurer** |
@@ -39,12 +42,14 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 
 **Nouvelle qualification pédagogique :** `clawfedora-pedagogy --plan` produit quatre scénarios de trois tours et une grille humaine clarté/profondeur/interactivité/exactitude (/5 chacun). La commande ne lance aucun modèle et ne dépense aucun crédit. Les préférences de style et un résumé d'acquis sont enregistrés seulement sur validation humaine depuis le tableau de bord ; elles n'équivalent pas à une mémoire automatique. Voir [le protocole](docs/EVALUATION_PEDAGOGIE.md).
 
-## Démarrer sans campagne de tests lourds
+## Parcours de qualification retenu
 
-1. Installer Fedora 45 stable et monter le disque secondaire sur `/data`.
-2. Installer l’atelier et WebUI selon [la procédure simple](docs/INSTALLATION_SIMPLE_FEDORA45.md).
+1. Préqualifier le matériel en [Live USB Fedora 45 / GNOME 51](docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md), puis examiner les corrections ouvertes. Pour l’atelier complet, installer Fedora stable et monter le disque secondaire sur `/data`.
+2. Après correction des points prioritaires de l’audit, installer l’atelier et WebUI selon [la procédure simple](docs/INSTALLATION_SIMPLE_FEDORA45.md).
 3. Exécuter **`./menu.sh --action quick-check`** : une réponse Qwen courte, vérification de la B580, des services, des interfaces et des projets.
 4. Poser une question réelle dans Open WebUI et créer un projet de test. Si le résultat est satisfaisant, commencer à travailler.
+
+**Fedora 45 :** au 27 octobre, la publication finale reste reportée avec une cible au 3 novembre ; vérifier la décision officielle avant de choisir l’ISO ([source et limites](docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md)). Une session Live ne valide pas la persistance ni les services de l’atelier installé.
 
 Les benchmarks poussés, la série de cycles veille/reprise et les canaries (voix, streaming, vision) sont disponibles dans [les diagnostics avancés](docs/validation/README.md), **sans obligation au premier lancement**.
 
@@ -59,7 +64,15 @@ Les benchmarks poussés, la série de cycles veille/reprise et les canaries (voi
 - Les sauvegardes locales ne sont **pas chiffrées** et résident initialement sur le même volume ; garder une copie externe protégée.
 - Les fichiers proposés par les agents ne sont pas la preuve d’un déploiement Terraform/Ansible réussi.
 
-## Travaux restant ouverts, sans bloquer le premier usage
+## Corrections et travaux restant ouverts
+
+L'[audit du 27 octobre](docs/AUDIT_SOURCE_2026_10_27.md) identifie les corrections prioritaires :
+revue des avis npm, maintenance cohérente avec le runtime installé, verrouillage des sauvegardes/réparations,
+reprise après timeout, ciblage des actions cloud, chargement fiable des règles privées
+et récupération du journal budgétaire. Ces points sont **ouverts**, sans correctif fonctionnel
+dans la présente révision documentaire. Le contrôle matériel Live peut être préparé en parallèle.
+
+Les suivis antérieurs restent utiles :
 
 | Suivi | Pourquoi c’est encore ouvert |
 | --- | --- |

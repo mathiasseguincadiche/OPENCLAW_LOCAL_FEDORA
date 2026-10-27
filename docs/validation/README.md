@@ -1,5 +1,12 @@
 # Validation — parcours court et diagnostics facultatifs
 
+## Premier essai : Live USB sur la machine
+
+Suivre la [préqualification Live Fedora 45 / GNOME 51](../LIVE_USB_FEDORA45_PREQUALIFICATION.md).
+Le script observe le matériel, sans installer OpenClaw, Qwen ou WebUI. Un essai complet
+de l'atelier demande une installation et des données persistantes ; il ne découle pas
+d'un résultat vert du contrôle Live. Voir l'[audit et ses priorités](../AUDIT_SOURCE_2026_10_27.md).
+
 ## Réception minimale : une fois Fedora installé
 
 Utiliser la procédure [Installation simple](../INSTALLATION_SIMPLE_FEDORA45.md), puis une seule commande :
@@ -22,7 +29,7 @@ Elle vérifie les composants essentiels (montage `/data`, courte génération Qw
 | Comparer une CI à une preuve officielle | [Provenance GitHub/GitLab](../PREUVES_CI_GITHUB_GITLAB.md) |
 | Exécuter des validateurs DevOps isolés (optionnel) | [Laboratoire DevOps](../LABORATOIRE_DEVOPS.md) |
 | Vérifier les versions Python épinglées | [Verrou Python](../PYTHON_RUNTIME_LOCK.md) |
-| Préqualification non persistante (non requise) | [Live USB](../LIVE_USB_FEDORA45_PREQUALIFICATION.md) |
+| Préqualification matérielle avant installation | [Live USB](../LIVE_USB_FEDORA45_PREQUALIFICATION.md) |
 
 **Ne pas confondre** : scripts simulés en CI, réception d’un logiciel sur le PC, conformité de l’infrastructure externe générée et coût réel OpenRouter. Seule une mesure sur la machine ou chez le fournisseur peut confirmer ces derniers points.
 
