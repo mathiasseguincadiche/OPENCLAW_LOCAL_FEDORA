@@ -156,8 +156,8 @@ et erreurs tardives par un test navigateur.
 [create_backup, ligne 324](../src/clawfedora/lifecycle.py#L324),
 [08_backup_restore.sh](../scripts/linux/08_backup_restore.sh) et
 [09_repair.sh, ligne 29](../scripts/linux/09_repair.sh#L29) ne prennent pas le
-verrou global du worker. Une archive est effectivement créée alors qu'un autre
-processus garde ce verrou sur des données temporaires. SQLite reste cohérent
+verrou global du worker. Une archive est effectivement créée alors que le verrou
+est déjà détenu sur des données temporaires. SQLite reste cohérent
 individuellement ; projets, état et workspaces peuvent correspondre à des instants
 différents. La réparation peut modifier la configuration pendant une génération.
 

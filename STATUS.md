@@ -45,7 +45,7 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 ## Parcours de qualification retenu
 
 1. Préqualifier le matériel en [Live USB Fedora 45 / GNOME 51](docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md), puis examiner les corrections ouvertes. Pour l’atelier complet, installer Fedora stable et monter le disque secondaire sur `/data`.
-2. Installer l’atelier et WebUI selon [la procédure simple](docs/INSTALLATION_SIMPLE_FEDORA45.md).
+2. Après correction des points prioritaires de l’audit, installer l’atelier et WebUI selon [la procédure simple](docs/INSTALLATION_SIMPLE_FEDORA45.md).
 3. Exécuter **`./menu.sh --action quick-check`** : une réponse Qwen courte, vérification de la B580, des services, des interfaces et des projets.
 4. Poser une question réelle dans Open WebUI et créer un projet de test. Si le résultat est satisfaisant, commencer à travailler.
 
