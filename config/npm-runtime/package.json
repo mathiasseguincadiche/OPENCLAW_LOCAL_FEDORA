@@ -3,7 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "openclaw": "2026.10.4",
-    "@openclaw/parallel-plugin": "2026.10.4"
+    "openclaw": "2026.10.9",
+    "@openclaw/parallel-plugin": "2026.10.9"
+  },
+  "overrides": {
+    "npm": "12.2.1",
+    "undici": "8.12.3",
+    "zod": "4.6.7"
   }
 }

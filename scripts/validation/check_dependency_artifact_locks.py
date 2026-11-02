@@ -14,6 +14,9 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[2]
 PIN = re.compile(r"^([A-Za-z0-9][A-Za-z0-9_.-]*)==([A-Za-z0-9][A-Za-z0-9_.+!-]*)")
 HASH = re.compile(r"--hash=sha256:([a-f0-9]{64})(?=\s|$)")
+EXACT = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+")
+OVERRIDES = re.compile(r"(?m)^npm_security_overrides:\n((?:  [^\n]*\n)*)")
+OVERRIDE_LINE = re.compile(r'([@a-z0-9][@a-z0-9/._-]*): "([^"]+)"')
 
 
 def canonical(value: str) -> str:
@@ -121,6 +124,39 @@ def check_speech(root: Path) -> int:
     return len(pins)
 
 
+def reviewed_overrides(versions: str) -> dict[str, str]:
+    """The reviewed security overrides of config/runtime_versions.yaml (stdlib parsing)."""
+    block = OVERRIDES.search(versions)
+    if block is None:
+        return {}
+    result: dict[str, str] = {}
+    for line in block[1].splitlines():
+        match = OVERRIDE_LINE.fullmatch(line.strip())
+        if match is None or match[1] in result:
+            raise ValueError("invalid reviewed npm override")
+        result[match[1]] = match[2]
+    return result
+
+
+def check_overrides(manifest: dict[str, Any], pkgs: dict[str, Any], versions: str) -> int:
+    """Overrides replace versions OpenClaw pins: each must be reviewed, exact and applied."""
+    overrides = manifest.get("overrides", {})
+    if not isinstance(overrides, dict) or overrides != reviewed_overrides(versions):
+        raise ValueError("npm overrides differ from reviewed security overrides")
+    for name, version in overrides.items():
+        if not isinstance(version, str) or not EXACT.fullmatch(version):
+            raise ValueError("npm override must be an exact version")
+        # Copies bundled inside another tarball cannot be overridden: they are reported
+        # by the audit, never counted as fixed here.
+        copies = [
+            value for path, value in pkgs.items()
+            if path.endswith("node_modules/" + name) and value.get("inBundle") is not True
+        ]
+        if not copies or any(value.get("version") != version for value in copies):
+            raise ValueError("npm override not applied in lock")
+    return len(overrides)
+
+
 def check_npm(root: Path) -> tuple[int, int]:
     base = root / "config/npm-runtime"
     lock = json.loads((base / "package-lock.json").read_text())
@@ -144,6 +180,7 @@ def check_npm(root: Path) -> tuple[int, int]:
             raise ValueError("npm resolved version drift")
     if releases["openclaw"]["version"] != expected["openclaw"]:
         raise ValueError("OpenClaw tarball manifest version mismatch")
+    check_overrides(manifest, pkgs, versions)
     count = 0
     bundled = 0
     for path, value in pkgs.items():

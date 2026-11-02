@@ -71,7 +71,7 @@ dans ce projet ; elles ne sont pas toutes des vulnérabilités exploitables à d
 
 | ID | Priorité | Constat | État dans cette révision |
 | --- | --- | --- | --- |
-| A01 | P1 | Avis de sécurité dans le verrou npm actuel | Détecté par audit du registre ; exploitabilité à examiner |
+| A01 | P1 | Avis de sécurité dans le verrou npm actuel | **Traité** après l'audit : élevées 6 → 1 résiduelle ; [revue du 2 novembre](audits/2026-11-02/README.md) |
 | A02 | P1 | Désinstallation sans état OpenClaw géré explicite ni arrêt confirmé | **Corrigé** après l'audit ; régression `tests/test_uninstall_gateway.py` |
 | A03 | P1 | Accord cloud pouvant viser le projet précédent après réponse tardive | **Corrigé** après l'audit ; régression `tests/test_dashboard_cloud_race.py` |
 | A04 | P2 | Sauvegarde/réparation sans exclusion du worker | Sauvegarde malgré verrou reproduite ; réparation confirmée par code |
@@ -119,6 +119,17 @@ OpenClaw 2026.10.8 ; cela reste une suggestion du registre, **pas une version
 qualifiée pour cet atelier**. Aucun `npm audit fix` ni changement de version n'a
 été appliqué. Ajouter un contrôle complet des dépendances existantes : Dependency
 Review sur les changements d'une PR ne suffit pas pour un verrou ancien inchangé.
+
+**Traitement postérieur à l'audit (2 novembre) :** un nouveau scan du même verrou relevait
+41 entrées, dont 6 élevées. OpenClaw et Parallel passent à **2026.10.9**, avec trois
+correctifs de même série imposés (`undici` 8.12.3, `zod` 4.6.7, `npm` 12.2.1). Ces
+correctifs sont déclarés dans `runtime_versions.yaml` et contrôlés par le validateur de
+verrous. Résultat : **1 alerte élevée résiduelle**, `undici` embarqué dans `npm`, sans
+version corrigée publiée. Les 35 modérées viennent surtout des copies embarquées et de
+`minimatch` 10 (correctif en version majeure, non qualifié). Les quatre contrôles natifs
+OpenClaw et un `npm ci --engine-strict` avec le Node.js de Fedora 45 sont exécutés en
+CI. Détail et résidus : [revue du 2 novembre](audits/2026-11-02/README.md). Le contrôle
+périodique de l'ensemble des dépendances reste à ajouter.
 
 ### A02 — Désinstallation : arrêter la bonne instance avant tout effacement
 

@@ -38,7 +38,7 @@ def test_upgrade_dry_run_makes_no_runtime_changes(tmp_path: Path) -> None:
         text=True,
     )
     assert result.returncode == 0 and "UPGRADE_DRY_RUN=PASS" in result.stdout
-    assert "openclaw=2026.10.4 ollama=0.40.6" in result.stdout and not runtime.exists()
+    assert "openclaw=2026.10.9 ollama=0.40.6" in result.stdout and not runtime.exists()
 
 
 def _operator_scripts(tmp_path: Path) -> Path:

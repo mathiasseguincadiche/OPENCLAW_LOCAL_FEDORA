@@ -215,6 +215,16 @@ jobs:
           /tmp/clawfedora45-hashed-venv/bin/python -m pip install --no-build-isolation --no-deps -e .
           /tmp/clawfedora45-hashed-venv/bin/python -m pip check
           /tmp/clawfedora45-hashed-venv/bin/python scripts/validation/check_python_lock.py --strict
+      - name: Fedora 45 Node.js satisfies the pinned OpenClaw engines (same npm ci as the installer)
+        shell: bash
+        run: |
+          dnf install -y nodejs npm
+          node --version
+          NPM_ROOT="$(mktemp -d)"
+          cp config/npm-runtime/package.json config/npm-runtime/package-lock.json "$NPM_ROOT/"
+          npm ci --ignore-scripts --no-audit --no-fund --engine-strict --prefix "$NPM_ROOT"
+          npm ls --all --prefix "$NPM_ROOT" >/dev/null
+          "$NPM_ROOT/node_modules/.bin/openclaw" --version
       - name: Test Fedora 45 Python source and contracts in container
         run: |
           python3 -m venv /tmp/clawfedora45-venv
