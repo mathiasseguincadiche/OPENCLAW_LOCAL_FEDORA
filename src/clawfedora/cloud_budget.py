@@ -102,9 +102,53 @@ class Ledger:
                 finally:
                     fcntl.flock(handle, fcntl.LOCK_UN)
 
+    def _repair_tail(self, path: Path) -> None:
+        """Make the journal end on a full line before appending (A11). Caller holds the lock.
+
+        A crash during a write leaves a last line without newline. Appending behind it
+        would merge both into one unreadable line in the *middle* of the journal, and every
+        later summary would refuse the cloud. A complete record that only lost its newline
+        is kept (the worst case stays counted); an incomplete fragment is removed from the
+        journal and kept aside in ``<journal>.recovered`` for review, never silently lost.
+        """
+        try:
+            fd = os.open(path, os.O_RDWR | os.O_NOFOLLOW)
+        except FileNotFoundError:
+            return
+        with os.fdopen(fd, "r+b") as handle:
+            data = handle.read()
+            if not data or data.endswith(b"\n"):
+                return
+            cut = data.rfind(b"\n") + 1
+            fragment = data[cut:]
+            try:
+                complete = isinstance(json.loads(fragment), dict)
+            except ValueError:
+                complete = False
+            if complete:
+                handle.seek(0, os.SEEK_END)
+                handle.write(b"\n")
+            else:
+                side = path.with_name(path.name + ".recovered")
+                side_fd = os.open(
+                    side, os.O_WRONLY | os.O_APPEND | os.O_CREAT | os.O_NOFOLLOW, 0o600
+                )
+                with os.fdopen(side_fd, "a", encoding="utf-8") as kept:
+                    kept.write(json.dumps(
+                        {"at": _stamp(self._clock()), "offset": cut,
+                         "fragment": fragment.decode("utf-8", "replace")},
+                        ensure_ascii=False,
+                    ) + "\n")
+                    kept.flush()
+                    os.fsync(kept.fileno())
+                handle.truncate(cut)
+            handle.flush()
+            os.fsync(handle.fileno())
+
     def _append(self, month: str, record: dict[str, Any]) -> None:
         path = self.path(month)
         path.parent.mkdir(parents=True, exist_ok=True)
+        self._repair_tail(path)
         fd = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT | os.O_NOFOLLOW, 0o600)
         with os.fdopen(fd, "a", encoding="utf-8") as handle:
             handle.write(json.dumps(record, ensure_ascii=False) + "\n")
