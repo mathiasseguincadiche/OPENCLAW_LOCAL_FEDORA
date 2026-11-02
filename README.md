@@ -61,7 +61,7 @@ Si le contrôle affiche `RECEPTION=READY_FOR_FIRST_PROJECT`, poser une vraie que
 
 ## Local au quotidien, cloud sur décision
 
-Qwen travaille sur la machine avec Ollama. DeepSeek V4.1 Flash 1017 constitue une option pour les dossiers complexes : aucun repli automatique du local vers le cloud. L'activation, les accords de projet et le budget sont contrôlés par la passerelle locale ; le plafond configuré est de **25 €/mois**, à compléter par une limite fournisseur et du prépaiement.
+Qwen travaille sur la machine avec Ollama. DeepSeek V4.1 Flash constitue une option pour les dossiers complexes, et **DeepSeek V4 Pro** une option de raisonnement profond choisie explicitement par l'opérateur : aucun repli automatique du local vers le cloud. L'activation, les accords de projet et le budget sont contrôlés par la passerelle locale ; le plafond configuré est de **25 €/mois**, à compléter par une limite fournisseur et du prépaiement.
 
 Une recherche Web peut contacter Internet même avec Qwen local. Le [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) désactive ces outils. Le filtre de confidentialité reste une aide ; il ne garantit pas qu'un contenu autorisé pour le cloud soit publiable.
 

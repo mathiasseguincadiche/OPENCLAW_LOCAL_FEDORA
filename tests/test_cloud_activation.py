@@ -162,7 +162,7 @@ def test_a_budget_that_never_refuses_blocks_the_activation(
     runtime: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     class Unlimited(activation.Ledger):
-        def reserve(self, *, input_tokens: int, max_output_tokens: int) -> Any:
+        def reserve(self, *, input_tokens: int, max_output_tokens: int, **_: Any) -> Any:
             class Free:
                 def settle(self, usage: Any, status: str) -> None:
                     pass

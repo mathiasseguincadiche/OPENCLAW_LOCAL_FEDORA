@@ -278,6 +278,21 @@ def _validate_cloud_contracts(
         for key in ("input", "output")
     ):
         failures.append("core/cloud: tarifs de référence requis")
+    # Reviewed upstream models behind the alias: exact ids, enabled flag, own price ceilings,
+    # only narrower provider filters; the default one is the contracted model above.
+    from clawfedora.cloud_profiles import ProfileRefused, upstream_models
+
+    try:
+        reviewed = upstream_models(cloud)
+    except ProfileRefused as exc:
+        failures.append(f"core/cloud: {exc}")
+    else:
+        if cloud.get("default_upstream_model") != "standard" or not any(
+            spec.get("allowed_efforts") is None
+            or "xhigh" in (spec.get("allowed_efforts") or [])
+            for spec in reviewed.values()
+        ):
+            failures.append("core/cloud: modèle standard par défaut et effort xhigh possible")
     upstream_params = _mapping(cloud.get("upstream_params"))
     provider = _mapping(upstream_params.get("provider"))
     if provider.get("data_collection") != "deny":

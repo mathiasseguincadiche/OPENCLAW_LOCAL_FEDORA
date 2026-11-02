@@ -58,6 +58,38 @@ model:
   pricing_usd_per_million:
     input: 0.25
     output: 0.75
+# Modèles réellement appelés derrière l'alias cloud-main (OpenClaw ne voit que l'alias).
+# Le choix est fait par l'opérateur (CLI --apply, état local 0600), jamais par un agent, un
+# paramètre client ou une bascule automatique. Chaque modèle impose SES prix maximaux à
+# OpenRouter et au budget : un endpoint plus cher est refusé, jamais facturé au-delà.
+default_upstream_model: standard
+upstream_models:
+  standard:
+    upstream_id: deepseek/deepseek-v4.1-flash-1017
+    display_name: DeepSeek V4.1 Flash 1017
+    enabled: true
+    pricing_usd_per_million:
+      input: 0.25
+      output: 0.75
+  profond:
+    upstream_id: deepseek/deepseek-v4-pro
+    display_name: DeepSeek V4 Pro 0423 (raisonnement profond)
+    # Vérifié le 2 novembre 2026 sur la page OpenRouter du modèle : voir
+    # docs/audits/2026-11-02/openrouter-deepseek-v4-pro.md. À revérifier avant usage régulier.
+    enabled: true
+    # Le modèle n'accepte que ces efforts : avec lui, utiliser le profil « approfondi ».
+    allowed_efforts: [high, xhigh]
+    # Aucun fournisseur ne déclare parallel_tool_calls, plusieurs pas seed : avec
+    # require_parameters, les envoyer exclurait tous les fournisseurs. Retirés pour ce modèle.
+    drop_parameters: [parallel_tool_calls, seed]
+    # Pas de version FP4 pour un usage « raisonnement profond ».
+    provider:
+      quantizations: [bf16, fp8, unknown]
+    # Plafonds : admettent SiliconFlow, DigitalOcean, Cloudflare et DeepInfra (sans
+    # conservation ni entraînement au 2 novembre) ; un fournisseur plus cher est refusé.
+    pricing_usd_per_million:
+      input: 1.4
+      output: 3.2
 # Les profils réduisent l'effort et/ou le plafond de sortie SANS changer le
 # fournisseur, les prix maximaux, la confidentialité ni les permissions.
 # « approfondi » est le comportement historique (xhigh / 32768).

@@ -4,6 +4,14 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 2 novembre 2026 — cloud : modèle de raisonnement profond DeepSeek V4 Pro
+
+- Deux modèles revus derrière l'alias `cloud-main` : `standard` (DeepSeek V4.1 Flash, par défaut) et `profond` (DeepSeek V4 Pro 0423). La configuration OpenClaw est inchangée : c'est la passerelle locale qui appelle le modèle choisi.
+- Choix réservé à l'opérateur (`cloud-model`, `cloud-set-model --value standard|profond --apply`), refusé pendant une génération, conservé en 0600 ; jamais modifiable par un agent ou le chat.
+- Chaque modèle impose ses plafonds de prix à OpenRouter (`max_price`) et au budget local, qui note le modèle facturé. V4 Pro : 1,40 $ / 3,20 $ par million, sans FP4, `data_collection: deny`, efforts `high`/`xhigh` seulement, `parallel_tool_calls` et `seed` retirés (aucun fournisseur ne les déclare).
+- Chat : le bandeau des réponses cloud et `!budget` indiquent le modèle actif. Le texte d'accord des projets mentionne les deux modèles, donc un accord existant est à renouveler.
+- Relevé des fournisseurs, prix et règles de confidentialité au 2 novembre : `docs/audits/2026-11-02/openrouter-deepseek-v4-pro.md`.
+
 ### 2 novembre 2026 — étape 1 : fiabilité (A04, A05, A06, A07, A09, A10, A11)
 
 - **Livraison (A05)** : chaque verdict d'audit scelle les livrables et le plan. Un fichier modifié, ajouté ou supprimé après l'audit bloque la relecture, l'emballage et la livraison, jusqu'à une reprise approuvée.

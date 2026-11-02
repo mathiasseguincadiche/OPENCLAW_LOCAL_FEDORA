@@ -210,3 +210,21 @@ def test_a_complete_record_that_lost_its_newline_stays_counted(ledger: Ledger) -
     summary = ledger.summary()
     assert summary.effective_eur >= 2.0 and summary.calls_ok == 1
     assert not path.with_name(path.name + ".recovered").exists()
+
+
+def test_a_reservation_uses_the_ceilings_of_the_model_really_called(ledger: Ledger) -> None:
+    deep = {"input": 1.4, "output": 3.2}
+    held = ledger.reserve(
+        input_tokens=1_000_000, max_output_tokens=1000, pricing=deep,
+        model="deepseek/deepseek-v4-pro",
+    )
+    (record,) = [item for item in lines(ledger) if item["k"] == "reserve"]
+    assert record["est_usd"] == pytest.approx(1.4 + 0.0032)
+    assert (record["model"], record["price_in"], record["price_out"]) == (
+        "deepseek/deepseek-v4-pro", 1.4, 3.2,
+    )
+    # Without a provider-reported cost, the settlement uses the same model's prices.
+    held.settle({"prompt_tokens": 1_000_000, "completion_tokens": 0}, "ok")
+    assert ledger.summary().spent_usd == pytest.approx(1.4)
+    with pytest.raises(BudgetRefused, match="tarifs"):
+        ledger.reserve(input_tokens=1, max_output_tokens=1, pricing={"input": 0, "output": 1})

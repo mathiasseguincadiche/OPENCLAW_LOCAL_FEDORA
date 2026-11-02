@@ -217,24 +217,54 @@ class Ledger:
             effective_eur=max(spent_eur, billed_eur), cap_eur=self.cap_eur,
         )
 
-    def estimate_usd(self, input_tokens: int, max_output_tokens: int) -> float:
-        """Worst case of one call: the whole input, and an output of the maximum length."""
-        return (input_tokens * self._price_in + max_output_tokens * self._price_out) / 1_000_000
+    def _prices(self, pricing: dict[str, Any] | None) -> tuple[float, float]:
+        """Price ceilings of the model called: the contracted model when none is given."""
+        if pricing is None:
+            return self._price_in, self._price_out
+        values = (pricing.get("input"), pricing.get("output"))
+        prices = tuple(
+            float(value) for value in values
+            if isinstance(value, int | float) and not isinstance(value, bool) and value > 0
+        )
+        if len(prices) != 2:
+            raise BudgetRefused("tarifs du modèle cloud invalides: aucun appel possible")
+        return prices[0], prices[1]
 
-    def _actual_usd(self, usage: dict[str, Any] | None) -> float | None:
+    def estimate_usd(
+        self, input_tokens: int, max_output_tokens: int, pricing: dict[str, Any] | None = None
+    ) -> float:
+        """Worst case of one call: the whole input, and an output of the maximum length."""
+        price_in, price_out = self._prices(pricing)
+        return (input_tokens * price_in + max_output_tokens * price_out) / 1_000_000
+
+    def _actual_usd(
+        self, usage: dict[str, Any] | None, prices: tuple[float, float] | None = None
+    ) -> float | None:
         if not usage:
             return None
         cost = usage.get("cost")
         if isinstance(cost, int | float) and not isinstance(cost, bool) and cost >= 0:
             return float(cost)
+        price_in, price_out = prices or (self._price_in, self._price_out)
         prompt, completion = usage.get("prompt_tokens"), usage.get("completion_tokens")
         if isinstance(prompt, int) and isinstance(completion, int):
-            return (prompt * self._price_in + completion * self._price_out) / 1_000_000
+            return (prompt * price_in + completion * price_out) / 1_000_000
         return None
 
     # -- BudgetGuard --------------------------------------------------------------
-    def reserve(self, *, input_tokens: int, max_output_tokens: int) -> _Reservation:
-        estimate = self.estimate_usd(input_tokens, max_output_tokens)
+    def reserve(
+        self,
+        *,
+        input_tokens: int,
+        max_output_tokens: int,
+        pricing: dict[str, Any] | None = None,
+        model: str | None = None,
+    ) -> _Reservation:
+        """Reserve the worst case at the price ceilings of the model really called."""
+        prices = self._prices(pricing)
+        estimate = self.estimate_usd(
+            input_tokens, max_output_tokens, {"input": prices[0], "output": prices[1]}
+        )
         month = month_key(self._clock())
         with self._locked():
             current = self.summary(month)
@@ -247,18 +277,22 @@ class Ledger:
                     "est refusé"
                 )
             call_id = uuid.uuid4().hex[:16]
-            self._append(
-                month,
-                {"k": "reserve", "id": call_id, "at": _stamp(self._clock()), "month": month,
-                 "est_usd": round(estimate, 8), "input_tokens": input_tokens,
-                 "max_output_tokens": max_output_tokens},
-            )
-        return _Reservation(self, call_id, month, estimate)
+            record: dict[str, Any] = {
+                "k": "reserve", "id": call_id, "at": _stamp(self._clock()), "month": month,
+                "est_usd": round(estimate, 8), "input_tokens": input_tokens,
+                "max_output_tokens": max_output_tokens,
+            }
+            if model is not None:
+                # Which reviewed model was billed, and at which ceilings: for reconciliation.
+                record.update(model=str(model)[:120], price_in=prices[0], price_out=prices[1])
+            self._append(month, record)
+        return _Reservation(self, call_id, month, estimate, prices)
 
     def _settle(
-        self, call_id: str, month: str, estimate: float, usage: dict[str, Any] | None, status: str
+        self, call_id: str, month: str, estimate: float, usage: dict[str, Any] | None,
+        status: str, prices: tuple[float, float] | None = None,
     ) -> None:
-        usd = self._actual_usd(usage) if status == "ok" else None
+        usd = self._actual_usd(usage, prices) if status == "ok" else None
         record: dict[str, Any] = {
             "k": "settle", "id": call_id, "at": _stamp(self._clock()), "month": month,
             "status": status, "usd": None if usd is None else round(usd, 8),
@@ -285,15 +319,21 @@ class Ledger:
 
 
 class _Reservation:
-    def __init__(self, ledger: Ledger, call_id: str, month: str, estimate: float) -> None:
+    def __init__(
+        self, ledger: Ledger, call_id: str, month: str, estimate: float,
+        prices: tuple[float, float] | None = None,
+    ) -> None:
         self._ledger, self._id, self._month, self._estimate = ledger, call_id, month, estimate
+        self._prices = prices
         self._done = False
 
     def settle(self, usage: dict[str, Any] | None, status: str) -> None:
         if self._done:
             return
         self._done = True
-        self._ledger._settle(self._id, self._month, self._estimate, usage, status)
+        self._ledger._settle(
+            self._id, self._month, self._estimate, usage, status, self._prices
+        )
 
 
 def _stamp(moment: float) -> str:
