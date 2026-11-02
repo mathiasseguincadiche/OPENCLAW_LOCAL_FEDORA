@@ -36,15 +36,16 @@ else
   PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" validate-lifecycle
 fi
 
-command -v openclaw >/dev/null 2>&1 || { echo "REPAIR_RESULT=FAIL openclaw absent" >&2; exit 2; }
+# The managed CLI, found even from a fresh terminal whose PATH lacks ~/.openclaw/bin.
+OPENCLAW="$(claw_openclaw_bin)" || { echo "REPAIR_RESULT=FAIL openclaw absent" >&2; exit 2; }
 unset OPENCLAW_CONFIG_PATH
 OPENCLAW_STATE_DIR="$(claw_openclaw_state)"
 export OPENCLAW_STATE_DIR
 export OLLAMA_API_KEY="ollama-local"
-openclaw doctor --non-interactive
+"$OPENCLAW" doctor --non-interactive
 "$LINUX/02_deploy_agents.sh"
 "$LINUX/03_configure_openclaw.sh" --apply
-openclaw gateway restart --preserve-definition
+"$OPENCLAW" gateway restart --preserve-definition
 "$LINUX/07_health.sh"
 
 echo "REPAIR_RESULT=PASS"

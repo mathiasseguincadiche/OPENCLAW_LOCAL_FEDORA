@@ -144,7 +144,7 @@ def test_health_reports_all_components(monkeypatch: pytest.MonkeyPatch, tmp_path
         workspace.mkdir(parents=True)
         (workspace / lifecycle.MANAGED_MARKER).write_text("managed", encoding="utf-8")
 
-    monkeypatch.setattr(lifecycle.shutil, "which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(lifecycle.shutil, "which", lambda name, path=None: f"/usr/bin/{name}")
 
     from clawfedora.hardware_gate import HardwareGateReport
     from clawfedora.project_common import write_json

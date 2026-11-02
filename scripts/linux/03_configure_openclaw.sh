@@ -74,8 +74,8 @@ if ((APPLY == 0)); then
 fi
 
 claw_require_storage "$RUNTIME_ROOT"
-OPENCLAW="$(command -v openclaw || true)"
-[[ -n "$OPENCLAW" ]] || { echo "ERREUR: openclaw absent du PATH." >&2; exit 127; }
+OPENCLAW="$(claw_openclaw_bin || true)"
+[[ -n "$OPENCLAW" ]] || { echo "ERREUR: OpenClaw introuvable (~/.openclaw/bin ou PATH)." >&2; exit 127; }
 command -v jq >/dev/null 2>&1 || { echo "ERREUR: jq requis." >&2; exit 127; }
 command -v curl >/dev/null 2>&1 || { echo "ERREUR: curl requis." >&2; exit 127; }
 

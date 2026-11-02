@@ -17,7 +17,7 @@ from typing import Any
 from clawfedora import ollama_api
 from clawfedora.agents import load_agent_specs
 from clawfedora.contracts import validate_repository
-from clawfedora.core_config import daily_limits, openclaw_environment, root_contract
+from clawfedora.core_config import daily_limits, openclaw_environment, openclaw_path, root_contract
 from clawfedora.hardware_gate import collect_hardware_gate
 from clawfedora.version_lock import extract_openclaw_version
 
@@ -117,7 +117,7 @@ def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) 
             str(runtime_root),
         )
     )
-    openclaw = shutil.which("openclaw")
+    openclaw = shutil.which("openclaw", path=openclaw_path())
     checks.append(
         HealthCheck(
             "openclaw-cli",
@@ -155,7 +155,7 @@ def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) 
         HealthCheck(
             "agent-workspaces",
             "PASS" if not missing else "FAIL",
-            "6 managed" if not missing else f"missing={missing}",
+            f"{len(expected)} managed" if not missing else f"missing={missing}",
         )
     )
     versions: dict[str, Any] = {}
