@@ -79,7 +79,17 @@ ou le manifeste avant de réessayer.
 [← Références](reference/README.md) ·
 [Installation](INSTALLATION_SIMPLE_FEDORA45.md) · [État actuel](../STATUS.md)
 
-## Correctif de sécurité PDF du 22 octobre 2026
+## Correctif de sécurité PDF du 2 novembre 2026
+
+Dependency Review a signalé sept nouveaux avis sur `pypdf==6.21.2`
+(CVE-2026-119203 à CVE-2026-119209), corrigés dans 6.21.3 et 6.21.4. La version de
+production passe à **`pypdf==6.21.4`** ; ses deux empreintes SHA-256 (wheel et sdist)
+proviennent de l'API JSON officielle de PyPI. Aucune nouvelle dépendance de production :
+pypdf 6.21.4 ne requiert rien d'autre sous Python 3.12/3.13. Aucun avis n'est ignoré.
+
+Source : [pypdf 6.21.4 sur PyPI](https://pypi.org/project/pypdf/6.21.4/).
+
+## Correctif de sécurité PDF du 22 octobre 2026 (historique)
 
 Le contrôle de dépendances de la PR de stockage a signalé huit avis concernant
 `pypdf==6.19.0`, déjà présent dans le dépôt. La version de production passe à
