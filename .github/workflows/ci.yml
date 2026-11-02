@@ -83,10 +83,10 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - name: Set up Node
+      - name: Set up Node (the nodejs24 version of Fedora 45, not the newest 24.x)
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version: "24"
+          node-version: "24.18.0"
       - name: Verify offline npm user-prefix executable layout
         run: python scripts/validation/check_npm_prefix_layout.py
       - name: Install repository
@@ -215,6 +215,18 @@ jobs:
           /tmp/clawfedora45-hashed-venv/bin/python -m pip install --no-build-isolation --no-deps -e .
           /tmp/clawfedora45-hashed-venv/bin/python -m pip check
           /tmp/clawfedora45-hashed-venv/bin/python scripts/validation/check_python_lock.py --strict
+      - name: Fedora 45 Node.js satisfies the pinned OpenClaw engines (same npm ci as the installer)
+        shell: bash
+        run: |
+          source scripts/linux/lib/runtime.sh
+          dnf install -y "${CLAW_NODE_PACKAGES[@]}"
+          node --version
+          python3 -I scripts/validation/check_node_engine.py
+          NPM_ROOT="$(mktemp -d)"
+          cp config/npm-runtime/package.json config/npm-runtime/package-lock.json "$NPM_ROOT/"
+          npm ci --ignore-scripts --no-audit --no-fund --engine-strict --prefix "$NPM_ROOT"
+          npm ls --all --prefix "$NPM_ROOT" >/dev/null
+          "$NPM_ROOT/node_modules/.bin/openclaw" --version
       - name: Test Fedora 45 Python source and contracts in container
         run: |
           python3 -m venv /tmp/clawfedora45-venv

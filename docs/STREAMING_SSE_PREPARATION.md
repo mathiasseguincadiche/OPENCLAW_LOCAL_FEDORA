@@ -4,7 +4,7 @@
 
 ## Situation exacte
 
-Le canary cible OpenClaw **2026.10.4**, version épinglée dans
+Le canary cible OpenClaw **2026.10.5**, version épinglée dans
 `config/runtime_versions.yaml`. L'API Chat Completions native expose le streaming
 `text/event-stream`. **Mais ce point d'entrée dispose de privilèges
 d'opérateur**, y compris sous authentification par jeton. Il ne doit

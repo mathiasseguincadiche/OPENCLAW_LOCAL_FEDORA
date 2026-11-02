@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import runpy
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -112,3 +113,52 @@ def test_runtime_installers_never_build_unhashed_source_distributions() -> None:
         assert "--require-hashes --only-binary=:all:" in source
         assert "--no-build-isolation --no-deps -e" in source
 
+
+
+def _npm_sandbox(tmp_path: Path) -> Path:
+    for name in ("npm-runtime/package-lock.json", "npm-runtime/package.json",
+                 "install_artifact_integrity.json", "runtime_versions.yaml"):
+        target = tmp_path / "config" / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text((ROOT / "config" / name).read_text())
+    return tmp_path
+
+
+def test_reviewed_security_overrides_are_exact_and_applied_in_the_lock() -> None:
+    versions = (ROOT / "config/runtime_versions.yaml").read_text()
+    manifest = json.loads((ROOT / "config/npm-runtime/package.json").read_text())
+    assert lock["reviewed_overrides"](versions) == manifest["overrides"]
+    assert set(manifest["overrides"]) == {"npm", "undici", "zod"}
+    packages = json.loads((ROOT / "config/npm-runtime/package-lock.json").read_text())["packages"]
+    assert lock["check_overrides"](manifest, packages, versions) == 3
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (lambda m, _l: m["overrides"].__setitem__("zod", "^4.6.7"), "differ|exact"),
+        (lambda m, _l: m["overrides"].pop("undici"), "differ"),
+        (lambda m, _l: m["overrides"].__setitem__("minimatch", "11.0.4"), "differ"),
+        (lambda _m, locked: locked["packages"]["node_modules/zod"].__setitem__("version", "4.6.5"),
+         "not applied"),
+    ],
+)
+def test_unreviewed_or_unapplied_npm_overrides_are_refused(
+    tmp_path: Path, mutate: Any, message: str
+) -> None:
+    root = _npm_sandbox(tmp_path)
+    manifest_path = root / "config/npm-runtime/package.json"
+    lock_path = root / "config/npm-runtime/package-lock.json"
+    manifest, locked = json.loads(manifest_path.read_text()), json.loads(lock_path.read_text())
+    mutate(manifest, locked)
+    manifest_path.write_text(json.dumps(manifest))
+    lock_path.write_text(json.dumps(locked))
+    with pytest.raises(ValueError, match=message):
+        lock["check_npm"](root)
+
+
+def test_bundled_copies_are_not_counted_as_overridden() -> None:
+    packages = json.loads((ROOT / "config/npm-runtime/package-lock.json").read_text())["packages"]
+    bundled = packages["node_modules/npm/node_modules/undici"]
+    # The npm tarball ships its own undici: an override cannot reach it, the audit reports it.
+    assert bundled.get("inBundle") is True and bundled["version"] != "8.12.3"

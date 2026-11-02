@@ -88,7 +88,7 @@ else
 fi
 
 PACKAGES=(
-  git curl wget rsync jq tar zstd unzip nodejs npm pciutils usbutils lm_sensors poppler-utils shellcheck gitleaks
+  git curl wget rsync jq tar zstd unzip "${CLAW_NODE_PACKAGES[@]}" pciutils usbutils lm_sensors poppler-utils shellcheck gitleaks
   python3 python3-pip python3-virtualenv python3.13 python3.13-devel
   vulkan-tools mesa-vulkan-drivers
   firewalld policycoreutils-python-utils acl openssl lsof procps-ng util-linux
@@ -154,6 +154,8 @@ fi
 
 claw_require_storage "$RUNTIME_ROOT"
 as_root "${DNF[@]}" install -y "${PACKAGES[@]}"
+# Refuse here, with the fix, rather than at npm ci (EBADENGINE) much later.
+python3 -I "$REPO_ROOT/scripts/validation/check_node_engine.py"
 
 GROUPS_TO_ADD=(render video)
 ((WITH_KVM == 0)) || GROUPS_TO_ADD+=(libvirt)

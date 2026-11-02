@@ -57,7 +57,7 @@ class FakeOpenClaw:
         self.commands.append(command)
         self.environments.append(kwargs.get("env") or {})
         if command[:2] == ["openclaw", "--version"]:
-            return subprocess.CompletedProcess(command, 0, "OpenClaw 2026.10.4 (abc)", "")
+            return subprocess.CompletedProcess(command, 0, "OpenClaw 2026.10.5 (abc)", "")
         if command[:4] == ["openclaw", "config", "get", "agents"]:
             return subprocess.CompletedProcess(command, 0, json.dumps(self.agents), "")
         if command[:4] == ["openclaw", "config", "get", "models.providers"]:

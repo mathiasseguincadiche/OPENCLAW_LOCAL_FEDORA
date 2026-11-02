@@ -3,15 +3,23 @@ platform_version: "0.1.0"
 
 # Versions exactes installées et vérifiées. Pour en changer : docs/fiches/08-reglages.md
 openclaw:
-  version: "2026.10.4"
+  version: "2026.10.5"
   lock: exact
   automatic_update: false
   plugins:
     parallel:
       package: "@openclaw/parallel-plugin"
-      version: "2026.10.4"
+      version: "2026.10.5"
       lock: exact
       provider: parallel-free
+
+# Correctifs de sécurité imposés aux dépendances qu'OpenClaw fige en version exacte.
+# Uniquement des correctifs de même série, revus dans docs/audits/2026-11-02/README.md.
+# Doit être identique au bloc "overrides" de config/npm-runtime/package.json.
+npm_security_overrides:
+  npm: "12.2.1"
+  undici: "8.12.3"
+  zod: "4.6.7"
 
 ollama:
   version: "0.40.6"
