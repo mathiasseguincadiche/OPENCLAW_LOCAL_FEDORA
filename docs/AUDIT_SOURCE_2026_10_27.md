@@ -82,7 +82,7 @@ dans ce projet ; elles ne sont pas toutes des vulnérabilités exploitables à d
 | A09 | P2 | Fichier temporaire abandonné bloquant les reprises | Reproduit avec le collecteur réel |
 | A10 | P2 | Liste privée illisible traitée comme liste vide | Reproduit sans requête réseau |
 | A11 | P2 | Journal budgétaire tronqué non récupéré avant le prochain append | Reproduit sur journal temporaire |
-| A12 | P2 | Lecteur Office des projets autorisant les entités XML internes | Reproduit avec document synthétique bénin |
+| A12 | P2 | Lecteur Office des projets autorisant les entités XML internes | **Corrigé** après l'audit ; régression `tests/test_office_intake_xml.py` |
 | A13 | P2 | Installation complète depuis Live non supportée, mais sans garde explicite | Lacune du précontrôle ; aucune installation Live exécutée |
 
 ### A01 — Dépendances npm : les empreintes ne remplacent pas une revue de sécurité
@@ -299,6 +299,15 @@ Le plafond de texte extrait intervient après le parsing.
 borner les entrées XML. Conserver les limites ZIP. Expat possède déjà des protections
 d'amplification : aucune exfiltration, lecture externe, macro ou exécution de code
 n'a été démontrée par cette reproduction.
+
+**Correction postérieure à l'audit :** `_office_extract` utilise `defusedxml` avec
+`forbid_dtd`, `forbid_entities` et `forbid_external`, comme le chat et l'ODT. Un document
+avec DTD ou entité est refusé et marqué `UNREADABLE` avec sa raison, sans aucun texte
+développé. Deux plafonds de contrat, `office_max_xml_member_bytes` (32 Mio) et
+`office_max_xml_total_bytes` (128 Mio), validés par `clawfedora validate`, sont vérifiés
+sur les tailles déclarées **avant** décompression et parsing. Les limites ZIP existantes
+sont conservées. Une partie XML mal formée n'est plus ignorée en silence : elle figure
+dans `skipped_xml_members` de l'index.
 
 ### A13 — Live USB : refuser explicitement un parcours non supporté
 

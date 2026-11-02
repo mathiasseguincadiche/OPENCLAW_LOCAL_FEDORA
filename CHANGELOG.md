@@ -4,6 +4,12 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 2 novembre 2026 — étape 0 : import Office des projets durci (A12)
+
+- Sources DOCX/PPTX/XLSX des projets : même lecteur `defusedxml` que le chat et l'ODT ; DTD, entités et références externes refusées, document marqué illisible avec sa raison.
+- Nouveaux plafonds de contrat `office_max_xml_member_bytes` et `office_max_xml_total_bytes`, contrôlés avant décompression et validés par `clawfedora validate` ; limites ZIP inchangées.
+- Une partie XML abîmée est signalée dans l'index (`skipped_xml_members`) au lieu d'être ignorée en silence.
+
 ### 2 novembre 2026 — étape 0 : délais dépassés et erreurs visibles (A08)
 
 - Chat (`!lancer`, `!auditer`, `!relire`…, brouillons d'analyse et de plan) et tableau de bord : un délai dépassé ou une erreur inattendue termine le traitement en échec visible, au lieu de le laisser « en cours ».

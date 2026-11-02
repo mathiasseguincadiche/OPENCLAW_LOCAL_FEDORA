@@ -10,6 +10,9 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 from xml.etree import ElementTree
 
+from defusedxml.common import DefusedXmlException
+from defusedxml.ElementTree import fromstring as safe_fromstring
+
 from clawfedora.core_config import core_contract
 from clawfedora.project_common import (
     aggregate_records,
@@ -219,16 +222,34 @@ def _office_extract(
     limit: int,
     limits: dict[str, Any],
 ) -> dict[str, Any]:
+    # Same hardened reader as the chat and ODT imports (A12): no DTD, entity or external
+    # reference, and XML sizes bounded *before* any byte is decompressed or parsed.
+    max_member = int(limits["office_max_xml_member_bytes"])
+    max_total = int(limits["office_max_xml_total_bytes"])
     chunks: list[str] = []
+    skipped: list[str] = []
     chars = 0
     with zipfile.ZipFile(path) as archive:
-        for info, _ in _checked_zip_members(archive, limits):
-            if not info.filename.lower().endswith(".xml"):
-                continue
+        members = [
+            info for info, _ in _checked_zip_members(archive, limits)
+            if info.filename.lower().endswith(".xml")
+        ]
+        if any(info.file_size > max_member for info in members):
+            raise ValueError("Office : partie XML trop volumineuse")
+        if sum(info.file_size for info in members) > max_total:
+            raise ValueError("Office : volume XML total trop élevé")
+        for info in members:
             data = archive.read(info)
             try:
-                root = ElementTree.fromstring(data)
+                root = safe_fromstring(
+                    data, forbid_dtd=True, forbid_entities=True, forbid_external=True
+                )
+            except DefusedXmlException as exc:
+                raise ValueError(
+                    f"Office : DTD, entités ou références externes interdites ({info.filename})"
+                ) from exc
             except ElementTree.ParseError:
+                skipped.append(info.filename)
                 continue
             for value in root.itertext():
                 text = value.strip()
@@ -242,7 +263,11 @@ def _office_extract(
                 break
     text = "\n".join(chunks)
     output.write_text(text[:limit], encoding="utf-8")
-    return {"representation": output.name, "truncated": len(text) > limit}
+    detail: dict[str, Any] = {"representation": output.name, "truncated": len(text) > limit}
+    if skipped:
+        # Never silent: the analysis sees which parts of the document were not read.
+        detail["skipped_xml_members"] = skipped[:50]
+    return detail
 
 
 def _archive_extract(

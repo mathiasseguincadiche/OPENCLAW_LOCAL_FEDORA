@@ -101,6 +101,14 @@ def _validate_project_contracts(
     archive = _mapping(formats.get("archive"))
     if archive.get("method") != "local_safe_archive_extract":
         failures.append("core/ingestion: ZIP doit utiliser l'extraction sûre locale")
+    ingestion_limits = _mapping(ingestion.get("limits"))
+    office_member = ingestion_limits.get("office_max_xml_member_bytes")
+    office_total = ingestion_limits.get("office_max_xml_total_bytes")
+    if not (
+        type(office_member) is int and type(office_total) is int
+        and 0 < office_member <= office_total
+    ):
+        failures.append("core/ingestion: plafonds XML Office positifs requis (partie ≤ total)")
 
     orchestration = contracts["orchestration_policy.yaml"]
     engine = _mapping(orchestration.get("engine"))
