@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from hashlib import sha256
 from pathlib import Path
 from typing import Any
@@ -579,21 +580,28 @@ AUDITED_FILES = ("context/project_plan.json",)
 
 def audited_inventory(project: Path) -> dict[str, str]:
     """SHA-256 of every file an audit judged, by project-relative path."""
+    base = os.path.realpath(project)
     inventory: dict[str, str] = {}
     for scope in AUDITED_SCOPES:
-        root = project / scope
-        if not root.is_dir():
+        # Resolved and confined before any filesystem access: a linked scope is refused.
+        root = os.path.realpath(os.path.join(base, scope))
+        if not root.startswith(base + os.sep):
+            raise ValueError(f"inventaire audité: {scope} hors du projet")
+        if not os.path.isdir(root):
             continue
-        for path in sorted(root.rglob("*")):
+        for path in sorted(Path(root).rglob("*")):
             if (
                 path.is_file()
                 and path.name != "package_manifest.json"
                 and not path.name.endswith(".worker-tmp")
             ):
-                inventory[path.relative_to(project).as_posix()] = sha256_file(path)
+                inventory[path.relative_to(base).as_posix()] = sha256_file(path)
     for relative in AUDITED_FILES:
-        if (project / relative).is_file():
-            inventory[relative] = sha256_file(project / relative)
+        candidate = os.path.realpath(os.path.join(base, relative))
+        if not candidate.startswith(base + os.sep):
+            raise ValueError(f"inventaire audité: {relative} hors du projet")
+        if os.path.isfile(candidate):
+            inventory[relative] = sha256_file(Path(candidate))
     return inventory
 
 

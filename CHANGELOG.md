@@ -4,6 +4,16 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 2 novembre 2026 — étape 1 : fiabilité (A04, A05, A06, A07, A09, A10, A11)
+
+- **Livraison (A05)** : chaque verdict d'audit scelle les livrables et le plan. Un fichier modifié, ajouté ou supprimé après l'audit bloque la relecture, l'emballage et la livraison, jusqu'à une reprise approuvée.
+- **Sauvegarde et réparation (A04)** : refusées pendant un chat, une tâche ou un audit ; le verrou d'un script parent est réutilisé sans blocage.
+- **Terminal neuf (A06)** : diagnostic, réparation et configuration trouvent le CLI OpenClaw installé dans `~/.openclaw/bin` sans modifier les profils shell.
+- **Purge (A07)** : tous les droits sont vérifiés avant la première suppression ; Ollama est arrêté puis `models/ollama` supprimé avec `sudo` de façon bornée ; ce qui reste est affiché.
+- **Reprise après coupure (A09)** : temporaires uniques par tentative, nettoyés au passage suivant ; anciennes sorties intactes si la préparation échoue.
+- **Confidentialité (A10)** : une liste de termes illisible ou un motif invalide refuse le cloud au lieu de disparaître.
+- **Budget (A11)** : la fin du journal est réparée avant chaque ajout ; un fragment incomplet est mis de côté dans `.recovered`.
+
 ### 2 novembre 2026 — étape 0 : dépendances npm (A01)
 
 - OpenClaw et le plugin Parallel passent de 2026.10.4 à 2026.10.5 ; archive, SHA-512, verrou npm, contrats et tests alignés.

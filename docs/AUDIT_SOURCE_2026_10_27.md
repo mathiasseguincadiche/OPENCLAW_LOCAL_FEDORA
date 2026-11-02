@@ -74,14 +74,14 @@ dans ce projet ; elles ne sont pas toutes des vulnérabilités exploitables à d
 | A01 | P1 | Avis de sécurité dans le verrou npm actuel | **Traité** après l'audit : élevées 6 → 1 résiduelle ; [revue du 2 novembre](audits/2026-11-02/README.md) |
 | A02 | P1 | Désinstallation sans état OpenClaw géré explicite ni arrêt confirmé | **Corrigé** après l'audit ; régression `tests/test_uninstall_gateway.py` |
 | A03 | P1 | Accord cloud pouvant viser le projet précédent après réponse tardive | **Corrigé** après l'audit ; régression `tests/test_dashboard_cloud_race.py` |
-| A04 | P2 | Sauvegarde/réparation sans exclusion du worker | Sauvegarde malgré verrou reproduite ; réparation confirmée par code |
-| A05 | P2 | Fichiers modifiés après audit acceptés en livraison | Reproduit avec le moteur réel et réponses modèle simulées |
-| A06 | P2 | CLI OpenClaw non trouvé par certaines commandes dans un terminal neuf | Confirmé par résolution du PATH et flux d'installation |
-| A07 | P2 | Purge partielle avant échec sur les droits des modèles | Reproduit avec refus d'accès simulé |
+| A04 | P2 | Sauvegarde/réparation sans exclusion du worker | **Corrigé** après l'audit ; régression `tests/test_maintenance_lock.py` |
+| A05 | P2 | Fichiers modifiés après audit acceptés en livraison | **Corrigé** après l'audit ; régression `tests/test_project_engine.py` |
+| A06 | P2 | CLI OpenClaw non trouvé par certaines commandes dans un terminal neuf | **Corrigé** après l'audit ; régression `tests/test_fresh_terminal_cli.py` |
+| A07 | P2 | Purge partielle avant échec sur les droits des modèles | **Corrigé** après l'audit ; régression `tests/test_lifecycle.py` |
 | A08 | P2 | Timeout non traité et traitement chat restant « en cours » | **Corrigé** après l'audit ; régression `tests/test_background_failures.py` |
-| A09 | P2 | Fichier temporaire abandonné bloquant les reprises | Reproduit avec le collecteur réel |
-| A10 | P2 | Liste privée illisible traitée comme liste vide | Reproduit sans requête réseau |
-| A11 | P2 | Journal budgétaire tronqué non récupéré avant le prochain append | Reproduit sur journal temporaire |
+| A09 | P2 | Fichier temporaire abandonné bloquant les reprises | **Corrigé** après l'audit ; régression `tests/test_daily_worker.py` |
+| A10 | P2 | Liste privée illisible traitée comme liste vide | **Corrigé** après l'audit ; régression `tests/test_cloud_privacy.py` |
+| A11 | P2 | Journal budgétaire tronqué non récupéré avant le prochain append | **Corrigé** après l'audit ; régression `tests/test_cloud_budget.py` |
 | A12 | P2 | Lecteur Office des projets autorisant les entités XML internes | **Corrigé** après l'audit ; régression `tests/test_office_intake_xml.py` |
 | A13 | P2 | Installation complète depuis Live non supportée, mais sans garde explicite | Lacune du précontrôle ; aucune installation Live exécutée |
 
@@ -200,6 +200,8 @@ correctement le descripteur hérité lors d'un upgrade. Tester le refus sans
 mutation pendant chat, tâche et audit. L'ancienne affirmation documentaire que
 toutes ces opérations refusent une génération a été corrigée dans cette PR.
 
+**Correction postérieure à l'audit :** `maintenance_lock` impose le verrou du worker à la sauvegarde. Il réutilise le descripteur 9 d'un script parent qui détient déjà le verrou (`12_upgrade`, `09_repair`, `14_cloud`). `08_backup_restore.sh backup` et `09_repair.sh` prennent le verrou avant toute étape. Une sauvegarde demandée pendant un chat, une tâche ou un audit est refusée (`BACKUP_RESULT=REFUSED`).
+
 ### A05 — Livraison : relier les verdicts aux octets réellement livrés
 
 [review_project, ligne 827](../src/clawfedora/project_worker.py#L827) conserve
@@ -217,6 +219,8 @@ verdicts, le vérifier aux transitions et au packaging, et invalider les audits
 périmés. Tester modification, ajout et suppression ; distinguer les fichiers de
 suivi légitimement créés après audit.
 
+**Correction postérieure à l'audit :** `store_verdict` scelle dans chaque verdict l'empreinte SHA-256 de `deliverables/`, `diagrams/` et du plan. Les transitions REVIEW, PACKAGING et COMPLETE, ainsi que l'emballage, refusent tout fichier modifié, ajouté ou supprimé depuis l'audit, et tout verdict sans inventaire scellé. Le message renvoie vers la reprise approuvée, qui refait les audits. Les fichiers de suivi (`evidence/`, `history/`, `project.json`, manifeste de package) restent hors du périmètre.
+
 ### A06 — Terminal neuf : retrouver le binaire installé
 
 [06_install.sh, ligne 71](../scripts/linux/06_install.sh#L71) ajoute
@@ -229,6 +233,8 @@ au diagnostic ou à la réparation dans un nouveau terminal Fedora.
 **À faire :** résoudre le chemin géré ou initialiser un environnement commun aux
 commandes ; tester avec HOME temporaire et PATH minimal. Ne pas demander à
 l'utilisateur de deviner un export permanent pour masquer le défaut.
+
+**Correction postérieure à l'audit :** `core_config.openclaw_path` (côté Python) et `claw_openclaw_bin` (côté shell) cherchent d'abord `~/.openclaw/bin`, puis le PATH hérité. Le diagnostic, `09_repair.sh` et `03_configure_openclaw.sh` les utilisent. Aucun profil shell n'est modifié.
 
 ### A07 — Purge : vérifier les droits avant la première suppression
 
@@ -243,6 +249,8 @@ définir une suppression privilégiée strictement bornée et décrire exactemen
 qui reste. Les sources, sauvegardes et certaines données runtime ne sont pas une
 purge totale du répertoire. La reproduction n'a pas créé de compte Ollama ni
 modifié les droits du vrai disque.
+
+**Correction postérieure à l'audit :** `cleanup_managed` vérifie les droits sur toutes les cibles avant la première suppression. `10_uninstall.sh --purge-data` procède en trois temps : vérification complète à blanc, arrêt prouvé d'Ollama puis suppression `sudo` limitée à `models/ollama`, et enfin purge utilisateur. Ce qui reste est affiché (`CLEANUP_KEEPS`) et décrit dans la fiche 09.
 
 ### A08 — Délais dépassés : terminer les traitements en erreur visible
 
@@ -280,6 +288,8 @@ partiel précréé échouent tous deux avec `FileExistsError`.
 tester une coupure après création et entre deux fichiers. Préserver les anciennes
 sorties et ne pas consommer des tentatives sans signaler la cause.
 
+**Correction postérieure à l'audit :** chaque sortie est préparée sous un nom temporaire unique par tentative (`mkstemp`, `fsync`). Les temporaires laissés pour la même sortie, ancien nom fixe compris, sont retirés sous le verrou du worker. Toutes les sorties sont préparées avant la première promotion : un échec en cours de préparation laisse les anciennes sorties intactes.
+
 ### A10 — Confidentialité : ne pas perdre silencieusement une règle configurée
 
 [PrivacyFilter._terms, ligne 153](../src/clawfedora/cloud_privacy.py#L153) transforme
@@ -290,6 +300,8 @@ suivant. Les détecteurs génériques de secrets continuent à fonctionner.
 **À faire :** distinguer une liste optionnelle absente d'une liste configurée
 illisible ou non régulière, refuser le cloud dans le second cas et tester la
 relecture après remplacement/erreur. Aucun contenu n'a été envoyé au fournisseur.
+
+**Correction postérieure à l'audit :** une liste absente reste facultative. Une liste présente mais illisible (fichier non régulier, droits, encodage) ou contenant un motif `re:` invalide produit le constat `denylist_unreadable` : la requête est refusée avant tout envoi, avec la correction à faire. Une fois la liste réparée, elle est relue normalement.
 
 ### A11 — Budget : réparer une écriture tronquée avant le prochain ajout
 
@@ -302,6 +314,8 @@ peut laisser démarrer un appel de reprise avant de bloquer les suivants.
 les réservations complètes et tester plusieurs cycles après coupure. Le test
 existant ne relit pas entre le nouvel ajout et une autre corruption. Ce constat
 prouve un défaut de récupération ; il ne prouve pas une dépense illimitée.
+
+**Correction postérieure à l'audit :** sous le verrou du journal, avant chaque ajout, un enregistrement complet qui a seulement perdu son retour à la ligne est conservé, pour que le pire cas reste compté. Un fragment incomplet est retiré et gardé dans `<journal>.recovered` (0600). Plusieurs coupures successives sont testées.
 
 ### A12 — Import Office : appliquer le même durcissement XML aux projets
 
@@ -398,7 +412,7 @@ comme preuve de leur compatibilité après modification.
   corrigées dans la documentation, sans prétendre corriger le code.
 - Les anciennes versions et anciens chemins dans les pages actives : version SSE,
   métadonnées `/data` et référence de CI actualisées. Les archives gardent leurs URLs.
-- Les petits libellés trompeurs du code, par exemple `6 managed` alors que sept
+- Les petits libellés trompeurs du code, par exemple `6 managed` alors que sept (corrigé avec A06)
   workspaces sont vérifiés (`lifecycle.py:158`), restent à nettoyer dans un correctif.
   Ce point ne retire pas un agent et ne justifie pas à lui seul un blocage.
   `chat_flow.py:40–41` affiche aussi encore « le chat le pilotera plus tard » pour
