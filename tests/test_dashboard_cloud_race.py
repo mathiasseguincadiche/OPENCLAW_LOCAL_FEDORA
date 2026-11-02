@@ -21,8 +21,10 @@ SCRIPT = ROOT / "src/clawfedora/web/dashboard.js"
 def test_cloud_consent_follows_the_opened_project_only() -> None:
     node = shutil.which("node")
     if node is None:
-        if os.environ.get("CI"):
-            pytest.fail("Node est requis en CI pour le scénario navigateur A03")
+        # The quality job installs Node and sets this flag: there the scenario may not be
+        # skipped. Fedora containers without Node still run the rest of the suite.
+        if os.environ.get("CLAWFEDORA_REQUIRE_NODE") == "1":
+            pytest.fail("Node est requis dans ce job pour le scénario navigateur A03")
         pytest.skip("Node absent: scénario navigateur A03 non exécuté")
     result = subprocess.run(
         [node, str(HARNESS), str(SCRIPT)],
