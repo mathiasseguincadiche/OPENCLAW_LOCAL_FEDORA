@@ -26,6 +26,7 @@ from clawfedora.cloud_state import CLOUD_STATE, cloud_status, recent_events
 from clawfedora.core_config import AGENT_IDS, core_contract, daily_limits
 from clawfedora.local_http import LocalServer
 from clawfedora.mentor import context as mentor_context
+from clawfedora.project_common import failure_message
 from clawfedora.project_control import write_progress
 from clawfedora.project_worker import AgentRunner, openclaw_runner, worker_lock
 from clawfedora.storage import load_settings, require_storage
@@ -699,8 +700,8 @@ class BridgeHandler(BaseHTTPRequestHandler):
                         )
                     finally:
                         write_progress(self.server.runtime, None, "idle")
-            except (OSError, ValueError, KeyError, RuntimeError) as exc:
-                self._send(409, {"error": {"message": str(exc)}})
+            except (OSError, ValueError, KeyError, RuntimeError, subprocess.SubprocessError) as exc:
+                self._send(409, {"error": {"message": failure_message(exc)}})
             return
         try:
             with worker_lock(self.server.runtime):
@@ -748,8 +749,8 @@ class BridgeHandler(BaseHTTPRequestHandler):
             )
             if not isinstance(text, str) or len(text.encode()) > output_bytes:
                 raise ValueError("réponse du modèle absente ou supérieure à la limite")
-        except (OSError, ValueError, KeyError, RuntimeError) as exc:
-            self._send(409, {"error": {"message": str(exc)}})
+        except (OSError, ValueError, KeyError, RuntimeError, subprocess.SubprocessError) as exc:
+            self._send(409, {"error": {"message": failure_message(exc)}})
             return
         self._completion(data, text)
 

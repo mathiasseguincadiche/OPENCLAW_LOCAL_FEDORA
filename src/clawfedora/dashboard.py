@@ -18,7 +18,7 @@ from clawfedora.knowledge import build_index, search, store_note
 from clawfedora.learning import awaiting, pending_feedback, submit
 from clawfedora.local_http import LocalServer
 from clawfedora.mentor import profile, save_profile
-from clawfedora.project_common import read_json
+from clawfedora.project_common import failure_message, read_json
 from clawfedora.project_control import is_paused, progress, request_pause, worker_active
 from clawfedora.project_engine import current_status, transition_project
 from clawfedora.project_revision import impact, revise
@@ -388,8 +388,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                         actor="auditeur-qualite",
                         reason="web_audit_passed",
                     )
-        except (OSError, ValueError, KeyError, RuntimeError) as exc:
-            self.server.errors[project.name] = str(exc)
+        except Exception as exc:  # shown in the workshop, never lost with the thread
+            self.server.errors[project.name] = failure_message(exc)
 
     def _run(self, project: Path) -> None:
         try:
@@ -399,8 +399,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
             failures = [r["summary"] for r in results if r["status"] == "FAIL"]
             if failures:
                 self.server.errors[project.name] = str(failures[0])
-        except (OSError, ValueError, KeyError, RuntimeError) as exc:
-            self.server.errors[project.name] = str(exc)
+        except Exception as exc:  # shown in the workshop, never lost with the thread
+            self.server.errors[project.name] = failure_message(exc)
 
 
 def make_server(repo_root: Path, runtime: Path, port: int = 18890) -> DashboardServer:

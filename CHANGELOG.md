@@ -4,6 +4,13 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 2 novembre 2026 — étape 0 : délais dépassés et erreurs visibles (A08)
+
+- Chat (`!lancer`, `!auditer`, `!relire`…, brouillons d'analyse et de plan) et tableau de bord : un délai dépassé ou une erreur inattendue termine le traitement en échec visible, au lieu de le laisser « en cours ».
+- `!etat` signale « interrompu » un traitement chat que plus aucun fil n'exécute (redémarrage du service, arrêt brutal).
+- Bridge WebUI : un délai dépassé du modèle devient une erreur 409 lisible et le verrou de génération est libéré.
+- Régressions sans appel de modèle : délai simulé, erreur inattendue, état orphelin, brouillon, tableau de bord et bridge.
+
 ### 2 novembre 2026 — étape 0 : désinstallation avec arrêt vérifié (A02)
 
 - `10_uninstall.sh` n'ignore plus les erreurs d'arrêt : services WebUI, bridge, voix et tableau de bord installés, puis Gateway OpenClaw, doivent être arrêtés de façon vérifiée avant toute suppression.
