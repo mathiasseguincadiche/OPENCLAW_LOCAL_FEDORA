@@ -78,7 +78,7 @@ def test_verified_installer_dry_run_is_non_mutating(tmp_path: Path, kind: str) -
 
 def test_verified_installer_refuses_unlisted_versions() -> None:
     result = subprocess.run(
-        [sys.executable, str(SCRIPT), "url", "openclaw", "2026.10.99"],
+        [sys.executable, str(SCRIPT), "url", "openclaw", "2026.10.59"],
         capture_output=True, text=True, check=False,
     )
     assert result.returncode == 2

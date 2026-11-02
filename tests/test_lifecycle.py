@@ -171,7 +171,7 @@ def test_health_reports_all_components(monkeypatch: pytest.MonkeyPatch, tmp_path
 
     def run(command: list[str], **_kwargs: object) -> SimpleNamespace:
         if command[-1] == "--version":
-            output = "OpenClaw 2026.10.9"
+            output = "OpenClaw 2026.10.5"
         elif command[0] == "getenforce":
             output = "Enforcing"
         elif "is-active" in command:

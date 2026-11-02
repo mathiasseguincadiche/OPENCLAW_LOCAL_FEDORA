@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "openclaw": "2026.10.9",
-    "@openclaw/parallel-plugin": "2026.10.9"
+    "openclaw": "2026.10.5",
+    "@openclaw/parallel-plugin": "2026.10.5"
   },
   "overrides": {
     "npm": "12.2.1",

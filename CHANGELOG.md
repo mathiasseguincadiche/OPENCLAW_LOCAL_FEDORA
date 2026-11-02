@@ -6,10 +6,11 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ### 2 novembre 2026 — étape 0 : dépendances npm (A01)
 
-- OpenClaw et le plugin Parallel passent de 2026.10.4 à 2026.10.9 ; archive, SHA-512, verrou npm, contrats et tests alignés.
+- OpenClaw et le plugin Parallel passent de 2026.10.4 à 2026.10.5 ; archive, SHA-512, verrou npm, contrats et tests alignés.
 - Trois correctifs de sécurité de même série imposés aux dépendances figées d'OpenClaw : `undici` 8.12.3, `zod` 4.6.7, `npm` 12.2.1. Ils sont déclarés dans `runtime_versions.yaml` et le validateur de verrous refuse tout correctif non revu, non exact ou non appliqué.
 - Audit npm du verrou : 6 alertes élevées → 1 résiduelle (`undici` embarqué dans `npm`, sans correctif publié) ; résultats bruts et analyse dans `docs/audits/2026-11-02/`.
-- CI Fedora 45 : le Node.js de Fedora rejoue le `npm ci --engine-strict` de l'installateur (OpenClaw 2026.10.9 exige Node ≥ 24.22.1).
+- Installation : `00_bootstrap.sh` installait `nodejs` (Node 22 sur Fedora 45), refusé par OpenClaw, qui exige Node ≥ 24.16.0. Il installe désormais `nodejs24` (24.18.0), et `check_node_engine.py` vérifie la version avant `npm ci`. OpenClaw reste en 2026.10.5 : à partir de 2026.10.6, Node ≥ 24.22.1 est exigé, et Fedora 45 ne le fournit pas encore.
+- CI : le conteneur Fedora 45 rejoue l'installation npm avec le Node de Fedora ; `native-openclaw` utilise Node 24.18.0.
 
 ### 2 novembre 2026 — étape 0 : import Office des projets durci (A12)
 

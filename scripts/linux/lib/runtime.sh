@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+# Node.js for OpenClaw. Fedora 45's default `nodejs` is Node 22, refused by OpenClaw's
+# engine; nodejs24 (24.18.0) is accepted. The -bin packages provide plain `node`/`npm`.
+# Single source for 00_bootstrap.sh and the Fedora 45 CI job.
+# shellcheck disable=SC2034
+CLAW_NODE_PACKAGES=(nodejs24 nodejs24-npm nodejs24-bin nodejs24-npm-bin)
+
 claw_repo_root() {
   cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd -P
 }

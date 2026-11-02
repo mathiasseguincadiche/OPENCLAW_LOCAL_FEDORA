@@ -10,7 +10,7 @@
 | **Référence de CI après fusion de la PR #155** | Succès | [Commit `9e6322b`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/9e6322b13a9af2d84baaf51b279e81919b73f94f), vérifié le 27 octobre : [dix jobs réussis](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/40119337966), 1 104 tests dans le job quality, couverture 85,80 %. Instantané daté, pas garantie des prochaines CI. |
 | **Analyse statique** | Succès sur cette référence | [CodeQL après fusion](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/40119338118) réussi ; une nouvelle PR doit repasser ces contrôles |
 | **Audit approfondi du 27 octobre** | Corrections requises avant réception complète | [Constats, preuves et priorités](docs/AUDIT_SOURCE_2026_10_27.md). Des tests verts ne couvrent pas tous les scénarios de panne ou de concurrence. |
-| **Dépendances npm existantes** | Revues le 2 novembre ; 1 alerte élevée résiduelle | OpenClaw 2026.10.9 et 3 correctifs imposés : 6 alertes élevées → 1 (`undici` embarqué dans `npm`, sans correctif publié). [Analyse et résidus](docs/audits/2026-11-02/README.md). |
+| **Dépendances npm existantes** | Revues le 2 novembre ; 1 alerte élevée résiduelle | OpenClaw 2026.10.5 et 3 correctifs imposés : 6 alertes élevées → 1 (`undici` embarqué dans `npm`, sans correctif publié). [Analyse et résidus](docs/audits/2026-11-02/README.md). |
 | **Premier essai en Live USB** | Préqualification matérielle prévue | [Procédure autonome](docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md) ; aucun OpenClaw/Qwen/WebUI lancé par ce contrôle |
 | **Montage et stockage `/data/IA/Openclaw/`** | Configuration commune Bash/Python/services, à qualifier sur le poste | EXT4 distinct du système, absence du disque refusée, UUID optionnel, liens interdits, stockage Podman dédié ; [procédure](docs/STOCKAGE_DATA.md) |
 | **Fedora 45 / GNOME 51 / B580** | **À faire** | Installation et vérification de l’OS, pilote `xe`, Vulkan, affichage, veille sur le PC réel |
@@ -30,7 +30,8 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 | --- | --- |
 | Hôte | Fedora 45 Workstation, GNOME 51, Wayland ; Python système 3.15 |
 | Runtime Python IA | Venv isolé Python 3.13 fourni par Fedora (compatibilité voix) |
-| OpenClaw + plugin Parallel | `2026.10.9` (+ 3 correctifs npm imposés) |
+| OpenClaw + plugin Parallel | `2026.10.5` (+ 3 correctifs npm imposés) |
+| Node.js | Fedora `nodejs24` (24.18.0) ; le `nodejs` par défaut (22) est refusé par OpenClaw |
 | Ollama | `0.40.6` |
 | Open WebUI | `v0.12.3-slim`, image résolue par digest à l’installation |
 | Modèle local obligatoire | `qwen3.5:9b-q4_K_M` |

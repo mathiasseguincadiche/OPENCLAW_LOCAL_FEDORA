@@ -22,6 +22,9 @@ echo "NPM_CLOSURE_PLAN version=$OPENCLAW_PIN method=npm-ci integrity=sha512 pref
 claw_require_storage "$RUNTIME_ROOT"
 command -v npm >/dev/null 2>&1 || { echo "npm requis" >&2; exit 127; }
 command -v node >/dev/null 2>&1 || { echo "node requis" >&2; exit 127; }
+python3 -I "$REPO_ROOT/scripts/validation/check_node_engine.py" || {
+  echo "NPM_CLOSURE_RESULT=REFUSED version Node.js incompatible avec OpenClaw" >&2; exit 2;
+}
 PYTHON="$(claw_python)"
 "$PYTHON" "$REPO_ROOT/scripts/validation/check_dependency_artifact_locks.py"
 

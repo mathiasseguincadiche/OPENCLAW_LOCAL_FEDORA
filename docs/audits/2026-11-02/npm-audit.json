@@ -356,18 +356,12 @@
       "via": [
         "npm-registry-fetch"
       ],
-      "effects": [
-        "npm"
-      ],
+      "effects": [],
       "range": ">=8.0.0-pre.0",
       "nodes": [
         "node_modules/npm/node_modules/libnpmaccess"
       ],
-      "fixAvailable": {
-        "name": "openclaw",
-        "version": "2026.4.29",
-        "isSemVerMajor": true
-      }
+      "fixAvailable": true
     },
     "libnpmdiff": {
       "name": "libnpmdiff",
@@ -537,7 +531,6 @@
       ],
       "effects": [
         "@sigstore/sign",
-        "npm",
         "npm-registry-fetch"
       ],
       "range": ">=13.0.0",
@@ -665,12 +658,18 @@
       "via": [
         "npm-registry-fetch"
       ],
-      "effects": [],
+      "effects": [
+        "npm"
+      ],
       "range": ">=9.0.0",
       "nodes": [
         "node_modules/npm/node_modules/npm-profile"
       ],
-      "fixAvailable": true
+      "fixAvailable": {
+        "name": "openclaw",
+        "version": "2026.4.29",
+        "isSemVerMajor": true
+      }
     },
     "npm-registry-fetch": {
       "name": "npm-registry-fetch",
@@ -732,8 +731,6 @@
         "sigstore"
       ],
       "effects": [
-        "@npmcli/arborist",
-        "@npmcli/metavuln-calculator",
         "libnpmdiff",
         "libnpmexec",
         "libnpmpack",
@@ -900,10 +897,10 @@
     "dependencies": {
       "prod": 484,
       "dev": 0,
-      "optional": 84,
+      "optional": 81,
       "peer": 0,
       "peerOptional": 0,
-      "total": 567
+      "total": 564
     }
   }
 }

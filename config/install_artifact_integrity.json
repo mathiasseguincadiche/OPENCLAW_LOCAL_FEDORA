@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "openclaw": {
-    "version": "2026.10.9",
-    "url": "https://registry.npmjs.org/openclaw/-/openclaw-2026.10.9.tgz",
-    "sha512": "29b225d3feda9f4fe7281a3dd859c983b2c5704a45550c8e81245f1cd13dcb110b83511baa5ec1981b1d2cbfb574338b66742dbb08ede87cb8e420ab99874934"
+    "version": "2026.10.5",
+    "url": "https://registry.npmjs.org/openclaw/-/openclaw-2026.10.5.tgz",
+    "sha512": "f6b0ae5ccc1ea9529920adca06d19c2f37accfd1baf85990df496fc2899186670d58370eb65068a9d2db3dd8ada0932e4cfe798cfa97a6dd400342fcb52cc51e"
   },
   "ollama": {
     "version": "0.40.6",

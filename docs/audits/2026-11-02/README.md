@@ -7,14 +7,24 @@ Les résultats bruts sont dans ce dossier. Ils ont été produits par `npm audit
 | Verrou | Élevées | Modérées | Total | Résultat brut |
 | --- | --- | --- | --- | --- |
 | Avant : OpenClaw 2026.10.4 | 6 | 35 | 41 | [npm-audit-avant-2026.10.4.json](npm-audit-avant-2026.10.4.json) |
-| Après : OpenClaw 2026.10.9 + 3 correctifs imposés | **1** | 35 | 36 | [npm-audit.json](npm-audit.json) |
+| Après : OpenClaw 2026.10.5 + 3 correctifs imposés | **1** | 35 | 36 | [npm-audit.json](npm-audit.json) |
 
 Le 27 octobre, l'audit relevait 10 entrées. Le 2 novembre, le même verrou en relève 41 : de nouveaux avis ont été publiés entre-temps, surtout sur les dépendances embarquées par `npm`. Un audit reste un instantané à refaire régulièrement.
 
 ## Ce qui a été changé
 
-- **OpenClaw et le plugin Parallel passent de 2026.10.4 à 2026.10.9.** C'est la dernière version stable au 2 novembre. Elle retire les alertes élevées `@modelcontextprotocol/sdk` et `body-parser`.
-- **Trois correctifs de même série sont imposés.** OpenClaw fige ses dépendances en versions exactes, même en 2026.10.9. Le bloc `overrides` de `config/npm-runtime/package.json` les remplace par des correctifs de la même série :
+- **OpenClaw et le plugin Parallel passent de 2026.10.4 à 2026.10.5.** Cette version retire les alertes élevées `@modelcontextprotocol/sdk` et `body-parser`.
+- **Pourquoi pas 2026.10.9, la dernière version stable ?** À partir de 2026.10.6, OpenClaw exige Node ≥ 24.22.1 ou ≥ 26.12.1. Fedora 45 n'en fournit aucune : un essai dans le conteneur Fedora 45 de la CI le confirme.
+
+  | Paquet Fedora 45 | Version | OpenClaw 2026.10.4 / 10.5 (≥ 24.16.0 ou ≥ 26.1.0) | OpenClaw 2026.10.6 à 10.9 (≥ 24.22.1 ou ≥ 26.12.1) |
+  | --- | --- | --- | --- |
+  | `nodejs` (défaut) | 22.23.1 | refusé | refusé |
+  | `nodejs24` | 24.18.0 | accepté | refusé |
+  | `nodejs26` | 26.3.1 | accepté | refusé |
+
+  OpenClaw 2026.10.9 donne le même résultat d'audit (1 alerte élevée) une fois les mêmes correctifs imposés : rester en 2026.10.5 ne coûte donc aucune protection mesurée.
+- **Défaut d'installation découvert et corrigé.** `00_bootstrap.sh` installait `nodejs`, c'est-à-dire Node **22** sur Fedora 45, alors que même OpenClaw 2026.10.4 exige Node ≥ 24.16.0. Le `npm ci --engine-strict` de l'installateur aurait donc échoué dès la première installation. Le script installe désormais `nodejs24`, et ses commandes `node`/`npm` sans suffixe. `check_node_engine.py` vérifie la version avant `npm ci` et donne un message clair.
+- **Trois correctifs de même série sont imposés.** OpenClaw fige ses dépendances en versions exactes. Le bloc `overrides` de `config/npm-runtime/package.json` les remplace par des correctifs de la même série :
 
   | Paquet | Figé par OpenClaw | Imposé | Avis corrigés (exemples) |
   | --- | --- | --- | --- |
@@ -22,8 +32,8 @@ Le 27 octobre, l'audit relevait 10 entrées. Le 2 novembre, le même verrou en r
   | `zod` | 4.6.5 | 4.6.7 | GHSA-mrhx-c7xc-m3w5 |
   | `npm` | 12.2.0 | 12.2.1 | dépendances embarquées `brace-expansion`, `postcss-selector-parser` |
 
-- **Les correctifs imposés sont contrôlés.** Ils sont déclarés une seule fois dans `config/runtime_versions.yaml` (`npm_security_overrides`). `check_dependency_artifact_locks.py` refuse tout correctif non déclaré, une plage de versions, ou un correctif qui n'apparaît pas dans le verrou.
-- **Node.js : OpenClaw 2026.10.9 exige Node ≥ 24.22.1** (contre ≥ 24.16.0 pour 2026.10.4). Le job CI `fedora-45-contract` installe le `nodejs` de Fedora 45 et rejoue le même `npm ci --engine-strict` que l'installateur. Si cette étape échoue, la version de Node de Fedora 45 est trop ancienne. Repli qualifié dans ce cas : OpenClaw 2026.10.5 avec les mêmes correctifs (même résultat d'audit, Node ≥ 24.16.0).
+- **Les correctifs imposés sont contrôlés.** Ils sont déclarés une seule fois dans `config/runtime_versions.yaml` (`npm_security_overrides`). `check_dependency_artifact_locks.py` refuse tout correctif non déclaré, une plage de versions, ou un correctif absent du verrou.
+- **CI alignée sur le PC.** `fedora-45-contract` installe le même Node que l'installateur, puis rejoue `npm ci --engine-strict` et `openclaw --version`. `native-openclaw` utilise Node 24.18.0, la version de Fedora 45.
 
 ## Ce qui reste, et pourquoi
 
@@ -37,5 +47,5 @@ Le 27 octobre, l'audit relevait 10 entrées. Le 2 novembre, le même verrou en r
 ## À refaire
 
 - Relancer `npm audit --package-lock-only` dans `config/npm-runtime` à chaque nouvelle version d'OpenClaw ou de `npm`. Retirer un `override` dès qu'OpenClaw fige lui-même une version corrigée.
-- Surveiller `npm` 12.2.2 ou plus (correctif embarqué de `undici` 6.29.1), puis le passage d'OpenClaw à `minimatch` 11.
+- Surveiller `npm` 12.2.2 ou plus (correctif embarqué de `undici` 6.29.1), le passage d'OpenClaw à `minimatch` 11, et l'arrivée de Node ≥ 24.22.1 dans Fedora 45, condition pour monter OpenClaw au-delà de 2026.10.5.
 - Une CI verte prouve que le schéma, les outils, les limites de prompt et la route cloud acceptent la nouvelle version. **Elle ne prouve pas son fonctionnement sur le PC** : la réception sur Fedora reste à faire.

@@ -121,15 +121,19 @@ qualifiée pour cet atelier**. Aucun `npm audit fix` ni changement de version n'
 Review sur les changements d'une PR ne suffit pas pour un verrou ancien inchangé.
 
 **Traitement postérieur à l'audit (2 novembre) :** un nouveau scan du même verrou relevait
-41 entrées, dont 6 élevées. OpenClaw et Parallel passent à **2026.10.9**, avec trois
+41 entrées, dont 6 élevées. OpenClaw et Parallel passent à **2026.10.5**, avec trois
 correctifs de même série imposés (`undici` 8.12.3, `zod` 4.6.7, `npm` 12.2.1). Ces
 correctifs sont déclarés dans `runtime_versions.yaml` et contrôlés par le validateur de
 verrous. Résultat : **1 alerte élevée résiduelle**, `undici` embarqué dans `npm`, sans
 version corrigée publiée. Les 35 modérées viennent surtout des copies embarquées et de
 `minimatch` 10 (correctif en version majeure, non qualifié). Les quatre contrôles natifs
 OpenClaw et un `npm ci --engine-strict` avec le Node.js de Fedora 45 sont exécutés en
-CI. Détail et résidus : [revue du 2 novembre](audits/2026-11-02/README.md). Le contrôle
-périodique de l'ensemble des dépendances reste à ajouter.
+CI. Cette vérification a révélé un défaut d'installation antérieur : `00_bootstrap.sh`
+installait Node 22, le `nodejs` par défaut de Fedora 45, refusé par OpenClaw. Le script
+installe désormais `nodejs24`. OpenClaw reste en 2026.10.5, car les versions 2026.10.6 et
+suivantes exigent Node ≥ 24.22.1, absent de Fedora 45. Détail et résidus :
+[revue du 2 novembre](audits/2026-11-02/README.md). Le contrôle périodique de l'ensemble
+des dépendances reste à ajouter.
 
 ### A02 — Désinstallation : arrêter la bonne instance avant tout effacement
 
