@@ -5,6 +5,7 @@ import json
 import tarfile
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 
@@ -250,3 +251,65 @@ def test_backup_never_contains_the_cloud_provider_key_or_gateway_token(tmp_path:
     assert (restored / "state/cloud/ledger-2026-10.jsonl").is_file()
     assert not (restored / "state/webui/bridge.token").exists()
     assert not (restored / "state/webui/webui.env").exists()
+
+
+def _purge_layout(tmp_path: Path) -> Path:
+    runtime = tmp_path / "runtime"
+    _mark_runtime(runtime)
+    for name in ("projects", "proofs", "state", "models/ollama/blobs"):
+        path = runtime / name
+        path.mkdir(parents=True)
+        (path / "x").write_text("x", encoding="utf-8")
+    return runtime
+
+
+def _ollama_owned_models(runtime: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Simulate models/ollama owned by the ollama account (0750), even when run as root."""
+    models = runtime / "models/ollama"
+    real = lifecycle.os.access
+
+    def access(path: Any, mode: int, *args: Any, **kwargs: Any) -> bool:
+        target = Path(path)
+        if target == models or models in target.parents:
+            return False
+        return real(path, mode, *args, **kwargs)
+
+    monkeypatch.setattr(lifecycle.os, "access", access)
+
+
+def test_purge_checks_every_permission_before_the_first_removal(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A07: projects and state used to be gone before rmtree(models) failed."""
+    runtime = _purge_layout(tmp_path)
+    _ollama_owned_models(runtime, monkeypatch)
+    with pytest.raises(ValueError, match="rien n'a été supprimé.*10_uninstall.sh"):
+        lifecycle.cleanup_managed(runtime, purge_data=True)
+    for name in ("projects", "proofs", "state", "models/ollama/blobs"):
+        assert (runtime / name / "x").exists()
+
+
+def test_purge_check_leaves_models_to_the_bounded_privileged_step(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    runtime = _purge_layout(tmp_path)
+    _ollama_owned_models(runtime, monkeypatch)
+    planned = lifecycle.cleanup_managed(
+        runtime, purge_data=True, check_only=True, models_by_root=True
+    )
+    assert runtime / "projects" in planned
+    assert all((runtime / name / "x").exists() for name in ("projects", "state"))  # nothing removed
+    with pytest.raises(ValueError, match="rien n'a été supprimé"):
+        lifecycle.cleanup_managed(runtime, purge_data=True, check_only=True)
+
+
+def test_uninstall_purge_checks_then_stops_ollama_then_purges() -> None:
+    text = (ROOT / "scripts/linux/10_uninstall.sh").read_text(encoding="utf-8")
+    check = text.index("ops cleanup --check --purge-data --models-by-root")
+    stop = text.index("sudo systemctl stop ollama.service")
+    remove = text.index('sudo rm -rf --one-file-system -- "$MODELS"')
+    purge = text.index("ops cleanup --apply --purge-data")
+    assert check < stop < remove < purge
+    assert 'MODELS="$RUNTIME_ROOT/models/ollama"' in text
+    assert "systemctl is-active --quiet ollama.service" in text
+    assert "CLEANUP_KEEPS" in (ROOT / "src/clawfedora/ops_cli.py").read_text(encoding="utf-8")

@@ -8,6 +8,7 @@ from pathlib import Path
 
 from clawfedora.core_config import resolve_runtime_root
 from clawfedora.lifecycle import (
+    PURGE_KEEPS,
     cleanup_managed,
     collect_health,
     create_backup,
@@ -73,6 +74,10 @@ def build_parser() -> argparse.ArgumentParser:
     cleanup = sub.add_parser("cleanup")
     cleanup.add_argument("--apply", action="store_true")
     cleanup.add_argument("--purge-data", action="store_true")
+    cleanup.add_argument("--check", action="store_true",
+                         help="vérifier tous les droits sans rien supprimer")
+    cleanup.add_argument("--models-by-root", action="store_true",
+                         help="models/ollama sera supprimé à part avec sudo (10_uninstall.sh)")
     probe = sub.add_parser(
         "context-probe", help="mesurer si un contexte tient entièrement sur le GPU"
     )
@@ -166,12 +171,21 @@ def main(argv: list[str] | None = None) -> int:
         print(f"RESTORE_RESULT=PASS path={path}")
         return 0
     if args.command == "cleanup":
+        if args.check:
+            planned = cleanup_managed(
+                runtime_root, purge_data=bool(args.purge_data), check_only=True,
+                models_by_root=bool(args.models_by_root),
+            )
+            print(f"CLEANUP_CHECK=PASS targets={len(planned)}")
+            return 0
         if not args.apply:
             suffix = ",data" if args.purge_data else ""
             print(f"CLEANUP_PLAN=managed-workspaces,managed-venv{suffix}")
             return 0
         removed = cleanup_managed(runtime_root, purge_data=bool(args.purge_data))
         print(f"CLEANUP_RESULT=PASS removed={len(removed)}")
+        if args.purge_data:
+            print(f"CLEANUP_KEEPS={PURGE_KEEPS}")
         return 0
     if args.command == "context-probe":
         from clawfedora.context_probe import probe_context
