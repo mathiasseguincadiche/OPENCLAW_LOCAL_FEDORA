@@ -4,6 +4,12 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 2 novembre 2026 — étape 0 : accord cloud lié au projet ouvert (A03)
+
+- Atelier Projets : une réponse ou une erreur tardive de `/api/cloud` pour un projet précédemment ouvert est ignorée ; les boutons d'accord et de retrait revérifient le projet ouvert avant tout envoi et préviennent si le contrôle est périmé.
+- Le panneau cloud et la case d'accord affichent le nom du projet concerné.
+- Régression : scénario Node exécutant le vrai `dashboard.js` (DOM minimal, API simulées, aucun appel réseau) ; Node installé explicitement dans le job CI `quality`.
+
 ### 2 novembre 2026 — sécurité PDF : pypdf 6.21.4
 
 - `pypdf` passe de 6.21.2 à 6.21.4 (sept avis publiés, corrigés en 6.21.3/6.21.4) avec ses empreintes SHA-256 PyPI ; contraintes, verrou haché, `pyproject.toml` et test du verrou alignés. Aucun avis ignoré, aucune autre dépendance modifiée.

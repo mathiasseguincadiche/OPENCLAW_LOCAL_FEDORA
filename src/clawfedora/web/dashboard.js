@@ -371,7 +371,7 @@ async function loadProject(id) {
     if (data.manifest.status === "REVIEW") addAction("Lancer la relecture", "/api/audit", { kind: "review" });
     if (data.manifest.status === "PACKAGING") addAction("J’approuve la livraison finale", "/api/complete", { human_approved: true });
     updateEditorActions();
-    renderCloud(id);
+    renderCloud(id, data.manifest.title);
     $("artifacts").replaceChildren();
     for (const file of data.files) {
       const link = node("a", file.path + " · " + file.size + " octets");
@@ -615,28 +615,43 @@ function renderRevision(id, data) {
   form.append(preview, affected, confirmation, submit); details.append(form); area.append(details);
 }
 
-async function renderCloud(id) {
+// A cloud consent targets exactly one project. Every await is followed by a check that the
+// editor still shows that project (same opening sequence), and every click re-checks it before
+// anything is sent: a late answer for project A must never draw, or act on, A inside B (A03).
+async function renderCloud(id, title) {
+  const sequence = editorSequence;
+  const current = () => sequence === editorSequence && openedProject === id;
+  const name = title || id;
   const box = $("cloud");
   box.replaceChildren();
   let info;
   try {
     info = await api("/api/cloud?" + new URLSearchParams({ project: id }));
   } catch (error) {
+    if (!current()) return;
     box.append(node("p", "État cloud indisponible : " + error.message, "error"));
     return;
   }
-  box.append(node("h3", "Cloud pour ce projet"), node("p", cloudLine(info)));
+  if (!current()) return;
+  const stale = () => {
+    if (current()) return false;
+    tell("Ce contrôle cloud appartenait à un autre projet : rien n’a été envoyé. Rouvrez le projet voulu.", true);
+    return true;
+  };
+  box.append(node("h3", "Cloud pour ce projet"), node("p", "Projet concerné : « " + name + " »"), node("p", cloudLine(info)));
   const models = Object.entries(info.models || {});
   if (models.length)
-    box.append(node("p", "Modèles utilisés : " + models.map(([name, n]) => name + " ×" + n).join(" · ")));
+    box.append(node("p", "Modèles utilisés : " + models.map(([model, n]) => model + " ×" + n).join(" · ")));
   if (info.pause) {
     box.append(node("p", "Le projet est en pause : " + info.pause.message, "error"));
     box.append(node("p", "Rien n’a été refait en local. Pour poursuivre en local, retirez l’accord cloud puis reprenez ; pour rester au cloud, corrigez la cause puis reprenez."));
   }
   const revoke = async () => {
+    if (stale()) return;
     if (await action("/api/cloud-revoke", { project_id: id })) {
-      tell("Accord cloud retiré : la suite de ce projet tourne en local.");
-      await renderCloud(id);
+      if (!current()) return;
+      tell("Accord cloud retiré pour « " + name + " » : la suite de ce projet tourne en local.");
+      await renderCloud(id, title);
     }
   };
   if (info.state === "none") {
@@ -645,15 +660,17 @@ async function renderCloud(id) {
     const check = document.createElement("input");
     check.type = "checkbox";
     check.id = "cloud-ack";
-    const label = node("label", " J’ai lu ce texte et j’autorise le cloud pour ce projet uniquement");
+    const label = node("label", " J’ai lu ce texte et j’autorise le cloud pour le projet « " + name + " » uniquement");
     label.prepend(check);
     const approve = node("button", "Autoriser le cloud pour ce projet");
     approve.disabled = true;
     check.addEventListener("change", () => { approve.disabled = !check.checked; });
     approve.addEventListener("click", async () => {
+      if (stale() || !check.checked) return;
       if (await action("/api/cloud-approve", { project_id: id, human_approved: true, acknowledged: true })) {
-        tell("Accord enregistré : les prochaines étapes de ce projet iront au cloud.");
-        await renderCloud(id);
+        if (!current()) return;
+        tell("Accord enregistré pour « " + name + " » : les prochaines étapes de ce projet iront au cloud.");
+        await renderCloud(id, title);
       }
     });
     details.append(label, approve);

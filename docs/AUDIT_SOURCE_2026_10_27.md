@@ -73,7 +73,7 @@ dans ce projet ; elles ne sont pas toutes des vulnérabilités exploitables à d
 | --- | --- | --- | --- |
 | A01 | P1 | Avis de sécurité dans le verrou npm actuel | Détecté par audit du registre ; exploitabilité à examiner |
 | A02 | P1 | Désinstallation sans état OpenClaw géré explicite ni arrêt confirmé | Confirmé par lecture du flux |
-| A03 | P1 | Accord cloud pouvant viser le projet précédent après réponse tardive | Reproduit dans Edge, réponses API simulées |
+| A03 | P1 | Accord cloud pouvant viser le projet précédent après réponse tardive | **Corrigé** après l'audit ; régression `tests/test_dashboard_cloud_race.py` |
 | A04 | P2 | Sauvegarde/réparation sans exclusion du worker | Sauvegarde malgré verrou reproduite ; réparation confirmée par code |
 | A05 | P2 | Fichiers modifiés après audit acceptés en livraison | Reproduit avec le moteur réel et réponses modèle simulées |
 | A06 | P2 | CLI OpenClaw non trouvé par certaines commandes dans un terminal neuf | Confirmé par résolution du PATH et flux d'installation |
@@ -150,6 +150,15 @@ et de recherche ne couvrent pas ce sous-composant.
 **À faire :** vérifier l'identité et la séquence après chaque attente et avant
 chaque action, afficher le nom du projet dans l'accord et couvrir aussi révocation
 et erreurs tardives par un test navigateur.
+
+**Correction postérieure à l'audit :** `renderCloud` mémorise la séquence d'ouverture
+et le projet ; une réponse ou une erreur tardive d'un autre projet n'est plus affichée,
+et chaque clic (accord ou retrait) revérifie le projet ouvert avant tout envoi. Le
+panneau et la case d'accord nomment le projet concerné. Le scénario
+[dashboard_cloud_race.mjs](../tests/js/dashboard_cloud_race.mjs) exécute le vrai
+`dashboard.js` sous Node avec un DOM minimal et des réponses simulées : ordre B puis A,
+contrôle périmé cliqué, retrait périmé et erreur tardive. Il échoue sur la version
+auditée (POST `project_id=alpha` depuis l'éditeur de Beta) et réussit après correction.
 
 ### A04 — Sauvegarde et réparation : garantir une vue cohérente
 
