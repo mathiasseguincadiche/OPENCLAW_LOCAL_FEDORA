@@ -82,6 +82,35 @@ def worker_lock(runtime: Path, *, allow_gaming: bool = False) -> Iterator[None]:
             fcntl.flock(handle, fcntl.LOCK_UN)
 
 
+INHERITED_LOCK_FD = 9  # descriptor claw_lock_worker (lib/runtime.sh) passes to its children
+
+
+@contextmanager
+def maintenance_lock(runtime: Path, *, inherited_fd: int = INHERITED_LOCK_FD) -> Iterator[None]:
+    """The worker lock for maintenance (backup...), refused while a generation runs (A04).
+
+    A maintenance script that already holds the lock (12_upgrade, 09_repair, 14_cloud...)
+    passes it as descriptor 9 to the commands it starts. flock on that same open file
+    description succeeds, so a child reuses its parent's lock instead of deadlocking.
+    """
+    path = runtime / "state/worker.lock"
+    try:
+        inherited = os.fstat(inherited_fd)
+        lock = os.stat(path)
+        reuse = (inherited.st_dev, inherited.st_ino) == (lock.st_dev, lock.st_ino)
+    except OSError:
+        reuse = False
+    if not reuse:
+        with worker_lock(runtime, allow_gaming=True):
+            yield
+        return
+    try:
+        fcntl.flock(inherited_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError as exc:
+        raise ValueError("un worker est déjà actif sur ce runtime") from exc
+    yield  # the parent script owns the lock and releases it
+
+
 def _guard(root: Path) -> dict[str, str]:
     assert_no_symlinks(root, label="snapshot")
     return {

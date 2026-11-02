@@ -26,6 +26,9 @@ if ((APPLY == 0)); then
   exit 0
 fi
 
+# No repair while a generation runs: the configuration must not change under it (A04).
+# The lock is held until the end and reused by the backup and configuration steps.
+claw_lock_worker
 "$LINUX/08_backup_restore.sh" backup
 PYTHON="$(claw_python)"
 if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then

@@ -159,8 +159,16 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "models":
         return _models(repo_root, bool(args.apply))
     if args.command == "backup":
+        from clawfedora.project_worker import maintenance_lock
+
         output = Path(args.output_dir).expanduser() if args.output_dir else None
-        path = create_backup(runtime_root, output)
+        # Projects, state and workspaces from one instant: never during a generation (A04).
+        try:
+            with maintenance_lock(runtime_root):
+                path = create_backup(runtime_root, output)
+        except ValueError as exc:
+            print(f"BACKUP_RESULT=REFUSED {exc}: attendre la fin de la tâche ou du chat")
+            return 2
         print(f"BACKUP_RESULT=PASS path={path}")
         return 0
     if args.command == "restore":
