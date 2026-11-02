@@ -36,6 +36,9 @@ limits:
   archive_max_total_uncompressed_bytes: 2147483648
   archive_max_single_member_bytes: 268435456
   archive_max_compression_ratio: 200
+  # DOCX/PPTX/XLSX : XML lu sans DTD ni entités, taille contrôlée avant décompression.
+  office_max_xml_member_bytes: 33554432
+  office_max_xml_total_bytes: 134217728
   nested_archives_are_opaque: true
 coverage_statuses: [READ, PARTIAL, UNREADABLE]
 coverage_methods: [local_text_extract, local_zip_xml_extract, local_odt_text_extract, local_safe_archive_extract, pdf, view_image, raw_file]

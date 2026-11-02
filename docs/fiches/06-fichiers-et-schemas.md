@@ -21,6 +21,8 @@ DOCX et ODT. » Les liens de téléchargement s'ajoutent à la réponse. Ils son
 
 Sans projet sélectionné, le chat local accepte jusqu'à quatre pièces jointes, avec un budget de texte extrait de 12 000 octets au total. Les textes et petits fichiers de code sont lus directement ; PDF, DOCX, PPTX, XLSX et **ODT** disposent d'une extraction textuelle bornée (2 Mio par document). Pour ODT, seuls les textes sont lus : la mise en page et les images ne sont pas analysées, aucun objet externe ni macro n'est exécuté. Les archives restent exclues de cette voie courte, et les images sont limitées aux métadonnées hors canary vision. Les pièces jointes de chat libre sont toujours refusées en cloud. Elles restent dans le stockage Open WebUI jusqu'à leur suppression ou selon sa politique de conservation.
 
+Dans un projet, les sources DOCX, PPTX et XLSX sont lues avec le même lecteur XML durci que le chat et l'ODT : un document contenant une DTD, des entités ou des références externes est marqué illisible avec sa raison, et la taille de ses parties XML est contrôlée avant décompression. Une partie XML abîmée est ignorée mais signalée dans l'index des sources.
+
 Pour **apporter des sources** à un projet, sélectionne-le puis joins les fichiers avant
 `!analyser`. Open WebUI n'indexe pas ces fichiers dans sa propre RAG : un filtre géré transmet
 la référence du fichier au pont, qui contrôle son propriétaire, son chemin, sa taille et son nom,
