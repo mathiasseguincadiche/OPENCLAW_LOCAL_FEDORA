@@ -22,7 +22,7 @@ from typing import Any
 from clawfedora import chat_approvals, chat_projects, project_cloud, project_ui
 from clawfedora.chat_projects import BUSY, _cell, bridge_reply, open_project
 from clawfedora.chat_proposals import confined
-from clawfedora.project_common import read_json, validate_project_id, write_json
+from clawfedora.project_common import failure_message, read_json, validate_project_id, write_json
 from clawfedora.project_control import worker_active
 from clawfedora.project_worker import worker_lock
 
@@ -114,9 +114,9 @@ def _draft_job(flow: Flow, project: Path, kind: str) -> None:
     except project_cloud.CloudPause as exc:
         _record(runtime, project.name, kind=kind, status="paused", message=str(exc)[:300],
                 started=started, ended=time.time())
-    except (OSError, ValueError, KeyError, RuntimeError) as exc:
-        _record(runtime, project.name, kind=kind, status="failed", message=str(exc)[:300],
-                started=started, ended=time.time())
+    except Exception as exc:  # a background draft must end in a visible state
+        _record(runtime, project.name, kind=kind, status="failed",
+                message=failure_message(exc)[:300], started=started, ended=time.time())
 
 
 def _start_draft(flow: Flow, project: Path, kind: str) -> str:

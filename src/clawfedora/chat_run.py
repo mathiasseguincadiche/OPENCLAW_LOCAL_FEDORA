@@ -21,6 +21,7 @@ from clawfedora.learning_feedback import review_submission
 from clawfedora.project_cloud import project_runner
 from clawfedora.project_common import (
     assert_no_symlinks,
+    failure_message,
     read_json,
     sha256_file,
     validate_project_id,
@@ -82,6 +83,15 @@ def job_line(runtime: Path, project_id: str) -> str:
     status = str(item.get("status", ""))
     detail = str(item.get("detail", "")).strip()
     if status in {"queued", "running"}:
+        # The state file outlives the thread: after a restart or a crash nothing runs any more.
+        with _guard:
+            thread = _threads.get(project_id)
+            alive = thread is not None and thread.is_alive()
+        if not alive:
+            return (
+                f"Traitement chat : **{label} interrompu** (service redémarré ou arrêt "
+                "inattendu) — relancez la commande."
+            )
         return f"Traitement chat : **{label} en cours**."
     if status == "failed":
         return f"Traitement chat : **{label} en échec** — {detail[:300]}"
@@ -118,8 +128,8 @@ def _start(runtime: Path, project: Path, kind: str, action: Callable[[], str]) -
             _record(runtime, project, kind, "running")
             try:
                 detail = action()
-            except (OSError, ValueError, KeyError, RuntimeError) as exc:
-                _record(runtime, project, kind, "failed", str(exc))
+            except Exception as exc:  # a background job must never stay "running"
+                _record(runtime, project, kind, "failed", failure_message(exc))
             else:
                 _record(runtime, project, kind, "done", detail)
 

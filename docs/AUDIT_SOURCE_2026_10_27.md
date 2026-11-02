@@ -78,7 +78,7 @@ dans ce projet ; elles ne sont pas toutes des vulnérabilités exploitables à d
 | A05 | P2 | Fichiers modifiés après audit acceptés en livraison | Reproduit avec le moteur réel et réponses modèle simulées |
 | A06 | P2 | CLI OpenClaw non trouvé par certaines commandes dans un terminal neuf | Confirmé par résolution du PATH et flux d'installation |
 | A07 | P2 | Purge partielle avant échec sur les droits des modèles | Reproduit avec refus d'accès simulé |
-| A08 | P2 | Timeout non traité et traitement chat restant « en cours » | Reproduit avec exception de processus simulée |
+| A08 | P2 | Timeout non traité et traitement chat restant « en cours » | **Corrigé** après l'audit ; régression `tests/test_background_failures.py` |
 | A09 | P2 | Fichier temporaire abandonné bloquant les reprises | Reproduit avec le collecteur réel |
 | A10 | P2 | Liste privée illisible traitée comme liste vide | Reproduit sans requête réseau |
 | A11 | P2 | Journal budgétaire tronqué non récupéré avant le prochain append | Reproduit sur journal temporaire |
@@ -241,6 +241,18 @@ présentent la même lacune ; le worker de tâches couvre déjà une partie des 
 terminal et reconnaître les travaux interrompus après redémarrage. Tester chat,
 proposition, audit et reprise, en vérifiant l'arrêt effectif de l'inférence avant
 de libérer un verrou ; ne pas confondre délai HTTP et arrêt réel du modèle.
+
+**Correction postérieure à l'audit :** les traitements en arrière-plan du chat
+(`chat_run`, brouillons `chat_flow`) et du tableau de bord (`_prepare`, `_run`)
+enregistrent désormais un état terminal pour **toute** exception, y compris
+`TimeoutExpired` et les erreurs inattendues, avec un message commun
+(`failure_message`) qui nomme le délai dépassé. Un traitement chat resté `running`
+sans fil actif (redémarrage, arrêt brutal) est affiché « interrompu » au lieu
+d'« en cours ». Les réponses du bridge transforment un délai dépassé en 409 lisible
+et libèrent le verrou. Limite connue : `subprocess.run` arrête le processus
+`openclaw agent` à l'expiration, mais l'arrêt de la génération déjà transmise à
+Ollama n'est pas démontré ; il reste à mesurer sur le PC avec le chantier du vrai
+arrêt.
 
 ### A09 — Collecte interrompue : récupérer le staging
 

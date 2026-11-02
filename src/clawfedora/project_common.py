@@ -5,6 +5,7 @@ import json
 import mimetypes
 import os
 import re
+import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,24 @@ ALLOWED_OUTPUT_ROOTS = {"work", "deliverables", "evidence", "diagrams"}
 
 def now() -> str:
     return datetime.now(UTC).isoformat()
+
+
+# Errors the code raises on purpose keep their own message; anything else is named as an
+# internal error instead of being lost with the thread that met it.
+_EXPECTED_ERRORS = (OSError, ValueError, KeyError, RuntimeError)
+
+
+def failure_message(exc: BaseException) -> str:
+    """Readable cause of a background failure, bounded for state files and the chat (A08)."""
+    if isinstance(exc, subprocess.TimeoutExpired):
+        return (
+            f"délai dépassé ({exc.timeout:.0f} s) : le processus OpenClaw a été arrêté sans "
+            "réponse; relancez plus tard ou réduisez la demande."
+        )
+    text = str(exc).strip()
+    if not isinstance(exc, _EXPECTED_ERRORS):
+        text = f"erreur interne ({type(exc).__name__}){' : ' + text if text else ''}"
+    return (text or type(exc).__name__)[:1000]
 
 
 def validate_project_id(value: str) -> str:
