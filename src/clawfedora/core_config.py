@@ -84,14 +84,24 @@ def resolve_runtime_root(explicit: str | Path | None = None) -> Path:
     return load_settings().runtime_root
 
 
+def openclaw_path(inherited: str | None = None) -> str:
+    """PATH that finds the CLI installed by the project, even from a fresh terminal (A06).
+
+    The installer puts OpenClaw in ~/.openclaw/bin and never edits shell profiles: every
+    command that needs the CLI searches the managed locations first, then the inherited PATH.
+    """
+    current = os.environ.get("PATH", "") if inherited is None else inherited
+    return os.pathsep.join(
+        [str(Path.home() / ".openclaw/bin"), str(Path.home() / ".local/bin"), current]
+    )
+
+
 def openclaw_environment(runtime: Path | None = None) -> dict[str, str]:
     root = runtime or resolve_runtime_root()
     env = dict(os.environ)
     env.pop("OPENCLAW_CONFIG_PATH", None)
     env.update(
-        PATH=os.pathsep.join(
-            [str(Path.home() / ".openclaw/bin"), str(Path.home() / ".local/bin"), env.get("PATH", "")]
-        ),
+        PATH=openclaw_path(env.get("PATH", "")),
         OPENCLAW_STATE_DIR=str(root / "state/openclaw"),
         OPENCLAW_LOCAL_FEDORA_ROOT=str(root),
         OLLAMA_API_KEY="ollama-local",

@@ -16,6 +16,7 @@ import re
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
+from stat import S_ISREG
 from typing import Any
 
 
@@ -33,6 +34,10 @@ LABELS = {
     "secret_assignment": "valeur secrète affectée à un mot de passe, une clé ou un jeton",
     "subscription_id": "identifiant réel d'abonnement, de tenant ou de service",
     "denylist": "terme de votre liste personnelle de termes sensibles",
+    "denylist_unreadable": (
+        "liste personnelle de termes sensibles illisible ou invalide : corriger "
+        "state/cloud/denylist.txt (le cloud reste refusé jusque-là)"
+    ),
     "non_text_content": "contenu non textuel",
 }
 
@@ -144,7 +149,12 @@ class PrivacyFilter:
         self._denylist = denylist
         self._cache: tuple[tuple[int, int], list[str]] | None = None
 
-    def _terms(self) -> list[str]:
+    def _terms(self) -> list[str] | None:
+        """Configured terms; ``[]`` when no list exists, ``None`` when it cannot be read.
+
+        A list that exists but cannot be read (directory, permissions, encoding) must not
+        quietly become an empty list: that would drop the user's own protection (A10).
+        """
         source = self._denylist
         if source is None:
             return []
@@ -152,12 +162,19 @@ class PrivacyFilter:
             return source()
         try:
             stat = source.stat()
-            key = (stat.st_mtime_ns, stat.st_size)
-            if self._cache and self._cache[0] == key:
-                return self._cache[1]
-            lines = source.read_text(encoding="utf-8").splitlines()
+        except FileNotFoundError:
+            return []  # optional: no personal list configured
         except OSError:
-            return []
+            return None
+        if not S_ISREG(stat.st_mode):
+            return None
+        key = (stat.st_mtime_ns, stat.st_size)
+        if self._cache and self._cache[0] == key:
+            return self._cache[1]
+        try:
+            lines = source.read_text(encoding="utf-8").splitlines()
+        except (OSError, UnicodeError):
+            return None
         terms = [
             line.strip()
             for line in lines
@@ -189,13 +206,18 @@ class PrivacyFilter:
             if not _placeholder_guid(match.group("guid")):
                 found.add("subscription_id")
         lowered = text.lower()
-        for term in self._terms():
+        terms = self._terms()
+        if terms is None:
+            found.add("denylist_unreadable")
+            terms = []
+        for term in terms:
             if term.startswith("re:"):
                 try:
                     if re.search(term[3:200], text, re.IGNORECASE):
                         found.add("denylist")
                 except re.error:
-                    continue
+                    # An invalid pattern is a rule the user believes active: refuse.
+                    found.add("denylist_unreadable")
             elif term.lower() in lowered:
                 found.add("denylist")
         return [Finding(category, where) for category in sorted(found)]

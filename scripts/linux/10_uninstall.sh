@@ -27,6 +27,7 @@ UNINSTALL_PLAN runtime=$RUNTIME_ROOT
   managed workspaces: remove
   managed venv: remove
   projects/models/proofs: preserve by default
+  purge: stops Ollama, removes models/ollama with sudo, then projects/proofs/state/models
   purge-data: $PURGE
 EOF
 
@@ -57,13 +58,39 @@ claw_uninstall_gateway "$(claw_openclaw_state)" || {
 rm -f "$HOME/.local/share/applications/clawfedora-atelier.desktop"
 
 PYTHON="$(claw_python)"
-ARGS=(--root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" cleanup --apply)
-((PURGE == 1)) && ARGS+=(--purge-data)
-if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then
-  "$PYTHON" -m clawfedora.ops_cli "${ARGS[@]}"
+ops() {
+  if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then
+    "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" "$@"
+  else
+    PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
+      "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" "$@"
+  fi
+}
+
+if ((PURGE == 1)); then
+  # 1. Every permission checked first, without removing anything (A07). models/ollama
+  #    belongs to the ollama service account and is handled by the bounded step 2.
+  ops cleanup --check --purge-data --models-by-root
+  # 2. Stop Ollama, prove it, then remove exactly this managed directory with sudo.
+  MODELS="$RUNTIME_ROOT/models/ollama"
+  if systemctl cat ollama.service >/dev/null 2>&1; then
+    sudo systemctl stop ollama.service
+    if systemctl is-active --quiet ollama.service; then
+      echo "UNINSTALL_RESULT=FAIL Ollama encore actif; modèles et données intacts" >&2
+      exit 2
+    fi
+  fi
+  if [[ -e "$MODELS" || -L "$MODELS" ]]; then
+    [[ -f "$RUNTIME_ROOT/.openclaw-fedora-runtime" && ! -L "$RUNTIME_ROOT/models" && ! -L "$MODELS" && -d "$MODELS" ]] || {
+      echo "UNINSTALL_RESULT=FAIL dossier des modèles inattendu: $MODELS; rien n'a été supprimé" >&2
+      exit 2
+    }
+    sudo rm -rf --one-file-system -- "$MODELS"
+  fi
+  # 3. The user-level purge, checked again by itself before its first removal.
+  ops cleanup --apply --purge-data
 else
-  PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
-    "$PYTHON" -m clawfedora.ops_cli "${ARGS[@]}"
+  ops cleanup --apply
 fi
 
 echo "UNINSTALL_RESULT=PASS purge_data=$PURGE"

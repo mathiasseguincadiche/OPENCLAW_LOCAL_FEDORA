@@ -79,7 +79,7 @@ def test_backup_includes_real_gateway_state_and_migration_preserves_source(tmp_p
 def test_health_uses_full_json_inventory_and_reports_no_gpu_offload(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    monkeypatch.setattr(lifecycle.shutil, "which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(lifecycle.shutil, "which", lambda name, path=None: f"/usr/bin/{name}")
     from clawfedora.agents import deploy_workspaces
 
     deploy_workspaces(ROOT, tmp_path)

@@ -20,6 +20,9 @@ claw_require_storage "$RUNTIME_ROOT"
 case "${1:-}" in
   backup)
     shift
+    # One consistent instant: refused while a chat, task or audit runs (A04). Reuses the
+    # descriptor of a parent that already holds the lock (12_upgrade, 09_repair).
+    claw_lock_worker
     if [[ "${1:-}" == "--output-dir" ]]; then
       [[ -n "${2:-}" ]] || { echo "ERREUR: --output-dir exige une valeur" >&2; exit 2; }
       run_ops backup --output-dir "$2"

@@ -104,4 +104,10 @@ Ce qui grossit : `backups/` (supprime les anciennes sauvegardes dont tu n'as plu
 
 Avant toute suppression, la désinstallation arrête les services WebUI, bridge, voix et tableau de bord, puis le Gateway OpenClaw géré (CLI installé et état `/data/IA/Openclaw/state/openclaw`, même depuis un terminal neuf). Elle vérifie que le service est inactif et que son port ne répond plus. Si l'arrêt n'est pas confirmé, elle s'interrompt avec `UNINSTALL_RESULT=FAIL` sans rien effacer.
 
-La purge cible les données gérées sous `/data/IA/Openclaw`, mais ne constitue pas une suppression complète du dossier : sources, sauvegardes et certaines données de runtime restent présentes. Les droits du répertoire des modèles peuvent actuellement provoquer un arrêt partiel après suppression d'autres données. Ne pas utiliser cette purge comme preuve de nettoyage complet avant correction et essai isolé.
+La purge cible les données gérées sous `/data/IA/Openclaw` : projets, preuves, état et modèles. Elle se déroule en trois temps :
+
+1. vérification de tous les droits, sans rien supprimer ;
+2. arrêt vérifié d'Ollama, puis suppression du seul dossier `models/ollama` avec `sudo`, puisqu'il appartient au compte `ollama` ;
+3. suppression du reste.
+
+Si un droit manque, rien n'est effacé. Ce n'est pas une suppression complète du dossier : les sources (dépôt cloné), `backups/`, `runtime/` hors environnement Python, le marqueur du runtime, Ollama (binaire, service, compte `ollama`, complément `openclaw-daily.conf`) et les paquets Fedora restent en place. La commande l'affiche dans `CLEANUP_KEEPS`.

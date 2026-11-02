@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import fcntl
+import glob
 import hashlib
 import json
 import os
 import re
 import shutil
 import subprocess
+import tempfile
 import time
 import uuid
 from collections.abc import Callable, Iterator
@@ -78,6 +80,35 @@ def worker_lock(runtime: Path, *, allow_gaming: bool = False) -> Iterator[None]:
             yield
         finally:
             fcntl.flock(handle, fcntl.LOCK_UN)
+
+
+INHERITED_LOCK_FD = 9  # descriptor claw_lock_worker (lib/runtime.sh) passes to its children
+
+
+@contextmanager
+def maintenance_lock(runtime: Path, *, inherited_fd: int = INHERITED_LOCK_FD) -> Iterator[None]:
+    """The worker lock for maintenance (backup...), refused while a generation runs (A04).
+
+    A maintenance script that already holds the lock (12_upgrade, 09_repair, 14_cloud...)
+    passes it as descriptor 9 to the commands it starts. flock on that same open file
+    description succeeds, so a child reuses its parent's lock instead of deadlocking.
+    """
+    path = runtime / "state/worker.lock"
+    try:
+        inherited = os.fstat(inherited_fd)
+        lock = os.stat(path)
+        reuse = (inherited.st_dev, inherited.st_ino) == (lock.st_dev, lock.st_ino)
+    except OSError:
+        reuse = False
+    if not reuse:
+        with worker_lock(runtime, allow_gaming=True):
+            yield
+        return
+    try:
+        fcntl.flock(inherited_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError as exc:
+        raise ValueError("un worker est déjà actif sur ce runtime") from exc
+    yield  # the parent script owns the lock and releases it
 
 
 def _guard(root: Path) -> dict[str, str]:
@@ -404,17 +435,48 @@ def _collection_targets(
     return validated
 
 
+STAGING_SUFFIX = ".worker-tmp"
+
+
+def _stale_staging(target: Path) -> list[Path]:
+    """Staging files an interrupted attempt left for this exact output."""
+    legacy = target.with_suffix(target.suffix + STAGING_SUFFIX)  # fixed name before A09
+    stale = [legacy] if legacy.is_symlink() or legacy.exists() else []
+    return stale + sorted(
+        target.parent.glob(f".{glob.escape(target.name)}.*{STAGING_SUFFIX}")
+    )
+
+
 def _collect(
     repo_root: Path, project: Path, task: dict[str, Any], response: dict[str, Any]
 ) -> list[str]:
     validated = _collection_targets(repo_root, project, task, response)
-    # Validation of every path precedes the first write.
-    for target, content in validated:
-        target.parent.mkdir(parents=True, exist_ok=True)
-        temporary = target.with_suffix(target.suffix + ".worker-tmp")
-        with temporary.open("xb") as handle:
-            handle.write(content)
-        temporary.chmod(0o640)
+    # Validation of every path precedes the first write. Every output is then staged under
+    # a per-attempt name before the first one is promoted: a failure while staging leaves
+    # all previous outputs untouched, and a crash never blocks the next attempt (A09).
+    staged: list[tuple[Path, Path]] = []
+    try:
+        for target, content in validated:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            # Only the worker writes here, under the global worker lock: a staging file
+            # left for this output comes from an interrupted attempt.
+            for stale in _stale_staging(target):
+                stale.unlink()
+            fd, name = tempfile.mkstemp(
+                prefix=f".{target.name}.", suffix=STAGING_SUFFIX, dir=target.parent
+            )
+            temporary = Path(name)
+            staged.append((temporary, target))
+            with os.fdopen(fd, "wb") as handle:
+                handle.write(content)
+                handle.flush()
+                os.fsync(handle.fileno())
+            temporary.chmod(0o640)
+    except BaseException:
+        for temporary, _ in staged:
+            temporary.unlink(missing_ok=True)
+        raise
+    for temporary, target in staged:
         temporary.replace(target)
     return [target.relative_to(project).as_posix() for target, _ in validated]
 

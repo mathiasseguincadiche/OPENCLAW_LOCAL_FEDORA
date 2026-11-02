@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from hashlib import sha256
 from pathlib import Path
 from typing import Any
@@ -571,6 +572,70 @@ def all_tasks_pass(repo_root: Path, project: Path) -> bool:
     return all(isinstance(item, dict) and item.get("status") == "PASS" for item in tasks)
 
 
+# What an audit judges, sealed in its verdict (A05): the deliverables and the plan. Follow-up
+# files written after an audit (state, history, reports, package manifest) are not part of it.
+AUDITED_SCOPES = ("deliverables", "diagrams")
+AUDITED_FILES = ("context/project_plan.json",)
+
+
+def audited_inventory(project: Path) -> dict[str, str]:
+    """SHA-256 of every file an audit judged, by project-relative path."""
+    base = os.path.realpath(project)
+    inventory: dict[str, str] = {}
+    for scope in AUDITED_SCOPES:
+        # Resolved and confined before any filesystem access: a linked scope is refused.
+        root = os.path.realpath(os.path.join(base, scope))
+        if not root.startswith(base + os.sep):
+            raise ValueError(f"inventaire audité: {scope} hors du projet")
+        if not os.path.isdir(root):
+            continue
+        for path in sorted(Path(root).rglob("*")):
+            if (
+                path.is_file()
+                and path.name != "package_manifest.json"
+                and not path.name.endswith(".worker-tmp")
+            ):
+                inventory[path.relative_to(base).as_posix()] = sha256_file(path)
+    for relative in AUDITED_FILES:
+        candidate = os.path.realpath(os.path.join(base, relative))
+        if not candidate.startswith(base + os.sep):
+            raise ValueError(f"inventaire audité: {relative} hors du projet")
+        if os.path.isfile(candidate):
+            inventory[relative] = sha256_file(Path(candidate))
+    return inventory
+
+
+def stale_audits(
+    repo_root: Path, project: Path, kinds: tuple[str, ...] = ("validation", "review")
+) -> list[str]:
+    """Differences between the sealed inventory of each verdict and the files now present."""
+    current = audited_inventory(project)
+    problems: list[str] = []
+    for kind in kinds:
+        sealed = _require(repo_root, project, kind).get("sealed_inventory")
+        if not isinstance(sealed, dict):
+            problems.append(f"{kind}: verdict sans inventaire scellé")
+            continue
+        changed = sorted(k for k in sealed.keys() & current.keys() if sealed[k] != current[k])
+        added = sorted(current.keys() - sealed.keys())
+        removed = sorted(sealed.keys() - current.keys())
+        if changed or added or removed:
+            problems.append(
+                f"{kind}: modifiés={changed[:5]} ajoutés={added[:5]} supprimés={removed[:5]}"
+            )
+    return problems
+
+
+def _require_fresh_audits(repo_root: Path, project: Path, kinds: tuple[str, ...]) -> None:
+    problems = stale_audits(repo_root, project, kinds)
+    if problems:
+        raise ValueError(
+            "audit périmé : livrables ou plan modifiés depuis l'audit ("
+            + "; ".join(problems)
+            + "). Faire une reprise approuvée de l'étape concernée pour refaire les audits."
+        )
+
+
 def store_verdict(
     repo_root: Path,
     project: Path,
@@ -602,6 +667,8 @@ def store_verdict(
             "verdict": normalized,
             "reviewer": reviewer,
             "findings": findings,
+            # The exact bytes judged: packaging refuses anything changed afterwards.
+            "sealed_inventory": audited_inventory(project),
         },
     )
     return path
@@ -691,13 +758,16 @@ def _assert_transition(
     elif target == "REVIEW":
         if _verdict(repo_root, project, "validation") != "PASS":
             raise ValueError("validation PASS requise")
+        _require_fresh_audits(repo_root, project, ("validation",))
     elif target == "PACKAGING":
         if _verdict(repo_root, project, "review") != "PASS":
             raise ValueError("review PASS requise")
+        _require_fresh_audits(repo_root, project, ("validation", "review"))
     elif target == "COMPLETE":
         package_failures = validate_package(repo_root, project)
         if package_failures:
             raise ValueError(f"package final invalide: {package_failures}")
+        _require_fresh_audits(repo_root, project, ("validation", "review"))
         if not human_approved:
             raise PermissionError("approbation humaine finale requise")
 
@@ -765,6 +835,8 @@ def package_project(
         )
     if current_status(project) != "PACKAGING":
         raise ValueError("PACKAGING requis")
+    # A file edited on disk after the audits must not be packaged as audited (A05).
+    _require_fresh_audits(repo_root, project, ("validation", "review"))
     records = _deliverable_records(project)
     expected_deliverables = manifest(project).get("expected_deliverables", [])
     if not isinstance(expected_deliverables, list):

@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import os
 import re
 import shutil
 import sqlite3
@@ -17,7 +18,7 @@ from typing import Any
 from clawfedora import ollama_api
 from clawfedora.agents import load_agent_specs
 from clawfedora.contracts import validate_repository
-from clawfedora.core_config import daily_limits, openclaw_environment, root_contract
+from clawfedora.core_config import daily_limits, openclaw_environment, openclaw_path, root_contract
 from clawfedora.hardware_gate import collect_hardware_gate
 from clawfedora.version_lock import extract_openclaw_version
 
@@ -117,7 +118,7 @@ def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) 
             str(runtime_root),
         )
     )
-    openclaw = shutil.which("openclaw")
+    openclaw = shutil.which("openclaw", path=openclaw_path())
     checks.append(
         HealthCheck(
             "openclaw-cli",
@@ -155,7 +156,7 @@ def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) 
         HealthCheck(
             "agent-workspaces",
             "PASS" if not missing else "FAIL",
-            "6 managed" if not missing else f"missing={missing}",
+            f"{len(expected)} managed" if not missing else f"missing={missing}",
         )
     )
     versions: dict[str, Any] = {}
@@ -419,26 +420,84 @@ def restore_backup(archive: Path, destination: Path) -> Path:
     return target
 
 
-def cleanup_managed(runtime_root: Path, *, purge_data: bool = False) -> list[Path]:
+PURGED_DATA = ("projects", "proofs", "state", "models")
+# What a purge deliberately keeps, said exactly (A07): not a removal of the whole folder.
+PURGE_KEEPS = (
+    "sources (dépôt cloné), backups/, runtime/ hors venv, marqueur du runtime ; "
+    "Ollama (binaire, service, compte ollama et complément openclaw-daily.conf) "
+    "et paquets Fedora restent installés"
+)
+
+
+def _deletion_blockers(path: Path) -> list[str]:
+    """Entries of ``path`` the current user could not remove; checked before any removal."""
+    blockers: list[str] = []
+    if path.is_symlink():
+        return [f"{path} (lien)"]
+    if not os.access(path.parent, os.W_OK | os.X_OK):
+        blockers.append(str(path.parent))
+
+    def unreadable(error: OSError) -> None:
+        blockers.append(str(error.filename))
+
+    for directory, subdirectories, _files in os.walk(path, onerror=unreadable):
+        # Removing an entry needs write and search rights on the directory holding it,
+        # and listing it needs read rights.
+        if not os.access(directory, os.R_OK | os.W_OK | os.X_OK):
+            blockers.append(directory)
+            subdirectories.clear()
+    return blockers
+
+
+def cleanup_managed(
+    runtime_root: Path,
+    *,
+    purge_data: bool = False,
+    check_only: bool = False,
+    models_by_root: bool = False,
+) -> list[Path]:
+    """Remove the managed parts, or with ``check_only`` only prove that it is possible.
+
+    ``models_by_root`` (check only) leaves aside models/ollama, owned by the ollama service
+    account and removed separately with sudo by 10_uninstall.sh after Ollama is stopped.
+    """
     runtime = _require_managed_runtime(runtime_root)
-    removed: list[Path] = []
+    targets: list[Path] = []
     workspaces = runtime / "workspaces"
     if workspaces.is_dir():
-        for child in workspaces.iterdir():
-            if child.is_dir() and (child / MANAGED_MARKER).is_file():
-                shutil.rmtree(child)
-                removed.append(child)
+        targets += [
+            child for child in sorted(workspaces.iterdir())
+            if child.is_dir() and not child.is_symlink() and (child / MANAGED_MARKER).is_file()
+        ]
     venv = runtime / "runtime" / "venv"
     if venv.is_dir():
-        shutil.rmtree(venv)
-        removed.append(venv)
+        targets.append(venv)
     if purge_data:
-        for name in ("projects", "proofs", "state", "models"):
-            path = runtime / name
-            if path.is_dir():
-                shutil.rmtree(path)
-                removed.append(path)
-    return removed
+        targets += [runtime / name for name in PURGED_DATA if (runtime / name).is_dir()]
+    # Every permission is verified before the first removal: a refusal on the models
+    # (owned by the ollama account) no longer arrives after projects were deleted.
+    blockers = [item for target in targets for item in _deletion_blockers(target)]
+    if check_only and models_by_root:
+        models = runtime / "models" / "ollama"
+        blockers = [
+            item for item in blockers
+            if not (Path(item) == models or models in Path(item).parents)
+        ]
+    if blockers:
+        hint = ""
+        if any("/models" in item for item in blockers):
+            hint = (
+                " ; models/ollama appartient au compte ollama : passer par "
+                "10_uninstall.sh --apply --purge-data (arrêt d'Ollama puis suppression bornée)"
+            )
+        raise ValueError(
+            f"cleanup: rien n'a été supprimé, droits insuffisants sur {blockers[:5]}{hint}"
+        )
+    if check_only:
+        return targets
+    for target in targets:
+        shutil.rmtree(target)
+    return targets
 
 
 def migrate_openclaw_state(runtime: Path, source: Path) -> Path:

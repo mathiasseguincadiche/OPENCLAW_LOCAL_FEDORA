@@ -207,3 +207,32 @@ def test_unknown_nested_forwarded_text_and_excessive_depth_are_checked() -> None
         nested = {"next": nested}
     request["future_metadata"] = nested
     assert "non_text_content" in categories(request)
+
+
+def test_an_unreadable_or_invalid_denylist_refuses_instead_of_vanishing(tmp_path: Path) -> None:
+    """A10: a configured list that cannot be read must never become an empty list."""
+    path = tmp_path / "denylist.txt"
+    filter_ = PrivacyFilter(path)
+    path.write_text("NomInterne\n")
+    assert categories(body(("user", "NomInterne")), filter_) == {"denylist"}
+    # Replaced by a directory: the protection is not silently lost.
+    path.unlink()
+    path.mkdir()
+    assert categories(body(("user", "bonjour")), filter_) == {"denylist_unreadable"}
+    path.rmdir()
+    path.write_bytes(b"\xff\xfe\x00invalide")
+    assert categories(body(("user", "bonjour")), filter_) == {"denylist_unreadable"}
+    # An invalid pattern is a rule the user believes active.
+    path.write_text("re:([a-\n")
+    assert categories(body(("user", "bonjour")), filter_) == {"denylist_unreadable"}
+    # Once repaired, the list is read again (no stale refusal, no stale cache).
+    path.write_text("NomInterne\n")
+    assert categories(body(("user", "NomInterne")), filter_) == {"denylist"}
+    assert categories(body(("user", "bonjour")), filter_) == set()
+
+
+def test_the_unreadable_denylist_message_says_what_to_fix(tmp_path: Path) -> None:
+    (tmp_path / "denylist.txt").mkdir()
+    findings = PrivacyFilter(tmp_path / "denylist.txt").scan_request(body(("user", "x")))
+    text = describe(findings)
+    assert "illisible ou invalide" in text and "denylist.txt" in text

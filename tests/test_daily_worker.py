@@ -248,3 +248,54 @@ def test_daily_patch_really_bounds_memory_and_disables_unsafe_tools(tmp_path: Pa
     # The model must never be able to update OpenClaw or chain a three-step tool search.
     assert {"gateway", "presence"} <= set(patch["tools"]["deny"])
     assert patch["tools"]["toolSearch"] is False
+
+
+def _two_outputs(tmp_path: Path) -> tuple[Path, dict[str, Any]]:
+    project = tmp_path / "project"
+    (project / "deliverables/task-id").mkdir(parents=True)
+    task = {
+        "id": "task-id",
+        "role": "architecte-solutions",
+        "expected_outputs": ["deliverables/task-id/a.md", "deliverables/task-id/b.md"],
+    }
+    return project, task
+
+
+def test_collector_recovers_from_staging_files_left_by_a_crash(tmp_path: Path) -> None:
+    """A09: a fixed staging name used to make every later attempt fail (FileExistsError)."""
+    project, task = _two_outputs(tmp_path)
+    out = project / "deliverables/task-id"
+    (out / "a.md.worker-tmp").write_bytes(b"partiel")  # previous fixed name
+    (out / ".a.md.x1y2z3.worker-tmp").write_bytes(b"partiel")  # per-attempt name
+    for attempt in (1, 2):
+        files = {f"deliverables/task-id/{n}.md": f"{n}{attempt}" for n in ("a", "b")}
+        assert _collect(ROOT, project, task, {"files": files}) == task["expected_outputs"]
+    assert sorted(p.name for p in out.iterdir()) == ["a.md", "b.md"]
+    assert (out / "a.md").read_text() == "a2" and (out / "b.md").read_text() == "b2"
+
+
+def test_collector_failure_while_staging_keeps_previous_outputs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import tempfile
+
+    from clawfedora import project_worker
+
+    project, task = _two_outputs(tmp_path)
+    out = project / "deliverables/task-id"
+    (out / "a.md").write_text("ancienne version")
+    real = tempfile.mkstemp
+    calls: list[str] = []
+
+    def failing_second(*args: Any, **kwargs: Any) -> tuple[int, str]:
+        calls.append(str(kwargs.get("prefix")))
+        if len(calls) == 2:
+            raise OSError("disque plein simulé")
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(project_worker.tempfile, "mkstemp", failing_second)
+    files = {f"deliverables/task-id/{n}.md": f"{n}-nouveau" for n in ("a", "b")}
+    with pytest.raises(OSError, match="disque plein"):
+        _collect(ROOT, project, task, {"files": files})
+    assert (out / "a.md").read_text() == "ancienne version"  # nothing promoted
+    assert sorted(p.name for p in out.iterdir()) == ["a.md"]  # staging cleaned

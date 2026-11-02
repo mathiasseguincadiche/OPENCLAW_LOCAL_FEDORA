@@ -8,6 +8,7 @@ import pytest
 from clawfedora.artifact_exchange import validate_bundle
 from clawfedora.project_common import read_json
 from clawfedora.project_engine import (
+    audited_inventory,
     create_assignments,
     create_clarifications,
     current_status,
@@ -15,6 +16,7 @@ from clawfedora.project_engine import (
     ready_tasks,
     record_task_result,
     resolve_clarification,
+    stale_audits,
     store_analysis,
     store_plan,
     store_verdict,
@@ -399,6 +401,10 @@ def test_package_tamper_blocks_complete(tmp_path: Path) -> None:
     project = _project(tmp_path)
     _start_single_task(project)
     _pass_single_task(project)
+    # The deliverable exists before the audits: they seal it.
+    deliverable = project / "deliverables" / "build-output" / "final.md"
+    deliverable.parent.mkdir(parents=True, exist_ok=True)
+    deliverable.write_text("original", encoding="utf-8")
     transition_project(
         ROOT,
         project,
@@ -429,9 +435,6 @@ def test_package_tamper_blocks_complete(tmp_path: Path) -> None:
         [],
         reviewer="auditeur-qualite",
     )
-    deliverable = project / "deliverables" / "build-output" / "final.md"
-    deliverable.parent.mkdir(parents=True, exist_ok=True)
-    deliverable.write_text("original", encoding="utf-8")
     package_project(ROOT, project, actor="ingenieur-devops")
     deliverable.write_text("tampered", encoding="utf-8")
     with pytest.raises(ValueError, match="package final invalide"):
@@ -443,3 +446,84 @@ def test_package_tamper_blocks_complete(tmp_path: Path) -> None:
             reason="approved",
             human_approved=True,
         )
+
+
+def _audited_twice(tmp_path: Path) -> tuple[Path, Path]:
+    """A project whose single deliverable passed validation and review."""
+    project = _project(tmp_path)
+    _start_single_task(project)
+    _pass_single_task(project)
+    deliverable = project / "deliverables" / "build-output" / "final.md"
+    deliverable.parent.mkdir(parents=True, exist_ok=True)
+    deliverable.write_text("audité", encoding="utf-8")
+    transition_project(ROOT, project, "VALIDATING", actor="auditeur-qualite", reason="tasks-pass")
+    store_verdict(ROOT, project, "validation", "PASS", [], reviewer="auditeur-qualite")
+    transition_project(ROOT, project, "REVIEW", actor="auditeur-qualite", reason="validation")
+    store_verdict(ROOT, project, "review", "PASS", [], reviewer="auditeur-qualite")
+    return project, deliverable
+
+
+@pytest.mark.parametrize("change", ["modify", "add", "delete", "plan"])
+def test_files_changed_after_the_audits_cannot_be_packaged(tmp_path: Path, change: str) -> None:
+    """A05: a deliverable edited on disk after PASS audits used to reach COMPLETE."""
+    project, deliverable = _audited_twice(tmp_path)
+    if change == "modify":
+        deliverable.write_text("modifié après audit", encoding="utf-8")
+    elif change == "add":
+        (deliverable.parent / "extra.md").write_text("jamais audité", encoding="utf-8")
+    elif change == "delete":
+        deliverable.unlink()
+    else:
+        plan = project / "context/project_plan.json"
+        plan.write_text(plan.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="audit périmé.*reprise approuvée"):
+        package_project(ROOT, project, actor="ingenieur-devops")
+    assert not (project / "deliverables/package_manifest.json").exists()
+    assert stale_audits(ROOT, project)
+
+
+def test_follow_up_files_written_after_the_audits_are_not_stale(tmp_path: Path) -> None:
+    project, _deliverable = _audited_twice(tmp_path)
+    (project / "evidence/notes.md").write_text("suivi", encoding="utf-8")
+    (project / "history").mkdir(exist_ok=True)
+    (project / "history/log.txt").write_text("suivi", encoding="utf-8")
+    assert stale_audits(ROOT, project) == []
+    package_project(ROOT, project, actor="ingenieur-devops")
+    transition_project(
+        ROOT, project, "COMPLETE", actor="human-owner", reason="ok", human_approved=True
+    )
+
+
+def test_a_change_between_validation_and_review_blocks_the_review_step(tmp_path: Path) -> None:
+    project = _project(tmp_path)
+    _start_single_task(project)
+    _pass_single_task(project)
+    deliverable = project / "deliverables" / "build-output" / "final.md"
+    deliverable.parent.mkdir(parents=True, exist_ok=True)
+    deliverable.write_text("v1", encoding="utf-8")
+    transition_project(ROOT, project, "VALIDATING", actor="auditeur-qualite", reason="tasks-pass")
+    store_verdict(ROOT, project, "validation", "PASS", [], reviewer="auditeur-qualite")
+    deliverable.write_text("v2", encoding="utf-8")
+    with pytest.raises(ValueError, match="audit périmé.*validation"):
+        transition_project(ROOT, project, "REVIEW", actor="auditeur-qualite", reason="validation")
+
+
+def test_a_verdict_without_sealed_inventory_is_refused(tmp_path: Path) -> None:
+    import json
+
+    project, _deliverable = _audited_twice(tmp_path)
+    report = project / "evidence/review_report.json"
+    payload = json.loads(report.read_text(encoding="utf-8"))
+    payload.pop("sealed_inventory")
+    report.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ValueError, match="sans inventaire scellé"):
+        package_project(ROOT, project, actor="ingenieur-devops")
+
+
+def test_the_sealed_scope_is_the_deliverables_and_the_plan(tmp_path: Path) -> None:
+    project, deliverable = _audited_twice(tmp_path)
+    inventory = audited_inventory(project)
+    assert deliverable.relative_to(project).as_posix() in inventory
+    assert "context/project_plan.json" in inventory
+    assert not any(key.startswith(("evidence/", "history/")) for key in inventory)
+    assert "project.json" not in inventory

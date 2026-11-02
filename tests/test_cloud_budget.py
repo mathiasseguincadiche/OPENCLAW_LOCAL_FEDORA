@@ -178,3 +178,35 @@ def test_levels_follow_the_alert_ratio(ledger: Ledger) -> None:
     ledger.record_invoice(25.0)
     assert ledger.summary().level(0.8) == "exhausted"
     assert ledger.summary().remaining_eur == 0
+
+
+def test_a_cut_write_is_repaired_before_the_next_append_over_several_crashes(
+    ledger: Ledger,
+) -> None:
+    """A11: appending behind a fragment used to break the journal for every later call."""
+    ledger.reserve(input_tokens=1000, max_output_tokens=10).settle(USAGE, "ok")
+    path = ledger.path("2026-10")
+    for cycle in range(3):
+        with path.open("a") as handle:
+            handle.write(f'{{"k": "reserve", "id": "cut{cycle}", "est_u')  # crash mid-write
+        held = ledger.reserve(input_tokens=1000, max_output_tokens=10)
+        assert ledger.summary().calls_ok == cycle + 1  # still readable after the append
+        held.settle(USAGE, "ok")
+    assert path.read_bytes().endswith(b"\n")
+    assert all("cut" not in json.dumps(item) for item in lines(ledger))
+    recovered = path.with_name(path.name + ".recovered").read_text().splitlines()
+    assert [json.loads(line)["fragment"] for line in recovered] == [
+        f'{{"k": "reserve", "id": "cut{cycle}", "est_u' for cycle in range(3)
+    ]
+    assert stat.S_IMODE(path.with_name(path.name + ".recovered").stat().st_mode) == 0o600
+
+
+def test_a_complete_record_that_lost_its_newline_stays_counted(ledger: Ledger) -> None:
+    path = ledger.path("2026-10")
+    ledger.record_invoice(2.0)
+    text = path.read_text()
+    path.write_text(text.rstrip("\n"))  # the newline of a complete record was lost
+    ledger.reserve(input_tokens=1000, max_output_tokens=10).settle(USAGE, "ok")
+    summary = ledger.summary()
+    assert summary.effective_eur >= 2.0 and summary.calls_ok == 1
+    assert not path.with_name(path.name + ".recovered").exists()
