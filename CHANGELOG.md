@@ -4,6 +4,12 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 2 novembre 2026 — étape 0 : désinstallation avec arrêt vérifié (A02)
+
+- `10_uninstall.sh` n'ignore plus les erreurs d'arrêt : services WebUI, bridge, voix et tableau de bord installés, puis Gateway OpenClaw, doivent être arrêtés de façon vérifiée avant toute suppression.
+- Nouvelle fonction commune `claw_uninstall_gateway` : CLI géré trouvé même dans un terminal neuf, état OpenClaw géré imposé, arrêt confirmé par systemd et par le port, retrait de la définition puis du complément `openclaw-daily.conf`.
+- Régression : scénarios shell avec HOME temporaire et `systemctl`/`openclaw` simulés ; aucun service de l'hôte n'est touché.
+
 ### 2 novembre 2026 — étape 0 : accord cloud lié au projet ouvert (A03)
 
 - Atelier Projets : une réponse ou une erreur tardive de `/api/cloud` pour un projet précédemment ouvert est ignorée ; les boutons d'accord et de retrait revérifient le projet ouvert avant tout envoi et préviennent si le contrôle est périmé.

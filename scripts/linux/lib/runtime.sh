@@ -61,6 +61,85 @@ claw_openclaw_state() {
   printf '%s/state/openclaw\n' "$(claw_runtime_root)"
 }
 
+# The CLI installed by 15_verified_installer.sh, found even from a fresh terminal whose PATH
+# never received ~/.openclaw/bin. Managed locations win over whatever the PATH inherited.
+claw_openclaw_bin() {
+  local candidate
+  for candidate in "$HOME/.openclaw/bin/openclaw" "$HOME/.local/bin/openclaw"; do
+    if [[ -x "$candidate" && ! -d "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  command -v openclaw 2>/dev/null || return 1
+}
+
+# Something still accepts connections on the loopback gateway port.
+claw_port_listening() {
+  (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null
+}
+
+# Stop the managed OpenClaw Gateway, PROVE it is stopped, then remove its service definition.
+# Always the managed CLI with the managed state directory: an inherited OPENCLAW_STATE_DIR or
+# OPENCLAW_CONFIG_PATH would target another instance. Returns 2 before any removal when the
+# stop cannot be confirmed, so callers must not delete anything after a failure.
+# Usage: claw_uninstall_gateway STATE_DIR [PORT]   (port: config/platform.yaml default_port)
+claw_uninstall_gateway() {
+  local state_dir="$1" port="${2:-18789}" unit="openclaw-gateway.service"
+  local cli="" unit_known=0 cli_rc=0 waited=0
+  local wait_limit="${CLAW_GATEWAY_STOP_WAIT:-10}"
+  local drop_in="$HOME/.config/systemd/user/$unit.d/openclaw-daily.conf"
+  cli="$(claw_openclaw_bin || true)"
+  if systemctl --user cat "$unit" >/dev/null 2>&1; then unit_known=1; fi
+  if [[ -z "$cli" && "$unit_known" == 0 ]]; then
+    if claw_port_listening "$port"; then
+      echo "ERREUR: port $port actif sans service ni CLI OpenClaw géré; arrêt non confirmé" >&2
+      return 2
+    fi
+    echo "GATEWAY_STOP=ABSENT aucun service ni CLI OpenClaw géré"
+    return 0
+  fi
+  if [[ -n "$cli" ]]; then
+    env -u OPENCLAW_CONFIG_PATH OPENCLAW_STATE_DIR="$state_dir" "$cli" gateway stop || cli_rc=$?
+  fi
+  if ((unit_known == 1)); then
+    systemctl --user stop "$unit" || {
+      echo "ERREUR: arrêt de $unit refusé par systemd; rien n'a été supprimé" >&2
+      return 2
+    }
+    if systemctl --user is-active --quiet "$unit"; then
+      echo "ERREUR: $unit encore actif; rien n'a été supprimé" >&2
+      return 2
+    fi
+  fi
+  while claw_port_listening "$port"; do
+    if ((waited >= wait_limit * 2)); then
+      echo "ERREUR: le port $port répond encore après l'arrêt; rien n'a été supprimé" >&2
+      return 2
+    fi
+    sleep 0.5
+    waited=$((waited + 1))
+  done
+  ((cli_rc == 0)) || echo "WARN: openclaw gateway stop a échoué ($cli_rc) mais l'arrêt est vérifié" >&2
+  echo "GATEWAY_STOP=CONFIRMED"
+  if [[ -n "$cli" ]]; then
+    env -u OPENCLAW_CONFIG_PATH OPENCLAW_STATE_DIR="$state_dir" "$cli" gateway uninstall || {
+      echo "ERREUR: définition du Gateway non retirée; service arrêté, données intactes" >&2
+      return 2
+    }
+  elif ((unit_known == 1)); then
+    systemctl --user disable "$unit" || true
+    echo "WARN: CLI OpenClaw introuvable; service arrêté et désactivé, définition conservée" >&2
+  fi
+  # Drop-in written by 11_daily_profile.sh configure-gateway: ours to remove, nothing else.
+  if [[ -f "$drop_in" && ! -L "$drop_in" ]]; then
+    rm -f -- "$drop_in"
+    rmdir -- "$(dirname -- "$drop_in")" 2>/dev/null || true
+  fi
+  systemctl --user daemon-reload || true
+  echo "GATEWAY_UNINSTALL=PASS"
+}
+
 claw_pin() {
   local section="$1" key="$2" repo_root python
   repo_root="$(claw_repo_root)"

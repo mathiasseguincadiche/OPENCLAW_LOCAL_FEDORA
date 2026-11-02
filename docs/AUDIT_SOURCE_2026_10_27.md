@@ -72,7 +72,7 @@ dans ce projet ; elles ne sont pas toutes des vulnérabilités exploitables à d
 | ID | Priorité | Constat | État dans cette révision |
 | --- | --- | --- | --- |
 | A01 | P1 | Avis de sécurité dans le verrou npm actuel | Détecté par audit du registre ; exploitabilité à examiner |
-| A02 | P1 | Désinstallation sans état OpenClaw géré explicite ni arrêt confirmé | Confirmé par lecture du flux |
+| A02 | P1 | Désinstallation sans état OpenClaw géré explicite ni arrêt confirmé | **Corrigé** après l'audit ; régression `tests/test_uninstall_gateway.py` |
 | A03 | P1 | Accord cloud pouvant viser le projet précédent après réponse tardive | **Corrigé** après l'audit ; régression `tests/test_dashboard_cloud_race.py` |
 | A04 | P2 | Sauvegarde/réparation sans exclusion du worker | Sauvegarde malgré verrou reproduite ; réparation confirmée par code |
 | A05 | P2 | Fichiers modifiés après audit acceptés en livraison | Reproduit avec le moteur réel et réponses modèle simulées |
@@ -132,6 +132,16 @@ peut ensuite continuer sans arrêt confirmé du Gateway attendu.
 service concerné, puis seulement nettoyer. Tester un PATH neuf, un état OpenClaw
 par défaut distinct et un échec d'arrêt. Aucun autre service réel n'a été arrêté
 pendant cet audit.
+
+**Correction postérieure à l'audit :** `claw_uninstall_gateway` (bibliothèque
+`scripts/linux/lib/runtime.sh`) utilise le CLI géré `~/.openclaw/bin/openclaw` avant le
+PATH hérité, force `OPENCLAW_STATE_DIR` vers l'état géré et retire `OPENCLAW_CONFIG_PATH`.
+Elle confirme l'arrêt (systemd inactif et port du Gateway muet) avant de retirer la
+définition du service. Les services WebUI, bridge, voix et tableau de bord installés
+doivent aussi s'arrêter. Tout échec interrompt la désinstallation avant la première
+suppression. Les scénarios avec HOME temporaire et commandes simulées couvrent : PATH
+neuf, état par défaut distinct, service encore actif, refus systemd, port occupé, échec
+de retrait et absence d'installation. Aucun service réel n'est sollicité.
 
 ### A03 — Projet actif et autorisation cloud : rejeter les réponses périmées
 

@@ -135,7 +135,8 @@ def test_uninstall_preserves_data_without_explicit_purge() -> None:
     assert "APPLY=0" in text
     assert "PURGE=0" in text
     assert "--purge-data" in text
-    assert "openclaw gateway uninstall" in text
+    assert 'claw_uninstall_gateway "$(claw_openclaw_state)"' in text
+    assert '"$cli" gateway uninstall' in _read("scripts/linux/lib/runtime.sh")
     assert "cleanup --apply" in text
 
 
