@@ -102,4 +102,6 @@ Ce qui grossit : `backups/` (supprime les anciennes sauvegardes dont tu n'as plu
 ./menu.sh --action uninstall --apply --purge-data  # supprime aussi les données
 ```
 
+Avant toute suppression, la désinstallation arrête les services WebUI, bridge, voix et tableau de bord, puis le Gateway OpenClaw géré (CLI installé et état `/data/IA/Openclaw/state/openclaw`, même depuis un terminal neuf). Elle vérifie que le service est inactif et que son port ne répond plus. Si l'arrêt n'est pas confirmé, elle s'interrompt avec `UNINSTALL_RESULT=FAIL` sans rien effacer.
+
 La purge cible les données gérées sous `/data/IA/Openclaw`, mais ne constitue pas une suppression complète du dossier : sources, sauvegardes et certaines données de runtime restent présentes. Les droits du répertoire des modèles peuvent actuellement provoquer un arrêt partiel après suppression d'autres données. Ne pas utiliser cette purge comme preuve de nettoyage complet avant correction et essai isolé.

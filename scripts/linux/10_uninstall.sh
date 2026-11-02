@@ -22,7 +22,8 @@ done
 RUNTIME_ROOT="$(claw_runtime_root)"
 cat <<EOF
 UNINSTALL_PLAN runtime=$RUNTIME_ROOT
-  gateway service: stop + uninstall
+  services WebUI/bridge/voix/tableau: stop verified
+  gateway service (managed CLI + state): stop verified, then uninstall
   managed workspaces: remove
   managed venv: remove
   projects/models/proofs: preserve by default
@@ -35,16 +36,27 @@ if ((APPLY == 0)); then
 fi
 
 claw_lock_worker
-if command -v openclaw >/dev/null 2>&1; then
-  openclaw gateway stop || true
-  openclaw gateway uninstall || true
-fi
+# Services built on top of the Gateway stop first. A unit that is installed must really stop:
+# its failure aborts before anything is removed. Units never installed are simply skipped.
+for unit in clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-speech.service clawfedora-dashboard.service; do
+  systemctl --user cat "$unit" >/dev/null 2>&1 || continue
+  systemctl --user disable --now "$unit" || {
+    echo "UNINSTALL_RESULT=FAIL arrêt de $unit refusé; rien n'a été supprimé" >&2
+    exit 2
+  }
+  if systemctl --user is-active --quiet "$unit"; then
+    echo "UNINSTALL_RESULT=FAIL $unit encore actif; rien n'a été supprimé" >&2
+    exit 2
+  fi
+done
+# Managed CLI + managed state, stop proven before the first deletion (A02).
+claw_uninstall_gateway "$(claw_openclaw_state)" || {
+  echo "UNINSTALL_RESULT=FAIL Gateway OpenClaw non arrêté de façon vérifiée; données intactes" >&2
+  exit 2
+}
+rm -f "$HOME/.local/share/applications/clawfedora-atelier.desktop"
 
 PYTHON="$(claw_python)"
-if ((APPLY == 1)); then
-  systemctl --user disable --now clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-speech.service clawfedora-dashboard.service 2>/dev/null || true
-  rm -f "$HOME/.local/share/applications/clawfedora-atelier.desktop"
-fi
 ARGS=(--root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" cleanup --apply)
 ((PURGE == 1)) && ARGS+=(--purge-data)
 if "$PYTHON" -c 'import clawfedora' >/dev/null 2>&1; then
