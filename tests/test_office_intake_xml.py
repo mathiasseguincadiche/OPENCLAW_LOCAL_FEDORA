@@ -8,6 +8,7 @@ All documents here are synthetic and harmless; nothing is fetched or executed.
 from __future__ import annotations
 
 import io
+import os
 import shutil
 import zipfile
 from pathlib import Path
@@ -76,7 +77,10 @@ def test_dtd_and_entities_are_refused_before_any_expansion(
 
 
 def test_xml_sizes_are_bounded_before_decompression(tmp_path: Path) -> None:
-    padding = f"<w:document {W}>" + "<w:p/>" * 20_000 + "</w:document>"
+    # Random hex compresses about 2:1: only the new XML limits can refuse it, not the
+    # existing ZIP compression-ratio guard.
+    noise = "".join(f"<w:t>{os.urandom(32).hex()}</w:t>" for _ in range(1500))
+    padding = f"<w:document {W}>{noise}</w:document>"
     data = _docx(padding)
     with pytest.raises(ValueError, match="partie XML trop volumineuse"):
         _extract(tmp_path, data, office_max_xml_member_bytes=50_000,
