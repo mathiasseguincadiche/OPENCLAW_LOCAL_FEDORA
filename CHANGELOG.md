@@ -4,6 +4,10 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 2 novembre 2026 — sécurité PDF : pypdf 6.21.4
+
+- `pypdf` passe de 6.21.2 à 6.21.4 (sept avis publiés, corrigés en 6.21.3/6.21.4) avec ses empreintes SHA-256 PyPI ; contraintes, verrou haché, `pyproject.toml` et test du verrou alignés. Aucun avis ignoré, aucune autre dépendance modifiée.
+
 ### 27 octobre 2026 — audit de maturité et documentation simplifiée
 
 - Audit du code source, des scripts, des protections et des interfaces sur la référence fusionnée #155 ; défauts reproduits et priorités distinctes des limites encore à mesurer sur le PC.
