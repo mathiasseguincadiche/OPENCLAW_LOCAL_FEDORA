@@ -1,6 +1,6 @@
 # Archive historique — Migration OpenClaw 2026.9.8 → 2026.10.2
 
-> **Archive de conception 2026 — non normative.** Ce document conserve les décisions et audits historiques. Ses anciennes versions, procédures et priorités ne décrivent pas nécessairement le socle courant. Consulter [l'état actuel](../STATUS.md), le [sommaire des archives](archives/2026/README.md) et [l'installation Fedora 45](INSTALLATION_SIMPLE_FEDORA45.md) avant toute commande.
+> **Archive de conception 2026 — non normative.** Ce document conserve les décisions et audits historiques. Ses anciennes versions, procédures et priorités ne décrivent pas nécessairement le socle courant. Consulter [l'état actuel](../../../STATUS.md), le [sommaire des archives](README.md) et [l'installation Fedora 45](../../INSTALLATION_SIMPLE_FEDORA45.md) avant toute commande.
 
 
 > **Historique seulement.** Une installation neuve utilise désormais OpenClaw et
@@ -36,8 +36,8 @@ La CI exécute le **vrai binaire npm 2026.10.2** avec le plugin **2026.10.2** : 
 1. Vérifier les changements : `git pull --ff-only`, puis `./menu.sh --action validate` et `./menu.sh --action upgrade` (aperçu non mutant).
 2. Vérifier l'état, les tâches en cours et la place disque, puis créer une **sauvegarde vérifiable** avant toute mise à jour : `./menu.sh --action backup`. Conserver l'ancienne révision Git et la sauvegarde hors de tout nettoyage automatique.
 3. Programmer une interruption du chat. Lancer **explicitement** `./menu.sh --action upgrade --apply` depuis le compte Fedora habituel, pas root. Le script arrête les services, effectue une seconde sauvegarde, installe la version prévue, réapplique la configuration native et vérifie la santé.
-4. Vérifier : `openclaw --version` doit retourner **2026.10.2**, puis `./menu.sh --action health`, `./menu.sh --action context-probe --apply` et les essais de la [qualification finale](QUALIFICATION_FINALE_FEDORA.md). Tester les sept rôles, la recherche Parallel, une réponse Qwen, la route cloud seulement si autorisée, le mode hors réseau et Open WebUI.
-5. En cas d'échec, **ne pas forcer** Doctor en boucle ni relancer le cloud : les services sont arrêtés. Appliquer la [procédure de retour arrière](fiches/09-entretenir.md), réinstaller le commit précédent avec son pin 2026.9.8 et restaurer **dans un répertoire vide** une sauvegarde contrôlée. Ne jamais écraser directement le répertoire de production.
+4. Vérifier : `openclaw --version` doit retourner **2026.10.2**, puis `./menu.sh --action health`, `./menu.sh --action context-probe --apply` et les essais de la [qualification finale](../../QUALIFICATION_FINALE_FEDORA.md). Tester les sept rôles, la recherche Parallel, une réponse Qwen, la route cloud seulement si autorisée, le mode hors réseau et Open WebUI.
+5. En cas d'échec, **ne pas forcer** Doctor en boucle ni relancer le cloud : les services sont arrêtés. Appliquer la [procédure de retour arrière](../../fiches/09-entretenir.md), réinstaller le commit précédent avec son pin 2026.9.8 et restaurer **dans un répertoire vide** une sauvegarde contrôlée. Ne jamais écraser directement le répertoire de production.
 
 ## Correctif d'installation OpenClaw (préqualification d'une machine vierge)
 

@@ -34,9 +34,9 @@ def test_public_readme_is_clear_about_unverified_runtime() -> None:
 
 
 def test_october_stabilization_docs_do_not_overclaim_runtime() -> None:
-    audit = (ROOT / "docs/AUDIT_COMPLEMENTAIRE_2026_10.md").read_text(encoding="utf-8")
+    audit = (ROOT / "docs/archives/2026/AUDIT_COMPLEMENTAIRE_2026_10.md").read_text(encoding="utf-8")
     status = (ROOT / "STATUS.md").read_text(encoding="utf-8")
-    programme = (ROOT / "docs/PROGRAMME_AMELIORATION_2026.md").read_text(
+    programme = (ROOT / "docs/archives/2026/PROGRAMME_AMELIORATION_2026.md").read_text(
         encoding="utf-8"
     )
     assert "fait encore `pip install --upgrade pip setuptools wheel`" not in audit

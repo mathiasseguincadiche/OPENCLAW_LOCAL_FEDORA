@@ -18,7 +18,7 @@ Cette section s’adresse à une personne souhaitant vérifier **pourquoi** l’
 | Fichiers et responsabilités | [Architecture expliquée](../fiches/11-comment-ca-marche.md) · [Sécurité](../../SECURITY.md) |
 
 Pour les constats actuels, lire [l'audit du code source du 27 octobre 2026](../AUDIT_SOURCE_2026_10_27.md).
-La [revue documentaire du 20 octobre](../AUDIT_DOCUMENTATION_2026_10.md) conserve son périmètre historique.
+La [revue documentaire du 20 octobre](../archives/2026/AUDIT_DOCUMENTATION_2026_10.md) conserve son périmètre historique.
 
 Les fichiers YAML/JSON du dossier `config/` et le code de `src/` font foi lorsqu’une version, un plafond ou un chemin change. La documentation doit suivre **la même PR**.
 

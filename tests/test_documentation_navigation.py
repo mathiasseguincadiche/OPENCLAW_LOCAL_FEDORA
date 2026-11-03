@@ -19,9 +19,9 @@ GUIDES = (
     "docs/RECHERCHE_LOCALE_SOURCES.md",
     "docs/STREAMING_SSE_PREPARATION.md",
     "docs/EVALUATION_AGENTS.md",
-    "docs/PROGRAMME_AMELIORATION_2026.md",
+    "docs/archives/2026/PROGRAMME_AMELIORATION_2026.md",
     "docs/EXEMPLE_PARCOURS_DEVOPS.md",
-    "docs/PLAN_QUALITE_2026.md",
+    "docs/archives/2026/PLAN_QUALITE_2026.md",
     "docs/DECISION_MODELE.md",
     "docs/fiches/01-installer.md",
     "docs/fiches/02-premier-essai.md",
@@ -159,7 +159,7 @@ def test_hybrid_social_preview_contains_both_models() -> None:
 
 def test_fedora_is_native_host_and_rocky_validation_is_only_optional() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    roadmap = (ROOT / "docs/PROGRAMME_AMELIORATION_2026.md").read_text(
+    roadmap = (ROOT / "docs/archives/2026/PROGRAMME_AMELIORATION_2026.md").read_text(
         encoding="utf-8"
     )
     lab = (ROOT / "docs/LABORATOIRE_DEVOPS.md").read_text(encoding="utf-8")

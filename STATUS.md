@@ -71,7 +71,7 @@ Les benchmarks poussés, les cycles de veille et reprise et les canaries (voix, 
 | --- | --- |
 | Réception sur le PC | Toutes les mesures réelles : [liste de contrôle](docs/RECEPTION_ETAPE3.md) |
 | A13 | L’installateur ne refuse pas explicitement une session Live ; sans effet sur une installation normale |
-| Hygiène du dépôt | Rangement de `docs/`, première version publiée |
+| Hygiène du dépôt | Première version publiée (v0.2.0) |
 | [#122](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/122) | Qualification réelle Fedora 45 / B580 |
 | [#123](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/123) | Réception WebUI, fournisseur OpenRouter, voix et restauration réelle |
 | [#126](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/126) | Intégrité réseau et verrouillage transitif complet |

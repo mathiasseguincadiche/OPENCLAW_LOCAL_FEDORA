@@ -1,12 +1,12 @@
 # Programme d'amélioration validé — Atelier IA hybride Fedora
 
-> **Archive de conception 2026 — non normative.** Ce document conserve les décisions et audits historiques. Ses anciennes versions, procédures et priorités ne décrivent pas nécessairement le socle courant. Consulter [l'état actuel](../STATUS.md), le [sommaire des archives](archives/2026/README.md) et [l'installation Fedora 45](INSTALLATION_SIMPLE_FEDORA45.md) avant toute commande.
+> **Archive de conception 2026 — non normative.** Ce document conserve les décisions et audits historiques. Ses anciennes versions, procédures et priorités ne décrivent pas nécessairement le socle courant. Consulter [l'état actuel](../../../STATUS.md), le [sommaire des archives](README.md) et [l'installation Fedora 45](../../INSTALLATION_SIMPLE_FEDORA45.md) avant toute commande.
 
 
 > **Mise à jour des versions, 18 octobre 2026 :** cible d'installation neuve OpenClaw 2026.10.4, Ollama 0.40.6 et Open WebUI 0.12.3-slim, sous réserve des tests d'intégration et de réception Fedora. Les références antérieures à 2026.10.3/0.40.4/0.12.1 sont historiques.
 
 
-[← README](../README.md) · [État mesuré](../STATUS.md) · [Stratégie hybride](ARCHITECTURE_HYBRIDE.md)
+[← README](../../../README.md) · [État mesuré](../../../STATUS.md) · [Stratégie hybride](../../ARCHITECTURE_HYBRIDE.md)
 
 **Architecture non négociable : Fedora est l'hôte natif d'OpenClaw, Ollama,
 des agents, de la passerelle et du moteur de projets. Open WebUI tourne

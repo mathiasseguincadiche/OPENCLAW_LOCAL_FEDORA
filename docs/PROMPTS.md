@@ -35,7 +35,7 @@ au chef (11743 mesurés sur le zip brut, soit 257 de marge). La fusion est donc 
 | Mentions du routeur cloud, du budget de 25 € et du middleware comme s'ils existaient | **Non reprises** : les prompts restent vrais quel que soit le modèle (règles 5 et 20). Un test interdit « Qwen », « OpenRouter », « GLM », « DeepSeek » dans les consignes. |
 | `IDENTITY.md`, `SOUL.md`, `HEARTBEAT.md` | Repris tels quels |
 | Méthode détaillée de chaque rôle | Reprise, sans les paragraphes « contrat technique » répétés dans chaque rôle (factorisés dans `TOOLS.md` et `CONTRACT.md`) |
-| Suivi de compétences, révisions espacées, laboratoire, Skills | Hors périmètre de ce lot (voir `PLAN_MIGRATION_HYBRIDE.md`) ; les consignes disent qu'aucun rappel ni mémoire automatique n'existe |
+| Suivi de compétences, révisions espacées, laboratoire, Skills | Hors périmètre de ce lot (voir `archives/2026/PLAN_MIGRATION_HYBRIDE.md`) ; les consignes disent qu'aucun rappel ni mémoire automatique n'existe |
 
 Tailles mesurées lors de la fusion V2.3 initiale (unités UTF-16 d'OpenClaw, limite 12000) : de 11158 (recherche) à
 11543 (chef, DevOps), soit au moins 457 de marge. Le chef avec l'historique maximal du chat
@@ -126,7 +126,7 @@ le collecteur publie uniquement les sorties prévues dans le projet.
 
 Le backend de ce lot reste Ollama/Qwen local, sans secours cloud. Le modèle existant est
 `qwen3.5:9b-q4_K_M`. Le cloud (OpenRouter) fait l'objet des lots suivants du plan
-`docs/PLAN_MIGRATION_HYBRIDE.md` (lot 1) : aucune clé ni requête cloud n'est ajoutée ici.
+`docs/archives/2026/PLAN_MIGRATION_HYBRIDE.md` (lot 1) : aucune clé ni requête cloud n'est ajoutée ici.
 Les consignes ne mentionnent aucun modèle précis, pour rester exactes après cette migration.
 
 ## Pédagogie multi-tours — version fusionnée
