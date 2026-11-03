@@ -22,6 +22,7 @@ from clawfedora import chat_approvals, chat_files, chat_flow, chat_projects, cha
 from clawfedora.agents import load_agent_specs
 from clawfedora.cloud_budget import BudgetRefused, load_ledger
 from clawfedora.cloud_privacy import LABELS, PrivacyFilter, describe
+from clawfedora.cloud_profiles import ProfileRefused, chosen_upstream_model
 from clawfedora.cloud_state import CLOUD_STATE, cloud_status, recent_events
 from clawfedora.core_config import AGENT_IDS, core_contract, daily_limits
 from clawfedora.local_http import LocalServer
@@ -38,7 +39,7 @@ MODEL_IDS = tuple(f"openclaw/{role}" for role in AGENT_IDS)
 CLOUD_PREFIX = "openclaw-cloud/"
 CLOUD_MODEL_IDS = tuple(f"{CLOUD_PREFIX}{role}" for role in AGENT_IDS)
 CLOUD_BANNER = (
-    "☁️ *Réponse du modèle cloud (DeepSeek V4.1 Flash). "
+    "☁️ *Réponse du modèle cloud DeepSeek. "
     "Pour des données qui ne sont pas publiques, choisissez le modèle « local ».*"
 )
 # Once a conversation has been moved to local, every later answer repeats this marker, so the
@@ -276,7 +277,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
             )
         try:
             answer = runner(role, full_prompt, session, route="cloud")
-            return answer, CLOUD_BANNER + self._budget_note()
+            return answer, CLOUD_BANNER + self._model_note() + self._budget_note()
         except (ValueError, RuntimeError, OSError, subprocess.SubprocessError):
             # The gateway records whole UTC seconds, while 'started' is fractional.
             # Allow a small clock/timestamp skew after a failed cloud call. Since
@@ -291,6 +292,15 @@ class BridgeHandler(BaseHTTPRequestHandler):
             else:
                 banner = f"💻 *Réponse locale : {self._unavailable_reason(events)}.*"
             return self._local_after(role, full_prompt, runner), banner
+
+    def _model_note(self) -> str:
+        """Which reviewed model answered behind the cloud alias (operator's choice)."""
+        try:
+            policy = core_contract(self.server.repo_root, "cloud_policy.yaml")
+            _name, model = chosen_upstream_model(self.server.runtime, policy)
+        except (ProfileRefused, OSError, ValueError, KeyError):
+            return ""
+        return f"\n☁️ *Modèle : {model['display_name']}.*"
 
     def _budget_note(self) -> str:
         """One line under the banner once the month's spending passes the alert threshold."""

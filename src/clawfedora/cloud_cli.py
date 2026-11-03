@@ -22,7 +22,15 @@ from clawfedora.cloud_activation import (
     set_key,
 )
 from clawfedora.cloud_budget import BudgetRefused, load_ledger, month_key
-from clawfedora.cloud_profiles import chosen_profile, profiles, set_profile
+from clawfedora.cloud_profiles import (
+    chosen_profile,
+    chosen_upstream_model,
+    profiles,
+    require_compatible,
+    set_profile,
+    set_upstream_model,
+    upstream_models,
+)
 from clawfedora.cloud_state import cloud_status, read_activation
 from clawfedora.core_config import core_contract, resolve_runtime_root
 from clawfedora.storage import load_settings, require_storage
@@ -68,6 +76,10 @@ def _status(root: Path, runtime: Path) -> int:
             f"CLOUD_PROFILE name={profile_name} effort={settings['effort']} "
             f"max_output_tokens={settings['max_output_tokens']}"
         )
+        model_name, model = chosen_upstream_model(
+            runtime, core_contract(root, "cloud_policy.yaml")
+        )
+        print(f"CLOUD_MODEL name={model_name} id={model['upstream_id']}")
         for line in budget_lines(root, runtime):
             print(line)
     except (BudgetRefused, OSError, ValueError, KeyError) as exc:
@@ -92,6 +104,10 @@ def build_parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("status")
     commands.add_parser("profile")
+    commands.add_parser("model")
+    model = commands.add_parser("set-model")
+    model.add_argument("--name", required=True, choices=("standard", "profond"))
+    model.add_argument("--apply", action="store_true")
     profile = commands.add_parser("set-profile")
     profile.add_argument("--name", required=True, choices=("rapide", "equilibre", "approfondi"))
     profile.add_argument("--apply", action="store_true")
@@ -129,6 +145,44 @@ def main(argv: list[str] | None = None) -> int:
             print(
                 f"CLOUD_PROFILE name={name} effort={settings['effort']} "
                 f"max_output_tokens={settings['max_output_tokens']}"
+            )
+            return 0
+        if args.command == "model":
+            policy = core_contract(root, "cloud_policy.yaml")
+            for name, spec in upstream_models(policy).items():
+                price = spec["pricing_usd_per_million"]
+                print(
+                    f"CLOUD_MODEL_AVAILABLE name={name} id={spec['upstream_id']} "
+                    f"enabled={str(spec['enabled']).lower()} "
+                    f"max_usd_per_million={price['input']}/{price['output']}"
+                )
+            name, spec = chosen_upstream_model(runtime, policy)
+            print(f"CLOUD_MODEL name={name} id={spec['upstream_id']} ({spec['display_name']})")
+            return 0
+        if args.command == "set-model":
+            policy = core_contract(root, "cloud_policy.yaml")
+            candidate = upstream_models(policy).get(args.name)
+            if candidate is None:
+                raise ValueError("modèle inconnu")
+            # A model that refuses the current effort is reported now, not at the first call.
+            profile_name, profile = chosen_profile(runtime, policy)
+            require_compatible(args.name, candidate, profile_name, profile)
+            price = candidate["pricing_usd_per_million"]
+            if not args.apply:
+                print(
+                    f"CLOUD_MODEL_RESULT=DRY_RUN proposed={args.name} id={candidate['upstream_id']} "
+                    f"max_usd_per_million={price['input']}/{price['output']} "
+                    "aucun changement sans --apply"
+                )
+                return 0
+            from clawfedora.project_worker import worker_lock
+
+            # Never switch model mid-generation (same lock as projects, tools and chat).
+            with worker_lock(runtime):
+                path = set_upstream_model(runtime, policy, args.name)
+            print(
+                f"CLOUD_MODEL_RESULT=PASS name={args.name} "
+                f"id={candidate['upstream_id']} path={path}"
             )
             return 0
         if args.command == "set-profile":

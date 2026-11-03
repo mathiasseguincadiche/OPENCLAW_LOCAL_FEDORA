@@ -39,6 +39,8 @@ Installer et utiliser:
   cloud-status           État du cloud optionnel, de la clé et du budget du mois
   cloud-profile          Afficher le profil de raisonnement DeepSeek actuel
   cloud-set-profile      Préparer/changer le profil via --value
+  cloud-model            Afficher les modèles cloud et celui qui répond (standard ou profond)
+  cloud-set-model        Préparer/changer le modèle cloud via --value standard|profond
                          rapide|equilibre|approfondi, et --apply pour confirmer
   cloud-set-key          Enregistrer la clé OpenRouter (saisie masquée)
   cloud-enable           Contrôler puis activer le cloud (--value = limite de la clé en $)
@@ -172,6 +174,18 @@ case "$ACTION" in
       exit 2
     }
     args=(--runtime-root "$(claw_runtime_root)" set-profile --name "$VALUE")
+    ((APPLY == 1)) && { claw_require_storage "$(claw_runtime_root)"; args+=(--apply); }
+    run_module cloud_cli "${args[@]}"
+    ;;
+  cloud-model)
+    run_module cloud_cli --runtime-root "$(claw_runtime_root)" model
+    ;;
+  cloud-set-model)
+    [[ -n "$VALUE" ]] || {
+      echo "ERREUR: cloud-set-model exige --value standard|profond" >&2
+      exit 2
+    }
+    args=(--runtime-root "$(claw_runtime_root)" set-model --name "$VALUE")
     ((APPLY == 1)) && { claw_require_storage "$(claw_runtime_root)"; args+=(--apply); }
     run_module cloud_cli "${args[@]}"
     ;;

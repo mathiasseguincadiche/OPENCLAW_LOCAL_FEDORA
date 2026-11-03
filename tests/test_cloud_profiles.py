@@ -123,3 +123,95 @@ def test_unsafe_state_is_not_overwritten(tmp_path: Path, policy: dict[str, objec
     with pytest.raises(ProfileRefused):
         set_profile(tmp_path, policy, "equilibre")
     assert target.read_text() == "secret"
+
+
+# -- upstream model: operator-owned, reviewed, never a silent fallback -----------------
+def test_the_standard_model_is_the_contracted_default(
+    tmp_path: Path, policy: dict[str, object]
+) -> None:
+    from clawfedora.cloud_profiles import chosen_upstream_model
+
+    name, model = chosen_upstream_model(tmp_path, policy)
+    assert name == "standard"
+    assert model["upstream_id"] == policy["model"]["upstream_id"]  # type: ignore[index]
+
+
+def test_choosing_the_deep_model_is_private_atomic_and_reversible(
+    tmp_path: Path, policy: dict[str, object]
+) -> None:
+    from clawfedora.cloud_profiles import chosen_upstream_model, model_path, set_upstream_model
+
+    path = set_upstream_model(tmp_path, policy, "profond")
+    assert stat.S_IMODE(path.stat().st_mode) == 0o600
+    assert json.loads(path.read_text()) == {"version": 1, "model": "profond"}
+    assert chosen_upstream_model(tmp_path, policy)[1]["upstream_id"] == "deepseek/deepseek-v4-pro"
+    set_upstream_model(tmp_path, policy, "standard")
+    assert chosen_upstream_model(tmp_path, policy)[0] == "standard"
+    assert path == model_path(tmp_path)
+
+
+@pytest.mark.parametrize(
+    "content", ['{"version":1,"model":"gpt-6"}', '{"version":2,"model":"profond"}', "x"]
+)
+def test_an_unknown_or_damaged_model_choice_refuses_the_cloud(
+    tmp_path: Path, policy: dict[str, object], content: str
+) -> None:
+    from clawfedora.cloud_profiles import chosen_upstream_model, model_path
+
+    path = model_path(tmp_path)
+    path.parent.mkdir(parents=True)
+    path.write_text(content)
+    path.chmod(0o600)
+    with pytest.raises(ProfileRefused):
+        chosen_upstream_model(tmp_path, policy)
+
+
+def test_a_model_disabled_in_the_policy_is_refused_even_if_chosen_earlier(
+    tmp_path: Path, policy: dict[str, object]
+) -> None:
+    import copy
+
+    from clawfedora.cloud_profiles import chosen_upstream_model, set_upstream_model
+
+    set_upstream_model(tmp_path, policy, "profond")
+    disabled = copy.deepcopy(policy)
+    disabled["upstream_models"]["profond"]["enabled"] = False  # type: ignore[index]
+    with pytest.raises(ProfileRefused, match="désactivé"):
+        chosen_upstream_model(tmp_path, disabled)  # no silent switch to another model
+    with pytest.raises(ProfileRefused, match="openrouter.ai"):
+        set_upstream_model(tmp_path, disabled, "profond")
+
+
+def test_the_deep_model_only_accepts_high_or_xhigh_efforts(policy: dict[str, object]) -> None:
+    from clawfedora.cloud_profiles import require_compatible, upstream_models
+
+    deep = upstream_models(policy)["profond"]
+    for name, settings in profiles(policy).items():
+        if settings["effort"] in {"high", "xhigh"}:
+            require_compatible("profond", deep, name, settings)
+        else:
+            with pytest.raises(ProfileRefused, match="approfondi|high ou xhigh"):
+                require_compatible("profond", deep, name, settings)
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda m: m["standard"].__setitem__("upstream_id", "deepseek/autre"),
+        lambda m: m["profond"].__setitem__("drop_parameters", ["messages"]),
+        lambda m: m["profond"].__setitem__("provider", {"data_collection": "allow"}),
+        lambda m: m["profond"]["pricing_usd_per_million"].__setitem__("output", 0),
+        lambda m: m["profond"].__setitem__("upstream_id", m["standard"]["upstream_id"]),
+        lambda m: m["profond"].__setitem__("allowed_efforts", ["maximum"]),
+    ],
+)
+def test_unreviewed_model_settings_are_refused(policy: dict[str, object], mutate: object) -> None:
+    import copy
+
+    from clawfedora.cloud_profiles import upstream_models
+
+    changed = copy.deepcopy(policy)
+    assert callable(mutate)
+    mutate(changed["upstream_models"])  # type: ignore[index]
+    with pytest.raises(ProfileRefused):
+        upstream_models(changed)

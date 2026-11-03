@@ -36,12 +36,17 @@ class FakeBudget:
     def __init__(self, refuse: bool = False) -> None:
         self.refuse = refuse
         self.reserved: list[tuple[int, int]] = []
+        self.priced: list[tuple[dict[str, Any] | None, str | None]] = []
         self.settled: list[tuple[dict[str, Any] | None, str]] = []
 
-    def reserve(self, *, input_tokens: int, max_output_tokens: int) -> Any:
+    def reserve(
+        self, *, input_tokens: int, max_output_tokens: int,
+        pricing: dict[str, Any] | None = None, model: str | None = None,
+    ) -> Any:
         if self.refuse:
             raise BudgetRefused("plafond mensuel atteint")
         self.reserved.append((input_tokens, max_output_tokens))
+        self.priced.append((pricing, model))
         budget = self
 
         class Held:
@@ -671,3 +676,54 @@ def test_secret_in_tool_definition_is_blocked_before_cloud_reservation(
     assert status == 451 and b"privacy_blocked" in answer
     assert GITHUB_TOKEN.encode() not in answer
     assert upstream[0].requests == [] and budget.reserved == []
+
+
+# -- the deep reasoning model chosen by the operator -------------------------------------
+def test_the_operator_chosen_deep_model_is_called_at_its_own_price_ceilings(
+    gateway: tuple[GatewayServer, FakeBudget], upstream: tuple[Upstream, int]
+) -> None:
+    from clawfedora.cloud_profiles import set_upstream_model
+
+    server, budget = gateway
+    set_upstream_model(server.runtime, server.policy, "profond")
+    status, _body = post(server, request(parallel_tool_calls=True, seed=7, temperature=0.2))
+    assert status == 200
+    sent = upstream[0].requests[-1]["body"]
+    deep = server.policy["upstream_models"]["profond"]
+    # OpenClaw still names the alias model; the gateway calls the reviewed deep model.
+    assert sent["model"] == deep["upstream_id"] == "deepseek/deepseek-v4-pro"
+    assert sent["provider"]["max_price"] == {"prompt": 1.4, "completion": 3.2}
+    assert sent["provider"]["data_collection"] == "deny"
+    assert sent["provider"]["require_parameters"] is True
+    assert sent["provider"]["quantizations"] == ["bf16", "fp8", "unknown"]
+    # Fields no provider of this model declares are removed, nothing else.
+    assert "parallel_tool_calls" not in sent and "seed" not in sent
+    assert sent["temperature"] == 0.2 and sent["reasoning"] == {"effort": "xhigh"}
+    # The budget reserves at the deep model's ceilings and records which model it was.
+    assert budget.priced[-1] == (deep["pricing_usd_per_million"], deep["upstream_id"])
+
+
+def test_the_deep_model_refuses_a_low_effort_profile_before_budget_and_network(
+    gateway: tuple[GatewayServer, FakeBudget], upstream: tuple[Upstream, int]
+) -> None:
+    from clawfedora.cloud_profiles import set_profile, set_upstream_model
+
+    server, budget = gateway
+    set_upstream_model(server.runtime, server.policy, "profond")
+    set_profile(server.runtime, server.policy, "rapide")
+    status, answer = post(server, request())
+    assert status == 503 and b"profile_invalid" in answer
+    assert b"effort low" in answer  # says why, and what to choose instead
+    assert upstream[0].requests == [] and budget.reserved == []
+
+
+def test_the_standard_model_keeps_every_historic_setting(
+    gateway: tuple[GatewayServer, FakeBudget], upstream: tuple[Upstream, int]
+) -> None:
+    server, budget = gateway
+    post(server, request(parallel_tool_calls=True))
+    sent = upstream[0].requests[-1]["body"]
+    assert sent["model"] == MODEL and sent["parallel_tool_calls"] is True
+    assert "quantizations" not in sent["provider"]
+    standard = server.policy["upstream_models"]["standard"]
+    assert budget.priced[-1] == (standard["pricing_usd_per_million"], MODEL)

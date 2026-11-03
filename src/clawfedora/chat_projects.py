@@ -597,7 +597,7 @@ def run_command(
         import time
 
         from clawfedora.cloud_budget import BudgetRefused, load_ledger, month_key
-        from clawfedora.cloud_profiles import chosen_profile
+        from clawfedora.cloud_profiles import chosen_profile, chosen_upstream_model
         from clawfedora.core_config import core_contract
 
         try:
@@ -608,9 +608,9 @@ def run_command(
             ):
                 raise BudgetRefused("journal non privé")
             report = ledger.summary()
-            profile_name, profile = chosen_profile(
-                runtime, core_contract(repo_root, "cloud_policy.yaml")
-            )
+            policy = core_contract(repo_root, "cloud_policy.yaml")
+            profile_name, profile = chosen_profile(runtime, policy)
+            model_name, model = chosen_upstream_model(runtime, policy)
         except (OSError, ValueError, KeyError, BudgetRefused):
             return bridge_reply(
                 current,
@@ -630,7 +630,10 @@ def run_command(
             f"{report.calls_uncertain}, réservations non réglées : {report.pending}\n"
             f"- Niveau : **{level}**\n"
             f"- Profil DeepSeek : **{profile_name}** (effort {profile['effort']}, "
-            f"sortie max {profile['max_output_tokens']} tokens)\n\n"
+            f"sortie max {profile['max_output_tokens']} tokens)\n"
+            f"- Modèle cloud : **{model_name}** ({model['display_name']}, plafond "
+            f"{model['pricing_usd_per_million']['input']} $ / "
+            f"{model['pricing_usd_per_million']['output']} $ par million de tokens)\n\n"
             "**Attention :** montant estimé localement et rapproché des relevés saisis, "
             "**pas une facture en temps réel**. Les crédits prépayés et la limite de clé "
             "OpenRouter doivent rester contrôlés séparément. "

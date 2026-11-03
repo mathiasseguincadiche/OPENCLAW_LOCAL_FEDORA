@@ -53,7 +53,7 @@ settled: list[tuple[Any, str]] = []
 class CountingBudget:
     """Allows everything and records every reservation: stands in for the real budget guard."""
 
-    def reserve(self, *, input_tokens: int, max_output_tokens: int) -> Any:
+    def reserve(self, *, input_tokens: int, max_output_tokens: int, **_: Any) -> Any:
         class Held:
             def settle(self, usage: Any, status: str) -> None:
                 settled.append((usage, status))

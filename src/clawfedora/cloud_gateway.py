@@ -30,7 +30,12 @@ from typing import Any, Protocol
 
 from clawfedora.cloud_budget import BudgetRefused, load_ledger
 from clawfedora.cloud_privacy import PrivacyFilter, describe
-from clawfedora.cloud_profiles import ProfileRefused, chosen_profile
+from clawfedora.cloud_profiles import (
+    ProfileRefused,
+    chosen_profile,
+    chosen_upstream_model,
+    require_compatible,
+)
 from clawfedora.cloud_state import CLOUD_STATE, ensure_gateway_token, require_cloud_ready
 from clawfedora.core_config import core_contract
 from clawfedora.local_http import LocalServer
@@ -51,13 +56,19 @@ class Reservation(Protocol):
 
 
 class BudgetGuard(Protocol):
-    def reserve(self, *, input_tokens: int, max_output_tokens: int) -> Reservation: ...
+    def reserve(
+        self, *, input_tokens: int, max_output_tokens: int,
+        pricing: dict[str, Any] | None = None, model: str | None = None,
+    ) -> Reservation: ...
 
 
 class FailClosedBudget:
     """Used until a real budget guard is wired: no cloud call can be made."""
 
-    def reserve(self, *, input_tokens: int, max_output_tokens: int) -> Reservation:
+    def reserve(
+        self, *, input_tokens: int, max_output_tokens: int,
+        pricing: dict[str, Any] | None = None, model: str | None = None,
+    ) -> Reservation:
         raise BudgetRefused("contrôle du budget non opérationnel: aucun appel cloud possible")
 
 
@@ -160,11 +171,26 @@ def normalize_request(body: Any, policy: dict[str, Any], output_cap: int) -> dic
 def upstream_payload(
     normalized: dict[str, Any], policy: dict[str, Any],
     reasoning_profile: dict[str, Any] | None = None,
+    upstream_model: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """What the provider receives: client fields plus the settings only the policy may set."""
+    """What the provider receives: client fields plus the settings only the policy may set.
+
+    ``upstream_model`` is the reviewed model chosen by the operator: the gateway calls its
+    id, imposes ITS price ceilings as OpenRouter's max_price, adds its narrower provider
+    filter and removes the optional fields its providers do not declare.
+    """
     params = policy["upstream_params"]
     payload = dict(normalized)
     payload["provider"] = dict(params["provider"])
+    if upstream_model is not None:
+        pricing = upstream_model["pricing_usd_per_million"]
+        payload["model"] = str(upstream_model["upstream_id"])
+        payload["provider"]["max_price"] = {
+            "prompt": pricing["input"], "completion": pricing["output"],
+        }
+        payload["provider"].update(upstream_model.get("provider") or {})
+        for name in upstream_model.get("drop_parameters") or ():
+            payload.pop(name, None)
     payload["reasoning"] = {"effort": (reasoning_profile or params["reasoning"])["effort"]}
     payload["usage"] = {"include": True}
     if payload.get("stream"):
@@ -231,6 +257,8 @@ class GatewayHandler(BaseHTTPRequestHandler):
             self.server.activation_check()
             body = self._read_body()
             profile_name, profile = chosen_profile(self.server.runtime, self.server.policy)
+            model_name, upstream = chosen_upstream_model(self.server.runtime, self.server.policy)
+            require_compatible(model_name, upstream, profile_name, profile)
             output_cap = min(self.server.output_cap, int(profile["max_output_tokens"]))
             normalized = normalize_request(body, self.server.policy, output_cap)
             findings = self.server.privacy.scan_request(normalized)
@@ -246,14 +274,16 @@ class GatewayHandler(BaseHTTPRequestHandler):
             input_tokens = _estimate_input_tokens(normalized)
             try:
                 reservation = self.server.budget.reserve(
-                    input_tokens=input_tokens, max_output_tokens=int(normalized["max_tokens"])
+                    input_tokens=input_tokens, max_output_tokens=int(normalized["max_tokens"]),
+                    pricing=upstream["pricing_usd_per_million"],
+                    model=str(upstream["upstream_id"]),
                 )
             except BudgetRefused as exc:
                 self._event(request_id, "budget_refused")
                 raise Refused(402, "budget_refused", str(exc)) from None
             key = self.server.key_reader()
-        except ProfileRefused:
-            self._error(503, "profile_invalid", "profil de raisonnement cloud invalide")
+        except ProfileRefused as exc:
+            self._error(503, "profile_invalid", f"choix cloud invalide: {exc}")
             return
         except Refused as exc:
             if reservation is not None:
@@ -263,7 +293,10 @@ class GatewayHandler(BaseHTTPRequestHandler):
         except ValueError as exc:
             self._error(503, "cloud_not_activated", str(exc))
             return
-        self._forward(request_id, normalized, key, reservation, input_tokens, profile_name, profile)
+        self._forward(
+            request_id, normalized, key, reservation, input_tokens, profile_name, profile,
+            model_name, upstream,
+        )
 
     def _read_body(self) -> Any:
         limit = int(self.server.policy["limits"]["max_request_bytes"])
@@ -294,9 +327,11 @@ class GatewayHandler(BaseHTTPRequestHandler):
         input_tokens: int,
         profile_name: str,
         reasoning_profile: dict[str, Any],
+        model_name: str,
+        upstream_model: dict[str, Any],
     ) -> None:
         policy = self.server.policy
-        payload = upstream_payload(normalized, policy, reasoning_profile)
+        payload = upstream_payload(normalized, policy, reasoning_profile, upstream_model)
         request = urllib.request.Request(
             self.server.upstream_base_url + "/chat/completions",
             data=json.dumps(payload, ensure_ascii=False).encode(),
@@ -307,7 +342,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
         streaming = bool(normalized.get("stream"))
         self._event(
             request_id, "forwarded", input_estimate=input_tokens,
-            stream=streaming, reasoning_profile=profile_name,
+            stream=streaming, reasoning_profile=profile_name, upstream_model=model_name,
         )
         try:
             with _CLOUD_OPENER.open(request, timeout=timeout) as response:

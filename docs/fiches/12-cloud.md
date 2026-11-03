@@ -121,6 +121,27 @@ Le cloud est désactivé, la passerelle arrêtée et le fournisseur retiré de l
 
 Le plafond applique **le plus élevé** de l'estimation du journal et du montant déclaré.
 
+## Choisir le modèle : standard ou profond
+
+Deux modèles DeepSeek sont revus dans `config/core/cloud_policy.yaml` :
+
+| Modèle | Identifiant OpenRouter | Plafond ($ par million, entrée / sortie) | Pour quoi |
+| --- | --- | --- | --- |
+| `standard` (par défaut) | `deepseek/deepseek-v4.1-flash-1017` | 0,25 / 0,75 | La plupart des demandes cloud |
+| `profond` | `deepseek/deepseek-v4-pro` | 1,40 / 3,20 | Le raisonnement long et difficile ; environ 4 à 5 fois plus cher |
+
+```bash
+./menu.sh --action cloud-model                                    # modèles disponibles et modèle actif
+./menu.sh --action cloud-set-model --value profond                # simulation, aucun changement
+./menu.sh --action cloud-set-profile --value approfondi --apply   # V4 Pro exige l'effort xhigh
+./menu.sh --action cloud-set-model --value profond --apply        # choix explicite
+./menu.sh --action cloud-set-model --value standard --apply       # retour au modèle standard
+```
+
+Le choix vaut pour toute la passerelle cloud, comme le profil. Il est refusé pendant une génération et conservé dans `state/cloud/upstream-model.json` (0600). Aucun agent, message ou paramètre du chat ne peut le modifier, et aucune bascule automatique n'existe entre les modèles, ni entre le local et le cloud. Les réponses cloud du chat indiquent le modèle qui a répondu, et `!budget` affiche le modèle actif et ses plafonds.
+
+Pour chaque appel, la passerelle impose les **plafonds de prix du modèle choisi** à OpenRouter : un fournisseur plus cher est refusé, jamais facturé au-delà. Le budget réserve le pire cas à ces mêmes prix. Avec `profond`, seuls les efforts `high`/`xhigh` sont acceptés : le profil `approfondi` est donc requis, et `rapide` ou `equilibre` sont refusés avec un message. Les versions FP4 sont exclues. Les fournisseurs, prix et règles relevés le 2 novembre sont dans [le relevé OpenRouter](../audits/2026-11-02/openrouter-deepseek-v4-pro.md) : revérifie-les sur openrouter.ai avant un usage régulier.
+
 ## Régler l'effort DeepSeek sans changer de fournisseur
 
 Le contrôle de l'effort est désormais **séparé du choix Qwen/DeepSeek**.
