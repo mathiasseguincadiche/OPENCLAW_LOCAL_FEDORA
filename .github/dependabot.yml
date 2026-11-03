@@ -10,6 +10,12 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 3
+    groups:
+      # init and analyze must run the same CodeQL version: bumped alone, analyze fails with
+      # "Loaded a configuration file for version X, but running version Y" (#178).
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
   - package-ecosystem: npm
     directory: "/config/npm-runtime"
     schedule:

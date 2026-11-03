@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import re
 import runpy
 from pathlib import Path
 from typing import Any
@@ -107,6 +108,11 @@ def test_the_weekly_audit_and_dependabot_are_configured() -> None:
     pinned = yaml.safe_load((ROOT / "config/runtime_versions.yaml").read_text(encoding="utf-8"))
     version = tuple(int(part) for part in str(pinned["openclaw"]["version"]).split("."))
     assert version < (2026, 10, 6)  # numeric: "2026.10.10" must not pass as lower
+    # CodeQL init and analyze steps must always share one version.
+    actions = ecosystems["github-actions"]["groups"]
+    assert actions["codeql-action"]["patterns"] == ["github/codeql-action*"]
+    codeql = (ROOT / ".github/workflows/codeql.yml").read_text(encoding="utf-8")
+    assert len(set(re.findall(r"github/codeql-action/\w+@([0-9a-f]{40})", codeql))) == 1
     # Packages pinned to each other's exact version are always proposed together.
     groups = ecosystems["pip"]["groups"]
     assert set(groups["httpx2-httpcore2"]["patterns"]) == {"httpx2", "httpcore2"}
