@@ -7,6 +7,10 @@ Le script observe le matériel, sans installer OpenClaw, Qwen ou WebUI. Un essai
 de l'atelier demande une installation et des données persistantes ; il ne découle pas
 d'un résultat vert du contrôle Live. Voir l'[audit et ses priorités](../AUDIT_SOURCE_2026_10_27.md).
 
+## Réception complète : liste de contrôle
+
+Pour la campagne sur le PC (Fedora, `/data`, installation, chat, premier projet, sauvegarde, redémarrage, cloud borné), suivre la [liste de contrôle de réception](../RECEPTION_ETAPE3.md) : chaque phase indique le résultat attendu et quoi faire en cas d'échec.
+
 ## Réception minimale : une fois Fedora installé
 
 Utiliser la procédure [Installation simple](../INSTALLATION_SIMPLE_FEDORA45.md), puis une seule commande :

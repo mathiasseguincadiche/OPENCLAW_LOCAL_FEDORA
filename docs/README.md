@@ -7,8 +7,9 @@
 | Je veux… | Ouvrir |
 | --- | --- |
 | Comprendre le projet en quelques minutes | [Présentation](../README.md) puis [Guide de découverte](GUIDE.md) |
-| Essayer Fedora sur la machine avant installation | [Live USB : contrôle matériel et limites](LIVE_USB_FEDORA45_PREQUALIFICATION.md) |
+| Essayer Fedora sur la machine avant installation (facultatif) | [Live USB : contrôle matériel et limites](LIVE_USB_FEDORA45_PREQUALIFICATION.md) |
 | Installer Fedora et l’atelier | [Installation simple et vérification unique](INSTALLATION_SIMPLE_FEDORA45.md) |
+| Réceptionner l’atelier sur le PC, étape par étape | [Liste de contrôle de réception](RECEPTION_ETAPE3.md) |
 | Vérifier que mon installation fonctionne | [Premiers essais](fiches/02-premier-essai.md) : **`./menu.sh --action quick-check`** |
 | Discuter avec Qwen | [Fiche 03 — Discussion](fiches/03-discuter.md) |
 | Créer ou reprendre un projet | [Fiche 04 — Atelier Projets](fiches/04-atelier-projets.md) |

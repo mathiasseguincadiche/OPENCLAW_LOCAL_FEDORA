@@ -4,6 +4,12 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 3 novembre 2026 — liste de contrôle de réception sur le PC
+
+- Nouvelle page `docs/RECEPTION_ETAPE3.md` : douze phases, de la préparation à Fedora installée, `/data`, pré-contrôle, installation, WebUI, quick-check, chat local, premier projet jusqu'à la livraison, sauvegarde, redémarrage et mode jeu, puis cloud borné (Flash et V4 Pro) et mesures facultatives. Chaque contrôle donne le résultat attendu et la marche à suivre en cas d'échec, avec un journal de réception à remplir.
+- Les correctifs A03, A04, A05 et A06 sont vérifiés en conditions réelles dans le parcours ; le Live USB est présenté comme facultatif.
+- Aide de `menu.sh` : la description de `cloud-set-profile` n'est plus coupée par `cloud-set-model`.
+
 ### 2 novembre 2026 — cloud : modèle de raisonnement profond DeepSeek V4 Pro
 
 - Deux modèles revus derrière l'alias `cloud-main` : `standard` (DeepSeek V4.1 Flash, par défaut) et `profond` (DeepSeek V4 Pro 0423). La configuration OpenClaw est inchangée : c'est la passerelle locale qui appelle le modèle choisi.

@@ -2,9 +2,10 @@
 
 ## Choix retenu
 
-**Avant cette installation :** le premier essai prévu se fait en
-[Live USB Fedora 45 / GNOME 51](LIVE_USB_FEDORA45_PREQUALIFICATION.md).
-Il préqualifie le matériel ; il ne teste pas l'atelier complet. Lire aussi
+**Avant cette installation, facultatif :** un essai en
+[Live USB Fedora 45 / GNOME 51](LIVE_USB_FEDORA45_PREQUALIFICATION.md)
+préqualifie le matériel ; il ne teste pas l'atelier complet. Pour la réception
+pas à pas sur le PC, suivre la [liste de contrôle](RECEPTION_ETAPE3.md). Lire aussi
 les [corrections ouvertes de l'audit](AUDIT_SOURCE_2026_10_27.md) avant la réception.
 
 Fedora 45 Workstation / GNOME 51 est installé **normalement sur le SSD système**.
