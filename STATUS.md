@@ -1,6 +1,6 @@
 # État du projet — Atelier IA hybride Fedora
 
-**Référence : 3 novembre 2026, commit `2cab2b3` (PR #165).** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
+**Version 0.2.0 du 3 novembre 2026** ([notes de version](CHANGELOG.md)). **Référence CI : commit `2cab2b3` (PR #165).** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
 ## Résumé vérifiable
 
@@ -71,7 +71,6 @@ Les benchmarks poussés, les cycles de veille et reprise et les canaries (voix, 
 | --- | --- |
 | Réception sur le PC | Toutes les mesures réelles : [liste de contrôle](docs/RECEPTION_ETAPE3.md) |
 | A13 | L’installateur ne refuse pas explicitement une session Live ; sans effet sur une installation normale |
-| Hygiène du dépôt | Première version publiée (v0.2.0) |
 | [#122](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/122) | Qualification réelle Fedora 45 / B580 |
 | [#123](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/123) | Réception WebUI, fournisseur OpenRouter, voix et restauration réelle |
 | [#126](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/126) | Intégrité réseau et verrouillage transitif complet |

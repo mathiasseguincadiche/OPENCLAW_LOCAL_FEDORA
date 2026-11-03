@@ -1,5 +1,5 @@
 schema_version: 1.0.0
-platform_version: 0.1.0
+platform_version: 0.2.0
 release: v0.12.3
 image: ghcr.io/open-webui/open-webui:v0.12.3-slim
 variant: slim

@@ -1,5 +1,5 @@
 schema_version: 1.0.0
-platform_version: 0.1.0
+platform_version: 0.2.0
 # Le cloud est une option, jamais un état par défaut. Sa mise en service est une décision
 # d'exécution (état local, hors dépôt) qui exige que le filtre de confidentialité et le contrôle
 # du budget soient opérationnels ensemble.
