@@ -348,7 +348,7 @@ class Action:
                 },
             })
             if type(title) is not str or not title.strip():
-                return
+                return None
             brief = await __event_call__({
                 "type": "input", "data": {
                     "title": "Objectif du projet",
@@ -357,7 +357,7 @@ class Action:
                 },
             })
             if type(brief) is not str or not brief.strip():
-                return
+                return None
             title, brief = title.strip(), brief.strip()
             if (
                 len(title) > 193 or any(c in title for c in ("\n", "\r", "\x00"))
@@ -375,7 +375,7 @@ class Action:
                 },
             })
             if confirmed is not True:
-                return
+                return None
             output = await asyncio.to_thread(
                 local_bridge, "!creer " + title, history,
                 key=secret, mutation=True, creation_brief=brief,
@@ -393,7 +393,7 @@ class Action:
                 },
             })
             if type(number_raw) is not str or not number_raw.strip():
-                return
+                return None
             number_raw = number_raw.strip()
             if not number_raw.isdecimal() or not 1 <= int(number_raw) <= 30:
                 raise ValueError("numéro de question invalide")
@@ -406,7 +406,7 @@ class Action:
                 },
             })
             if type(answer_raw) is not str or not answer_raw.strip():
-                return
+                return None
             if len(answer_raw) > 1500 or "\x00" in answer_raw:
                 raise ValueError("réponse de cadrage invalide")
             confirmed = await __event_call__({
@@ -419,7 +419,7 @@ class Action:
                 },
             })
             if confirmed is not True:
-                return
+                return None
             output = await asyncio.to_thread(
                 local_bridge, "!repondre", history, key=secret,
                 mutation=True, clarification=(number, answer_raw),
@@ -437,7 +437,7 @@ class Action:
                 },
             })
             if type(task_raw) is not str or not task_raw.strip():
-                return
+                return None
             task_id = task_raw.strip().lower()
             if re.fullmatch(r"[a-z0-9][a-z0-9-]{1,62}[a-z0-9]", task_id) is None:
                 raise ValueError("identifiant de tâche invalide")
@@ -449,7 +449,7 @@ class Action:
                 },
             })
             if type(reason_raw) is not str or not reason_raw.strip():
-                return
+                return None
             if len(" ".join(reason_raw.split())) > 2000 or "\x00" in reason_raw:
                 raise ValueError("motif de révision invalide")
             confirmed = await __event_call__({
@@ -463,7 +463,7 @@ class Action:
                 },
             })
             if confirmed is not True:
-                return
+                return None
             output = await asyncio.to_thread(
                 local_bridge, "!modifier", history, key=secret,
                 mutation=True, revision=(task_id, reason_raw),
@@ -482,7 +482,7 @@ class Action:
                 }}
             )
             if confirmed is not True:
-                return
+                return None
             output = await asyncio.to_thread(
                 local_bridge, command, history, key=secret, mutation=True
             )
@@ -492,3 +492,4 @@ class Action:
             await __event_emitter__(
                 {"type": "notification", "data": {"type": "info", "content": output}}
             )
+        return None

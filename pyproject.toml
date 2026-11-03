@@ -67,6 +67,11 @@ python_version = "3.12"
 strict = true
 packages = ["clawfedora"]
 
+# Open WebUI functions run inside the WebUI container, where open_webui exists.
+[[tool.mypy.overrides]]
+module = ["open_webui", "open_webui.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
