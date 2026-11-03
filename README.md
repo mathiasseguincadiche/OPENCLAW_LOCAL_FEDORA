@@ -11,7 +11,7 @@
 
 [Découvrir](docs/GUIDE.md) · [Tester en Live USB](docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md) · [Installer](docs/INSTALLATION_SIMPLE_FEDORA45.md) · [Documentation](docs/README.md) · [État du projet](STATUS.md)
 
-> **En qualification : le PC cible reste à valider.** L'audit du 27 octobre relève des corrections à réaliser avant un usage quotidien. Le projet n'a pas encore tourné sur le PC dans le cadre de cette réception. [Constats et priorités](docs/AUDIT_SOURCE_2026_10_27.md).
+> **En qualification : le PC cible reste à valider.** Les défauts relevés par l'audit du 27 octobre sont corrigés et testés en CI ([audit et corrections](docs/AUDIT_SOURCE_2026_10_27.md)). Le projet n'a pas encore tourné sur le PC : la [liste de contrôle de réception](docs/RECEPTION_ETAPE3.md) décrit cette campagne.
 
 ## Ce que tu peux faire
 
@@ -34,9 +34,9 @@ Les projets restent indépendants. Une seule génération utilise le moteur à l
 
 ## Commencer
 
-### 1. Essayer Fedora sur la machine
+### 1. Facultatif : essayer Fedora sur la machine
 
-Le premier essai prévu utilise **Fedora 45 Workstation / GNOME 51 / Wayland en Live USB**. Le contrôle autonome observe le matériel sans installer l'atelier :
+Un essai préalable possible utilise **Fedora 45 Workstation / GNOME 51 / Wayland en Live USB**. Le contrôle autonome observe le matériel sans installer l'atelier :
 
 ```bash
 # Depuis une copie du dépôt dans la session Live, sans sudo
@@ -55,7 +55,7 @@ Après installation et configuration de WebUI, depuis le dépôt :
 ./menu.sh --action quick-check
 ```
 
-Si le contrôle affiche `RECEPTION=READY_FOR_FIRST_PROJECT`, poser une vraie question dans WebUI et créer un petit projet de test. Les défauts ouverts et les critères de réception restent indiqués dans [STATUS](STATUS.md).
+Si le contrôle affiche `RECEPTION=READY_FOR_FIRST_PROJECT`, poser une vraie question dans WebUI et créer un petit projet de test, puis suivre la [liste de contrôle de réception](docs/RECEPTION_ETAPE3.md). Ce qui reste à prouver est indiqué dans [STATUS](STATUS.md).
 
 **Machine cible :** Ryzen 7 7700, 48 Go de RAM, Intel Arc B580 12 Go. Fedora est le système hôte du projet IA ; Open WebUI tourne sous Podman rootless sur ce même Fedora. Aucune installation de Rocky Linux n'est nécessaire. [Stockage et prérequis](docs/STOCKAGE_DATA.md).
 
