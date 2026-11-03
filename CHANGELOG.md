@@ -4,6 +4,10 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 3 novembre 2026 — Dependabot : OpenClaw maintenu en 2026.10.5
+
+- Dependabot ne propose plus OpenClaw ni le plugin Parallel à partir de 2026.10.6 : ces versions exigent Node ≥ 24.22.1, que Fedora 45 ne fournit pas (`nodejs24` 24.18.0). Les deux premières propositions (#175, #177) ont été fermées avec explication. La règle est à lever quand Fedora 45 fournira un Node compatible ; un test garde la version figée et la règle cohérentes.
+
 ### 3 novembre 2026 — hygiène : documents historiques rangés
 
 - Sept documents historiques quittent la racine de `docs/` pour `docs/archives/2026/` : programme d'amélioration, plan qualité, plan de migration hybride, migration OpenClaw d'octobre, plan d'intégration WebUI, audit complémentaire et revue documentaire. La racine passe de 32 à 25 pages, toutes actuelles.

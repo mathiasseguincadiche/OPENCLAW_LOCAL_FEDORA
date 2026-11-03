@@ -16,6 +16,16 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 2
+    ignore:
+      # From 2026.10.6 OpenClaw requires Node >= 24.22.1 (or >= 26.12.1). Fedora 45 ships
+      # nodejs24 24.18.0 and nodejs26 26.3.1: the installer's npm ci --engine-strict would
+      # fail on the PC (docs/audits/2026-11-02/README.md). Lift this rule when Fedora 45
+      # provides a compatible Node; the upgrade then also changes runtime_versions.yaml,
+      # install_artifact_integrity.json and the contracts in the same pull request.
+      - dependency-name: "openclaw"
+        versions: [">=2026.10.6"]
+      - dependency-name: "@openclaw/parallel-plugin"
+        versions: [">=2026.10.6"]
   - package-ecosystem: pip
     directory: "/"
     schedule:

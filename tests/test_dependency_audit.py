@@ -101,6 +101,13 @@ def test_the_weekly_audit_and_dependabot_are_configured() -> None:
     assert set(ecosystems) == {"github-actions", "npm", "pip"}
     assert ecosystems["npm"]["directory"] == "/config/npm-runtime"
 
+    # OpenClaw stays below the release that needs a Node.js Fedora 45 does not ship.
+    ignored = {item["dependency-name"]: item["versions"] for item in ecosystems["npm"]["ignore"]}
+    assert ignored == {"openclaw": [">=2026.10.6"], "@openclaw/parallel-plugin": [">=2026.10.6"]}
+    pinned = yaml.safe_load((ROOT / "config/runtime_versions.yaml").read_text(encoding="utf-8"))
+    version = tuple(int(part) for part in str(pinned["openclaw"]["version"]).split("."))
+    assert version < (2026, 10, 6)  # numeric: "2026.10.10" must not pass as lower
+
 
 def test_an_artifact_listed_by_several_locks_is_reported_once() -> None:
     vuln = {"id": "PYSEC-2026-3447", "fix_versions": ["83.0.0"], "aliases": []}
