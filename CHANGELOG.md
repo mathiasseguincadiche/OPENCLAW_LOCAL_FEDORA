@@ -4,6 +4,13 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 3 novembre 2026 — hygiène : audit hebdomadaire des dépendances et Dependabot
+
+- Nouveau workflow `Dependency Audit` : chaque lundi, à la demande, et sur les PR qui touchent les verrous. Il relance `npm audit` sur `config/npm-runtime` et `pip-audit` sur les artefacts Python de production, de construction et de voix.
+- `check_dependency_audit.py` : un avis npm élevé ou critique, ou un avis Python quel qu'il soit, échoue s'il n'est pas dans `config/dependency_audit_exceptions.json`. Une exception expirée échoue aussi, et un rapport illisible échoue toujours. Les avis modérés sont signalés sans bloquer.
+- Exceptions revues : les trois avis `undici` embarqués dans `npm` 12.2.1, jusqu'au 1er février 2027.
+- `.github/dependabot.yml` : propositions hebdomadaires pour les actions GitHub, npm et pip, toujours soumises à toute la CI.
+
 ### 3 novembre 2026 — hygiène : outils de développement figés
 
 - `ruff`, `mypy`, `pytest`, `pytest-cov` et `types-PyYAML` passent de plages de versions à des versions exactes, celles que la CI a validées le 3 novembre : `ruff` 0.17.3, `mypy` 2.4.1, `pytest` 9.2.0, `pytest-cov` 7.1.0, `types-PyYAML` 6.0.12.20261103. Une nouvelle version d'outil ne peut plus faire échouer la CI sans changement du dépôt.

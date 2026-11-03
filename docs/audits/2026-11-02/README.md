@@ -46,6 +46,6 @@ Le 27 octobre, l'audit relevait 10 entrées. Le 2 novembre, le même verrou en r
 
 ## À refaire
 
-- Relancer `npm audit --package-lock-only` dans `config/npm-runtime` à chaque nouvelle version d'OpenClaw ou de `npm`. Retirer un `override` dès qu'OpenClaw fige lui-même une version corrigée.
+- Le workflow hebdomadaire `Dependency Audit` relance `npm audit` et `pip-audit` sur les verrous. Les trois avis `undici` ci-dessus sont des exceptions revues jusqu'au 1er février 2027 (`config/dependency_audit_exceptions.json`) ; tout autre avis élevé ou critique fait échouer le contrôle. Retirer un `override` ou une exception dès que la version corrigée est disponible.
 - Surveiller `npm` 12.2.2 ou plus (correctif embarqué de `undici` 6.29.1), le passage d'OpenClaw à `minimatch` 11, et l'arrivée de Node ≥ 24.22.1 dans Fedora 45, condition pour monter OpenClaw au-delà de 2026.10.5.
 - Une CI verte prouve que le schéma, les outils, les limites de prompt et la route cloud acceptent la nouvelle version. **Elle ne prouve pas son fonctionnement sur le PC** : la réception sur Fedora reste à faire.

@@ -1,9 +1,12 @@
 # Sécurité
 
-**État au 27 octobre 2026 :** l'[audit du code source](docs/AUDIT_SOURCE_2026_10_27.md)
-identifie des corrections ouvertes, notamment dans les dépendances, le ciblage de
-l'accord cloud, la lecture de la liste privée et la récupération du journal budgétaire.
-Les protections ci-dessous décrivent le fonctionnement prévu et testé dans les cas
+**État au 3 novembre 2026 :** les défauts relevés par l'[audit du code source](docs/AUDIT_SOURCE_2026_10_27.md)
+sont corrigés (A01 à A12), dont le ciblage de l'accord cloud, la lecture de la liste
+privée et la récupération du journal budgétaire. Les dépendances déjà verrouillées sont
+auditées **chaque semaine** (workflow `Dependency Audit`) : un nouvel avis élevé ou
+critique, ou une exception revue arrivée à expiration (`config/dependency_audit_exceptions.json`),
+fait échouer le contrôle, et GitHub le notifie au propriétaire. Dependabot propose les
+mises à jour en PR, qui doivent passer toute la CI. Les protections ci-dessous décrivent le fonctionnement prévu et testé dans les cas
 couverts ; elles ne constituent pas une certification de l'installation réelle.
 
 ## Protections prévues et couvertes par les tests automatisés

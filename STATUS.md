@@ -10,7 +10,7 @@
 | **Référence de CI après fusion de la PR #165** | Succès | [Commit `2cab2b3`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/2cab2b3860d08b31a6f95217c5fc2116829505e4), vérifié le 3 novembre : [dix jobs réussis](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/41573194535), 1 205 tests dans le job quality, couverture 86 %. Instantané daté, pas une garantie pour les prochaines CI. |
 | **Analyse statique** | Succès sur cette référence | [CodeQL après fusion](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/41573194538) ; chaque nouvelle PR repasse ce contrôle |
 | **Audit du 27 octobre** | 12 défauts sur 13 corrigés, avec tests de régression | A01–A12 corrigés par les PR #157 à #163. Reste A13 (installation lancée depuis une session Live), sans effet sur une installation Fedora normale. Des tests verts ne couvrent pas tous les scénarios de panne réels. |
-| **Dépendances npm** | Revues le 2 novembre ; 1 alerte élevée résiduelle | OpenClaw 2026.10.5 et 3 correctifs imposés : 6 alertes élevées → 1 (`undici` embarqué dans `npm`, sans correctif publié). [Analyse et résidus](docs/audits/2026-11-02/README.md). Aucun scan périodique automatique pour l’instant. |
+| **Dépendances npm** | Revues le 2 novembre ; 1 alerte élevée résiduelle | OpenClaw 2026.10.5 et 3 correctifs imposés : 6 alertes élevées → 1 (`undici` embarqué dans `npm`, sans correctif publié). [Analyse et résidus](docs/audits/2026-11-02/README.md). Audit hebdomadaire automatique des verrous npm et Python, avec exceptions revues et datées ; Dependabot propose les mises à jour. |
 | **Réception sur le PC** | **À faire** | Suivre la [liste de contrôle de réception](docs/RECEPTION_ETAPE3.md) ; le [Live USB](docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md) reste facultatif |
 | **Montage et stockage `/data/IA/Openclaw/`** | Configuration commune Bash/Python/services, à qualifier sur le poste | EXT4 distinct du système, absence du disque refusée, UUID optionnel, liens interdits, stockage Podman dédié ; [procédure](docs/STOCKAGE_DATA.md) |
 | **Fedora 45 / GNOME 51 / B580** | **À faire** | Installation, pilote `xe`, Vulkan, affichage et veille sur le PC réel. Node.js : le paquet `nodejs24` (24.18.0) est installé, car le `nodejs` par défaut de Fedora 45 (Node 22) est refusé par OpenClaw (vérifié en CI dans le conteneur Fedora 45). |
@@ -71,7 +71,7 @@ Les benchmarks poussés, les cycles de veille et reprise et les canaries (voix, 
 | --- | --- |
 | Réception sur le PC | Toutes les mesures réelles : [liste de contrôle](docs/RECEPTION_ETAPE3.md) |
 | A13 | L’installateur ne refuse pas explicitement une session Live ; sans effet sur une installation normale |
-| Hygiène du dépôt | Lint de `plugins/`, outils de développement figés, scan périodique des dépendances, rangement de `docs/`, première version publiée |
+| Hygiène du dépôt | Rangement de `docs/`, première version publiée |
 | [#122](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/122) | Qualification réelle Fedora 45 / B580 |
 | [#123](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/123) | Réception WebUI, fournisseur OpenRouter, voix et restauration réelle |
 | [#126](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/issues/126) | Intégrité réseau et verrouillage transitif complet |
