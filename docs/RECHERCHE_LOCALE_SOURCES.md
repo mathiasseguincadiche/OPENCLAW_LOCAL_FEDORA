@@ -1,6 +1,6 @@
 # Recherche locale de preuves — plusieurs documents, pas un seul extrait
 
-[← Guide](GUIDE.md) · [Architecture](fiches/11-comment-ca-marche.md) · [Qualité](PLAN_QUALITE_2026.md)
+[← Guide](GUIDE.md) · [Architecture](fiches/11-comment-ca-marche.md) · [Qualité](archives/2026/PLAN_QUALITE_2026.md)
 
 ## Pourquoi changer la recherche ?
 

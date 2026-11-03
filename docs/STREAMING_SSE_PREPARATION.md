@@ -1,6 +1,6 @@
 # Streaming SSE natif OpenClaw → Open WebUI : raccordement canary sécurisé
 
-[← Programme](PROGRAMME_AMELIORATION_2026.md) · [Test WebUI](SMOKE_TEST_WEBUI.md) · [Architecture](fiches/11-comment-ca-marche.md)
+[← Programme](archives/2026/PROGRAMME_AMELIORATION_2026.md) · [Test WebUI](SMOKE_TEST_WEBUI.md) · [Architecture](fiches/11-comment-ca-marche.md)
 
 ## Situation exacte
 

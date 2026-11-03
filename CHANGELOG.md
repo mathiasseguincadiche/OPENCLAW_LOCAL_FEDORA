@@ -4,6 +4,11 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 3 novembre 2026 — hygiène : documents historiques rangés
+
+- Sept documents historiques quittent la racine de `docs/` pour `docs/archives/2026/` : programme d'amélioration, plan qualité, plan de migration hybride, migration OpenClaw d'octobre, plan d'intégration WebUI, audit complémentaire et revue documentaire. La racine passe de 32 à 25 pages, toutes actuelles.
+- Les fichiers sont déplacés avec leur historique Git. Tous les liens relatifs du dépôt sont recalculés, sans aucun lien cassé, et aucune issue ouverte ne cite ces documents. Les tests de documentation suivent les nouveaux chemins.
+
 ### 3 novembre 2026 — hygiène : audit hebdomadaire des dépendances et Dependabot
 
 - Nouveau workflow `Dependency Audit` : chaque lundi, à la demande, et sur les PR qui touchent les verrous. Il relance `npm audit` sur `config/npm-runtime` et `pip-audit` sur les artefacts Python de production, de construction et de voix.

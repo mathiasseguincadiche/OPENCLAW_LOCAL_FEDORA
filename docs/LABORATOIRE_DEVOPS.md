@@ -1,6 +1,6 @@
 # Validateur DevOps facultatif et isolé — hors de l'architecture IA
 
-[← Guide](GUIDE.md) · [Rôles](fiches/07-roles-et-outils.md) · [Plan de qualité](PLAN_QUALITE_2026.md)
+[← Guide](GUIDE.md) · [Rôles](fiches/07-roles-et-outils.md) · [Plan de qualité](archives/2026/PLAN_QUALITE_2026.md)
 
 ## Périmètre : indépendant de l'atelier IA
 

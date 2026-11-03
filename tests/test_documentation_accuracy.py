@@ -79,7 +79,7 @@ def test_historical_plans_are_identified_as_non_normative() -> None:
         "AUDIT_COMPLEMENTAIRE_2026_10.md",
     )
     for name in plans:
-        path = ROOT / "docs" / name
+        path = ROOT / "docs/archives/2026" / name
         assert "Archive de conception 2026" in path.read_text(encoding="utf-8")
 
 

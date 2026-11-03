@@ -1,6 +1,6 @@
 # Plan de qualité vérifiable — OpenClaw / Fedora / Open WebUI
 
-> **Archive de conception 2026 — non normative.** Ce document conserve les décisions et audits historiques. Ses anciennes versions, procédures et priorités ne décrivent pas nécessairement le socle courant. Consulter [l'état actuel](../STATUS.md), le [sommaire des archives](archives/2026/README.md) et [l'installation Fedora 45](INSTALLATION_SIMPLE_FEDORA45.md) avant toute commande.
+> **Archive de conception 2026 — non normative.** Ce document conserve les décisions et audits historiques. Ses anciennes versions, procédures et priorités ne décrivent pas nécessairement le socle courant. Consulter [l'état actuel](../../../STATUS.md), le [sommaire des archives](README.md) et [l'installation Fedora 45](../../INSTALLATION_SIMPLE_FEDORA45.md) avant toute commande.
 
 
 **Situation :** première installation directement prévue sur Open WebUI **v0.12.3-slim** ;
@@ -27,7 +27,7 @@ Ce plan ne remplace pas les essais sur le PC cible ni l'état factuel de `STATUS
 
 ## Documentation pédagogique et architecture
 
-La documentation de découverte s'organise maintenant autour du [README](../README.md), du [guide](GUIDE.md), des [sept rôles](fiches/07-roles-et-outils.md), des [flux d'architecture](fiches/11-comment-ca-marche.md) et d'un [exemple DevOps](EXEMPLE_PARCOURS_DEVOPS.md). Les schémas SVG sont des cartes pédagogiques **du fonctionnement prévu**, pas des preuves d'intégration du conteneur ni de la GPU.
+La documentation de découverte s'organise maintenant autour du [README](../../../README.md), du [guide](../../GUIDE.md), des [sept rôles](../../fiches/07-roles-et-outils.md), des [flux d'architecture](../../fiches/11-comment-ca-marche.md) et d'un [exemple DevOps](../../EXEMPLE_PARCOURS_DEVOPS.md). Les schémas SVG sont des cartes pédagogiques **du fonctionnement prévu**, pas des preuves d'intégration du conteneur ni de la GPU.
 
 ## Blocage P0 : qualification réelle sur le PC
 
@@ -80,7 +80,7 @@ arrêt/redémarrage reproduits ; aucune commande système déclenchée par une p
 
 La CLI `clawfedora-evals` génère un plan de **sept scénarios publics et synthétiques** couvrant les sept rôles, puis agrège des **notes humaines et des références de preuves complètes**. Elle n'appelle aucun modèle et ne se présente pas comme un benchmark déjà exécuté. Les comparaisons Qwen vs DeepSeek et la vérification humaine des sorties restent à réaliser dans la dernière phase.
 
-→ [Mode d'emploi des évaluations](EVALUATION_AGENTS.md) · [Programme global](PROGRAMME_AMELIORATION_2026.md).
+→ [Mode d'emploi des évaluations](../../EVALUATION_AGENTS.md) · [Programme global](PROGRAMME_AMELIORATION_2026.md).
 
 ## Mesurer l'efficacité réelle de Qwen + DeepSeek
 
@@ -91,7 +91,7 @@ La stratégie du projet est **hybride par conception** : Qwen quotidien, DeepSee
 - Vérifier les deux cas actuels : choix du modèle dans le chat, et **accord cloud appliqué au projet** dans l'atelier. Une sélection par tâche/agent n'existe pas encore.
 - Évaluer ultérieurement un routage assisté **avec consentement explicite, critère de coût, règles de non-divulgation et journal d'explication du choix**, sans jamais rendre automatique l'envoi de documents privés.
 
-→ [Contrat pédagogique du système hybride](ARCHITECTURE_HYBRIDE.md).
+→ [Contrat pédagogique du système hybride](../../ARCHITECTURE_HYBRIDE.md).
 
 ## Laboratoire DevOps — première étape de code
 
@@ -101,7 +101,7 @@ Une commande `clawfedora-lab` est maintenant disponible comme **exécuteur stand
 OpenClaw tourne sur Fedora indépendamment de cet outil. Si le validateur
 facultatif est utilisé, image OCI de base librement choisie, versions,
 provenance et vrais tests Podman restent à qualifier.
-[Précisions](LABORATOIRE_DEVOPS.md).
+[Précisions](../../LABORATOIRE_DEVOPS.md).
 
 ## Provenance des pipelines GitHub/GitLab publics
 
@@ -109,7 +109,7 @@ La commande `clawfedora-ci-proof` récupère uniquement **l'état global d'une
 exécution CI publique** dans les API officielles avec SHA/identifiant vérifiés.
 Aucun token, journal ou accès privé n'est transmis. Elle reste distincte des
 outils de l'auditeur et des preuves d'exécution sur un laboratoire réel.
-[Mode d'emploi et limites](PREUVES_CI_GITHUB_GITLAB.md).
+[Mode d'emploi et limites](../../PREUVES_CI_GITHUB_GITLAB.md).
 
 L'authentification à des projets privés sous permissions minimales, les
 preuves de jobs/artefacts et l'intégration contrôlée au moteur des projets

@@ -204,6 +204,6 @@ Les tests automatiques peuvent contrôler le code Python, Ruff/mypy, ShellCheck,
 
 La version choisie pour la **première installation** est **0.12.3-slim** ; l'installateur résout son digest officiel et l'inscrit dans l'unité systemd. `scripts/linux/14_webui_canary.sh` est un contrôle isolé facultatif. Les raccourcis visuels ajoutés sont **en lecture seule**, pas une interface complète d'approbation. Le streaming réel n'est pas encore implémenté.
 
-→ [État factuel](../../STATUS.md) · [Plan de validation](../PLAN_QUALITE_2026.md) · [Test de fumée sur Fedora](../SMOKE_TEST_WEBUI.md).
+→ [État factuel](../../STATUS.md) · [Plan de validation](../archives/2026/PLAN_QUALITE_2026.md) · [Test de fumée sur Fedora](../SMOKE_TEST_WEBUI.md).
 
 [← Guide](../GUIDE.md) · [Rôles et outils →](07-roles-et-outils.md)

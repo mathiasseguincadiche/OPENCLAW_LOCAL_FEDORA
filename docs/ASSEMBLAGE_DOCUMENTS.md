@@ -1,6 +1,6 @@
 # Assemblage de documents professionnels en sections
 
-[← Guide](GUIDE.md) · [Exports](PLAN_QUALITE_2026.md) · [Tests Fedora](SMOKE_TEST_WEBUI.md)
+[← Guide](GUIDE.md) · [Exports](archives/2026/PLAN_QUALITE_2026.md) · [Tests Fedora](SMOKE_TEST_WEBUI.md)
 
 La commande humaine `clawfedora-doc-bundle` assemble des sections Markdown UTF-8
 déjà rédigées et relues en un livrable cohérent. Elle ne demande aucune

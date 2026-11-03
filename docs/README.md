@@ -34,7 +34,7 @@ Les fiches sont un **parcours de référence**, pas douze étapes obligatoires �
 
 - [Architecture hybride Qwen / DeepSeek](ARCHITECTURE_HYBRIDE.md) et [schémas éditables](diagrams/).
 - [Audit du code source — 27 octobre 2026](AUDIT_SOURCE_2026_10_27.md) : maturité, anomalies reproduites, priorités et périmètre du test Live.
-- [Revue documentaire du 20 octobre 2026](AUDIT_DOCUMENTATION_2026_10.md) : instantané historique des 43 pages alors présentes ; l'état courant est dans `STATUS.md`.
+- [Revue documentaire du 20 octobre 2026](archives/2026/AUDIT_DOCUMENTATION_2026_10.md) : instantané historique des 43 pages alors présentes ; l'état courant est dans `STATUS.md`.
 - [Qualification pédagogique et comparaison des conversations](EVALUATION_PEDAGOGIE.md) (score humain /20 ; pas de validation d'un modèle par la CI).
 - [Références d’ingénierie](reference/README.md) : intégrité des composants, sécurité, cloud, prompts, fonctionnement interne.
 - [Réception et tests avancés facultatifs](validation/README.md) : GPU, WebUI, voix, sauvegardes, qualité des agents.

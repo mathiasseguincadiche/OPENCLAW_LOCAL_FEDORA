@@ -1,6 +1,6 @@
 # Audit documentaire transversal — 20 octobre 2026
 
-[← Documentation](README.md) · [État logiciel](../STATUS.md) · [Références](reference/README.md) · [Validation](validation/README.md)
+[← Documentation](../../README.md) · [État logiciel](../../../STATUS.md) · [Références](../../reference/README.md) · [Validation](../../validation/README.md)
 
 ## Objet et méthode
 
