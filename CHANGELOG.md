@@ -7,6 +7,7 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 ### 3 novembre 2026 — Dependabot : OpenClaw maintenu en 2026.10.5
 
 - Dependabot ne propose plus OpenClaw ni le plugin Parallel à partir de 2026.10.6 : ces versions exigent Node ≥ 24.22.1, que Fedora 45 ne fournit pas (`nodejs24` 24.18.0). Les deux premières propositions (#175, #177) ont été fermées avec explication. La règle est à lever quand Fedora 45 fournira un Node compatible ; un test garde la version figée et la règle cohérentes.
+- `httpx2` et `httpcore2` sont proposés ensemble, dans une seule PR : `httpx2` exige exactement la même version de `httpcore2`, et une mise à jour isolée (#173, fermée) rendait les dépendances de la voix impossibles à installer. Un test vérifie que les deux versions figées restent égales.
 
 ### 3 novembre 2026 — hygiène : documents historiques rangés
 

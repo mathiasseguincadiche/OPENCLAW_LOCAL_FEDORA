@@ -32,3 +32,10 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 3
+    groups:
+      # httpx2 requires exactly the same httpcore2 version (2.14.0 with 2.14.0, 2.16.0 with
+      # 2.16.0): proposed alone, either one makes the speech closure unresolvable (#173).
+      httpx2-httpcore2:
+        patterns:
+          - "httpx2"
+          - "httpcore2"

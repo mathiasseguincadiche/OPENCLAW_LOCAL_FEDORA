@@ -107,6 +107,13 @@ def test_the_weekly_audit_and_dependabot_are_configured() -> None:
     pinned = yaml.safe_load((ROOT / "config/runtime_versions.yaml").read_text(encoding="utf-8"))
     version = tuple(int(part) for part in str(pinned["openclaw"]["version"]).split("."))
     assert version < (2026, 10, 6)  # numeric: "2026.10.10" must not pass as lower
+    # Packages pinned to each other's exact version are always proposed together.
+    groups = ecosystems["pip"]["groups"]
+    assert set(groups["httpx2-httpcore2"]["patterns"]) == {"httpx2", "httpcore2"}
+    speech = (ROOT / "config/python-speech-constraints.txt").read_text(encoding="utf-8")
+    linked = ("httpx2==", "httpcore2==")
+    versions = dict(line.split("==") for line in speech.splitlines() if line.startswith(linked))
+    assert versions["httpx2"] == versions["httpcore2"]
 
 
 def test_an_artifact_listed_by_several_locks_is_reported_once() -> None:
