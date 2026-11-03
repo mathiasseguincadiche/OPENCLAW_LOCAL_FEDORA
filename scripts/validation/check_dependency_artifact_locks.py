@@ -86,7 +86,7 @@ def check_build(root: Path) -> int:
         if key in hashes:
             raise ValueError("duplicate Python build hash")
         hashes[key] = match[2]
-    if pins != hashes or set(pins) != {"setuptools", "wheel"}:
+    if pins != hashes or set(pins) != {"setuptools"}:
         raise ValueError("Python build hash list diverges from exact backend pins")
     return len(hashes)
 

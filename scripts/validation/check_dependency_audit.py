@@ -70,12 +70,15 @@ def python_advisories(report: Any) -> list[dict[str, str]]:
     found: list[dict[str, str]] = []
     for dependency in dependencies:
         for vuln in dependency.get("vulns", []) if isinstance(dependency, dict) else []:
-            found.append({
+            entry = {
                 "id": str(vuln.get("id", "?")), "package": str(dependency.get("name", "?")),
                 # pip-audit reports no severity: every Python advisory is treated as serious.
                 "severity": "unrated",
                 "title": ", ".join(str(v) for v in vuln.get("fix_versions", []))[:120],
-            })
+            }
+            # The same artifact may be listed by several lock files: report it once.
+            if entry not in found:
+                found.append(entry)
     return sorted(found, key=lambda item: item["id"])
 
 

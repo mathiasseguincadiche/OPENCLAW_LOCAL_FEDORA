@@ -10,6 +10,7 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 - `check_dependency_audit.py` : un avis npm élevé ou critique, ou un avis Python quel qu'il soit, échoue s'il n'est pas dans `config/dependency_audit_exceptions.json`. Une exception expirée échoue aussi, et un rapport illisible échoue toujours. Les avis modérés sont signalés sans bloquer.
 - Exceptions revues : les trois avis `undici` embarqués dans `npm` 12.2.1, jusqu'au 1er février 2027.
 - `.github/dependabot.yml` : propositions hebdomadaires pour les actions GitHub, npm et pip, toujours soumises à toute la CI.
+- Première exécution : le scan a trouvé des avis sur les outils de construction (`setuptools` 80.9.0 : GHSA-xmj3-9gf7-h52w, PYSEC-2026-3447 ; `wheel` 0.45.1 : CVE-2026-24049). `setuptools` passe en 84.2.1 avec ses empreintes PyPI, et `wheel` est retiré : `setuptools` construit lui-même les wheels depuis la version 70.1, alors que les versions corrigées de `wheel` auraient ajouté la dépendance `packaging`.
 
 ### 3 novembre 2026 — hygiène : outils de développement figés
 

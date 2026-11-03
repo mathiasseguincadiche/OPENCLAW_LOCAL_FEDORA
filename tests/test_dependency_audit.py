@@ -100,3 +100,17 @@ def test_the_weekly_audit_and_dependabot_are_configured() -> None:
     ecosystems = {item["package-ecosystem"]: item for item in dependabot["updates"]}
     assert set(ecosystems) == {"github-actions", "npm", "pip"}
     assert ecosystems["npm"]["directory"] == "/config/npm-runtime"
+
+
+def test_an_artifact_listed_by_several_locks_is_reported_once() -> None:
+    vuln = {"id": "PYSEC-2026-3447", "fix_versions": ["83.0.0"], "aliases": []}
+    report = {"dependencies": [
+        {"name": "setuptools", "version": "80.9.0", "vulns": [vuln]},
+        {"name": "setuptools", "version": "80.9.0", "vulns": [vuln]},
+    ]}
+    assert len(audit["python_advisories"](report)) == 1
+
+
+def test_the_build_backend_no_longer_carries_the_audited_advisories() -> None:
+    constraints = (ROOT / "config/python-build-constraints.txt").read_text(encoding="utf-8")
+    assert "setuptools==84.2.1" in constraints and "wheel==" not in constraints
