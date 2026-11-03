@@ -1,5 +1,5 @@
 schema_version: "1.0.0"
-platform_version: "0.1.0"
+platform_version: "0.2.0"
 security:
   reject_symlinks: true
   reject_special_files: true

@@ -4,6 +4,35 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+## [0.2.0] - 2026-11-03
+
+**Audit corrigé, prêt pour la réception sur le PC.** Cette version corrige les douze défauts relevés par l'audit du 27 octobre (A01 à A12), ajoute un modèle cloud de raisonnement profond et outille la maintenance du dépôt. **Elle n'a pas encore tourné sur le PC cible** : la [liste de contrôle de réception](docs/RECEPTION_ETAPE3.md) décrit cette campagne.
+
+En bref :
+
+- **Sécurité et fiabilité :**
+  - l'accord cloud vise toujours le projet ouvert (A03) ;
+  - la désinstallation arrête le Gateway de façon vérifiée (A02) et la purge ne peut plus être partielle (A07) ;
+  - sauvegarde et réparation sont refusées pendant une génération (A04) ;
+  - un livrable modifié après les audits ne peut plus être livré (A05) ;
+  - le CLI est trouvé depuis un terminal neuf (A06) ;
+  - les délais dépassés terminent les traitements (A08), un reste d'écriture ne bloque plus les reprises (A09) ;
+  - une liste privée illisible refuse le cloud (A10), le journal du budget se répare (A11) ;
+  - l'import Office est durci (A12).
+- **Dépendances (A01) :**
+  - OpenClaw 2026.10.5 avec correctifs `undici`, `zod` et `npm` imposés ;
+  - Node.js 24 de Fedora, dont l'absence aurait bloqué la première installation ;
+  - `pypdf` 6.21.4, `setuptools` 84.2.1, et `wheel` retiré.
+- **Cloud :** deux modèles au choix de l'opérateur, DeepSeek V4.1 Flash (standard) et V4 Pro (raisonnement profond), chacun avec ses plafonds de prix.
+- **Maintenance du dépôt :**
+  - `plugins/` vérifié par `ruff` et `mypy` ;
+  - outils de développement figés ;
+  - audit hebdomadaire des dépendances et Dependabot, avec règles de groupe ;
+  - documents historiques rangés ;
+  - liste de contrôle de réception.
+
+Détail, du plus récent au plus ancien :
+
 ### 3 novembre 2026 — Dependabot : OpenClaw maintenu en 2026.10.5
 
 - Dependabot ne propose plus OpenClaw ni le plugin Parallel à partir de 2026.10.6 : ces versions exigent Node ≥ 24.22.1, que Fedora 45 ne fournit pas (`nodejs24` 24.18.0). Les deux premières propositions (#175, #177) ont été fermées avec explication. La règle est à lever quand Fedora 45 fournira un Node compatible ; un test garde la version figée et la règle cohérentes.
@@ -302,5 +331,6 @@ Première version complète. **Elle n'a pas encore tourné sur le PC cible** et 
 ### Sécurité
 - Un oubli corrigé avant toute utilisation : la sauvegarde, non chiffrée, emportait `state/cloud/upstream.key`. Les fichiers `*.key`, `*.token` et `*.tmp` de `state/cloud` en sont exclus.
 
-[Non publié]: https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/releases/tag/v0.1.0
+[Non publié]: https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/releases/tag/v0.2.0
+[0.1.0]: https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/tree/c971a10
