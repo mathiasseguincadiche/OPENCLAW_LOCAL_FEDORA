@@ -17,7 +17,7 @@ pymarkdownlnt==0.9.40
 pypdf==6.21.4
 python-docx==1.2.0
 pyyaml==6.0.3
-reportlab==5.0.1
+reportlab==5.1.0
 sly==0.5
 tomli==2.5.0
 toolz==1.2.0
