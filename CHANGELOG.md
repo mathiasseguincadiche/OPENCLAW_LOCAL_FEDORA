@@ -4,6 +4,11 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 3 novembre 2026 — hygiène : outils de développement figés
+
+- `ruff`, `mypy`, `pytest`, `pytest-cov` et `types-PyYAML` passent de plages de versions à des versions exactes, celles que la CI a validées le 3 novembre : `ruff` 0.17.3, `mypy` 2.4.1, `pytest` 9.2.0, `pytest-cov` 7.1.0, `types-PyYAML` 6.0.12.20261103. Une nouvelle version d'outil ne peut plus faire échouer la CI sans changement du dépôt.
+- Un test refuse toute dépendance de développement non figée.
+
 ### 3 novembre 2026 — hygiène : plugins Open WebUI vérifiés en CI
 
 - `plugins/` est désormais contrôlé par `ruff` et `mypy` en mode strict, dans la CI et dans `make lint`, comme `src/`. `open_webui` n'existe que dans le conteneur WebUI : il est déclaré comme import non résolu.
