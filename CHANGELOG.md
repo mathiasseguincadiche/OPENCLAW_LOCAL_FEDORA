@@ -4,6 +4,11 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 3 novembre 2026 — STATUS et README alignés sur le code
+
+- `STATUS.md` : référence CI après la PR #165 (1 205 tests, couverture 86 %, CodeQL), audit A01–A12 corrigés, A13 seul ouvert, deux modèles cloud, Node.js 24, maintenance protégée, réception sur le PC à faire selon la liste de contrôle, travaux d'hygiène restants.
+- `README.md` : bandeau de qualification actualisé ; Live USB présenté comme facultatif ; renvoi vers la liste de contrôle de réception.
+
 ### 3 novembre 2026 — liste de contrôle de réception sur le PC
 
 - Nouvelle page `docs/RECEPTION_ETAPE3.md` : douze phases, de la préparation à Fedora installée, `/data`, pré-contrôle, installation, WebUI, quick-check, chat local, premier projet jusqu'à la livraison, sauvegarde, redémarrage et mode jeu, puis cloud borné (Flash et V4 Pro) et mesures facultatives. Chaque contrôle donne le résultat attendu et la marche à suivre en cas d'échec, avec un journal de réception à remplir.
