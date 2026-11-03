@@ -4,6 +4,10 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 3 novembre 2026 — CodeQL 4.39.1 pour init et analyze
+
+- Les quatre étapes `github/codeql-action` (`init` et `analyze`, pour Python et JavaScript) passent ensemble à 4.39.1, commit `9b32540…` vérifié sur l'étiquette officielle `v4.39.1`. La PR Dependabot #178 ne montait que `analyze`, ce que CodeQL refuse.
+
 ### 3 novembre 2026 — Dependabot : OpenClaw maintenu en 2026.10.5
 
 - Dependabot ne propose plus OpenClaw ni le plugin Parallel à partir de 2026.10.6 : ces versions exigent Node ≥ 24.22.1, que Fedora 45 ne fournit pas (`nodejs24` 24.18.0). Les deux premières propositions (#175, #177) ont été fermées avec explication. La règle est à lever quand Fedora 45 fournira un Node compatible ; un test garde la version figée et la règle cohérentes.
