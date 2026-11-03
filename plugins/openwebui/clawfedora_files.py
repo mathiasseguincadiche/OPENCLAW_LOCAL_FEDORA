@@ -5,7 +5,7 @@ forwarded is metadata for files the authenticated user owns. The host bridge res
 upload path again, validates it, and feeds the original file to the project's own ingestion chain.
 """
 
-from typing import Optional
+from typing import Any
 
 from open_webui.models.files import Files
 
@@ -13,17 +13,19 @@ from open_webui.models.files import Files
 class Filter:
     file_handler = True
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.file_handler = True
 
     async def inlet(
         self,
-        body: dict,
-        __user__: Optional[dict] = None,
+        body: dict[str, Any],
+        __user__: dict[str, Any] | None = None,
         **_: object,
-    ) -> dict:
-        metadata = body.get("metadata") if isinstance(body.get("metadata"), dict) else {}
-        message = metadata.get("user_message") if isinstance(metadata.get("user_message"), dict) else {}
+    ) -> dict[str, Any]:
+        raw_metadata = body.get("metadata")
+        metadata: dict[str, Any] = raw_metadata if isinstance(raw_metadata, dict) else {}
+        raw_message = metadata.get("user_message")
+        message: dict[str, Any] = raw_message if isinstance(raw_message, dict) else {}
         # Prefer the latest user message, never re-import a whole thread\u0027s older attachments.
         refs = (
             message.get("files") or []

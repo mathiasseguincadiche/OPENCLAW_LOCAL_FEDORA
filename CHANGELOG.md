@@ -4,6 +4,11 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 3 novembre 2026 — hygiène : plugins Open WebUI vérifiés en CI
+
+- `plugins/` est désormais contrôlé par `ruff` et `mypy` en mode strict, dans la CI et dans `make lint`, comme `src/`. `open_webui` n'existe que dans le conteneur WebUI : il est déclaré comme import non résolu.
+- Les 2 erreurs `ruff` et les 19 erreurs `mypy` existantes sont corrigées, sans changement de comportement : annotations de type, retours `None` explicites et types des métadonnées clarifiés.
+
 ### 3 novembre 2026 — STATUS et README alignés sur le code
 
 - `STATUS.md` : référence CI après la PR #165 (1 205 tests, couverture 86 %, CodeQL), audit A01–A12 corrigés, A13 seul ouvert, deux modèles cloud, Node.js 24, maintenance protégée, réception sur le PC à faire selon la liste de contrôle, travaux d'hygiène restants.

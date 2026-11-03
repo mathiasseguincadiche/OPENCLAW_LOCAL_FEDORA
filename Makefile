@@ -8,8 +8,9 @@ validate:
 	.venv/bin/clawfedora validate
 
 lint:
-	.venv/bin/ruff check src tests scripts/validation
+	.venv/bin/ruff check src tests scripts/validation plugins
 	.venv/bin/mypy src
+	.venv/bin/mypy plugins/openwebui
 
 shellcheck:
 	bash -n menu.sh

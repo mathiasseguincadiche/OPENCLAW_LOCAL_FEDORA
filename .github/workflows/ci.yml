@@ -37,9 +37,11 @@ jobs:
           clawfedora validate
           python scripts/validation/check_dependency_artifact_locks.py
       - name: Ruff
-        run: ruff check src tests scripts/validation
+        run: ruff check src tests scripts/validation plugins
       - name: Mypy
-        run: mypy src
+        run: |
+          mypy src
+          mypy plugins/openwebui
       - name: Tests with coverage
         env:
           CLAWFEDORA_REQUIRE_NODE: "1"
