@@ -40,12 +40,14 @@ clawfedora-doc-bundle = "clawfedora.document_bundle:main"
 speech = [
   "faster-whisper==1.2.1",
 ]
+# Exact versions observed green in CI on 3 November 2026: a new release of a linter, type
+# checker or test runner must arrive through a reviewed change (Dependabot), never alone.
 dev = [
-  "mypy>=1.17,<3",
-  "pytest>=8,<10",
-  "pytest-cov>=6,<8",
-  "ruff>=0.12,<1",
-  "types-PyYAML>=6.0.12,<7",
+  "mypy==2.4.1",
+  "pytest==9.2.0",
+  "pytest-cov==7.1.0",
+  "ruff==0.17.3",
+  "types-PyYAML==6.0.12.20261103",
   "types-defusedxml==0.7.0.20260504",
 ]
 

@@ -63,3 +63,16 @@ def test_ci_unlocked_python_installs_are_prevented() -> None:
     assert f"run: python -m pip install {constraints} -e .\n" in workflow
     assert 'run: python -m pip install -e ".[dev]"' not in workflow
     assert "run: python -m pip install -e .\n" not in workflow
+
+
+def test_development_tools_are_pinned_exactly() -> None:
+    """A new linter or test-runner release must arrive by a reviewed change, never alone."""
+    import re
+    import tomllib
+
+    exact = re.compile(r"[A-Za-z0-9_.-]+==[0-9][0-9A-Za-z.]*")
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    dev = project["optional-dependencies"]["dev"]
+    assert dev and all(exact.fullmatch(item) for item in dev), dev
+    names = {item.split("==")[0].lower() for item in dev}
+    assert {"ruff", "mypy", "pytest", "pytest-cov"} <= names
