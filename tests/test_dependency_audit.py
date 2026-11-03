@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import re
 import runpy
 from pathlib import Path
 from typing import Any
@@ -100,6 +101,25 @@ def test_the_weekly_audit_and_dependabot_are_configured() -> None:
     ecosystems = {item["package-ecosystem"]: item for item in dependabot["updates"]}
     assert set(ecosystems) == {"github-actions", "npm", "pip"}
     assert ecosystems["npm"]["directory"] == "/config/npm-runtime"
+
+    # OpenClaw stays below the release that needs a Node.js Fedora 45 does not ship.
+    ignored = {item["dependency-name"]: item["versions"] for item in ecosystems["npm"]["ignore"]}
+    assert ignored == {"openclaw": [">=2026.10.6"], "@openclaw/parallel-plugin": [">=2026.10.6"]}
+    pinned = yaml.safe_load((ROOT / "config/runtime_versions.yaml").read_text(encoding="utf-8"))
+    version = tuple(int(part) for part in str(pinned["openclaw"]["version"]).split("."))
+    assert version < (2026, 10, 6)  # numeric: "2026.10.10" must not pass as lower
+    # CodeQL init and analyze steps must always share one version.
+    actions = ecosystems["github-actions"]["groups"]
+    assert actions["codeql-action"]["patterns"] == ["github/codeql-action*"]
+    codeql = (ROOT / ".github/workflows/codeql.yml").read_text(encoding="utf-8")
+    assert len(set(re.findall(r"github/codeql-action/\w+@([0-9a-f]{40})", codeql))) == 1
+    # Packages pinned to each other's exact version are always proposed together.
+    groups = ecosystems["pip"]["groups"]
+    assert set(groups["httpx2-httpcore2"]["patterns"]) == {"httpx2", "httpcore2"}
+    speech = (ROOT / "config/python-speech-constraints.txt").read_text(encoding="utf-8")
+    linked = ("httpx2==", "httpcore2==")
+    versions = dict(line.split("==") for line in speech.splitlines() if line.startswith(linked))
+    assert versions["httpx2"] == versions["httpcore2"]
 
 
 def test_an_artifact_listed_by_several_locks_is_reported_once() -> None:
