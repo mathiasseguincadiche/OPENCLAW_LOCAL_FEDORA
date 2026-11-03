@@ -27,7 +27,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Set up Node for the dashboard browser scenarios
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24"
       - name: Install
@@ -86,7 +86,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Set up Node (the nodejs24 version of Fedora 45, not the newest 24.x)
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24.18.0"
       - name: Verify offline npm user-prefix executable layout
