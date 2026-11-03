@@ -1,0 +1,24 @@
+# Proposals only: every update is a pull request that must pass the full CI, including the
+# hash locks, the native OpenClaw checks and the Fedora 45 Node.js engine check. An OpenClaw
+# update also needs runtime_versions.yaml, the tarball digest and the contracts: the lock
+# checks fail until they are changed together.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+  - package-ecosystem: npm
+    directory: "/config/npm-runtime"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 2
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3

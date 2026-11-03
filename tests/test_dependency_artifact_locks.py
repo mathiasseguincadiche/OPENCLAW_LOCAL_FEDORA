@@ -18,7 +18,7 @@ def test_production_hashes_exactly_match_pins() -> None:
 
 
 def test_build_backend_is_pinned_and_sha256_verified() -> None:
-    assert lock["check_build"](ROOT) == 2
+    assert lock["check_build"](ROOT) == 1
 
 
 def test_build_hash_removal_is_refused(tmp_path: Path) -> None:

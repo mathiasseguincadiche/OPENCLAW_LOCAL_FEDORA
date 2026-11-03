@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "exceptions": [
+    {
+      "ecosystem": "npm",
+      "id": "GHSA-xjj6-f33q-929c",
+      "package": "undici",
+      "reason": "Copie undici 6.29.0 embarquée dans npm 12.2.1 (dépendance d'OpenClaw) : aucune version publiée de npm n'embarque 6.29.1 et une copie embarquée ne peut pas être remplacée. Utilisée seulement quand OpenClaw installe des plugins, à la configuration, sur des versions figées.",
+      "reviewed": "2026-11-02",
+      "expires": "2027-02-01",
+      "doc": "docs/audits/2026-11-02/README.md"
+    },
+    {
+      "ecosystem": "npm",
+      "id": "GHSA-2m5v-pch6-74hx",
+      "package": "undici",
+      "reason": "Même copie undici embarquée dans npm 12.2.1 ; même analyse.",
+      "reviewed": "2026-11-02",
+      "expires": "2027-02-01",
+      "doc": "docs/audits/2026-11-02/README.md"
+    },
+    {
+      "ecosystem": "npm",
+      "id": "GHSA-qrxm-fqhp-jwvm",
+      "package": "undici",
+      "reason": "Même copie undici embarquée dans npm 12.2.1 ; même analyse.",
+      "reviewed": "2026-11-02",
+      "expires": "2027-02-01",
+      "doc": "docs/audits/2026-11-02/README.md"
+    }
+  ]
+}

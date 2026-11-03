@@ -14,10 +14,10 @@ par Fedora pour rester compatible avec les composants optionnels de voix.
 | --- | --- | --- |
 | Production (23 packages) | [Contraintes Python](../config/python-runtime-constraints.txt) | [SHA-256 runtime](../config/python-runtime-hashes.txt) |
 | Voix facultative (21 packages) | [Contraintes voix](../config/python-speech-constraints.txt) | [SHA-256 voix](../config/python-speech-hashes.txt) |
-| Outils de construction (setuptools/wheel) | [Contraintes de build](../config/python-build-constraints.txt) | [SHA-256 de build](../config/python-build-hashes.txt) |
+| Outil de construction (setuptools) | [Contraintes de build](../config/python-build-constraints.txt) | [SHA-256 de build](../config/python-build-hashes.txt) |
 
-Le bootstrap installe d'abord **setuptools et wheel depuis leurs wheels
-hashées**, puis les paquets de production avec
+Le bootstrap installe d'abord **setuptools depuis sa wheel
+hashée**, puis les paquets de production avec
 `pip install --require-hashes --only-binary=:all:`. Cette combinaison refuse
 les distributions sources qui auraient pu télécharger implicitement d'autres
 outils de construction. Le projet local est ensuite installé avec
