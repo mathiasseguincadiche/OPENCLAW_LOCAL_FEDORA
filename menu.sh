@@ -39,9 +39,10 @@ Installer et utiliser:
   cloud-status           État du cloud optionnel, de la clé et du budget du mois
   cloud-profile          Afficher le profil de raisonnement DeepSeek actuel
   cloud-set-profile      Préparer/changer le profil via --value
-  cloud-model            Afficher les modèles cloud et celui qui répond (standard ou profond)
-  cloud-set-model        Préparer/changer le modèle cloud via --value standard|profond
                          rapide|equilibre|approfondi, et --apply pour confirmer
+  cloud-model            Afficher les modèles cloud et celui qui répond (standard ou profond)
+  cloud-set-model        Préparer/changer le modèle cloud via --value standard|profond,
+                         et --apply pour confirmer
   cloud-set-key          Enregistrer la clé OpenRouter (saisie masquée)
   cloud-enable           Contrôler puis activer le cloud (--value = limite de la clé en $)
   cloud-disable          Désactiver le cloud et arrêter la passerelle
