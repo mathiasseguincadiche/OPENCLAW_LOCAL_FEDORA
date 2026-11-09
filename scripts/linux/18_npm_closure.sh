@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Installer l'arbre npm d'OpenClaw à partir du verrou, de façon atomique.
+# Usage      : 18_npm_closure.sh [--apply]
+# Effets     : sans --apply : DRY_RUN seulement. Avec --apply : installe dans un répertoire temporaire, contrôle les versions, puis remplace l'arbre actif ; refuse un préfixe lié par lien symbolique.
+# Prérequis  : utilisateur non root ; Node.js compatible avec OpenClaw ; npm.
+# Appelé par : 06_install.sh
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"

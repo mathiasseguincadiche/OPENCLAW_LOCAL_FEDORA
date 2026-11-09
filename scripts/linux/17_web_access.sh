@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Activer ou couper la recherche Web des sept rôles (mode privé ou connecté).
+# Usage      : 17_web_access.sh status|private|connected [--apply]
+# Effets     : sans --apply : plan seulement. Avec --apply : modifie la politique des outils Web, redémarre le Gateway et vérifie la politique enregistrée.
+# Prérequis  : runtime géré installé ; Gateway systemd présent ; utilisateur non root.
+# Appelé par : ./menu.sh --action web-status | web-private | web-connected
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"

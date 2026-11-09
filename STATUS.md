@@ -1,13 +1,14 @@
 # État du projet — Atelier IA hybride Fedora
 
-**Version 0.2.0 du 3 novembre 2026** ([notes de version](CHANGELOG.md)). **Référence CI : commit `2cab2b3` (PR #165).** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
+**Version 0.2.0 du 3 novembre 2026** ([notes de version](CHANGELOG.md)). **Dernière référence CI consignée : commit `2cab2b3` (PR #165), antérieure à la release 0.2.0 (PR #186) dont la CI n’est pas consignée ici.** L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
 ## Résumé vérifiable
 
 | Dimension | Statut | Preuve ou limite |
 | --- | --- | --- |
 | **Code, règles et installation** | Contrats automatisés réussis ; défauts de l’audit corrigés (A01 à A12) | Tests Python 3.12/3.13, ShellCheck, conteneurs Fedora 44/45, OpenClaw natif ; [audit et corrections](docs/AUDIT_SOURCE_2026_10_27.md) |
-| **Référence de CI après fusion de la PR #165** | Succès | [Commit `2cab2b3`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/2cab2b3860d08b31a6f95217c5fc2116829505e4), vérifié le 3 novembre : [dix jobs réussis](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/41573194535), 1 205 tests dans le job quality, couverture 86 %. Instantané daté, pas une garantie pour les prochaines CI. |
+| **Référence de CI après fusion de la PR #165** | Succès | [Commit `2cab2b3`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/2cab2b3860d08b31a6f95217c5fc2116829505e4), vérifié le 3 novembre : [dix jobs réussis](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/41573194535), 1 205 tests dans le job quality, couverture 86 %. Instantané daté, antérieur à la release 0.2.0 : consulter la CI du dernier commit avant de s’y fier. |
+| **Contrôle local du 9 novembre 2026** | Vérifié, portée locale | `pytest -q` : 1 215 réussis, 4 ignorés ; `ruff check src tests scripts/validation plugins`, `mypy src` (78 fichiers), `shellcheck menu.sh scripts/linux/*.sh scripts/linux/lib/*.sh` et `clawfedora validate` sans erreur. Exécutés dans un conteneur Linux (Python 3.13), **pas sur Fedora 45 ni sur le PC cible**. |
 | **Analyse statique** | Succès sur cette référence | [CodeQL après fusion](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/41573194538) ; chaque nouvelle PR repasse ce contrôle |
 | **Audit du 27 octobre** | 12 défauts sur 13 corrigés, avec tests de régression | A01–A12 corrigés par les PR #157 à #163. Reste A13 (installation lancée depuis une session Live), sans effet sur une installation Fedora normale. Des tests verts ne couvrent pas tous les scénarios de panne réels. |
 | **Dépendances npm** | Revues le 2 novembre ; 1 alerte élevée résiduelle | OpenClaw 2026.10.5 et 3 correctifs imposés : 6 alertes élevées → 1 (`undici` embarqué dans `npm`, sans correctif publié). [Analyse et résidus](docs/audits/2026-11-02/README.md). Audit hebdomadaire automatique des verrous npm et Python, avec exceptions revues et datées ; Dependabot propose les mises à jour. |

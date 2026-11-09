@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Réparer : sauvegarde, validation, diagnostic OpenClaw, redéploiement, reconfiguration, redémarrage, santé.
+# Usage      : 09_repair.sh [--apply]
+# Effets     : sans --apply : affiche le plan en sept étapes (REPAIR_DRY_RUN=PASS). Avec --apply : modifie la configuration ; refusé pendant une génération.
+# Prérequis  : installation existante ; OpenClaw trouvable (claw_openclaw_bin).
+# Appelé par : ./menu.sh --action repair
 set -Eeuo pipefail
 
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"

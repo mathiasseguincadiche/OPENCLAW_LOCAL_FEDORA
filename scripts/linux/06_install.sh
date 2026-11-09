@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Installer l'atelier complet : bootstrap, Ollama, modèle, OpenClaw, agents, configuration et Gateway.
+# Usage      : 06_install.sh [--apply] [--enable-linger] [--with-webui]
+# Effets     : sans --apply : plan seulement (INSTALL_DRY_RUN=PASS). Avec --apply : installe, active ollama (sudo) et le Gateway OpenClaw (service utilisateur).
+# Prérequis  : compte Fedora normal (refuse root) ; précontrôle réussi (le menu le relance avant --apply).
+# Appelé par : ./menu.sh --action install ; 12_upgrade.sh
 set -Eeuo pipefail
 
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"

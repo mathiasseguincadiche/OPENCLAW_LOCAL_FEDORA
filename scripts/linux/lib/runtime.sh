@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Rôle       : bibliothèque commune (chemins, stockage /data, versions épinglées, verrou worker).
+# Usage      : `source` depuis les scripts ; ne pas l'exécuter directement.
+# Effets     : définit des fonctions claw_* ; aucune modification au chargement.
 set -Eeuo pipefail
 
 # Node.js for OpenClaw. Fedora 45's default `nodejs` is Node 22, refused by OpenClaw's

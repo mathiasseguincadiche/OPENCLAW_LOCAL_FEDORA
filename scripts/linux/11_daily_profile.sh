@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Gérer le profil quotidien : configuration Ollama/Gateway, mode jeux (libère le GPU) et reprise.
+# Usage      : 11_daily_profile.sh status|configure-ollama|configure-gateway|gaming|daily [--apply]
+# Effets     : sans --apply : DRY_RUN seulement. gaming arrête Gateway et Ollama ; daily les relance ; configure-ollama modifie l'unité systemd d'Ollama (sudo).
+# Prérequis  : gaming refusé si une génération est en cours.
+# Appelé par : ./menu.sh --action gaming | daily
 set -Eeuo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 # shellcheck source=scripts/linux/lib/runtime.sh

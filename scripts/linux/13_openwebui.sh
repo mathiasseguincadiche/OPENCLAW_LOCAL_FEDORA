@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Installer et piloter le chat Open WebUI (Podman rootless) et ses services associés.
+# Usage      : 13_openwebui.sh install|start|stop|seal|status [--apply]
+# Effets     : sans --apply : DRY_RUN seulement. install peut installer podman et espeak-ng (dnf), régler le contexte SELinux du stockage Podman et créer les services utilisateur. seal ferme les inscriptions.
+# Prérequis  : compte Fedora normal ; atelier installé ; seal : après la création du premier compte.
+# Appelé par : ./menu.sh --action webui-install | webui-start | webui-stop | webui-seal | webui-status
 set -Eeuo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 # shellcheck source=scripts/linux/lib/runtime.sh

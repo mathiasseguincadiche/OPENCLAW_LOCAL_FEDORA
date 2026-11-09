@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Gérer la route cloud facultative : clé OpenRouter, activation, désactivation, rapprochement du budget.
+# Usage      : 14_cloud.sh ACTION [--value N] [--apply]   (voir `14_cloud.sh --help`)
+# Effets     : status est en lecture seule ; enable sans --apply ne fait que contrôler ; set-key enregistre la clé (droits 0600) ; enable --apply et disable pilotent le service de la passerelle.
+# Prérequis  : compte Fedora normal ; clé OpenRouter pour enable.
+# Appelé par : ./menu.sh --action cloud-status | cloud-set-key | cloud-enable | cloud-disable | cloud-reconcile
 set -Eeuo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 # shellcheck source=scripts/linux/lib/runtime.sh

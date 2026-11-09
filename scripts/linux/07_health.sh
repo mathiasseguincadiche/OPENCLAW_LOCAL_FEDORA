@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Rapport détaillé de l'état des services de l'atelier.
+# Usage      : 07_health.sh   (aucune option)
+# Effets     : contrôle seulement (`clawfedora-ops health`), aucune option de modification.
+# Prérequis  : /data monté (claw_require_storage).
+# Appelé par : ./menu.sh --action health ; 09_repair.sh
 set -Eeuo pipefail
 
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"

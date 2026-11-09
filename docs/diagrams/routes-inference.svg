@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" role="img" aria-labelledby="title desc">
+<title id="title">Les deux routes d&#x27;inférence : local par défaut, cloud sur décision</title>
+<desc id="desc">Ta demande passe par Open WebUI ou l&#x27;Atelier Projets, puis par le pont et le moteur de projets et par OpenClaw. Une décision explicite choisit la route. Par défaut, Qwen répond en local avec Ollama. Si le cloud est activé et autorisé, la demande passe par la passerelle locale, qui applique le filtre de secrets, le consentement et le budget avant d&#x27;appeler DeepSeek via OpenRouter ; sinon elle s&#x27;arrête avec un refus ou une pause visible. Les deux routes aboutissent à une réponse ou à des fichiers proposés, collectés et contrôlés avant ton accord.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#4a6272"/></marker></defs>
+<rect width="1280" height="800" rx="18" fill="#f6f9fc"/>
+<g font-family="DejaVu Sans,Arial,sans-serif">
+<text x="36" y="48" font-size="27" font-weight="700" fill="#14374c">Les deux routes d&#x27;inférence : local par défaut, cloud sur décision</text>
+<text x="36" y="80" font-size="15" fill="#416477">Lecture en serpentin : de 1 à 4 vers la droite, puis le choix de route, puis le retour vers la gauche.</text>
+<path d="M274 180L334 180" fill="none" stroke="#4a6272" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M574 180L634 180" fill="none" stroke="#4a6272" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M874 180L934 180" fill="none" stroke="#4a6272" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M1054 230L1054 300" fill="none" stroke="#4a6272" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M934 350L874 350" fill="none" stroke="#4a6272" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M1054 400L1054 470" fill="none" stroke="#4a6272" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M934 520L874 520" fill="none" stroke="#4a6272" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M634 520L574 520" fill="none" stroke="#4a6272" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M754 570L754 640" fill="none" stroke="#4a6272" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M634 350L574 350" fill="none" stroke="#4a6272" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M454 470L454 400" fill="none" stroke="#4a6272" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M334 350L274 350" fill="none" stroke="#4a6272" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="34" y="130" width="240" height="100" rx="15" fill="#ffffff" stroke="#a3becb" stroke-width="2"/>
+<text x="154" y="166" fill="#183d50" text-anchor="middle" font-weight="700" font-size="18">1 · Ta demande</text>
+<text x="154" y="192" fill="#436579" text-anchor="middle" font-size="14">Question ou projet</text>
+<rect x="334" y="130" width="240" height="100" rx="15" fill="#126b74"/>
+<text x="454" y="166" fill="#ffffff" text-anchor="middle" font-weight="700" font-size="18">2 · Interface</text>
+<text x="454" y="192" fill="#e5f8f6" text-anchor="middle" font-size="14">Open WebUI ou</text>
+<text x="454" y="213" fill="#e5f8f6" text-anchor="middle" font-size="14">Atelier Projets</text>
+<rect x="634" y="130" width="240" height="100" rx="15" fill="#284659"/>
+<text x="754" y="166" fill="#ffffff" text-anchor="middle" font-weight="700" font-size="18">3 · Pont et moteur</text>
+<text x="754" y="192" fill="#e0eef2" text-anchor="middle" font-size="14">Session · tâches</text>
+<text x="754" y="213" fill="#e0eef2" text-anchor="middle" font-size="14">verrou · accord</text>
+<rect x="934" y="130" width="240" height="100" rx="15" fill="#284659"/>
+<text x="1054" y="166" fill="#ffffff" text-anchor="middle" font-weight="700" font-size="18">4 · OpenClaw</text>
+<text x="1054" y="192" fill="#e0eef2" text-anchor="middle" font-size="14">Rôle · consignes</text>
+<text x="1054" y="213" fill="#e0eef2" text-anchor="middle" font-size="14">outils autorisés</text>
+<rect x="934" y="300" width="240" height="100" rx="15" fill="#ffffff" stroke="#a3becb" stroke-width="2"/>
+<text x="1054" y="336" fill="#183d50" text-anchor="middle" font-weight="700" font-size="18">5 · Route choisie ?</text>
+<text x="1054" y="362" fill="#436579" text-anchor="middle" font-size="14">Décision explicite</text>
+<text x="1054" y="383" fill="#436579" text-anchor="middle" font-size="14">de l&#x27;utilisateur</text>
+<rect x="634" y="300" width="240" height="100" rx="15" fill="#e4f3f1" stroke="#126b74" stroke-width="2"/>
+<text x="754" y="336" fill="#0f4f56" text-anchor="middle" font-weight="700" font-size="18">6a · Qwen en local</text>
+<text x="754" y="362" fill="#245a60" text-anchor="middle" font-size="14">Route par défaut</text>
+<text x="754" y="383" fill="#245a60" text-anchor="middle" font-size="14">Ollama sur Fedora B580</text>
+<rect x="934" y="470" width="240" height="100" rx="15" fill="#fff1de" stroke="#c9894a" stroke-width="2"/>
+<text x="1054" y="506" fill="#6b4118" text-anchor="middle" font-weight="700" font-size="18">6b · Passerelle locale</text>
+<text x="1054" y="532" fill="#7a4c1f" text-anchor="middle" font-size="14">Si le cloud est activé</text>
+<text x="1054" y="553" fill="#7a4c1f" text-anchor="middle" font-size="14">et autorisé · port 18892</text>
+<rect x="634" y="470" width="240" height="100" rx="15" fill="#fff1de" stroke="#c9894a" stroke-width="2"/>
+<text x="754" y="506" fill="#6b4118" text-anchor="middle" font-weight="700" font-size="18">7 · Filtre et budget</text>
+<text x="754" y="532" fill="#7a4c1f" text-anchor="middle" font-size="14">Secrets · consentement</text>
+<text x="754" y="553" fill="#7a4c1f" text-anchor="middle" font-size="14">plafond 25 €/mois</text>
+<rect x="334" y="470" width="240" height="100" rx="15" fill="#fff1de" stroke="#c9894a" stroke-width="2"/>
+<text x="454" y="506" fill="#6b4118" text-anchor="middle" font-weight="700" font-size="18">8 · OpenRouter</text>
+<text x="454" y="532" fill="#7a4c1f" text-anchor="middle" font-size="14">DeepSeek, si le contrôle</text>
+<text x="454" y="553" fill="#7a4c1f" text-anchor="middle" font-size="14">est réussi</text>
+<rect x="634" y="640" width="240" height="100" rx="15" fill="#fdecec" stroke="#b3423a" stroke-width="2"/>
+<text x="754" y="676" fill="#7a1f19" text-anchor="middle" font-weight="700" font-size="18">Refus ou pause</text>
+<text x="754" y="702" fill="#8a2a22" text-anchor="middle" font-size="14">Si le filtre ou le budget</text>
+<text x="754" y="723" fill="#8a2a22" text-anchor="middle" font-size="14">refuse · sans repli caché</text>
+<rect x="334" y="300" width="240" height="100" rx="15" fill="#126b74"/>
+<text x="454" y="336" fill="#ffffff" text-anchor="middle" font-weight="700" font-size="18">9 · Réponse</text>
+<text x="454" y="362" fill="#e5f8f6" text-anchor="middle" font-size="14">ou fichiers proposés</text>
+<rect x="34" y="300" width="240" height="100" rx="15" fill="#ffffff" stroke="#a3becb" stroke-width="2"/>
+<text x="154" y="336" fill="#183d50" text-anchor="middle" font-weight="700" font-size="18">10 · Collecte et accord</text>
+<text x="154" y="362" fill="#436579" text-anchor="middle" font-size="14">Contrôle des fichiers ;</text>
+<text x="154" y="383" fill="#436579" text-anchor="middle" font-size="14">tu valides en projet</text>
+<text x="36" y="776" font-size="13" fill="#4a6272">Schéma logique, pas preuve de déploiement : le trajet exact dépend du chat ou du worker.</text>
+</g></svg>

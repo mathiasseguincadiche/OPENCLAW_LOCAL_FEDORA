@@ -167,7 +167,7 @@
         <mxCell id="c54" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=12;fontStyle=0;fontColor=#496779;strokeColor=none;fillColor=none;" vertex="1" value="Fichiers contrôlés">
           <mxGeometry x="599.00" y="482.64" width="108.52" height="15.60" as="geometry" />
         </mxCell>
-        <mxCell id="c55" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=12;fontStyle=0;fontColor=#9a6936;strokeColor=none;fillColor=none;" vertex="1" value="Choix explicite">
+        <mxCell id="c55" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=12;fontStyle=0;fontColor=#8a5a2b;strokeColor=none;fillColor=none;" vertex="1" value="Choix explicite">
           <mxGeometry x="877.00" y="336.64" width="92.16" height="15.60" as="geometry" />
         </mxCell>
         <mxCell id="c56" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=14;fontStyle=0;fontColor=#3c6074;strokeColor=none;fillColor=none;" vertex="1" value="Route locale">
@@ -179,7 +179,7 @@
         <mxCell id="c58" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=14;fontStyle=0;fontColor=#3c6074;strokeColor=none;fillColor=none;" vertex="1" value="Une seule génération à la fois · consentement et preuves">
           <mxGeometry x="661.00" y="688.58" width="406.14" height="18.20" as="geometry" />
         </mxCell>
-        <mxCell id="c59" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=13;fontStyle=0;fontColor=#607d8e;strokeColor=none;fillColor=none;" vertex="1" value="Schéma logique, pas preuve de déploiement. Le cloud n'est jamais un repli automatique du local.">
+        <mxCell id="c59" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=13;fontStyle=0;fontColor=#4a6272;strokeColor=none;fillColor=none;" vertex="1" value="Schéma logique, pas preuve de déploiement. Le cloud n'est jamais un repli automatique du local.">
           <mxGeometry x="40.00" y="740.61" width="639.97" height="16.90" as="geometry" />
         </mxCell>
         <mxCell id="c60" parent="1" style="edgeStyle=none;noEdgeStyle=1;rounded=0;html=0;strokeColor=#648398;strokeWidth=3;endArrow=block;endFill=1;dashed=0;exitX=1.000000;exitY=0.462963;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.000000;entryY=0.462963;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" source="c8" target="c20">

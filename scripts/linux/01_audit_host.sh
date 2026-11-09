@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Auditer le poste (Fedora, GNOME, B580) ; non bloquant sauf avec --strict.
+# Usage      : 01_audit_host.sh [--strict] [--json]
+# Effets     : lecture seule : exécute `clawfedora audit` et affiche le rapport.
+# Prérequis  : aucun ; fonctionne avec ou sans paquet clawfedora installé.
+# Appelé par : ./menu.sh --action audit | status
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"

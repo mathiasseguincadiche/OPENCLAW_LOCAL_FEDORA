@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Sauvegarder l'état, les projets et les espaces de travail, ou restaurer une archive.
+# Usage      : 08_backup_restore.sh backup [--output-dir CHEMIN] | restore ARCHIVE DESTINATION
+# Effets     : backup crée une archive NON chiffrée et est refusé pendant une génération (verrou worker). restore extrait vers DESTINATION.
+# Prérequis  : /data monté (claw_require_storage).
+# Appelé par : ./menu.sh --action backup ; 09_repair.sh ; 12_upgrade.sh
 set -Eeuo pipefail
 
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"

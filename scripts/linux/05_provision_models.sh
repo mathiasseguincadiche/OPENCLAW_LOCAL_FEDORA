@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Télécharger le modèle local Qwen avec Ollama.
+# Usage      : 05_provision_models.sh [--apply]
+# Effets     : sans --apply : plan seulement (MODEL_PROVISION_PLAN=PASS). Avec --apply : télécharge le modèle (plusieurs Go).
+# Prérequis  : Ollama installé ; /data monté ; connexion Internet.
+# Appelé par : ./menu.sh --action models ; 06_install.sh
 set -Eeuo pipefail
 
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"

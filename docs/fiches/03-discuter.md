@@ -4,6 +4,8 @@
 
 Open WebUI est l'interface de discussion, à l'adresse `http://127.0.0.1:3000`. Elle sert aux questions de tous les jours, comme tu le ferais avec Claude ou ChatGPT.
 
+> **En bref.** Pour une question : choisis un rôle ([Choisir à qui tu parles](#choisir-à-qui-tu-parles)), pose-la, et reste en local. Pour un fichier court : [analyse-le dans le chat](#analyser-un-petit-fichier-sans-créer-de-projet). Pour un vrai travail en plusieurs étapes : [passe par un projet](#chat-ou-atelier-). Le reste de cette page est une **référence** : tu n'as pas à tout lire avant de commencer.
+
 ## Six raccourcis pour commencer
 
 Après la création du compte administrateur et `webui-seal --apply`, six entrées
