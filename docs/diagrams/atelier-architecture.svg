@@ -71,12 +71,12 @@
 </g>
 <path d="M278 590H332" fill="none" stroke="#648398" stroke-width="2" stroke-dasharray="5 6" marker-end="url(#arrow)"/>
 <text x="599" y="495" font-size="12" fill="#496779">Fichiers contrôlés</text>
-<text x="877" y="349" font-size="12" fill="#9a6936">Choix explicite</text>
+<text x="877" y="349" font-size="12" fill="#8a5a2b">Choix explicite</text>
 <line x1="42" y1="699" x2="91" y2="699" stroke="#648398" stroke-width="3" marker-end="url(#arrow)"/>
 <text x="108" y="703" font-size="14" fill="#3c6074">Route locale</text>
 <line x1="290" y1="699" x2="339" y2="699" stroke="#b6783a" stroke-width="3" stroke-dasharray="9 7" marker-end="url(#cloudArrow)"/>
 <text x="358" y="703" font-size="14" fill="#8c5b2d">Route cloud autorisée</text>
 <text x="661" y="703" font-size="14" fill="#3c6074">Une seule génération à la fois · consentement et preuves</text>
-<text x="40" y="754" font-size="13" fill="#607d8e">Schéma logique, pas preuve de déploiement. Le cloud n'est jamais un repli automatique du local.</text>
+<text x="40" y="754" font-size="13" fill="#4a6272">Schéma logique, pas preuve de déploiement. Le cloud n'est jamais un repli automatique du local.</text>
 </g>
 </svg>

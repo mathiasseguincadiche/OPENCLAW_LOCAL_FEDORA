@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Générer et appliquer la configuration OpenClaw (sept agents, politique des outils).
+# Usage      : 03_configure_openclaw.sh [--apply]
+# Effets     : sans --apply : plan seulement. Avec --apply : modifie la configuration d'OpenClaw et vérifie les sept agents.
+# Prérequis  : OpenClaw installé à la version exacte attendue ; /data monté.
+# Appelé par : ./menu.sh --action configure-openclaw ; 06_install.sh ; 09_repair.sh
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"

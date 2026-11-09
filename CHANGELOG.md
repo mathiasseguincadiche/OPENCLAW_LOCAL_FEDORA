@@ -4,6 +4,18 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### 9 novembre 2026 — Revue documentaire et d'outillage
+
+Aucun changement de comportement du code : documentation, schémas, en-têtes de scripts et aide du Makefile.
+
+- `README.md` : premier écran recentré (problème, objectif, état réel), tableau « État en un coup d'œil », section « Ce qui vient d'où » (composants tiers et code du dépôt), limites connues et trois points à retenir.
+- `STATUS.md` : la référence CI (PR #165) est présentée comme antérieure à la release 0.2.0 ; ajout du contrôle local du 9 novembre (`pytest`, `ruff`, `mypy`, `shellcheck`, `clawfedora validate`).
+- `docs/ARCHITECTURE_HYBRIDE.md` : le schéma Mermaid est remplacé par `docs/diagrams/routes-inference.drawio` et son aperçu `.svg` ; le second modèle cloud (V4 Pro) est mentionné. `SECURITY.md` aligné.
+- `docs/README.md` : pages d'approfondissement classées par besoin (comprendre, faire, consulter, vérifier, historique) ; `ASSEMBLAGE_DOCUMENTS.md` est enfin indexé.
+- Schémas `atelier-architecture` et `atelier-roles` : trois textes passés au contraste d'au moins 4,5:1 (`.drawio` et `.svg`).
+- `scripts/linux/` : en-tête Rôle / Usage / Effets / Prérequis / Appelé par sur chaque script (commentaires seulement).
+- `Makefile` : cible `help` par défaut, cible `docs` ; `CONTRIBUTING.md` décrit les nouvelles conventions.
+
 ## [0.2.0] - 2026-11-03
 
 **Audit corrigé, prêt pour la réception sur le PC.** Cette version corrige les douze défauts relevés par l'audit du 27 octobre (A01 à A12), ajoute un modèle cloud de raisonnement profond et outille la maintenance du dépôt. **Elle n'a pas encore tourné sur le PC cible** : la [liste de contrôle de réception](docs/RECEPTION_ETAPE3.md) décrit cette campagne.

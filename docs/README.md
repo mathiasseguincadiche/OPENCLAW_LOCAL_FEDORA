@@ -2,6 +2,8 @@
 
 **Point d’entrée unique** : cette page oriente vers la procédure adaptée à ton besoin, sans demander de lire toute l’architecture. L’environnement cible est **Fedora 45 Workstation / GNOME 51**, avec les données de l’atelier sur le volume secondaire **`/data/IA/Openclaw/`**.
 
+> **Règle de lecture :** un test de CI réussi n’équivaut pas à une réception du logiciel sur le PC Fedora/Intel Arc B580. Les fonctions facultatives ou expérimentales sont identifiées comme telles. L’état réel est dans [STATUS](../STATUS.md).
+
 ## Commencer simplement
 
 | Je veux… | Ouvrir |
@@ -14,8 +16,6 @@
 | Discuter avec Qwen | [Fiche 03 — Discussion](fiches/03-discuter.md) |
 | Créer ou reprendre un projet | [Fiche 04 — Atelier Projets](fiches/04-atelier-projets.md) |
 | Savoir ce qui est réellement testé | [État et limites](../STATUS.md) |
-| Lire les défauts et priorités avant la réception | [Audit du code source — 27 octobre 2026](AUDIT_SOURCE_2026_10_27.md) |
-| Comparer la pédagogie DeepSeek/Qwen/Gemini sur 20 | [Conversations pédagogiques et grille 5/5](EVALUATION_PEDAGOGIE.md) |
 
 ## Les 12 fiches pédagogiques
 
@@ -32,19 +32,40 @@ Les fiches sont un **parcours de référence**, pas douze étapes obligatoires �
 
 ## Approfondir, sans alourdir le premier démarrage
 
-- [Architecture hybride Qwen / DeepSeek](ARCHITECTURE_HYBRIDE.md) et [schémas éditables](diagrams/).
-- [Audit du code source — 27 octobre 2026](AUDIT_SOURCE_2026_10_27.md) : maturité, anomalies reproduites, priorités et périmètre du test Live.
-- [Revue documentaire du 20 octobre 2026](archives/2026/AUDIT_DOCUMENTATION_2026_10.md) : instantané historique des 43 pages alors présentes ; l'état courant est dans `STATUS.md`.
-- [Qualification pédagogique et comparaison des conversations](EVALUATION_PEDAGOGIE.md) (score humain /20 ; pas de validation d'un modèle par la CI).
-- [Références d’ingénierie](reference/README.md) : intégrité des composants, sécurité, cloud, prompts, fonctionnement interne.
-- [Réception et tests avancés facultatifs](validation/README.md) : GPU, WebUI, voix, sauvegardes, qualité des agents.
+Les pages ci-dessous sont classées par **ce que tu cherches à faire**.
+
+### Comprendre pourquoi c’est construit ainsi
+
+- [Architecture hybride Qwen / DeepSeek](ARCHITECTURE_HYBRIDE.md) : les deux routes, le choix explicite et le schéma [`routes-inference`](diagrams/routes-inference.svg).
+- [Décision de modèle](DECISION_MODELE.md) : pourquoi Qwen en local et DeepSeek en option.
+- [Passerelle cloud](PASSERELLE_CLOUD.md) : filtre, consentement et budget.
+- [Schémas éditables](diagrams/) : les fichiers `.drawio` sont la source, les `.svg` des aperçus.
+
+### Faire une opération précise
+
+- [Stockage EXT4 sur `/data`, permissions et sauvegarde](STOCKAGE_DATA.md).
+- [Mode Web privé ou connecté](WEB_ACCESS_PRIVATE_MODE.md) : couper ou rétablir la recherche Web des rôles.
+- [Assemblage de documents professionnels](ASSEMBLAGE_DOCUMENTS.md) : `clawfedora-doc-bundle`, de sections Markdown à un livrable.
 - [Parcours DevOps de démonstration](EXEMPLE_PARCOURS_DEVOPS.md) : exemple pédagogique et non preuve d’un déploiement réel.
-- [Plans, audits et décisions historiques de 2026](archives/2026/README.md).
+
+### Consulter une référence
+
+- [Références d’ingénierie](reference/README.md) : intégrité des composants, sécurité, cloud, prompts, fonctionnement interne.
+- [Verrou Python et empreintes](PYTHON_RUNTIME_LOCK.md) et [intégrité de l’installation](INSTALLATION_INTEGRITE.md).
+- [Consignes pédagogiques et contrôles](PROMPTS.md).
+
+### Vérifier et prouver
+
+- [Réception et tests avancés facultatifs](validation/README.md) : GPU, WebUI, voix, sauvegardes, qualité des agents.
+- [Audit du code source — 27 octobre 2026](AUDIT_SOURCE_2026_10_27.md) : maturité, anomalies reproduites, priorités et périmètre du test Live.
+- [Qualification pédagogique et comparaison des conversations](EVALUATION_PEDAGOGIE.md) : score humain /20, sans validation d’un modèle par la CI.
+- [Preuves de CI GitHub et GitLab](PREUVES_CI_GITHUB_GITLAB.md) et [audits des dépendances](audits/2026-11-02/README.md).
+
+### Expérimental ou historique
+
+- Canaries facultatifs : [streaming SSE](STREAMING_SSE_PREPARATION.md), [vision locale](VISION_LOCALE_CANARY.md), [laboratoire DevOps isolé](LABORATOIRE_DEVOPS.md).
+- [Plans, audits et décisions historiques de 2026](archives/2026/README.md), dont la [revue documentaire du 20 octobre 2026](archives/2026/AUDIT_DOCUMENTATION_2026_10.md) : un instantané des 43 pages alors présentes ; l’état courant est dans `STATUS.md`.
 
 ## Contribuer et vérifier
 
 [Contribuer](../CONTRIBUTING.md) · [Politique de sécurité](../SECURITY.md) · [Historique des changements](../CHANGELOG.md) · [Code source](../src/) · [Scripts](../scripts/) · [Tests](../tests/)
-
-**Règle de lecture** : un test de CI réussi n’équivaut pas à une réception du logiciel sur le PC Fedora/Intel Arc B580. Les fonctions facultatives ou expérimentales sont identifiées comme telles.
-
-[Stockage EXT4 sur `/data`, permissions et sauvegarde](STOCKAGE_DATA.md).

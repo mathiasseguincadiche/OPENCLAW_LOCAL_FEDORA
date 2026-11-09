@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Passer aux versions prévues par le dépôt : arrêt, sauvegarde, installation, remise en service.
+# Usage      : 12_upgrade.sh [--apply]
+# Effets     : sans --apply : plan seulement (UPGRADE_DRY_RUN=PASS). Avec --apply : arrête les services, sauvegarde, réinstalle ; en cas d'échec, les services restent arrêtés.
+# Prérequis  : compte Fedora normal ; aucune génération en cours ; mode jeux désactivé.
+# Appelé par : ./menu.sh --action upgrade
 set -Eeuo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 # shellcheck source=scripts/linux/lib/runtime.sh

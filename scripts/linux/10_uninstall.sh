@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Désinstaller l'atelier ; avec --purge-data, supprimer aussi les données.
+# Usage      : 10_uninstall.sh [--apply] [--purge-data]
+# Effets     : sans --apply : plan seulement. Avec --apply : arrête les services (arrêt vérifié avant toute suppression). --purge-data supprime aussi les données, dont les modèles Ollama (sudo rm -rf).
+# Prérequis  : lancer avec le compte Fedora habituel (sudo sert à arrêter Ollama et à supprimer ses modèles) ; copie externe recommandée avant --purge-data.
+# Appelé par : ./menu.sh --action uninstall
 set -Eeuo pipefail
 
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"

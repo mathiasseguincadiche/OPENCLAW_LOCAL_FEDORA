@@ -128,7 +128,7 @@
         <mxCell id="c41" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=14;fontStyle=0;fontColor=#466878;strokeColor=none;fillColor=none;" vertex="1" value="Traits pointillés = sélection de consignes, pas communication directe entre agents. Aucun rôle n'exécute des commandes sur Fedora.">
           <mxGeometry x="64.00" y="698.58" width="941.21" height="18.20" as="geometry" />
         </mxCell>
-        <mxCell id="c42" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=13;fontStyle=0;fontColor=#668090;strokeColor=none;fillColor=none;" vertex="1" value="Le choix local/cloud n'est pas automatique par agent ; les preuves et approbations restent humaines.">
+        <mxCell id="c42" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=13;fontStyle=0;fontColor=#4a6272;strokeColor=none;fillColor=none;" vertex="1" value="Le choix local/cloud n'est pas automatique par agent ; les preuves et approbations restent humaines.">
           <mxGeometry x="44.00" y="754.61" width="665.63" height="16.90" as="geometry" />
         </mxCell>
         <mxCell id="c43" parent="1" style="edgeStyle=none;noEdgeStyle=1;rounded=0;html=0;strokeColor=#698698;strokeWidth=2.5;endArrow=block;endFill=1;dashed=1;dashPattern=8 6;exitX=0.500000;exitY=1.000000;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.500000;entryY=0.000000;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" source="c28" target="c31">

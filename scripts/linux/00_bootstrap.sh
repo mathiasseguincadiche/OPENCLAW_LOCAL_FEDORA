@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Préparer l'hôte Fedora : paquets, dossiers du runtime et venv Python isolé.
+# Usage      : 00_bootstrap.sh [--apply] [--enable-linger] [--with-dev] [--with-kvm] [--runtime-root CHEMIN]
+# Effets     : sans --apply : plan seulement (DRY_RUN=PASS). Avec --apply : installe des paquets (dnf), active firewalld, crée les dossiers.
+# Prérequis  : second disque monté sous /data (contrôlé avant --apply) ; sudo disponible.
+# Appelé par : ./menu.sh --action bootstrap ; 06_install.sh
 set -Eeuo pipefail
 
 APPLY=0

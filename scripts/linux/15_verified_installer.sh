@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Installer OpenClaw ou Ollama à la version exacte, après vérification de l'archive.
+# Usage      : 15_verified_installer.sh openclaw|ollama [--apply]
+# Effets     : sans --apply : plan seulement. Avec --apply : vérifie l'archive (verify_install_artifact.py) ; pour Ollama, extrait dans /usr/local et crée le compte et l'unité systemd (sudo).
+# Prérequis  : utilisateur non root ; Internet ; sudo pour Ollama.
+# Appelé par : 06_install.sh (via 00_bootstrap.sh)
 set -Eeuo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 # shellcheck source=scripts/linux/lib/runtime.sh

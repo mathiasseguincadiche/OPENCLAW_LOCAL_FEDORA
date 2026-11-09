@@ -10,6 +10,8 @@ Mais les besoins DevOps ne s'arrêtent pas aux petites questions : auditer plusi
 
 C'est précisément **la raison d'être de DeepSeek V4.1 Flash** dans ce projet : fournir **une route de capacité pour les tâches difficiles**, sans abandonner le contrôle local, la transparence des appels ou le budget.
 
+Deux modèles cloud sont configurés, **au choix explicite de l'opérateur** : `standard` (DeepSeek V4.1 Flash, par défaut) et `profond` (DeepSeek V4 Pro, plus cher, pour le raisonnement long). Le tableau ci-dessous décrit la route `standard` ; la [fiche cloud](fiches/12-cloud.md#choisir-le-modèle--standard-ou-profond) détaille les deux.
+
 > **Le but n'est pas d'être « 100 % local à tout prix » ni « 100 % cloud ». Le but est de faire un travail DevOps utile, compréhensible et vérifiable, en choisissant le bon niveau de ressources.**
 
 L'instantané cloud 1017 (17 octobre 2026) ne prouve pas une meilleure pédagogie sans essai réel. Les budgets, consentements, permissions et règles de confidentialité restent inchangés.
@@ -72,23 +74,11 @@ Un **agent OpenClaw** ne contient pas son propre modèle : c'est une mission (me
 
 ## Le parcours technique des deux routes
 
-```mermaid
-flowchart TD
-  U[Utilisateur : question ou projet] --> UI[Open WebUI ou Atelier Projets]
-  UI --> CTRL[Pont + moteur : session, tâches, verrou, accord]
-  CTRL --> OC[OpenClaw : agent, consignes, outils]
-  OC --> CH{Route explicitement choisie ?}
-  CH -->|Locale par défaut| Q[Ollama + Qwen sur Fedora B580]
-  CH -->|Cloud activé et autorisé| G[Passerelle locale :18892]
-  G --> P{Filtre et budget OK ?}
-  P -->|Oui| D[OpenRouter → DeepSeek V4.1 Flash]
-  P -->|Non| STOP[Refus ou pause ; comportement visible]
-  Q --> OUT[Réponse ou fichiers proposés]
-  D --> OUT
-  OUT --> A[Collecte et contrôle ; confirmations humaines en projet]
-```
+![Les deux routes d'inférence : la demande suit les étapes 1 à 4, une décision explicite choisit entre Qwen local (par défaut) et la passerelle cloud, puis la réponse revient vers la collecte et ton accord](diagrams/routes-inference.svg)
 
-Cette représentation est **logique** : le trajet réel exact dépend du chat ou du worker. Elle ne démontre pas qu'une installation Fedora et OpenRouter a été testée.
+**Comment lire ce schéma.** Les étapes 1 à 4 vont vers la droite : ta demande arrive dans l'interface, puis traverse le pont, le moteur de projets et OpenClaw. À l'étape 5, **tu** choisis la route. La route locale (6a) est celle par défaut. La route cloud (6b à 8) passe d'abord par la passerelle locale, qui applique le filtre de secrets, le consentement et le budget ; si l'un des trois refuse, le travail s'arrête ou se met en pause, de façon visible (bloc rouge). Les deux routes reviennent ensuite vers la réponse (9) et la collecte (10).
+
+Cette représentation est **logique** : le trajet réel exact dépend du chat ou du worker. Elle ne démontre pas qu'une installation Fedora et OpenRouter a été testée. Source éditable : [`routes-inference.drawio`](diagrams/routes-inference.drawio) (l'aperçu `.svg` ne se resynchronise pas tout seul).
 
 ### 1. Dans Open WebUI
 

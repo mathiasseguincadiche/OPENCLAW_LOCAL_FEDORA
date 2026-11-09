@@ -59,5 +59,5 @@
 <text x="64" y="664" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" font-weight="700" fill="#1c4154">Et si le cloud est activé ?</text>
 <text x="64" y="690" font-family="DejaVu Sans,Arial,sans-serif" font-size="15" fill="#466878">Qwen est local ; DeepSeek est la route de capacité via la passerelle, après accord. Aucun nouveau rôle n'est ajouté.</text>
 <text x="64" y="713" font-family="DejaVu Sans,Arial,sans-serif" font-size="14" fill="#466878">Traits pointillés = sélection de consignes, pas communication directe entre agents. Aucun rôle n'exécute des commandes sur Fedora.</text>
-<text x="44" y="768" font-family="DejaVu Sans,Arial,sans-serif" font-size="13" fill="#668090">Le choix local/cloud n'est pas automatique par agent ; les preuves et approbations restent humaines.</text>
+<text x="44" y="768" font-family="DejaVu Sans,Arial,sans-serif" font-size="13" fill="#4a6272">Le choix local/cloud n'est pas automatique par agent ; les preuves et approbations restent humaines.</text>
 </svg>

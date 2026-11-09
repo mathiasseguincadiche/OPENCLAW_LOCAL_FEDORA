@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Rôle       : Contrôler le système (Fedora, GNOME, matériel) ou le GPU (B580, pilote xe, Vulkan).
+# Usage      : 04_check_hardware.sh system|gpu
+# Effets     : contrôle sans modification du système ; écrit un rapport JSON horodaté dans le runtime.
+# Prérequis  : /data monté (claw_require_storage).
+# Appelé par : ./menu.sh --action check-system | check-gpu
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"

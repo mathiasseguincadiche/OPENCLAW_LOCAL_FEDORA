@@ -7,7 +7,7 @@ make install
 make ci
 ```
 
-`make ci` vérifie les fichiers de configuration, le style et le typage du code Python, les scripts shell, et lance les tests.
+`make ci` vérifie les fichiers de configuration, le style et le typage du code Python, les scripts shell, et lance les tests. `make` seul liste toutes les commandes ; `make docs` rejoue uniquement les contrôles de la documentation, utile après une retouche de texte.
 
 ## Politique de synchronisation documentaire
 
@@ -53,6 +53,8 @@ En contribuant, tu acceptes le [code de conduite](CODE_OF_CONDUCT.md).
 - Les rôles ne reçoivent pas d'outil pour exécuter des commandes ou écrire directement des fichiers.
 - Un script qui modifie le système affiche d'abord ce qu'il ferait ; il n'agit qu'avec `--apply`.
 - La documentation change en même temps que le code : une fiche par sujet dans `docs/fiches/`.
+- Chaque script de `scripts/linux/` commence par un en-tête de cinq lignes : **Rôle, Usage, Effets, Prérequis, Appelé par**. Une option ou un effet ajouté au script met l'en-tête à jour.
+- Un schéma est une paire : le `.drawio` est la source, le `.svg` l'aperçu (avec `<title>` et `<desc>`). Pas de Mermaid. Les textes des schémas gardent un contraste d'au moins 4,5:1 avec leur fond.
 - Les actions GitHub sont référencées par leur empreinte complète.
 
 ## Réviser les verrous d'installation
