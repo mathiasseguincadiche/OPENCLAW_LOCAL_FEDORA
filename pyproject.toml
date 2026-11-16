@@ -47,7 +47,7 @@ dev = [
   "pytest==9.2.0",
   "pytest-cov==7.1.0",
   "ruff==0.17.3",
-  "types-PyYAML==6.0.12.20261103",
+  "types-PyYAML==6.0.12.20261113",
   "types-defusedxml==0.7.0.20260504",
 ]
 
