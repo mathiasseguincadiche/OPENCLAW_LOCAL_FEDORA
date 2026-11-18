@@ -618,14 +618,16 @@ def stale_audits(
 ) -> list[str]:
     """Differences between the sealed inventory of each verdict and the files now present."""
     current = audited_inventory(project)
+    base = os.path.realpath(project)
     problems: list[str] = []
     for kind in kinds:
         report = _require(repo_root, project, kind)
         sealed = report.get("sealed_inventory")
         for path, digest in report.get("proof_hashes", {}).items():
-            target = project / path
-            if (not target.resolve().is_relative_to(project.resolve()) or target.is_symlink()
-                    or not target.is_file() or sha256_file(target) != digest):
+            expected = os.path.join(base, path)
+            target = os.path.realpath(expected)
+            if (not target.startswith(base + os.sep) or expected != target
+                    or not os.path.isfile(target) or sha256_file(Path(target)) != digest):
                 problems.append(f"{kind}: preuve périmée {path}")
         if not isinstance(sealed, dict):
             problems.append(f"{kind}: verdict sans inventaire scellé")
@@ -739,7 +741,14 @@ def _deliverable_records(project: Path) -> list[dict[str, Any]]:
 def _document_sources(project: Path, records: list[dict[str, Any]]) -> dict[str, Any]:
     hashes = {r["path"]: r["sha256"] for r in records}
     result = {}
-    for path in sorted((project / "context/document-sources").glob("*.json")):
+    base = os.path.realpath(project)
+    directory = os.path.join(base, "context", "document-sources")
+    resolved = os.path.realpath(directory)
+    if not resolved.startswith(base + os.sep) or resolved != directory:
+        raise ValueError("répertoire des sources documentaires hors projet ou lié")
+    for path in sorted(Path(resolved).glob("*.json")):
+        if path.is_symlink():
+            raise ValueError("métadonnées documentaires liées")
         for name, source in read_json(path).items():
             if name not in hashes:
                 continue

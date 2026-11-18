@@ -29,8 +29,8 @@ def requirement(criterion: str, outputs: list[str]) -> list[str]:
     if header.startswith("[preuve ") and end and description.strip():
         match parts:
             case ["ci", ("github" | "gitlab"), repo, commit] if re.fullmatch(
-                r"[\w.-]+(?:/[\w.-]+)+", repo
-            ) and re.fullmatch("[0-9a-f]{40}", commit):
+                r"[\w.\-/]+", repo
+            ) and "/" in repo and all(repo.split("/")) and re.fullmatch("[0-9a-f]{40}", commit):
                 return parts
             case ["lab", tool, *paths] if (
                 tool in devops_lab.TOOLS

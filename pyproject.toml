@@ -17,7 +17,7 @@ dependencies = [
   "pymarkdownlnt==0.9.40",
   "reportlab==5.1.0",
   "python-docx==1.2.0",
-  "markdown-it-py==4.2.0",
+  "markdown-it-py==4.3.0",
   "pypdf==6.21.4",
   "Pillow==13.0.0",
 ]
@@ -47,7 +47,7 @@ dev = [
   "pytest==9.2.0",
   "pytest-cov==7.1.0",
   "ruff==0.17.3",
-  "types-PyYAML==6.0.12.20261103",
+  "types-PyYAML==6.0.12.20261113",
   "types-defusedxml==0.7.0.20260504",
 ]
 
