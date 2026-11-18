@@ -27,6 +27,20 @@ def _version(distribution: str) -> str | None:
         return None
 
 
+def _pymarkdown_version() -> str | None:
+    """Use the exact dependency pin from the installed atelier's metadata."""
+    try:
+        requirements = importlib.metadata.requires("openclaw-local-fedora") or []
+    except importlib.metadata.PackageNotFoundError:
+        return None
+    for requirement in requirements:
+        match = re.fullmatch(r"pymarkdownlnt\s*==\s*([0-9]+\.[0-9]+\.[0-9]+)", requirement)
+        if match:
+            installed = _version("pymarkdownlnt")
+            return installed if installed == match[1] else None
+    return None
+
+
 def available() -> dict[str, Any]:
     return {
         "shellcheck": Path("/usr/bin/shellcheck").is_file(),
@@ -104,14 +118,15 @@ def lint(role: str, data: dict[str, Any]) -> dict[str, Any]:
         checked = re.sub(r"(?m)^\s*#\s*shellcheck\b[^\n]*", "# directive ignored", content)
         version = run_fixed([command[0], "--version"], "").stdout[:300]
     else:
-        if _version("pymarkdownlnt") != "0.9.40":
+        markdown_version = _pymarkdown_version()
+        if markdown_version is None:
             return {"tool": "pymarkdownlnt", "status": "UNAVAILABLE", "runtime_tested": False}
         command = [sys.executable, "-I", "-m", "pymarkdown", "--disable-rules", "MD013", "scan-stdin"]
         # Markdown comments can disable rules: ignore those lint directives explicitly.
         checked = re.sub(
             r"<!--\s*(?:pyml|pymarkdown|markdownlint).*?-->", "", content, flags=re.S | re.I
         )
-        version = str(_version("pymarkdownlnt"))
+        version = markdown_version
     try:
         result = run_fixed(command, checked)
     except subprocess.TimeoutExpired:
