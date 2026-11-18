@@ -14,7 +14,7 @@ dependencies = [
   "PyYAML>=6.0.2,<7",
   "defusedxml==0.7.1",
   "yamllint==1.38.0",
-  "pymarkdownlnt==0.9.40",
+  "pymarkdownlnt==0.9.41",
   "reportlab==5.1.0",
   "python-docx==1.2.0",
   "markdown-it-py==4.3.0",
