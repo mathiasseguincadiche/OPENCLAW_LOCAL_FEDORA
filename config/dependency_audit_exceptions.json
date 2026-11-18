@@ -27,6 +27,21 @@
       "reviewed": "2026-11-02",
       "expires": "2027-02-01",
       "doc": "docs/audits/2026-11-02/README.md"
+    },
+    {
+      "ecosystem": "npm",
+      "id": "GHSA-fc5q-39xc-vjpf",
+      "package": "picomatch",
+      "reason": "Copie 4.0.5 embarquée dans npm 12.2.1. Aucune version corrigée publiée. L’installation verrouillée désactive les scripts npm et configure Parallel par lien local. Le risque reste ouvert hors de ce parcours.",
+      "reviewed": "2026-11-17",
+      "expires": "2026-12-17",
+      "doc": "docs/audits/2026-11-17/README.md",
+      "npm_bundle": {
+        "path": "node_modules/npm/node_modules/tinyglobby/node_modules/picomatch",
+        "version": "4.0.5",
+        "npm_version": "12.2.1",
+        "severity": "high"
+      }
     }
   ]
 }
