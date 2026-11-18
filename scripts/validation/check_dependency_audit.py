@@ -17,6 +17,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 EXCEPTIONS = ROOT / "config/dependency_audit_exceptions.json"
+NPM_LOCK = ROOT / "config/npm-runtime/package-lock.json"
 SERIOUS = {"high", "critical"}
 RANK = {"info": 0, "low": 1, "moderate": 2, "high": 3, "critical": 4}
 
@@ -32,8 +33,20 @@ def load_exceptions(path: Path = EXCEPTIONS) -> dict[tuple[str, str], dict[str, 
         for field in ("id", "package", "reason", "reviewed", "expires", "doc"):
             if not isinstance(item.get(field), str) or not item[field].strip():
                 raise ValueError(f"exception incomplète: {field}")
-        dt.date.fromisoformat(item["reviewed"])
-        dt.date.fromisoformat(item["expires"])
+        if dt.date.fromisoformat(item["expires"]) <= dt.date.fromisoformat(item["reviewed"]):
+            raise ValueError("expiration antérieure ou égale à la revue")
+        if "npm_bundle" in item:
+            bundle = item["npm_bundle"]
+            fields = {"path", "version", "npm_version", "severity"}
+            if (
+                item["ecosystem"] != "npm"
+                or not isinstance(bundle, dict)
+                or set(bundle) != fields
+                or any(not isinstance(value, str) or not value for value in bundle.values())
+                or not bundle["path"].startswith("node_modules/npm/node_modules/")
+                or bundle["severity"] not in SERIOUS
+            ):
+                raise ValueError("périmètre de dérogation npm invalide")
         key = (item["ecosystem"], item["id"])
         if key in result:
             raise ValueError(f"exception dupliquée: {item['id']}")
@@ -82,9 +95,29 @@ def python_advisories(report: Any) -> list[dict[str, str]]:
     return sorted(found, key=lambda item: item["id"])
 
 
+def _matches_npm_bundle(
+    advisory: dict[str, str], exception: dict[str, Any], report: dict[str, Any] | None,
+) -> bool:
+    bundle = exception["npm_bundle"]
+    if report is None or advisory["severity"] != bundle["severity"]:
+        return False
+    path = bundle["path"]
+    entry = report["vulnerabilities"].get(advisory["package"], {})
+    if entry.get("nodes") != [path]:
+        return False
+    locked = json.loads(NPM_LOCK.read_text(encoding="utf-8"))["packages"]
+    package = locked.get(path, {})
+    return (
+        package.get("inBundle") is True
+        and package.get("version") == bundle["version"]
+        and locked.get("node_modules/npm", {}).get("version") == bundle["npm_version"]
+    )
+
+
 def verdict(
     ecosystem: str, advisories: list[dict[str, str]],
     exceptions: dict[tuple[str, str], dict[str, Any]], today: dt.date,
+    *, npm_report: dict[str, Any] | None = None,
 ) -> tuple[bool, list[str]]:
     lines: list[str] = []
     ok = True
@@ -103,6 +136,16 @@ def verdict(
         elif dt.date.fromisoformat(exception["expires"]) < today:
             ok = False
             lines.append(f"EXPIRÉ {label} : exception du {exception['reviewed']} à revoir")
+        elif today < dt.date.fromisoformat(exception["reviewed"]):
+            ok = False
+            lines.append(f"NON REVU {label} : revue datée du {exception['reviewed']}")
+        elif exception["package"] != advisory["package"] or (
+            "npm_bundle" in exception and not _matches_npm_bundle(advisory, exception, npm_report)
+        ):
+            ok = False
+            lines.append(f"HORS PÉRIMÈTRE {label} : la dérogation ne couvre pas cette occurrence")
+        elif "npm_bundle" in exception:
+            lines.append(f"DÉROGATION {label} jusqu'au {exception['expires']} ({exception['doc']})")
         else:
             lines.append(f"REVU {label} jusqu'au {exception['expires']} ({exception['doc']})")
     for key, exception in sorted(exceptions.items()):
@@ -123,8 +166,13 @@ def main(argv: list[str] | None = None) -> int:
         advisories = (
             npm_advisories(report) if args.ecosystem == "npm" else python_advisories(report)
         )
-        ok, lines = verdict(args.ecosystem, advisories, load_exceptions(args.exceptions),
-                            args.today)
+        ok, lines = verdict(
+            args.ecosystem,
+            advisories,
+            load_exceptions(args.exceptions),
+            args.today,
+            npm_report=report if args.ecosystem == "npm" else None,
+        )
     except (OSError, ValueError, KeyError, TypeError, AttributeError) as exc:
         print(f"DEPENDENCY_AUDIT_RESULT=REFUSED {args.ecosystem}: {exc}")
         return 2

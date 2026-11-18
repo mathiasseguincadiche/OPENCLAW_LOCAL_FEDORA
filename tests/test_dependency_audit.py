@@ -42,6 +42,46 @@ def test_the_reviewed_undici_residual_passes_until_its_expiry(tmp_path: Path) ->
     assert run(tmp_path, "npm", report, dt.date(2027, 2, 2)) == 1  # expired: re-review
 
 
+PICOMATCH_ADVISORY = "GHSA-fc5q-39xc-vjpf"
+PICOMATCH_BUNDLE = "node_modules/npm/node_modules/tinyglobby/node_modules/picomatch"
+PICOMATCH_EXPIRY = dt.date(2026, 12, 17)
+
+
+def test_only_the_reviewed_picomatch_copy_passes_until_expiry(tmp_path: Path) -> None:
+    report = npm_report(via(PICOMATCH_ADVISORY, "high", "picomatch"))
+    entry = report["vulnerabilities"].pop("pkg")
+    report["vulnerabilities"]["picomatch"] = entry
+    assert run(tmp_path, "npm", report, PICOMATCH_EXPIRY) == 1  # no evidence of location
+    entry["nodes"] = [PICOMATCH_BUNDLE, "node_modules/picomatch"]
+    assert run(tmp_path, "npm", report, PICOMATCH_EXPIRY) == 1  # extra affected copy
+    entry["nodes"] = [PICOMATCH_BUNDLE]
+    assert run(tmp_path, "npm", report, PICOMATCH_EXPIRY) == 0
+    assert run(tmp_path, "npm", report, PICOMATCH_EXPIRY + dt.timedelta(days=1)) == 1
+    entry["via"][0]["severity"] = "critical"
+    assert run(tmp_path, "npm", report, PICOMATCH_EXPIRY) == 1
+
+
+@pytest.mark.parametrize(("parent", "version", "bundled"), [
+    ("12.2.3", "4.0.5", True),
+    ("12.2.1", "4.0.7", True),
+    ("12.2.1", "4.0.5", False),
+])
+def test_picomatch_exception_is_bound_to_locked_versions_and_bundle(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, parent: str, version: str, bundled: bool,
+) -> None:
+    lock = tmp_path / "lock.json"
+    lock.write_text(json.dumps({"packages": {
+        "node_modules/npm": {"version": parent},
+        PICOMATCH_BUNDLE: {"version": version, "inBundle": bundled},
+    }}))
+    monkeypatch.setitem(audit["main"].__globals__, "NPM_LOCK", lock)
+    report = npm_report(via(PICOMATCH_ADVISORY, "high", "picomatch"))
+    report["vulnerabilities"]["picomatch"] = {
+        **report["vulnerabilities"].pop("pkg"), "nodes": [PICOMATCH_BUNDLE],
+    }
+    assert run(tmp_path, "npm", report, PICOMATCH_EXPIRY) == 1
+
+
 def test_a_new_high_or_critical_npm_advisory_fails(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -81,6 +121,7 @@ def test_the_exception_file_is_complete_and_dated() -> None:
     exceptions = audit["load_exceptions"]()
     assert {key[1] for key in exceptions} == {
         "GHSA-xjj6-f33q-929c", "GHSA-2m5v-pch6-74hx", "GHSA-qrxm-fqhp-jwvm",
+        "GHSA-fc5q-39xc-vjpf",
     }
     for item in exceptions.values():
         assert (ROOT / item["doc"]).is_file()
