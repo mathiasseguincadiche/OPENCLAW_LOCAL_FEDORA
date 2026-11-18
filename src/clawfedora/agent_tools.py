@@ -34,34 +34,71 @@ TOOL_ROLES = {
 }
 OUTLINES = {
     "chef-operations": {
-        "brief": ["Besoin OPS", "Acquis et difficulté", "Petite étape", "Livrables et preuve"]
+        "brief": [
+            "Besoin OPS",
+            "Acquis et difficulté",
+            "Décision attendue du spécialiste",
+            "Livrable et preuve",
+            "Décision de l’opérateur et prochaine pratique",
+        ]
     },
-    "expert-recherche": {"sources": ["Question", "Source et date", "Preuve", "Limites"]},
+    "expert-recherche": {
+        "sources": [
+            "Question et version installée",
+            "Source, version, section lue et date",
+            "Fichier, ligne et révision",
+            "Conséquence et incertitude",
+        ]
+    },
     "architecte-solutions": {
-        "adr": ["Contexte", "Options", "Décision et compromis", "Conséquences", "Réversibilité"],
+        "adr": [
+            "Contexte",
+            "Options",
+            "Décision et compromis",
+            "Flux nommés et frontières",
+            "Conséquences",
+            "Réversibilité",
+        ],
     },
     "ingenieur-devops": {
         "runbook": [
             "But",
-            "Prérequis et droits",
+            "Machine cible, répertoire, prérequis et droits",
             "Procédure",
             "Résultat attendu",
-            "Observation et diagnostic",
-            "Rollback",
+            "Contrôle et preuve",
+            "Premier écart et condition d’arrêt",
+            "Reprise après échec partiel et retour arrière",
         ],
         "incident": ["Symptômes", "Impact", "Diagnostic", "Correction", "Validation", "Prévention"],
     },
     "ingenieur-securite": {
-        "threats": ["Actifs", "Scénario", "Contrôles", "Validation", "Risque résiduel"]
+        "threats": [
+            "Actif et version",
+            "Constat et preuve expurgée",
+            "Correction minimale",
+            "Test après correction",
+            "Risque résiduel",
+        ]
     },
-    "auditeur-qualite": {"audit": ["Critère", "Preuve observée", "Limite", "Verdict", "Action"]},
+    "auditeur-qualite": {
+        "audit": [
+            "Critère",
+            "Référence contrôlée, cible et révision",
+            "Portée",
+            "Verdict",
+            "Contrôle manquant",
+        ]
+    },
     "redacteur-pedagogique": {
         "guide": [
             "Le problème",
             "Le mécanisme",
             "Un petit exemple expliqué",
-            "Action à essayer si utile",
-            "Observation, diagnostic et retour arrière",
+            "Où commencer et action à essayer",
+            "Signe de réussite et premier écart",
+            "Diagnostic et retour arrière",
+            "Rendu du document et des illustrations si exportés",
         ],
         "explanation": [
             "Idée principale",

@@ -210,5 +210,8 @@ def test_two_diagram_downloads_match_editable_views(tmp_path: Path) -> None:
         identifier = view["reference"].split(":")[1]
         svg = (proof.parent / (identifier + ".svg")).read_text()
         assert expected in svg and view["title"] in svg
+        labels = ET.fromstring(svg).findall("{*}text")
+        assert any(label.text == expected and "stroke" not in label.attrib for label in labels)
+        assert any(" → " in (label.text or "") for label in labels)
     chat = links(tmp_path, role, set(), 8000, "local")
     assert "vue-1.svg" in chat and "vue-2.svg" in chat and "architecture.drawio" in chat

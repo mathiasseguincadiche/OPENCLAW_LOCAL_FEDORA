@@ -582,7 +582,7 @@ def all_tasks_pass(repo_root: Path, project: Path) -> bool:
 
 # What an audit judges, sealed in its verdict (A05): the deliverables and the plan. Follow-up
 # files written after an audit (state, history, reports, package manifest) are not part of it.
-AUDITED_SCOPES = ("deliverables", "diagrams")
+AUDITED_SCOPES = ("deliverables", "diagrams", "context/document-sources")
 AUDITED_FILES = ("context/project_plan.json",)
 
 

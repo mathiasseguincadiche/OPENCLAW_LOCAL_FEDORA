@@ -6,6 +6,7 @@ import base64
 import binascii
 import math
 import zlib
+from textwrap import wrap
 from typing import Any
 from urllib.parse import unquote
 from xml.etree import ElementTree as ET
@@ -117,8 +118,7 @@ def multi_view_diagram(
 ) -> str:
     """One editable Draw.io file with independent bounded views (no flattening).
 
-    Each page is a self-contained graph. The summary SVG from the calling
-    agent tool intentionally previews page 1 only.
+    Each page is a self-contained graph with its own export.
     """
     if len(views) > 7:
         raise ValueError("Draw.io: 8 vues maximum, vue principale comprise")
@@ -270,7 +270,7 @@ def decorate_page(page: ET.Element, data: dict[str, Any]) -> None:
         for point, end in zip(edge.findall("mxGeometry/Array/mxPoint"),
                               ("source", "target"), strict=True):
             point.set("y", str(tops[edge.attrib[end]]))
-            point.set("x", str(22 + i * 9))
+            point.set("x", str(14 + i * 12))
 
 
 def export_page_svg(page: ET.Element) -> str:
@@ -281,6 +281,7 @@ def export_page_svg(page: ET.Element) -> str:
     svg = ET.Element("svg", xmlns="http://www.w3.org/2000/svg", role="img")
     ET.SubElement(svg, "title").text = page.get("name")
     ET.SubElement(svg, "desc").text = "Composants, frontières et flux de la vue Draw.io."
+    ET.SubElement(svg, "rect", width="100%", height="100%", fill="#ffffff")
     marker = ET.SubElement(ET.SubElement(svg, "defs"), "marker", id="arrow", markerWidth="8",
                            markerHeight="8", refX="8", refY="4", orient="auto")
     ET.SubElement(marker, "path", d="M0 0 L8 4 L0 8 Z", fill="#367a93")
@@ -300,7 +301,11 @@ def export_page_svg(page: ET.Element) -> str:
                               "text-anchor": "middle", "font-family": "sans-serif",
                               "font-size": "13"})
         label.text = cell.get("value", "")
-    for cell in root.findall("mxCell[@edge='1']"):
+    names = {cell.attrib["id"]: cell.get("value", "") for cell in root.findall("mxCell[@vertex='1']")}
+    height = max(y + h for _, y, _, h in boxes.values()) + 20
+    legend_y = height
+    markers = []
+    for index, cell in enumerate(root.findall("mxCell[@edge='1']"), 1):
         sx, sy, _, sh = boxes[cell.attrib["source"]]
         tx, ty, _, th = boxes[cell.attrib["target"]]
         points = cell.findall("mxGeometry/Array/mxPoint")
@@ -309,9 +314,20 @@ def export_page_svg(page: ET.Element) -> str:
                       "fill": "none", "stroke": "#367a93", "marker-end": "url(#arrow)"})
         if text := cell.get("value"):
             mid = (sy + sh // 2 + ty + th // 2) // 2
-            ET.SubElement(svg, "text", {"x": points[0].attrib["x"], "y": str(mid - 4),
-                          "fill": "#173a56", "stroke": "white", "paint-order": "stroke",
-                          "stroke-width": "3", "font-size": "12"}).text = text
-    height = max(y + h for _, y, _, h in boxes.values()) + 20
-    svg.set("viewBox", f"0 0 720 {height}")
+            markers.append((points[0].attrib["x"], mid, str(index)))
+            source, target = (names[cell.attrib[key]] for key in ("source", "target"))
+            lines = [*wrap(f"{index}. {source} → {target}", 62), *wrap(text, 62)]
+            for line_number, line in enumerate(lines):
+                legend_y += 19
+                ET.SubElement(svg, "text", {"x": "26" if line_number == 0 else "42",
+                              "y": str(legend_y), "fill": "#173a56",
+                              "font-family": "sans-serif", "font-size": "14"}).text = line
+            legend_y += 8
+    # Draw identifiers last so overlapping routes cannot hide their labels.
+    for lane_x, mid, number in markers:
+        ET.SubElement(svg, "circle", cx=lane_x, cy=str(mid), r="7", fill="#173a56")
+        ET.SubElement(svg, "text", {"x": lane_x, "y": str(mid + 3), "fill": "#ffffff",
+                      "text-anchor": "middle", "font-family": "sans-serif",
+                      "font-size": "9"}).text = number
+    svg.set("viewBox", f"0 0 720 {legend_y + (12 if markers else 0)}")
     return ET.tostring(svg, encoding="unicode")
