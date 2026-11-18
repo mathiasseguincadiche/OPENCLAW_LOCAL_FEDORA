@@ -124,7 +124,7 @@ def test_search_bounds_results_and_static_checks_never_execute_code(tmp_path: Pa
 def test_diagrams_escape_untrusted_labels_and_validate_graphs() -> None:
     value = diagram({"nodes": ["<script>alert('x')</script>", "Ollama"], "edges": [[0, 1]]})
     assert "<script>" not in value["svg"] and "&lt;script&gt;" in value["svg"]
-    assert "n0 --> n1" in value["mermaid"]
+    assert "mermaid" not in value and len(value["svg_views"]) == 1
     for data in [
         {"nodes": []},
         {"nodes": ["x" * 61]},

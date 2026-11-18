@@ -30,7 +30,7 @@ Les tests de `make ci` utilisent des réponses de modèle simulées. Quatre cont
 ```bash
 make native-schema   # la configuration générée est acceptée par OpenClaw
 make native-prompt   # les consignes ne sont pas tronquées et le prompt tient dans le contexte
-make native-tools    # les huit outils du plugin géré sont chargés et invocables
+make native-tools    # les dix outils du plugin géré sont chargés et invocables
 make native-cloud    # un tour cloud passe par la passerelle locale, qui voit les résultats d'outils
 ```
 

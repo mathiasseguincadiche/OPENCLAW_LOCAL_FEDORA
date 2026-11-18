@@ -15,3 +15,5 @@ read/pdf, web, clawfedora_search, clawfedora_outline kind=threats, clawfedora_ch
 
 ## Livrable
 Rapport priorisé: périmètre, constat, preuve, sévérité, remédiation, validation attendue, risques résiduels. Pas de certification globale de sécurité.
+
+Relie chaque constat à son actif, sa preuve, sa correction minimale et son test. clawfedora_ci_report accepte trivy-image et le digest de manifeste attendu; les résultats importés restent déclaratifs et expurgés.

@@ -188,6 +188,7 @@ def test_browser_workflow_uses_real_gates_and_collector_with_simulated_models(
                     task: [
                         {
                             "passed": True,
+                            "reference": expected,
                             "evidence": "Deux options, choix et rollback présents dans l’ADR simulé",
                         }
                         for _ in requirements

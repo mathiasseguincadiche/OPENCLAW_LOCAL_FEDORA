@@ -154,6 +154,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--root", type=Path, default=ROOT)
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--plan", action="store_true", help="afficher les sept cas synthétiques")
+    group.add_argument("--inputs-only", action="store_true", help="énoncés sans les attendus")
     group.add_argument("--report", type=Path, help="agréger des notes humaines complètes")
     group.add_argument(
         "--compare", nargs=2, type=Path, metavar=("LOCAL_JSON", "CLOUD_JSON"),
@@ -162,8 +163,12 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         suite = load_suite(args.root)
-        if args.plan:
-            data: object = {
+        data: object
+        if args.inputs_only:
+            data = [{"id": case["id"], "role": case["role"], "prompt": case["prompt"]}
+                    for case in suite["scenarios"]]
+        elif args.plan:
+            data = {
                 "suite": suite["name"],
                 "routes_to_compare": list(ROUTES),
                 "consent_required_for_cloud": True,

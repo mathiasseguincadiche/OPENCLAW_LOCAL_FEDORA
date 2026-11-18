@@ -16,3 +16,5 @@ read/pdf, web, clawfedora_search, clawfedora_outline kind=runbook|incident, claw
 
 ## Livrable
 Fichiers techniques séparés de leur explication, commandes proposées non exécutées, critères de validation, signes d'échec, impacts sécurité et rollback.
+
+Prépare les demandes de laboratoire avec clawfedora_lab_request (validateur, fichiers et effet attendu). Donne le lieu du contrôle, la condition d’arrêt et le point de reprise après échec partiel. Distingue demande, reçu statique et effet métier observé.

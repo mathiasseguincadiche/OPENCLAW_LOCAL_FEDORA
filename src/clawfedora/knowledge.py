@@ -50,7 +50,10 @@ def store_note(
     if kind == "research" and not sources:
         raise ValueError("recherche: sources datées requises")
     for source in sources:
-        if set(source) != {"url", "accessed_at"}:
+        if (not {"url", "accessed_at"} <= source.keys()
+                or source.keys() - {"url", "accessed_at", "version", "section"}
+                or any(not isinstance(source[k], str) or not 0 < len(source[k].strip()) <= 250
+                       for k in ("section", "version") if k in source)):
             raise ValueError("source: url et accessed_at requis")
         url = urlsplit(source["url"])
         if url.scheme not in {"https", "http"} or not url.hostname or url.username:

@@ -6,6 +6,7 @@ import base64
 import binascii
 import math
 import zlib
+from textwrap import wrap
 from typing import Any
 from urllib.parse import unquote
 from xml.etree import ElementTree as ET
@@ -117,8 +118,7 @@ def multi_view_diagram(
 ) -> str:
     """One editable Draw.io file with independent bounded views (no flattening).
 
-    Each page is a self-contained graph. The summary SVG from the calling
-    agent tool intentionally previews page 1 only.
+    Each page is a self-contained graph with its own export.
     """
     if len(views) > 7:
         raise ValueError("Draw.io: 8 vues maximum, vue principale comprise")
@@ -222,3 +222,112 @@ def inspect_diagram(content: str) -> dict[str, Any]:
         "runtime_tested": False,
         "scope": "structure XML; infrastructure non vérifiée",
     }
+
+
+def decorate_page(page: ET.Element, data: dict[str, Any]) -> None:
+    """Place nodes inside editable trust boundaries and attach labels to actual edges."""
+    root = page.find("mxGraphModel/root")
+    assert root is not None
+    nodes = root.findall("mxCell[@vertex='1']")
+    links = root.findall("mxCell[@edge='1']")
+
+    def labels(key: str, size: int) -> list[str]:
+        values = data.get(key, [""] * size)
+        if (not isinstance(values, list) or len(values) != size or any(
+                not isinstance(v, str) or len(v) > 60 or not v.isprintable() and v
+                for v in values)):
+            raise ValueError(f"{key}: un libellé court par élément requis")
+        return values
+
+    groups = labels("boundaries", len(nodes))
+    link_labels = labels("edge_labels", len(links))
+    tops: dict[str, int] = {}
+    cursor = 20
+    order = list(dict.fromkeys(groups))
+    for i, name in enumerate(order):
+        members = [node for node, group in zip(nodes, groups, strict=True) if group == name]
+        if name:
+            group_id = f"group{i}"
+            height = len(members) * 70 + 48
+            frame = ET.Element("mxCell", id=group_id, value=name, vertex="1", parent="1",
+                               style="rounded=1;html=0;verticalAlign=top;fillColor=#ecf4f8;")
+            ET.SubElement(frame, "mxGeometry", {"x": "145", "y": str(cursor), "width": "550",
+                          "height": str(height), "as": "geometry"})
+            root.insert(2, frame)
+        for j, node in enumerate(members):
+            geom = node.find("mxGeometry")
+            assert geom is not None
+            top = j * 70 + (38 if name else 0)
+            geom.set("x", "25" if name else "170")
+            geom.set("width", "500")
+            geom.set("y", str(top if name else cursor + top))
+            if name:
+                node.set("parent", group_id)
+            tops[node.attrib["id"]] = cursor + top + 24
+        cursor += len(members) * 70 + (70 if name else 0)
+    for i, (edge, text) in enumerate(zip(links, link_labels, strict=True)):
+        edge.set("value", text)
+        for point, end in zip(edge.findall("mxGeometry/Array/mxPoint"),
+                              ("source", "target"), strict=True):
+            point.set("y", str(tops[edge.attrib[end]]))
+            point.set("x", str(14 + i * 12))
+
+
+def export_page_svg(page: ET.Element) -> str:
+    """SVG export of the editable shapes/waypoints supported by our version-1 generator."""
+    root = page.find("mxGraphModel/root")
+    assert root is not None
+    boxes: dict[str, tuple[int, int, int, int]] = {}
+    svg = ET.Element("svg", xmlns="http://www.w3.org/2000/svg", role="img")
+    ET.SubElement(svg, "title").text = page.get("name")
+    ET.SubElement(svg, "desc").text = "Composants, frontières et flux de la vue Draw.io."
+    ET.SubElement(svg, "rect", width="100%", height="100%", fill="#ffffff")
+    marker = ET.SubElement(ET.SubElement(svg, "defs"), "marker", id="arrow", markerWidth="8",
+                           markerHeight="8", refX="8", refY="4", orient="auto")
+    ET.SubElement(marker, "path", d="M0 0 L8 4 L0 8 Z", fill="#367a93")
+    for cell in root.findall("mxCell[@vertex='1']"):
+        g = cell.find("mxGeometry")
+        assert g is not None
+        x, y, w, h = (int(g.attrib[k]) for k in ("x", "y", "width", "height"))
+        px, py, _, _ = boxes.get(cell.attrib["parent"], (0, 0, 0, 0))
+        x, y = x + px, y + py
+        ident = cell.attrib["id"]
+        boxes[ident] = x, y, w, h
+        frame = ident.startswith("group")
+        ET.SubElement(svg, "rect", x=str(x), y=str(y), width=str(w), height=str(h), rx="8",
+                      fill="#ecf4f8" if frame else "#173a56", stroke="#367a93")
+        label = ET.SubElement(svg, "text", {"x": str(x + w // 2), "y": str(y + (21 if frame else 29)),
+                              "fill": "#173a56" if frame else "#ffffff",
+                              "text-anchor": "middle", "font-family": "sans-serif",
+                              "font-size": "13"})
+        label.text = cell.get("value", "")
+    names = {cell.attrib["id"]: cell.get("value", "") for cell in root.findall("mxCell[@vertex='1']")}
+    height = max(y + h for _, y, _, h in boxes.values()) + 20
+    legend_y = height
+    markers = []
+    for index, cell in enumerate(root.findall("mxCell[@edge='1']"), 1):
+        sx, sy, _, sh = boxes[cell.attrib["source"]]
+        tx, ty, _, th = boxes[cell.attrib["target"]]
+        points = cell.findall("mxGeometry/Array/mxPoint")
+        via = " ".join(f"L {p.attrib['x']} {p.attrib['y']}" for p in points)
+        ET.SubElement(svg, "path", {"d": f"M {sx} {sy + sh // 2} {via} L {tx} {ty + th // 2}",
+                      "fill": "none", "stroke": "#367a93", "marker-end": "url(#arrow)"})
+        if text := cell.get("value"):
+            mid = (sy + sh // 2 + ty + th // 2) // 2
+            markers.append((points[0].attrib["x"], mid, str(index)))
+            source, target = (names[cell.attrib[key]] for key in ("source", "target"))
+            lines = [*wrap(f"{index}. {source} → {target}", 62), *wrap(text, 62)]
+            for line_number, line in enumerate(lines):
+                legend_y += 19
+                ET.SubElement(svg, "text", {"x": "26" if line_number == 0 else "42",
+                              "y": str(legend_y), "fill": "#173a56",
+                              "font-family": "sans-serif", "font-size": "14"}).text = line
+            legend_y += 8
+    # Draw identifiers last so overlapping routes cannot hide their labels.
+    for lane_x, mid, number in markers:
+        ET.SubElement(svg, "circle", cx=lane_x, cy=str(mid), r="7", fill="#173a56")
+        ET.SubElement(svg, "text", {"x": lane_x, "y": str(mid + 3), "fill": "#ffffff",
+                      "text-anchor": "middle", "font-family": "sans-serif",
+                      "font-size": "9"}).text = number
+    svg.set("viewBox", f"0 0 720 {legend_y + (12 if markers else 0)}")
+    return ET.tostring(svg, encoding="unicode")

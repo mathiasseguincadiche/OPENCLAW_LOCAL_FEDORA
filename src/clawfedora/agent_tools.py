@@ -3,18 +3,19 @@
 from __future__ import annotations
 
 import ast
-import html
+import hashlib
 import json
 import os
 import sys
 from pathlib import Path
 from typing import Any
+from xml.etree import ElementTree as ET
 
 import yaml
 
 from clawfedora.ci_reports import summarize
 from clawfedora.core_config import AGENT_IDS
-from clawfedora.drawio import multi_view_diagram, native_diagram
+from clawfedora.drawio import decorate_page, export_page_svg, inspect_diagram, multi_view_diagram
 from clawfedora.file_artifacts import formats, produce
 from clawfedora.project_common import assert_no_symlinks, read_json
 from clawfedora.specialist_tools import FORMATS, available, lint, receipt
@@ -24,6 +25,8 @@ TOOL_ROLES = {
     "clawfedora_search": set(AGENT_IDS),
     "clawfedora_outline": set(AGENT_IDS),
     "clawfedora_diagram": {"architecte-solutions"},
+    "clawfedora_lab_request": {"ingenieur-devops"},
+    "clawfedora_doc_links": {"redacteur-pedagogique", "auditeur-qualite"},
     "clawfedora_check": {"ingenieur-devops", "ingenieur-securite", "auditeur-qualite"},
     "clawfedora_lint": set(FORMATS),
     "clawfedora_tool_status": set(AGENT_IDS),
@@ -31,34 +34,71 @@ TOOL_ROLES = {
 }
 OUTLINES = {
     "chef-operations": {
-        "brief": ["Besoin OPS", "Acquis et difficulté", "Petite étape", "Livrables et preuve"]
+        "brief": [
+            "Besoin OPS",
+            "Acquis et difficulté",
+            "Décision attendue du spécialiste",
+            "Livrable et preuve",
+            "Décision de l’opérateur et prochaine pratique",
+        ]
     },
-    "expert-recherche": {"sources": ["Question", "Source et date", "Preuve", "Limites"]},
+    "expert-recherche": {
+        "sources": [
+            "Question et version installée",
+            "Source, version, section lue et date",
+            "Fichier, ligne et révision",
+            "Conséquence et incertitude",
+        ]
+    },
     "architecte-solutions": {
-        "adr": ["Contexte", "Options", "Décision et compromis", "Conséquences", "Réversibilité"],
+        "adr": [
+            "Contexte",
+            "Options",
+            "Décision et compromis",
+            "Flux nommés et frontières",
+            "Conséquences",
+            "Réversibilité",
+        ],
     },
     "ingenieur-devops": {
         "runbook": [
             "But",
-            "Prérequis et droits",
+            "Machine cible, répertoire, prérequis et droits",
             "Procédure",
             "Résultat attendu",
-            "Observation et diagnostic",
-            "Rollback",
+            "Contrôle et preuve",
+            "Premier écart et condition d’arrêt",
+            "Reprise après échec partiel et retour arrière",
         ],
         "incident": ["Symptômes", "Impact", "Diagnostic", "Correction", "Validation", "Prévention"],
     },
     "ingenieur-securite": {
-        "threats": ["Actifs", "Scénario", "Contrôles", "Validation", "Risque résiduel"]
+        "threats": [
+            "Actif et version",
+            "Constat et preuve expurgée",
+            "Correction minimale",
+            "Test après correction",
+            "Risque résiduel",
+        ]
     },
-    "auditeur-qualite": {"audit": ["Critère", "Preuve observée", "Limite", "Verdict", "Action"]},
+    "auditeur-qualite": {
+        "audit": [
+            "Critère",
+            "Référence contrôlée, cible et révision",
+            "Portée",
+            "Verdict",
+            "Contrôle manquant",
+        ]
+    },
     "redacteur-pedagogique": {
         "guide": [
             "Le problème",
             "Le mécanisme",
             "Un petit exemple expliqué",
-            "Action à essayer si utile",
-            "Observation, diagnostic et retour arrière",
+            "Où commencer et action à essayer",
+            "Signe de réussite et premier écart",
+            "Diagnostic et retour arrière",
+            "Rendu du document et des illustrations si exportés",
         ],
         "explanation": [
             "Idée principale",
@@ -100,22 +140,37 @@ def _search(workspace: Path, data: dict[str, Any]) -> dict[str, Any]:
     hits: list[dict[str, Any]] = []
     scanned = 0
     budget = 2_000_000
-    for path in sorted(root.rglob("*")):
+    revision = None
+    for ancestor in (root, *root.parents):
+        if ancestor == workspace:
+            break
+        stamp = ancestor / "context/source-revision.json"
+        if stamp.is_file() and not stamp.is_symlink():
+            revision = read_json(stamp)
+            break
+    extensions = {".md", ".txt", ".json", ".yaml", ".yml", ".tf", ".hcl", ".sh",
+                  ".bash", ".py", ".ini", ".toml", ".conf", ".j2", ".service", ".sql"}
+    paths = root.iterdir() if root == workspace else root.rglob("*")
+    for path in sorted(paths):
         if scanned >= 200 or budget <= 0:
             break
-        if not path.is_file() or path.suffix.lower() not in {".md", ".txt", ".json", ".yaml", ".yml"}:
+        if not path.is_file() or (path.suffix.lower() not in extensions
+                                  and path.name not in {"Dockerfile", "Containerfile"}):
             continue
         scanned += 1
         if path.stat().st_size > min(128_000, budget):
             continue
         budget -= path.stat().st_size
-        content = path.read_text(encoding="utf-8", errors="replace")
+        raw = path.read_bytes()
+        content = raw.decode("utf-8", errors="replace")
         for number, line in enumerate(content.splitlines(), 1):
             if any(word in line.lower() for word in words):
                 hits.append(
                     {
                         "path": path.relative_to(workspace).as_posix(),
                         "line": number,
+                        "snapshot_revision": revision,
+                        "file_sha256": hashlib.sha256(raw).hexdigest(),
                         "text": line[:800],
                     }
                 )
@@ -134,55 +189,33 @@ def diagram(data: dict[str, Any]) -> dict[str, Any]:
     labels = nodes
     if any(not isinstance(label, str) or not label.strip() or len(label) > 60 for label in labels):
         raise ValueError("libellés courts requis")
-    width, height = 620, len(labels) * 70 + 40
-    svg = [
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}">',
-        '<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" '
-        'orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#367a93"/></marker></defs>',
-        '<rect width="100%" height="100%" fill="#f3f6fa"/>',
-    ]
-    mermaid = ["flowchart TD"]
-    for index, label in enumerate(labels):
-        y = index * 70 + 20
-        svg += [
-            f'<rect x="170" y="{y}" width="330" height="48" rx="8" fill="#173a56"/>',
-            f'<text x="335" y="{y + 29}" text-anchor="middle" fill="white" '
-            f'font-family="sans-serif" font-size="13">{html.escape(label)}</text>',
-        ]
-        safe = "".join(c if c.isalnum() or c in " -_.,/" else " " for c in label)
-        mermaid.append(f'  n{index}["{safe}"]')
-    for index, edge in enumerate(edges):
-        if (
-            not isinstance(edge, list)
-            or len(edge) != 2
-            or any(type(i) is not int or not 0 <= i < len(labels) for i in edge)
-        ):
+    for edge in edges:
+        if (not isinstance(edge, list) or len(edge) != 2
+                or any(type(i) is not int or not 0 <= i < len(labels) for i in edge)):
             raise ValueError("liens [index source, index destination] requis")
-        a, b = edge
-        svg.append(
-            f'<path d="M 170 {a * 70 + 44} H {80 + index * 5} V {b * 70 + 44} H 170" '
-            'stroke="#367a93" stroke-width="2" fill="none" marker-end="url(#arrow)"/>'
-        )
-        mermaid.append(f"  n{a} --> n{b}")
-    rendered = "".join(svg) + "</svg>"
     views = data.get("views", [])
     if not isinstance(views, list) or len(views) > 7 or any(
         not isinstance(view, dict) for view in views
     ):
         raise ValueError("jusqu'à 7 vues additionnelles Draw.io requises")
-    drawio = multi_view_diagram(labels, edges, views) if views else native_diagram(labels, edges)
+    document = ET.fromstring(multi_view_diagram(labels, edges, views))
+    pages = document.findall("diagram")
+    if "title" in data:
+        title = data["title"]
+        if not isinstance(title, str) or not 1 <= len(title.strip()) <= 60 or not title.isprintable():
+            raise ValueError("titre de vue invalide")
+        pages[0].set("name", title)
+    for page, view in zip(pages, [data, *views], strict=True):
+        decorate_page(page, view)
+    drawio = ET.tostring(document, encoding="unicode")
+    inspect_diagram(drawio)
+    exports = [(page.attrib["name"], export_page_svg(page))
+               for page in ET.fromstring(drawio).findall("diagram")]
     return {
-        "drawio": drawio,
-        "views_generated": 1 + len(views),
-        "svg_view": "Infrastructure (vue principale uniquement)",
-        "svg": rendered,
-        "mermaid": "\n".join(mermaid),
-        "renderer": "drawio-xml",
-        "warning": (
-            "SVG/Mermaid : vue principale uniquement ; ouvrir Draw.io pour toutes les vues. "
-            "Réexporter après édition ; aucune synchronisation."
-        ),
-        "scope": "schéma proposé, aucune architecture déployée",
+        "drawio": drawio, "views_generated": len(exports), "svg_views": exports,
+        "svg_view": "svg: vue principale uniquement; svg_views couvre toutes les vues",
+        "svg": exports[0][1], "renderer": "drawio-xml", "svg_renderer": "clawfedora-svg/1",
+        "scope": "export des formes du générateur; rendu dans Draw.io et support final à vérifier",
     }
 
 
@@ -237,16 +270,36 @@ def invoke(
         result = diagram(data)
         svg = result.pop("svg")
         drawio = result.pop("drawio")
+        exports = result.pop("svg_views")
         result["receipt"] = receipt(root, tool, result, svg=svg, drawio=drawio)
+        references = [{"title": exports[0][0], "reference": result["svg_reference"]}]
+        for index, (title, content) in enumerate(exports[1:], 2):
+            meta = {"drawio_sha256": result["drawio_sha256"], "page": index, "title": title}
+            receipt(root, tool, meta, svg=content)
+            references.append({"title": title, "reference": meta["svg_reference"]})
+        result["views"] = references
         result["instruction"] = (
             "Sortie .drawio: drawio_reference; aperçu .svg: svg_reference, comme contenus JSON "
-            "des chemins attendus. Le worker collecte les fichiers sans réécrire leur XML."
+            "des chemins attendus. Utiliser views pour les SVG suivants."
         )
         return result
     if tool == "clawfedora_check":
         return check(data)
     if tool == "clawfedora_ci_report":
+        if (data.get("format") == "trivy-image"
+                and role not in {"ingenieur-securite", "auditeur-qualite"}):
+            raise ValueError("rapport Trivy réservé à la sécurité et à l’audit")
         return summarize(data)
+    if tool == "clawfedora_lab_request":
+        from clawfedora.project_proofs import lab_request
+
+        request = lab_request(data)
+        request["receipt"] = receipt(root, tool, request)
+        return request
+    if tool == "clawfedora_doc_links":
+        from clawfedora.document_links import check_links
+
+        return check_links(root, data)
     if tool == "clawfedora_tool_status":
         return {
             "available": available(),

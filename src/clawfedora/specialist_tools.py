@@ -229,6 +229,15 @@ def receipt(
         artifact.chmod(0o440)
         result["drawio_sha256"] = hashlib.sha256(drawio.encode()).hexdigest()
         result["drawio_reference"] = f"@tool-drawio:{identifier}"
+    if tool == "clawfedora_diagram":
+        page = result.get("page", 1)
+        result["role"] = "architecte-solutions"
+        result["artifacts"] = {
+            ext: {"name": f"{identifier}.{ext}", "sha256": result[key], "download_name": filename}
+            for ext, key, filename in (("drawio", "drawio_sha256", "architecture.drawio"),
+                                       ("svg", "artifact_sha256", f"vue-{page}.svg"))
+            if directory.joinpath(f"{identifier}.{ext}").is_file()
+        }
     write_json(path, {"origin": "managed-tool-runner", "at": now(), "tool": tool, **result})
     path.chmod(0o440)
     return path.relative_to(workspace).as_posix()

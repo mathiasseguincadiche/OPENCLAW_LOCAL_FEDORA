@@ -11,6 +11,7 @@ acceptance, which needs a single-use phrase (``chat_approvals``) and the worker 
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import re
@@ -21,7 +22,7 @@ from typing import Any
 
 from clawfedora import chat_approvals, chat_proposals, project_cloud
 from clawfedora.knowledge import search
-from clawfedora.project_common import assert_no_symlinks, project_path, read_json
+from clawfedora.project_common import assert_no_symlinks, project_path, read_json, validate_task_id
 from clawfedora.project_intake import validate_input_integrity
 from clawfedora.project_worker import worker_lock
 
@@ -194,6 +195,61 @@ def _tasks(project: Path) -> list[dict[str, str]]:
     return rows
 
 
+def _task_view(runtime: Path, project: Path) -> list[dict[str, Any]]:
+    """Keep only the currently assigned attempt; revision-pending tasks have no fresh result."""
+    projects_root = os.path.realpath(runtime / "projects")
+    real = os.path.realpath(project)
+    if not real.startswith(projects_root + os.sep):
+        return []
+    tasks = _tasks(Path(real))[:12]
+    history = os.path.join(real, "evidence", "task_results.json")
+    checked_history = os.path.realpath(history)
+    latest = {}
+    if checked_history.startswith(real + os.sep) and checked_history == history:
+        with contextlib.suppress(OSError, ValueError):
+            latest = {
+                row["task_id"]: row for row in read_json(Path(checked_history)).get("results", [])
+                if isinstance(row, dict) and isinstance(row.get("task_id"), str)
+            }
+    rows = []
+    for task in tasks:
+        row: dict[str, Any] = dict(task)
+        result = latest.get(task["id"], {})
+        if task["status"] in {"PASS", "FAIL"} and task["status"] == result.get("status"):
+            row["result"] = str(result.get("summary", ""))[:240]
+            row["pieces"] = [p for p in result.get("outputs", []) if isinstance(p, str)][:5]
+        rows.append(row)
+        try:
+            task_id = validate_task_id(task["id"])
+        except ValueError:
+            continue
+        receipts = os.path.join(real, "context", "operator-proofs", task_id)
+        checked_receipts = os.path.realpath(receipts)
+        if not checked_receipts.startswith(real + os.sep) or checked_receipts != receipts:
+            continue
+        controls = []
+        for path in sorted(Path(checked_receipts).glob("[0-9]*.json"))[:5]:
+            if path.is_symlink():
+                continue
+            try:
+                record = read_json(path)
+            except (OSError, ValueError):
+                continue
+            binding = record.get("binding")
+            if not isinstance(binding, dict) or not isinstance(binding.get("requirement"), list):
+                continue
+            controls.append({
+                "criterion": binding.get("criterion"),
+                "revision": binding.get("revision"),
+                "control": binding["requirement"][:2],
+                "reported_pass": record.get("passed"),
+                "path": path.relative_to(real).as_posix(),
+            })
+        if controls:
+            row["operator_controls"] = controls
+    return rows
+
+
 def _manifest(project: Path) -> dict[str, Any]:
     try:
         return read_json(project / "project.json")
@@ -313,6 +369,8 @@ def _deliverables(runtime: Path, project: Path) -> list[str]:
 
 def project_context(repo_root: Path, runtime: Path, project: Path, question: str) -> str:
     """Read-only context for the role: summary, plan, deliverables and passages for the question."""
+    from clawfedora.usage_view import project_hint
+
     manifest = _manifest(project)
     try:
         summary = str(read_json(project / "context/project_analysis.json").get("summary", ""))
@@ -335,9 +393,12 @@ def project_context(repo_root: Path, runtime: Path, project: Path, question: str
             "id": project.name,
             "title": str(manifest.get("title", ""))[:150],
             "status": manifest.get("status"),
+            "revision": manifest.get("revision", 0),
             "summary": summary[:600],
         },
-        "tasks": _tasks(project)[:12],
+        "tasks": _task_view(runtime, project),
+        "decision": (project_hint(runtime, project) if manifest.get("project_id") == project.name
+                     else "Projet à identifier"),
         "source_integrity": "PASS" if not integrity_failures else "UNVERIFIED_CHANGED",
         "notes_acceptees": _notes(runtime, project),
         "deliverables": deliverables,

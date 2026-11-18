@@ -111,6 +111,7 @@ agents:
     - clawfedora_tool_status
     - clawfedora_artifact
     - clawfedora_lint
+    - clawfedora_lab_request
     deny:
     - apply_patch
     - edit
@@ -165,6 +166,7 @@ agents:
     - clawfedora_tool_status
     - clawfedora_artifact
     - clawfedora_lint
+    - clawfedora_doc_links
     deny:
     - apply_patch
     - edit
@@ -191,6 +193,7 @@ agents:
     - clawfedora_ci_report
     - clawfedora_tool_status
     - clawfedora_artifact
+    - clawfedora_doc_links
     deny:
     - apply_patch
     - edit

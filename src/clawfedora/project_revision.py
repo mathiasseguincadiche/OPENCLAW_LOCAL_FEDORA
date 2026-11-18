@@ -73,8 +73,10 @@ def revise(
                 "diagrams",
                 "evidence",
                 "context/exchange",
+                "context/operator-proofs",
             )
         )
+        moves.append(project / "context/document-sources" / f"{identifier}.json")
         moves.append(project / "context/learning/tasks" / f"{identifier}.json")
     moves.extend(
         project / relative

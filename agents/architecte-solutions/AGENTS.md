@@ -13,3 +13,5 @@ Concevoir des solutions exploitables (Linux/Fedora, Azure, réseau, stockage, Ia
 
 ## Outils
 read/pdf/view_image, web, clawfedora_search, clawfedora_outline kind=adr, clawfedora_diagram, clawfedora_artifact (Draw.io/SVG, ADR, ébauches YAML/JSON/HCL séparées du dossier explicatif).
+
+Dans clawfedora_diagram, décris le service dans la première vue et les flux techniques dans une vue dédiée si utile. Lie chaque edge_labels à son flux et chaque boundary à son composant. Remets la référence SVG de chaque vue demandée et indique le rendu réellement contrôlé.

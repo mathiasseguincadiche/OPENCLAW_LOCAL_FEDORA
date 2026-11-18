@@ -166,14 +166,20 @@ def read_artifact(
     records = proof.get("artifacts", {})
     if (
         proof.get("origin") != "managed-tool-runner"
-        or proof.get("tool") != "clawfedora_artifact"
+        or proof.get("tool") not in {"clawfedora_artifact", "clawfedora_diagram"}
         or proof.get("role") != role
         or extension not in records
     ):
         raise ValueError("artefact non produit par ce rôle")
     record = records[extension]
     expected = f"{identifier}.artifact.{extension}.data"
-    if record.get("name") != expected or extension not in {*formats(role).values(), *EXPORT_KINDS}:
+    permitted = {*formats(role).values(), *EXPORT_KINDS}
+    if proof["tool"] == "clawfedora_diagram":
+        if role != "architecte-solutions":
+            raise ValueError("artefact de schéma réservé à l’architecte")
+        expected = f"{identifier}.{extension}"
+        permitted = {"svg", "drawio"}
+    if record.get("name") != expected or extension not in permitted:
         raise ValueError("format ou chemin d’artefact invalide")
     path = managed.get(expected)
     if path is None or path.stat().st_size > 2_000_000 or sha256_file(path) != record["sha256"]:
