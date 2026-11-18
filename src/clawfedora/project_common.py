@@ -56,10 +56,12 @@ def validate_task_id(value: str) -> str:
 
 def project_path(platform_root: Path, project_id: str, *, require: bool = True) -> Path:
     normalized = validate_project_id(project_id)
-    projects_root = (platform_root / "projects").resolve()
-    project = (projects_root / normalized).resolve()
-    if project.parent != projects_root:
-        raise ValueError("projet hors racine autorisée")
+    projects_root = os.path.realpath(platform_root / "projects")
+    candidate = os.path.join(projects_root, normalized)
+    real = os.path.realpath(candidate)
+    if not real.startswith(projects_root + os.sep) or real != candidate:
+        raise ValueError("projet hors racine autorisée ou lié")
+    project = Path(real)
     if require and not (project / "project.json").is_file():
         raise FileNotFoundError(project / "project.json")
     return project

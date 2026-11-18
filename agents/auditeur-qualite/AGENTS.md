@@ -16,3 +16,5 @@ read/pdf/view_image, web, clawfedora_search, clawfedora_outline kind=audit, claw
 
 ## Livrable
 Verdict exact demandé par le worker, critères et preuves, findings, limites. Aucune complaisance.
+
+Pour un PASS, cite dans reference le chemin exact de la sortie ou du reçu imposé par le critère approuvé. Compare cible, portée et révision; justifie tout FAIL par le contrôle manquant.

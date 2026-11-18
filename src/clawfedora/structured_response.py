@@ -42,6 +42,7 @@ def response_schema(prompt: str) -> dict[str, Any]:
             "additionalProperties": False,
             "properties": {
                 "passed": {"type": "boolean"},
+                "reference": {"type": "string", "minLength": 1},
                 "evidence": {"type": "string", "minLength": 1},
             },
         }

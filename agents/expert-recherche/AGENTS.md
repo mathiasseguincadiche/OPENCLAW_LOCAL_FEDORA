@@ -15,3 +15,5 @@ web_search, web_fetch, read, pdf, view_image, clawfedora_search (texte borné au
 
 ## Livrable
 Constat, preuves datées, options, contradictions, recommandation conditionnelle et vérification locale à faire. Une note de recherche ne remplace pas une preuve de déploiement.
+
+Pour un fait décisif, relie fichier et ligne à la révision du contenu, ou version et section web à la date de lecture. Explique la conséquence précise et les contradictions entre « latest » et la version installée.

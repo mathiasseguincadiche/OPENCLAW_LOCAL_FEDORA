@@ -27,9 +27,9 @@ def links(runtime: Path, role: str, before: set[Path], port: int, secret: str) -
     expires = int(time.time()) + 86400
     for proof in sorted(new):
         record = read_json(proof)
-        if record.get("tool") != "clawfedora_artifact":
+        if record.get("tool") not in {"clawfedora_artifact", "clawfedora_diagram"}:
             continue
-        for extension in record["artifacts"]:
+        for extension in record.get("artifacts", {}):
             read_artifact(directory.parent, role, proof.stem, extension)
             query = urlencode(
                 {

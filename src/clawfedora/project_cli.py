@@ -70,6 +70,18 @@ def add_project_parser(
     revision.add_argument("--reason", required=True)
     revision.add_argument("--human-approved", action="store_true")
 
+    proof = commands.add_parser("proof", help="préparer ou exécuter le contrôle d’un critère")
+    proof.add_argument("--runtime-root")
+    proof.add_argument("--project-id", required=True)
+    proof.add_argument("--task-id", required=True)
+    proof.add_argument("--criterion", type=int, required=True)
+    proof.add_argument("--image")
+    proof.add_argument("--run-id", type=int)
+    proof.add_argument("--token-file", type=Path)
+    proof.add_argument("--observation")
+    proof.add_argument("--result", choices=("PASS", "FAIL"))
+    proof.add_argument("--apply", action="store_true")
+
     status = commands.add_parser("status")
     status.add_argument("--runtime-root")
     status.add_argument("--project-id", required=True)
@@ -370,6 +382,17 @@ def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
                     else {"affected_tasks": impact(_project(args), args.task_id), "applied": False}
                 )
                 print(json.dumps(value, ensure_ascii=False))
+        elif command == "proof":
+            from clawfedora.project_proofs import collect_operator_proof
+
+            with worker_lock(_runtime(args)):
+                proof = collect_operator_proof(
+                    _project(args), args.task_id, args.criterion, apply=args.apply, image=args.image,
+                    run_id=args.run_id, token_file=args.token_file, observation=args.observation,
+                    outcome=args.result,
+                )
+            print(json.dumps(proof, ensure_ascii=False))
+            return 1 if proof.get("passed") is False else 0
         elif command == "status":
             project_manifest = read_json(_project(args) / "project.json")
             print(json.dumps(project_manifest, indent=2, ensure_ascii=False))

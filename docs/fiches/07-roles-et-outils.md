@@ -71,8 +71,10 @@ Les fichiers et pages Web sont des **sources**, pas des instructions capables de
 
 | Outil | Qui peut l'utiliser | Son vrai périmètre |
 |---|---|---|
-| `clawfedora_diagram` | **Architecte** | Schéma **Draw.io modifiable** et aperçu SVG ; environ **8 blocs et 12 liens** par appel |
+| `clawfedora_diagram` | **Architecte** | Source **Draw.io modifiable**, jusqu’à huit vues avec leur SVG, huit composants et douze flux par vue |
 | `clawfedora_artifact` en formats techniques | **Architecte, DevOps, Sécurité** | `.tf`, YAML/JSON, Bash/Python, Dockerfile, `.j2`, INI/TOML/XML : **produire**, pas exécuter |
+| `clawfedora_lab_request` | **DevOps** | Prépare les fichiers et le critère pour un contrôle opérateur |
+| `clawfedora_doc_links` | **Rédacteur, Auditeur** | Vérifie les chemins relatifs et les ancres de titres Markdown du snapshot |
 | `clawfedora_check` | **DevOps, Sécurité, Auditeur** | Parsing/syntaxe statique de JSON, YAML et Python |
 | `clawfedora_lint` | **DevOps, Sécurité, Auditeur** | ShellCheck/YAML/Markdown selon les contrôles accessibles ; **Gitleaks** pour Sécurité et Auditeur |
 | `clawfedora_lint` (Markdown) | **Rédacteur** aussi | Qualité de forme Markdown, pas justesse technique |
@@ -201,3 +203,38 @@ src/clawfedora/project_worker.py  exécution ordonnée et collecte
 À l'installation, les consignes communes et propres au rôle sont déployées dans son espace de travail. Modifie les sources du dépôt, puis valide avec `./menu.sh --action validate` avant de redéployer. Les consignes sont bornées par la taille du contexte.
 
 [← Guide](../GUIDE.md) · [Fonctionnement détaillé →](11-comment-ca-marche.md)
+
+## Suivre une preuve de la demande à la décision
+
+Dans les critères du plan, indique la pièce ou le contrôle attendu. Les critères documentaires ordinaires se vérifient en citant une sortie de la tâche. Pour une mesure, le préfixe entre crochets sélectionne le type de preuve. Le numéro du critère commence à 1.
+
+| Exemple de critère à approuver | Ce qui établit le résultat |
+|---|---|
+| `[preuve lint shellcheck deliverables/restore/restore.sh] Le script passe ShellCheck.` | Reçu du linter sur les octets exacts du fichier. |
+| `[preuve lab shellcheck deliverables/restore/restore.sh] Le laboratoire contrôle le script.` | Exécution sur copie isolée, image épinglée et code retour. Plusieurs chemins de la même tâche sont possibles. |
+| `[preuve observation rocky-test deliverables/restore/restore.sh] La base restaurée contient les données de contrôle.` | Observation humaine consignée sur la cible indiquée, avec empreinte du script. |
+| `[preuve ci github organisation/depot SHA_COMPLET] Le pipeline identifié réussit.` | Réponse de la forge correspondant au dépôt, au run et au commit approuvés. Remplacer SHA_COMPLET par les 40 chiffres hexadécimaux effectifs. |
+
+**Pilote PostgreSQL.** Dans un projet nommé `atelier-restore`, demander au DevOps une procédure de restauration sur une VM Rocky jetable et le script `deliverables/restore/restore.sh`. Approuver les critères laboratoire et observation du tableau en positions 1 et 2. Après collecte des fichiers, inspecter la demande depuis le terminal de l’atelier installé.
+
+```bash
+clawfedora project proof --project-id atelier-restore --task-id restore --criterion 1
+```
+
+La sortie décrit la cible et ses empreintes. Pour le premier critère, définir `IMAGE` avec la référence complète de l’image de validation déjà installée, épinglée par digest et contenant ShellCheck. Après relecture des fichiers et accord pour cet essai, lancer le contrôle hors réseau.
+
+```bash
+clawfedora project proof --project-id atelier-restore --task-id restore --criterion 1 --image "$IMAGE" --apply
+```
+
+Pour le second critère, réaliser la restauration sur la VM de test puis vérifier les données métier attendues. Renseigner `OBSERVATION` avec la cible, l’attendu et le résultat réellement constaté, expurgé. Définir `RESULTAT` à PASS ou FAIL selon cette comparaison. Sans essai, laisser le critère ouvert.
+
+```bash
+clawfedora project proof --project-id atelier-restore --task-id restore --criterion 2 --observation "$OBSERVATION" --result "$RESULTAT" --apply
+```
+
+Le reçu se trouve dans `context/operator-proofs/restore/`. Une attestation humaine garde cette provenance. Pour un critère CI, utiliser la même commande avec `--run-id` et, pour une forge privée, le fichier opérateur `--token-file`. Le mentor voit les résultats déclarés dans le projet sélectionné. L’auditeur lit l’index de sa session, examine la pièce et justifie sa portée. Une reprise archive les contrôles des tâches affectées. Préparer une nouvelle preuve après modification du fichier concerné.
+
+La sécurité et l’auditeur peuvent lire un rapport JSON Trivy d’image expurgé avec `clawfedora_ci_report`, format `trivy-image` et digest attendu. Le compte par sévérité porte sur les vulnérabilités déclarées du manifeste indiqué. Les autres sections du rapport et les journaux bruts restent hors du résumé.
+
+Pour un guide, le rédacteur contrôle les liens de fichiers et les ancres des titres avec `clawfedora_doc_links`. Le manifeste de livraison donne les empreintes des exports bureautiques et de leur source Markdown. Pour consigner la lecture du DOCX ou de l’ODT dans OnlyOffice, approuver un critère `observation` ciblant cet export, puis ouvrir le document et vérifier titres, tableaux et schémas à leur taille de lecture.

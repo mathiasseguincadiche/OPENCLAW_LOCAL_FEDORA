@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture
-def planned(tmp_path: Path) -> tuple[Path, Path]:
+def planned(tmp_path: Path, request: pytest.FixtureRequest) -> tuple[Path, Path]:
     runtime = tmp_path / "runtime"
     deploy_workspaces(ROOT, runtime)
     source = tmp_path / "request.md"
@@ -76,7 +76,8 @@ def planned(tmp_path: Path) -> tuple[Path, Path]:
                 "acceptance_criteria": ["Deux options et justification"],
             }
         )
-    store_plan(ROOT, project, {"workstreams": ["documentation"], "tasks": tasks})
+    store_plan(ROOT, project, {"workstreams": ["documentation"],
+                               "tasks": getattr(request, "param", tasks)})
     transition_project(ROOT, project, "PLANNED", actor="chef-operations", reason="plan")
     create_assignments(ROOT, project)
     transition_project(ROOT, project, "ASSIGNED", actor="chef-operations", reason="assign")
