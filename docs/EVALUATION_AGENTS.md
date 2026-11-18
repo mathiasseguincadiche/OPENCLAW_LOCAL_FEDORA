@@ -10,6 +10,10 @@ Une CI verte vérifie le **logiciel**, pas la qualité des explications de Qwen 
 
 Les deux routes doivent répondre **aux mêmes cas**, dans des sessions séparées, **avec accord explicite et budget** lorsqu'une route DeepSeek est utilisée. L'évaluation finale relève de **l'examinateur humain** : cette commande **n'appelle aucun modèle** et ne dépense aucun crédit API.
 
+## Comparer les versions des rôles
+
+Garder la révision initiale `af9df90282fc4422478c7efe5acc67e54a96ecf5` et le commit candidat. Pour remettre uniquement les questions au producteur, utiliser `clawfedora-evals --inputs-only` et `clawfedora-pedagogy --inputs-only`. Conserver les sorties réelles par rôle, version et route. Le plan complet et les attendus servent à la relecture. Comparer d’abord les deux versions sur Qwen avec les mêmes entrées et le même mode, puis éventuellement sur la route cloud approuvée.
+
 ## Consulter les sept scénarios
 
 ```bash

@@ -157,13 +157,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--root", type=Path, default=ROOT)
     choices = parser.add_mutually_exclusive_group(required=True)
     choices.add_argument("--plan", action="store_true")
+    choices.add_argument("--inputs-only", action="store_true", help="tours sans les attendus")
     choices.add_argument("--report", type=Path)
     choices.add_argument("--compare", nargs=2, type=Path, metavar=("A_JSON", "B_JSON"))
     args = parser.parse_args(argv)
     try:
         suite = load_suite(args.root)
-        if args.plan:
-            output: object = {
+        output: object
+        if args.inputs_only:
+            output = [{"id": case["id"], "role": case["role"], "turns": case["turns"]}
+                      for case in suite["scenarios"]]
+        elif args.plan:
+            output = {
                 "criteria": list(CRITERIA),
                 "scale": "0-5 each, 20 total",
                 "scenarios": suite["scenarios"],

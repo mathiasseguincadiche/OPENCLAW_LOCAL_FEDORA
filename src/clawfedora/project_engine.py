@@ -13,6 +13,7 @@ from clawfedora.core_config import AGENT_IDS, core_contract
 from clawfedora.document_exports import output_bytes
 from clawfedora.project_common import (
     aggregate_records,
+    assert_no_symlinks,
     now,
     read_json,
     safe_output,
@@ -294,8 +295,14 @@ def _validate_plan(tasks: list[dict[str, Any]]) -> None:
             values = task.get(field, [])
             if not values or any(not isinstance(v, str) or not v.strip() for v in values):
                 raise ValueError(f"{task_id}: {field} non vide requis")
+        from clawfedora.project_proofs import requirement
+
         _outputs_are_namespaced(task_id, task["expected_outputs"])
+        for criterion in task["acceptance_criteria"]:
+            requirement(criterion, task["expected_outputs"])
         for output in task["expected_outputs"]:
+            if Path(output).parts[0] == "evidence" and Path(output).name.startswith("tool-"):
+                raise ValueError("le préfixe evidence/<tâche>/tool- est réservé au worker")
             if (
                 Path(output).suffix.lower() in {".pdf", ".docx", ".odt"}
                 and str(Path(output).with_suffix(".md")) not in task["expected_outputs"]
@@ -447,7 +454,8 @@ def ready_tasks(repo_root: Path, project: Path) -> list[dict[str, Any]]:
 def _outputs_are_namespaced(task_id: str, outputs: list[str]) -> None:
     for relative in outputs:
         parts = Path(relative).parts
-        if len(parts) < 3 or parts[1] != task_id:
+        if (len(parts) < 3 or parts[1] != task_id or Path(relative).is_absolute()
+                or ".." in parts or parts[0] not in {"work", "deliverables", "diagrams", "evidence"}):
             raise ValueError(f"{task_id}: sortie non namespacée: {relative}")
 
 
@@ -612,7 +620,13 @@ def stale_audits(
     current = audited_inventory(project)
     problems: list[str] = []
     for kind in kinds:
-        sealed = _require(repo_root, project, kind).get("sealed_inventory")
+        report = _require(repo_root, project, kind)
+        sealed = report.get("sealed_inventory")
+        for path, digest in report.get("proof_hashes", {}).items():
+            target = project / path
+            if (not target.resolve().is_relative_to(project.resolve()) or target.is_symlink()
+                    or not target.is_file() or sha256_file(target) != digest):
+                problems.append(f"{kind}: preuve périmée {path}")
         if not isinstance(sealed, dict):
             problems.append(f"{kind}: verdict sans inventaire scellé")
             continue
@@ -644,6 +658,9 @@ def store_verdict(
     findings: list[dict[str, Any]],
     *,
     reviewer: str,
+    criteria: dict[str, Any] | None = None,
+    session_id: str | None = None,
+    snapshot_files: dict[str, str] | None = None,
 ) -> Path:
     if kind not in {"validation", "review"}:
         raise ValueError("kind doit être validation ou review")
@@ -657,7 +674,29 @@ def store_verdict(
     expected_status = "VALIDATING" if kind == "validation" else "REVIEW"
     if current_status(project) != expected_status:
         raise ValueError(f"{kind}: état {expected_status} requis")
+    from clawfedora.project_proofs import resolve_reference
+
     _assert_input_integrity(project)
+    tasks = read_json(project / "context/project_plan.json")["tasks"]
+    proof_hashes: dict[str, str] = {}
+    if criteria is not None:
+        if set(criteria) != {t["id"] for t in tasks}:
+            raise ValueError("couverture des preuves incomplète")
+        assert_no_symlinks(project, label="preuves")
+        for task in tasks:
+            values = criteria[task["id"]]
+            if not isinstance(values, list) or len(values) != len(task["acceptance_criteria"]):
+                raise ValueError("couverture des critères incomplète")
+            for index, value in enumerate(values, 1):
+                if value.get("passed") is True:
+                    proof_hashes.update(resolve_reference(
+                        project, task, index, value.get("reference", "")
+                    ))
+                elif normalized == "PASS":
+                    raise ValueError("critère en échec")
+    elif normalized == "PASS" and any(c.startswith("[preuve") for t in tasks
+                                      for c in t["acceptance_criteria"]):
+        raise ValueError("un audit avec références est requis pour les critères de preuve")
     path = _artifact(repo_root, project, kind)
     write_json(
         path,
@@ -669,6 +708,9 @@ def store_verdict(
             "findings": findings,
             # The exact bytes judged: packaging refuses anything changed afterwards.
             "sealed_inventory": audited_inventory(project),
+            "proof_hashes": proof_hashes,
+            **({"criteria": criteria, "session_id": session_id, "snapshot_files": snapshot_files}
+               if criteria is not None else {}),
         },
     )
     return path
@@ -694,6 +736,20 @@ def _deliverable_records(project: Path) -> list[dict[str, Any]]:
     return records
 
 
+def _document_sources(project: Path, records: list[dict[str, Any]]) -> dict[str, Any]:
+    hashes = {r["path"]: r["sha256"] for r in records}
+    result = {}
+    for path in sorted((project / "context/document-sources").glob("*.json")):
+        for name, source in read_json(path).items():
+            if name not in hashes:
+                continue
+            if (source["export_sha256"] != hashes[name]
+                    or source["source_sha256"] != hashes.get(source["source"])):
+                raise ValueError(f"export périmé: régénérer {name} depuis la source revue")
+            result[name] = source
+    return result
+
+
 def validate_package(repo_root: Path, project: Path) -> list[str]:
     failures: list[str] = []
     package_manifest = _require(repo_root, project, "package_manifest")
@@ -701,6 +757,10 @@ def validate_package(repo_root: Path, project: Path) -> list[str]:
     if not isinstance(raw_files, list) or any(not isinstance(item, dict) for item in raw_files):
         return ["package_manifest: files invalide"]
     observed = _deliverable_records(project)
+    if "document_sources" in package_manifest and (
+        package_manifest["document_sources"] != _document_sources(project, observed)
+    ):
+        failures.append("package_manifest: révision des sources documentaires divergente")
     if raw_files != observed:
         failures.append("package_manifest: inventaire livrables divergent")
     if str(package_manifest.get("aggregate_sha256", "")) != aggregate_records(observed):
@@ -854,6 +914,7 @@ def package_project(
             "schema_version": "1.0.0",
             "generated_at": now(),
             "files": records,
+            "document_sources": _document_sources(project, records),
             "aggregate_sha256": aggregate_records(records),
         },
     )

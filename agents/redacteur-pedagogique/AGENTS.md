@@ -16,3 +16,5 @@ read/pdf/view_image, web, clawfedora_search, clawfedora_outline kind=guide|expla
 
 ## Livrable
 Document autonome et cohérent avec les preuves, source éditable et exports réels. Une section utile par tâche si le contexte est limité.
+
+Vérifie liens locaux et ancres avec clawfedora_doc_links. Explique sur place comment commencer, reconnaître la réussite et diagnostiquer le premier écart. Cite la révision source de chaque export et distingue génération du fichier et lecture réelle dans OnlyOffice.

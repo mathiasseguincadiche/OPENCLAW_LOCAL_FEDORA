@@ -194,6 +194,37 @@ def _tasks(project: Path) -> list[dict[str, str]]:
     return rows
 
 
+def _task_view(project: Path) -> list[dict[str, Any]]:
+    """Keep only the currently assigned attempt; revision-pending tasks have no fresh result."""
+    tasks = _tasks(project)[:12]
+    history = project / "evidence/task_results.json"
+    latest = {r["task_id"]: r for r in read_json(history).get("results", [])
+              if isinstance(r, dict) and "task_id" in r} if history.is_file() else {}
+    rows = []
+    for task in tasks:
+        row: dict[str, Any] = dict(task)
+        result = latest.get(task["id"], {})
+        if task["status"] in {"PASS", "FAIL"} and task["status"] == result.get("status"):
+            row["result"] = str(result.get("summary", ""))[:240]
+            row["pieces"] = [p for p in result.get("outputs", []) if isinstance(p, str)][:5]
+        receipts = project / "context/operator-proofs" / task["id"]
+        if receipts.is_dir() and not receipts.is_symlink():
+            controls = []
+            for path in sorted(receipts.glob("[0-9]*.json"))[:5]:
+                if path.is_symlink():
+                    continue
+                record = read_json(path)
+                binding = record.get("binding", {})
+                controls.append({"criterion": binding.get("criterion"),
+                                 "revision": binding.get("revision"),
+                                 "control": binding.get("requirement", [])[:2],
+                                 "reported_pass": record.get("passed"),
+                                 "path": path.relative_to(project).as_posix()})
+            row["operator_controls"] = controls
+        rows.append(row)
+    return rows
+
+
 def _manifest(project: Path) -> dict[str, Any]:
     try:
         return read_json(project / "project.json")
@@ -313,6 +344,8 @@ def _deliverables(runtime: Path, project: Path) -> list[str]:
 
 def project_context(repo_root: Path, runtime: Path, project: Path, question: str) -> str:
     """Read-only context for the role: summary, plan, deliverables and passages for the question."""
+    from clawfedora.usage_view import project_hint
+
     manifest = _manifest(project)
     try:
         summary = str(read_json(project / "context/project_analysis.json").get("summary", ""))
@@ -335,9 +368,12 @@ def project_context(repo_root: Path, runtime: Path, project: Path, question: str
             "id": project.name,
             "title": str(manifest.get("title", ""))[:150],
             "status": manifest.get("status"),
+            "revision": manifest.get("revision", 0),
             "summary": summary[:600],
         },
-        "tasks": _tasks(project)[:12],
+        "tasks": _task_view(project),
+        "decision": (project_hint(runtime, project) if manifest.get("project_id") == project.name
+                     else "Projet à identifier"),
         "source_integrity": "PASS" if not integrity_failures else "UNVERIFIED_CHANGED",
         "notes_acceptees": _notes(runtime, project),
         "deliverables": deliverables,

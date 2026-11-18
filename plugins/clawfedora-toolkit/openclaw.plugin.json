@@ -29,6 +29,12 @@
     },
     "clawfedora_artifact": {
       "optional": true
+    },
+    "clawfedora_lab_request": {
+      "optional": true
+    },
+    "clawfedora_doc_links": {
+      "optional": true
     }
   },
   "configSchema": {
@@ -45,7 +51,9 @@
       "clawfedora_lint",
       "clawfedora_tool_status",
       "clawfedora_ci_report",
-      "clawfedora_artifact"
+      "clawfedora_artifact",
+      "clawfedora_lab_request",
+      "clawfedora_doc_links"
     ]
   }
 }
