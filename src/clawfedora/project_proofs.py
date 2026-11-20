@@ -184,6 +184,13 @@ def collect_operator_proof(
     return record
 
 
+def _receipt(project: Path, reference: str) -> dict[str, Any]:
+    target = project / reference
+    if target.absolute() != target.resolve() or project.resolve() not in target.resolve().parents:
+        raise ValueError("reçu de preuve lié ou hors projet")
+    return read_json(target)
+
+
 def resolve_reference(
     project: Path,
     task: dict[str, Any],
@@ -206,7 +213,7 @@ def resolve_reference(
             or reference in allowed
         ):
             raise ValueError("reçu de lint de la tâche requis")
-        proof = read_json(project / reference)
+        proof = _receipt(project, reference)
         if not (
             proof.get("origin") == "managed-tool-runner"
             and proof.get("tool") == spec[1]
@@ -217,9 +224,26 @@ def resolve_reference(
     else:
         if reference != receipt_path(task["id"], number):
             raise ValueError("reçu opérateur du critère requis")
-        proof = read_json(project / reference)
+        proof = _receipt(project, reference)
         if proof.get("passed") is not True or proof.get("binding") != binding:
             raise ValueError("preuve absente, en échec ou périmée")
+        details = proof.get("details")
+        if not isinstance(details, dict):
+            raise ValueError("détails du reçu opérateur absents")
+        if spec[0] == "lab" and (
+            details.get("scope") != "static-lab"
+            or type(details.get("exit_code")) is not int
+            or details["exit_code"] != 0
+        ):
+            raise ValueError("preuve laboratoire incohérente")
+        if spec[0] == "ci" and details.get("verdict") != "VERIFIED_RUN_SUCCESS":
+            raise ValueError("preuve CI non vérifiée")
+        if spec[0] == "observation" and (
+            details.get("scope") != "operator-observation"
+            or not isinstance(details.get("observed"), str)
+            or not details["observed"].strip()
+        ):
+            raise ValueError("observation opérateur absente")
     if not spec:
         safe_output(project, reference)
     return {p: sha256_file(project / p) for p in {reference, *binding["targets"]}}
@@ -251,3 +275,15 @@ def proof_catalog(project: Path) -> dict[str, Any]:
             items.append({"criterion": number, "scope": spec or ["content"], "references": valid})
         rows[role_task] = items
     return {"tasks": rows, "scope": "pièces disponibles; pertinence à justifier par critère"}
+
+
+def preflight_proofs(catalog: dict[str, Any]) -> None:
+    """No auditor call can compensate for absent mandatory deterministic evidence."""
+    missing = [
+        f"{task_id} / critère {row['criterion']} ({row['scope'][0]})"
+        for task_id, rows in catalog["tasks"].items()
+        for row in rows
+        if row["scope"] != ["content"] and not row["references"]
+    ]
+    if missing:
+        raise ValueError("preuves obligatoires absentes ou invalides avant audit: " + "; ".join(missing))
