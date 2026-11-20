@@ -119,7 +119,7 @@ def test_with_the_cloud_each_role_is_offered_in_both_modes(cloud: tuple[Any, Run
     listed = models(server)
     assert list(listed) == [*MODEL_IDS, *CLOUD_MODEL_IDS]
     assert listed[MODEL_IDS[0]].endswith("· local")
-    assert listed[CLOUD_MODEL_IDS[0]].endswith("· cloud (DeepSeek)")
+    assert listed[CLOUD_MODEL_IDS[0]].endswith("· cloud")
 
 
 def test_a_cloud_model_answers_in_the_cloud_with_a_visible_provenance(
@@ -267,10 +267,10 @@ def test_the_cloud_banner_warns_once_the_monthly_budget_is_nearly_spent(
     server, _ = cloud
     _, answer = ask(server, CLOUD_MODEL_IDS[0], ("user", "Explique terraform plan"))
     assert "Budget cloud" not in content(answer)
-    load_ledger(tmp_path, ROOT).record_invoice(21.0)
+    load_ledger(tmp_path, ROOT).record_invoice(29.0)
     _, answer = ask(server, CLOUD_MODEL_IDS[0], ("user", "Explique terraform plan"))
     head = content(answer).split("\n\n")[0]
-    assert head.startswith(CLOUD_BANNER) and "21.00 € sur 25 €" in head and "4.00 €" in head
+    assert head.startswith(CLOUD_BANNER) and "29.00 € sur 35 €" in head and "6.00 €" in head
     # The note is part of the banner: it is not fed back to the model on the next turn.
     assert strip_banners(content(answer)) == "Réponse DeepSeek."
 

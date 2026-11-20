@@ -1,4 +1,4 @@
-"""Three cloud effort profiles are operator-owned, never agent-controlled."""
+"""Four cloud effort profiles are operator-owned, never agent-controlled."""
 
 from __future__ import annotations
 
@@ -26,16 +26,17 @@ def policy() -> dict[str, object]:
     return core_contract(ROOT, "cloud_policy.yaml")
 
 
-def test_default_remains_historic_xhigh_and_32k(
+def test_default_is_equilibre_and_8k(
     tmp_path: Path, policy: dict[str, object]
 ) -> None:
     name, settings = chosen_profile(tmp_path, policy)
-    assert name == "approfondi"
-    assert settings == {"effort": "xhigh", "max_output_tokens": 32768}
+    assert name == "equilibre"
+    assert settings == {"effort": "medium", "max_output_tokens": 8192}
     assert not profile_path(tmp_path).exists()
     assert profiles(policy) == {
         "rapide": {"effort": "low", "max_output_tokens": 4096},
         "equilibre": {"effort": "medium", "max_output_tokens": 8192},
+        "soutenu": {"effort": "high", "max_output_tokens": 16384},
         "approfondi": {"effort": "xhigh", "max_output_tokens": 32768},
     }
 
@@ -107,7 +108,7 @@ def test_cli_dry_run_and_explicit_apply(
 
     prefix = ["--root", str(ROOT), "--runtime-root", str(tmp_path)]
     assert main([*prefix, "profile"]) == 0
-    assert "approfondi" in capsys.readouterr().out
+    assert "equilibre" in capsys.readouterr().out
     assert main([*prefix, "set-profile", "--name", "rapide"]) == 0
     assert "DRY_RUN" in capsys.readouterr().out
     assert not profile_path(tmp_path).exists()
@@ -141,17 +142,17 @@ def test_choosing_the_deep_model_is_private_atomic_and_reversible(
 ) -> None:
     from clawfedora.cloud_profiles import chosen_upstream_model, model_path, set_upstream_model
 
-    path = set_upstream_model(tmp_path, policy, "profond")
+    path = set_upstream_model(tmp_path, policy, "expert")
     assert stat.S_IMODE(path.stat().st_mode) == 0o600
-    assert json.loads(path.read_text()) == {"version": 1, "model": "profond"}
-    assert chosen_upstream_model(tmp_path, policy)[1]["upstream_id"] == "deepseek/deepseek-v4-pro"
+    assert json.loads(path.read_text()) == {"version": 1, "model": "expert"}
+    assert chosen_upstream_model(tmp_path, policy)[1]["upstream_id"] == "openai/gpt-6.2-sol"
     set_upstream_model(tmp_path, policy, "standard")
     assert chosen_upstream_model(tmp_path, policy)[0] == "standard"
     assert path == model_path(tmp_path)
 
 
 @pytest.mark.parametrize(
-    "content", ['{"version":1,"model":"gpt-6"}', '{"version":2,"model":"profond"}', "x"]
+    "content", ['{"version":1,"model":"gpt-6"}', '{"version":2,"model":"expert"}', "x"]
 )
 def test_an_unknown_or_damaged_model_choice_refuses_the_cloud(
     tmp_path: Path, policy: dict[str, object], content: str
@@ -173,36 +174,47 @@ def test_a_model_disabled_in_the_policy_is_refused_even_if_chosen_earlier(
 
     from clawfedora.cloud_profiles import chosen_upstream_model, set_upstream_model
 
-    set_upstream_model(tmp_path, policy, "profond")
+    set_upstream_model(tmp_path, policy, "expert")
     disabled = copy.deepcopy(policy)
-    disabled["upstream_models"]["profond"]["enabled"] = False  # type: ignore[index]
+    disabled["upstream_models"]["expert"]["enabled"] = False  # type: ignore[index]
     with pytest.raises(ProfileRefused, match="désactivé"):
         chosen_upstream_model(tmp_path, disabled)  # no silent switch to another model
     with pytest.raises(ProfileRefused, match="openrouter.ai"):
-        set_upstream_model(tmp_path, disabled, "profond")
+        set_upstream_model(tmp_path, disabled, "expert")
 
 
-def test_the_deep_model_only_accepts_high_or_xhigh_efforts(policy: dict[str, object]) -> None:
+def test_expert_accepts_each_reviewed_profile(policy: dict[str, object]) -> None:
     from clawfedora.cloud_profiles import require_compatible, upstream_models
 
-    deep = upstream_models(policy)["profond"]
+    expert = upstream_models(policy)["expert"]
     for name, settings in profiles(policy).items():
-        if settings["effort"] in {"high", "xhigh"}:
-            require_compatible("profond", deep, name, settings)
-        else:
-            with pytest.raises(ProfileRefused, match="approfondi|high ou xhigh"):
-                require_compatible("profond", deep, name, settings)
+        require_compatible("expert", expert, name, settings)
+
+
+def test_legacy_deep_choice_requires_explicit_migration(
+    tmp_path: Path, policy: dict[str, object]
+) -> None:
+    from clawfedora.cloud_profiles import chosen_upstream_model, model_path, set_upstream_model
+
+    path = model_path(tmp_path)
+    path.parent.mkdir(parents=True)
+    path.write_text('{"version":1,"model":"profond"}')
+    path.chmod(0o600)
+    with pytest.raises(ProfileRefused, match="ancien modèle profond"):
+        chosen_upstream_model(tmp_path, policy)
+    set_upstream_model(tmp_path, policy, "expert")
+    assert chosen_upstream_model(tmp_path, policy)[0] == "expert"
 
 
 @pytest.mark.parametrize(
     "mutate",
     [
         lambda m: m["standard"].__setitem__("upstream_id", "deepseek/autre"),
-        lambda m: m["profond"].__setitem__("drop_parameters", ["messages"]),
-        lambda m: m["profond"].__setitem__("provider", {"data_collection": "allow"}),
-        lambda m: m["profond"]["pricing_usd_per_million"].__setitem__("output", 0),
-        lambda m: m["profond"].__setitem__("upstream_id", m["standard"]["upstream_id"]),
-        lambda m: m["profond"].__setitem__("allowed_efforts", ["maximum"]),
+        lambda m: m["expert"].__setitem__("drop_parameters", ["messages"]),
+        lambda m: m["expert"].__setitem__("provider", {"data_collection": "allow"}),
+        lambda m: m["expert"]["pricing_usd_per_million"].__setitem__("output", 0),
+        lambda m: m["expert"].__setitem__("upstream_id", m["standard"]["upstream_id"]),
+        lambda m: m["expert"].__setitem__("allowed_efforts", ["maximum"]),
     ],
 )
 def test_unreviewed_model_settings_are_refused(policy: dict[str, object], mutate: object) -> None:

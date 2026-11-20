@@ -130,8 +130,8 @@ def test_budget_is_local_private_and_does_not_run_an_agent(
     with worker_lock(runtime):
         code, response = ask(server, MODEL_IDS[0], ("user", "!budget"))
     assert code == 200
-    assert "Budget DeepSeek" in response and "21.35" in response
-    assert "25.00" in response
+    assert "Budget cloud" in response and "21.35" in response
+    assert "35.00" in response
     assert "facture en temps réel" in response
     assert runner.calls == []
     code, response = ask(server, MODEL_IDS[0], ("user", "!budget avec secret"))

@@ -59,7 +59,7 @@ def test_the_real_cost_replaces_the_estimate_and_is_converted_in_euros(ledger: L
     assert summary.spent_usd == pytest.approx(0.0004)
     # The pessimistic factor of the policy covers exchange, credit fees and VAT.
     assert summary.spent_eur == pytest.approx(0.0004 * 1.3)
-    assert summary.effective_eur == summary.spent_eur and summary.cap_eur == 25
+    assert summary.effective_eur == summary.spent_eur and summary.cap_eur == 35
 
 
 def test_without_a_cost_the_tokens_are_priced_with_the_policy(ledger: Ledger) -> None:
@@ -83,12 +83,12 @@ def test_only_a_refused_call_is_released_everything_uncertain_keeps_its_estimate
 
 
 def test_a_call_that_would_pass_the_cap_is_refused_and_leaves_no_trace(ledger: Ledger) -> None:
-    # 36 M input tokens = 9 $ = 11.70 € of worst case per call.
-    ledger.reserve(input_tokens=36_000_000, max_output_tokens=0)
-    ledger.reserve(input_tokens=36_000_000, max_output_tokens=0)
+    # 52 M input tokens = 13 $ = 16.90 € of worst case per call.
+    ledger.reserve(input_tokens=52_000_000, max_output_tokens=0)
+    ledger.reserve(input_tokens=52_000_000, max_output_tokens=0)
     before = ledger.path("2026-10").read_text()
-    with pytest.raises(BudgetRefused, match="plafond mensuel atteint: 23.40 € sur 25 €"):
-        ledger.reserve(input_tokens=36_000_000, max_output_tokens=0)
+    with pytest.raises(BudgetRefused, match="plafond mensuel atteint: 33.80 € sur 35 €"):
+        ledger.reserve(input_tokens=52_000_000, max_output_tokens=0)
     assert ledger.path("2026-10").read_text() == before
     # A small call still fits in what remains.
     ledger.reserve(input_tokens=1000, max_output_tokens=4096)
@@ -109,9 +109,9 @@ def test_the_cap_holds_under_concurrency(ledger: Ledger) -> None:
         thread.start()
     for thread in threads:
         thread.join()
-    # 25 / 1.30 = 19.2: exactly nineteen calls fit, never one more.
-    assert results.count(True) == 19 and results.count(False) == 41
-    assert ledger.summary().effective_eur <= 25
+    # 35 / 1.30 = 26.92: exactly twenty-six calls fit, never one more.
+    assert results.count(True) == 26 and results.count(False) == 34
+    assert ledger.summary().effective_eur <= 35
 
 
 def test_a_new_month_starts_a_new_journal_and_keeps_the_old_one(
@@ -129,10 +129,10 @@ def test_a_new_month_starts_a_new_journal_and_keeps_the_old_one(
 def test_a_real_invoice_raises_the_floor_of_what_is_counted(ledger: Ledger) -> None:
     ledger.reserve(input_tokens=1000, max_output_tokens=10).settle(USAGE, "ok")
     assert ledger.summary().billed_eur == 0
-    ledger.record_invoice(24.9, note="relevé OpenRouter")
+    ledger.record_invoice(34.9, note="relevé OpenRouter")
     summary = ledger.summary()
     # The statement says more than the ledger: the statement wins, so the cap is real euros.
-    assert summary.billed_eur == 24.9 and summary.effective_eur == 24.9
+    assert summary.billed_eur == 34.9 and summary.effective_eur == 34.9
     with pytest.raises(BudgetRefused):
         ledger.reserve(input_tokens=6_666_667, max_output_tokens=0)  # 1.30 € more
     ledger.record_invoice(2.0)  # the latest statement is the truth, even if lower
@@ -173,9 +173,9 @@ def test_a_write_cut_short_by_a_crash_is_ignored_any_other_damage_stops_the_clou
 
 def test_levels_follow_the_alert_ratio(ledger: Ledger) -> None:
     assert ledger.summary().level(ledger.alert_ratio) == "ok"
-    ledger.record_invoice(20.0)
+    ledger.record_invoice(28.0)
     assert ledger.summary().level(0.8) == "warning"
-    ledger.record_invoice(25.0)
+    ledger.record_invoice(35.0)
     assert ledger.summary().level(0.8) == "exhausted"
     assert ledger.summary().remaining_eur == 0
 
@@ -213,19 +213,19 @@ def test_a_complete_record_that_lost_its_newline_stays_counted(ledger: Ledger) -
 
 
 def test_a_reservation_uses_the_ceilings_of_the_model_really_called(ledger: Ledger) -> None:
-    deep = {"input": 1.4, "output": 3.2}
+    deep = {"input": 5.0, "output": 15.0}
     held = ledger.reserve(
         input_tokens=1_000_000, max_output_tokens=1000, pricing=deep,
-        model="deepseek/deepseek-v4-pro",
+        model="openai/gpt-6.2-sol",
     )
     (record,) = [item for item in lines(ledger) if item["k"] == "reserve"]
-    assert record["est_usd"] == pytest.approx(1.4 + 0.0032)
+    assert record["est_usd"] == pytest.approx(5.0 + 0.015)
     assert (record["model"], record["price_in"], record["price_out"]) == (
-        "deepseek/deepseek-v4-pro", 1.4, 3.2,
+        "openai/gpt-6.2-sol", 5.0, 15.0,
     )
     # Without a provider-reported cost, the settlement uses the same model's prices.
     held.settle({"prompt_tokens": 1_000_000, "completion_tokens": 0}, "ok")
-    assert ledger.summary().spent_usd == pytest.approx(1.4)
+    assert ledger.summary().spent_usd == pytest.approx(5.0)
     with pytest.raises(BudgetRefused, match="tarifs"):
         ledger.reserve(input_tokens=1, max_output_tokens=1, pricing={"input": 0, "output": 1})
 

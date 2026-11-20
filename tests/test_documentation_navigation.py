@@ -142,7 +142,7 @@ def test_hybrid_documentation_describes_both_configured_engines() -> None:
     )
     assert "automatique" in strategy.lower()
     assert "consentement" in strategy.lower()
-    assert "25 €/mois" in strategy
+    assert "35 €/mois" in strategy
     assert str(cloud["model"]["context_tokens"]) in strategy.replace(" ", "")
 
 
