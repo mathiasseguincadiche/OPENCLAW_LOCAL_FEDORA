@@ -10,7 +10,7 @@ Mais les besoins DevOps ne s'arrêtent pas aux petites questions : auditer plusi
 
 C'est précisément **la raison d'être de DeepSeek V4.1 Flash** dans ce projet : fournir **une route de capacité pour les tâches difficiles**, sans abandonner le contrôle local, la transparence des appels ou le budget.
 
-Deux modèles cloud sont configurés, **au choix explicite de l'opérateur** : `standard` (DeepSeek V4.1 Flash, par défaut) et `profond` (DeepSeek V4 Pro, plus cher, pour le raisonnement long). Le tableau ci-dessous décrit la route `standard` ; la [fiche cloud](fiches/12-cloud.md#choisir-le-modèle--standard-ou-profond) détaille les deux.
+Deux modèles cloud sont configurés, **au choix explicite de l'opérateur** : `standard` (DeepSeek V4.1 Flash, par défaut) et `expert` (GPT-6.2 Sol, pour l'expertise). Le tableau ci-dessous décrit la route `standard` ; la [fiche cloud](fiches/12-cloud.md#choisir-le-modèle--standard-ou-expert) détaille les deux.
 
 > **Le but n'est pas d'être « 100 % local à tout prix » ni « 100 % cloud ». Le but est de faire un travail DevOps utile, compréhensible et vérifiable, en choisissant le bon niveau de ressources.**
 
@@ -82,7 +82,7 @@ Cette représentation est **logique** : le trajet réel exact dépend du chat ou
 
 ### 1. Dans Open WebUI
 
-Le chat expose une route « **· local** » et, après activation du cloud, une route « **· cloud (DeepSeek)** ». **C'est le choix de modèle qui demande la capacité cloud** ; un message complexe ne provoque pas automatiquement une migration Qwen → DeepSeek.
+Le chat expose une route « **· local** » et, après activation du cloud, une route « **· cloud** ». **C'est le choix de modèle qui demande la capacité cloud** ; un message complexe ne provoque pas automatiquement une migration Qwen → DeepSeek.
 
 Si un **projet est sélectionné**, son contexte n'est autorisé au cloud que s'il possède l'**accord cloud valide** lié à ses sources. Une question indépendante sur un nouveau fil ne donne pas droit à exporter le contenu d'un projet.
 
@@ -99,7 +99,7 @@ OpenClaw n'envoie pas directement la clé OpenRouter à DeepSeek. Il appelle un 
 1. **Activation** : filtre de confidentialité **et** budget doivent être opérationnels ensemble.
 2. **Autorisation** : route explicitement demandée ; dans un projet, consentement couvrant les sources.
 3. **Contrôle du contenu** : recherche de secrets dans le corps du message, les consignes, le contexte et les **résultats des outils**. Un filtre de secrets **ne reconnaît pas tout document confidentiel**.
-4. **Budget** : réservation prudente **avant** l'appel, plafond de **25 €/mois** ; crédits prépayés, limite de clé chez OpenRouter et rapprochement du coût réel.
+4. **Budget** : réservation prudente **avant** l'appel, plafond de **35 €/mois** ; crédits prépayés, limite de clé chez OpenRouter et rapprochement du coût réel.
 5. **Fournisseur** : contraintes de traitement des données, paramètres requis et plafonds de prix ; refus plutôt qu'assouplissement silencieux.
 6. **Traçabilité** : coût réel s'il est disponible ; estimation conservatrice en cas d'incertitude.
 
@@ -114,7 +114,7 @@ Le budget existe pour faire de DeepSeek un **outil ciblé**, pas pour interdire 
 - la passerelle applique une estimation **prudente**, qui n'est **pas** une facture garantie ;
 - l'optimisation doit être mesurée en **qualité du résultat, nombre de corrections, délai de résolution et coût réel**, et pas uniquement en tokens.
 
-La politique déclare `reasoning.effort=xhigh` pour DeepSeek et un plafond de prix. Ce réglage vise la qualité du raisonnement, **pas nécessairement la latence minimale** : il peut augmenter la durée ou le coût selon les requêtes. Le débit, l'acceptation des paramètres et le coût réel restent à vérifier avec le fournisseur.
+La politique déclare `reasoning.effort=medium` par défaut et un plafond de prix. Ce réglage vise la qualité du raisonnement, **pas nécessairement la latence minimale** : il peut augmenter la durée ou le coût selon les requêtes. Le débit, l'acceptation des paramètres et le coût réel restent à vérifier avec le fournisseur.
 
 ## Ce qui est réellement implémenté — et ce qui ne l'est pas
 

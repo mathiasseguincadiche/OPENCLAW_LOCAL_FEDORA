@@ -245,15 +245,15 @@ cd /data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA
 **Chez OpenRouter, toi-même :**
 
 - [ ] Paramètres de confidentialité restrictifs : refuser les fournisseurs qui conservent tes données ou s'en servent pour l'entraînement.
-- [ ] Crédits **prépayés**, rechargement automatique **désactivé**, montant inférieur à 25 €.
-- [ ] Une clé API avec une **limite de 12 $**.
+- [ ] Crédits **prépayés**, rechargement automatique **désactivé**, montant inférieur à 35 €.
+- [ ] Une clé API avec une **limite de 23 $**.
 
 **Sur le PC :**
 
 ```bash
 ./menu.sh --action cloud-set-key
-./menu.sh --action cloud-enable --value 12
-./menu.sh --action cloud-enable --value 12 --apply
+./menu.sh --action cloud-enable --value 23
+./menu.sh --action cloud-enable --value 23 --apply
 ./menu.sh --action cloud-status
 ```
 
@@ -268,25 +268,25 @@ cd /data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA
 printf 'NomFictifReception42\n' >> /data/IA/Openclaw/state/cloud/denylist.txt
 ```
 
-- [ ] Dans WebUI, avec un rôle « · cloud (DeepSeek) », écrire « Parle-moi de NomFictifReception42 ». La réponse **repasse en local** avec un bandeau 🔒, et rien n'apparaît dans l'activité OpenRouter.
+- [ ] Dans WebUI, avec un rôle « · cloud », écrire « Parle-moi de NomFictifReception42 ». La réponse **repasse en local** avec un bandeau 🔒, et rien n'apparaît dans l'activité OpenRouter.
 
 **Un appel Flash (standard) :**
 
 - [ ] Poser une question publique, par exemple « Compare Ansible et Terraform pour configurer 3 serveurs ». Le bandeau ☁️ indique « Modèle : DeepSeek V4.1 Flash 1017 ».
 - [ ] `!budget` dans le chat affiche un petit montant, le profil et le modèle `standard`.
 
-**Un appel de raisonnement profond (V4 Pro) :**
+**Un appel expert (GPT-6.2 Sol) :**
 
 ```bash
-./menu.sh --action cloud-set-profile --value approfondi --apply
-./menu.sh --action cloud-set-model --value profond
-./menu.sh --action cloud-set-model --value profond --apply
+./menu.sh --action cloud-set-profile --value equilibre --apply
+./menu.sh --action cloud-set-model --value expert
+./menu.sh --action cloud-set-model --value expert --apply
 ```
 
-- [ ] La simulation (sans `--apply`) affiche `max_usd_per_million=1.4/3.2` ; le choix est ensuite confirmé.
-- [ ] Une question exigeante reçoit une réponse dont le bandeau indique « Modèle : DeepSeek V4 Pro 0423 ».
-- [ ] Dans l'**activité OpenRouter**, le fournisseur utilisé est l'un de SiliconFlow, DigitalOcean, Cloudflare ou DeepInfra, et le prix est sous 1,40 $ / 3,20 $ par million. Sinon, noter le fournisseur et le prix affichés et me les transmettre.
-- [ ] **Si l'appel échoue** avec « aucun fournisseur » ou une erreur 404/503 : revenir en `standard` (commande ci-dessous) et noter le message exact. Les fournisseurs ont peut-être changé depuis le [relevé du 2 novembre](audits/2026-11-02/openrouter-deepseek-v4-pro.md).
+- [ ] La simulation (sans `--apply`) affiche `max_usd_per_million=5.0/15.0` ; le choix est ensuite confirmé.
+- [ ] Une question exigeante reçoit une réponse dont le bandeau indique « Modèle : GPT-6.2 Sol ».
+- [ ] Dans l'**activité OpenRouter**, le fournisseur utilisé est un endpoint Sol admissible, et les prix correspondent aux plafonds prudents 5 $ / 15 $ par million. Sinon, noter le fournisseur et le prix affichés et me les transmettre.
+- [ ] **Si l'appel échoue** avec « aucun fournisseur » ou une erreur 404/503 : revenir en `standard` (commande ci-dessous) et noter le message exact. Les fournisseurs ont peut-être changé depuis le [catalogue OpenRouter](https://openrouter.ai/openai/gpt-6.2-sol).
 
 **Rapprochement et retour au standard :**
 

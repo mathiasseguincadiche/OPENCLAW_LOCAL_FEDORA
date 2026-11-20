@@ -103,8 +103,8 @@ Les deux suites restent distinctes : `clawfedora-evals` vérifie les sept rôles
 
 ## 6. Coût, vérification et limites
 
-Le plafond cloud reste 25 €/mois, avec activation explicite et profils
-`rapide`, `equilibre` et `approfondi`. Aucun troisième fournisseur n'a été ajouté,
+Le plafond cloud reste 35 €/mois, avec activation explicite et profils
+`rapide`, `equilibre`, `soutenu` et `approfondi`. Les deux modèles cloud sont distincts,
 et cette suite d'évaluation n'entraîne aucun appel facturé. Ne jamais alléger
 le filtrage pour faire fonctionner un modèle ou un outil.
 

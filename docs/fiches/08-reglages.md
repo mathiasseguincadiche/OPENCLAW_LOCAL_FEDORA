@@ -67,33 +67,32 @@ Fichier : `config/core/cloud_policy.yaml`. `./menu.sh --action validate` refuse 
 
 | Réglage | Valeur | Remarque |
 |---|---|---|
-| `budget.monthly_cap_eur` | 25 | Plafond en euros réels. **Borné à 25 dans le code** : un fichier de configuration ne peut pas le relever. |
+| `budget.monthly_cap_eur` | 35 | Plafond en euros réels. **Borné à 35 dans le code** : un fichier de configuration ne peut pas le relever. |
 | `budget.eur_per_usd` | 1,3 | Facteur prudent (change, frais d'achat de crédits, TVA). Doit rester ≥ 1. |
 | `budget.alert_ratio` | 0,8 | Seuil d'alerte (80 % du plafond). |
-| `budget.recommended_key_limit_usd` | 12 | Limite de clé conseillée. La limite déclarée ne peut pas dépasser `monthly_cap_eur / eur_per_usd` (≈ 19,2 $). |
+| `budget.recommended_key_limit_usd` | 23 | Limite de clé conseillée. La limite déclarée ne peut pas dépasser `monthly_cap_eur / eur_per_usd` (≈ 26,92 $). |
 | `model` | `deepseek/deepseek-v4.1-flash-1017` | Modèle cloud épinglé. |
 | `model.context_tokens` | 1 048 576 | Contexte cloud distinct du 32K local. |
 | `model.max_output_tokens` | 32 768 | Sortie cloud plus large pour les analyses et livrables complexes. |
-| `default_reasoning_profile` | `approfondi` | Comportement cloud historique (`xhigh`) sans changement implicite. |
-| `reasoning_profiles` | `rapide` / `equilibre` / `approfondi` | Efforts `low` / `medium` / `xhigh` et plafonds par appel bornés à 4K / 8K / 32K, validés dans les contrats. |
-| `upstream_params.reasoning.effort` | `xhigh` | Référence immuable du profil par défaut ; la passerelle remplace seulement l'effort si l'opérateur choisit explicitement un autre profil. |
+| `default_reasoning_profile` | `equilibre` | Défaut sobre (`medium`) ; le choix explicite existant reste conservé. |
+| `reasoning_profiles` | `rapide` / `equilibre` / `soutenu` / `approfondi` | Efforts `low` / `medium` / `high` / `xhigh` et plafonds par appel bornés à 4K / 8K / 16K / 32K, validés dans les contrats. |
+| `upstream_params.reasoning.effort` | `medium` | Référence immuable du profil par défaut ; la passerelle remplace seulement l'effort si l'opérateur choisit explicitement un autre profil. |
 | `provider.sort` | `throughput` | Choisit le fournisseur admissible le plus rapide. |
 | `provider.max_price` | 0,25 $ entrée / 0,75 $ sortie par M tokens | Hard cap fournisseur, identique au pire coût réservé localement. |
 | `provider.data_collection` | `deny` | Écarte les routes qui ne respectent pas ce réglage. |
 | `gateway.port` | 18892 | Boucle locale seulement. |
 
-**Sobriété cloud :** sélectionner `equilibre` (medium/8K) manuellement pour des explications courantes lorsque c'est suffisant. `approfondi` reste le défaut pour compatibilité, sans routage automatique ni changement de la limite de 25 €.
+**Sobriété cloud :** sélectionner `equilibre` (medium/8K) manuellement pour des explications courantes lorsque c'est suffisant. `equilibre` est le défaut ; pas de routage automatique à ce stade.
 
 Le raisonnement long du modèle local reste désactivé pour préserver la latence et la VRAM.
-DeepSeek offre un **profil approfondi `xhigh` par défaut**, et deux profils
-moins exigeants **choisis manuellement** via
-`./menu.sh --action cloud-set-profile --value rapide|equilibre|approfondi --apply`.
+Le cloud offre quatre profils, dont **`medium` par défaut**, choisis manuellement via
+`./menu.sh --action cloud-set-profile --value rapide|equilibre|soutenu|approfondi --apply`.
 Le client n'a jamais la possibilité d'envoyer son propre paramètre de
 raisonnement ; le modèle et les prix plafonds sont inchangés. Les protections
 de confidentialité et les limites de budget ne peuvent pas être diminuées.
 [Guide détaillé](12-cloud.md).
 
-Pour changer le plafond, baisse-le : tu ne peux pas dépasser 25 €. Après toute modification : `./menu.sh --action validate`, puis `./menu.sh --action cloud-enable --value 12 --apply` pour revalider.
+Pour changer le plafond, baisse-le : tu ne peux pas dépasser 35 €. Après toute modification : `./menu.sh --action validate`, puis `./menu.sh --action cloud-enable --value 23 --apply` pour revalider.
 
 ## Préférences d'apprentissage et mémoire approuvée
 
