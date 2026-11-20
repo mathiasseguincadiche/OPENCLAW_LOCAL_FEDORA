@@ -37,6 +37,7 @@ from clawfedora.cloud_profiles import (
     require_compatible,
 )
 from clawfedora.cloud_state import CLOUD_STATE, ensure_gateway_token, require_cloud_ready
+from clawfedora.cloud_usage import reported_cost, token_counts
 from clawfedora.core_config import core_contract
 from clawfedora.local_http import LocalServer
 from clawfedora.storage import load_settings, require_storage
@@ -432,11 +433,11 @@ class GatewayHandler(BaseHTTPRequestHandler):
 def _safe_usage(usage: dict[str, Any] | None) -> dict[str, Any]:
     if not usage:
         return {}
-    return {
-        key: value
-        for key, value in usage.items()
-        if isinstance(value, int | float) and not isinstance(value, bool)
-    }
+    result: dict[str, Any] = dict(token_counts(usage))
+    cost = reported_cost(usage)
+    if cost is not None:
+        result["cost"] = cost
+    return result
 
 
 def make_server(

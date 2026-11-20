@@ -55,6 +55,12 @@ def budget_lines(root: Path, runtime: Path) -> list[str]:
     ]
     if summary.billed_eur:
         lines.append(f"CLOUD_INVOICE declared_eur={summary.billed_eur:.2f}")
+    for model, row in sorted(ledger.model_usage(summary.month).items()):
+        fields = " ".join(
+            f"{key}={value} {key}_reported_calls={row['reported'][key]}"
+            for key, value in sorted(row["tokens"].items())
+        )
+        lines.append(f"CLOUD_MODEL_USAGE model={model} calls={row['calls']} {fields}".rstrip())
     return lines
 
 

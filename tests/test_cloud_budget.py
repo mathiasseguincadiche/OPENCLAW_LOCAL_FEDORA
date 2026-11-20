@@ -228,3 +228,41 @@ def test_a_reservation_uses_the_ceilings_of_the_model_really_called(ledger: Ledg
     assert ledger.summary().spent_usd == pytest.approx(1.4)
     with pytest.raises(BudgetRefused, match="tarifs"):
         ledger.reserve(input_tokens=1, max_output_tokens=1, pricing={"input": 0, "output": 1})
+
+
+
+def test_usage_metrics_by_model_keep_missing_distinct_from_zero(ledger: Ledger) -> None:
+    usage = {
+        **USAGE,
+        "prompt_tokens_details": {"cached_tokens": 800, "cache_write_tokens": 0},
+        "completion_tokens_details": {"reasoning_tokens": 200},
+    }
+    ledger.reserve(input_tokens=1000, max_output_tokens=500, model="model-a").settle(usage, "ok")
+    ledger.reserve(input_tokens=1000, max_output_tokens=500, model="model-a").settle(USAGE, "ok")
+    ledger.reserve(input_tokens=1000, max_output_tokens=500, model="model-b").settle(None, "failed")
+    rows = ledger.model_usage()
+    assert rows["model-a"]["calls"] == 2
+    assert rows["model-a"]["tokens"]["prompt_tokens"] == 2000
+    assert rows["model-a"]["tokens"]["cached_tokens"] == 800
+    assert rows["model-a"]["tokens"]["cache_write_tokens"] == 0
+    assert rows["model-a"]["tokens"]["reasoning_tokens"] == 200
+    assert rows["model-a"]["reported"]["cached_tokens"] == 1
+    assert rows["model-b"] == {"calls": 1, "tokens": {}, "reported": {}}
+
+
+@pytest.mark.parametrize("bad", [True, -1, float("inf"), float("nan"), "missing"])
+def test_invalid_usage_keeps_the_reservation(ledger: Ledger, bad: object) -> None:
+    held = ledger.reserve(input_tokens=1000, max_output_tokens=4096)
+    estimated = ledger.summary().spent_usd
+    held.settle({"cost": bad, "prompt_tokens": bad, "completion_tokens": 0}, "ok")
+    assert ledger.summary().calls_uncertain == 1
+    assert ledger.summary().spent_usd == estimated
+
+
+def test_cache_without_reported_price_does_not_reduce_the_reservation_rate(ledger: Ledger) -> None:
+    held = ledger.reserve(input_tokens=1000, max_output_tokens=500)
+    held.settle({
+        "prompt_tokens": 1000, "completion_tokens": 500,
+        "prompt_tokens_details": {"cached_tokens": 800},
+    }, "ok")
+    assert ledger.summary().spent_usd == pytest.approx((1000 * 0.25 + 500 * 0.75) / 1e6)
