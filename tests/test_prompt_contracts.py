@@ -8,6 +8,7 @@ import yaml
 
 from clawfedora.agents import (
     BOOTSTRAP_FILES,
+    TOOLS_POINTER,
     bootstrap_chars,
     deploy_workspaces,
     effective_instructions,
@@ -42,6 +43,8 @@ def test_all_roles_receive_ordered_complete_instructions(tmp_path: Path) -> None
         ]
         deployed = (workspace / "AGENTS.md").read_text()
         assert deployed == "\n\n".join(parts) + "\n"
+        assert (workspace / "TOOLS.md").read_text() == TOOLS_POINTER
+        assert deployed.count(parts[2]) == 1
         assert len(deployed) <= bootstrap_chars(deployed) <= 12000
         assert all(
             bootstrap_chars((workspace / name).read_text()) <= limits["bootstrap_max_chars"]
@@ -137,3 +140,22 @@ def test_specialist_tool_cannot_cross_roles(prompt_repo: Path) -> None:
 def test_unknown_role_cannot_select_an_instruction_path() -> None:
     with pytest.raises(ValueError, match="rôle inconnu"):
         effective_instructions(ROOT, "../_shared")
+
+
+# Static budget from the pre-lot5 commit; not an estimate of billable tokens.
+@pytest.mark.parametrize(("role", "previous_size"), [
+    ("chef-operations", 12303),
+    ("expert-recherche", 11697),
+    ("architecte-solutions", 11908),
+    ("ingenieur-devops", 12118),
+    ("ingenieur-securite", 11922),
+    ("auditeur-qualite", 11943),
+    ("redacteur-pedagogique", 12180),
+])
+def test_prompt_and_tools_smaller_than_pre_lot5(
+    tmp_path: Path, role: str, previous_size: int,
+) -> None:
+    deploy_workspaces(ROOT, tmp_path)
+    workspace = tmp_path / "workspaces" / role
+    size = sum(bootstrap_chars((workspace / name).read_text()) for name in ("AGENTS.md", "TOOLS.md"))
+    assert size < previous_size
