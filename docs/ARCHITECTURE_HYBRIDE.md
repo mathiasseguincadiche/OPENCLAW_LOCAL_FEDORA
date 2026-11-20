@@ -10,7 +10,7 @@ Mais les besoins DevOps ne s'arrêtent pas aux petites questions : auditer plusi
 
 C'est précisément **la raison d'être de DeepSeek V4.1 Flash** dans ce projet : fournir **une route de capacité pour les tâches difficiles**, sans abandonner le contrôle local, la transparence des appels ou le budget.
 
-Deux modèles cloud sont configurés, **au choix explicite de l'opérateur** : `standard` (DeepSeek V4.1 Flash, par défaut) et `expert` (GPT-6.2 Sol, pour l'expertise). Le tableau ci-dessous décrit la route `standard` ; la [fiche cloud](fiches/12-cloud.md#choisir-le-modèle--standard-ou-expert) détaille les deux.
+Deux modèles cloud sont configurés, après consentement : `standard` (DeepSeek V4.1 Flash, en routine) et `expert` (GPT-6.2 Sol, pour les révisions approuvées et la contre-expertise finale en mode `auto`, ou sur choix manuel). Le tableau ci-dessous décrit la route `standard` ; la [fiche cloud](fiches/12-cloud.md#choisir-le-modèle--standard-ou-expert) détaille les deux.
 
 > **Le but n'est pas d'être « 100 % local à tout prix » ni « 100 % cloud ». Le but est de faire un travail DevOps utile, compréhensible et vérifiable, en choisissant le bon niveau de ressources.**
 
@@ -90,7 +90,7 @@ Si un **projet est sélectionné**, son contexte n'est autorisé au cloud que s'
 
 Le **plan approuvé** détermine quels spécialistes contribuent, mais **l'accord cloud est au niveau du projet**, pas un bouton de routage Qwen/DeepSeek pour chaque agent. Les étapes cloud d'un projet autorisé utilisent les mêmes outils et les mêmes règles métier ; si la route cloud ne peut pas poursuivre, le projet **se met en pause** plutôt que de repartir en local sans accord.
 
-**Conséquence importante pour l'efficacité :** si une seule étape est complexe, le mécanisme actuel ne garantit pas qu'elle seule sera facturée en cloud. Le routage automatique fin par tâche est une **amélioration éventuelle à concevoir**, avec validation humaine et règles de protection ; ne pas annoncer cette optimisation comme déjà implémentée.
+**Conséquence importante pour l'efficacité :** l'accord reste au niveau du projet. Le routage automatique interne au cloud utilise le rôle et l'étape approuvée ; il ne juge pas la difficulté du texte et ne choisit pas automatiquement entre local et cloud. Les enveloppes distinctes bornent DeepSeek à 15 € et Sol à 10 € sur le journal local.
 
 ## Pourquoi la passerelle cloud est indispensable
 

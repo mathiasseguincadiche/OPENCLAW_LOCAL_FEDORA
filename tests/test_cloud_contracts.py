@@ -101,6 +101,11 @@ def test_shipped_contracts_are_valid() -> None:
         ("config/core/cloud_policy.yaml",
          lambda d: d["policy"].update(provider_id="openrouter"), "cloudgw"),
         ("config/core/cloud_policy.yaml",
+         lambda d: d["agent_routing"]["roles"].pop("chef-operations"), "sept rôles"),
+        ("config/core/cloud_policy.yaml",
+         lambda d: d["budget"]["model_caps_eur"].update({"openai/gpt-6.2-sol": 22}),
+         "enveloppes modèles"),
+        ("config/core/cloud_policy.yaml",
          lambda d: d["budget"].update(monthly_cap_eur=36), "plafond mensuel"),
         ("config/core/cloud_policy.yaml",
          lambda d: d["budget"].update(monthly_cap_eur=0), "plafond mensuel"),
@@ -155,13 +160,19 @@ def test_enabled_configuration_routes_the_cloud_through_the_loopback_gateway() -
     }
     serialized = json.dumps(patch)
     assert "openrouter.ai" not in serialized and "sk-or" not in serialized
-    (model,) = provider["models"]
+    model, *routes = provider["models"]
+    assert {item["id"]: item["maxTokens"] for item in routes} == {
+        "atelier/expert-equilibre": 8192, "atelier/expert-soutenu": 16384,
+        "atelier/standard-rapide": 4096, "atelier/standard-soutenu": 16384,
+    }
     assert model["id"] == "deepseek/deepseek-v4.1-flash-1017"
     assert model["contextTokens"] == 1048576 and model["maxTokens"] == 32768
     assert model["cost"] == {"input": 0.25, "output": 0.75, "cacheRead": 0, "cacheWrite": 0}
     defaults = patch["agents"]["defaults"]
     assert defaults["modelPolicy"]["allow"] == [
         defaults["model"]["primary"], "cloudgw/deepseek/deepseek-v4.1-flash-1017",
+        "cloudgw/atelier/expert-equilibre", "cloudgw/atelier/expert-soutenu",
+        "cloudgw/atelier/standard-rapide", "cloudgw/atelier/standard-soutenu",
     ]
     # Every role keeps the local model as its only primary: cloud is chosen per run.
     for agent in AGENT_IDS:

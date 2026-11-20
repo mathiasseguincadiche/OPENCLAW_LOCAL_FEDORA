@@ -33,6 +33,10 @@ budget:
   alert_ratio: 0.8
   eur_per_usd: 1.3
   recommended_key_limit_usd: 23
+  # Enveloppes en euros estimés payés ; la réserve de 10 € n'est pas routable.
+  model_caps_eur:
+    deepseek/deepseek-v4.1-flash-1017: 15
+    openai/gpt-6.2-sol: 10
   ledger_file: cloud/ledger-{month}.jsonl
 # Seul point de sortie réseau vers le fournisseur. L'hôte est figé : la passerelle ne suit
 # aucune adresse reçue dans une requête.
@@ -58,9 +62,8 @@ model:
   pricing_usd_per_million:
     input: 0.25
     output: 0.75
-# Modèles réellement appelés derrière l'alias cloud-main (OpenClaw ne voit que l'alias).
-# Le choix est fait par l'opérateur (CLI --apply, état local 0600), jamais par un agent, un
-# paramètre client ou une bascule automatique. Chaque modèle impose SES prix maximaux à
+# Deux modèles externes ; les références locales combinent modèle et profil.
+# Le worker choisit une route approuvée, ou applique le choix manuel de l'opérateur. Chaque modèle impose SES prix maximaux à
 # OpenRouter et au budget : un endpoint plus cher est refusé, jamais facturé au-delà.
 default_upstream_model: standard
 upstream_models:
@@ -102,6 +105,18 @@ reasoning_profiles:
   approfondi:
     effort: xhigh
     max_output_tokens: 32768
+# Le routage automatique ne s'applique qu'après accord cloud. Aucune classification
+# par mots-clés, aucun nouvel appel automatique sur panne, refus ou budget épuisé.
+agent_routing:
+  default_mode: auto
+  roles:
+    chef-operations: {routine: [standard, soutenu], escalation: [expert, equilibre]}
+    expert-recherche: {routine: [standard, rapide], escalation: [standard, soutenu]}
+    architecte-solutions: {routine: [standard, soutenu], escalation: [expert, soutenu]}
+    ingenieur-devops: {routine: [standard, soutenu], escalation: [expert, soutenu]}
+    ingenieur-securite: {routine: [standard, soutenu], escalation: [expert, soutenu]}
+    auditeur-qualite: {routine: [standard, soutenu], escalation: [expert, soutenu]}
+    redacteur-pedagogique: {routine: [standard, rapide], escalation: [expert, equilibre]}
 # Réglages de sécurité imposés par la passerelle à chaque requête (pas par OpenClaw).
 upstream_params:
   provider:

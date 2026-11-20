@@ -32,8 +32,8 @@ from clawfedora.project_control import cloud_pause_path
 
 PROJECT_CLOUD = "state/project-cloud"
 CONSENT_TEXT = (
-    "Ce projet enverra au cloud (DeepSeek V4.1 Flash ou GPT-6.2 Sol via OpenRouter si vous le "
-    "choisissez avec cloud-set-model, par la passerelle locale) ses "
+    "Ce projet enverra au cloud (DeepSeek V4.1 Flash ou GPT-6.2 Sol selon le routage "
+    "approuvé, via OpenRouter et la passerelle locale) ses "
     "consignes, les extraits de sources lus par les agents et les résultats d'outils, après "
     "filtrage des secrets. Le filtre reconnaît les identifiants, mots de passe et clés ; il ne "
     "reconnaît pas un contenu confidentiel qui n'en a pas l'allure (nom de serveur interne, "
@@ -176,6 +176,13 @@ def classify_failure(events: list[dict[str, Any]]) -> tuple[str, str] | None:
             "sources, ou retirer l'accord cloud pour poursuivre en local."
         )
     if "budget_refused" in decisions:
+        if any(e.get("decision") == "budget_refused" and e.get("scope") == "model"
+               for e in events):
+            return "budget_refused", (
+                "l'enveloppe mensuelle du modèle demandé est atteinte. "
+                "Aucun transfert automatique vers l'autre modèle ; attendre le mois prochain "
+                "ou retirer l'accord cloud pour poursuivre en local."
+            )
         return "budget_refused", BUDGET_MESSAGE
     if "upstream_error" in decisions or "upstream_unreachable" in decisions or (
         "interrupted" in decisions
@@ -199,7 +206,8 @@ def _model_of(runtime: Path, session: str) -> tuple[str | None, str | None]:
         record = read_json(runtime / "state/model-runs" / f"{name}.json")
     except (OSError, ValueError):
         return None, None
-    provider, model = record.get("provider"), record.get("model")
+    provider = record.get("provider")
+    model = record.get("upstream_requested") or record.get("model")
     return (str(provider) if provider else None, str(model) if model else None)
 
 
@@ -236,6 +244,7 @@ class ProjectRunner:
     def __init__(self, repo_root: Path, runtime: Path, project: Path, base: Any) -> None:
         self.repo_root, self.runtime, self.project, self.base = repo_root, runtime, project, base
         self.task = ""
+        self.escalation_reason = "routine"
 
     def __call__(self, role: str, prompt: str, session: str) -> dict[str, Any]:
         state = consent_state(self.repo_root, self.runtime, self.project)
@@ -256,7 +265,12 @@ class ProjectRunner:
             raise self._pause("budget_refused", BUDGET_MESSAGE)
         started = time.time()
         try:
-            response = self.base(role, prompt, session, route="cloud")
+            if self.escalation_reason != "routine":
+                response = self.base(
+                    role, prompt, session, route="cloud", escalation_reason=self.escalation_reason,
+                )
+            else:
+                response = self.base(role, prompt, session, route="cloud")
         except Exception as exc:
             self._log(role, session, "cloud", self._spent(ledger, before.spent_eur), failed=True)
             # Gateway events are stamped to whole UTC seconds. Allow the same

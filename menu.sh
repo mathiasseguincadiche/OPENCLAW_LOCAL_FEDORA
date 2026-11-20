@@ -40,8 +40,8 @@ Installer et utiliser:
   cloud-profile          Afficher le profil de raisonnement cloud actuel
   cloud-set-profile      Préparer/changer le profil via --value
                          rapide|equilibre|soutenu|approfondi, et --apply pour confirmer
-  cloud-model            Afficher les modèles cloud et celui qui répond (standard ou expert)
-  cloud-set-model        Préparer/changer le modèle cloud via --value standard|expert,
+  cloud-model            Afficher les modèles cloud et celui qui répond (auto, standard ou expert)
+  cloud-set-model        Préparer/changer le modèle cloud via --value auto|standard|expert,
                          et --apply pour confirmer
   cloud-set-key          Enregistrer la clé OpenRouter (saisie masquée)
   cloud-enable           Contrôler puis activer le cloud (--value = limite de la clé en $)
@@ -183,7 +183,7 @@ case "$ACTION" in
     ;;
   cloud-set-model)
     [[ -n "$VALUE" ]] || {
-      echo "ERREUR: cloud-set-model exige --value standard|expert" >&2
+      echo "ERREUR: cloud-set-model exige --value auto|standard|expert" >&2
       exit 2
     }
     args=(--runtime-root "$(claw_runtime_root)" set-model --name "$VALUE")

@@ -2,9 +2,8 @@
 
 Neither is a router a client can drive: the browser or an OpenClaw agent cannot change
 them. The separate operator CLI writes a local 0600 file after explicit --apply. The
-gateway reads both before the budget reservation and every upstream request. OpenClaw
-always talks to the same ``cloud-main`` alias; the gateway decides which reviewed model
-answers behind it, with that model's own price ceilings.
+gateway reads both before the budget reservation and every upstream request. The automatic router uses fixed, declared local aliases; manual mode uses cloud-main.
+The gateway still enforces the reviewed upstream model and its price ceilings.
 """
 
 from __future__ import annotations
@@ -217,17 +216,17 @@ def set_profile(runtime: Path, policy: dict[str, Any], name: str) -> Path:
     return _write_choice(runtime, profile_path(runtime), "profile", name, "profil")
 
 
-def chosen_upstream_model(runtime: Path, policy: dict[str, Any]) -> tuple[str, dict[str, Any]]:
-    """The model the gateway calls. Missing file = contracted default; a model disabled in
-    the policy (even if chosen earlier) or an unsafe file refuses the cloud, never falls back.
-    """
+def chosen_routing_mode(runtime: Path, policy: dict[str, Any]) -> str:
+    """Missing choice means automatic routing; a legacy explicit choice stays manual."""
     declared = upstream_models(policy)
     name = _read_choice(model_path(runtime), "model", "modèle cloud")
     if name is None:
-        name = str(policy["default_upstream_model"])
+        name = str(policy["agent_routing"]["default_mode"])
+    if name == "auto":
+        return name
     if name == "profond":
         raise ProfileRefused(
-            "ancien modèle profond retiré : choisir standard ou expert avec cloud-set-model"
+            "ancien modèle profond retiré : choisir auto, standard ou expert avec cloud-set-model"
         )
     if name not in declared:
         raise ProfileRefused("modèle cloud : valeur inconnue ou fichier modifié")
@@ -236,17 +235,26 @@ def chosen_upstream_model(runtime: Path, policy: dict[str, Any]) -> tuple[str, d
             f"modèle cloud « {name} » désactivé dans la politique : le réactiver après "
             "vérification, ou revenir au modèle standard"
         )
-    return name, declared[name]
+    return name
+
+
+def chosen_upstream_model(runtime: Path, policy: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    """Manual/diagnostic alias: the standard model in auto mode."""
+    name = chosen_routing_mode(runtime, policy)
+    if name == "auto":
+        name = str(policy["default_upstream_model"])
+    return name, upstream_models(policy)[name]
 
 
 def set_upstream_model(runtime: Path, policy: dict[str, Any], name: str) -> Path:
     """Atomic operator-side write. Call only under worker_lock after --apply."""
     declared = upstream_models(policy)
-    if name not in declared:
+    selected = str(policy["default_upstream_model"]) if name == "auto" else name
+    if selected not in declared:
         raise ProfileRefused("modèle cloud inconnu")
-    if declared[name]["enabled"] is not True:
+    if declared[selected]["enabled"] is not True:
         raise ProfileRefused(
-            f"modèle cloud « {name} » désactivé dans la politique : vérifier son identifiant, "
+            f"modèle cloud « {selected} » désactivé dans la politique : vérifier son identifiant, "
             "son prix et sa confidentialité sur openrouter.ai, puis passer enabled: true"
         )
     return _write_choice(runtime, model_path(runtime), "model", name, "modèle")

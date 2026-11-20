@@ -28,14 +28,10 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any, Protocol
 
-from clawfedora.cloud_budget import BudgetRefused, load_ledger
+from clawfedora.cloud_budget import BudgetRefused, ModelBudgetRefused, load_ledger
 from clawfedora.cloud_privacy import PrivacyFilter, describe
-from clawfedora.cloud_profiles import (
-    ProfileRefused,
-    chosen_profile,
-    chosen_upstream_model,
-    require_compatible,
-)
+from clawfedora.cloud_profiles import ProfileRefused
+from clawfedora.cloud_routing import gateway_route
 from clawfedora.cloud_state import CLOUD_STATE, ensure_gateway_token, require_cloud_ready
 from clawfedora.cloud_usage import reported_cost, token_counts
 from clawfedora.core_config import core_contract
@@ -130,15 +126,17 @@ def _estimate_input_tokens(body: dict[str, Any]) -> int:
     return max(1, len(raw.encode()) // 3)
 
 
-def normalize_request(body: Any, policy: dict[str, Any], output_cap: int) -> dict[str, Any]:
+def normalize_request(
+    body: Any, policy: dict[str, Any], output_cap: int, model_id: str | None = None,
+) -> dict[str, Any]:
     """Allow-list and bound the client request. Raises ``Refused`` before anything else."""
     if not isinstance(body, dict):
         raise Refused(400, "invalid_request", "objet JSON requis")
     for key in body:
         if key not in ALLOWED_FIELDS:
             raise Refused(400, "unsupported_parameter", f"paramètre non autorisé: {key}")
-    upstream_id = str(policy["model"]["upstream_id"])
-    if body.get("model") != upstream_id:
+    expected_id = model_id if model_id is not None else str(policy["model"]["upstream_id"])
+    if body.get("model") != expected_id:
         raise Refused(400, "model_not_allowed", "seul le modèle cloud de la politique est autorisé")
     limits = policy["limits"]
     messages = body.get("messages")
@@ -257,11 +255,15 @@ class GatewayHandler(BaseHTTPRequestHandler):
         try:
             self.server.activation_check()
             body = self._read_body()
-            profile_name, profile = chosen_profile(self.server.runtime, self.server.policy)
-            model_name, upstream = chosen_upstream_model(self.server.runtime, self.server.policy)
-            require_compatible(model_name, upstream, profile_name, profile)
+            if not isinstance(body, dict):
+                raise Refused(400, "invalid_request", "objet JSON requis")
+            route = gateway_route(self.server.runtime, self.server.policy, body.get("model"))
+            if route is None:
+                raise Refused(400, "model_not_allowed", "modèle cloud non autorisé")
+            profile_name, profile = route.profile_name, route.profile
+            model_name, upstream = route.model_name, route.upstream
             output_cap = min(self.server.output_cap, int(profile["max_output_tokens"]))
-            normalized = normalize_request(body, self.server.policy, output_cap)
+            normalized = normalize_request(body, self.server.policy, output_cap, route.model_id)
             findings = self.server.privacy.scan_request(normalized)
             if findings:
                 summary = describe(findings)
@@ -280,7 +282,10 @@ class GatewayHandler(BaseHTTPRequestHandler):
                     model=str(upstream["upstream_id"]),
                 )
             except BudgetRefused as exc:
-                self._event(request_id, "budget_refused")
+                if isinstance(exc, ModelBudgetRefused):
+                    self._event(request_id, "budget_refused", scope="model", model=exc.model)
+                else:
+                    self._event(request_id, "budget_refused", scope="global")
                 raise Refused(402, "budget_refused", str(exc)) from None
             key = self.server.key_reader()
         except ProfileRefused as exc:
@@ -344,6 +349,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
         self._event(
             request_id, "forwarded", input_estimate=input_tokens,
             stream=streaming, reasoning_profile=profile_name, upstream_model=model_name,
+            upstream_requested=str(upstream_model["upstream_id"]), local_alias=normalized["model"],
         )
         try:
             with _CLOUD_OPENER.open(request, timeout=timeout) as response:

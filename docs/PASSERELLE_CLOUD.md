@@ -94,103 +94,7 @@ Les bandeaux sont retirés de l'historique renvoyé au modèle. Un test de repli
 | Limite de crédit posée **sur la clé** | Le fournisseur coupe lui-même la clé | OpenRouter |
 | Journal local (`state/cloud/ledger-AAAA-MM.jsonl`) | Refuse avant l'envoi, compte chaque appel | la passerelle |
 
-Le journal compte en euros avec un facteur pessimiste `eur_per_usd: 1.3` (change, frais d'achat de crédits, TVA). Le plafond est borné en code à 35 € : aucun fichier de configuration ne peut le relever. La limite de clé déclarée ne peut pas dépasser `35 / 1,3 ≈ 26,92 # Passerelle cloud locale : conception et faits vérifiés
-
-[← Guide pédagogique](GUIDE.md) · [Trajet des requêtes](fiches/11-comment-ca-marche.md) · [Mode d'emploi cloud](fiches/12-cloud.md)
-
-**Cette fiche est une référence d'implémentation.** Pour comprendre le choix
-local/cloud avant les détails HTTP, lis d'abord le fonctionnement et le mode d'emploi.
-Les résultats d'un faux fournisseur n'attestent pas un appel réellement facturé
-par OpenRouter.
-
-**Statut : tout est en place (lots 3 à 8) : fondation, exécuteur, passerelle et filtre, modes Apprendre/Travail, budget et activation contrôlée, accord par projet dans l'atelier. Le cloud reste désactivé tant qu'il n'est pas activé par `cloud-enable --apply`. Il n'a jamais été essayé avec le vrai OpenRouter.**
-
-Ce document décrit la conception, fixe le contrat que le code respecte (imposé par `clawfedora validate`) et consigne ce qui a été **vérifié avec le vrai OpenClaw 2026.9.8** (`make native-cloud`, `make native-schema`, `make native-prompt`).
-
-## Principe
-
-OpenClaw ne parle jamais à OpenRouter. Il parle à une passerelle en boucle locale (`127.0.0.1:18892`, `config/core/cloud_policy.yaml`), qui seule lit la clé du fournisseur, filtre tout le contenu sortant, réserve et compte chaque appel facturé, puis transmet à OpenRouter.
-
-```
-OpenClaw ──► fournisseur "cloudgw" (127.0.0.1:18892/v1) ──► [filtre + budget] ──► OpenRouter
-```
-
-## Faits vérifiés
-
-| Question | Constat |
-|---|---|
-| OpenClaw accepte-t-il un fournisseur personnalisé à URL locale ? | Oui. `models.providers.cloudgw`, `api: openai-completions`, modèles déclarés statiquement, `models.mode: replace` : aucune découverte de catalogue, donc aucun accès réseau au démarrage. |
-| Peut-on choisir le modèle par requête ? | Oui : `openclaw agent --model cloudgw/deepseek/deepseek-v4.1-flash-1017`. Les sept rôles gardent Qwen comme modèle principal ; le cloud se choisit à chaque tour. |
-| Qui voit quoi ? | La passerelle reçoit le prompt système, l'historique et, au second appel d'une boucle d'outil, **les résultats d'outils**. Un tour avec un outil fait **deux appels facturables**. |
-| Quel jeton circule ? | Un jeton **local** (`Authorization: Bearer <jeton local>`), lu dans la variable `CLAWFEDORA_CLOUD_GATEWAY_TOKEN`. La clé du fournisseur n'atteint jamais OpenClaw : le contrôle fait échouer toute fuite. |
-| Usage en streaming ? | OpenClaw envoie `stream: true` et `stream_options.include_usage: true` ; l'usage et le coût peuvent donc être lus dans le dernier fragment. |
-| Peut-on piloter le raisonnement ? | Oui par la **passerelle**, pas par le client : elle injecte l'effort du profil choisi (medium par défaut) dans chaque requête cloud. Le modèle ou Open WebUI ne peuvent pas affaiblir ce réglage. |
-| Que se passe-t-il si le jeton manque ? | OpenClaw résout les secrets de **tous** les fournisseurs avant un tour : un jeton absent fait échouer **même un tour local**. L'environnement d'exécution doit donc toujours définir ce jeton dès que le fournisseur est configuré (lot 4). Avec le jeton défini et la passerelle arrêtée, les rôles locaux fonctionnent (`make native-prompt`). |
-| Retour arrière | Désactiver le cloud supprime le fournisseur `cloudgw` d'une installation existante (migration vérifiée par `make native-schema`). |
-| Quels modèles `--model` peut-il choisir ? | Seulement ceux de `agents.defaults.modelPolicy.allow` : Qwen, et le modèle cloud uniquement si le cloud est activé. |
-
-## Exécuteur (lot 4)
-
-`openclaw_runner(...)(role, prompt, session)` garde son comportement local. Un appelant qui a décidé d'utiliser le cloud passe `route="cloud"` ; rien ne bascule jamais seul du local vers le cloud.
-
-- **Refus avant tout processus** : la route cloud exige un enregistrement d'activation (`state/cloud/activation.json`) prouvant que **chaque** contrôle requis par la politique (`privacy_filter`, `budget_guard`) est vérifié. Un seul contrôle vérifié ne suffit pas. Seule la future commande d'activation (lot 6) écrit cet enregistrement ; `revoke_activation` éteint le cloud.
-- **Pas d'Ollama sur la route cloud** : ni version, ni inventaire, ni verrou de digest. Le tour passe par `openclaw agent --model cloudgw/deepseek/deepseek-v4.1-flash-1017` via la Gateway OpenClaw.
-- **Configuration revérifiée** avant un tour cloud (avec le vrai CLI) : l'URL du fournisseur doit être exactement celle de la politique, le transport, le modèle déclaré, la liste d'autorisation, et la clé doit être une **référence d'environnement** (jamais une chaîne). `config get` masque le nom de la référence (`__OPENCLAW_REDACTED__`) mais garde sa forme : c'est cette forme qui est contrôlée.
-- **Identité du modèle** : le tour échoue si le fournisseur ou le modèle réellement servis diffèrent. `state/model-runs/<session>.json` conserve route, fournisseur, modèle et tokens, **sans contenu**.
-- **Jeton local** : `state/cloud/gateway.token` (droits 0600, répertoire 0700, créé une fois). L'environnement d'exécution le définit toujours (voir plus haut pourquoi). Hors d'un runtime géré, rien n'est écrit.
-- **Réparation JSON** : écart assumé par rapport au plan initial (« sur la même route »). Une syntaxe JSON invalide renvoyée par le cloud est réparée **par le modèle local**, qui ne fait sortir aucune donnée et ne coûte rien. Si Ollama est indisponible, la tâche échoue (« relancer la tâche ») : un second appel cloud facturé n'a jamais lieu pour réparer.
-
-Vérifié avec le vrai OpenClaw 2026.9.8 par `make native-cloud` : une vraie Gateway est démarrée, la route cloud est d'abord refusée, puis acceptée après activation ; la passerelle factice voit le jeton local, deux appels pour un tour avec un outil, et l'identité est enregistrée.
-
-## Passerelle, filtre et modes (lot 5)
-
-`python -m clawfedora.cloud_gateway --root … --runtime-root …` lance la passerelle sur `127.0.0.1:18892`. Pour **chaque** requête, dans cet ordre, et avant que quoi que ce soit ne parte :
-
-1. le jeton local est vérifié en temps constant, ainsi que l'en-tête `Host` (401 sinon) ;
-2. le cloud doit être activé (503 sinon) ;
-3. la requête est bornée (taille, nombre de messages et d'outils) et **normalisée sur liste blanche** : `models`, `route`, `provider`, `plugins`, `transforms`, `reasoning`… sont refusés (400), de sorte qu'un client ne peut ni détourner vers un modèle plus cher ni modifier les réglages de la politique ; le modèle est forcé, la sortie bornée ;
-4. le filtre de confidentialité lit **tout le corps** : prompt système, historique, contexte ajouté, arguments d'appels d'outils et **résultats d'outils** (451 sinon) ;
-5. le budget réserve le coût maximal (402 sinon) ;
-6. la passerelle injecte `data_collection: deny`, `require_parameters`, le tri `throughput`, le hard cap `max_price`, l'effort du profil choisi et `usage`, puis appelle le fournisseur avec **sa** clé, relaie la réponse et règle l'usage réel.
-
-Un client qui se déconnecte en plein flux n'interrompt pas la lecture : le fournisseur continue de générer et de facturer, l'usage est lu jusqu'au bout. Un appel sans usage connu garde l'estimation maximale (`interrupted`) ; un appel refusé par le fournisseur la libère (`failed`).
-
-`state/cloud/events.jsonl` (0600) journalise chaque décision **sans contenu ni secret** (catégories, estimation, usage, coût).
-
-### Filtre de confidentialité
-
-Bloque : clés privées, identifiants et clés de services cloud (AWS, Google, Azure : clés de stockage, SAS, secrets applicatifs), jetons (GitHub, GitLab, OpenRouter, Anthropic, OpenAI, Slack, JWT), identifiants dans une URL, valeurs d'allure aléatoire affectées à un mot de passe, une clé ou un jeton, identifiants d'abonnement ou de tenant **réels**, tout contenu non textuel, et les termes de `state/cloud/denylist.txt` (un par ligne, ou `re:motif`).
-
-Laisse passer ce qui sert au cours : plages d'adresses de documentation, adresses privées, `example.com`, références (`var.x`, `{{ vault }}`, `${{ secrets.X }}`), mots de passe d'exemple à faible entropie, exemples canoniques des fournisseurs (`…EXAMPLE`, GUID à zéros ou séquentiels), et les sept prompts des rôles (testés).
-
-**Limite assumée** : un filtre ne reconnaît pas ce qui est confidentiel sans ressembler à un secret (configuration d'un employeur, nom d'un serveur interne). C'est le rôle du mode **Travail** et de la liste personnelle.
-
-### Modes dans Open WebUI
-
-Le mode est le choix du modèle. Sans cloud activé, rien ne change : sept rôles locaux. Cloud activé, chaque rôle apparaît deux fois (« · local » et « · cloud »). Une réponse cloud porte un bandeau de provenance. Si le cloud ne peut pas répondre, la réponse locale est donnée **avec un bandeau visible** :
-
-- le filtre a détecté quelque chose (sur le message, le contexte ou, par le journal de la passerelle, un résultat d'outil) : la conversation **passe en local et y reste**. La passerelle de chat ne garde aucun état ; chaque réponse suivante répète le marqueur « 🔒 Conversation passée en local », qui est relu dans l'historique ;
-- budget épuisé, fournisseur indisponible : repli local ponctuel, sans verrouiller le fil.
-
-Les bandeaux sont retirés de l'historique renvoyé au modèle. Un test de repli utilise toujours une **nouvelle session** pour ne pas laisser un tour cloud à moitié fait.
-
-### Faits établis avec le vrai OpenClaw (`make native-cloud`)
-
-- **OpenClaw masque lui-même les jetons** dans les résultats d'outils avant de les envoyer au modèle (`ghp_Zq…7Zq7`) : première protection native. Le filtre de la passerelle protège ce qu'OpenClaw ne sait pas reconnaître (identifiant d'abonnement, termes personnels).
-- **Les statuts 401, 402, 403 et 429 de la passerelle sont interprétés comme un échec d'authentification ou de facturation du fournisseur** : OpenClaw met alors le fournisseur en pause environ une minute (« Inline API key … temporarily disabled »). Un blocage du filtre est propre à une requête : il répond donc **451**, qui ne déclenche pas cette pause, pour que la requête saine suivante passe. Le budget épuisé reste en 402 : s'arrêter est justement l'effet voulu.
-- Un tour cloud de bout en bout (vraie Gateway, vraie passerelle, faux fournisseur) : deux appels comptés pour un tour avec un outil, un secret dans le message bloqué avant tout envoi, un secret n'apparaissant que dans un résultat d'outil (fichier lu par l'agent) bloqué avant tout envoi, la clé du fournisseur absente de tout fichier hors de la passerelle.
-
-## Budget et activation (lot 6)
-
-### Trois couches pour tenir 35 € réels
-
-| Couche | Rôle | Qui la tient |
-|---|---|---|
-| Crédits **prépayés**, sans rechargement automatique | Plafond d'achat réel : au pire, ce qui est dans le compte | OpenRouter, vous |
-| Limite de crédit posée **sur la clé** | Le fournisseur coupe lui-même la clé | OpenRouter |
-| Journal local (`state/cloud/ledger-AAAA-MM.jsonl`) | Refuse avant l'envoi, compte chaque appel | la passerelle |
-
-Le journal compte en euros avec un facteur pessimiste `eur_per_usd: 1.3` (change, frais d'achat de crédits, TVA). Le plafond est borné en code à 35 € : aucun fichier de configuration ne peut le relever. La limite de clé déclarée ne peut pas dépasser  (23 $ recommandés).
+Le journal compte en euros avec un facteur pessimiste `eur_per_usd: 1.3` (change, frais d'achat de crédits, TVA). Le plafond est borné en code à 35 € : aucun fichier de configuration ne peut le relever. La limite de clé déclarée ne peut pas dépasser 26,92 USD (23 USD recommandés).
 
 ### Règle de comptage
 
@@ -311,16 +215,26 @@ Documentation : [cache OpenRouter](https://openrouter.ai/blog/tutorials/prompt-c
 Deux modèles **cloud** seulement : [DeepSeek V4.1 Flash 1017](https://openrouter.ai/deepseek/deepseek-v4.1-flash-1017)
 pour la production et [GPT-6.2 Sol](https://openrouter.ai/openai/gpt-6.2-sol)
 pour l'expertise. Le modèle Ollama local et le mode hors cloud restent indépendants.
-Objectif : 35 €/mois tout compris (12 € production, 18 € expertise, 5 € réserve).
-Ces montants sont des enveloppes cibles, non des plafonds par modèle déjà actifs.
-Le plafond de la politique est désormais 35 € ; le routage par rôle et les
-plafonds par modèle restent à mettre en œuvre. La réception réelle reste à faire.
+Plafond global : 35 €/mois. Enveloppes de réservation : 15 € pour DeepSeek,
+10 € pour Sol ; les 10 € restants constituent une réserve non routable.
+Les montants sont des estimations prudentes, pas des garanties de facturation.
+Les réservations non réglées et les appels incertains occupent leur enveloppe.
+Le rapprochement global reste nécessaire ; les dépenses historiques non attribuées
+ne sont pas ventilées arbitrairement entre les deux modèles.
+
+Le mode `auto` choisit le modèle et l'effort selon le rôle et l'étape approuvée.
+La routine utilise DeepSeek ; la révision approuvée peut utiliser Sol (sauf
+la recherche), et la contre-expertise finale de l'auditeur utilise Sol.
+Les alias locaux ne sont pas de nouveaux modèles externes. Le mode manuel
+`standard` ou `expert` reste disponible, sans élargir les permissions.
+Aucun refus de budget, de confidentialité ni panne ne déclenche de nouvelle
+requête sur l'autre modèle. La réception réelle reste à faire.
 
 | Axe | Évolution ciblée | Critère de réception |
 |---|---|---|
 | Contexte | Extraits utiles, références et SHA-256, sortie d'outil bornée, sans supprimer une preuve requise | Comparaison des tokens par tâche et couverture des preuves inchangée |
 | Cache | Préfixes stables par modèle et rôle ; mesurer les hits avant tout réglage de routage | Compteurs déclarés et coût réel ; aucun cache de réponse ou nouvelle transmission implicite |
-| Routage | Choix applicatif par rôle et effort, arbitrage borné après échec, séparé du repli technique | Tests de refus, budget, consentement, migration de l'ancien choix profond |
+| Routage | Choix applicatif par rôle et étape approuvée, sans escalade sur panne ou refus | Tests de refus, budget, consentement, migration de l'ancien choix profond |
 | Prompts | Factoriser les doublons sans perdre contrats ni pédagogie, préserver les limites UTF-16 | Tests de taille et scénarios comportementaux sur les sept rôles |
 | Validation | Contrôles déterministes, audit indépendant et preuves résolues, coût par tâche réussie | CI hors réseau payant puis réception consentie sur Fedora avec fournisseur réel |
 

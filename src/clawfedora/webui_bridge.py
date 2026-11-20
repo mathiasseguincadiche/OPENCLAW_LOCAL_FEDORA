@@ -277,7 +277,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
             )
         try:
             answer = runner(role, full_prompt, session, route="cloud")
-            return answer, CLOUD_BANNER + self._model_note() + self._budget_note()
+            return answer, CLOUD_BANNER + self._model_note(answer) + self._budget_note()
         except (ValueError, RuntimeError, OSError, subprocess.SubprocessError):
             # The gateway records whole UTC seconds, while 'started' is fractional.
             # Allow a small clock/timestamp skew after a failed cloud call. Since
@@ -293,8 +293,11 @@ class BridgeHandler(BaseHTTPRequestHandler):
                 banner = f"💻 *Réponse locale : {self._unavailable_reason(events)}.*"
             return self._local_after(role, full_prompt, runner), banner
 
-    def _model_note(self) -> str:
-        """Which reviewed model answered behind the cloud alias (operator's choice)."""
+    def _model_note(self, answer: dict[str, Any]) -> str:
+        """Show the requested upstream route, not a claim about its real provider endpoint."""
+        model_name, profile = answer.get("cloud_model"), answer.get("cloud_profile")
+        if isinstance(model_name, str) and isinstance(profile, str):
+            return f"\n☁️ *Modèle : {model_name} (route demandée, profil {profile}).*"
         try:
             policy = core_contract(self.server.repo_root, "cloud_policy.yaml")
             _name, model = chosen_upstream_model(self.server.runtime, policy)
@@ -327,6 +330,9 @@ class BridgeHandler(BaseHTTPRequestHandler):
     def _unavailable_reason(events: list[dict[str, Any]]) -> str:
         decisions = {str(e.get("decision")) for e in events}
         if "budget_refused" in decisions:
+            if any(e.get("decision") == "budget_refused" and e.get("scope") == "model"
+                   for e in events):
+                return "l'enveloppe mensuelle du modèle demandé est atteinte"
             return "le plafond du budget cloud est atteint"
         if decisions & {"upstream_error", "upstream_unreachable"}:
             return "le fournisseur cloud est indisponible"

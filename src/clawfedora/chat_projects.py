@@ -658,7 +658,9 @@ def run_command(
         import time
 
         from clawfedora.cloud_budget import BudgetRefused, load_ledger, month_key
-        from clawfedora.cloud_profiles import chosen_profile, chosen_upstream_model
+        from clawfedora.cloud_profiles import (
+            chosen_profile, chosen_routing_mode, chosen_upstream_model,
+        )
         from clawfedora.core_config import core_contract
 
         try:
@@ -672,6 +674,12 @@ def run_command(
             policy = core_contract(repo_root, "cloud_policy.yaml")
             profile_name, profile = chosen_profile(runtime, policy)
             model_name, model = chosen_upstream_model(runtime, policy)
+            mode = chosen_routing_mode(runtime, policy)
+            spend = ledger.model_spend(report.month)
+            envelopes = "\n".join(
+                f"- {identifier} : {spend.get(identifier, 0.0):.2f} / {cap:.2f} €"
+                for identifier, cap in ledger.model_caps_eur.items()
+            )
         except (OSError, ValueError, KeyError, BudgetRefused):
             return bridge_reply(
                 current,
@@ -690,9 +698,11 @@ def run_command(
             f"- Appels terminés : {report.calls_ok}, incertains : "
             f"{report.calls_uncertain}, réservations non réglées : {report.pending}\n"
             f"- Niveau : **{level}**\n"
-            f"- Profil cloud : **{profile_name}** (effort {profile['effort']}, "
+            f"- Routage : **{mode}**\n"
+            f"{envelopes}\n"
+            f"- Profil manuel : **{profile_name}** (effort {profile['effort']}, "
             f"sortie max {profile['max_output_tokens']} tokens)\n"
-            f"- Modèle cloud : **{model_name}** ({model['display_name']}, plafond "
+            f"- Modèle manuel : **{model_name}** ({model['display_name']}, plafond "
             f"{model['pricing_usd_per_million']['input']} $ / "
             f"{model['pricing_usd_per_million']['output']} $ par million de tokens)\n\n"
             "**Attention :** montant estimé localement et rapproché des relevés saisis, "

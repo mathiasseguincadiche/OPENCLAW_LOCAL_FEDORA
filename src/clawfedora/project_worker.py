@@ -18,6 +18,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
+from clawfedora.cloud_routing import Route, agent_route, automatic_routes
 from clawfedora.core_config import (
     AGENT_IDS,
     CLOUD_PROVIDER_ID,
@@ -30,7 +31,7 @@ from clawfedora.core_config import (
 from clawfedora.knowledge import build_index, search
 from clawfedora.learning import awaiting, instructions, pending_feedback, stage, task_mode
 from clawfedora.mentor import copy_profile
-from clawfedora.project_cloud import CloudPause, consent_state, project_runner
+from clawfedora.project_cloud import CloudPause, ProjectRunner, consent_state, project_runner
 from clawfedora.project_common import (
     assert_no_symlinks,
     read_json,
@@ -135,7 +136,7 @@ def _verify_cloud_config(
     listed = provider.get("models")
     if not isinstance(listed, list) or [
         item.get("id") for item in listed if isinstance(item, dict)
-    ] != [cloud["model"]["upstream_id"]]:
+    ] != [cloud["model"]["upstream_id"], *automatic_routes(cloud)]:
         raise ValueError("modèle de la passerelle cloud divergent: route cloud refusée")
     # `config get` redacts the reference name but keeps its shape: an environment reference is
     # an object, a literal credential would be a plain string.
@@ -146,16 +147,17 @@ def _verify_cloud_config(
         and key.get("id") in {CLOUD_TOKEN_ENV, "__OPENCLAW_REDACTED__"}
     ):
         raise ValueError("la passerelle cloud ne doit référencer que le jeton local (jeton local)")
-    from clawfedora.openclaw_config import cloud_model_ref
+    from clawfedora.openclaw_config import cloud_model_refs
 
     defaults = agents.get("defaults")
     allowed = defaults.get("modelPolicy", {}).get("allow") if isinstance(defaults, dict) else None
-    if not isinstance(allowed, list) or cloud_model_ref(cloud) not in allowed:
+    if not isinstance(allowed, list) or not set(cloud_model_refs(cloud)).issubset(allowed):
         raise ValueError("liste d'autorisation des modèles divergente: route cloud refusée")
 
 
 def _record_model_run(
-    runtime: Path, session: str, role: str, route: str, envelope: dict[str, Any]
+    runtime: Path, session: str, role: str, route: str, envelope: dict[str, Any],
+    decision: Route | None = None,
 ) -> dict[str, Any]:
     """Keep which model really answered. No content is stored."""
     result = envelope.get("result")
@@ -175,6 +177,12 @@ def _record_model_run(
         },
         "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
+    if decision is not None:
+        record.update(
+            upstream_requested=str(decision.upstream["upstream_id"]),
+            reasoning_profile=decision.profile_name,
+            routing_reason=decision.reason,
+        )
     name = re.sub(r"[^A-Za-z0-9_.-]", "_", session)[:120] or "session"
     write_json(runtime / "state/model-runs" / f"{name}.json", record)
     return record
@@ -188,13 +196,15 @@ def openclaw_runner(
     roster_stamp: tuple[int, int] | None = None
     cloud_stamp: tuple[int, int] | None = None
 
-    def run(role: str, prompt: str, session: str, *, route: str = "local") -> dict[str, Any]:
+    def run(
+        role: str, prompt: str, session: str, *, route: str = "local",
+        escalation_reason: str = "routine",
+    ) -> dict[str, Any]:
         nonlocal checked_binary, roster_stamp, cloud_stamp
         from clawfedora import ollama_api
         from clawfedora.cloud_state import require_cloud_ready
         from clawfedora.lifecycle import model_plan
         from clawfedora.model_identity import verify_model_lock
-        from clawfedora.openclaw_config import cloud_model_ref
         from clawfedora.version_lock import extract_openclaw_version
 
         if route not in ROUTES:
@@ -204,9 +214,13 @@ def openclaw_runner(
         if preflight_only and route != "local":
             raise ValueError("prévalidation SSE réservée au modèle local")
         cloud = route == "cloud"
+        decision: Route | None = None
         if cloud:
             # Cheapest check first: no process starts unless filter and budget are verified.
             require_cloud_ready(runtime, repo_root)
+            decision = agent_route(
+                runtime, core_contract(repo_root, "cloud_policy.yaml"), role, escalation_reason,
+            )
         env = openclaw_environment(runtime)
         # Versions are rechecked when the CLI binary changes, not on every message:
         # each check is a full process start.
@@ -308,7 +322,9 @@ def openclaw_runner(
         # checks before an HTTP SSE turn. No CLI agent inference is launched.
         if preflight_only:
             return {"text": "", "route": "local"}
-        model_args = ["--model", cloud_model_ref(core_contract(repo_root, "cloud_policy.yaml"))]
+        model_args = (
+            ["--model", f"{CLOUD_PROVIDER_ID}/{decision.model_id}"] if decision else []
+        )
         completed = subprocess.run(
             [
                 "openclaw",
@@ -319,7 +335,7 @@ def openclaw_runner(
                 session,
                 "--message",
                 prompt,
-                *(model_args if cloud else []),
+                *model_args,
                 "--json",
                 "--timeout",
                 "600",
@@ -335,15 +351,20 @@ def openclaw_runner(
         envelope = json.loads(completed.stdout)
         from clawfedora.openclaw_reply import assert_agent_success, visible_text
 
-        if cloud:
-            upstream = str(core_contract(repo_root, "cloud_policy.yaml")["model"]["upstream_id"])
-            assert_agent_success(envelope, CLOUD_PROVIDER_ID, upstream)
+        if decision is not None:
+            assert_agent_success(envelope, CLOUD_PROVIDER_ID, decision.model_id)
         else:
             assert_agent_success(envelope, "ollama")
-        _record_model_run(runtime, session, role, route, envelope)
+        _record_model_run(runtime, session, role, route, envelope, decision)
         text = visible_text(envelope)
         if plain_text:
-            return {"text": text, "route": route}
+            answer = {"text": text, "route": route}
+            if decision is not None:
+                answer.update(
+                    cloud_model=str(decision.upstream["display_name"]),
+                    cloud_profile=decision.profile_name,
+                )
+            return answer
         schema = response_schema(prompt)
         try:
             value = parse_response(text, schema)
@@ -758,6 +779,10 @@ def run_project_tasks(
             receipts_before = _tool_receipts(workspace)
             if hasattr(invoke, "task"):
                 invoke.task = task_id
+            if isinstance(invoke, ProjectRunner):
+                invoke.escalation_reason = (
+                    "approved_revision" if assignment.get("revision_reason") else "routine"
+                )
             try:
                 response = invoke(role, prompt, session)
                 observed = _guard(snapshot)
@@ -892,7 +917,10 @@ def review_project(
             + json.dumps(criteria, ensure_ascii=False)
         )
         write_progress(runtime, project, "reviewing", role=role, session=session)
-        response = (runner or project_runner(repo_root, runtime, project))(role, prompt, session)
+        invoke = runner or project_runner(repo_root, runtime, project)
+        if isinstance(invoke, ProjectRunner):
+            invoke.escalation_reason = "final_review" if kind == "review" else "routine"
+        response = invoke(role, prompt, session)
         if _guard(snapshot) != guard or _guard(project) != central_guard:
             raise ValueError("Workspace Guard: modification pendant l'audit")
         validate_response(response, response_schema(prompt))

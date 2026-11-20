@@ -24,6 +24,7 @@ from clawfedora.cloud_activation import (
 from clawfedora.cloud_budget import BudgetRefused, load_ledger, month_key
 from clawfedora.cloud_profiles import (
     chosen_profile,
+    chosen_routing_mode,
     chosen_upstream_model,
     profiles,
     require_compatible,
@@ -55,6 +56,13 @@ def budget_lines(root: Path, runtime: Path) -> list[str]:
     ]
     if summary.billed_eur:
         lines.append(f"CLOUD_INVOICE declared_eur={summary.billed_eur:.2f}")
+    spending = ledger.model_spend(summary.month)
+    for model, cap in sorted(ledger.model_caps_eur.items()):
+        used = spending.get(model, 0.0)
+        lines.append(
+            f"CLOUD_MODEL_BUDGET id={model} spent_eur={used:.2f} "
+            f"cap_eur={cap:.2f} remaining_eur={max(0.0, cap - used):.2f}"
+        )
     for model, row in sorted(ledger.model_usage(summary.month).items()):
         fields = " ".join(
             f"{key}={value} {key}_reported_calls={row['reported'][key]}"
@@ -85,6 +93,8 @@ def _status(root: Path, runtime: Path) -> int:
         model_name, model = chosen_upstream_model(
             runtime, core_contract(root, "cloud_policy.yaml")
         )
+        mode = chosen_routing_mode(runtime, core_contract(root, "cloud_policy.yaml"))
+        print(f"CLOUD_ROUTING_MODE mode={mode}")
         print(f"CLOUD_MODEL name={model_name} id={model['upstream_id']}")
         for line in budget_lines(root, runtime):
             print(line)
@@ -112,7 +122,7 @@ def build_parser() -> argparse.ArgumentParser:
     commands.add_parser("profile")
     commands.add_parser("model")
     model = commands.add_parser("set-model")
-    model.add_argument("--name", required=True, choices=("standard", "expert"))
+    model.add_argument("--name", required=True, choices=("auto", "standard", "expert"))
     model.add_argument("--apply", action="store_true")
     profile = commands.add_parser("set-profile")
     profile.add_argument(
@@ -165,16 +175,19 @@ def main(argv: list[str] | None = None) -> int:
                     f"max_usd_per_million={price['input']}/{price['output']}"
                 )
             name, spec = chosen_upstream_model(runtime, policy)
+            print(f"CLOUD_ROUTING_MODE mode={chosen_routing_mode(runtime, policy)}")
             print(f"CLOUD_MODEL name={name} id={spec['upstream_id']} ({spec['display_name']})")
             return 0
         if args.command == "set-model":
             policy = core_contract(root, "cloud_policy.yaml")
-            candidate = upstream_models(policy).get(args.name)
+            selected = policy["default_upstream_model"] if args.name == "auto" else args.name
+            candidate = upstream_models(policy).get(selected)
             if candidate is None:
                 raise ValueError("modèle inconnu")
             # A model that refuses the current effort is reported now, not at the first call.
             profile_name, profile = chosen_profile(runtime, policy)
-            require_compatible(args.name, candidate, profile_name, profile)
+            if args.name != "auto":
+                require_compatible(args.name, candidate, profile_name, profile)
             price = candidate["pricing_usd_per_million"]
             if not args.apply:
                 print(

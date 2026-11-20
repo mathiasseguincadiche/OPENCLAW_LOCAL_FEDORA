@@ -121,7 +121,7 @@ Les retours vers `IN_PROGRESS` sont des corrections, pas une validation forcée.
 
 La route DeepSeek n'a pas été ajoutée pour « afficher un modèle supplémentaire ». Elle est prévue pour les analyses d'architecture, les revues multi-fichiers, les raisonnements longs et les vérifications complexes **lorsque les données peuvent sortir et que le coût est justifié**.
 
-**Le routage disponible aujourd'hui reste explicite :** choisir « · cloud » dans le chat, ou approuver l'accès cloud **au niveau du projet**. L'atelier n'effectue pas de classement automatique de la difficulté et n'attribue pas DeepSeek seulement au spécialiste qu'il estime le plus difficile.
+**Le routage disponible aujourd'hui reste explicite :** choisir « · cloud » dans le chat, ou approuver l'accès cloud **au niveau du projet**. L'atelier n'effectue pas de classement automatique de la difficulté. Après accord cloud, le mode `auto` utilise DeepSeek en routine et réserve Sol aux étapes d'expertise prévues, avec le profil adapté au rôle. L'opérateur peut aussi choisir explicitement le mode manuel.
 
 ```text
 OpenClaw → passerelle cloud locale :18892

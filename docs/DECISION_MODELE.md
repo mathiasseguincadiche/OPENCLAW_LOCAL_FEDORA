@@ -44,7 +44,7 @@ Un modèle local compact peut être suffisant pour comprendre un service Linux, 
 
 **DeepSeek V4.1 Flash est précisément la route de capacité choisie pour ces besoins.** La performance visée n'est pas « plus de tokens » mais **un résultat exploitable, bien expliqué, avec moins d'erreurs et de reprises**, sous réserve de mesures. Le tarif cloud n'est justifié que si le bénéfice en qualité/temps dépasse le coût **et** que les données peuvent être transmises.
 
-**Cette stratégie hybride n'est pas un routeur intelligent déjà implémenté.** Dans le chat, l'utilisateur sélectionne le modèle ; dans un projet, l'accord cloud couvre le projet et ses sources, pas un routage automatique par tâche. Les sept spécialistes restent identiques sur Qwen ou DeepSeek. Une estimation de « difficulté » par rôle sans accord cloud n'existe pas.
+**Le routage interne au cloud est déterministe.** Dans le chat, l'utilisateur choisit la route locale ou cloud ; dans un projet, l'accord cloud couvre le projet et ses sources. Après cet accord, le mode `auto` choisit DeepSeek pour la routine et l'expertise selon le rôle et l'étape approuvée. Les sept spécialistes conservent leurs outils. Aucune estimation de difficulté ni bascule locale-cloud autonome.
 
 → [Architecture hybride : scénarios, critères de décision et trajet détaillé](ARCHITECTURE_HYBRIDE.md).
 

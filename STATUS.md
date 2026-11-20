@@ -18,7 +18,7 @@
 | **Qwen local et contexte 8K–32K** | Implémenté | Inférence courte dans `quick-check` ; débit réel, VRAM et contexte optimal **À mesurer** |
 | **Open WebUI 0.12.3** | Implémenté et testé en simulation ou intégration partielle | Navigateur, boutons, fichiers et microphone **À faire** en réception réelle |
 | **Sept rôles et projets multiples** | Contrats et tests automatisés ; livrables scellés par les audits | Réponses réelles, interactivité et qualité comparée Gemini/DeepSeek **À mesurer**, sans note automatique |
-| **Cloud OpenRouter / DeepSeek et Sol** | Deux modèles revus au choix de l’opérateur ; filtre et budget testés en simulation | `standard` (V4.1 Flash 1017) par défaut et `expert` (GPT-6.2 Sol, [fiche cloud](docs/fiches/12-cloud.md)). Appel réel, fournisseur effectivement retenu, coût et facturation **À faire** avec accord. |
+| **Cloud OpenRouter / DeepSeek et Sol** | Routage cloud par rôle et étape approuvée, choix manuel conservé ; qualification réelle à faire | `auto` par défaut : `standard` (V4.1 Flash 1017) en routine et `expert` (GPT-6.2 Sol, [fiche cloud](docs/fiches/12-cloud.md)). Appel réel, fournisseur effectivement retenu, coût et facturation **À faire** avec accord. |
 | **Maintenance** | Désinstallation, purge, sauvegarde et réparation protégées | Arrêt vérifié avant suppression, purge sans perte partielle, maintenance refusée pendant une génération. Restauration du vrai état de l’installation **À faire**. |
 | **Parcours WebUI simplifié** | Implémenté ; réception Open WebUI Fedora à effectuer | Six raccourcis, choix du projet et activité locale ; voir [la prise en main](docs/fiches/03-discuter.md) |
 | **Documents ODT** | Export éditable et import textuel implémentés | Limites d’import [documentées](docs/fiches/06-fichiers-et-schemas.md) ; réception dans le navigateur Fedora à effectuer |
@@ -37,7 +37,7 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 | Open WebUI | `v0.12.3-slim`, image résolue par digest à l’installation |
 | Modèle local obligatoire | `qwen3.5:9b-q4_K_M` |
 | Route cloud facultative | `deepseek/deepseek-v4.1-flash-1017` par défaut ; `openai/gpt-6.2-sol` sur choix de l’opérateur, via OpenRouter |
-| Budget cloud | 35 €/mois, activation et consentement explicites ; plafonds de prix propres à chaque modèle |
+| Budget cloud | 35 €/mois, dont enveloppes de 15 € DeepSeek / 10 € Sol et 10 € non routables ; activation et consentement explicites |
 | Racine des données | `/data/IA/Openclaw/` sur le deuxième disque monté sous `/data` |
 
 **Sources canoniques :** [versions](config/runtime_versions.yaml), [modèles](config/model_catalog.yaml), [plateforme](config/platform.yaml), [stockage](config/storage.json), [politique WebUI](config/webui_policy.yaml) et [politique cloud](config/core/cloud_policy.yaml). Le verrou des versions de production Python est décrit [ici](docs/PYTHON_RUNTIME_LOCK.md). **Une version déclarée n’est pas la preuve de sa présence sur le PC.**
@@ -59,7 +59,7 @@ Les benchmarks poussés, les cycles de veille et reprise et les canaries (voix, 
 
 - **Une génération à la fois** : les projets sont persistants et indépendants, mais l’exécution GPU est partagée ; aucune file FIFO durable n’est garantie. Un traitement interrompu (délai dépassé, redémarrage) s’affiche en échec ou « interrompu », jamais « en cours » indéfiniment.
 - **Pas de déploiement autonome** : les agents produisent des propositions, scripts et documents ; l’utilisateur approuve et exécute les actions sensibles. Un livrable modifié après les audits ne peut pas être livré sans reprise approuvée.
-- **Cloud désactivé par défaut** ; aucune bascule cachée du local vers DeepSeek, ni entre les deux modèles cloud. Un accord cloud vise un seul projet et ne garantit pas qu’un contenu privé soit publiable. Une liste de termes sensibles illisible refuse le cloud.
+- **Cloud désactivé par défaut** ; aucune bascule cachée du local vers le cloud, ni escalade sur panne ou refus ; le choix interne au cloud suit les règles de rôle et d'étape. Un accord cloud vise un seul projet et ne garantit pas qu’un contenu privé soit publiable. Une liste de termes sensibles illisible refuse le cloud.
 - Les outils `web_search` et `web_fetch` peuvent accéder à Internet même en mode local ; un [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) est pilotable par `web-private --apply`, avec contrôle de la configuration enregistrée et du redémarrage du Gateway. L’absence réelle de trafic réseau reste à vérifier.
 - Le streaming SSE et la vision avancée sont disponibles sous **canary contrôlé**, ni activés ni qualifiés par défaut.
 - Le verrou Python fixe les versions et les hashes SHA-256 des artefacts de production ; le verrou npm SHA-512 est appliqué par `npm ci`, avec les correctifs imposés contrôlés. Les **21 dépendances de voix** sont aussi épinglées par versions et SHA-256 ; leur installation sous Fedora 45/Python 3.13 est vérifiée en CI. L'outil de construction setuptools (84.2.1, le paquet `wheel` n'étant plus nécessaire) est fixé par SHA-256 ; le runtime refuse les distributions sources et toute isolation PEP 517 non verrouillée. Les RPM Fedora et les extras de développement restent hors de ce verrou. Voir [les limites de reproductibilité](docs/PYTHON_RUNTIME_LOCK.md).
