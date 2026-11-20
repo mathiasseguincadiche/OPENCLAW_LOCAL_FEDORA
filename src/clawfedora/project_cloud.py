@@ -32,13 +32,13 @@ from clawfedora.project_control import cloud_pause_path
 
 PROJECT_CLOUD = "state/project-cloud"
 CONSENT_TEXT = (
-    "Ce projet enverra au cloud (DeepSeek via OpenRouter : V4.1 Flash, ou V4 Pro si vous le "
+    "Ce projet enverra au cloud (DeepSeek V4.1 Flash ou GPT-6.2 Sol via OpenRouter si vous le "
     "choisissez avec cloud-set-model, par la passerelle locale) ses "
     "consignes, les extraits de sources lus par les agents et les résultats d'outils, après "
     "filtrage des secrets. Le filtre reconnaît les identifiants, mots de passe et clés ; il ne "
     "reconnaît pas un contenu confidentiel qui n'en a pas l'allure (nom de serveur interne, "
     "configuration d'un employeur). N'approuvez que des sources qui peuvent quitter cet "
-    "ordinateur. Le plafond mensuel de 25 € s'applique. Si un envoi est bloqué ou impossible, "
+    "ordinateur. Le plafond mensuel de 35 € s'applique. Si un envoi est bloqué ou impossible, "
     "le projet se met en pause : il ne repasse jamais en local sans votre décision."
 )
 RUN_LOG_TAIL = 500

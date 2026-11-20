@@ -107,7 +107,7 @@ def test_a_key_with_open_permissions_is_refused(runtime: Path) -> None:
     assert "clé du fournisseur" in failed(checks) and not activated
 
 
-@pytest.mark.parametrize("limit", [None, 0.0, -5.0, 19.24, 25.0, 100.0])
+@pytest.mark.parametrize("limit", [None, 0.0, -5.0, 26.93, 35.0, 100.0])
 def test_a_key_limit_above_the_cap_converted_to_dollars_is_refused(
     runtime: Path, limit: float | None
 ) -> None:
@@ -118,7 +118,7 @@ def test_a_key_limit_above_the_cap_converted_to_dollars_is_refused(
 
 def test_the_highest_acceptable_key_limit_is_the_cap_over_the_factor(runtime: Path) -> None:
     activation.set_key(ROOT, runtime, KEY)
-    checks, _ = enable(runtime, key_limit_usd=19.2)
+    checks, _ = enable(runtime, key_limit_usd=26.92)
     assert not failed(checks)
 
 
@@ -296,10 +296,10 @@ def test_the_command_line_refuses_to_enable_when_a_check_fails(
 def test_reconciling_with_the_invoice_can_exhaust_the_month(
     runtime: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    assert run(runtime, "reconcile", "--eur", "21") == 0
+    assert run(runtime, "reconcile", "--eur", "29") == 0
     out = capsys.readouterr().out
-    assert "spent_eur=21.00" in out and "level=warning" in out
-    assert run(runtime, "reconcile", "--eur", "25.5") == 0
+    assert "spent_eur=29.00" in out and "level=warning" in out
+    assert run(runtime, "reconcile", "--eur", "35.5") == 0
     assert "level=exhausted" in capsys.readouterr().out
     assert run(runtime, "reconcile", "--eur", "-1") == 2
 

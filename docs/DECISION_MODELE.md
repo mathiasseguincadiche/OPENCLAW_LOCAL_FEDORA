@@ -6,7 +6,7 @@
 
 Décision initiale du **10 octobre 2026**, instantané épinglé actualisé le **20 octobre 2026**. Elle remplace le choix GLM-5.3 Flash fait la veille, sans changer l'architecture de sécurité : le local reste le choix par défaut, le cloud reste facultatif et passe toujours par la passerelle locale.
 
-**Instantané retenu :** `deepseek/deepseek-v4.1-flash-1017` (17 octobre 2026), [référencé sur OpenRouter](https://openrouter.ai/deepseek/deepseek-v4.1-flash-1017). Même architecture, pas de troisième IA, mêmes protections et 25 €/mois au maximum. La qualité pédagogique et la facturation réelles restent à évaluer.
+**Instantané retenu :** `deepseek/deepseek-v4.1-flash-1017` (17 octobre 2026), [référencé sur OpenRouter](https://openrouter.ai/deepseek/deepseek-v4.1-flash-1017). Deux modèles cloud, Flash et GPT-6.2 Sol, mêmes protections et 35 €/mois au maximum ; Ollama reste indépendant. La qualité pédagogique et la facturation réelles restent à évaluer.
 
 ## La question
 
@@ -17,10 +17,10 @@ Pour apprendre le DevOps, relire un dépôt, raisonner sur une architecture et p
 | Critère | Qwen 3.5 9B (local) | DeepSeek V4.1 Flash (cloud) |
 |---|---|---|
 | Confidentialité | Les conversations restent sur le PC, hors recherche Web demandée. | Le contenu autorisé passe par OpenRouter après filtrage local. |
-| Coût marginal | Pas de coût API. | Facturé à l'usage, avec plafond local de 25 € par mois. |
+| Coût marginal | Pas de coût API. | Facturé à l'usage, avec plafond local de 35 € par mois. |
 | Capacité | Modèle compact adapté au quotidien, à la rédaction et aux petites tâches. | Modèle beaucoup plus grand, conçu pour le code, les outils et les tâches agentiques longues. |
 | Outils | Pris en charge par OpenClaw. | Pris en charge par le modèle et par OpenRouter. |
-| Contexte utilisé par ce projet | 32 768 tokens et sortie maximale de 4 096 tokens. | 1 048 576 tokens déclarés, sortie maximale de 32 768 tokens, raisonnement `xhigh` imposé par la passerelle. |
+| Contexte utilisé par ce projet | 32 768 tokens et sortie maximale de 4 096 tokens. | 1 048 576 tokens déclarés, sortie maximale de 32 768 tokens, raisonnement `medium` par défaut imposé par la passerelle. |
 | Images dans ce projet | Autorisées en local. | **Interdites pour l'instant**, même si le modèle les accepte : le filtre de confidentialité ne sait pas inspecter une image. |
 
 Les scores ci-dessous concernaient la famille V4.1 Flash : ils ne prouvent pas un gain propre à 1017. DeepSeek annonce pour V4.1 Flash notamment **90,6 sur Terminal-Bench 2.1**, **74,2 sur DeepSWE v1.1** et **65,4 sur NL2Repo-Bench**. Ce sont des indicateurs intéressants pour un atelier DevOps et des agents de code, mais ils ne prouvent pas qu'il enseigne mieux à un débutant.
@@ -52,7 +52,7 @@ Un modèle local compact peut être suffisant pour comprendre un service Linux, 
 
 Les consignes communes ont été renforcées : réponse directe, explication du mécanisme, exemple Linux/OPS concis et vérification pertinente. Une question simple ne déclenche ni quiz obligatoire ni les sept agents. Comparer la pédagogie sur les mêmes scénarios avant de changer de fournisseur.
 
-`approfondi` (xhigh, plafond 32768 tokens de sortie) reste la configuration par défaut pour ne pas changer silencieusement le comportement. L'opérateur peut **choisir** `equilibre` (medium, 8192 tokens au maximum) pour des questions cloud courantes avec `./menu.sh --action cloud-set-profile --value equilibre --apply`. Cette sélection n'est ni automatique ni imposée à un rôle. Un plafond de sortie n'est pas une consommation fixe.
+`equilibre` (medium, plafond 8192 tokens de sortie) devient le défaut sobre ; `approfondi` reste un choix explicite (xhigh, 32768). L'opérateur peut **choisir** `equilibre` (medium, 8192 tokens au maximum) pour des questions cloud courantes avec `./menu.sh --action cloud-set-profile --value equilibre --apply`. Cette sélection n'est ni automatique ni imposée à un rôle. Un plafond de sortie n'est pas une consommation fixe.
 
 Les valeurs **0,25 $ en entrée et 0,75 $ en sortie par million** restent des *plafonds de sécurité*, non des tarifs garantis : un fournisseur refusant `data_collection: deny`, `require_parameters`, le raisonnement demandé ou les limites tarifaires doit provoquer un refus explicite. Vérification live requise avant d'annoncer la migration comme qualifiée.
 
@@ -92,7 +92,7 @@ Le filtre actuel travaille sur le contenu textuel de la requête. Une capture d'
 Le projet est volontairement préparé pour que ce passage reste petit :
 
 - les sept rôles utilisent l'alias logique `cloud-main`, pas un nom de modèle codé dans leurs prompts ;
-- l'interface affiche « cloud (DeepSeek) », pas « Flash » ;
+- l'interface affiche « cloud », pas « Flash » ;
 - le consentement utilise un scope générique `cloud-deepseek` ;
 - le modèle réel reste épinglé dans la politique centrale ;
 - le texte de consentement est haché : changer de modèle force naturellement à renouveler l'accord d'un projet.

@@ -681,7 +681,7 @@ def run_command(
         level = report.level(ledger.alert_ratio)
         return bridge_reply(
             current,
-            f"**Budget DeepSeek — {report.month} (UTC)**\n\n"
+            f"**Budget cloud — {report.month} (UTC)**\n\n"
             f"- Plafond : **{report.cap_eur:.2f} €**\n"
             f"- Total conservateur engagé ou facturé : **{report.effective_eur:.2f} €**\n"
             f"- Reste selon ce journal : **{report.remaining_eur:.2f} €**\n"
@@ -690,7 +690,7 @@ def run_command(
             f"- Appels terminés : {report.calls_ok}, incertains : "
             f"{report.calls_uncertain}, réservations non réglées : {report.pending}\n"
             f"- Niveau : **{level}**\n"
-            f"- Profil DeepSeek : **{profile_name}** (effort {profile['effort']}, "
+            f"- Profil cloud : **{profile_name}** (effort {profile['effort']}, "
             f"sortie max {profile['max_output_tokens']} tokens)\n"
             f"- Modèle cloud : **{model_name}** ({model['display_name']}, plafond "
             f"{model['pricing_usd_per_million']['input']} $ / "

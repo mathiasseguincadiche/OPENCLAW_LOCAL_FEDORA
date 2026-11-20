@@ -1,6 +1,6 @@
 """Monthly budget of the cloud route: reserve before every call, settle after, never undercount.
 
-The user's real limit is 25 euros actually paid per month. Three independent layers hold it:
+The user's real limit is 35 euros actually paid per month. Three independent layers hold it:
 prepaid credits (the real purchase ceiling), the key limit at the provider, and this ledger.
 The ledger counts in euros with a pessimistic factor for exchange rate, credit-purchase fees and
 VAT, and can be reconciled with what was really invoiced.

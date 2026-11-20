@@ -62,7 +62,7 @@ Par défaut, un projet travaille en local. Si tu as activé le cloud ([Le cloud,
 
 - L'accord couvre tout le projet (cadrage, plan, tâches, audits) et est lié à ses sources : si elles changent, il faut approuver à nouveau.
 - Si une étape cloud ne peut pas s'exécuter (filtre, plafond, fournisseur, passerelle arrêtée), **le projet se met en pause** et la raison s'affiche sur sa carte. Rien n'est refait en local sans ta décision : pour poursuivre en local, clique **Retirer l'accord cloud**, puis **Reprendre**.
-- Chaque projet montre le dernier modèle utilisé, le nombre d'appels cloud et un coût estimé ; le pied de page montre la dépense du mois sur 25 €.
+- Chaque projet montre le dernier modèle utilisé, le nombre d'appels cloud et un coût estimé ; le pied de page montre la dépense du mois sur 35 €.
 - En ligne de commande : `clawfedora project cloud-status`, `cloud-approve --acknowledge`, `cloud-revoke`. Un `run` ou un `resume` interrompu par une pause rend le code de sortie 3.
 
 ## Chercher dans tes documents

@@ -125,7 +125,7 @@ bash scripts/linux/14_cloud.sh status
 
 Un appel réel doit faire l'objet d'un accord spécifique, d'une limite de clé
 chez OpenRouter, d'un compte prépayé **sans recharge automatique**, puis d'un
-contrôle de la facturation dans le plafond de 25 €/mois. Aucun contenu privé
+contrôle de la facturation dans le plafond de 35 €/mois. Aucun contenu privé
 n'est transmis sans consentement.
 
 ## 7. Sauvegarde et restauration

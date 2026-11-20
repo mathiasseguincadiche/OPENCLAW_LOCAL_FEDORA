@@ -109,7 +109,7 @@ et la passerelle de confidentialité/budget restent obligatoires.
 
 Tape `!budget`, ou ouvre **Sources, modèles et aide → Consulter le budget DeepSeek**. Le pont lit le journal
 local des réservations et relevés déjà enregistrés : **montant engagé prudent,
-plafond de 25 €, reste estimé et nombre d'appels incertains**. Ce n'est pas la
+plafond de 35 €, reste estimé et nombre d'appels incertains**. Ce n'est pas la
 facture OpenRouter en temps réel : les crédits prépayés, la limite de clé et
 le rapprochement des factures restent indispensables.
 
@@ -123,7 +123,7 @@ pont refuse la consultation sans produire de montant trompeur.
 
 Les outils des rôles et leurs limites exactes sont expliqués dans la [fiche détaillée](07-roles-et-outils.md).
 
-Le sélecteur de modèle en haut de la page liste les sept rôles. Tous utilisent le même Qwen : choisir un rôle change les consignes et les outils, pas le modèle. Si tu as activé le cloud, chaque rôle apparaît aussi en « · cloud (DeepSeek) » : voir plus bas.
+Le sélecteur de modèle en haut de la page liste les sept rôles. Tous utilisent le même Qwen : choisir un rôle change les consignes et les outils, pas le modèle. Si tu as activé le cloud, chaque rôle apparaît aussi en « · cloud » : voir plus bas.
 
 | Tu veux | Choisis |
 |---|---|
@@ -144,9 +144,9 @@ Le cloud est facultatif et désactivé tant que tu ne l'as pas activé ([Le clou
 | Modèle | Mode | À utiliser pour |
 |---|---|---|
 | « … · local » | **Travail** : Qwen sur ton PC, aucun contenu de la conversation ne part vers un modèle distant | tout ce qui est interne, professionnel ou incertain |
-| « … · cloud (DeepSeek) » | **Apprendre** : DeepSeek V4.1 Flash par OpenRouter | des questions publiques, sans secret |
+| « … · cloud » | **Apprendre** : DeepSeek V4.1 Flash par OpenRouter | des questions publiques, sans secret |
 
-Le choix par défaut reste local. Une réponse cloud porte un bandeau « ☁️ Réponse du modèle cloud ». Si le filtre détecte un secret dans ton message, l'historique ou un résultat d'outil, rien ne part : la conversation passe en local (« 🔒 Conversation passée en local ») et le reste du fil y reste. Si le plafond de 25 € est atteint ou si le fournisseur est indisponible, la réponse vient du local avec un bandeau « 💻 ».
+Le choix par défaut reste local. Une réponse cloud porte un bandeau « ☁️ Réponse du modèle cloud ». Si le filtre détecte un secret dans ton message, l'historique ou un résultat d'outil, rien ne part : la conversation passe en local (« 🔒 Conversation passée en local ») et le reste du fil y reste. Si le plafond de 35 € est atteint ou si le fournisseur est indisponible, la réponse vient du local avec un bandeau « 💻 ».
 
 Le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allure : en cas de doute, choisis « local ».
 

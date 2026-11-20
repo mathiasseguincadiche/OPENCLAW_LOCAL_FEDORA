@@ -213,7 +213,7 @@ def _check_runner(runtime: Path) -> None:
             ):
                 _fail(
                     "politique DeepSeek non appliquée : confidentialité, prix plafond, "
-                    f"débit ou effort xhigh absent ; clés={sorted(sent)}"
+                    f"débit ou effort contractuel absent ; clés={sorted(sent)}"
                 )
             if sent["max_tokens"] > int(cloud["model"]["max_output_tokens"]):
                 _fail("la sortie doit être bornée par la politique")

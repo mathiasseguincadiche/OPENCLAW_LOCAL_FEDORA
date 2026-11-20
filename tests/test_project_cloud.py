@@ -242,7 +242,7 @@ def test_exhausted_budget_pauses_before_calling_anything(
 ) -> None:
     runtime, project, base = workshop
     approve(runtime, project)
-    load_ledger(runtime, ROOT).record_invoice(25.0)
+    load_ledger(runtime, ROOT).record_invoice(35.0)
     results = run(runtime, project, base)
     assert results[0]["code"] == "budget_refused" and base.routes == []
 
@@ -340,11 +340,11 @@ def test_the_overview_reports_cloud_state_and_budget(
     assert project_cloud.overview(ROOT, runtime) == {
         "ready": False, "reason": "cloud non activé"}
     activate(runtime)
-    load_ledger(runtime, ROOT).record_invoice(21.0)
+    load_ledger(runtime, ROOT).record_invoice(29.0)
     overview = project_cloud.overview(ROOT, runtime)
     assert overview["ready"] is True
-    assert overview["budget"]["spent_eur"] == 21.0 and overview["budget"]["level"] == "warning"
-    assert overview["budget"]["remaining_eur"] == 4.0
+    assert overview["budget"]["spent_eur"] == 29.0 and overview["budget"]["level"] == "warning"
+    assert overview["budget"]["remaining_eur"] == 6.0
 
 
 def test_the_command_line_shows_requires_acknowledgement_and_revokes(

@@ -32,7 +32,7 @@ au chef (11743 mesurés sur le zip brut, soit 257 de marge). La fusion est donc 
 | Étiquettes OBSERVÉ / VÉRIFIÉ / PROPOSÉ / NON VÉRIFIÉ, portée de `terraform validate`, idempotence Ansible | Ajouté au CONTRACT (règle 4) |
 | Fraîcheur des sources (30 jours, version visée, sources secondaires non normatives) | Repris (règle 18) ; seules des URL réellement renvoyées par un outil sont citables |
 | Ne jamais recopier un secret rencontré | Ajouté (règle 9) |
-| Mentions du routeur cloud, du budget de 25 € et du middleware comme s'ils existaient | **Non reprises** : les prompts restent vrais quel que soit le modèle (règles 5 et 20). Un test interdit « Qwen », « OpenRouter », « GLM », « DeepSeek » dans les consignes. |
+| Mentions du routeur cloud, du budget de 35 € et du middleware comme s'ils existaient | **Non reprises** : les prompts restent vrais quel que soit le modèle (règles 5 et 20). Un test interdit « Qwen », « OpenRouter », « GLM », « DeepSeek » dans les consignes. |
 | `IDENTITY.md`, `SOUL.md`, `HEARTBEAT.md` | Repris tels quels |
 | Méthode détaillée de chaque rôle | Reprise, sans les paragraphes « contrat technique » répétés dans chaque rôle (factorisés dans `TOOLS.md` et `CONTRACT.md`) |
 | Suivi de compétences, révisions espacées, laboratoire, Skills | Hors périmètre de ce lot (voir `archives/2026/PLAN_MIGRATION_HYBRIDE.md`) ; les consignes disent qu'aucun rappel ni mémoire automatique n'existe |
@@ -82,7 +82,7 @@ Les consignes communes renforcent la réponse utile et l'exemple **court, concre
 
 **Qualification à faire avec des appels réels :** utiliser les mêmes demandes publiques sur les deux routes, par exemple : expliquer `terraform plan` versus `apply`, diagnostiquer un journal GitHub Actions synthétique, relier Ansible à une VM Rocky Linux, décrire un rollback et le rôle des secrets. Comparer exactitude, clarté, exemples, vérifications, nombre de tours, tokens et coût. La grille par rôle existante reste dans la suite d'évaluation du dépôt. Ces mesures ne sont **pas encore réalisées** sur Fedora.
 
-Pour économiser des tokens cloud, l'opérateur peut choisir **manuellement** `equilibre` (medium / 8192 tokens de sortie maximum), après installation : `./menu.sh --action cloud-set-profile --value equilibre --apply`. `approfondi` (xhigh / 32768) reste le défaut historique et se réactive sur les incidents difficiles. Il s'agit de plafonds, pas de budgets consommés automatiquement. Les vérifications restent obligatoires même lorsqu'on cherche une réponse concise.
+Pour économiser des tokens cloud, l'opérateur peut choisir **manuellement** `equilibre` (medium / 8192 tokens de sortie maximum), après installation : `./menu.sh --action cloud-set-profile --value equilibre --apply`. `equilibre` devient le défaut ; `soutenu` (high / 16384) et `approfondi` (xhigh / 32768) restent des choix explicites pour les incidents difficiles. Il s'agit de plafonds, pas de budgets consommés automatiquement. Les vérifications restent obligatoires même lorsqu'on cherche une réponse concise.
 
 ## Liberté pédagogique
 

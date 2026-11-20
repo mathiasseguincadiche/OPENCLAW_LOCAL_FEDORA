@@ -12,8 +12,8 @@ Tant que tu n'as rien activé, rien de cette fiche ne s'applique : aucune conver
 
 ## Voir le budget depuis Open WebUI
 
-`!budget` et le raccourci **Budget DeepSeek** affichent une synthèse locale :
-montant engagé ou rapproché, reste sur **25 €/mois**, appels incertains et
+`!budget` et le raccourci **Budget cloud** affichent une synthèse locale :
+montant engagé ou rapproché, reste sur **35 €/mois**, appels incertains et
 réservations en attente. Il s'agit du **journal du pont**, pas de la facture
 OpenRouter en direct. Aucun appel à DeepSeek ne sert à produire ce rapport.
 En cas de journal manquant ou invalide, le système refuse le rapport au lieu
@@ -32,7 +32,7 @@ La route DeepSeek est volontairement plus généreuse en contexte (jusqu'à **1 
 | Où | Comportement |
 |---|---|
 | Chat, modèle « · local » | Qwen sur ton PC. Aucun contenu de la conversation ne part vers un modèle distant. C'est le mode **Travail**. |
-| Chat, modèle « · cloud (DeepSeek) » | DeepSeek via la passerelle. C'est le mode **Apprendre**, pour des questions publiques. |
+| Chat, modèle « · cloud » | DeepSeek via la passerelle. C'est le mode **Apprendre**, pour des questions publiques. |
 | Atelier Projets | Local, sauf pour un projet que tu autorises toi-même, un par un. |
 
 Rien ne passe au cloud sans que tu l'aies choisi : ni une conversation, ni un projet. Rien ne repasse non plus du local vers le cloud tout seul.
@@ -66,7 +66,7 @@ DeepSeek V4.1 Flash est appelé via OpenRouter. La passerelle impose `data_colle
 
 **Instantané 1017 :** l'identité épinglée est `deepseek/deepseek-v4.1-flash-1017` (17 octobre 2026). Les prix 0,25 $ / 0,75 $ par million de tokens représentent les **plafonds de sécurité**, pas un prix garanti. Au premier appel réel, vérifier l'endpoint, le raisonnement et le coût, sans relâcher `data_collection: deny` ou `require_parameters` pour contourner un refus.
 
-## Le budget : 25 € réels par mois
+## Le budget : 35 € réels par mois
 
 Trois protections indépendantes :
 
@@ -76,7 +76,7 @@ Trois protections indépendantes :
 | **Limite posée sur la clé** | OpenRouter coupe la clé quand elle est atteinte | toi, chez OpenRouter |
 | **Journal local** | Refuse un appel qui dépasserait le plafond et compte chaque appel | la passerelle |
 
-**Pourquoi la limite de la clé est en dollars.** Ton plafond est de 25 € payés, mais OpenRouter compte en dollars. Un dollar de consommation coûte plus d'un euro une fois le change, les frais d'achat de crédits et la TVA ajoutés. Le journal applique un facteur prudent de **1,3 € par dollar** (`eur_per_usd` dans `config/core/cloud_policy.yaml`). Donc : 25 € ÷ 1,3 ≈ **19,2 $** au maximum sur la clé, et la commande d'activation refuse une limite plus haute. **12 $** est la valeur conseillée : environ 15,6 €, avec de la marge pour un usage estimé à 6-10 $ par mois.
+**Pourquoi la limite de la clé est en dollars.** Ton plafond est de 35 € payés, mais OpenRouter compte en dollars. Un dollar de consommation coûte plus d'un euro une fois le change, les frais d'achat de crédits et la TVA ajoutés. Le journal applique un facteur prudent de **1,3 € par dollar** (`eur_per_usd` dans `config/core/cloud_policy.yaml`). Donc : 35 € ÷ 1,3 ≈ **26,92 $** au maximum sur la clé, et la commande d'activation refuse une limite plus haute. **23 $** est la valeur conseillée : environ 29,9 € avec le facteur prudent, laissant environ 5 € de marge.
 
 Ce que compte le journal : le coût réel quand OpenRouter le donne, sinon les jetons × le tarif plafond. Le même plafond est transmis à OpenRouter avec `provider.max_price`, donc une route plus chère est refusée **avant** l'appel. Un appel interrompu, sans information de coût ou jamais réglé est compté au pire cas. Seul un refus net du fournisseur n'est pas compté. À 80 % du plafond, le chat et le tableau de bord le disent ; à 100 %, plus rien ne part.
 
@@ -87,15 +87,15 @@ Le facteur 1,3 est une marge, pas un taux mesuré, et les tarifs de référence 
 ### Chez OpenRouter (à faire toi-même)
 
 1. Crée un compte et règle la politique de données de façon restrictive (refuser les fournisseurs qui conservent ou entraînent sur tes données). Les intitulés exacts de ces pages changent : vérifie-les sur le site.
-2. Achète des crédits **prépayés** avec le **rechargement automatique désactivé**. Pour commencer, un montant inférieur à 25 €.
-3. Crée une clé API et pose-lui une **limite de crédit en dollars**, au plus 19,2 $ (12 $ conseillés).
+2. Achète des crédits **prépayés** avec le **rechargement automatique désactivé**. Pour commencer, un montant inférieur à 35 €.
+3. Crée une clé API et pose-lui une **limite de crédit en dollars**, au plus 26,92 $ (23 $ conseillés).
 
 ### Sur ton PC
 
 ```bash
 ./menu.sh --action cloud-set-key                         # saisie masquée de la clé
-./menu.sh --action cloud-enable --value 12               # contrôles, rien n'est activé
-./menu.sh --action cloud-enable --value 12 --apply       # active le cloud
+./menu.sh --action cloud-enable --value 23               # contrôles, rien n'est activé
+./menu.sh --action cloud-enable --value 23 --apply       # active le cloud
 ./menu.sh --action cloud-status                          # état, budget du mois
 ```
 
@@ -121,37 +121,48 @@ Le cloud est désactivé, la passerelle arrêtée et le fournisseur retiré de l
 
 Le plafond applique **le plus élevé** de l'estimation du journal et du montant déclaré.
 
-## Choisir le modèle : standard ou profond
+## Choisir le modèle : standard ou expert
 
-Deux modèles DeepSeek sont revus dans `config/core/cloud_policy.yaml` :
+Deux modèles cloud sont revus dans `config/core/cloud_policy.yaml` :
 
 | Modèle | Identifiant OpenRouter | Plafond ($ par million, entrée / sortie) | Pour quoi |
 | --- | --- | --- | --- |
 | `standard` (par défaut) | `deepseek/deepseek-v4.1-flash-1017` | 0,25 / 0,75 | La plupart des demandes cloud |
-| `profond` | `deepseek/deepseek-v4-pro` | 1,40 / 3,20 | Le raisonnement long et difficile ; environ 4 à 5 fois plus cher |
+| `expert` | `openai/gpt-6.2-sol` | 5 / 15 | Architecture, sécurité, audit et mentorat |
 
 ```bash
 ./menu.sh --action cloud-model                                    # modèles disponibles et modèle actif
-./menu.sh --action cloud-set-model --value profond                # simulation, aucun changement
-./menu.sh --action cloud-set-profile --value approfondi --apply   # V4 Pro exige l'effort xhigh
-./menu.sh --action cloud-set-model --value profond --apply        # choix explicite
+./menu.sh --action cloud-set-model --value expert                # simulation, aucun changement
+./menu.sh --action cloud-set-profile --value equilibre --apply    # profil initial sobre
+./menu.sh --action cloud-set-model --value expert --apply        # choix explicite
 ./menu.sh --action cloud-set-model --value standard --apply       # retour au modèle standard
 ```
 
 Le choix vaut pour toute la passerelle cloud, comme le profil. Il est refusé pendant une génération et conservé dans `state/cloud/upstream-model.json` (0600). Aucun agent, message ou paramètre du chat ne peut le modifier, et aucune bascule automatique n'existe entre les modèles, ni entre le local et le cloud. Les réponses cloud du chat indiquent le modèle qui a répondu, et `!budget` affiche le modèle actif et ses plafonds.
 
-Pour chaque appel, la passerelle impose les **plafonds de prix du modèle choisi** à OpenRouter : un fournisseur plus cher est refusé, jamais facturé au-delà. Le budget réserve le pire cas à ces mêmes prix. Avec `profond`, seuls les efforts `high`/`xhigh` sont acceptés : le profil `approfondi` est donc requis, et `rapide` ou `equilibre` sont refusés avec un message. Les versions FP4 sont exclues. Les fournisseurs, prix et règles relevés le 2 novembre sont dans [le relevé OpenRouter](../audits/2026-11-02/openrouter-deepseek-v4-pro.md) : revérifie-les sur openrouter.ai avant un usage régulier.
+La passerelle impose les plafonds du modèle choisi et réserve avant chaque appel.
+Pour Sol, les [endpoints OpenRouter](https://openrouter.ai/api/v1/models/openai/gpt-6.2-sol/endpoints)
+annoncent 2 / 10 $ par million de tokens au tarif standard, 4 / 15 au-delà de 272 000
+tokens d'entrée et jusqu'à 5 $/M pour l'écriture du cache au palier long.
+Les plafonds locaux prudents sont donc 5 / 15. Ils ne garantissent pas une facture
+finale : le coût réel déclaré prime, et les crédits prépayés restent indispensables.
+Un ancien choix enregistré `profond` est refusé ; sélectionner explicitement
+`standard` ou `expert`. Aucun remplacement silencieux ni troisième modèle cloud.
+Les paramètres de sampling non déclarés par les endpoints Sol sont retirés ;
+les appels d'outils, le filtrage et les contrôles budgétaires sont conservés.
+L'appel réel et la confidentialité du fournisseur restent à qualifier.
 
-## Régler l'effort DeepSeek sans changer de fournisseur
+## Régler l'effort cloud sans changer de fournisseur
 
 Le contrôle de l'effort est désormais **séparé du choix Qwen/DeepSeek**.
-Trois profils sont épinglés dans `config/core/cloud_policy.yaml` :
+Quatre profils sont épinglés dans `config/core/cloud_policy.yaml` :
 
 | Profil | Effort demandé au fournisseur | Sortie maximale par appel | Usage envisagé |
 |---|---|---|---|
 | **rapide** | `low` | 4 096 tokens | Questions publiques ciblées et tâches courtes |
-| **equilibre** | `medium` | 8 192 tokens | Revue ordinaire de code public, explications structurées |
-| **approfondi** (défaut) | `xhigh` | 32 768 tokens | Analyse multi-fichiers, architecture difficile, audit approfondi |
+| **equilibre** (défaut) | `medium` | 8 192 tokens | Revue ordinaire de code public, explications structurées |
+| **soutenu** | `high` | 16 384 tokens | Code et analyses techniques exigeantes |
+| **approfondi** | `xhigh` | 32 768 tokens | Analyse multi-fichiers, architecture difficile, audit approfondi |
 
 ```bash
 ./menu.sh --action cloud-profile
@@ -164,21 +175,20 @@ Le profil est **global à la passerelle cloud**, pas différent selon l'agent ;
 le changement n'est permis qu'avec `--apply`, sous le verrou du worker pour
 ne pas modifier le profil au milieu d'une génération. Il est conservé
 dans l'état privé local `state/cloud/reasoning-profile.json` (0600), hors Git.
-Le profil initial reste `approfondi` pour ne pas modifier silencieusement
-le comportement actuel. Il peut être lu dans le bouton **Budget DeepSeek**
+Le profil initial devient `equilibre` ; un choix explicite existant est conservé. Il peut être lu dans le bouton **Budget cloud**
 ou via `!budget`, mais **pas changé par un message de chat ni par un agent**.
 
 La passerelle **ignore toute tentative cliente** de choisir un autre effort,
 plafonne réellement `max_tokens` selon le profil *avant* la réservation du
 budget et refuse le cloud si le fichier de réglage est non fiable. Elle
 conserve `data_collection: deny`, `max_price`, le filtre de confidentialité,
-l'accord de projet, la clé et le plafond de 25 €.
+l'accord de projet, la clé et le plafond de 35 €.
 
 Ce sont des **paramètres techniques prêts à tester**, pas une preuve que
 la qualité, le coût ou le délai améliorent effectivement le résultat :
 les fournisseurs OpenRouter retenus doivent accepter le niveau demandé
 avec `require_parameters: true`. Si aucun hébergeur admissible ne l'accepte,
-**l'appel doit échouer sans assouplir les restrictions**. Comparer les trois
+**l'appel doit échouer sans assouplir les restrictions**. Comparer les quatre
 profils sur les sept scénarios synthétiques avant de conclure.
 
 ## Capacité DeepSeek
@@ -187,7 +197,7 @@ La route cloud est volontairement plus généreuse que Qwen local :
 
 - contexte déclaré : **1 048 576 tokens** (capacité maximale, pas une consommation par défaut) ;
 - sortie maximale : **32 768 tokens** ;
-- raisonnement : **trois profils autorisés** (`low`, `medium`, `xhigh`) ; **par défaut `xhigh`** ;
+- raisonnement : **quatre profils autorisés** (`low`, `medium`, `high`, `xhigh`) ; **par défaut `medium`** ;
 - historique WebUI transmis : jusqu'à environ **3 Mio** avant réduction ;
 - routage fournisseur : priorité au débit, mais uniquement sous le plafond de prix et les règles de données.
 
@@ -197,7 +207,7 @@ quotidien pour le privé et les petites demandes.
 
 ## Dans le chat : Apprendre ou Travail
 
-Quand le cloud est activé, Open WebUI liste chaque rôle deux fois : « · local » et « · cloud (DeepSeek) ». Choisir le modèle, c'est choisir le mode.
+Quand le cloud est activé, Open WebUI liste chaque rôle deux fois : « · local » et « · cloud ». Choisir le modèle, c'est choisir le mode.
 
 - Une réponse cloud commence par un bandeau « ☁️ Réponse du modèle cloud ». Dès 80 % du budget, il ajoute la dépense du mois.
 - **Le choix par défaut reste local.** Rien ne part au cloud tant que tu n'as pas choisi le modèle cloud, ou réglé toi-même le modèle par défaut dans Open WebUI.
@@ -228,18 +238,18 @@ Si une étape cloud ne peut pas s'exécuter, **le projet se met en pause** et la
 
 Pour **poursuivre en local**, tu dois le décider : clique **Retirer l'accord cloud**, puis **Reprendre**. La tâche repart de zéro en local. Pour **rester au cloud**, corrige la cause puis reprends ; si elle persiste, le projet se remet en pause.
 
-Chaque projet affiche le dernier modèle utilisé, le nombre d'appels cloud et un coût **estimé prudent**. Le pied de page affiche la dépense du mois sur 25 €.
+Chaque projet affiche le dernier modèle utilisé, le nombre d'appels cloud et un coût **estimé prudent**. Le pied de page affiche la dépense du mois sur 35 €.
 
 ## Mesurer la pédagogie plutôt que supposer un meilleur modèle
 
-Le profil `approfondi` offre davantage de place à la sortie, mais ne garantit ni une réponse plus juste ni une meilleure pédagogie que Gemini. Pour comparer Qwen et DeepSeek **sur des conversations à trois tours**, utiliser [les scénarios publics et la grille sur 20](../EVALUATION_PEDAGOGIE.md) ; l'évaluation elle-même ne facture rien. Ne sélectionner DeepSeek que lorsque le routage est activé avec accord, dans le budget de 25 €/mois et pour des demandes autorisées par le filtre de confidentialité.
+Le profil `approfondi` offre davantage de place à la sortie, mais ne garantit ni une réponse plus juste ni une meilleure pédagogie que Gemini. Pour comparer Qwen et DeepSeek **sur des conversations à trois tours**, utiliser [les scénarios publics et la grille sur 20](../EVALUATION_PEDAGOGIE.md) ; l'évaluation elle-même ne facture rien. Ne sélectionner DeepSeek que lorsque le routage est activé avec accord, dans le budget de 35 €/mois et pour des demandes autorisées par le filtre de confidentialité.
 
 ## Quand ça ne va pas
 
 | Symptôme | Piste |
 |---|---|
 | `cloud-enable` échoue sur « clé du fournisseur » | Relance `cloud-set-key` ; la clé doit commencer par `sk-or-` |
-| « plafond chez le fournisseur » | Confirme le prépayé et donne une limite ≤ 19,2 $ |
+| « plafond chez le fournisseur » | Confirme le prépayé et donne une limite ≤ 26,92 $ |
 | « limite de clé (en ligne) » | La clé n'a pas de limite de crédit, ou son plafond dépasse celui que tu as déclaré : corrige chez OpenRouter |
 | Le modèle « · cloud » n'apparaît pas dans Open WebUI | Le cloud n'est pas activé : `cloud-status` |
 | Chaque appel cloud est refusé en 402 | Plafond atteint, ou journal du budget illisible : `cloud-status` |
@@ -263,7 +273,7 @@ Vérifié automatiquement : le filtre sur tous les chemins du contenu (y compris
 À la première réponse cloud, vérifie aussi que le routage fonctionne avec la politique de données de la passerelle (erreur « no endpoints » : voir le tableau ci-dessus).
 
 1. `./menu.sh --action cloud-status` : « ready=1 », budget à 0 €.
-2. Dans Open WebUI, pose une question publique au modèle « · cloud (DeepSeek) » : le bandeau cloud apparaît. Note le coût dans `cloud-status`.
+2. Dans Open WebUI, pose une question publique au modèle « · cloud » : le bandeau cloud apparaît. Note le coût dans `cloud-status`.
 3. Dans la même conversation, colle un faux jeton (ex. `ghp_` suivi de 36 lettres au hasard) : la conversation passe en local, avec le bandeau 🔒.
 4. Dans l'atelier, autorise un petit projet de test, lance une tâche, puis arrête le service (`systemctl --user stop clawfedora-cloud-gateway`) et relance : le projet doit se mettre en pause avec une raison, sans rien exécuter en local.
 5. `./menu.sh --action cloud-disable --apply`, puis redémarre : tout doit marcher en local, hors ligne.

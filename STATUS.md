@@ -18,7 +18,7 @@
 | **Qwen local et contexte 8K–32K** | Implémenté | Inférence courte dans `quick-check` ; débit réel, VRAM et contexte optimal **À mesurer** |
 | **Open WebUI 0.12.3** | Implémenté et testé en simulation ou intégration partielle | Navigateur, boutons, fichiers et microphone **À faire** en réception réelle |
 | **Sept rôles et projets multiples** | Contrats et tests automatisés ; livrables scellés par les audits | Réponses réelles, interactivité et qualité comparée Gemini/DeepSeek **À mesurer**, sans note automatique |
-| **Cloud OpenRouter / DeepSeek** | Deux modèles revus au choix de l’opérateur ; filtre et budget testés en simulation | `standard` (V4.1 Flash 1017) par défaut et `profond` (V4 Pro 0423, [relevé OpenRouter du 2 novembre](docs/audits/2026-11-02/openrouter-deepseek-v4-pro.md)). Appel réel, fournisseur effectivement retenu, coût et facturation **À faire** avec accord. |
+| **Cloud OpenRouter / DeepSeek et Sol** | Deux modèles revus au choix de l’opérateur ; filtre et budget testés en simulation | `standard` (V4.1 Flash 1017) par défaut et `expert` (GPT-6.2 Sol, [fiche cloud](docs/fiches/12-cloud.md)). Appel réel, fournisseur effectivement retenu, coût et facturation **À faire** avec accord. |
 | **Maintenance** | Désinstallation, purge, sauvegarde et réparation protégées | Arrêt vérifié avant suppression, purge sans perte partielle, maintenance refusée pendant une génération. Restauration du vrai état de l’installation **À faire**. |
 | **Parcours WebUI simplifié** | Implémenté ; réception Open WebUI Fedora à effectuer | Six raccourcis, choix du projet et activité locale ; voir [la prise en main](docs/fiches/03-discuter.md) |
 | **Documents ODT** | Export éditable et import textuel implémentés | Limites d’import [documentées](docs/fiches/06-fichiers-et-schemas.md) ; réception dans le navigateur Fedora à effectuer |
@@ -36,8 +36,8 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 | Ollama | `0.40.6` |
 | Open WebUI | `v0.12.3-slim`, image résolue par digest à l’installation |
 | Modèle local obligatoire | `qwen3.5:9b-q4_K_M` |
-| Route cloud facultative | `deepseek/deepseek-v4.1-flash-1017` par défaut ; `deepseek/deepseek-v4-pro` sur choix de l’opérateur, via OpenRouter |
-| Budget cloud | 25 €/mois, activation et consentement explicites ; plafonds de prix propres à chaque modèle |
+| Route cloud facultative | `deepseek/deepseek-v4.1-flash-1017` par défaut ; `openai/gpt-6.2-sol` sur choix de l’opérateur, via OpenRouter |
+| Budget cloud | 35 €/mois, activation et consentement explicites ; plafonds de prix propres à chaque modèle |
 | Racine des données | `/data/IA/Openclaw/` sur le deuxième disque monté sous `/data` |
 
 **Sources canoniques :** [versions](config/runtime_versions.yaml), [modèles](config/model_catalog.yaml), [plateforme](config/platform.yaml), [stockage](config/storage.json), [politique WebUI](config/webui_policy.yaml) et [politique cloud](config/core/cloud_policy.yaml). Le verrou des versions de production Python est décrit [ici](docs/PYTHON_RUNTIME_LOCK.md). **Une version déclarée n’est pas la preuve de sa présence sur le PC.**

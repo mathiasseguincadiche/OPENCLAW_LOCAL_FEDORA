@@ -273,12 +273,12 @@ def test_the_provider_receives_the_policy_settings_and_the_provider_key_only(
         "sort": "throughput",
         "max_price": {"prompt": 0.25, "completion": 0.75},
     }
-    assert sent["reasoning"] == {"effort": "xhigh"} and sent["usage"] == {"include": True}
-    assert sent["max_tokens"] == 32768 and "max_completion_tokens" not in sent
+    assert sent["reasoning"] == {"effort": "medium"} and sent["usage"] == {"include": True}
+    assert sent["max_tokens"] == 8192 and "max_completion_tokens" not in sent
     # A smaller limit requested by the client is kept.
     post(server, request(max_tokens=100))
     assert upstream[0].requests[-1]["body"]["max_tokens"] == 100
-    assert budget.reserved[0][1] == 32768 and budget.reserved[0][0] > 0
+    assert budget.reserved[0][1] == 8192 and budget.reserved[0][0] > 0
 
 
 # -- privacy ------------------------------------------------------------------------
@@ -531,7 +531,7 @@ def test_once_the_cap_is_reached_nothing_more_leaves(
     counted: tuple[GatewayServer, Any], upstream: tuple[Upstream, int]
 ) -> None:
     server, ledger = counted
-    ledger.record_invoice(24.999)
+    ledger.record_invoice(34.999)
     sent = len(upstream[0].requests)
     status, body = post(server, request("Bonjour " * 200))
     assert status == 402 and b"budget_refused" in body
@@ -567,6 +567,7 @@ def test_an_unreadable_journal_stops_the_cloud_instead_of_guessing(
     [
         ("rapide", "low", 4096),
         ("equilibre", "medium", 8192),
+        ("soutenu", "high", 16384),
         ("approfondi", "xhigh", 32768),
     ],
 )
@@ -685,36 +686,39 @@ def test_the_operator_chosen_deep_model_is_called_at_its_own_price_ceilings(
     from clawfedora.cloud_profiles import set_upstream_model
 
     server, budget = gateway
-    set_upstream_model(server.runtime, server.policy, "profond")
+    set_upstream_model(server.runtime, server.policy, "expert")
     status, _body = post(server, request(parallel_tool_calls=True, seed=7, temperature=0.2))
     assert status == 200
     sent = upstream[0].requests[-1]["body"]
-    deep = server.policy["upstream_models"]["profond"]
+    deep = server.policy["upstream_models"]["expert"]
     # OpenClaw still names the alias model; the gateway calls the reviewed deep model.
-    assert sent["model"] == deep["upstream_id"] == "deepseek/deepseek-v4-pro"
-    assert sent["provider"]["max_price"] == {"prompt": 1.4, "completion": 3.2}
+    assert sent["model"] == deep["upstream_id"] == "openai/gpt-6.2-sol"
+    assert sent["provider"]["max_price"] == {"prompt": 5.0, "completion": 15.0}
     assert sent["provider"]["data_collection"] == "deny"
     assert sent["provider"]["require_parameters"] is True
-    assert sent["provider"]["quantizations"] == ["bf16", "fp8", "unknown"]
+    assert "quantizations" not in sent["provider"]
     # Fields no provider of this model declares are removed, nothing else.
-    assert "parallel_tool_calls" not in sent and "seed" not in sent
-    assert sent["temperature"] == 0.2 and sent["reasoning"] == {"effort": "xhigh"}
+    assert "parallel_tool_calls" not in sent and sent["seed"] == 7
+    assert "temperature" not in sent and sent["reasoning"] == {"effort": "medium"}
     # The budget reserves at the deep model's ceilings and records which model it was.
     assert budget.priced[-1] == (deep["pricing_usd_per_million"], deep["upstream_id"])
 
 
-def test_the_deep_model_refuses_a_low_effort_profile_before_budget_and_network(
+def test_expert_low_effort_is_explicit_and_bounded(
     gateway: tuple[GatewayServer, FakeBudget], upstream: tuple[Upstream, int]
 ) -> None:
     from clawfedora.cloud_profiles import set_profile, set_upstream_model
 
     server, budget = gateway
-    set_upstream_model(server.runtime, server.policy, "profond")
+    set_upstream_model(server.runtime, server.policy, "expert")
     set_profile(server.runtime, server.policy, "rapide")
-    status, answer = post(server, request())
-    assert status == 503 and b"profile_invalid" in answer
-    assert b"effort low" in answer  # says why, and what to choose instead
-    assert upstream[0].requests == [] and budget.reserved == []
+    status, _ = post(server, request())
+    assert status == 200
+    sent = upstream[0].requests[-1]["body"]
+    assert sent["reasoning"] == {"effort": "low"}
+    assert sent["max_tokens"] == 4096
+    assert budget.priced[-1][1] == "openai/gpt-6.2-sol"
+    assert budget.reserved[-1][1] == 4096
 
 
 def test_the_standard_model_keeps_every_historic_setting(
