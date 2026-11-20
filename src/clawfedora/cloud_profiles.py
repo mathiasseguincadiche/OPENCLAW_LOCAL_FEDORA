@@ -24,7 +24,7 @@ MAX_FILE_BYTES = 512
 VALID_EFFORTS = {"low", "medium", "high", "xhigh"}
 # Optional request fields a model's providers may not declare (require_parameters would
 # then exclude every provider): a reviewed model may drop them, never anything else.
-DROPPABLE_PARAMETERS = {"parallel_tool_calls", "seed", "stop"}
+DROPPABLE_PARAMETERS = {"parallel_tool_calls", "seed", "stop", "temperature", "top_p"}
 QUANTIZATIONS = {"int4", "int8", "fp4", "fp6", "fp8", "fp16", "bf16", "fp32", "unknown"}
 
 
@@ -52,7 +52,7 @@ def profiles(policy: dict[str, Any]) -> dict[str, dict[str, Any]]:
     default = policy.get("default_reasoning_profile")
     if default not in settings:
         raise ProfileRefused("profil cloud par défaut non déclaré")
-    # Backward-compatible: the default remains the formerly enforced xhigh.
+    # The selected default must match the enforced gateway parameter.
     if settings[default]["effort"] != policy["upstream_params"]["reasoning"]["effort"]:
         raise ProfileRefused("profil par défaut divergent des paramètres historiques")
     return settings
@@ -225,6 +225,10 @@ def chosen_upstream_model(runtime: Path, policy: dict[str, Any]) -> tuple[str, d
     name = _read_choice(model_path(runtime), "model", "modèle cloud")
     if name is None:
         name = str(policy["default_upstream_model"])
+    if name == "profond":
+        raise ProfileRefused(
+            "ancien modèle profond retiré : choisir standard ou expert avec cloud-set-model"
+        )
     if name not in declared:
         raise ProfileRefused("modèle cloud : valeur inconnue ou fichier modifié")
     if declared[name]["enabled"] is not True:

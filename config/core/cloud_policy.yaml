@@ -29,10 +29,10 @@ gateway:
 # `eur_per_usd` convertit 1 $ d'usage en euros payés de façon pessimiste (change, frais d'achat
 # de crédits, TVA) : à relire avec les relevés réels (commande de rapprochement).
 budget:
-  monthly_cap_eur: 25
+  monthly_cap_eur: 35
   alert_ratio: 0.8
   eur_per_usd: 1.3
-  recommended_key_limit_usd: 12
+  recommended_key_limit_usd: 23
   ledger_file: cloud/ledger-{month}.jsonl
 # Seul point de sortie réseau vers le fournisseur. L'hôte est figé : la passerelle ne suit
 # aucune adresse reçue dans une requête.
@@ -71,31 +71,24 @@ upstream_models:
     pricing_usd_per_million:
       input: 0.25
       output: 0.75
-  profond:
-    upstream_id: deepseek/deepseek-v4-pro
-    display_name: DeepSeek V4 Pro 0423 (raisonnement profond)
-    # Vérifié le 2 novembre 2026 sur la page OpenRouter du modèle : voir
-    # docs/audits/2026-11-02/openrouter-deepseek-v4-pro.md. À revérifier avant usage régulier.
+  expert:
+    upstream_id: openai/gpt-6.2-sol
+    display_name: GPT-6.2 Sol
     enabled: true
-    # Le modèle n'accepte que ces efforts : avec lui, utiliser le profil « approfondi ».
-    allowed_efforts: [high, xhigh]
-    # Aucun fournisseur ne déclare parallel_tool_calls, plusieurs pas seed : avec
-    # require_parameters, les envoyer exclurait tous les fournisseurs. Retirés pour ce modèle.
-    drop_parameters: [parallel_tool_calls, seed]
-    # Pas de version FP4 pour un usage « raisonnement profond ».
-    provider:
-      quantizations: [bf16, fp8, unknown]
-    # Plafonds : admettent SiliconFlow, DigitalOcean, Cloudflare et DeepInfra (sans
-    # conservation ni entraînement au 2 novembre) ; un fournisseur plus cher est refusé.
+    allowed_efforts: [low, medium, high, xhigh]
+    # Les endpoints standard déclarent tools, tool_choice, reasoning et seed.
+    drop_parameters: [parallel_tool_calls, stop, temperature, top_p]
+    # Plafonds prudents : écriture cache au palier long et sortie au palier long.
+    # Le tarif standard constaté est 2 / 10 $/M. Voir fiche cloud.
     pricing_usd_per_million:
-      input: 1.4
-      output: 3.2
+      input: 5.0
+      output: 15.0
 # Les profils réduisent l'effort et/ou le plafond de sortie SANS changer le
 # fournisseur, les prix maximaux, la confidentialité ni les permissions.
-# « approfondi » est le comportement historique (xhigh / 32768).
+# « equilibre » est le défaut sobre ; « approfondi » reste un choix explicite.
 # Le choix est stocké hors Git par l'opérateur, via la CLI --apply ; jamais par
 # un paramètre client, un agent ou une bascule implicite local -> cloud.
-default_reasoning_profile: approfondi
+default_reasoning_profile: equilibre
 reasoning_profiles:
   rapide:
     effort: low
@@ -103,6 +96,9 @@ reasoning_profiles:
   equilibre:
     effort: medium
     max_output_tokens: 8192
+  soutenu:
+    effort: high
+    max_output_tokens: 16384
   approfondi:
     effort: xhigh
     max_output_tokens: 32768
@@ -115,7 +111,7 @@ upstream_params:
     max_price:
       prompt: 0.25
       completion: 0.75
-  # Référence contractuelle du profil par défaut « approfondi » (xhigh).
+  # Référence contractuelle du profil par défaut « equilibre » (medium).
   # La passerelle substitue uniquement effort via un profil local validé.
   reasoning:
-    effort: xhigh
+    effort: medium

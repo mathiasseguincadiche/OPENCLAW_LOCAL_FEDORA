@@ -37,11 +37,11 @@ Installer et utiliser:
   web-private            Couper la recherche Web des sept rôles, appliquer et vérifier
   web-connected          Réactiver volontairement la recherche Web des rôles
   cloud-status           État du cloud optionnel, de la clé et du budget du mois
-  cloud-profile          Afficher le profil de raisonnement DeepSeek actuel
+  cloud-profile          Afficher le profil de raisonnement cloud actuel
   cloud-set-profile      Préparer/changer le profil via --value
-                         rapide|equilibre|approfondi, et --apply pour confirmer
-  cloud-model            Afficher les modèles cloud et celui qui répond (standard ou profond)
-  cloud-set-model        Préparer/changer le modèle cloud via --value standard|profond,
+                         rapide|equilibre|soutenu|approfondi, et --apply pour confirmer
+  cloud-model            Afficher les modèles cloud et celui qui répond (standard ou expert)
+  cloud-set-model        Préparer/changer le modèle cloud via --value standard|expert,
                          et --apply pour confirmer
   cloud-set-key          Enregistrer la clé OpenRouter (saisie masquée)
   cloud-enable           Contrôler puis activer le cloud (--value = limite de la clé en $)
@@ -171,7 +171,7 @@ case "$ACTION" in
     ;;
   cloud-set-profile)
     [[ -n "$VALUE" ]] || {
-      echo "ERREUR: cloud-set-profile exige --value rapide|equilibre|approfondi" >&2
+      echo "ERREUR: cloud-set-profile exige --value rapide|equilibre|soutenu|approfondi" >&2
       exit 2
     }
     args=(--runtime-root "$(claw_runtime_root)" set-profile --name "$VALUE")
@@ -183,7 +183,7 @@ case "$ACTION" in
     ;;
   cloud-set-model)
     [[ -n "$VALUE" ]] || {
-      echo "ERREUR: cloud-set-model exige --value standard|profond" >&2
+      echo "ERREUR: cloud-set-model exige --value standard|expert" >&2
       exit 2
     }
     args=(--runtime-root "$(claw_runtime_root)" set-model --name "$VALUE")

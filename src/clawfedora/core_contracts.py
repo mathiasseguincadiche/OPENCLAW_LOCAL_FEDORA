@@ -15,7 +15,7 @@ from clawfedora.core_config import (
 )
 
 # The user's real monthly budget: a configuration can never raise it.
-MAX_MONTHLY_CAP_EUR = 25
+MAX_MONTHLY_CAP_EUR = 35
 
 CORE_FILES = (
     "agents.yaml",
@@ -308,20 +308,21 @@ def _validate_cloud_contracts(
     ):
         failures.append("core/cloud: max_price doit égaler le pire tarif réservé")
     reasoning = _mapping(upstream_params.get("reasoning"))
-    if reasoning.get("effort") != "xhigh":
-        failures.append("core/cloud: raisonnement xhigh requis pour le profil approfondi")
+    if reasoning.get("effort") != "medium":
+        failures.append("core/cloud: raisonnement medium requis pour le profil equilibre")
     profiles = _mapping(cloud.get("reasoning_profiles"))
     required_profiles = {
         "rapide": {"effort": "low", "max_output_tokens": 4096},
         "equilibre": {"effort": "medium", "max_output_tokens": 8192},
+        "soutenu": {"effort": "high", "max_output_tokens": 16384},
         "approfondi": {"effort": "xhigh", "max_output_tokens": 32768},
     }
     if (
-        cloud.get("default_reasoning_profile") != "approfondi"
+        cloud.get("default_reasoning_profile") != "equilibre"
         or profiles != required_profiles
         or (isinstance(cloud_output, int) and cloud_output < 32768)
     ):
-        failures.append("core/cloud: profils d'effort DeepSeek validés, bornés et non modifiables")
+        failures.append("core/cloud: profils d'effort cloud validés, bornés et non modifiables")
 
 
 
