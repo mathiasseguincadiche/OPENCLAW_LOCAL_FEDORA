@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
+from hashlib import sha256
 from pathlib import Path
 from typing import Any, cast
 
@@ -16,6 +18,7 @@ import yaml
 CRITERIA = ("technical", "clarity", "proof", "safety")
 ROUTES = ("local", "cloud")
 ROOT = Path(__file__).resolve().parents[2]
+CLOUD_MODELS = ("deepseek/deepseek-v4.1-flash-1017", "openai/gpt-6.2-sol")
 
 
 class EvaluationError(ValueError):
@@ -149,6 +152,80 @@ def compare_reports(
         ),
     }
 
+def suite_digest(suite: dict[str, Any]) -> str:
+    encoded = json.dumps(suite, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return sha256(encoded.encode()).hexdigest()
+
+
+def _finops_summary(suite: dict[str, Any], report: dict[str, Any]) -> dict[str, Any]:
+    scores = evaluate_report(suite, report)
+    model = report.get("model_id")
+    if scores["route"] != "cloud" or model not in CLOUD_MODELS:
+        raise EvaluationError("FinOps : modèle cloud approuvé requis")
+    commit = report.get("commit")
+    if not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise EvaluationError("FinOps : SHA Git complet requis")
+    if report.get("suite_sha256") != suite_digest(suite):
+        raise EvaluationError("FinOps : suite différente ou empreinte absente")
+    accepted = total = calls = elapsed = 0
+    rows: dict[str, Any] = {}
+    for item in report["results"]:
+        key = item["scenario"]
+        usage = item.get("measurement")
+        if not isinstance(usage, dict):
+            raise EvaluationError(f"{key}: mesures manquantes")
+        if (
+            type(usage.get("accepted")) is not bool
+            or usage.get("profile") not in ("low", "medium", "high", "xhigh")
+            or not isinstance(usage.get("billing_reference"), str)
+            or not usage["billing_reference"].strip()
+        ):
+            raise EvaluationError(f"{key}: acceptation, effort et référence de facturation requis")
+        for name, minimum in (("cost_microusd", 0), ("calls", 1), ("elapsed_ms", 1)):
+            value = usage.get(name)
+            if type(value) is not int or not minimum <= value <= 10**12:
+                raise EvaluationError(f"{key}: mesure {name} absente ou invalide")
+        accepted += int(usage["accepted"])
+        total += usage["cost_microusd"]
+        calls += usage["calls"]
+        elapsed += usage["elapsed_ms"]
+        rows[key] = {
+            name: usage[name] for name in (
+                "accepted", "profile", "cost_microusd", "calls", "elapsed_ms",
+            )
+        }
+    return {
+        "model_id": model, "commit": commit, "scenarios": scores["scenarios"],
+        "quality_mean_out_of_4": scores["mean_out_of_4"],
+        "accepted": accepted, "cost_microusd": total, "calls": calls, "elapsed_ms": elapsed,
+        "cost_per_accepted_microusd": (total + accepted - 1) // accepted if accepted else None,
+        "per_scenario": rows,
+    }
+
+
+def compare_finops(
+    suite: dict[str, Any], first: object, second: object,
+) -> dict[str, Any]:
+    """Aggregate operator-recorded usage, never query or certify a provider invoice."""
+    if not isinstance(first, dict) or not isinstance(second, dict):
+        raise EvaluationError("FinOps : deux rapports JSON requis")
+    standard, expert = _finops_summary(suite, first), _finops_summary(suite, second)
+    if (standard["model_id"], expert["model_id"]) != CLOUD_MODELS:
+        raise EvaluationError("FinOps : fournir DeepSeek puis Sol")
+    if standard["commit"] != expert["commit"]:
+        raise EvaluationError("FinOps : comparer le même commit")
+    return {
+        "assessment": "DECLARED_MEASUREMENTS_NOT_VERIFIED_BILLING",
+        "standard": standard, "expert": expert,
+        "warning": (
+            "Mesures saisies par l'opérateur, non vérifiées par le programme. "
+            "Les coûts incluent les reprises et échecs déclarés ; zéro tâche acceptée "
+            "donne un coût unitaire indéfini. Aucun classement automatique, ni facture "
+            "en euros, ni preuve d'exécution ; comparer aussi les profils et la qualité."
+        ),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Qualifier les sept agents sans API ni réseau")
     parser.add_argument("--root", type=Path, default=ROOT)
@@ -160,6 +237,10 @@ def main(argv: list[str] | None = None) -> int:
         "--compare", nargs=2, type=Path, metavar=("LOCAL_JSON", "CLOUD_JSON"),
         help="comparer hors ligne deux rapports humains (mêmes sept scénarios)",
     )
+    group.add_argument(
+        "--finops-compare", nargs=2, type=Path, metavar=("FLASH_JSON", "SOL_JSON"),
+        help="comparer les mesures déclarées des deux modèles sur les mêmes cas",
+    )
     args = parser.parse_args(argv)
     try:
         suite = load_suite(args.root)
@@ -170,6 +251,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.plan:
             data = {
                 "suite": suite["name"],
+                "suite_sha256": suite_digest(suite),
                 "routes_to_compare": list(ROUTES),
                 "consent_required_for_cloud": True,
                 "scenarios": suite["scenarios"],
@@ -180,6 +262,13 @@ def main(argv: list[str] | None = None) -> int:
             path = cast(Path, args.report)
             data = evaluate_report(
                 suite, json.loads(path.read_text(encoding="utf-8"))
+            )
+        elif args.finops_compare:
+            flash_path, sol_path = cast(list[Path], args.finops_compare)
+            data = compare_finops(
+                suite,
+                json.loads(flash_path.read_text(encoding="utf-8")),
+                json.loads(sol_path.read_text(encoding="utf-8")),
             )
         else:
             local_path, cloud_path = cast(list[Path], args.compare)

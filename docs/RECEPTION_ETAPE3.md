@@ -286,7 +286,7 @@ printf 'NomFictifReception42\n' >> /data/IA/Openclaw/state/cloud/denylist.txt
 - [ ] La simulation (sans `--apply`) affiche `max_usd_per_million=5.0/15.0` ; le choix est ensuite confirmé.
 - [ ] Une question exigeante reçoit une réponse dont le bandeau indique « Modèle : GPT-6.2 Sol ».
 - [ ] Dans l'**activité OpenRouter**, le fournisseur utilisé est un endpoint Sol admissible, et les prix correspondent aux plafonds prudents 5 $ / 15 $ par million. Sinon, noter le fournisseur et le prix affichés et me les transmettre.
-- [ ] **Si l'appel échoue** avec « aucun fournisseur » ou une erreur 404/503 : revenir en `standard` (commande ci-dessous) et noter le message exact. Les fournisseurs ont peut-être changé depuis le [catalogue OpenRouter](https://openrouter.ai/openai/gpt-6.2-sol).
+- [ ] **Si l'appel échoue** avec « aucun fournisseur » ou une erreur 404/503 : revenir en `auto` (commande ci-dessous) et noter le message exact. Les fournisseurs ont peut-être changé depuis le [catalogue OpenRouter](https://openrouter.ai/openai/gpt-6.2-sol).
 
 **Rapprochement et retour au routage automatique :**
 
@@ -295,7 +295,8 @@ printf 'NomFictifReception42\n' >> /data/IA/Openclaw/state/cloud/denylist.txt
 ./menu.sh --action cloud-set-model --value auto --apply
 ```
 
-- [ ] Le montant facturé par OpenRouter correspond à peu près au journal (`cloud-status`).
+- [ ] Le coût des appels observé chez OpenRouter est rapproché du journal (`cloud-status`) ; relever séparément change, taxes, frais et éventuel écart. Ne pas confondre achat de crédits et consommation.
+- [ ] Suivre la [recette FinOps](validation/FINOPS.md) si le duo doit être qualifié sur les sept rôles. Ne pas déclarer les gains de cache sans relevés.
 - [ ] Facultatif : `./menu.sh --action cloud-disable --apply` ; tout redevient local.
 
 ## Phase 11 — Mesures facultatives

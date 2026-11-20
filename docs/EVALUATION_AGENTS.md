@@ -6,9 +6,9 @@
 
 ## Le problème à résoudre
 
-Une CI verte vérifie le **logiciel**, pas la qualité des explications de Qwen ni des analyses DeepSeek. Des consignes bien écrites ne suffisent donc pas à conclure « 10/10 ». Pour rendre les améliorations des prompts **mesurables**, le dépôt contient désormais une **suite fixe de sept scénarios DevOps synthétiques**, un par agent.
+Une CI verte vérifie le **logiciel**, pas la qualité des explications de Qwen ni des analyses DeepSeek ou Sol. Des consignes bien écrites ne suffisent donc pas à conclure « 10/10 ». Pour rendre les améliorations des prompts **mesurables**, le dépôt contient désormais une **suite fixe de sept scénarios DevOps synthétiques**, un par agent.
 
-Les deux routes doivent répondre **aux mêmes cas**, dans des sessions séparées, **avec accord explicite et budget** lorsqu'une route DeepSeek est utilisée. L'évaluation finale relève de **l'examinateur humain** : cette commande **n'appelle aucun modèle** et ne dépense aucun crédit API.
+Les deux routes doivent répondre **aux mêmes cas**, dans des sessions séparées, **avec accord explicite et budget** lorsqu'une route cloud est utilisée. L'évaluation finale relève de **l'examinateur humain** : cette commande **n'appelle aucun modèle** et ne dépense aucun crédit API.
 
 ## Comparer les versions des rôles
 
@@ -81,17 +81,21 @@ mesure objective de performance.
 
 L'outil affiche une moyenne sur 4 par critère, sans jamais annoncer de PASS d'exécution. Son statut est toujours `HUMAN_REVIEWED_UNVERIFIED_BY_RUNTIME` : même une note maximale ne certifie **ni Terraform appliqué ni OpenRouter facturé**. Lier les notes aux preuves d'une CI réelle est un chantier distinct.
 
+## Comparer les coûts des deux modèles cloud
+
+Utiliser [la recette FinOps](validation/FINOPS.md) et `clawfedora-evals --finops-compare FLASH_JSON SOL_JSON`. Les mesures de facturation restent saisies et attestées par l'opérateur, jamais inventées par le modèle.
+
 ## Comment améliorer les prompts sans régression
 
-- Faire répondre Qwen et DeepSeek **sur les mêmes prompts** sans données privées.
+- Faire répondre les modèles retenus **sur les mêmes prompts** sans données privées.
 - Conserver les réponses, références et éventuels fichiers sous un identifiant de scénario stable.
 - Laisser une personne relire chaque critère ; enregistrer ce qui manque.
-- Modifier seulement les instructions nécessaires, puis vérifier que **les deux modèles** ne régressent pas.
+- Modifier seulement les instructions nécessaires, puis vérifier que **les modèles évalués** ne régressent pas.
 - Mesurer aussi la **durée**, la VRAM, les coûts OpenRouter et le nombre de corrections dans la phase de qualification, avec un journal d'exécution séparé.
 - Ne pas allonger les prompts par principe : **moins de répétitions, plus de consignes vérifiables**.
 
 ## Limites voulues
 
-La suite **prépare** une évaluation ; elle ne la réalise pas d'elle-même. Aucune requête n'est envoyée à Qwen/DeepSeek, aucun secret n'est stocké dans le dépôt, aucun appel à GitHub ou Podman n'est déclenché. L'évaluation complète et l'ajustement final des prompts sont prévus pour la **dernière phase**, après stabilisation du code et de l'interface.
+La suite **prépare** une évaluation ; elle ne la réalise pas d'elle-même. Aucune requête n'est envoyée à Qwen/DeepSeek/Sol, aucun secret n'est stocké dans le dépôt, aucun appel à GitHub ou Podman n'est déclenché. L'évaluation complète et l'ajustement final des prompts sont prévus pour la **dernière phase**, après stabilisation du code et de l'interface.
 
 La règle à respecter est : **l'outil peut vérifier la complétude d'un rapport, pas la vérité des jugements humains qu'il contient**.
