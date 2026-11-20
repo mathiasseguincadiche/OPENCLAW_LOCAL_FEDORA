@@ -527,3 +527,60 @@ def test_the_sealed_scope_is_the_deliverables_and_the_plan(tmp_path: Path) -> No
     assert "context/project_plan.json" in inventory
     assert not any(key.startswith(("evidence/", "history/")) for key in inventory)
     assert "project.json" not in inventory
+
+
+@pytest.mark.parametrize("change", ["extra", "duplicate", "invalid-size", "identity", "output"])
+def test_current_bundle_rejects_inconsistent_inventory_or_identity(
+    tmp_path: Path, change: str,
+) -> None:
+    from clawfedora.project_common import aggregate_records, write_json
+
+    project = _project(tmp_path)
+    _start_single_task(project)
+    _pass_single_task(project)
+    bundle = project / "context/exchange/build-output/self/run-001"
+    manifest = bundle / "manifest.json"
+    payload = read_json(manifest)
+    if change == "extra":
+        (bundle / "artifacts/work/build-output/extra.txt").write_text("undeclared")
+    elif change == "duplicate":
+        payload["files"].append(payload["files"][0])
+        payload["aggregate_sha256"] = aggregate_records(payload["files"])
+    elif change == "invalid-size":
+        payload["files"][0]["size"] = "4"
+    elif change == "identity":
+        payload["producer_agent"] = "expert-recherche"
+    else:
+        (project / "work/build-output/result.txt").write_text("new version")
+    write_json(manifest, payload)
+    with pytest.raises(ValueError, match="artifact exchange invalide"):
+        transition_project(
+            ROOT, project, "VALIDATING", actor="auditeur-qualite", reason="test",
+        )
+
+
+def test_work_outputs_sealed_after_audit(tmp_path: Path) -> None:
+    project, _ = _audited_twice(tmp_path)
+    output = project / "work/build-output/result.txt"
+    assert "work/build-output/result.txt" in audited_inventory(project)
+    output.write_text("modified after review")
+    with pytest.raises(ValueError, match="audit périmé"):
+        package_project(ROOT, project, actor="ingenieur-devops")
+
+
+@pytest.mark.parametrize("criterion", [
+    {"passed": True, "evidence": "", "reference": "work/build-output/result.txt"},
+    {"passed": 1, "evidence": "checked", "reference": "work/build-output/result.txt"},
+    None,
+])
+def test_store_verdict_rejects_malformed_criteria(tmp_path: Path, criterion: object) -> None:
+    project = _project(tmp_path)
+    _start_single_task(project)
+    _pass_single_task(project)
+    transition_project(ROOT, project, "VALIDATING", actor="auditeur-qualite", reason="test")
+    with pytest.raises(ValueError, match="critère sans verdict"):
+        store_verdict(
+            ROOT, project, "validation", "PASS", [], reviewer="auditeur-qualite",
+            criteria={"build-output": [criterion]},
+        )
+    assert not (project / "evidence/validation_report.json").exists()

@@ -891,10 +891,20 @@ def review_project(
         session = str(uuid.uuid4())
         snapshot = workspace / "projects" / "reviews" / session
         assert_no_symlinks(project, label="projet à auditer")
-        shutil.copytree(project, snapshot)
-        from clawfedora.project_proofs import proof_catalog
+        from clawfedora.artifact_exchange import validate_exchange_completeness
+        from clawfedora.project_proofs import preflight_proofs, proof_catalog
 
-        write_json(snapshot / "context/audit-proofs.json", proof_catalog(project))
+        if not all_tasks_pass(repo_root, project):
+            raise ValueError("audit: toutes les tâches doivent être PASS")
+        exchange_failures = validate_exchange_completeness(repo_root, project)
+        if exchange_failures:
+            raise ValueError(f"artifact exchange invalide avant audit: {exchange_failures}")
+        if validate_input_integrity(project):
+            raise ValueError("intégrité des entrées invalide avant audit")
+        catalog = proof_catalog(project)
+        preflight_proofs(catalog)
+        shutil.copytree(project, snapshot)
+        write_json(snapshot / "context/audit-proofs.json", catalog)
         guard = _guard(snapshot)
         central_guard = _guard(project)
         for path in snapshot.rglob("*"):

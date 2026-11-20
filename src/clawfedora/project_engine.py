@@ -582,7 +582,7 @@ def all_tasks_pass(repo_root: Path, project: Path) -> bool:
 
 # What an audit judges, sealed in its verdict (A05): the deliverables and the plan. Follow-up
 # files written after an audit (state, history, reports, package manifest) are not part of it.
-AUDITED_SCOPES = ("deliverables", "diagrams", "context/document-sources")
+AUDITED_SCOPES = ("work", "deliverables", "diagrams", "context/document-sources")
 AUDITED_FILES = ("context/project_plan.json",)
 
 
@@ -597,6 +597,9 @@ def audited_inventory(project: Path) -> dict[str, str]:
             raise ValueError(f"inventaire audité: {scope} hors du projet")
         if not os.path.isdir(root):
             continue
+        if root != os.path.join(base, scope):
+            raise ValueError(f"inventaire audité: {scope} lié")
+        assert_no_symlinks(Path(root), label="inventaire audité")
         for path in sorted(Path(root).rglob("*")):
             if (
                 path.is_file()
@@ -606,8 +609,8 @@ def audited_inventory(project: Path) -> dict[str, str]:
                 inventory[path.relative_to(base).as_posix()] = sha256_file(path)
     for relative in AUDITED_FILES:
         candidate = os.path.realpath(os.path.join(base, relative))
-        if not candidate.startswith(base + os.sep):
-            raise ValueError(f"inventaire audité: {relative} hors du projet")
+        if not candidate.startswith(base + os.sep) or candidate != os.path.join(base, relative):
+            raise ValueError(f"inventaire audité: {relative} hors du projet ou lié")
         if os.path.isfile(candidate):
             inventory[relative] = sha256_file(Path(candidate))
     return inventory
@@ -623,7 +626,11 @@ def stale_audits(
     for kind in kinds:
         report = _require(repo_root, project, kind)
         sealed = report.get("sealed_inventory")
-        for path, digest in report.get("proof_hashes", {}).items():
+        hashes = report.get("proof_hashes", {})
+        if not isinstance(hashes, dict):
+            problems.append(f"{kind}: preuves scellées invalides")
+            continue
+        for path, digest in hashes.items():
             expected = os.path.join(base, path)
             target = os.path.realpath(expected)
             if (not target.startswith(base + os.sep) or expected != target
@@ -682,7 +689,7 @@ def store_verdict(
     tasks = read_json(project / "context/project_plan.json")["tasks"]
     proof_hashes: dict[str, str] = {}
     if criteria is not None:
-        if set(criteria) != {t["id"] for t in tasks}:
+        if not isinstance(criteria, dict) or set(criteria) != {t["id"] for t in tasks}:
             raise ValueError("couverture des preuves incomplète")
         assert_no_symlinks(project, label="preuves")
         for task in tasks:
@@ -690,7 +697,14 @@ def store_verdict(
             if not isinstance(values, list) or len(values) != len(task["acceptance_criteria"]):
                 raise ValueError("couverture des critères incomplète")
             for index, value in enumerate(values, 1):
-                if value.get("passed") is True:
+                if (
+                    not isinstance(value, dict)
+                    or type(value.get("passed")) is not bool
+                    or not isinstance(value.get("evidence"), str)
+                    or not value["evidence"].strip()
+                ):
+                    raise ValueError("audit: critère sans verdict booléen ou justification")
+                if value["passed"] is True:
                     proof_hashes.update(resolve_reference(
                         project, task, index, value.get("reference", "")
                     ))

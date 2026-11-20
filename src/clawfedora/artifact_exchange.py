@@ -205,25 +205,39 @@ def validate_bundle(project: Path, bundle: Path) -> list[str]:
     failures: list[str] = []
     try:
         resolved = bundle.resolve(strict=True)
-        if project.resolve() not in resolved.parents:
-            return [f"bundle hors projet: {bundle}"]
+        if project.resolve() not in resolved.parents or resolved != bundle.absolute():
+            return [f"bundle hors projet ou lié: {bundle}"]
         assert_no_symlinks(bundle, label="bundle d'échange")
     except (FileNotFoundError, ValueError) as exc:
         return [str(exc)]
     manifest_path = bundle / "manifest.json"
     if not manifest_path.is_file():
         return [f"manifest absent: {bundle.relative_to(project)}"]
-    bundle_manifest = read_json(manifest_path)
+    try:
+        bundle_manifest = read_json(manifest_path)
+    except (ValueError, OSError):
+        return ["manifest illisible"]
     raw_files = bundle_manifest.get("files", [])
     if not isinstance(raw_files, list):
         return ["manifest files invalide"]
     observed: list[dict[str, Any]] = []
+    seen: set[str] = set()
     for raw in raw_files:
         if not isinstance(raw, dict):
             failures.append("entrée manifeste invalide")
             continue
-        relative = str(raw.get("path", ""))
+        relative = raw.get("path")
+        if not isinstance(relative, str) or not relative:
+            failures.append("chemin manifeste invalide")
+            continue
         value = Path(relative)
+        if (
+            value.is_absolute() or ".." in value.parts or value.as_posix() != relative
+            or relative in seen or type(raw.get("size")) is not int
+        ):
+            failures.append(f"entrée manifeste invalide ou dupliquée: {relative}")
+            continue
+        seen.add(relative)
         target = (bundle / "artifacts" / value).resolve()
         artifact_root = (bundle / "artifacts").resolve()
         if artifact_root not in target.parents or not target.is_file():
@@ -231,11 +245,47 @@ def validate_bundle(project: Path, bundle: Path) -> list[str]:
             continue
         digest = sha256_file(target)
         size = target.stat().st_size
-        if digest != str(raw.get("sha256", "")) or size != int(raw.get("size", -1)):
+        if digest != raw.get("sha256") or size != raw.get("size"):
             failures.append(f"artefact modifié: {relative}")
         observed.append({"path": relative, "sha256": digest, "size": size})
+    actual = {
+        target.relative_to(bundle / "artifacts").as_posix()
+        for target in (bundle / "artifacts").rglob("*") if target.is_file()
+    }
+    if actual != seen:
+        failures.append("inventaire des artefacts divergent du manifeste")
     if aggregate_records(observed) != str(bundle_manifest.get("aggregate_sha256", "")):
         failures.append("digest agrégé invalide")
+    return failures
+
+
+def _current_bundle(
+    project: Path, bundle: Path, assignment: dict[str, Any], expected: list[str],
+    consumer: str | None,
+) -> list[str]:
+    failures = validate_bundle(project, bundle)
+    if failures:
+        return failures
+    payload = read_json(bundle / "manifest.json")
+    if (
+        payload.get("producer_task_id") != assignment["task_id"]
+        or payload.get("producer_agent") != assignment["role"]
+        or payload.get("consumer_task_id") != consumer
+        or payload.get("attempt") != assignment["attempts"]
+        or payload.get("producer_status") != assignment["status"]
+    ):
+        return [f"identité du bundle divergente: {bundle.relative_to(project)}"]
+    records = {row["path"]: row for row in payload["files"]}
+    if assignment["status"] == "PASS":
+        if not set(expected) <= records.keys():
+            failures.append("sorties approuvées absentes du bundle")
+        for relative, row in records.items():
+            try:
+                target = safe_output(project, relative)
+                if sha256_file(target) != row["sha256"] or target.stat().st_size != row["size"]:
+                    failures.append(f"sortie courante divergente du bundle: {relative}")
+            except (OSError, ValueError):
+                failures.append(f"sortie courante absente ou invalide: {relative}")
     return failures
 
 
@@ -246,6 +296,7 @@ def validate_exchange_completeness(repo_root: Path, project: Path) -> list[str]:
     raw_tasks = assignments.get("tasks", [])
     if not isinstance(raw_tasks, list):
         raise ValueError("task_assignments.json: tasks invalide")
+    tasks = _plan_tasks(repo_root, project)
     dependencies = _dependencies(repo_root, project)
     transitive = bool(dict(policy["propagation"])["transitive_dependents"])
     failures: list[str] = []
@@ -256,13 +307,19 @@ def validate_exchange_completeness(repo_root: Path, project: Path) -> list[str]:
         task_id = str(raw.get("task_id", ""))
         attempts = int(raw.get("attempts", 0))
         status = str(raw.get("status", ""))
-        if attempts < 1:
+        if task_id not in tasks:
+            failures.append(f"assignation hors plan: {task_id}")
             continue
+        if attempts < 1:
+            if status == "PASS":
+                failures.append(f"tâche PASS sans tentative: {task_id}")
+            continue
+        expected = tasks[task_id]["expected_outputs"]
         self_bundle = _bundle_path(project, task_id, None, attempts)
         if not self_bundle.is_dir():
             failures.append(f"self-history absent: {task_id} run-{attempts:03d}")
         else:
-            failures.extend(validate_bundle(project, self_bundle))
+            failures.extend(_current_bundle(project, self_bundle, raw, expected, None))
         if status != "PASS":
             continue
         for consumer, _ in _dependents(
@@ -276,5 +333,5 @@ def validate_exchange_completeness(repo_root: Path, project: Path) -> list[str]:
                     f"propagation absente: {task_id} -> {consumer} run-{attempts:03d}"
                 )
             else:
-                failures.extend(validate_bundle(project, bundle))
+                failures.extend(_current_bundle(project, bundle, raw, expected, consumer))
     return failures

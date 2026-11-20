@@ -255,10 +255,25 @@ requête sur l'autre modèle. La réception réelle reste à faire.
 | Cache | Préfixes stables par modèle et rôle ; mesurer les hits avant tout réglage de routage | Compteurs déclarés et coût réel ; aucun cache de réponse ou nouvelle transmission implicite |
 | Routage | Choix applicatif par rôle et étape approuvée, sans escalade sur panne ou refus | Tests de refus, budget, consentement, migration de l'ancien choix profond |
 | Prompts | Lot 5 : guide outils injecté une fois, règles communes condensées, méthodes et contrats conservés | Taille UTF-16 et injection native contrôlées en CI ; scénarios réels à qualifier |
-| Validation | Contrôles déterministes, audit indépendant et preuves résolues, coût par tâche réussie | CI hors réseau payant puis réception consentie sur Fedora avec fournisseur réel |
+| Validation | Lot 6 : précontrôle des preuves et de l'intégrité avant appel, critères et scellés vérifiés | CI hors réseau payant puis réception consentie sur Fedora avec fournisseur réel |
 
 La migration doit conserver la passerelle loopback, le filtre de confidentialité,
 l'accord lié aux sources, le journal, le verrou global et l'approbation humaine.
 Avant d'autoriser le nouveau modèle, vérifier les paramètres compatibles,
 les plafonds, la politique de conservation et le tool calling sur le fournisseur
 effectivement sélectionné. Aucun passage automatique du local au cloud.
+
+
+### Lot 6 — Précontrôle d'audit sans appel IA
+
+Avant le snapshot d'audit, le worker vérifie les tâches PASS, les entrées,
+les artefacts et les preuves obligatoires du plan. Les bundles doivent
+correspondre aux identités et aux octets des sorties courantes; aucun fichier
+supplémentaire ou dupliqué n'est accepté dans leur inventaire. Le reçu labo
+exige un code retour zéro; le reçu CI exige le dépôt, le commit et le run
+visés; l'observation humaine reste une attestation, pas une mesure automatique.
+Un blocage déterministe ne crée ni verdict ni appel payant. Après correction,
+l'opérateur relance l'audit sémantique, qui reste obligatoire pour le parcours
+normal. Les fichiers techniques work/ entrent aussi dans le scellé d'audit;
+les anciens scellés peuvent nécessiter une nouvelle revue. Les tests utilisent
+des fixtures, pas un fournisseur réel.

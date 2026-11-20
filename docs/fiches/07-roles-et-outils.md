@@ -233,6 +233,8 @@ Pour le second critère, réaliser la restauration sur la VM de test puis vérif
 clawfedora project proof --project-id atelier-restore --task-id restore --criterion 2 --observation "$OBSERVATION" --result "$RESULTAT" --apply
 ```
 
+Avant toute génération d'audit, le moteur vérifie les sorties publiées, les bundles et les preuves obligatoires. Une pièce absente, incohérente ou périmée bloque l'appel au modèle; compléter la preuve ou reprendre la tâche avec approbation, puis relancer l'audit. Aucun verdict sémantique n'est déduit de ce précontrôle.
+
 Le reçu se trouve dans `context/operator-proofs/restore/`. Une attestation humaine garde cette provenance. Pour un critère CI, utiliser la même commande avec `--run-id` et, pour une forge privée, le fichier opérateur `--token-file`. Le mentor voit les résultats déclarés dans le projet sélectionné. L’auditeur lit l’index de sa session, examine la pièce et justifie sa portée. Une reprise archive les contrôles des tâches affectées. Préparer une nouvelle preuve après modification du fichier concerné.
 
 La sécurité et l’auditeur peuvent lire un rapport JSON Trivy d’image expurgé avec `clawfedora_ci_report`, format `trivy-image` et digest attendu. Le compte par sévérité porte sur les vulnérabilités déclarées du manifeste indiqué. Les autres sections du rapport et les journaux bruts restent hors du résumé.
