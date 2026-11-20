@@ -727,3 +727,36 @@ def test_the_standard_model_keeps_every_historic_setting(
     assert "quantizations" not in sent["provider"]
     standard = server.policy["upstream_models"]["standard"]
     assert budget.priced[-1] == (standard["pricing_usd_per_million"], MODEL)
+
+
+
+@pytest.mark.parametrize("stream", [False, True])
+def test_cache_and_reasoning_metrics_are_logged_without_provider_metadata(
+    gateway: tuple[GatewayServer, FakeBudget], upstream: tuple[Upstream, int],
+    monkeypatch: pytest.MonkeyPatch, stream: bool,
+) -> None:
+    server, _ = gateway
+    monkeypatch.setattr(Upstream, "usage", staticmethod(lambda: {
+        "prompt_tokens": 20, "completion_tokens": 9, "cost": 0.00042,
+        "prompt_tokens_details": {"cached_tokens": 12, "cache_write_tokens": 0,
+                                  "private": "must-not-be-logged"},
+        "completion_tokens_details": {"reasoning_tokens": 4},
+        "arbitrary_numeric_key": 999,
+    }))
+    assert post(server, request(stream=stream))[0] == 200
+    assert upstream[0].requests
+    assert events(server)[-1]["usage"] == {
+        "prompt_tokens": 20, "completion_tokens": 9, "cost": 0.00042,
+        "cached_tokens": 12, "cache_write_tokens": 0, "reasoning_tokens": 4,
+    }
+
+
+def test_usage_counters_ignore_invalid_nested_values() -> None:
+    from clawfedora.cloud_gateway import _safe_usage
+
+    assert _safe_usage({
+        "prompt_tokens": 20, "completion_tokens": 9, "total_tokens": True,
+        "prompt_tokens_details": {"cached_tokens": 21, "cache_write_tokens": -1},
+        "completion_tokens_details": {"reasoning_tokens": True},
+        "cost": float("nan"),
+    }) == {"prompt_tokens": 20, "completion_tokens": 9}

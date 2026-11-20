@@ -192,3 +192,44 @@ Les tests automatisés simulent deux serveurs loopback et vérifient que le
 second ne reçoit aucune requête. Ils **ne prouvent pas** la disponibilité,
 le tarif ni la compatibilité `reasoning.effort=xhigh` avec le vrai
 fournisseur OpenRouter, à qualifier en dernier avec le compte réel.
+
+## Mesures FinOps et plan d'évolution (19 novembre 2026)
+
+### Mesurer avant d'optimiser
+
+La commande de statut cloud présente une ligne `CLOUD_MODEL_USAGE` par modèle
+ayant une réservation dans le journal mensuel. Les compteurs de tokens d'entrée,
+de sortie, de lecture/écriture du cache et de raisonnement sont issus des champs
+`usage` OpenRouter. Les compteurs `*_reported_calls` indiquent combien d'appels
+ont effectivement déclaré cette métrique. Une absence n'est pas un zéro. Les
+anciens appels sans identité de modèle restent dans le groupe `unknown`.
+
+Ces mesures ne changent ni la réserve en pire cas ni les plafonds existants :
+le coût déclaré par le fournisseur prime ; sans coût déclaré, aucun rabais de
+cache n'est supposé. Les journaux ne contiennent ni prompt ni clé ni texte
+d'outil. Les essais sont simulés ; le taux de cache réel reste à mesurer.
+Documentation : [cache OpenRouter](https://openrouter.ai/blog/tutorials/prompt-caching-sticky-routing/).
+
+### Cible approuvée, non encore déployée
+
+Deux modèles **cloud** seulement : [DeepSeek V4.1 Flash 1017](https://openrouter.ai/deepseek/deepseek-v4.1-flash-1017)
+pour la production et [GPT-6.2 Sol](https://openrouter.ai/openai/gpt-6.2-sol)
+pour l'expertise. Le modèle Ollama local et le mode hors cloud restent indépendants.
+Objectif : 35 €/mois tout compris (12 € production, 18 € expertise, 5 € réserve).
+Ces montants sont des enveloppes cibles, non des plafonds par modèle déjà actifs.
+Le plafond d'exécution reste celui de la politique courante tant que la migration
+n'est pas livrée et qualifiée.
+
+| Axe | Évolution ciblée | Critère de réception |
+|---|---|---|
+| Contexte | Extraits utiles, références et SHA-256, sortie d'outil bornée, sans supprimer une preuve requise | Comparaison des tokens par tâche et couverture des preuves inchangée |
+| Cache | Préfixes stables par modèle et rôle ; mesurer les hits avant tout réglage de routage | Compteurs déclarés et coût réel ; aucun cache de réponse ou nouvelle transmission implicite |
+| Routage | Choix applicatif par rôle et effort, arbitrage borné après échec, séparé du repli technique | Tests de refus, budget, consentement, migration de l'ancien choix profond |
+| Prompts | Factoriser les doublons sans perdre contrats ni pédagogie, préserver les limites UTF-16 | Tests de taille et scénarios comportementaux sur les sept rôles |
+| Validation | Contrôles déterministes, audit indépendant et preuves résolues, coût par tâche réussie | CI hors réseau payant puis réception consentie sur Fedora avec fournisseur réel |
+
+La migration doit conserver la passerelle loopback, le filtre de confidentialité,
+l'accord lié aux sources, le journal, le verrou global et l'approbation humaine.
+Avant d'autoriser le nouveau modèle, vérifier les paramètres compatibles,
+les plafonds, la politique de conservation et le tool calling sur le fournisseur
+effectivement sélectionné. Aucun passage automatique du local au cloud.

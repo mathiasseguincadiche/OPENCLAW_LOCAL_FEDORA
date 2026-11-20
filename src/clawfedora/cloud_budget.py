@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.cloud_state import CLOUD_STATE
+from clawfedora.cloud_usage import reported_cost, token_counts
 from clawfedora.core_config import core_contract
 
 
@@ -217,6 +218,32 @@ class Ledger:
             effective_eur=max(spent_eur, billed_eur), cap_eur=self.cap_eur,
         )
 
+    def model_usage(self, month: str | None = None) -> dict[str, dict[str, Any]]:
+        """Aggregate observed counters by reserved model, without guessing missing usage."""
+        records = self._records(month or month_key(self._clock()))
+        reservations = {str(r["id"]): r for r in records if r.get("k") == "reserve"}
+        settlements = {str(r["id"]): r for r in records if r.get("k") == "settle"}
+        models: dict[str, dict[str, Any]] = {}
+        for call_id, reservation in reservations.items():
+            model = str(reservation.get("model") or "unknown")
+            row = models.setdefault(model, {"calls": 0, "tokens": {}, "reported": {}})
+            row["calls"] += 1
+            closing = settlements.get(call_id)
+            if closing is None or closing.get("status") != "ok":
+                continue
+            counts = closing.get("tokens")
+            if not isinstance(counts, dict):
+                continue
+            for key in (
+                "prompt_tokens", "completion_tokens", "total_tokens",
+                "cached_tokens", "cache_write_tokens", "reasoning_tokens",
+            ):
+                value = counts.get(key)
+                if type(value) is int and value >= 0:
+                    row["tokens"][key] = row["tokens"].get(key, 0) + value
+                    row["reported"][key] = row["reported"].get(key, 0) + 1
+        return models
+
     def _prices(self, pricing: dict[str, Any] | None) -> tuple[float, float]:
         """Price ceilings of the model called: the contracted model when none is given."""
         if pricing is None:
@@ -242,12 +269,13 @@ class Ledger:
     ) -> float | None:
         if not usage:
             return None
-        cost = usage.get("cost")
-        if isinstance(cost, int | float) and not isinstance(cost, bool) and cost >= 0:
-            return float(cost)
+        cost = reported_cost(usage)
+        if cost is not None:
+            return cost
         price_in, price_out = prices or (self._price_in, self._price_out)
-        prompt, completion = usage.get("prompt_tokens"), usage.get("completion_tokens")
-        if isinstance(prompt, int) and isinstance(completion, int):
+        counts = token_counts(usage)
+        prompt, completion = counts.get("prompt_tokens"), counts.get("completion_tokens")
+        if prompt is not None and completion is not None:
             return (prompt * price_in + completion * price_out) / 1_000_000
         return None
 
@@ -300,11 +328,7 @@ class Ledger:
         if usd is not None and usd > estimate:
             record["overrun"] = True
         if isinstance(usage, dict):
-            record["tokens"] = {
-                key: usage[key]
-                for key in ("prompt_tokens", "completion_tokens", "total_tokens")
-                if isinstance(usage.get(key), int)
-            }
+            record["tokens"] = token_counts(usage)
         with self._locked():
             self._append(month, record)
 
