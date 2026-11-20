@@ -260,7 +260,7 @@ cd /data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA
 | Attendu | Si ça échoue |
 | --- | --- |
 | [ ] Les contrôles sans `--apply` passent : secret bloqué, appel sain relayé, plafond respecté | Le cloud reste désactivé ; lire le contrôle en échec |
-| [ ] `CLOUD_STATUS ready=1`, `CLOUD_MODEL name=standard`, budget à 0 € | Revoir la clé (`cloud-set-key`) et sa limite chez OpenRouter |
+| [ ] `CLOUD_STATUS ready=1`, `CLOUD_ROUTING_MODE mode=auto`, budget à 0 € | Revoir la clé (`cloud-set-key`) et sa limite chez OpenRouter |
 
 **Filtre de confidentialité, sans rien envoyer de réel :**
 
@@ -273,7 +273,7 @@ printf 'NomFictifReception42\n' >> /data/IA/Openclaw/state/cloud/denylist.txt
 **Un appel Flash (standard) :**
 
 - [ ] Poser une question publique, par exemple « Compare Ansible et Terraform pour configurer 3 serveurs ». Le bandeau ☁️ indique « Modèle : DeepSeek V4.1 Flash 1017 ».
-- [ ] `!budget` dans le chat affiche un petit montant, le profil et le modèle `standard`.
+- [ ] `!budget` dans le chat affiche un petit montant, le mode `auto` et les deux enveloppes.
 
 **Un appel expert (GPT-6.2 Sol) :**
 
@@ -288,11 +288,11 @@ printf 'NomFictifReception42\n' >> /data/IA/Openclaw/state/cloud/denylist.txt
 - [ ] Dans l'**activité OpenRouter**, le fournisseur utilisé est un endpoint Sol admissible, et les prix correspondent aux plafonds prudents 5 $ / 15 $ par million. Sinon, noter le fournisseur et le prix affichés et me les transmettre.
 - [ ] **Si l'appel échoue** avec « aucun fournisseur » ou une erreur 404/503 : revenir en `standard` (commande ci-dessous) et noter le message exact. Les fournisseurs ont peut-être changé depuis le [catalogue OpenRouter](https://openrouter.ai/openai/gpt-6.2-sol).
 
-**Rapprochement et retour au standard :**
+**Rapprochement et retour au routage automatique :**
 
 ```bash
 ./menu.sh --action cloud-reconcile --value MONTANT_FACTURE_EN_EUROS --apply
-./menu.sh --action cloud-set-model --value standard --apply
+./menu.sh --action cloud-set-model --value auto --apply
 ```
 
 - [ ] Le montant facturé par OpenRouter correspond à peu près au journal (`cloud-status`).

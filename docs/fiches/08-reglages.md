@@ -82,7 +82,7 @@ Fichier : `config/core/cloud_policy.yaml`. `./menu.sh --action validate` refuse 
 | `provider.data_collection` | `deny` | Écarte les routes qui ne respectent pas ce réglage. |
 | `gateway.port` | 18892 | Boucle locale seulement. |
 
-**Sobriété cloud :** sélectionner `equilibre` (medium/8K) manuellement pour des explications courantes lorsque c'est suffisant. `equilibre` est le défaut ; pas de routage automatique à ce stade.
+**Sobriété cloud :** sélectionner `equilibre` (medium/8K) manuellement pour des explications courantes lorsque c'est suffisant. `equilibre` est le défaut manuel ; en mode `auto`, les profils dépendent du rôle et de l'étape approuvée. `cloud-set-model --value auto --apply` rétablit ce mode.
 
 Le raisonnement long du modèle local reste désactivé pour préserver la latence et la VRAM.
 Le cloud offre quatre profils, dont **`medium` par défaut**, choisis manuellement via

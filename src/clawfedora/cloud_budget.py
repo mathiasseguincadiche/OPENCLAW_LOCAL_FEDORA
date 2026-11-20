@@ -34,6 +34,28 @@ class BudgetRefused(Exception):
     """The budget refuses the call: nothing is sent."""
 
 
+class ModelBudgetRefused(BudgetRefused):
+    def __init__(self, model: str, message: str) -> None:
+        super().__init__(message)
+        self.model = model
+
+
+def model_caps(policy: dict[str, Any]) -> dict[str, float]:
+    """The two real upstream models have distinct, non-transferable envelopes."""
+    values = policy["budget"].get("model_caps_eur")
+    upstream_ids = {
+        spec["upstream_id"] for spec in policy["upstream_models"].values()
+    }
+    if not isinstance(values, dict) or set(values) != upstream_ids:
+        raise BudgetRefused("enveloppes budgétaires : modèles exacts requis")
+    result: dict[str, float] = {}
+    for model, cap in values.items():
+        if type(cap) not in {int, float} or not 0 < cap <= 35:
+            raise BudgetRefused("enveloppe budgétaire non conforme")
+        result[str(model)] = float(cap)
+    return result
+
+
 @dataclass(frozen=True)
 class Summary:
     month: str
@@ -78,6 +100,7 @@ class Ledger:
         pricing = policy["model"]["pricing_usd_per_million"]
         self.runtime = runtime
         self.cap_eur = float(budget["monthly_cap_eur"])
+        self.model_caps_eur = model_caps(policy)
         self.alert_ratio = float(budget["alert_ratio"])
         self.eur_per_usd = float(budget["eur_per_usd"])
         self._template = str(budget["ledger_file"])
@@ -218,6 +241,24 @@ class Ledger:
             effective_eur=max(spent_eur, billed_eur), cap_eur=self.cap_eur,
         )
 
+    def model_spend(self, month: str | None = None) -> dict[str, float]:
+        """Conservative euros per actual model, including pending and uncertain calls."""
+        records = self._records(month or month_key(self._clock()))
+        reserved = {str(r["id"]): r for r in records if r.get("k") == "reserve"}
+        closed = {str(r["id"]): r for r in records if r.get("k") == "settle"}
+        totals: dict[str, float] = {}
+        for call_id, record in reserved.items():
+            model = str(record.get("model") or "unknown")
+            closing = closed.get(call_id)
+            amount = float(record["est_usd"])
+            if closing is not None:
+                if closing["status"] == "failed":
+                    amount = 0.0
+                elif closing["status"] == "ok" and closing.get("usd") is not None:
+                    amount = float(closing["usd"])
+            totals[model] = totals.get(model, 0.0) + amount
+        return {model: amount * self.eur_per_usd for model, amount in totals.items()}
+
     def model_usage(self, month: str | None = None) -> dict[str, dict[str, Any]]:
         """Aggregate observed counters by reserved model, without guessing missing usage."""
         records = self._records(month or month_key(self._clock()))
@@ -304,6 +345,14 @@ class Ledger:
                     f"{self.cap_eur:.0f} € ce mois-ci ; un appel de {worst:.2f} € au pire "
                     "est refusé"
                 )
+            if model is not None and model in self.model_caps_eur:
+                spent = self.model_spend(month).get(model, 0.0)
+                cap = self.model_caps_eur[model]
+                projected_model = spent + estimate * self.eur_per_usd
+                if projected_model > cap:
+                    raise ModelBudgetRefused(
+                        model, f"enveloppe du modèle atteinte : {model} ({spent:.2f}/{cap:.2f} €)",
+                    )
             call_id = uuid.uuid4().hex[:16]
             record: dict[str, Any] = {
                 "k": "reserve", "id": call_id, "at": _stamp(self._clock()), "month": month,

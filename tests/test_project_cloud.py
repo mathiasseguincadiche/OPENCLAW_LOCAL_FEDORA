@@ -29,6 +29,7 @@ class Base:
     def __init__(self, runtime: Path) -> None:
         self.runtime = runtime
         self.routes: list[str] = []
+        self.escalations: list[str] = []
         self.cloud_events: list[dict[str, Any]] = [
             {"decision": "forwarded"}, {"decision": "completed"}]
         self.cloud_error: Exception | None = None
@@ -42,9 +43,11 @@ class Base:
             handle.write(json.dumps(record) + "\n")
 
     def __call__(
-        self, role: str, prompt: str, session: str, *, route: str = "local"
+        self, role: str, prompt: str, session: str, *, route: str = "local",
+        escalation_reason: str = "routine",
     ) -> dict[str, Any]:
         self.routes.append(route)
+        self.escalations.append(escalation_reason)
         model = "deepseek/deepseek-v4.1-flash-1017" if route == "cloud" else "qwen3.5:9b"
         write_json(
             self.runtime / "state/model-runs" / f"{session}.json",
@@ -368,3 +371,18 @@ def test_the_command_line_shows_requires_acknowledgement_and_revokes(
         "state"] == "granted"
     assert main([*common, "cloud-revoke", *ident]) == 0
     assert not project_cloud.consent_path(runtime, project).exists()
+
+
+def test_revision_escalation_requires_existing_cloud_approval(
+    workshop: tuple[Path, Path, Base],
+) -> None:
+    runtime, project, base = workshop
+    runner = project_runner(ROOT, runtime, project, base=base)
+    runner.escalation_reason = "approved_revision"
+    prompt = 'task\n{"expected_outputs":["deliverables/task-one/file.md"]}'
+    runner("ingenieur-devops", prompt, "local-revision")
+    assert base.routes == ["local"] and base.escalations == ["routine"]
+    approve(runtime, project)
+    runner("ingenieur-devops", prompt, "cloud-revision")
+    assert base.routes == ["local", "cloud"]
+    assert base.escalations == ["routine", "approved_revision"]

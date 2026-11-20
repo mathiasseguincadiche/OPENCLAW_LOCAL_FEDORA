@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from clawfedora.cloud_budget import BudgetRefused, Ledger, load_ledger, month_key
+from clawfedora.cloud_budget import BudgetRefused, Ledger, ModelBudgetRefused, load_ledger, month_key
 
 ROOT = Path(__file__).resolve().parents[1]
 OCT = time.mktime(time.strptime("2026-10-15 12:00", "%Y-%m-%d %H:%M")) - time.timezone
@@ -266,3 +266,20 @@ def test_cache_without_reported_price_does_not_reduce_the_reservation_rate(ledge
         "prompt_tokens_details": {"cached_tokens": 800},
     }, "ok")
     assert ledger.summary().spent_usd == pytest.approx((1000 * 0.25 + 500 * 0.75) / 1e6)
+
+
+def test_model_envelopes_count_uncertain_cost_and_do_not_transfer(ledger: Ledger) -> None:
+    expert = "openai/gpt-6.2-sol"
+    flash = "deepseek/deepseek-v4.1-flash-1017"
+    price = {"input": 5.0, "output": 15.0}
+    held = ledger.reserve(input_tokens=1_500_000, max_output_tokens=0,
+                          model=expert, pricing=price)
+    assert ledger.model_spend()[expert] == pytest.approx(9.75)
+    with pytest.raises(ModelBudgetRefused):
+        ledger.reserve(input_tokens=100_000, max_output_tokens=0, model=expert, pricing=price)
+    held.settle(None, "interrupted")
+    assert ledger.model_spend()[expert] == pytest.approx(9.75)
+    with pytest.raises(ModelBudgetRefused):
+        ledger.reserve(input_tokens=100_000, max_output_tokens=0, model=expert, pricing=price)
+    ledger.reserve(input_tokens=1000, max_output_tokens=0, model=flash)
+    assert ledger.model_spend()[flash] > 0

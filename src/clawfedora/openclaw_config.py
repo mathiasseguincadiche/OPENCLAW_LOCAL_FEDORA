@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.agents import load_agent_specs
+from clawfedora.cloud_routing import automatic_routes
 from clawfedora.core_config import CLOUD_PROVIDER_ID, core_contract, daily_limits, root_contract
 from clawfedora.web_access import WEB_TOOLS, private_mode
 
@@ -90,6 +91,13 @@ def cloud_model_ref(cloud: dict[str, Any]) -> str:
     return f"{gateway_policy['provider_id']}/{model['upstream_id']}"
 
 
+def cloud_model_refs(cloud: dict[str, Any]) -> list[str]:
+    provider = str(cloud["policy"]["provider_id"])
+    return [cloud_model_ref(cloud), *(
+        f"{provider}/{model_id}" for model_id in automatic_routes(cloud)
+    )]
+
+
 def _cloud_provider(cloud: dict[str, Any], limits: dict[str, Any]) -> dict[str, Any]:
     """The cloud is reached through the loopback gateway only, never directly.
 
@@ -101,6 +109,7 @@ def _cloud_provider(cloud: dict[str, Any], limits: dict[str, Any]) -> dict[str, 
     pricing = _mapping(model.get("pricing_usd_per_million"))
     context_tokens = int(model["context_tokens"])
     max_tokens = int(model["max_output_tokens"])
+    routes = automatic_routes(cloud)
     return {
         "baseUrl": f"http://{gateway['host']}:{gateway['port']}{gateway['path_prefix']}",
         "apiKey": _environment_reference(str(gateway["token_env"])),
@@ -121,7 +130,25 @@ def _cloud_provider(cloud: dict[str, Any], limits: dict[str, Any]) -> dict[str, 
                 "contextWindow": context_tokens,
                 "contextTokens": context_tokens,
                 "maxTokens": max_tokens,
-            }
+            },
+            *(
+                {
+                    "id": alias,
+                    "name": f"{route.upstream['display_name']} ({route.profile['effort']})",
+                    "reasoning": False,
+                    "input": ["text"],
+                    "cost": {
+                        "input": float(route.upstream["pricing_usd_per_million"]["input"]),
+                        "output": float(route.upstream["pricing_usd_per_million"]["output"]),
+                        "cacheRead": 0,
+                        "cacheWrite": 0,
+                    },
+                    "contextWindow": context_tokens,
+                    "contextTokens": context_tokens,
+                    "maxTokens": int(route.profile["max_output_tokens"]),
+                }
+                for alias, route in routes.items()
+            ),
         ],
     }
 
@@ -174,7 +201,7 @@ def build_openclaw_patch(
 
     daily_model = _model_ref("qwen-max", catalog)
     # A per-run --model can only select a model declared here, never an arbitrary reference.
-    allowed_models = [daily_model] + ([cloud_model_ref(cloud)] if cloud_enabled else [])
+    allowed_models = [daily_model] + (cloud_model_refs(cloud) if cloud_enabled else [])
     defaults = _mapping(openclaw_policy.get("agents"))
     web = _mapping(web_policy.get("nominal_path"))
     global_tools = _mapping(tools.get("security_defaults"))

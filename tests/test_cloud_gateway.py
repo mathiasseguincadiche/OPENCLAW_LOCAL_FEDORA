@@ -764,3 +764,51 @@ def test_usage_counters_ignore_invalid_nested_values() -> None:
         "completion_tokens_details": {"reasoning_tokens": True},
         "cost": float("nan"),
     }) == {"prompt_tokens": 20, "completion_tokens": 9}
+
+
+@pytest.mark.parametrize(
+    ("alias", "model", "effort", "maximum"),
+    [
+        ("atelier/standard-rapide", MODEL, "low", 4096),
+        ("atelier/standard-soutenu", MODEL, "high", 16384),
+        ("atelier/expert-equilibre", "openai/gpt-6.2-sol", "medium", 8192),
+        ("atelier/expert-soutenu", "openai/gpt-6.2-sol", "high", 16384),
+    ],
+)
+def test_automatic_aliases_are_resolved_and_bounded(
+    gateway: tuple[GatewayServer, FakeBudget], upstream: tuple[Upstream, int],
+    alias: str, model: str, effort: str, maximum: int,
+) -> None:
+    server, budget = gateway
+    assert post(server, request(model=alias, max_tokens=32768))[0] == 200
+    sent = upstream[0].requests[-1]["body"]
+    assert sent["model"] == model and sent["reasoning"] == {"effort": effort}
+    assert sent["max_tokens"] == maximum
+    assert sent["provider"]["data_collection"] == "deny"
+    assert sent["provider"]["require_parameters"] is True
+    assert budget.priced[-1][1] == model and budget.reserved[-1][1] == maximum
+    assert any(e.get("local_alias") == alias and e.get("upstream_requested") == model
+               for e in events(server))
+
+
+def test_manual_mode_cannot_use_automatic_aliases(
+    gateway: tuple[GatewayServer, FakeBudget], upstream: tuple[Upstream, int],
+) -> None:
+    from clawfedora.cloud_profiles import set_upstream_model
+
+    server, budget = gateway
+    set_upstream_model(server.runtime, server.policy, "standard")
+    assert post(server, request(model="atelier/expert-soutenu"))[0] == 503
+    assert not upstream[0].requests and not budget.reserved
+
+
+def test_expert_envelope_refuses_network_without_transferring_budget(
+    counted: tuple[GatewayServer, Any], upstream: tuple[Upstream, int],
+) -> None:
+    server, ledger = counted
+    ledger.reserve(input_tokens=1_538_461, max_output_tokens=0,
+                   model="openai/gpt-6.2-sol", pricing={"input": 5.0, "output": 15.0})
+    assert post(server, request(model="atelier/expert-soutenu"))[0] == 402
+    assert not upstream[0].requests
+    assert events(server)[-1]["scope"] == "model"
+    assert post(server, request(model="atelier/standard-rapide"))[0] == 200

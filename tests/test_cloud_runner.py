@@ -32,7 +32,7 @@ class FakeOpenClaw:
         self.agents = patch["agents"]
         self.providers = patch["models"]["providers"]
         self.envelope: dict[str, Any] = self.reply(
-            "Bonjour", "cloudgw", "deepseek/deepseek-v4.1-flash-1017"
+            "Bonjour", "cloudgw", "atelier/standard-soutenu"
         )
         self.commands: list[list[str]] = []
         self.environments: list[dict[str, str]] = []
@@ -127,14 +127,19 @@ def test_cloud_route_selects_the_cloud_model_without_ollama(
     write_activation(runtime, BOTH)
     runner = project_worker.openclaw_runner(runtime, ROOT, plain_text=True)
     result = runner("chef-operations", "Bonjour", "session-1", route="cloud")
-    assert result == {"text": "Bonjour", "route": "cloud"}
+    assert result == {
+        "text": "Bonjour", "route": "cloud",
+        "cloud_model": "DeepSeek V4.1 Flash 1017", "cloud_profile": "soutenu",
+    }
     (command,) = fake.agent_commands()
-    assert command[command.index("--model") + 1] == "cloudgw/deepseek/deepseek-v4.1-flash-1017"
+    assert command[command.index("--model") + 1] == "cloudgw/atelier/standard-soutenu"
     # Provider and allow-list were verified with the cloud route only.
     assert ["openclaw", "config", "get", "models.providers", "--json"] in fake.commands
     record = json.loads((runtime / "state/model-runs/session-1.json").read_text())
     assert record["route"] == "cloud" and record["provider"] == "cloudgw"
-    assert record["model"] == "deepseek/deepseek-v4.1-flash-1017"
+    assert record["model"] == "atelier/standard-soutenu"
+    assert record["upstream_requested"] == "deepseek/deepseek-v4.1-flash-1017"
+    assert record["reasoning_profile"] == "soutenu" and record["routing_reason"] == "routine"
     assert record["usage"] == {"input": 12, "output": 5, "cacheRead": 0}
     # No message content is stored with the identity.
     assert "Bonjour" not in json.dumps(record)
@@ -149,7 +154,7 @@ def test_cloud_route_checks_the_model_that_really_answered(
     with pytest.raises(RuntimeError, match="provider=cloudgw"):
         runner("chef-operations", "Bonjour", "s2", route="cloud")
     fake.envelope = fake.reply("x", "cloudgw", "some/other-model")
-    with pytest.raises(RuntimeError, match="model=deepseek/deepseek-v4.1-flash-1017"):
+    with pytest.raises(RuntimeError, match="model=atelier/standard-soutenu"):
         runner("chef-operations", "Bonjour", "s3", route="cloud")
 
 
@@ -222,7 +227,7 @@ def test_cloud_json_syntax_error_fails_without_a_second_cloud_call_when_ollama_i
 
     monkeypatch.setattr(ollama_api, "request_json", down)
     runner = project_worker.openclaw_runner(runtime, ROOT)
-    fake.envelope = fake.reply("pas du json", "cloudgw", "deepseek/deepseek-v4.1-flash-1017")
+    fake.envelope = fake.reply("pas du json", "cloudgw", "atelier/standard-soutenu")
     with pytest.raises(ValueError, match="réparation locale indisponible"):
         runner("ingenieur-devops", TASK_PROMPT, "s5", route="cloud")
     # The gateway was called once: a repair never triggers a second billed call.
@@ -253,7 +258,7 @@ def test_cloud_json_syntax_error_is_repaired_by_the_local_model(
 
     monkeypatch.setattr(project_worker, "repair_response", repair)
     runner = project_worker.openclaw_runner(runtime, ROOT)
-    fake.envelope = fake.reply("pas du json", "cloudgw", "deepseek/deepseek-v4.1-flash-1017")
+    fake.envelope = fake.reply("pas du json", "cloudgw", "atelier/standard-soutenu")
     assert runner("ingenieur-devops", TASK_PROMPT, "s6", route="cloud") == repaired
     assert seen == {"text": "pas du json", "model": "qwen3.5:9b-q4_K_M"}
     assert len(fake.agent_commands()) == 1
@@ -295,3 +300,19 @@ def test_revoking_the_activation_switches_the_cloud_off(runtime: Path) -> None:
     assert cloud_status(runtime, ROOT)[0] is False
     (runtime / "state/cloud/activation.json").write_text("not json")
     assert cloud_status(runtime, ROOT)[0] is False
+
+
+def test_approved_revision_uses_expert_without_a_second_call(
+    runtime: Path, fake: FakeOpenClaw,
+) -> None:
+    write_activation(runtime, BOTH)
+    fake.envelope = fake.reply("Révision", "cloudgw", "atelier/expert-soutenu")
+    runner = project_worker.openclaw_runner(runtime, ROOT, plain_text=True)
+    result = runner("ingenieur-devops", "Réviser", "revision", route="cloud",
+                    escalation_reason="approved_revision")
+    assert result["cloud_profile"] == "soutenu"
+    (command,) = fake.agent_commands()
+    assert command[command.index("--model") + 1] == "cloudgw/atelier/expert-soutenu"
+    record = json.loads((runtime / "state/model-runs/revision.json").read_text())
+    assert record["upstream_requested"] == "openai/gpt-6.2-sol"
+    assert record["routing_reason"] == "approved_revision"

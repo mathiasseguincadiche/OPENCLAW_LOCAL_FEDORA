@@ -25,14 +25,14 @@ de présenter un faux chiffre.
 
 La route DeepSeek est volontairement plus généreuse en contexte (jusqu'à **1 048 576 tokens configurés**, sortie jusqu'à **32 768**) que Qwen local (**32 768 / 4 096**). Cela vise la cohérence des dossiers techniques complexes, mais **ne garantit ni une réponse plus rapide ni une meilleure exactitude**.
 
-**Pas de routage autonome par tâche** : les variantes « local » et « cloud » sont sélectionnées dans le chat ; l'accord donné à un projet autorise **ce projet** à employer le cloud. L'outil ne décide pas que « l'architecte doit utiliser DeepSeek et le rédacteur Qwen » sans intervention humaine.
+**Le consentement reste explicite** : les variantes « local » et « cloud » sont sélectionnées dans le chat ; l'accord donné à un projet autorise ce projet à employer le cloud. Ensuite, le mode `auto` choisit le couple modèle/profil à partir du rôle et de l'étape approuvée, sans classifier la difficulté du texte ni basculer du local au cloud.
 
 ## Le principe : local d'abord, cloud sur demande
 
 | Où | Comportement |
 |---|---|
 | Chat, modèle « · local » | Qwen sur ton PC. Aucun contenu de la conversation ne part vers un modèle distant. C'est le mode **Travail**. |
-| Chat, modèle « · cloud » | DeepSeek via la passerelle. C'est le mode **Apprendre**, pour des questions publiques. |
+| Chat, modèle « · cloud » | DeepSeek en routine, Sol sur choix manuel. C'est le mode **Apprendre**, pour des questions publiques. |
 | Atelier Projets | Local, sauf pour un projet que tu autorises toi-même, un par un. |
 
 Rien ne passe au cloud sans que tu l'aies choisi : ni une conversation, ni un projet. Rien ne repasse non plus du local vers le cloud tout seul.
@@ -67,6 +67,8 @@ DeepSeek V4.1 Flash est appelé via OpenRouter. La passerelle impose `data_colle
 **Instantané 1017 :** l'identité épinglée est `deepseek/deepseek-v4.1-flash-1017` (17 octobre 2026). Les prix 0,25 $ / 0,75 $ par million de tokens représentent les **plafonds de sécurité**, pas un prix garanti. Au premier appel réel, vérifier l'endpoint, le raisonnement et le coût, sans relâcher `data_collection: deny` ou `require_parameters` pour contourner un refus.
 
 ## Le budget : 35 € réels par mois
+
+Le journal réserve au maximum 15 € pour DeepSeek et 10 € pour Sol, sans transfert automatique. Les 10 € restants sont une marge non routable. `!budget` et `cloud-status` affichent les enveloppes et les dépenses attribuées.
 
 Trois protections indépendantes :
 
@@ -127,7 +129,7 @@ Deux modèles cloud sont revus dans `config/core/cloud_policy.yaml` :
 
 | Modèle | Identifiant OpenRouter | Plafond ($ par million, entrée / sortie) | Pour quoi |
 | --- | --- | --- | --- |
-| `standard` (par défaut) | `deepseek/deepseek-v4.1-flash-1017` | 0,25 / 0,75 | La plupart des demandes cloud |
+| `standard` (manuel) | `deepseek/deepseek-v4.1-flash-1017` | 0,25 / 0,75 | La plupart des demandes cloud |
 | `expert` | `openai/gpt-6.2-sol` | 5 / 15 | Architecture, sécurité, audit et mentorat |
 
 ```bash
@@ -135,10 +137,32 @@ Deux modèles cloud sont revus dans `config/core/cloud_policy.yaml` :
 ./menu.sh --action cloud-set-model --value expert                # simulation, aucun changement
 ./menu.sh --action cloud-set-profile --value equilibre --apply    # profil initial sobre
 ./menu.sh --action cloud-set-model --value expert --apply        # choix explicite
-./menu.sh --action cloud-set-model --value standard --apply       # retour au modèle standard
+./menu.sh --action cloud-set-model --value auto --apply           # retour au routage par rôle
 ```
 
-Le choix vaut pour toute la passerelle cloud, comme le profil. Il est refusé pendant une génération et conservé dans `state/cloud/upstream-model.json` (0600). Aucun agent, message ou paramètre du chat ne peut le modifier, et aucune bascule automatique n'existe entre les modèles, ni entre le local et le cloud. Les réponses cloud du chat indiquent le modèle qui a répondu, et `!budget` affiche le modèle actif et ses plafonds.
+Le choix de mode est refusé pendant une génération et conservé dans
+`state/cloud/upstream-model.json` (0600). Aucun agent, message ou paramètre
+du chat ne peut le modifier. Une installation sans ancien choix manuel
+utilise `auto` ; un choix explicite `standard` ou `expert` est conservé.
+Le bandeau du chat indique la route demandée et le profil. Le modèle
+réellement servi reste à vérifier auprès du fournisseur. Les quatre alias
+locaux modèle/profil ne représentent que deux modèles OpenRouter.
+
+| Rôle | Routine cloud | Révision approuvée / contre-expertise |
+| --- | --- | --- |
+| Chef des opérations | DeepSeek high | Sol medium |
+| Recherche | DeepSeek low | DeepSeek high |
+| Architecture | DeepSeek high | Sol high |
+| DevOps | DeepSeek high | Sol high |
+| Sécurité | DeepSeek high | Sol high |
+| Audit qualité | DeepSeek high | Sol high |
+| Rédaction pédagogique | DeepSeek low | Sol medium |
+
+La validation indépendante initiale reste en routine ; la revue finale utilise
+la route d'escalade de l'auditeur. Pour une expertise ponctuelle dans le chat,
+sélectionner explicitement `expert` en mode manuel, puis revenir à `auto`.
+Une panne ou un refus n'entraîne aucun second appel sur l'autre modèle.
+Le taux réel d'usage de Sol sera mesuré, pas imposé par un quota de requêtes.
 
 La passerelle impose les plafonds du modèle choisi et réserve avant chaque appel.
 Pour Sol, les [endpoints OpenRouter](https://openrouter.ai/api/v1/models/openai/gpt-6.2-sol/endpoints)
@@ -147,7 +171,7 @@ tokens d'entrée et jusqu'à 5 $/M pour l'écriture du cache au palier long.
 Les plafonds locaux prudents sont donc 5 / 15. Ils ne garantissent pas une facture
 finale : le coût réel déclaré prime, et les crédits prépayés restent indispensables.
 Un ancien choix enregistré `profond` est refusé ; sélectionner explicitement
-`standard` ou `expert`. Aucun remplacement silencieux ni troisième modèle cloud.
+`auto`, `standard` ou `expert`. Aucun remplacement silencieux ni troisième modèle cloud.
 Les paramètres de sampling non déclarés par les endpoints Sol sont retirés ;
 les appels d'outils, le filtrage et les contrôles budgétaires sont conservés.
 L'appel réel et la confidentialité du fournisseur restent à qualifier.
@@ -171,11 +195,11 @@ Quatre profils sont épinglés dans `config/core/cloud_policy.yaml` :
 ./menu.sh --action cloud-status                                # contrôle
 ```
 
-Le profil est **global à la passerelle cloud**, pas différent selon l'agent ;
+En mode manuel le profil est **global à la passerelle cloud** ; en mode auto les profils par rôle s'appliquent à la place. Pour le réglage manuel,
 le changement n'est permis qu'avec `--apply`, sous le verrou du worker pour
 ne pas modifier le profil au milieu d'une génération. Il est conservé
 dans l'état privé local `state/cloud/reasoning-profile.json` (0600), hors Git.
-Le profil initial devient `equilibre` ; un choix explicite existant est conservé. Il peut être lu dans le bouton **Budget cloud**
+Le profil manuel initial est `equilibre` ; un choix explicite existant est conservé. Il peut être lu dans le bouton **Budget cloud**
 ou via `!budget`, mais **pas changé par un message de chat ni par un agent**.
 
 La passerelle **ignore toute tentative cliente** de choisir un autre effort,

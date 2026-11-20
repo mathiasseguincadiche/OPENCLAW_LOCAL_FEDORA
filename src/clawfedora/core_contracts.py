@@ -280,11 +280,17 @@ def _validate_cloud_contracts(
         failures.append("core/cloud: tarifs de référence requis")
     # Reviewed upstream models behind the alias: exact ids, enabled flag, own price ceilings,
     # only narrower provider filters; the default one is the contracted model above.
+    from clawfedora.cloud_budget import BudgetRefused, model_caps
     from clawfedora.cloud_profiles import ProfileRefused, upstream_models
+    from clawfedora.cloud_routing import role_routes
 
     try:
         reviewed = upstream_models(cloud)
-    except ProfileRefused as exc:
+        role_routes(cloud)
+        caps = model_caps(cloud)
+        if type(cap) in {int, float} and sum(caps.values()) > cap:
+            failures.append("core/cloud: enveloppes modèles supérieures au plafond mensuel")
+    except (ProfileRefused, BudgetRefused) as exc:
         failures.append(f"core/cloud: {exc}")
     else:
         if cloud.get("default_upstream_model") != "standard" or not any(
