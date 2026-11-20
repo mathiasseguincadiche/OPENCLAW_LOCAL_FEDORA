@@ -288,7 +288,7 @@ def _validate_cloud_contracts(
         reviewed = upstream_models(cloud)
         role_routes(cloud)
         caps = model_caps(cloud)
-        if type(cap) in {int, float} and sum(caps.values()) > cap:
+        if isinstance(cap, int | float) and not isinstance(cap, bool) and sum(caps.values()) > cap:
             failures.append("core/cloud: enveloppes modèles supérieures au plafond mensuel")
     except (ProfileRefused, BudgetRefused) as exc:
         failures.append(f"core/cloud: {exc}")

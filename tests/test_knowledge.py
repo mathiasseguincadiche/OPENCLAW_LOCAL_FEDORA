@@ -10,7 +10,7 @@ import pytest
 
 from clawfedora import knowledge
 from clawfedora.knowledge import build_index, search, store_note
-from clawfedora.project_common import read_json
+from clawfedora.project_common import read_json, sha256_file
 from clawfedora.project_intake import create_project
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,6 +33,9 @@ def test_search_is_bounded_cited_and_incremental(
     assert first["changed"] == 1 and hits
     assert len(hits) <= 4 and sum(len(hit["text"]) for hit in hits) <= 4000
     assert hits[0]["path"] == "intake/configuration.md" and hits[0]["page"] == 1
+    for hit in hits:
+        assert hit["source_sha256"] == sha256_file(project / hit["path"])
+        assert hit["representation_sha256"] == sha256_file(project / hit["representation_path"])
     monkeypatch.setattr(
         knowledge, "_extract", lambda *_args: pytest.fail("unchanged source extracted twice")
     )
@@ -175,3 +178,41 @@ def test_single_source_still_fills_multiple_result_slots(project: Path) -> None:
     assert len(hits) >= 2
     assert len(hits) <= 4
     assert {hit["path"] for hit in hits} == {"intake/configuration.md"}
+
+
+def test_obsolete_index_never_returns_passages_from_changed_source(project: Path) -> None:
+    build_index(ROOT, project)
+    source = project / "intake/configuration.md"
+    source.chmod(0o600)
+    source.write_text("Autre contenu")
+    assert not search(ROOT, project, "Vulkan")
+
+
+def test_old_index_requires_rebuild_before_citing(project: Path) -> None:
+    build_index(ROOT, project)
+    with closing(sqlite3.connect(project / "context/knowledge/search.sqlite")) as db, db:
+        db.execute("UPDATE chunks SET metadata='{}'")
+        # Mimic a previous schema fingerprint: the next build must regenerate passages.
+        db.execute("UPDATE documents SET digest='old'")
+    assert not search(ROOT, project, "Vulkan")
+    assert build_index(ROOT, project)["changed"] == 1
+    assert search(ROOT, project, "Vulkan")
+
+
+def test_nonoverlapping_ranked_passages_preferred(project: Path) -> None:
+    build_index(ROOT, project)
+    hits = search(ROOT, project, "Vulkan")
+    assert len(hits) >= 2
+    a, b = hits[:2]
+    assert (
+        a["start_char"] + len(a["text"]) <= b["start_char"]
+        or b["start_char"] + len(b["text"]) <= a["start_char"]
+    )
+
+
+def test_modified_note_without_reindex_is_not_citable(project: Path) -> None:
+    note = store_note(ROOT, project, "Décision", "Kubernetes initial")
+    build_index(ROOT, project)
+    assert search(ROOT, project, "Kubernetes")
+    note.write_text('{"text":"contenu remplacé"}')
+    assert not search(ROOT, project, "Kubernetes")

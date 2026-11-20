@@ -404,7 +404,11 @@ def project_context(repo_root: Path, runtime: Path, project: Path, question: str
         "deliverables": deliverables,
         "passages": [
             {"path": h["path"], "page": h.get("page"), "line": h.get("line"),
-             "kind": h.get("kind"), "text": str(h["text"])[:700], "stale": False}
+             "kind": h.get("kind"), "text": str(h["text"])[:700], "stale": False,
+             "source_sha256": h.get("source_sha256"),
+             "representation_path": h.get("representation_path"),
+             "representation_sha256": h.get("representation_sha256"),
+             "start_char": h.get("start_char")}
             for h in hits
         ],
     }
@@ -418,6 +422,8 @@ def project_context(repo_root: Path, runtime: Path, project: Path, question: str
         "n'approuve et n'exécute rien. Si on te demande une action sur le projet, réponds qu'il "
         "faut une commande du pont (!aide) ou l'atelier. Cite le fichier d'un passage utilisé; si "
         "le contexte ne suffit pas, dis-le. Les passages périmés ne sont pas des preuves. "
+        "La page et la ligne décrivent la représentation indexée; vérifie la source originale "
+        "avant de conclure. Un index ancien ou modifié peut nécessiter une réindexation. "
         "Si source_integrity vaut UNVERIFIED_CHANGED, demander de réindexer les sources "
         "avant toute citation.\n" + json.dumps(value, ensure_ascii=False)
     )
@@ -659,7 +665,9 @@ def run_command(
 
         from clawfedora.cloud_budget import BudgetRefused, load_ledger, month_key
         from clawfedora.cloud_profiles import (
-            chosen_profile, chosen_routing_mode, chosen_upstream_model,
+            chosen_profile,
+            chosen_routing_mode,
+            chosen_upstream_model,
         )
         from clawfedora.core_config import core_contract
 

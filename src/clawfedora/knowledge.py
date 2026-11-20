@@ -162,12 +162,21 @@ def build_index(repo_root: Path, project: Path) -> dict[str, Any]:
             ):
                 skipped.append({"path": relative, "reason": "limite documentaire"})
                 continue
+            representation_sha = sha256_file(source)
+            original = project / relative
+            source_sha = representation_sha if original == source else sha256_file(original)
+            provenance = {
+                **metadata,
+                "source_sha256": source_sha,
+                "representation_path": source.relative_to(project).as_posix(),
+                "representation_sha256": representation_sha,
+            }
             digest = hashlib.sha256(
                 (
-                    sha256_file(source)
+                    representation_sha
                     + json.dumps(limits, sort_keys=True)
-                    + json.dumps(metadata, sort_keys=True)
-                    + "fts-v2"
+                    + json.dumps(provenance, sort_keys=True)
+                    + "fts-v3"
                 ).encode()
             ).hexdigest()
             previous = db.execute(
@@ -198,7 +207,7 @@ def build_index(repo_root: Path, project: Path) -> dict[str, Any]:
                 skipped.append({"path": relative, "reason": "texte vide ou limite totale atteinte"})
                 continue
             total += len(text)
-            citation = {key: value for key, value in metadata.items() if key != "text"}
+            citation = {key: value for key, value in provenance.items() if key != "text"}
             rows: list[tuple[str, str, int, int, str]] = []
             chunk_size, overlap = int(limits["chunk_chars"]), int(limits["overlap_chars"])
             for page, content in enumerate(text.split("\f"), 1):
@@ -212,7 +221,7 @@ def build_index(repo_root: Path, project: Path) -> dict[str, Any]:
                             relative,
                             page,
                             line,
-                            json.dumps(citation),
+                            json.dumps({**citation, "start_char": start}),
                         )
                     )
             if chunks + len(rows) > int(limits["max_chunks"]):
@@ -244,6 +253,35 @@ def build_index(repo_root: Path, project: Path) -> dict[str, Any]:
     return report
 
 
+def _verified_pair(
+    project: Path, relative: str, source_sha: str, representation: str, representation_sha: str,
+) -> bool:
+    """Revalidate the exact original and indexed representation, without following links."""
+    for name, digest in dict.fromkeys(((relative, source_sha), (representation, representation_sha))):
+        path = Path(name)
+        if not name or path.is_absolute() or ".." in path.parts:
+            return False
+        if not re.fullmatch(r"[0-9a-f]{64}", digest):
+            return False
+        target = project / path
+        if any(part.is_symlink() for part in (target, *target.parents)):
+            return False
+        try:
+            if not target.is_file() or sha256_file(target) != digest:
+                return False
+        except OSError:
+            return False
+    return True
+
+
+def _overlap(first: tuple[Any, ...], second: tuple[Any, ...]) -> bool:
+    if first[1:3] != second[1:3]:
+        return False
+    a = int(json.loads(first[4])["start_char"])
+    b = int(json.loads(second[4])["start_char"])
+    return a < b + len(second[0]) and b < a + len(first[0])
+
+
 def search(repo_root: Path, project: Path, query: str) -> list[dict[str, Any]]:
     path = _database(project)
     if not path.is_file():
@@ -251,11 +289,11 @@ def search(repo_root: Path, project: Path, query: str) -> list[dict[str, Any]]:
     limits = _policy(repo_root)["limits"]
     # Treat query syntax as words, never as SQL or FTS operators.
     stop = {"les", "des", "une", "pour", "dans", "avec", "sur", "que", "qui", "the", "and"}
-    terms = [
+    terms = list(dict.fromkeys(
         word
         for word in re.findall(r"[^\W_]+", query[:2000].casefold())
         if len(word) > 2 and word not in stop
-    ][:12]
+    ))[:12]
     if not terms:
         return []
     match = " OR ".join('"' + term + '"' for term in terms)
@@ -270,6 +308,21 @@ def search(repo_root: Path, project: Path, query: str) -> list[dict[str, Any]]:
             "ORDER BY bm25(chunks), path, page, line LIMIT ?",
             (match, candidates),
         ).fetchall()
+    # Old indexes and modified/deleted sources must not produce unverified citations.
+    # Check each file at most once per retrieval, before choosing the ranked passages.
+    checked: dict[tuple[str, str, str, str], bool] = {}
+    verified = []
+    for row in rows:
+        meta = json.loads(row[4])
+        key = (
+            str(row[1]), str(meta.get("source_sha256", "")),
+            str(meta.get("representation_path", "")), str(meta.get("representation_sha256", "")),
+        )
+        if key not in checked:
+            checked[key] = _verified_pair(project, *key)
+        if checked[key] and type(meta.get("start_char")) is int:
+            verified.append(row)
+    rows = verified
     preferred: list[tuple[Any, ...]] = []
     selected_indexes: set[int] = set()
     seen_sources: set[str] = set()
@@ -283,10 +336,18 @@ def search(repo_root: Path, project: Path, query: str) -> list[dict[str, Any]]:
         if len(preferred) == max_results:
             break
     if len(preferred) < max_results:
-        for index, row in enumerate(rows):
-            if index in selected_indexes:
-                continue
-            preferred.append(row)
+        # Prefer non-overlapping passages from the same page; do not spend a slot
+        # repeating the sliding-window overlap when a distinct passage is available.
+        for avoid_overlap in (True, False):
+            for index, row in enumerate(rows):
+                if index in selected_indexes:
+                    continue
+                if avoid_overlap and any(_overlap(row, other) for other in preferred):
+                    continue
+                preferred.append(row)
+                selected_indexes.add(index)
+                if len(preferred) == max_results:
+                    break
             if len(preferred) == max_results:
                 break
     hits: list[dict[str, Any]] = []
@@ -305,6 +366,11 @@ def search(repo_root: Path, project: Path, query: str) -> list[dict[str, Any]]:
                 "page": page,
                 "line": line,
                 "text": excerpt,
+                "source_sha256": metadata["source_sha256"],
+                "representation_path": metadata["representation_path"],
+                "representation_sha256": metadata["representation_sha256"],
+                "start_char": metadata["start_char"],
+                "excerpt_sha256": hashlib.sha256(excerpt.encode()).hexdigest(),
                 "kind": metadata.get("kind", "source"),
                 "title": metadata.get("title", ""),
                 "stale": stale,

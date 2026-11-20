@@ -285,6 +285,39 @@ class Ledger:
                     row["reported"][key] = row["reported"].get(key, 0) + 1
         return models
 
+    def cache_metrics(self, month: str | None = None) -> dict[str, dict[str, int | float | None]]:
+        """Only compare cached tokens with prompt tokens from the same reported calls."""
+        records = self._records(month or month_key(self._clock()))
+        reservations = {str(r["id"]): r for r in records if r.get("k") == "reserve"}
+        settlements = {str(r["id"]): r for r in records if r.get("k") == "settle"}
+        totals: dict[str, dict[str, int]] = {}
+        for call_id, reservation in reservations.items():
+            model = str(reservation.get("model") or "unknown")
+            row = totals.setdefault(model, {
+                "successful_calls": 0, "paired_calls": 0, "prompt_tokens": 0,
+                "cached_tokens": 0,
+            })
+            closing = settlements.get(call_id)
+            if closing is None or closing.get("status") != "ok":
+                continue
+            row["successful_calls"] += 1
+            counts = closing.get("tokens")
+            if not isinstance(counts, dict):
+                continue
+            prompt, cached = counts.get("prompt_tokens"), counts.get("cached_tokens")
+            if type(prompt) is int and type(cached) is int and 0 <= cached <= prompt:
+                row["paired_calls"] += 1
+                row["prompt_tokens"] += prompt
+                row["cached_tokens"] += cached
+        return {
+            model: {
+                **row,
+                "hit_ratio": row["cached_tokens"] / row["prompt_tokens"]
+                if row["prompt_tokens"] else None,
+            }
+            for model, row in totals.items()
+        }
+
     def _prices(self, pricing: dict[str, Any] | None) -> tuple[float, float]:
         """Price ceilings of the model called: the contracted model when none is given."""
         if pricing is None:

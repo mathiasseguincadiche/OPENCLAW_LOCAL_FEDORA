@@ -16,6 +16,7 @@ from clawfedora.webui_bridge import (
     CLOUD_MODEL_IDS,
     MODEL_IDS,
     BridgeHandler,
+    bounded_history,
     chat_prompt,
     make_server,
 )
@@ -451,3 +452,37 @@ def test_webui_install_requires_resolved_digest_and_rejects_bad_registry(
             image_digest="ghcr.io/other/repository@sha256:" + "a" * 64,
         )
     assert not (units / "clawfedora-webui.service").exists()
+
+
+def test_bounded_history_preserves_complete_utf8_suffix_and_exact_limit() -> None:
+    history = [
+        {"role": "user", "content": "A" * 400},
+        {"role": "assistant", "content": "Éléments \\" + "\n"},
+        {"role": "user", "content": "déploie"},
+    ]
+    suffix = json.dumps(history[1:], ensure_ascii=False, separators=(",", ":"))
+    encoded, omitted = bounded_history(history, len(suffix.encode()))
+    assert omitted == 1 and encoded == suffix
+    assert json.loads(encoded) == history[1:]
+    assert len(encoded.encode()) < len(json.dumps(history[1:], ensure_ascii=False).encode())
+    latest = json.dumps(history[-1:], ensure_ascii=False, separators=(",", ":"))
+    with pytest.raises(ValueError, match="dernier message"):
+        bounded_history(history, len(latest.encode()) - 1)
+
+
+def test_long_history_keeps_newest_messages_without_reserializing(monkeypatch: Any) -> None:
+    from clawfedora import webui_bridge
+
+    history = [{"role": "user", "content": str(i)} for i in range(5000)]
+    original = json.dumps
+    calls = 0
+
+    def counted(*args: Any, **kwargs: Any) -> str:
+        nonlocal calls
+        calls += 1
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(webui_bridge.json, "dumps", counted)
+    encoded, omitted = bounded_history(history, 1024)
+    assert calls == len(history)
+    assert omitted > 4900 and json.loads(encoded) == history[omitted:]

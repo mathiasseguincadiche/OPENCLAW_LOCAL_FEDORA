@@ -2,7 +2,8 @@
 
 Neither is a router a client can drive: the browser or an OpenClaw agent cannot change
 them. The separate operator CLI writes a local 0600 file after explicit --apply. The
-gateway reads both before the budget reservation and every upstream request. The automatic router uses fixed, declared local aliases; manual mode uses cloud-main.
+gateway reads both before the budget reservation and every upstream request. The automatic
+router uses fixed, declared local aliases; manual mode uses cloud-main.
 The gateway still enforces the reviewed upstream model and its price ceilings.
 """
 

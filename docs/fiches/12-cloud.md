@@ -68,6 +68,8 @@ DeepSeek V4.1 Flash est appelé via OpenRouter. La passerelle impose `data_colle
 
 ## Le budget : 35 € réels par mois
 
+`cloud-status` affiche aussi `CLOUD_CACHE` : ratio observé des tokens lus en cache, limité aux appels qui déclarent les deux compteurs. `unknown` signifie données insuffisantes ; aucune économie n'est supposée par le contrôle budgétaire.
+
 Le journal réserve au maximum 15 € pour DeepSeek et 10 € pour Sol, sans transfert automatique. Les 10 € restants sont une marge non routable. `!budget` et `cloud-status` affichent les enveloppes et les dépenses attribuées.
 
 Trois protections indépendantes :

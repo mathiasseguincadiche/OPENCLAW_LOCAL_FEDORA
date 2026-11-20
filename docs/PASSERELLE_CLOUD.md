@@ -210,6 +210,25 @@ cache n'est supposé. Les journaux ne contiennent ni prompt ni clé ni texte
 d'outil. Les essais sont simulés ; le taux de cache réel reste à mesurer.
 Documentation : [cache OpenRouter](https://openrouter.ai/blog/tutorials/prompt-caching-sticky-routing/).
 
+### Lot 4 — Contexte compact et mesure du cache
+
+- Le chat sérialise chaque message une seule fois en JSON compact. Il conserve
+  le suffixe complet le plus récent dans la limite existante, calculée en octets
+  UTF-8 ; l'interface affiche toujours les messages omis. Pas de résumé IA payant.
+- Le worker conserve les règles communes en tête du prompt et reporte les
+  données variables (snapshot, tâche, schéma). Les champs de tâche sont conservés.
+- La recherche SQLite préfère des passages de sources distinctes puis des
+  fenêtres non chevauchantes. Elle vérifie les deux SHA-256 (original et
+  représentation indexée), conserve les coordonnées de la représentation,
+  et ignore un index ancien ou une source modifiée. Le prochain build
+  reconstruit l'index v3. Les fichiers intégraux et les preuves restent disponibles.
+- `CLOUD_CACHE` rapporte le ratio des tokens lus en cache sur les tokens d'entrée
+  des **seuls appels ayant déclaré les deux compteurs**, ainsi que la couverture
+  `reported_calls`. Une valeur `unknown` n'est pas un échec du cache.
+- Aucun changement de fournisseur, de confidentialité, de prix ou de plafond.
+  Aucun cache local de réponses ni nouvelle transmission implicite. Le gain
+  réel de tokens/coût et le taux de cache sont à mesurer lors de la réception.
+
 ### Cible approuvée, migration de la configuration
 
 Deux modèles **cloud** seulement : [DeepSeek V4.1 Flash 1017](https://openrouter.ai/deepseek/deepseek-v4.1-flash-1017)
