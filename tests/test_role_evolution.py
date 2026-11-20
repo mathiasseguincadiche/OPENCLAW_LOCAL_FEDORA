@@ -68,6 +68,13 @@ def test_operator_workflow_binds_scope_revision_and_observation(
     obs_path = project_proofs.receipt_path(identifier, 2)
     assert not (project / lab_path).exists()
 
+    def forbidden_audit(*_args: Any) -> dict[str, Any]:
+        pytest.fail("aucun appel modèle si une preuve obligatoire manque")
+
+    with pytest.raises(ValueError, match="preuves obligatoires.*critère 1.*critère 2"):
+        review_project(ROOT, runtime, project, "validation", runner=forbidden_audit)
+    assert not (project / "evidence/validation_report.json").exists()
+
     def lab(source: Path, tool: str, image: str | None, apply: bool) -> int:
         assert (source / Path(target).name).read_text() == "contenu contrôlé"
         assert tool == "shellcheck" and apply
@@ -82,6 +89,8 @@ def test_operator_workflow_binds_scope_revision_and_observation(
     )
     with pytest.raises(ValueError, match="échec"):
         resolve_reference(project, task, 2, obs_path)
+    with pytest.raises(ValueError, match="preuves obligatoires.*critère 2"):
+        review_project(ROOT, runtime, project, "validation", runner=forbidden_audit)
     collect_operator_proof(
         project, identifier, 2, apply=True, observation="témoin fictif présent", outcome="PASS"
     )
@@ -103,6 +112,13 @@ def test_operator_workflow_binds_scope_revision_and_observation(
         ]
         return {"verdict": "PASS", "findings": [], "criteria": rows}
 
+    receipt = read_json(project / lab_path)
+    receipt["details"]["exit_code"] = 1
+    write_json(project / lab_path, receipt)
+    with pytest.raises(ValueError, match="preuves obligatoires.*critère 1"):
+        review_project(ROOT, runtime, project, "validation", runner=forbidden_audit)
+    receipt["details"]["exit_code"] = 0
+    write_json(project / lab_path, receipt)
     verdict = review_project(ROOT, runtime, project, "validation", runner=reviewer)
     assert obs_path in read_json(verdict)["proof_hashes"]
     (project / target).write_text("version suivante")

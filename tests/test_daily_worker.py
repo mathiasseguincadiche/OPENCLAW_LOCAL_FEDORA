@@ -300,3 +300,21 @@ def test_collector_failure_while_staging_keeps_previous_outputs(
         _collect(ROOT, project, task, {"files": files})
     assert (out / "a.md").read_text() == "ancienne version"  # nothing promoted
     assert sorted(p.name for p in out.iterdir()) == ["a.md"]  # staging cleaned
+
+
+def test_changed_output_blocks_audit_before_inference(planned: tuple[Path, Path]) -> None:
+    runtime, project = planned
+
+    def producer(_role: str, prompt: str, _session: str) -> dict[str, Any]:
+        task = json.loads(prompt.split("\n", 1)[1])
+        return {"files": {task["expected_outputs"][0]: "validated"}, "summary": "ready"}
+
+    run_project_tasks(ROOT, runtime, project, runner=producer)
+    (project / "deliverables/design-choice/report.md").write_text("changed")
+
+    def forbidden(*_args: Any) -> dict[str, Any]:
+        pytest.fail("audit must not invoke a model after an integrity failure")
+
+    with pytest.raises(ValueError, match="artifact exchange invalide avant audit"):
+        review_project(ROOT, runtime, project, "validation", runner=forbidden)
+    assert not (project / "evidence/validation_report.json").exists()

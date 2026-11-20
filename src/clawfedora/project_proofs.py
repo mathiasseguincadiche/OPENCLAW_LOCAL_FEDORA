@@ -236,8 +236,13 @@ def resolve_reference(
             or details["exit_code"] != 0
         ):
             raise ValueError("preuve laboratoire incohérente")
-        if spec[0] == "ci" and details.get("verdict") != "VERIFIED_RUN_SUCCESS":
-            raise ValueError("preuve CI non vérifiée")
+        if spec[0] == "ci" and (
+            details.get("verdict") != "VERIFIED_RUN_SUCCESS"
+            or [details.get(key) for key in ("provider", "repository", "commit")] != spec[1:]
+            or type(details.get("run_id")) is not int
+            or details["run_id"] < 1
+        ):
+            raise ValueError("preuve CI non vérifiée ou hors cible")
         if spec[0] == "observation" and (
             details.get("scope") != "operator-observation"
             or not isinstance(details.get("observed"), str)
@@ -286,4 +291,6 @@ def preflight_proofs(catalog: dict[str, Any]) -> None:
         if row["scope"] != ["content"] and not row["references"]
     ]
     if missing:
-        raise ValueError("preuves obligatoires absentes ou invalides avant audit: " + "; ".join(missing))
+        raise ValueError(
+            "preuves obligatoires absentes ou invalides avant audit: " + "; ".join(missing)
+        )

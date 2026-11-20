@@ -899,7 +899,8 @@ def review_project(
         exchange_failures = validate_exchange_completeness(repo_root, project)
         if exchange_failures:
             raise ValueError(f"artifact exchange invalide avant audit: {exchange_failures}")
-        validate_input_integrity(project)
+        if validate_input_integrity(project):
+            raise ValueError("intégrité des entrées invalide avant audit")
         catalog = proof_catalog(project)
         preflight_proofs(catalog)
         shutil.copytree(project, snapshot)
