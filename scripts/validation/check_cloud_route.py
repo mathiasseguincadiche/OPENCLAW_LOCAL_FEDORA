@@ -26,6 +26,7 @@ from clawfedora import project_worker
 from clawfedora.agents import deploy_workspaces
 from clawfedora.cloud_gateway import make_server
 from clawfedora.cloud_privacy import Finding, PrivacyFilter
+from clawfedora.cloud_routing import agent_route
 from clawfedora.cloud_state import ensure_gateway_token, write_activation
 from clawfedora.core_config import (
     CLOUD_PROVIDER_ID,
@@ -105,11 +106,11 @@ class FakeProvider(BaseHTTPRequestHandler):
             finish = "stop"
         usage = {"prompt_tokens": 11, "completion_tokens": 7, "total_tokens": 18, "cost": 0.0001}
         chunks = [
-            {"id": "c", "object": "chat.completion.chunk", "model": MODEL_ID,
+            {"id": "c", "object": "chat.completion.chunk", "model": body["model"],
              "choices": [{"index": 0, "delta": delta, "finish_reason": None}]},
-            {"id": "c", "object": "chat.completion.chunk", "model": MODEL_ID,
+            {"id": "c", "object": "chat.completion.chunk", "model": body["model"],
              "choices": [{"index": 0, "delta": {}, "finish_reason": finish}]},
-            {"id": "c", "object": "chat.completion.chunk", "model": MODEL_ID,
+            {"id": "c", "object": "chat.completion.chunk", "model": body["model"],
              "choices": [], "usage": usage},
         ]
         raw = ("".join("data: " + json.dumps(chunk) + "\n\n" for chunk in chunks)
@@ -196,7 +197,12 @@ def _check_runner(runtime: Path) -> None:
         session = str(uuid.uuid4())
         answer = runner("chef-operations", "Quels outils sont disponibles ?", session,
                         route="cloud")
-        if answer != {"text": "Réponse factice.", "route": "cloud"}:
+        routine = agent_route(runtime, cloud, "chef-operations")
+        if answer != {
+            "text": "Réponse factice.", "route": "cloud",
+            "cloud_model": routine.upstream["display_name"],
+            "cloud_profile": routine.profile_name,
+        }:
             _fail(f"réponse inattendue du runner: {answer}")
         if len(upstream_requests) != 2 or len(settled) != 2:
             _fail(f"deux appels facturables attendus, vus {len(upstream_requests)}/{len(settled)}")
@@ -208,22 +214,56 @@ def _check_runner(runtime: Path) -> None:
             if (
                 sent["model"] != MODEL_ID
                 or sent["provider"] != expected["provider"]
-                or sent["reasoning"] != expected["reasoning"]
+                or sent["reasoning"] != {"effort": routine.profile["effort"]}
                 or sent["usage"] != {"include": True}
             ):
                 _fail(
                     "politique DeepSeek non appliquée : confidentialité, prix plafond, "
                     f"débit ou effort contractuel absent ; clés={sorted(sent)}"
                 )
-            if sent["max_tokens"] > int(cloud["model"]["max_output_tokens"]):
+            if sent["max_tokens"] > int(routine.profile["max_output_tokens"]):
                 _fail("la sortie doit être bornée par la politique")
         if any(status != "ok" for _, status in settled):
             _fail(f"chaque appel doit être compté avec son usage: {settled}")
         record = json.loads((runtime / f"state/model-runs/{session}.json").read_text())
         if (record["provider"], record["model"], record["route"]) != (
-            CLOUD_PROVIDER_ID, MODEL_ID, "cloud"
-        ):
+            CLOUD_PROVIDER_ID, routine.model_id, "cloud"
+        ) or record["upstream_requested"] != MODEL_ID:
             _fail(f"identité du modèle non enregistrée: {record}")
+
+        # Verify the expert route through the real pinned CLI with the fake provider.
+        expert = agent_route(runtime, cloud, "chef-operations", "approved_revision")
+        before, settled_before = len(upstream_requests), len(settled)
+        expert_session = str(uuid.uuid4())
+        response = runner(
+            "chef-operations", "Quels outils sont disponibles ?", expert_session,
+            route="cloud", escalation_reason="approved_revision",
+        )
+        if response.get("cloud_model") != expert.upstream["display_name"]:
+            _fail("la route expert n'est pas annoncée")
+        if len(upstream_requests) - before != 2 or len(settled) - settled_before != 2:
+            _fail("la route expert doit aussi compter les deux appels")
+        for seen in upstream_requests[before:]:
+            sent = seen["body"]
+            prices = expert.upstream["pricing_usd_per_million"]
+            if (
+                sent["model"] != expert.upstream["upstream_id"]
+                or sent["reasoning"] != {"effort": expert.profile["effort"]}
+                or sent["max_tokens"] > int(expert.profile["max_output_tokens"])
+                or sent["provider"]["max_price"] != {
+                    "prompt": prices["input"], "completion": prices["output"],
+                }
+                or sent["provider"]["data_collection"] != "deny"
+                or sent["provider"]["require_parameters"] is not True
+                or seen["authorization"] != "Bearer " + UPSTREAM_KEY
+            ):
+                _fail("politique expert non appliquée")
+        observed = json.loads((runtime / f"state/model-runs/{expert_session}.json").read_text())
+        if (
+            observed["model"] != expert.model_id
+            or observed["upstream_requested"] != expert.upstream["upstream_id"]
+        ):
+            _fail("identité de la route expert non enregistrée")
 
         # 2. A secret in the user message never leaves.
         before = len(upstream_requests)

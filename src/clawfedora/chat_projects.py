@@ -665,7 +665,9 @@ def run_command(
 
         from clawfedora.cloud_budget import BudgetRefused, load_ledger, month_key
         from clawfedora.cloud_profiles import (
-            chosen_profile, chosen_routing_mode, chosen_upstream_model,
+            chosen_profile,
+            chosen_routing_mode,
+            chosen_upstream_model,
         )
         from clawfedora.core_config import core_contract
 

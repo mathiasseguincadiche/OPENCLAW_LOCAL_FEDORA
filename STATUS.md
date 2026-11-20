@@ -37,6 +37,7 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 | Open WebUI | `v0.12.3-slim`, image résolue par digest à l’installation |
 | Modèle local obligatoire | `qwen3.5:9b-q4_K_M` |
 | Route cloud facultative | `deepseek/deepseek-v4.1-flash-1017` par défaut ; `openai/gpt-6.2-sol` sur choix de l’opérateur, via OpenRouter |
+| Contexte et cache | Historique JSON compact, extraits vérifiés SHA-256 et ratio de cache documenté ; gain réel à mesurer. |
 | Budget cloud | 35 €/mois, dont enveloppes de 15 € DeepSeek / 10 € Sol et 10 € non routables ; activation et consentement explicites |
 | Racine des données | `/data/IA/Openclaw/` sur le deuxième disque monté sous `/data` |
 

@@ -257,14 +257,14 @@ def _verified_pair(
     project: Path, relative: str, source_sha: str, representation: str, representation_sha: str,
 ) -> bool:
     """Revalidate the exact original and indexed representation, without following links."""
-    for name, digest in ((relative, source_sha), (representation, representation_sha)):
+    for name, digest in dict.fromkeys(((relative, source_sha), (representation, representation_sha))):
         path = Path(name)
         if not name or path.is_absolute() or ".." in path.parts:
             return False
         if not re.fullmatch(r"[0-9a-f]{64}", digest):
             return False
         target = project / path
-        if any(part.is_symlink() for part in (target, *target.parents) if part != project.parent):
+        if any(part.is_symlink() for part in (target, *target.parents)):
             return False
         try:
             if not target.is_file() or sha256_file(target) != digest:
@@ -277,7 +277,8 @@ def _verified_pair(
 def _overlap(first: tuple[Any, ...], second: tuple[Any, ...]) -> bool:
     if first[1:3] != second[1:3]:
         return False
-    a, b = json.loads(first[4])["start_char"], json.loads(second[4])["start_char"]
+    a = int(json.loads(first[4])["start_char"])
+    b = int(json.loads(second[4])["start_char"])
     return a < b + len(second[0]) and b < a + len(first[0])
 
 
@@ -319,7 +320,7 @@ def search(repo_root: Path, project: Path, query: str) -> list[dict[str, Any]]:
         )
         if key not in checked:
             checked[key] = _verified_pair(project, *key)
-        if checked[key]:
+        if checked[key] and type(meta.get("start_char")) is int:
             verified.append(row)
     rows = verified
     preferred: list[tuple[Any, ...]] = []

@@ -283,3 +283,22 @@ def test_model_envelopes_count_uncertain_cost_and_do_not_transfer(ledger: Ledger
         ledger.reserve(input_tokens=100_000, max_output_tokens=0, model=expert, pricing=price)
     ledger.reserve(input_tokens=1000, max_output_tokens=0, model=flash)
     assert ledger.model_spend()[flash] > 0
+
+
+def test_cache_ratio_uses_only_paired_observed_counts(ledger: Ledger) -> None:
+    def add(model: str, usage: dict[str, object]) -> None:
+        ledger.reserve(input_tokens=1000, max_output_tokens=500, model=model).settle(usage, "ok")
+
+    add("paired", {**USAGE, "prompt_tokens_details": {"cached_tokens": 800}})
+    add("paired", USAGE)  # Missing is not zero; denominator must exclude this call.
+    add("zero", {**USAGE, "prompt_tokens_details": {"cached_tokens": 0}})
+    add("unknown", USAGE)
+    ledger.reserve(input_tokens=1000, max_output_tokens=500, model="pending")
+    metrics = ledger.cache_metrics()
+    assert metrics["paired"] == {
+        "successful_calls": 2, "paired_calls": 1, "prompt_tokens": 1000,
+        "cached_tokens": 800, "hit_ratio": 0.8,
+    }
+    assert metrics["zero"]["hit_ratio"] == 0
+    assert metrics["unknown"]["hit_ratio"] is None
+    assert metrics["pending"]["hit_ratio"] is None
