@@ -1,8 +1,8 @@
-# Quel modèle pour expliquer et travailler : DeepSeek (cloud) ou Qwen (local) ?
+# Quel modèle pour expliquer et travailler : Qwen, DeepSeek ou GPT-6.2 Sol ?
 
 [← Guide](GUIDE.md) · [Choisir le rôle avant le modèle](fiches/07-roles-et-outils.md) · [Comprendre les routes](fiches/11-comment-ca-marche.md)
 
-**Deux choix différents :** le **rôle** détermine la mission et les outils, tandis que le **modèle** détermine où s'effectue le raisonnement. Les sept rôles existent sur Qwen ; si tu actives le cloud, ils peuvent aussi emprunter la route DeepSeek, sans élargir leurs droits.
+**Deux choix différents :** le **rôle** détermine la mission et les outils, tandis que le **modèle** détermine où s'effectue le raisonnement. Les sept rôles existent sur Qwen ; si tu actives le cloud, ils peuvent aussi emprunter la route cloud DeepSeek/Sol, sans élargir leurs droits.
 
 Décision initiale du **10 octobre 2026**, instantané épinglé actualisé le **20 octobre 2026**. Elle remplace le choix GLM-5.3 Flash fait la veille, sans changer l'architecture de sécurité : le local reste le choix par défaut, le cloud reste facultatif et passe toujours par la passerelle locale.
 
@@ -10,7 +10,7 @@ Décision initiale du **10 octobre 2026**, instantané épinglé actualisé le *
 
 ## La question
 
-Pour apprendre le DevOps, relire un dépôt, raisonner sur une architecture et produire des livrables, quand faut-il utiliser **Qwen 3.5 9B en local** et quand faut-il utiliser **DeepSeek V4.1 Flash dans le cloud** ?
+Pour apprendre le DevOps, relire un dépôt, raisonner sur une architecture et produire des livrables, quand faut-il utiliser **Qwen 3.5 9B en local** et quand faut-il utiliser **DeepSeek V4.1 Flash ou GPT-6.2 Sol dans le cloud** ?
 
 ## Ce qui est établi
 
@@ -52,7 +52,7 @@ Un modèle local compact peut être suffisant pour comprendre un service Linux, 
 
 Les consignes communes ont été renforcées : réponse directe, explication du mécanisme, exemple Linux/OPS concis et vérification pertinente. Une question simple ne déclenche ni quiz obligatoire ni les sept agents. Comparer la pédagogie sur les mêmes scénarios avant de changer de fournisseur.
 
-`equilibre` (medium, plafond 8192 tokens de sortie) devient le défaut sobre ; `approfondi` reste un choix explicite (xhigh, 32768). L'opérateur peut **choisir** `equilibre` (medium, 8192 tokens au maximum) pour des questions cloud courantes avec `./menu.sh --action cloud-set-profile --value equilibre --apply`. Cette sélection n'est ni automatique ni imposée à un rôle. Un plafond de sortie n'est pas une consommation fixe.
+`equilibre` (medium, plafond 8192 tokens de sortie) devient le défaut sobre ; `approfondi` reste un choix explicite (xhigh, 32768). L'opérateur peut **choisir** `equilibre` (medium, 8192 tokens au maximum) pour des questions cloud courantes avec `./menu.sh --action cloud-set-profile --value equilibre --apply`. Cette sélection est manuelle ; le mode auto utilise les profils propres aux rôles. Un plafond de sortie n'est pas une consommation fixe.
 
 Les valeurs **0,25 $ en entrée et 0,75 $ en sortie par million** restent des *plafonds de sécurité*, non des tarifs garantis : un fournisseur refusant `data_collection: deny`, `require_parameters`, le raisonnement demandé ou les limites tarifaires doit provoquer un refus explicite. Vérification live requise avant d'annoncer la migration comme qualifiée.
 
@@ -62,6 +62,7 @@ Les valeurs **0,25 $ en entrée et 0,75 $ en sortie par million** restent des *p
 |---|---|---|
 | Questions courantes, rédaction simple, travail confidentiel | **Qwen 3.5 9B local** | Gratuit, immédiat et aucune donnée métier n'est envoyée à un modèle distant. |
 | Explication publique complexe, longue analyse, revue de dépôt, architecture, code ou tâche agentique difficile | **DeepSeek V4.1 Flash cloud** | Plus de capacité et de meilleurs signaux publics sur le code, les outils et les tâches longues. |
+| Révision approuvée, contre-expertise finale ou analyse complexe choisie explicitement | **GPT-6.2 Sol cloud** | Expertise ciblée, sous réserve de coût, consentement et qualité mesurée. |
 | Projet contenant des données internes, un réseau réel, des identifiants ou un doute sur la confidentialité | **Qwen local** | Le filtre arrête les secrets évidents, pas toute information confidentielle. |
 | Atelier Projets | Local par défaut ; cloud uniquement après accord du projet | Le consentement et le digest des sources restent obligatoires. |
 
@@ -79,7 +80,7 @@ La migration change le modèle, pas la passerelle. OpenClaw continue à parler �
 6. compter le coût réel renvoyé par le fournisseur ;
 7. refuser en mode fail-closed si un garde-fou manque.
 
-Le modèle est épinglé à **`deepseek/deepseek-v4.1-flash-1017`**. On n'utilise pas un alias « latest » afin qu'une nouvelle version ne remplace pas silencieusement le modèle validé.
+Les deux modèles sont épinglés à **`deepseek/deepseek-v4.1-flash-1017`** et **`openai/gpt-6.2-sol`**. On n'utilise pas un alias « latest » afin qu'une nouvelle version ne remplace pas silencieusement le modèle validé.
 
 ## Pourquoi les images restent locales
 
@@ -87,31 +88,23 @@ DeepSeek V4.1 Flash accepte les images, contrairement à l'ancien modèle cloud 
 
 Le filtre actuel travaille sur le contenu textuel de la requête. Une capture d'écran peut contenir un mot de passe, une adresse interne, un nom d'employeur ou un identifiant que le filtre ne verrait pas. Tant qu'une chaîne locale d'inspection/redaction d'image n'existe pas, **une image ne part pas au cloud**.
 
-## Passage futur à DeepSeek V4.1 Pro
+## Figer le duo et mesurer avant de changer
 
-Le projet est volontairement préparé pour que ce passage reste petit :
+DeepSeek V4 Pro n'est plus une route approuvée. Le mode historique `profond`
+est refusé explicitement : choisir `auto`, `standard` ou `expert`.
+Un changement futur exige un gain observé sur les mêmes scénarios, la
+compatibilité outils/raisonnement, les garde-fous de confidentialité et
+les limites de prix. Aucune troisième route cloud n'est nécessaire au plan actuel.
 
-- les sept rôles utilisent l'alias logique `cloud-main`, pas un nom de modèle codé dans leurs prompts ;
-- l'interface affiche « cloud », pas « Flash » ;
-- le consentement utilise un scope générique `cloud-deepseek` ;
-- le modèle réel reste épinglé dans la politique centrale ;
-- le texte de consentement est haché : changer de modèle force naturellement à renouveler l'accord d'un projet.
-
-On passera à V4.1 Pro seulement si les cinq points suivants sont vrais :
-
-1. sortie officielle et stable ;
-2. disponibilité sur le fournisseur retenu ;
-3. support fiable des outils utilisés par OpenClaw ;
-4. politique de données compatible avec les garde-fous du projet ;
-5. coût compatible avec le plafond mensuel et gain mesuré sur les tâches réelles.
-
-Le changement devra alors être explicite, testé dans une pull request, puis validé par le même test de fumée que Flash.
+La [recette FinOps](validation/FINOPS.md) compare la qualité et le coût total
+par tâche acceptée, y compris les échecs et les reprises, sans prétendre à
+une qualification réelle avant l'essai sur Fedora.
 
 ## Vérifications à faire au premier essai
 
 1. Activer le cloud avec les deux garde-fous validés.
-2. Vérifier qu'OpenRouter accepte `data_collection: deny` pour DeepSeek V4.1 Flash.
-3. Poser les mêmes dix questions DevOps à Qwen local et DeepSeek cloud.
+2. Vérifier qu'OpenRouter accepte `data_collection: deny` et les paramètres requis pour les deux modèles.
+3. Utiliser les sept scénarios DevOps sur les routes retenues et les mêmes conditions.
 4. Comparer : exactitude, clarté, niveau pédagogique, citations, qualité du code et temps de réponse.
 5. Lancer une tâche avec outil et vérifier que chaque appel est compté.
 6. Vérifier le coût réel dans OpenRouter puis exécuter le rapprochement local.
@@ -119,6 +112,6 @@ Le changement devra alors être explicite, testé dans une pull request, puis va
 
 ## Règle pratique
 
-**Qwen pour l'autonomie et le privé. DeepSeek pour les tâches publiques difficiles où ses capacités sont réellement utiles. Consentement et budget d'abord, performance mesurée ensuite.**
+**Qwen pour l'autonomie et le privé, DeepSeek en routine cloud, Sol en expertise ciblée. Consentement et budget d'abord, performance mesurée ensuite.**
 
 Cette règle pourra être revue après les premières mesures réelles sur le PC Fedora.

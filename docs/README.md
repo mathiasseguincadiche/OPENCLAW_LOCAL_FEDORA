@@ -32,12 +32,14 @@ Les fiches sont un **parcours de référence**, pas douze étapes obligatoires �
 
 ## Approfondir, sans alourdir le premier démarrage
 
+- [Recette finale FinOps](validation/FINOPS.md) : budget, routage, cache et coût par tâche acceptée.
+
 Les pages ci-dessous sont classées par **ce que tu cherches à faire**.
 
 ### Comprendre pourquoi c’est construit ainsi
 
-- [Architecture hybride Qwen / DeepSeek](ARCHITECTURE_HYBRIDE.md) : les deux routes, le choix explicite et le schéma [`routes-inference`](diagrams/routes-inference.svg).
-- [Décision de modèle](DECISION_MODELE.md) : pourquoi Qwen en local et DeepSeek en option.
+- [Architecture hybride Qwen / DeepSeek / Sol](ARCHITECTURE_HYBRIDE.md) : les deux routes, le choix explicite et le schéma [`routes-inference`](diagrams/routes-inference.svg).
+- [Décision de modèle](DECISION_MODELE.md) : pourquoi Qwen en local, DeepSeek en routine cloud et Sol en expertise.
 - [Passerelle cloud](PASSERELLE_CLOUD.md) : filtre, consentement et budget.
 - [Schémas éditables](diagrams/) : les fichiers `.drawio` sont la source, les `.svg` des aperçus.
 

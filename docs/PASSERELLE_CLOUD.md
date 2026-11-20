@@ -37,14 +37,14 @@ OpenClaw ──► fournisseur "cloudgw" (127.0.0.1:18892/v1) ──► [filtre 
 
 `openclaw_runner(...)(role, prompt, session)` garde son comportement local. Un appelant qui a décidé d'utiliser le cloud passe `route="cloud"` ; rien ne bascule jamais seul du local vers le cloud.
 
-- **Refus avant tout processus** : la route cloud exige un enregistrement d'activation (`state/cloud/activation.json`) prouvant que **chaque** contrôle requis par la politique (`privacy_filter`, `budget_guard`) est vérifié. Un seul contrôle vérifié ne suffit pas. Seule la future commande d'activation (lot 6) écrit cet enregistrement ; `revoke_activation` éteint le cloud.
-- **Pas d'Ollama sur la route cloud** : ni version, ni inventaire, ni verrou de digest. Le tour passe par `openclaw agent --model cloudgw/deepseek/deepseek-v4.1-flash-1017` via la Gateway OpenClaw.
+- **Refus avant tout processus** : la route cloud exige un enregistrement d'activation (`state/cloud/activation.json`) prouvant que **chaque** contrôle requis par la politique (`privacy_filter`, `budget_guard`) est vérifié. Un seul contrôle vérifié ne suffit pas. La commande d'activation écrit cet enregistrement ; `revoke_activation` éteint le cloud.
+- **Pas d'Ollama sur la route cloud** : ni version, ni inventaire, ni verrou de digest. Le tour passe par `openclaw agent --model` via la Gateway OpenClaw ; en mode auto, l'alias local `cloudgw/atelier/standard-soutenu` ou l'un des trois autres alias approuvés fixe le modèle/profil. Le mode manuel conserve l'alias historique.
 - **Configuration revérifiée** avant un tour cloud (avec le vrai CLI) : l'URL du fournisseur doit être exactement celle de la politique, le transport, le modèle déclaré, la liste d'autorisation, et la clé doit être une **référence d'environnement** (jamais une chaîne). `config get` masque le nom de la référence (`__OPENCLAW_REDACTED__`) mais garde sa forme : c'est cette forme qui est contrôlée.
-- **Identité du modèle** : le tour échoue si le fournisseur ou le modèle réellement servis diffèrent. `state/model-runs/<session>.json` conserve route, fournisseur, modèle et tokens, **sans contenu**.
+- **Identité du modèle** : le tour échoue si le fournisseur ou l'alias OpenClaw remontés diffèrent de la route demandée. Cette identité locale ne certifie pas l'endpoint OpenRouter effectivement servi. `state/model-runs/<session>.json` conserve route, fournisseur, modèle et tokens, **sans contenu**.
 - **Jeton local** : `state/cloud/gateway.token` (droits 0600, répertoire 0700, créé une fois). L'environnement d'exécution le définit toujours (voir plus haut pourquoi). Hors d'un runtime géré, rien n'est écrit.
 - **Réparation JSON** : écart assumé par rapport au plan initial (« sur la même route »). Une syntaxe JSON invalide renvoyée par le cloud est réparée **par le modèle local**, qui ne fait sortir aucune donnée et ne coûte rien. Si Ollama est indisponible, la tâche échoue (« relancer la tâche ») : un second appel cloud facturé n'a jamais lieu pour réparer.
 
-Vérifié avec le vrai OpenClaw 2026.9.8 par `make native-cloud` : une vraie Gateway est démarrée, la route cloud est d'abord refusée, puis acceptée après activation ; la passerelle factice voit le jeton local, deux appels pour un tour avec un outil, et l'identité est enregistrée.
+Vérifié dans l'intégration native avec le CLI épinglé par `make native-cloud` : une vraie Gateway est démarrée, la route cloud est d'abord refusée, puis acceptée après activation ; la passerelle factice voit le jeton local, deux appels pour un tour avec un outil, et l'identité est enregistrée.
 
 ## Passerelle, filtre et modes (lot 5)
 
@@ -178,7 +178,7 @@ Pour **continuer en local**, il faut le décider : « Retirer l'accord cloud » 
 - La vérification en ligne de la limite de clé n'a pas été exécutée contre le vrai fournisseur (pas de clé ici) : elle est testée avec un faux, sur la forme de réponse que je connais de `GET /api/v1/key` (`data.limit`), **non vérifiée** ici faute d'accès à la documentation du fournisseur : si la forme diffère, le contrôle échoue et l'activation reste refusée.
 - Le service systemd et le script d'activation n'ont pas tourné sur Fedora ; les contrôles couvrent leur syntaxe et leur ordre, pas leur exécution.
 
-Aucun appel réel vers OpenRouter avec DeepSeek, aucun essai sur le PC Fedora. Les tests utilisent une passerelle factice.
+Aucun appel réel vers OpenRouter avec DeepSeek ou Sol, aucun essai sur le PC Fedora. Les tests utilisent une passerelle factice.
 
 
 ## Limite d'egress HTTP et redirections (14 octobre 2026)

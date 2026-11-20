@@ -1,4 +1,4 @@
-# Pourquoi l'Atelier IA est **hybride** — Qwen local + DeepSeek cloud
+# Pourquoi l'Atelier IA est **hybride** — Qwen local + DeepSeek et Sol cloud
 
 [← Guide](GUIDE.md) · [README](../README.md) · [Sept agents](fiches/07-roles-et-outils.md) · [Décision de modèle](DECISION_MODELE.md)
 
@@ -120,12 +120,12 @@ La politique déclare `reasoning.effort=medium` par défaut et un plafond de pri
 
 | Fonction | Statut dans le dépôt |
 |---|---|
-| Deux routes déclarées (Qwen, DeepSeek) pour les sept rôles | **Implémenté dans les politiques** |
+| Deux routes déclarées (local Qwen, cloud DeepSeek/Sol) pour les sept rôles | **Implémenté dans les politiques** |
 | Cloud désactivé par défaut ; activation contrôlée | **Implémenté et testé avec faux fournisseur** |
 | Choix visible dans le chat ; accord cloud par projet | **Implémenté dans le code**, comportement navigateur réel à vérifier |
 | Contrôle secrets, budget et frais conservateurs | **Tests automatisés**, facturation OpenRouter réelle non vérifiée |
 | Sélection automatique du meilleur modèle **par tâche** | **Non implémentée** |
-| Preuve de supériorité de DeepSeek sur les projets de l'utilisateur | **À mesurer** |
+| Gain de qualité/prix du duo sur les projets de l'utilisateur | **À mesurer** |
 | Streaming token par token dans Open WebUI | **Non implémenté** |
 | Qualification Fedora/B580, web UI et OpenRouter réels | **À faire** |
 
@@ -137,4 +137,4 @@ Pour savoir où DeepSeek apporte **réellement** une meilleure efficacité, pré
 
 Mesurer pour **chaque route** : précision technique, contradictions, pédagogie, fichiers nécessaires, nombre de corrections, durée et coût API. Un verdict « meilleur » doit provenir de ces observations, **pas d'un benchmark marketing ou d'une intuition**.
 
-**Conclusion : Qwen assure le socle local ; DeepSeek fournit la capacité cloud quand elle est utile et autorisée ; OpenClaw distribue l'expertise des agents ; l'humain garde le dernier mot.**
+**Conclusion : Qwen assure le socle local ; DeepSeek fournit la capacité cloud courante ; Sol est réservé à l'expertise ; OpenClaw distribue les rôles ; l'humain garde le dernier mot.** Voir la [recette FinOps](validation/FINOPS.md).

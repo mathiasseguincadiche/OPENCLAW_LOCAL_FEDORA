@@ -176,7 +176,7 @@ def _finops_summary(suite: dict[str, Any], report: dict[str, Any]) -> dict[str, 
             raise EvaluationError(f"{key}: mesures manquantes")
         if (
             type(usage.get("accepted")) is not bool
-            or usage.get("profile") not in {"low", "medium", "high", "xhigh"}
+            or usage.get("profile") not in ("low", "medium", "high", "xhigh")
             or not isinstance(usage.get("billing_reference"), str)
             or not usage["billing_reference"].strip()
         ):
