@@ -69,6 +69,14 @@ def budget_lines(root: Path, runtime: Path) -> list[str]:
             for key, value in sorted(row["tokens"].items())
         )
         lines.append(f"CLOUD_MODEL_USAGE model={model} calls={row['calls']} {fields}".rstrip())
+    for model, cache in sorted(ledger.cache_metrics(summary.month).items()):
+        ratio = cache["hit_ratio"]
+        displayed = "unknown" if ratio is None else f"{ratio:.4f}"
+        lines.append(
+            f"CLOUD_CACHE model={model} ratio={displayed} "
+            f"reported_calls={cache['paired_calls']}/{cache['successful_calls']} "
+            f"cached_tokens={cache['cached_tokens']} prompt_tokens={cache['prompt_tokens']}"
+        )
     return lines
 
 
