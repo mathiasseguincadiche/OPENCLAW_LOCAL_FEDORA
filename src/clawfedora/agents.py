@@ -16,6 +16,8 @@ INJECTED_SHARED = ("PEDAGOGY.md", "TOOLS.md", "CONTRACT.md")
 MAX_INSTRUCTION_CHARS = 12000
 # These files are injected separately by OpenClaw as well as the assembled AGENTS.
 BOOTSTRAP_FILES = ("AGENTS.md", "IDENTITY.md", "SOUL.md", "TOOLS.md", "HEARTBEAT.md")
+# The complete guide is already in AGENTS; TOOLS is independently injected by OpenClaw.
+TOOLS_POINTER = "# Outils du rôle\n\nGuide complet dans AGENTS.md, section Outils et livrables.\n"
 
 
 def bootstrap_chars(text: str) -> int:
@@ -117,7 +119,10 @@ def validate_agent_assets(repo_root: Path) -> tuple[str, ...]:
             for filename in BOOTSTRAP_FILES[1:]:
                 source = (role_root if filename in ROLE_FILES else shared) / filename
                 if source.is_file():
-                    content = source.read_text(encoding="utf-8")
+                    content = (
+                        TOOLS_POINTER if filename == "TOOLS.md"
+                        else source.read_text(encoding="utf-8")
+                    )
                     injected.append(content)
                     if bootstrap_chars(content) > limit:
                         failures.append(
@@ -181,7 +186,12 @@ def deploy_workspaces(repo_root: Path, runtime_root: Path) -> tuple[Path, ...]:
             effective_instructions(repo_root, spec.agent_id), encoding="utf-8"
         )
         for filename in SHARED_FILES:
-            _copy_policy_file(shared_root / filename, workspace / filename)
+            if filename == "TOOLS.md":
+                target = workspace / filename
+                target.write_text(TOOLS_POINTER, encoding="utf-8")
+                target.chmod(0o640)
+            else:
+                _copy_policy_file(shared_root / filename, workspace / filename)
 
         (workspace / "projects").mkdir(exist_ok=True)
         marker_payload = {

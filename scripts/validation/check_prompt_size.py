@@ -188,6 +188,9 @@ def main() -> None:
                 instructions = effective_instructions(repo, agent)
                 if instructions not in system:
                     _fail(f"{label}: AGENTS.md assemblé absent ou altéré dans le prompt natif")
+                tool_guide = (repo / "agents/_shared/TOOLS.md").read_text().strip()
+                if system.count(tool_guide) != 1:
+                    _fail(f"{label}: guide commun des outils dupliqué ou absent")
                 for marker in ("Accompagnement commun", "Outils et livrables", "Contrat partagé"):
                     if marker not in system:
                         _fail(f"{label}: consigne non injectée: {marker}")

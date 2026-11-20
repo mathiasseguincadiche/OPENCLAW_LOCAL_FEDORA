@@ -62,13 +62,15 @@ même si Python le compte comme un caractère. Cette mesure garantit aussi au pl
 12000 caractères Python. Augmenter le budget déclaré au-delà de 12000 est refusé.
 
 `IDENTITY.md`, `SOUL.md`, `TOOLS.md` et `HEARTBEAT.md` sont aussi injectés séparément
-par OpenClaw. Leurs limites individuelles et la somme de tous ces fichiers avec
+par OpenClaw. Depuis le lot 5, le `TOOLS.md` déployé est un renvoi court vers
+le guide complet déjà injecté dans `AGENTS.md`; le guide source versionné reste entier.
+Leurs limites individuelles et la somme de tous ces fichiers avec
 `AGENTS.md` sont vérifiées avant toute écriture de workspace. La somme doit rester
 dans `bootstrap_total_max_chars` (24000). Le contrôle natif vérifie la présence
 intégrale du fichier assemblé dans la requête envoyée à Ollama, les permissions
 des outils réellement exposés et le contexte, y compris avec l'historique maximal.
 
-## Cohérence entre Qwen local et DeepSeek cloud
+## Cohérence entre modèle local et modèles cloud
 
 Les consignes communes doivent rester **indépendantes du fournisseur**, car les sept rôles peuvent être exécutés sur les deux routes. Elles ne doivent donc plus annoncer systématiquement un contexte de 32 768 tokens ou une sortie maximale de 4 096 tokens : ces valeurs correspondent **au modèle local** ; la route cloud a d'autres limites, imposées et vérifiées par le code.
 
@@ -155,3 +157,33 @@ Ces contrôles ont été repris dans `main` par le lot 2 du plan hybride (PR #34
 Les PR #31 et #32, qui les avaient introduits, ont été fermées sans fusion : leur
 contenu utile est repris et tracé dans ce document. Les workflows ne ciblent plus
 que `main`.
+
+
+## Lot 5 — sobriété des sept agents
+
+Le contrat commun, la pédagogie et les méthodes spécialisées ont été condensés
+sans modifier les permissions, les schémas de réponse ni les modes de routage.
+Le guide des outils est injecté une seule fois; le contrôle natif vérifie son
+unicité. Les extraits sont privilégiés seulement lorsque suffisants; une preuve
+requise ou une lecture complète ne peut pas être remplacée par un résumé.
+L'architecte distingue les vues de présentation et techniques; l'auditeur doit
+résoudre la référence avant de conclure PASS.
+
+Comparaison statique en unités UTF-16 d'AGENTS et TOOLS déployés.
+IDENTITY, SOUL et HEARTBEAT sont inchangés, hors enveloppe native et historique.
+Base: commit `c10256d14302`.
+
+| Rôle | AGENTS avant | AGENTS après | AGENTS + TOOLS avant | AGENTS + TOOLS après |
+|---|---:|---:|---:|---:|
+| chef-operations | 10944 | 9140 | 12303 | 9217 |
+| expert-recherche | 10338 | 8766 | 11697 | 8843 |
+| architecte-solutions | 10549 | 9092 | 11908 | 9169 |
+| ingenieur-devops | 10759 | 9259 | 12118 | 9336 |
+| ingenieur-securite | 10563 | 9115 | 11922 | 9192 |
+| auditeur-qualite | 10584 | 9271 | 11943 | 9348 |
+| redacteur-pedagogique | 10821 | 9305 | 12180 | 9382 |
+
+Ces unités ne sont pas des tokens facturables. Les tests textuels et le faux
+endpoint vérifient injection et taille, pas la qualité comportementale réelle.
+Le coût et la qualité sur les modèles réels restent à qualifier; aucune économie
+financière n'est annoncée sur la seule base de ce tableau.

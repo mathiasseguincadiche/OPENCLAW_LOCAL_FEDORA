@@ -254,7 +254,7 @@ requête sur l'autre modèle. La réception réelle reste à faire.
 | Contexte | Extraits utiles, références et SHA-256, sortie d'outil bornée, sans supprimer une preuve requise | Comparaison des tokens par tâche et couverture des preuves inchangée |
 | Cache | Préfixes stables par modèle et rôle ; mesurer les hits avant tout réglage de routage | Compteurs déclarés et coût réel ; aucun cache de réponse ou nouvelle transmission implicite |
 | Routage | Choix applicatif par rôle et étape approuvée, sans escalade sur panne ou refus | Tests de refus, budget, consentement, migration de l'ancien choix profond |
-| Prompts | Factoriser les doublons sans perdre contrats ni pédagogie, préserver les limites UTF-16 | Tests de taille et scénarios comportementaux sur les sept rôles |
+| Prompts | Lot 5 : guide outils injecté une fois, règles communes condensées, méthodes et contrats conservés | Taille UTF-16 et injection native contrôlées en CI ; scénarios réels à qualifier |
 | Validation | Contrôles déterministes, audit indépendant et preuves résolues, coût par tâche réussie | CI hors réseau payant puis réception consentie sur Fedora avec fournisseur réel |
 
 La migration doit conserver la passerelle loopback, le filtre de confidentialité,
