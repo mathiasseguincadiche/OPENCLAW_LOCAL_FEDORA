@@ -190,7 +190,7 @@ Dans une nouvelle conversation sans projet :
    cloud. Le simple retour d'une réponse ne prouve pas la précision.
    Refuser un exécutable, fichier corrompu, archive ZIP, PDF trop long
    ou empreinte invalide avant inférence.
-6. Choisir « · cloud (DeepSeek) » et joindre le même `main.tf` :
+6. Choisir « · cloud » et joindre le même `main.tf` :
    **refus**, aucun appel OpenRouter et aucun coût enregistré.
 7. Vérifier que le fichier n'a créé aucun dossier sous `projects/`.
    Il peut rester dans le stockage normal d'Open WebUI : vérifier aussi sa suppression.
@@ -271,10 +271,10 @@ CPU pendant STT         : ____ %
 Le service vocal doit rester sur `127.0.0.1:18893`. La B580 reste réservée à Qwen : Whisper
 est configuré CPU/int8.
 
-## 5 bis. Profils DeepSeek (à qualifier après stabilisation)
+## 5 bis. Profils cloud (à qualifier après stabilisation)
 
-Avant un vrai appel OpenRouter, tester les trois profils sans désactiver les
-garde-fous : `./menu.sh --action cloud-profile` affiche `approfondi`
+Avant un vrai appel OpenRouter, tester les quatre profils sans désactiver les
+garde-fous : `./menu.sh --action cloud-profile` affiche `equilibre`
 si aucun profil n'a été enregistré. `cloud-set-profile --value equilibre`
 sans `--apply` n'écrit **rien** ; avec `--apply`, le profil devient
 `equilibre` et apparaît dans `cloud-status` et `!budget`.
@@ -284,7 +284,7 @@ et que le fichier privé `state/cloud/reasoning-profile.json` reste en 0600.
 Une valeur non prévue ou un lien symbolique doit bloquer l'appel cloud
 avant réservation et envoi. Ne jamais corriger cela en supprimant le filtre.
 
-Pour `rapide`, `equilibre` et `approfondi`, effectuer **la même
+Pour `rapide`, `equilibre`, `soutenu` et `approfondi`, effectuer **la même
 question publique de référence** en notant le provider effectif, la latence,
 la qualité humaine, les tokens et la dépense réelle sur OpenRouter. Le test
 doit vérifier que `require_parameters: true` n'a pas été assoupli et
@@ -297,19 +297,19 @@ Seulement avec une clé OpenRouter limitée et des crédits prépayés :
 
 ```bash
 ./menu.sh --action cloud-set-key
-./menu.sh --action cloud-enable --value 12
-./menu.sh --action cloud-enable --value 12 --apply
+./menu.sh --action cloud-enable --value 23
+./menu.sh --action cloud-enable --value 23 --apply
 ./menu.sh --action cloud-status
 ```
 
-Dans le chat, choisir « · cloud (DeepSeek) » et poser une question **publique** complexe.
+Dans le chat, choisir « · cloud » et poser une question **publique** complexe.
 
 Vérifier :
 
 - provenance cloud visible ;
 - modèle réellement servi = `deepseek/deepseek-v4.1-flash-1017` ;
 - contexte cloud déclaré à 1 048 576 tokens, sortie 32 768 ;
-- la passerelle impose `reasoning.effort=xhigh` ;
+- la passerelle impose `reasoning.effort=medium` (profil par défaut) ;
 - routage `throughput` sous `provider.max_price` ;
 - coût visible dans le journal et cohérent avec OpenRouter ;
 - un faux jeton GitHub dans le message déclenche le passage local visible ;

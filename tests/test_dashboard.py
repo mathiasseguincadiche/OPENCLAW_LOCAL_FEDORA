@@ -205,7 +205,7 @@ def test_workshop_shows_cloud_state_pause_models_and_budget(
     project_cloud.grant(ROOT, runtime, project, acknowledged=True)
     project_cloud.write_pause(runtime, project, "budget_refused", "plafond atteint", "design-choice")
     _, data = request(server, "/api/status")
-    assert data["cloud"]["ready"] and data["cloud"]["budget"]["cap_eur"] == 25
+    assert data["cloud"]["ready"] and data["cloud"]["budget"]["cap_eur"] == 35
     brief = data["projects"][0]["cloud"]
     assert brief["state"] == "granted" and brief["pause"]["code"] == "budget_refused"
     status, detail = request(server, "/api/cloud?project=daily-project")

@@ -115,7 +115,9 @@ def build_parser() -> argparse.ArgumentParser:
     model.add_argument("--name", required=True, choices=("standard", "expert"))
     model.add_argument("--apply", action="store_true")
     profile = commands.add_parser("set-profile")
-    profile.add_argument("--name", required=True, choices=("rapide", "equilibre", "soutenu", "approfondi"))
+    profile.add_argument(
+        "--name", required=True, choices=("rapide", "equilibre", "soutenu", "approfondi"),
+    )
     profile.add_argument("--apply", action="store_true")
     key = commands.add_parser("set-key")
     key.add_argument("--replace", action="store_true")
