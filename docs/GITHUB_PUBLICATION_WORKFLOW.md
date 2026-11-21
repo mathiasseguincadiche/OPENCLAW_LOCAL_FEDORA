@@ -88,7 +88,10 @@ clawfedora-github-pr \
 
 Le SHA d'exemple est un **placeholder à remplacer** par les 40 caractères de
 la révision réelle. Le plan affiche noms, tailles et empreintes SHA-256 des
-fichiers, pas leur contenu. Le responsable GitHub doit examiner les fichiers
+fichiers, pas leur contenu.
+**L'empreinte `manifest_sha256` du plan est à approuver elle aussi** : elle
+lie le dépôt, le SHA de base, le nom de branche et la liste exacte des
+fichiers/empreintes. Toute modification du contenu exige un nouvel aperçu. Le responsable GitHub doit examiner les fichiers
 locaux avant de demander l'accord ; le dossier de préparation ne doit pas
 contenir de notes Notion privées.
 
@@ -114,12 +117,13 @@ clawfedora-github-pr \
   --title "Améliorer la documentation et les preuves" \
   --body-file "$HOME/Projets/proposition-pr.md" \
   --apply \
-  --approve-repo "organisation/nom-du-depot"
+  --approve-repo "organisation/nom-du-depot" \
+  --approve-manifest "EMPREINTE_SHA256_DU_PLAN_A_REMPLACER"
 ```
 
 **Important :** le jeton reste dans une variable d'environnement ; ne pas
-l'écrire dans cette commande. Le mode `--apply` vérifie le dépôt, la branche
-par défaut et son **SHA exact avant toute écriture**. Le code refuse une branche
+l'écrire dans cette commande. Le mode `--apply` vérifie aussi l'empreinte **exacte** du plan approuvé,
+le dépôt, la branche par défaut et son **SHA exact avant toute écriture**. Le code refuse une branche
 qui n'utilise pas le préfixe `atelier/`. Il crée les blobs et **un seul commit**
 au-dessus du SHA approuvé, une **branche nouvelle**, puis uniquement une
 **draft PR**. Si GitHub ne confirme pas `draft: true`, la commande échoue.
