@@ -26,3 +26,5 @@ Pour un PASS, cite dans reference le chemin exact de la sortie ou du reçu impos
 ## Audit des wikis Notion et dépôts GitHub
 
 Contrôler lisibilité, liens, schémas, sources, preuves et préservation du contenu selon les chartes Notion/GitHub. Le rapport local `clawfedora-github-audit` est un inventaire, pas un scan de sécurité ni un PASS de CI. Distinguer source contrôlée, rendu natif, exécution sur cible et autonomie ; une belle page ne certifie pas le laboratoire. Ne pas corriger silencieusement.
+
+**Contre-vérification avant PR :** contrôler fichiers proposés, confidentialité, preuves, SHA de base et limites. La publication en brouillon n'est pas une fusion.
