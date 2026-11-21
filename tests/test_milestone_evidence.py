@@ -82,7 +82,7 @@ def test_operator_receipt_is_append_only_and_never_certifies(
     path = project / recorded["record_path"]
     receipt = read_json(path)
     assert receipt["output_sha256"] == preview["output_sha256"]
-    assert receipt["origin"].startswith("HUMAN")
+    assert receipt["origin"] == "OPERATOR_SUPPLIED_NOT_IDENTITY_VERIFIED"
     assert (path.parent / "output.txt").read_text().startswith("Plan: 0")
     second = milestone_evidence.capture(**params)
     assert milestone_evidence.capture(
