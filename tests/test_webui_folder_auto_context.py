@@ -20,7 +20,7 @@ from typing import Any
 import pytest
 from test_daily_worker import planned as planned
 
-from clawfedora.webui_bridge import MODEL_IDS, make_server
+from clawfedora.webui_bridge import CLOUD_MODEL_IDS, MODEL_IDS, make_server
 from clawfedora.webui_folder_binding import resolve
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -288,3 +288,35 @@ def test_new_unsaved_chat_can_still_use_explicit_project_selection(
     code, answer = _request(server, filtered)
     assert code == 200 and answer.startswith("📁 Projet : daily-project · pont")
     assert calls == []
+
+
+def test_folder_context_never_bypasses_cloud_consent(
+    native_filter: tuple[Any, SimpleNamespace],
+    planned: tuple[Path, Path],
+) -> None:
+    filter_instance, _state = native_filter
+    runtime, _project = planned
+    calls: list[str] = []
+
+    def runner(_role: str, prompt: str, _session: str, **_kwargs: Any) -> dict[str, Any]:
+        calls.append(prompt)
+        return {"text": "Should not be sent to the cloud."}
+
+    server = make_server(
+        ROOT, runtime, TOKEN, 0, runner=runner, cloud_ready=lambda: True,
+    )
+    thread = threading.Thread(
+        target=server.serve_forever, kwargs={"poll_interval": 0.02}, daemon=True,
+    )
+    thread.start()
+    try:
+        body = _filter(filter_instance, _body("Mes fichiers privés ?"))
+        body["model"] = CLOUD_MODEL_IDS[0]
+        code, response = _request(server, body)
+        assert code == 200
+        assert "n'a pas d'accord cloud valide" in response
+        assert calls == []
+    finally:
+        server.shutdown()
+        thread.join(timeout=5)
+        server.server_close()
