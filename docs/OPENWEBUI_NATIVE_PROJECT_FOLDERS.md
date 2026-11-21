@@ -36,7 +36,9 @@ L'action **Classer cette conversation** fonctionne uniquement depuis
 une conversation **enregistrée**, possédée par l'utilisateur administrateur
 connecté.
 
-1. L'utilisateur choisit le projet dans le registre réel.
+1. Si le fil se trouve déjà dans un sous-dossier ClawFedora géré, l'action
+   identifie le projet à partir des métadonnées du dossier appartenant au
+   compte connecté. Sinon, l'utilisateur choisit le projet dans la liste.
 2. L'action vérifie de nouveau que le projet existe, que le chat
    appartient à ce compte et que son message assistant est modifiable.
 3. Elle demande un **accord explicite** pour déplacer **ce seul chat**,
