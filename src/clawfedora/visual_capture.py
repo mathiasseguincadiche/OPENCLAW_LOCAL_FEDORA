@@ -10,13 +10,13 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from importlib import import_module
 import os
 import re
 import stat
 import sys
 import uuid
 from datetime import UTC, datetime
+from importlib import import_module
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
