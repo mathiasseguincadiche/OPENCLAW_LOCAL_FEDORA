@@ -22,6 +22,8 @@ directe des paramètres de protection de branche, publication depuis le chat
 OpenClaw sans intervention, réception du rendu navigateur, exécution sur la
 machine Fedora de l'utilisateur. Une CI verte ne démontre aucun de ces points.
 
+Pour créer au préalable un **nouveau dépôt personnel** et vérifier ses réglages, consulter le [guide GitHub distant](GITHUB_REMOTE_SETUP.md). Ces actions sont séparées des PR brouillon et ne sont jamais automatiques.
+
 ## 1. Qui est responsable de quoi ?
 
 | Responsabilité | Responsable principal | Collaborateurs | Critère de sortie |
