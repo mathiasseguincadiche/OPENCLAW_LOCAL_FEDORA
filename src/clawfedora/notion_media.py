@@ -330,7 +330,10 @@ def apply(path: Path, page: str, manifest: str) -> dict[str, Any]:
     target = _target(page_id, block_id, kind)
     index = plan["segment_index"]
     if kind == "image":
-        if any(plan[key] is not None for key in ("row_id", "cell_index", "table_sha256", "children_sha256")):
+        if any(
+            plan[key] is not None
+            for key in ("row_id", "cell_index", "table_sha256", "children_sha256")
+        ):
             raise nw.NotionWriteError("plan image invalide")
         current, _ = _image_parts(target)
         if _image_state(target) != plan["target_sha256"]:
