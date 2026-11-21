@@ -32,6 +32,16 @@ Les noms et la topologie ici décrivent **le projet de référence**. Les
 agents ne doivent pas imposer ces choix à tous les projets futurs. Une
 modification de la stack exige une raison, un ADR et un contrôle de compatibilité.
 
+## Deux espaces complémentaires
+
+Le dépôt GitHub contient le code, la preuve technique et la présentation
+publique ; la page Notion [OpsDesk — Centre de formation](https://app.notion.com/p/3fc65721fa1881ad8325c8c4619c7223)
+contient les cours, les 13 exercices complets, la préparation de Fedora et
+le suivi des réalisations. Ne jamais publier ou recopier les notes de travail
+personnelles sur GitHub. L'atelier peut désormais importer, sur choix
+explicite, un snapshot GitHub versionné et des pages Notion protégées
+(voir [l'intégration](INTEGRATION_GITHUB_NOTION.md)).
+
 ## Les sept agents sur ce type de mission
 
 | Agent | Quand il est vraiment utile | Contribution attendue |
