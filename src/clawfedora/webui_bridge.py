@@ -39,6 +39,7 @@ from clawfedora.project_common import failure_message
 from clawfedora.project_control import write_progress
 from clawfedora.project_worker import AgentRunner, openclaw_runner, worker_lock
 from clawfedora.storage import load_settings, require_storage
+from clawfedora.webui_folder_binding import resolve as resolve_folder_binding
 from clawfedora.webui_stream import progressive_completion
 
 MODEL_IDS = tuple(f"openclaw/{role}" for role in AGENT_IDS)
@@ -511,13 +512,24 @@ class BridgeHandler(BaseHTTPRequestHandler):
             cloud_request = str(data.get("model", "")).startswith(CLOUD_PREFIX)
             if not cloud_request and length > MAX_LOCAL_REQUEST_BYTES:
                 raise ValueError("requête locale supérieure à 1 Mio")
-            candidates = data.get("messages")
-            allow_project_media = (
-                isinstance(candidates, list)
-                and bool(chat_projects.thread_state(
-                    [item for item in candidates if isinstance(item, dict)]
-                )[0])
+            # A native folder is trusted only when the owner-scoped WebUI filter
+            # signed the current chat/message and the bridge verified that claim.
+            native_project = resolve_folder_binding(
+                data, self.server.token, self.server.runtime
             )
+            candidates = data.get("messages")
+            thread_project = (
+                chat_projects.thread_state(
+                    [item for item in candidates if isinstance(item, dict)]
+                )[0]
+                if isinstance(candidates, list) else None
+            )
+            if native_project and thread_project and native_project != thread_project:
+                raise ValueError(
+                    "Dossier WebUI et ancien projet du fil incompatibles : "
+                    "reclasser explicitement la conversation avant de continuer."
+                )
+            allow_project_media = bool(thread_project or native_project)
             role, prompt = chat_prompt(
                 data,
                 max_tokens=(
@@ -539,6 +551,10 @@ class BridgeHandler(BaseHTTPRequestHandler):
             return
         messages = data["messages"]
         current, referenced = chat_projects.thread_state(messages)
+        if native_project is not None:
+            current = native_project
+            # The cloud safety gate must see folder-derived context too.
+            referenced.add(native_project)
         last = messages[-1] if messages[-1].get("role") == "user" else {}
         file_descriptors = data.get("clawfedora_files")
         standalone_attachment_context = ""
@@ -557,6 +573,19 @@ class BridgeHandler(BaseHTTPRequestHandler):
             )
             return
         command = chat_projects.parse_command(typed) if last else None
+        if native_project is not None and command is not None and (
+            command[0] == "quitter"
+            or (command[0] == "projet" and command[1] != native_project)
+        ):
+            self._completion(
+                data, chat_projects.bridge_reply(
+                    native_project,
+                    "Le contexte de ce fil suit son dossier ClawFedora authentifié. "
+                    "Pour changer ou quitter ce projet, reclasser d'abord le chat "
+                    "dans Open WebUI, puis sélectionner explicitement le contexte.",
+                ),
+            )
+            return
         if command is not None and command[0] == "github" and file_descriptors:
             self._completion(
                 data, chat_projects.bridge_reply(
