@@ -118,6 +118,15 @@ du modèle n'est autorisée.
 
 Le [panneau GitHub local et ses commandes de discussion](docs/GITHUB_CHAT_DASHBOARD.md) permettent de préparer un dépôt, lire ses réglages, auditer des livrables et proposer une PR en brouillon après approbation du SHA exact du plan. Les opérations de publication depuis Open WebUI sont **des commandes que l'utilisateur tape**, pas des décisions autonomes du modèle.
 
+### Préparer la réception graphique réelle
+
+Le [protocole de captures et de revue humaine](docs/validation/VISUAL_RECEPTION_NATIVE.md)
+permettra de vérifier les panneaux locaux, les pages Notion réelles et
+les README GitHub en clair/sombre et sur largeur mobile. Il utilise
+un navigateur optionnel, conserve ses captures privées hors dépôt et
+ne déclare jamais la qualité graphique certifiée par une simple CI verte.
+La réception sur Fedora et sur les comptes réels reste à effectuer.
+
 ## Création de dépôts et protection GitHub
 
 La [configuration distante GitHub](docs/GITHUB_REMOTE_SETUP.md) ajoute des aperçus hors ligne pour créer un dépôt privé et vérifier les protections, puis des opérations sous approbation explicite. Aucune création distante n'est déclenchée par la simple consultation du README.
