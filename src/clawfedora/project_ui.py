@@ -16,7 +16,6 @@ from clawfedora.core_config import AGENT_IDS, daily_limits
 from clawfedora.github_refresh import inspect as github_updates
 from clawfedora.learning import checkpoints, contract
 from clawfedora.mentor import copy_profile
-from clawfedora.project_work_pr import history as github_work_pr_history
 from clawfedora.project_cloud import project_runner
 from clawfedora.project_common import assert_no_symlinks, read_json, write_json
 from clawfedora.project_control import write_progress
@@ -34,6 +33,7 @@ from clawfedora.project_engine import (
 )
 from clawfedora.project_intake import create_project, validate_input_integrity
 from clawfedora.project_roadmap import load as load_roadmap
+from clawfedora.project_work_pr import history as github_work_pr_history
 from clawfedora.project_worker import AgentRunner, _guard, openclaw_runner, worker_lock
 
 UPLOAD_FORMATS = {
