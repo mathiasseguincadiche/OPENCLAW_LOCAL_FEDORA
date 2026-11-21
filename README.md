@@ -97,7 +97,7 @@ chat**, ni un accès aux VM Rocky. [Mode d'emploi et limites](docs/INTEGRATION_G
 ## Documentation Notion de qualité wiki
 
 L'atelier dispose d'une [charte visuelle et éditoriale universelle](docs/NOTION_WIKI_DESIGN_SYSTEM.md)
-et de [gabarits de pages Notion](templates/notion/). Les sept agents
+et de [gabarits de pages Notion](templates/notion/accueil-wiki.md). Les sept agents
 actuels se répartissent architecture, rédaction, vérification technique
 GitHub et audit documentaire. Un rendu premium ne transforme ni les
 notes personnelles ni les sorties illustratives en preuves réelles.
