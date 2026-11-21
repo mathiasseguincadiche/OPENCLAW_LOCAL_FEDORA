@@ -264,8 +264,8 @@ def test_chat_bridge_prepares_and_approves_active_work_without_completion(
     )
     assert "brouillon" in accepted and "pull/99" in accepted
     assert calls[0]["approve_sha256"] == digest
-    assert calls[0]["repo"] == REPO
-    assert calls[0]["milestone_id"] == "step-04"
+    assert calls[0]["args"][2] == REPO
+    assert calls[0]["args"][5] == "step-04"
     assert read_json(project / "context/github-work-pr-pending.json")["state"] == "CREATED"
     assert "déjà tenté" in chat_github.run(
         runtime, "opsdesk-lab", f"publier-travail {REPO} {digest}", local=True
