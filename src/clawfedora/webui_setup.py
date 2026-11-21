@@ -277,7 +277,10 @@ def seal(repo_root: Path, runtime: Path) -> None:
         admin_id = str(users[0][0])
         now = int(time.time())
         meta = json.dumps(
-            {"description": "Transmet les pièces jointes et lie les chats aux dossiers de projets autorisés."},
+            {"description": (
+                "Transmet les pièces jointes et lie les chats aux dossiers "
+                "de projets autorisés."
+            )},
             ensure_ascii=False,
         )
         db.execute(
