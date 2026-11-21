@@ -1,6 +1,6 @@
 # Panneau Notion local — prévisualiser et approuver les révisions
 
-[← Accueil documentation](README.md) · [Édition multi-blocs](NOTION_MULTI_BLOCK.md) · [GitHub dans l'atelier](GITHUB_CHAT_DASHBOARD.md) · [Réception réelle](validation/NOTION_GITHUB_ACCEPTANCE.md)
+[← Accueil documentation](README.md) · [Édition multi-blocs](NOTION_MULTI_BLOCK.md) · [Mode texte enrichi](NOTION_RICH_TEXT.md) · [GitHub dans l'atelier](GITHUB_CHAT_DASHBOARD.md) · [Réception réelle](validation/NOTION_GITHUB_ACCEPTANCE.md)
 
 ## Accès
 
@@ -32,12 +32,13 @@ Elle ne transmet pas les jetons au navigateur ni à un modèle.
    le résultat réel dans Notion, y compris les sous-pages, l'installation
    des outils et la lisibilité sur bureau/mobile.
 
-Le formulaire ne permet **aucune** suppression, insertion, déplacement ou
-création de page. La fonctionnalité est limitée aux blocs simples d'une
-même page, à la configuration de la PR dédiée. Les blocs avec formatage
-riche ou liens ne sont pas admissibles même s'ils apparaissent comme
-candidats dans l'inventaire : le moteur Python les refuse au moment du
-plan ou de la vérification avant l'écriture.
+Le formulaire multi-blocs ne permet **aucune** suppression, insertion,
+déplacement ou création de page. Il reste limité aux blocs textuels simples
+sans formatage enrichi. La section distincte **« Réviser un segment de texte
+enrichi »** permet de modifier un seul segment dans un encadré, une liste,
+un titre, une citation ou un paragraphe existant, tout en conservant le
+reste du contenu et ses styles. Les liens eux-mêmes ne sont pas modifiés.
+Lire les [limites et tests du mode riche](NOTION_RICH_TEXT.md).
 
 ## Où se trouvent les données et les autorisations ?
 
@@ -86,8 +87,9 @@ appartiennent à la [campagne de réception](validation/NOTION_GITHUB_ACCEPTANCE
 - Import assisté de **propositions validées des agents** depuis les
   livrables d'un projet sélectionné (l'éditeur courant attend
   du texte saisi/collé par l'opérateur).
-- Gestion des sections enrichies, callouts, tableaux, médias, schémas et
-  ajout contrôlé de pages.
+- Édition complète de sections multi-segments, mentions et liens, tableaux,
+  médias, images, schémas et ajout contrôlé de pages. Le mode segment enrichi
+  est déjà disponible, mais ne réalise aucun de ces travaux avancés.
 - Prévisualisation visuelle complète des blocs comme ils apparaîtront
   réellement dans Notion, et preuve native bureau/mobile.
 

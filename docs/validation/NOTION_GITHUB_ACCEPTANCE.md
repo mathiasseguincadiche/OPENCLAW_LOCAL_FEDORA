@@ -1,6 +1,6 @@
 # Réception intégrée — Notion, GitHub, agents, graphisme et Fedora
 
-[← État](../../STATUS.md) · [Notion contrôlé](../NOTION_CONTROLLED_WRITES.md) · [Notion multi-blocs](../NOTION_MULTI_BLOCK.md) · [Panneau Notion](../NOTION_DASHBOARD.md) · [GitHub](../GITHUB_CHAT_DASHBOARD.md) · [Réception Fedora](../RECEPTION_ETAPE3.md)
+[← État](../../STATUS.md) · [Notion contrôlé](../NOTION_CONTROLLED_WRITES.md) · [Notion multi-blocs](../NOTION_MULTI_BLOCK.md) · [Panneau Notion](../NOTION_DASHBOARD.md) · [Mode texte enrichi](../NOTION_RICH_TEXT.md) · [GitHub](../GITHUB_CHAT_DASHBOARD.md) · [Réception Fedora](../RECEPTION_ETAPE3.md)
 
 ## Règle d'évaluation
 

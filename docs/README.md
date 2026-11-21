@@ -33,7 +33,9 @@ humain. Le [workflow multi-blocs](NOTION_MULTI_BLOCK.md) prépare ensuite
 jusqu'à cinq corrections textuelles ciblées avec inventaire et approbation
 commune du plan exact ; il ne crée pas de pages et ne modifie pas les blocs riches.
 Le [panneau Notion local](NOTION_DASHBOARD.md) offre la consultation des blocs,
-les diffs et l'approbation humaine depuis l'atelier.
+les diffs et l'approbation humaine depuis l'atelier. Le [mode riche à
+segment ciblé](NOTION_RICH_TEXT.md) préserve les annotations, les liens
+voisins et les icônes/couleurs des encadrés existants.
 
 ## GitHub dans le tableau de bord et le chat
 

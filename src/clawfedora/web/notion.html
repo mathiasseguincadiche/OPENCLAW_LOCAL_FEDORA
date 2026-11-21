@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/github.css">
   <link rel="stylesheet" href="/notion.css">
   <script src="/notion.js" defer></script>
+  <script src="/notion-rich.js" defer></script>
 </head>
 <body>
 <main>
@@ -24,6 +25,7 @@
     <a href="/github.html">GitHub : dépôts et PR</a>
     <a href="#inspect">Analyser</a>
     <a href="#changes">Proposer</a>
+    <a href="#rich">Texte enrichi</a>
     <a href="#verify">Réception</a>
   </nav>
   <p class="activity">Les agents produisent les textes, mais ne peuvent ni sélectionner la page ni approuver une écriture. Aucune donnée Notion n'est transmise au cloud par ce panneau.</p>
@@ -83,8 +85,46 @@
     <pre id="apply-result" aria-live="polite"></pre>
   </section>
 
-  <section class="github-panel" id="verify" aria-labelledby="verify-title">
+  <section class="github-panel" id="rich" aria-labelledby="rich-title">
     <div class="section-top"><span class="step-number">04</span><div>
+      <h2 id="rich-title">Réviser un segment de texte enrichi</h2>
+      <p>Modifier les mots d’un encadré Notion, d'une citation, d'un titre ou d'une liste sans supprimer les styles ni les liens des autres segments. Les mentions, images, tableaux et blocs avec enfants restent protégés.</p>
+    </div></div>
+    <form id="rich-select-form">
+      <label for="rich-block">Bloc de la page examinée</label>
+      <select id="rich-block" required disabled><option value="">Examiner une page d'abord…</option></select>
+      <button id="rich-read" type="submit" disabled>Examiner les segments et styles</button>
+    </form>
+    <div id="rich-segments" class="block-inventory" aria-live="polite"></div>
+    <form id="rich-plan-form" hidden>
+      <label for="rich-segment">Segment précis à modifier (les liens ne sont pas éditables)</label>
+      <select id="rich-segment" required></select>
+      <label for="rich-text">Nouveau texte de ce segment (les autres sont préservés)</label>
+      <textarea id="rich-text" maxlength="1900" rows="4" required></textarea>
+      <button id="rich-plan-button" type="submit">Prévisualiser la révision enrichie</button>
+    </form>
+    <div id="rich-diff-panel" hidden>
+      <h3>Comparaison du segment</h3>
+      <pre id="rich-diff"></pre>
+      <p class="manifest">Empreinte SHA-256 : <code id="rich-digest"></code></p>
+      <p id="rich-preserved" class="intro"></p>
+    </div>
+    <form id="rich-apply-form" hidden>
+      <label for="rich-approve-page">Recopier l'ID exact de la page</label>
+      <input id="rich-approve-page" required autocomplete="off" spellcheck="false">
+      <label for="rich-approve-manifest">Recopier l'empreinte SHA-256 du plan enrichi</label>
+      <input id="rich-approve-manifest" minlength="64" maxlength="64" pattern="[0-9a-f]{64}" required autocomplete="off" spellcheck="false">
+      <label class="checkline"><input id="rich-approve-human" type="checkbox" required>
+        J'ai vérifié le contenu, les liens, les annotations et l'encadré ; j'autorise cette seule écriture.
+      </label>
+      <button type="submit">Appliquer le segment approuvé</button>
+    </form>
+    <pre id="rich-result" aria-live="polite"></pre>
+    <p class="intro">La vérification API ne garantit pas le rendu Notion réel. Le plan est utilisable une seule fois. Éviter toute édition concurrente et contrôler les styles, couleurs et icônes dans Notion.</p>
+  </section>
+
+  <section class="github-panel" id="verify" aria-labelledby="verify-title">
+    <div class="section-top"><span class="step-number">05</span><div>
       <h2 id="verify-title">Contrôler le rendu dans Notion</h2>
       <p>Une lecture API réussie ne certifie pas le rendu graphique. Ouvrir la page réelle et examiner le résultat avant de marquer les critères comme satisfaits.</p>
     </div></div>

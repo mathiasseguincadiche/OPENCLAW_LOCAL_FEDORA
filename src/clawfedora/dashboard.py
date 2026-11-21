@@ -197,7 +197,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             if url.path in {
                 "/", "/dashboard.js", "/dashboard.css",
                 "/github.html", "/github.js", "/github.css",
-                "/notion.html", "/notion.js", "/notion.css",
+                "/notion.html", "/notion.js", "/notion.css", "/notion-rich.js",
             }:
                 name = {
                     "/": "dashboard.html",
@@ -209,6 +209,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     "/notion.html": "notion.html",
                     "/notion.js": "notion.js",
                     "/notion.css": "notion.css",
+                    "/notion-rich.js": "notion-rich.js",
                 }[url.path]
                 kind = {
                     "dashboard.html": "text/html",
@@ -220,6 +221,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     "notion.html": "text/html",
                     "notion.js": "text/javascript",
                     "notion.css": "text/css",
+                    "notion-rich.js": "text/javascript",
                 }[name]
                 self._send(200, (Path(__file__).parent / "web" / name).read_bytes(), kind)
             elif url.path == "/api/status":
@@ -390,6 +392,26 @@ class DashboardHandler(BaseHTTPRequestHandler):
         route = self.path.removeprefix("/api/notion/")
         if route == "inspect":
             return 200, notion_panel.inspect(str(data["page"]))
+        if route == "rich-segments":
+            return 200, notion_panel.rich_inspect(
+                str(data["page"]), str(data["block_id"]),
+            )
+        if route == "rich-plan":
+            index = data["segment_index"]
+            if type(index) is not int:
+                raise ValueError("index de segment entier requis")
+            return 200, notion_panel.rich_plan(
+                self.server.runtime, str(data["page"]), str(data["block_id"]),
+                index, str(data["text"]),
+            )
+        if route == "rich-apply":
+            with worker_lock(self.server.runtime):
+                return 200, notion_panel.rich_apply(
+                    self.server.runtime, str(data["plan_id"]), str(data["page"]),
+                    str(data.get("approve_page", "")),
+                    str(data.get("approve_manifest", "")),
+                    data.get("human_approved"),
+                )
         if route == "plan":
             return 200, notion_panel.plan(
                 self.server.runtime, str(data["page"]), data["edits"],
