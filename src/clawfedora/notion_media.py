@@ -329,6 +329,7 @@ def apply(path: Path, page: str, manifest: str) -> dict[str, Any]:
         raise nw.NotionWriteError("structure de page modifiée")
     target = _target(page_id, block_id, kind)
     index = plan["segment_index"]
+    body: dict[str, Any]
     if kind == "image":
         if any(
             plan[key] is not None
