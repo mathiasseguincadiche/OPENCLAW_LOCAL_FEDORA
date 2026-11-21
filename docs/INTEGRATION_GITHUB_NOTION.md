@@ -119,7 +119,8 @@ modèles éditoriaux, la séparation des sources GitHub et Notion, les
 contrôles de mise en page, de mobile et de conservation des sous-pages.
 
 Deux gabarits de départ sont dans
-[`templates/notion/`](../templates/notion/) : page d'accueil et fiche
+[`accueil-wiki.md`](../templates/notion/accueil-wiki.md) et
+[`exercice-infraops.md`](../templates/notion/exercice-infraops.md) : page d'accueil et fiche
 d'exercice. L'architecte, le rédacteur et l'auditeur des **sept rôles
 existants** s'en servent suivant le besoin. La génération d'un contenu
 modèle ne déclenche aucune écriture distante. Le rendu natif et la lecture
