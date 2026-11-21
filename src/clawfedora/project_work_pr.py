@@ -188,7 +188,7 @@ def publish(
         raise ValueError("approbation du dépôt et empreinte du plan requises")
     if not 8 <= len(title.strip()) <= 180 or not 8 <= len(body.strip()) <= 60000:
         raise ValueError("titre ou description de PR insuffisant")
-    if any(pattern.search(title + "\\n" + body) for pattern in github_pr.SUSPECT_CONTENT):
+    if any(pattern.search(title + "\n" + body) for pattern in github_pr.SUSPECT_CONTENT):
         raise ValueError("description de PR contenant un secret")
     if not os.environ.get("GITHUB_TOKEN"):
         raise ValueError("GITHUB_TOKEN absent : aucune publication possible")
@@ -231,6 +231,36 @@ def publish(
             "published_at": now(),
         })
         return {**result, "milestone_id": milestone_id, "verification": "NOT_VERIFIED"}
+
+
+def history(project: Path) -> list[dict[str, Any]]:
+    """Read-only, bounded attempt summaries for the existing project dashboard."""
+    assert_no_symlinks(project, label="projet")
+    root = project / ATTEMPTS
+    if not root.exists():
+        return []
+    if not root.is_dir():
+        raise ValueError("historique de PR technique invalide")
+    result: list[dict[str, Any]] = []
+    for path in sorted(root.glob("*.json")):
+        if len(result) >= 40:
+            break
+        value = read_json(path)
+        if (
+            value.get("project_id") != project.name
+            or value.get("state") not in {"ATTEMPTED", "CREATED"}
+        ):
+            raise ValueError("historique de PR technique incohérent")
+        result.append({
+            "state": value["state"],
+            "repository": value["repository"],
+            "branch": value["branch"],
+            "milestone_id": value["milestone_id"],
+            "base_sha": value["base_sha"],
+            "url": value.get("url", ""),
+            "verification": "NOT_VERIFIED",
+        })
+    return result
 
 
 def build_parser() -> argparse.ArgumentParser:
