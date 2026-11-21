@@ -127,3 +127,22 @@ def test_privacy_of_manifest_and_report_is_mandatory(tmp_path: Path) -> None:
     manifest.chmod(0o644)
     with pytest.raises(review.ReviewError, match="privé"):
         review.evaluate(manifest, form)
+
+
+def test_generate_explicit_review_template_without_auto_pass(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str],
+) -> None:
+    manifest, _, _ = _evidence(tmp_path)
+    template = manifest.parent / "new-review.json"
+    assert review.main([
+        "--manifest", str(manifest), "--template-out", str(template),
+    ]) == 0
+    assert template.stat().st_mode & 0o077 == 0
+    values = json.loads(template.read_text(encoding="utf-8"))
+    assert values["inspected_live_site"] is False
+    assert set(values["checks"]) == set(review.REQUIRED["local-notion"])
+    assert set(values["checks"].values()) == {"NOT_EVALUATED"}
+    assert "NOT_COMPLETED" in capsys.readouterr().out
+    assert review.main([
+        "--manifest", str(manifest), "--template-out", str(template),
+    ]) == 2
