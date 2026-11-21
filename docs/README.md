@@ -29,7 +29,9 @@ sont fournis pour préparer une proposition avant validation humaine.
 Les sept agents actuels sont spécialisés sur la conception, la rédaction
 et l'audit. Un [éditeur Notion à portée contrôlée](NOTION_CONTROLLED_WRITES.md)
 propose un diff avant modification d'un bloc textuel simple, avec consentement
-humain. Ce n'est pas une publication autonome ou un éditeur multi-blocs.
+humain. Le [workflow multi-blocs](NOTION_MULTI_BLOCK.md) prépare ensuite
+jusqu'à cinq corrections textuelles ciblées avec inventaire et approbation
+commune du plan exact ; il ne crée pas de pages et ne modifie pas les blocs riches.
 
 ## GitHub dans le tableau de bord et le chat
 
