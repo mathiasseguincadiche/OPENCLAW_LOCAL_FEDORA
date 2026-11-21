@@ -148,7 +148,7 @@ def run(runtime: Path, current: str | None, arguments: str, *, local: bool) -> s
                     name, approve_name=name, approve_manifest=digest,
                 )
                 _record(project, "repo", {**plan, "url": result["url"]}, "CREATED")
-            return "Dépôt privé créé : " + result["url"] + ". Contrôler ses protections."
+            return f"Dépôt privé créé : {result['url']}. Contrôler ses protections."
         if action == "pr" and len(words) == 5:
             repo, sha, branch, label = words[1:]
             if read_json(project / "project.json").get("status") != "COMPLETE":
@@ -195,7 +195,7 @@ def run(runtime: Path, current: str | None, arguments: str, *, local: bool) -> s
                     approve_repo=repo, approve_manifest=digest,
                 )
                 _record(project, "pr", {**plan, "url": result["url"]}, "CREATED")
-            return "PR brouillon créée : " + result["url"] + ". Aucune fusion automatique."
+            return f"PR brouillon créée : {result['url']}. Aucune fusion automatique."
         return HELP
     except (OSError, ValueError, KeyError) as exc:
         return (
