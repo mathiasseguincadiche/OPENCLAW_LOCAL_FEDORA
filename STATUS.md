@@ -1,6 +1,6 @@
 # État du projet — Atelier IA hybride Fedora
 
-**Version 0.2.0 du 3 novembre 2026** ([notes de version](CHANGELOG.md)). **Cycle d'optimisation FinOps #196–#201 intégré au dépôt.** Révision Notion à un bloc #213 fusionnée dans `main` le 21 novembre 2026 ; le nouveau lot multi-blocs sera évalué séparément dans sa PR. Consulter la CI du SHA effectivement déployé. Consulter les contrôles du commit utilisé avant réception. L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
+**Version 0.2.0 du 3 novembre 2026** ([notes de version](CHANGELOG.md)). **Cycle d'optimisation FinOps #196–#201 intégré au dépôt.** Les PR Notion #213 (bloc simple) et #215 (lot multi-blocs) ont été fusionnées le 21 novembre 2026. Le panneau local Notion est proposé séparément dans la PR #216 ; vérifier la CI et la réception du SHA effectivement déployé. L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
 **Évolution en cours de qualification :** routage cloud par niveau de tâche
 approuvé (`simple`, `complex`, `critical`), protocole de mesure
@@ -29,7 +29,7 @@ Voir [stratégie cloud-first](docs/CLOUD_FIRST_QUALIFICATION.md).
 | **Maintenance** | Désinstallation, purge, sauvegarde et réparation protégées | Arrêt vérifié avant suppression, purge sans perte partielle, maintenance refusée pendant une génération. Restauration du vrai état de l’installation **À faire**. |
 | **Parcours WebUI simplifié** | Implémenté ; réception Open WebUI Fedora à effectuer | Six raccourcis, choix du projet et activité locale ; voir [la prise en main](docs/fiches/03-discuter.md) |
 | **Documents ODT** | Export éditable et import textuel implémentés | Limites d’import [documentées](docs/fiches/06-fichiers-et-schemas.md) ; réception dans le navigateur Fedora à effectuer |
-| **GitHub / Notion** | Import en lecture seule ; GitHub sous approbation ; révision ciblée d’un bloc Notion proposée sur branche de travail | [Édition Notion contrôlée](docs/NOTION_CONTROLLED_WRITES.md) ; [recette complète](docs/validation/NOTION_GITHUB_ACCEPTANCE.md). Réception sur Fedora, compte Notion et navigateur réel **à faire**. |
+| **GitHub / Notion** | Import en lecture seule ; GitHub sous approbation ; écriture Notion sous approbation (bloc simple et lot multi-blocs) fusionnée ; panneau de revue graphique proposé dans #216 | [Panneau Notion](docs/NOTION_DASHBOARD.md) ; [édits multi-blocs](docs/NOTION_MULTI_BLOCK.md) ; [recette complète](docs/validation/NOTION_GITHUB_ACCEPTANCE.md). Réception sur Fedora, compte Notion et navigateur réel **à faire**. |
 
 Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n’a pas encore été réceptionné sur cette machine**.
 
