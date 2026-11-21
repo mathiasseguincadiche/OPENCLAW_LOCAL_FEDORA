@@ -82,7 +82,7 @@ def test_missing_local_files_are_reported_and_no_code_runs(tmp_path: Path) -> No
     result = audit_repository(root)
     assert result["links"]["missing_total"] == 1
     assert "architecture.svg: draw.io source missing" in result["graphics"]["missing_sources"]
-    assert result["readme_signals"]["readme_has_quick_start"] is False
+    assert result["readme_signals"]["readme_mentions_quick_start"] is False
 
 
 def test_unsafe_symlink_and_outside_paths_are_not_read(tmp_path: Path) -> None:
