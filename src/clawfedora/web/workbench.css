@@ -445,7 +445,8 @@ body.workbench .checklist input {
   width: 17px; height: 17px; flex: 0 0 17px;
 }
 body.workbench .checklist { padding: 0; background: none; }
-body.workbench .github-panel form[id$="-apply-form"] {
+body.workbench .github-panel form[id$="-apply-form"],
+body.workbench #apply-form {
   background: var(--surface-soft);
   border: 1px solid #9498ea45;
   border-radius: 15px;
@@ -655,7 +656,8 @@ body.workbench [hidden] { display: none !important; }
   body.workbench .step-number { width: 39px; height: 39px; }
   body.workbench button:not(.theme-toggle):not(.workspace-tab) { max-width: 100%; }
   body.workbench .buttons { flex-direction: column; align-items: stretch; }
-  body.workbench .github-panel form[id$="-apply-form"] { padding: 17px; }
+  body.workbench .github-panel form[id$="-apply-form"],
+  body.workbench #apply-form { padding: 17px; }
   body.workbench .row { flex-direction: column; }
   body.workbench .row input { min-width: 0; }
 }
