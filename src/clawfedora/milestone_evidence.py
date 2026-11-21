@@ -279,7 +279,14 @@ def _preview(record: dict[str, Any], artifact: bytes) -> dict[str, Any]:
         "criterion": record["criterion"],
         "verification": record["verification"],
         "milestone_verification": "NOT_VERIFIED",
-        "approval_sha256": _hash(record),
+        "approval_sha256": _hash({
+            **record,
+            "ci_report": (
+                {key: value for key, value in record["ci_report"].items()
+                 if key != "observed_at_utc"}
+                if record["ci_report"] is not None else None
+            ),
+        }),
         "remote_writes": False,
         "warning": "enregistrer une preuve ne valide ni le jalon ni une compétence",
     }
