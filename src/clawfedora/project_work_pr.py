@@ -13,7 +13,7 @@ import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any
+from typing import Any, cast
 
 from clawfedora import github_pr, github_refresh, project_roadmap, source_connectors
 from clawfedora.core_config import resolve_runtime_root
@@ -81,7 +81,7 @@ def _guard(project: Path, milestone_id: str) -> dict[str, Any]:
         raise ValueError("jalon absent de la feuille de route")
     if milestone["state"] not in {"IN_PROGRESS", "BLOCKED"}:
         raise ValueError("jalon non actif : IN_PROGRESS ou BLOCKED requis")
-    return milestone
+    return cast(dict[str, Any], milestone)
 
 
 def _diff(original: Path, changes: list[tuple[str, bytes]]) -> tuple[list[dict[str, Any]], str]:
