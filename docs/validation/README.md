@@ -21,6 +21,13 @@ Utiliser la procédure [Installation simple](../INSTALLATION_SIMPLE_FEDORA45.md)
 
 Elle vérifie les composants essentiels (montage `/data`, courte génération Qwen locale, carte B580 utilisée, Gateway, WebUI et projets). En cas de `READY_FOR_FIRST_PROJECT`, **poser une vraie question dans WebUI et créer un premier projet**. Pas de benchmark ni de cloud nécessaires pour commencer.
 
+## Captures réelles de Notion, GitHub et des panneaux
+
+La [réception visuelle native](VISUAL_RECEPTION_NATIVE.md) explique comment
+capturer les pages dans un vrai navigateur, mesurer les débordements,
+contrôler les captures par SHA-256 et rédiger un verdict humain distinct
+des résultats de CI. Ces étapes restent à exécuter sur le Fedora cible.
+
 ## Quand approfondir ?
 
 | Besoin réel | Contrôle spécialisé |
