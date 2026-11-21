@@ -186,6 +186,10 @@ def publish(
     """One attempt only; no retry or rollback after ambiguous GitHub failures."""
     if approve_repo != repo or not approve_sha256:
         raise ValueError("approbation du dépôt et empreinte du plan requises")
+    if not 8 <= len(title.strip()) <= 180 or not 8 <= len(body.strip()) <= 60000:
+        raise ValueError("titre ou description de PR insuffisant")
+    if any(pattern.search(title + "\\n" + body) for pattern in github_pr.SUSPECT_CONTENT):
+        raise ValueError("description de PR contenant un secret")
     if not os.environ.get("GITHUB_TOKEN"):
         raise ValueError("GITHUB_TOKEN absent : aucune publication possible")
     with worker_lock(runtime):
