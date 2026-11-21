@@ -68,6 +68,11 @@ Le tableau de bord Projets présente les jalons en **lecture seule** dans le
 dossier ouvert ; la création et les changements d'état passent toujours par
 la CLI et ses confirmations.
 
+Pour examiner les changements entre deux commits GitHub au cours d'un
+parcours long, consulter [Actualiser les snapshots GitHub](GITHUB_SNAPSHOT_REFRESH.md).
+La nouvelle version est conservée séparément, sans modifier les exercices
+ni les preuves existantes.
+
 **Limites de cette première tranche :** pas de saisie graphique, pas
 d'actualisation GitHub/Notion, pas de
 synchronisation des preuves, pas d'exécution sur Fedora ou sur les VM Rocky.
