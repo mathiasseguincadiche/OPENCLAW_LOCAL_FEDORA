@@ -17,6 +17,8 @@ models:
     - research
     approximate_weight_gib: 6.15
     required: true
+  # Alias de compatibilité pour le fournisseur local. Ce catalogue ne liste pas
+  # les deux upstreams : voir cloud_policy.yaml et agent_routing.roles.
   cloud-main:
     provider: cloud-gateway
     runtime_id: deepseek/deepseek-v4.1-flash-1017

@@ -122,7 +122,7 @@ cinq veilles/réveils ou les sept scénarios d'évaluation.
 Ces tests complémentaires sont disponibles **si une anomalie apparaît** ou
 si l'on veut mesurer des performances plus finement.
 
-Le cloud DeepSeek n'est **pas activé automatiquement**. Un appel réel
+Le cloud DeepSeek/Sol n'est **pas activé automatiquement**. Un appel réel
 nécessite une clé et une activation explicites ; aucun test de cloud
 ne peut être déclaré réussi sans cet accord. Après la réception locale,
 utiliser [la fiche Cloud](fiches/12-cloud.md#activer-le-cloud) pour la saisie

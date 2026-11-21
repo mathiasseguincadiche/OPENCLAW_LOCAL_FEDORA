@@ -24,6 +24,8 @@ def test_each_supported_category_has_a_clear_and_safe_advice(category: str) -> N
         ("terraform", "DeepSeek cloud"),
         ("pipeline", "DeepSeek"),
         ("documents", "DeepSeek"),
+        ("audit", "Sol"),
+        ("securite", "Sol"),
     ],
 )
 def test_aliases_are_stable_and_do_not_modify_the_route(
@@ -43,6 +45,8 @@ def test_overview_warns_about_project_consent_and_confidentiality() -> None:
     overview = advise()
     assert "Qwen local" in overview
     assert "DeepSeek" in overview
+    assert "Sol" in overview
+    assert "contre-expertise" in advise("audit")
     assert "historique" in overview
     assert "accord cloud valide" in overview
     assert "aucun passage automatique" in overview.lower()

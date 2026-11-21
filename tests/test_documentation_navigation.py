@@ -174,3 +174,42 @@ def test_fedora_is_native_host_and_rocky_validation_is_only_optional() -> None:
     )
     assert "Ce module ne sert pas à faire fonctionner OpenClaw" in lab
     assert "n'a pas besoin" in lab and "Rocky Linux" in lab
+
+
+def test_current_hybrid_guides_and_editable_diagrams_name_both_cloud_models() -> None:
+    cloud = yaml.safe_load((ROOT / "config/core/cloud_policy.yaml").read_text(encoding="utf-8"))
+    ids = {spec["upstream_id"] for spec in cloud["upstream_models"].values()}
+    assert ids == {"deepseek/deepseek-v4.1-flash-1017", "openai/gpt-6.2-sol"}
+
+    for name in (
+        "docs/GUIDE.md",
+        "docs/fiches/03-discuter.md",
+        "docs/fiches/04-atelier-projets.md",
+        "docs/fiches/07-roles-et-outils.md",
+    ):
+        content = (ROOT / name).read_text(encoding="utf-8")
+        assert "Qwen" in content and "DeepSeek" in content and "Sol" in content, name
+    roles = (ROOT / "docs/fiches/07-roles-et-outils.md").read_text(encoding="utf-8")
+    assert "DeepSeek Low" in roles and "Sol High" in roles
+    assert "Sol Medium" in roles
+
+    for stem, labels in (
+        ("atelier-architecture", ["Qwen local · DeepSeek cloud en routine · Sol en expertise",
+                                  "OpenRouter · DeepSeek / Sol"]),
+        ("atelier-roles", ["Sept métiers, trois modèles, un travail à la fois",
+                           "Qwen / Flash / Sol"]),
+    ):
+        svg = ROOT / "docs/diagrams" / (stem + ".svg")
+        drawio = ROOT / "docs/diagrams" / (stem + ".drawio")
+        ElementTree.parse(svg)
+        ElementTree.parse(drawio)
+        svg_text = svg.read_text(encoding="utf-8")
+        drawio_text = drawio.read_text(encoding="utf-8")
+        for label in labels:
+            assert label in svg_text and label in drawio_text, (stem, label)
+
+    ui = (ROOT / "plugins/openwebui/clawfedora_project_actions.py").read_text(
+        encoding="utf-8"
+    )
+    assert "Consulter le budget cloud" in ui
+    assert "Consulter le budget DeepSeek" not in ui

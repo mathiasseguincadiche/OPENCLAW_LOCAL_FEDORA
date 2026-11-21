@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import fcntl
 import json
+import math
 import os
 import threading
 import time
@@ -325,7 +326,8 @@ class Ledger:
         values = (pricing.get("input"), pricing.get("output"))
         prices = tuple(
             float(value) for value in values
-            if isinstance(value, int | float) and not isinstance(value, bool) and value > 0
+            if isinstance(value, int | float) and not isinstance(value, bool)
+            and math.isfinite(value) and value > 0
         )
         if len(prices) != 2:
             raise BudgetRefused("tarifs du modèle cloud invalides: aucun appel possible")
@@ -363,6 +365,13 @@ class Ledger:
         model: str | None = None,
     ) -> _Reservation:
         """Reserve the worst case at the price ceilings of the model really called."""
+        if (
+            type(input_tokens) is not int or type(max_output_tokens) is not int
+            or input_tokens < 0 or max_output_tokens < 0
+        ):
+            raise BudgetRefused("compteurs de tokens invalides : aucune réservation")
+        if model is not None and (not isinstance(model, str) or model not in self.model_caps_eur):
+            raise BudgetRefused("modèle hors catalogue budgétaire : aucun appel cloud")
         prices = self._prices(pricing)
         estimate = self.estimate_usd(
             input_tokens, max_output_tokens, {"input": prices[0], "output": prices[1]}

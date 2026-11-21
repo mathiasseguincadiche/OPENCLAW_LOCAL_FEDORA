@@ -4,6 +4,8 @@ policy:
   local_only: false
   cloud_models_supported: true
   cloud_enabled_by_default: false
+  # Alias manuel de compatibilité, pas une politique de routage par rôle.
+  # Le routage effectif est dans config/core/cloud_policy.yaml (agent_routing).
   cloud_alias: cloud-main
   supported_local_aliases:
   - qwen-max

@@ -35,7 +35,7 @@ il ne transforme pas le bouton Arrêter en annulation effective.
 
 Le conseil **Quel modèle choisir ?**, dans **Sources, modèles et aide**, reste
 une orientation statique locale : il ne consulte pas l’historique, ne choisit
-pas le fournisseur et ne donne pas d’accord cloud. **Consulter le budget DeepSeek**
+pas le fournisseur et ne donne pas d’accord cloud. **Consulter le budget cloud**
 lit le journal local, sans récupérer automatiquement la facture OpenRouter.
 
 Sur une installation existante, après la mise à jour du dépôt, relance
@@ -90,22 +90,22 @@ La compatibilité des dialogues, l'affichage effectif des boutons et le
 comportement après coupure du navigateur devront être vérifiés sur le véritable
 Open WebUI de Fedora durant la réception finale.
 
-## Choisir Qwen ou DeepSeek sans divulgation automatique
+## Choisir Qwen, DeepSeek ou Sol sans divulgation automatique
 
 Tu peux taper `!modele` pour voir une carte des usages, ou `!modele iac`,
 `!modele architecture`, `!modele ci`, `!modele confidentiel`,
-`!modele simple` et `!modele documents` pour obtenir les raisons et limites
+`!modele simple`, `!modele documents` et `!modele audit` pour obtenir les raisons et limites
 de chaque choix.
 
 **Ce ne sont pas des commandes IA :** le pont répond **localement**, sans
-consulter tes conversations, sans envoyer de texte à DeepSeek, sans dépenser
+consulter tes conversations, sans envoyer de texte à DeepSeek ni à Sol, sans dépenser
 de tokens et sans changer la route. Un conseil « DeepSeek à envisager » ne
 signifie jamais que des documents sont publics ou sûrs à exporter.
 
 Le choix du modèle reste dans le sélecteur Open WebUI ; l'accord du projet
 et la passerelle de confidentialité/budget restent obligatoires.
 
-## Suivre le budget de DeepSeek sans quitter le chat
+## Suivre le budget cloud sans quitter le chat
 
 Tape `!budget`, ou ouvre **Sources, modèles et aide → Consulter le budget DeepSeek**. Le pont lit le journal
 local des réservations et relevés déjà enregistrés : **montant engagé prudent,
@@ -144,7 +144,7 @@ Le cloud est facultatif et désactivé tant que tu ne l'as pas activé ([Le clou
 | Modèle | Mode | À utiliser pour |
 |---|---|---|
 | « … · local » | **Travail** : Qwen sur ton PC, aucun contenu de la conversation ne part vers un modèle distant | tout ce qui est interne, professionnel ou incertain |
-| « … · cloud » | **Apprendre** : DeepSeek V4.1 Flash par OpenRouter | des questions publiques, sans secret |
+| « … · cloud » | **Apprendre** : DeepSeek en routine via OpenRouter ; Sol sur choix manuel expert | des questions publiques autorisées, sans secret |
 
 Le choix par défaut reste local. Une réponse cloud porte un bandeau « ☁️ Réponse du modèle cloud ». Si le filtre détecte un secret dans ton message, l'historique ou un résultat d'outil, rien ne part : la conversation passe en local (« 🔒 Conversation passée en local ») et le reste du fil y reste. Si le plafond de 35 € est atteint ou si le fournisseur est indisponible, la réponse vient du local avec un bandeau « 💻 ».
 
@@ -156,7 +156,7 @@ Le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allu
 
 **Une seule génération à la fois.** Si l'atelier Projets travaille, le chat répond qu'il est occupé, et inversement. Le modèle n'est jamais lancé deux fois en parallèle.
 
-**La mémoire dépend de la route.** Qwen reçoit les messages récents jusqu'à 32 000 octets. DeepSeek peut recevoir un historique beaucoup plus large (jusqu'à environ 3 Mio transmis par le pont, dans un contexte cloud déclaré à 1 048 576 tokens). Le contexte maximal annoncé n'est pas la quantité effectivement envoyée : la passerelle, l'historique et le fournisseur imposent leurs propres limites. Dans les deux cas, le pont retire les messages les plus anciens avant de dépasser sa limite et l'indique.
+**La mémoire dépend de la route.** Qwen reçoit les messages récents jusqu'à 32 000 octets. La route cloud (DeepSeek ou Sol) peut recevoir un historique plus large (jusqu'à environ 3 Mio transmis par le pont, dans un contexte cloud déclaré à 1 048 576 tokens). Le contexte maximal annoncé n'est pas la quantité effectivement envoyée : la passerelle, l'historique et le fournisseur imposent leurs propres limites. Dans les deux cas, le pont retire les messages les plus anciens avant de dépasser sa limite et l'indique.
 
 **Le bouton d'arrêt n'arrête pas tout de suite.** Il coupe l'affichage, mais la génération en cours se termine. Attends sa fin avant de passer en mode jeu.
 

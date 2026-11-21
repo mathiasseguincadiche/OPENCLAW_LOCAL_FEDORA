@@ -7,6 +7,7 @@ import stat
 import threading
 import time
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -237,17 +238,18 @@ def test_usage_metrics_by_model_keep_missing_distinct_from_zero(ledger: Ledger) 
         "prompt_tokens_details": {"cached_tokens": 800, "cache_write_tokens": 0},
         "completion_tokens_details": {"reasoning_tokens": 200},
     }
-    ledger.reserve(input_tokens=1000, max_output_tokens=500, model="model-a").settle(usage, "ok")
-    ledger.reserve(input_tokens=1000, max_output_tokens=500, model="model-a").settle(USAGE, "ok")
-    ledger.reserve(input_tokens=1000, max_output_tokens=500, model="model-b").settle(None, "failed")
+    flash, expert = "deepseek/deepseek-v4.1-flash-1017", "openai/gpt-6.2-sol"
+    ledger.reserve(input_tokens=1000, max_output_tokens=500, model=flash).settle(usage, "ok")
+    ledger.reserve(input_tokens=1000, max_output_tokens=500, model=flash).settle(USAGE, "ok")
+    ledger.reserve(input_tokens=1000, max_output_tokens=500, model=expert).settle(None, "failed")
     rows = ledger.model_usage()
-    assert rows["model-a"]["calls"] == 2
-    assert rows["model-a"]["tokens"]["prompt_tokens"] == 2000
-    assert rows["model-a"]["tokens"]["cached_tokens"] == 800
-    assert rows["model-a"]["tokens"]["cache_write_tokens"] == 0
-    assert rows["model-a"]["tokens"]["reasoning_tokens"] == 200
-    assert rows["model-a"]["reported"]["cached_tokens"] == 1
-    assert rows["model-b"] == {"calls": 1, "tokens": {}, "reported": {}}
+    assert rows[flash]["calls"] == 2
+    assert rows[flash]["tokens"]["prompt_tokens"] == 2000
+    assert rows[flash]["tokens"]["cached_tokens"] == 800
+    assert rows[flash]["tokens"]["cache_write_tokens"] == 0
+    assert rows[flash]["tokens"]["reasoning_tokens"] == 200
+    assert rows[flash]["reported"]["cached_tokens"] == 1
+    assert rows[expert] == {"calls": 1, "tokens": {}, "reported": {}}
 
 
 @pytest.mark.parametrize("bad", [True, -1, float("inf"), float("nan"), "missing"])
@@ -286,19 +288,41 @@ def test_model_envelopes_count_uncertain_cost_and_do_not_transfer(ledger: Ledger
 
 
 def test_cache_ratio_uses_only_paired_observed_counts(ledger: Ledger) -> None:
-    def add(model: str, usage: dict[str, object]) -> None:
+    def add(model: str | None, usage: dict[str, object]) -> None:
         ledger.reserve(input_tokens=1000, max_output_tokens=500, model=model).settle(usage, "ok")
 
-    add("paired", {**USAGE, "prompt_tokens_details": {"cached_tokens": 800}})
-    add("paired", USAGE)  # Missing is not zero; denominator must exclude this call.
-    add("zero", {**USAGE, "prompt_tokens_details": {"cached_tokens": 0}})
-    add("unknown", USAGE)
-    ledger.reserve(input_tokens=1000, max_output_tokens=500, model="pending")
+    flash, expert = "deepseek/deepseek-v4.1-flash-1017", "openai/gpt-6.2-sol"
+
+    add(flash, {**USAGE, "prompt_tokens_details": {"cached_tokens": 800}})
+    add(flash, USAGE)  # Missing is not zero; denominator must exclude this call.
+    add(expert, {**USAGE, "prompt_tokens_details": {"cached_tokens": 0}})
+    add(None, USAGE)  # Legacy reservation without upstream identity.
+    ledger.reserve(input_tokens=1000, max_output_tokens=500, model=expert)
     metrics = ledger.cache_metrics()
-    assert metrics["paired"] == {
+    assert metrics[flash] == {
         "successful_calls": 2, "paired_calls": 1, "prompt_tokens": 1000,
         "cached_tokens": 800, "hit_ratio": 0.8,
     }
-    assert metrics["zero"]["hit_ratio"] == 0
+    assert metrics[expert]["hit_ratio"] == 0
     assert metrics["unknown"]["hit_ratio"] is None
-    assert metrics["pending"]["hit_ratio"] is None
+    assert ledger.summary().pending == 1
+
+
+@pytest.mark.parametrize(
+    ("inputs", "reason"),
+    [
+        ({"input_tokens": -1, "max_output_tokens": 128}, "compteurs"),
+        ({"input_tokens": 1, "max_output_tokens": -2}, "compteurs"),
+        ({"input_tokens": True, "max_output_tokens": 128}, "compteurs"),
+        ({"input_tokens": 1.0, "max_output_tokens": 128}, "compteurs"),
+        ({"input_tokens": 1, "max_output_tokens": 1, "model": "unreviewed/model"}, "catalogue"),
+        ({"input_tokens": 1, "max_output_tokens": 1,
+          "pricing": {"input": float("inf"), "output": 1}}, "tarifs"),
+    ],
+)
+def test_malformed_reservation_cannot_write_to_ledger(
+    ledger: Ledger, inputs: dict[str, Any], reason: str,
+) -> None:
+    with pytest.raises(BudgetRefused, match=reason):
+        ledger.reserve(**inputs)
+    assert not ledger.path("2026-10").exists()

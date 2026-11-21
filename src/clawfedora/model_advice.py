@@ -30,14 +30,14 @@ SUGGESTIONS: dict[str, Advice] = {
         "Le filtre de secrets n'identifie pas toutes les informations confidentielles.",
     ),
     "architecture": Advice(
-        "DeepSeek cloud à envisager",
+        "DeepSeek cloud à envisager ; Sol en contre-expertise approuvée",
         "Un ADR complexe ou des compromis d'infrastructure multi-contrainte peuvent bénéficier "
         "d'un contexte et d'un raisonnement cloud plus importants.",
         "N'utiliser cette route que pour des sources autorisées, avec consentement explicite et "
         "budget disponible ; les gains ne sont pas encore mesurés.",
     ),
     "iac": Advice(
-        "DeepSeek cloud à envisager",
+        "DeepSeek cloud à envisager ; Sol en révision approuvée",
         "La cohérence de plusieurs modules Terraform et playbooks Ansible peut demander "
         "davantage de raisonnement que la relecture d'un seul fichier.",
         "Aucun modèle ne remplace terraform validate, ansible-lint, un plan vérifié ou les "
@@ -46,16 +46,24 @@ SUGGESTIONS: dict[str, Advice] = {
     "ci": Advice(
         "Qwen local pour un incident simple ; DeepSeek pour un incident complexe et assaini",
         "Un journal CI difficile et plusieurs dépendances peuvent justifier une analyse "
-        "approfondie par DeepSeek.",
+        "approfondie par DeepSeek ; Sol intervient pour une révision approuvée "
+        "ou sur un choix manuel explicite.",
         "Les secrets et jetons doivent être exclus et le statut réel doit venir du bon run "
         "et du bon commit, pas d'une affirmation du modèle.",
     ),
     "documents": Advice(
-        "Qwen pour un document court et privé ; DeepSeek pour une synthèse publique longue",
+        "Qwen pour le privé ; DeepSeek pour une synthèse publique ; Sol pour sa revue",
         "Un gros dossier d'architecture ou un runbook multi-section peut bénéficier "
         "du contexte cloud.",
         "Une sortie longue n'est pas nécessairement exacte : vérifier références, fichiers "
         "et rendus ; un dossier confidentiel reste local.",
+    ),
+    "audit": Advice(
+        "DeepSeek en audit courant ; Sol pour la contre-expertise finale",
+        "Le travail consiste à vérifier critères, reçus et preuves. En projet cloud "
+        "approuvé, la revue finale utilise Sol suivant la politique.",
+        "Sol ne remplace pas la vérification des références. Dans le chat, "
+        "le mode expert est un choix manuel.",
     ),
 }
 
@@ -68,11 +76,11 @@ ALIASES = {
     "terraform": "iac",
     "ansible": "iac",
     "pipeline": "ci",
-    "audit": "ci",
+    "securite": "audit",
     "long": "documents",
 }
 
-CATEGORIES = ("simple", "confidentiel", "architecture", "iac", "ci", "documents")
+CATEGORIES = ("simple", "confidentiel", "architecture", "iac", "ci", "documents", "audit")
 
 
 def advise(category: str = "") -> str:
@@ -90,10 +98,11 @@ def advise(category: str = "") -> str:
             "| IaC multi-fichiers autorisé au cloud | **DeepSeek à envisager** |",
             "| CI difficile avec journaux assainis | **DeepSeek à envisager** |",
             "| Dossier long et public | **DeepSeek à envisager** |",
+            "| Audit final cloud approuvé | **Sol pour la contre-expertise** |",
             "",
             "Pour les détails : `!modele simple`, `!modele confidentiel`, "
             "`!modele architecture`, `!modele iac`, `!modele ci`, "
-            "`!modele documents`.",
+            "`!modele documents`, `!modele audit`.",
         ]
         advice = "\n".join(rows)
     else:
@@ -113,9 +122,11 @@ def advise(category: str = "") -> str:
     return (
         advice
         + "\n\n**Important :** ce conseil est déterministe, sans lecture de ton "
-        "historique, sans analyse des documents et sans requête Qwen ou DeepSeek. "
+        "historique, sans analyse des documents et sans requête Qwen ou DeepSeek ni Sol. "
         "Il **ne classe pas les données comme sûres pour le cloud**. "
-        "Le choix du modèle dans Open WebUI reste **manuel**, la passerelle exige "
+        "Le choix local/cloud dans Open WebUI reste **manuel**, la passerelle exige "
         "son activation et tout projet requiert son accord cloud valide. "
-        "Aucun passage automatique de Qwen à DeepSeek."
+        "En mode auto, une fois le projet autorisé, DeepSeek traite la routine "
+        "et Sol les révisions approuvées et la revue finale prévue par le rôle. "
+        "Aucun passage automatique de Qwen à DeepSeek ni Sol."
     )

@@ -45,6 +45,8 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 
 **Qualification pédagogique :** `clawfedora-pedagogy --plan` produit quatre scénarios de trois tours et une grille humaine clarté/profondeur/interactivité/exactitude (/5 chacun). La commande ne lance aucun modèle et ne dépense aucun crédit. Les préférences de style et un résumé d’acquis ne sont enregistrés qu’après validation humaine depuis le tableau de bord ; ce n’est pas une mémoire automatique. Voir [le protocole](docs/EVALUATION_PEDAGOGIE.md).
 
+Audit de cohérence préinstallation : [constats et corrections du 20 novembre 2026](docs/audits/2026-11-20/README.md). Il ne remplace pas la réception réelle sur Fedora.
+
 ## Cycle FinOps et qualification
 
 | Lot | PR | Résultat intégré |

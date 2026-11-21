@@ -50,11 +50,11 @@ Un modèle de cette taille fait des erreurs, en local comme en cloud. L'atelier 
 - **Une tâche attend celles dont elle dépend.** Elle ne reçoit leur travail qu'une fois relu.
 - **Deux tentatives maximum par tâche**, pour ne pas tourner en rond.
 
-## Pourquoi DeepSeek peut être utile à un projet
+## Pourquoi DeepSeek et Sol peuvent être utiles à un projet
 
-L'atelier est **hybride** : Qwen prend en charge le travail local ordinaire ou confidentiel, alors que DeepSeek V4.1 Flash peut fournir un raisonnement et un contexte plus grands pour un **projet public difficile** (plusieurs modules IaC, architecture, CI/CD, audit documentaire).
+L'atelier est **hybride** : Qwen traite le travail local et privé. Après consentement pour un projet public, DeepSeek V4.1 Flash traite la routine des sept agents ; GPT-6.2 Sol intervient pour les révisions approuvées et la contre-expertise finale selon le rôle. Le gain de qualité réel reste à mesurer.
 
-**Le comportement réel est plus simple qu'un routage automatique :** un projet sans accord reste local ; si tu l'autorises au cloud, **l'accord couvre les étapes du projet** et non uniquement celles que le système jugerait difficiles. Les rôles, leurs outils et les règles d'approbation restent les mêmes. [Comprendre le choix des deux modèles](../ARCHITECTURE_HYBRIDE.md).
+**Le comportement réel distingue deux décisions :** un projet sans accord reste local. Si tu autorises le cloud, **l'accord couvre les étapes du projet** ; le mode `auto` sélectionne ensuite le couple DeepSeek/Sol et l'effort à partir du rôle et de l'étape approuvée, sans classer la difficulté du texte. Les rôles, leurs outils et les règles d'approbation restent les mêmes. [Comprendre le choix des deux modèles](../ARCHITECTURE_HYBRIDE.md).
 
 ## Le cloud dans un projet
 
