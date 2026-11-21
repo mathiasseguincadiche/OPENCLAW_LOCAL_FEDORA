@@ -56,6 +56,13 @@ La première version est accessible en CLI :
 ni les snapshots GitHub ni les pages Notion, ne crée pas de nouvelles
 permissions d'exécution et n'impose pas de nouveau projet pour chaque exercice.
 
+Pour un projet lié à GitHub et déjà commencé, la
+[comparaison de snapshots à SHA précis](../GITHUB_SNAPSHOT_REFRESH.md)
+conserve les versions successives sans écraser les travaux antérieurs.
+L'atelier signale les preuves à requalifier ; l'IA continue de travailler
+sur le contexte initial tant qu'un nouveau contexte n'a pas été
+explicitement approuvé.
+
 ## Pourquoi ces garde-fous
 
 Un modèle de cette taille fait des erreurs, en local comme en cloud. L'atelier limite leurs conséquences :
