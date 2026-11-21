@@ -2,6 +2,14 @@
 
 [← Charte GitHub universelle](GITHUB_REPOSITORY_DESIGN_SYSTEM.md) · [Sources GitHub/Notion](INTEGRATION_GITHUB_NOTION.md) · [Charte wiki Notion](NOTION_WIKI_DESIGN_SYSTEM.md)
 
+## PR techniques pendant un projet en cours
+
+Pour proposer une correction associée à un exercice actif, sans attendre la
+livraison finale du projet, suivre la procédure
+[PR GitHub liée à un jalon](GITHUB_PR_PROJET_EN_COURS.md).
+Ce nouveau flux ne modifie pas le mécanisme historique des PR de livrables
+terminés et exige toujours une approbation humaine explicite.
+
 ## Objectif et limites
 
 L'atelier aide à produire **un dépôt GitHub réellement exploitable** :
