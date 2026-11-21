@@ -18,6 +18,7 @@ from clawfedora import (
     github_pr,
     github_quality,
     github_remote,
+    notion_panel,
     project_cloud,
     project_ui,
 )
@@ -196,6 +197,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             if url.path in {
                 "/", "/dashboard.js", "/dashboard.css",
                 "/github.html", "/github.js", "/github.css",
+                "/notion.html", "/notion.js", "/notion.css",
             }:
                 name = {
                     "/": "dashboard.html",
@@ -204,6 +206,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     "/github.html": "github.html",
                     "/github.js": "github.js",
                     "/github.css": "github.css",
+                    "/notion.html": "notion.html",
+                    "/notion.js": "notion.js",
+                    "/notion.css": "notion.css",
                 }[url.path]
                 kind = {
                     "dashboard.html": "text/html",
@@ -212,6 +217,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     "github.html": "text/html",
                     "github.js": "text/javascript",
                     "github.css": "text/css",
+                    "notion.html": "text/html",
+                    "notion.js": "text/javascript",
+                    "notion.css": "text/css",
                 }[name]
                 self._send(200, (Path(__file__).parent / "web" / name).read_bytes(), kind)
             elif url.path == "/api/status":
@@ -265,6 +273,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 raise ValueError("objet JSON requis")
             if self.path.startswith("/api/github/"):
                 status, value = self._github_action(data)
+                self._send(status, value)
+                return
+            if self.path.startswith("/api/notion/"):
+                status, value = self._notion_action(data)
                 self._send(status, value)
                 return
             if self.path == "/api/create":
@@ -372,6 +384,25 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self._send(202, {"accepted": True})
         except (OSError, ValueError, KeyError, TypeError) as exc:
             self._send(400, {"error": str(exc)})
+
+    def _notion_action(self, data: dict[str, Any]) -> tuple[int, dict[str, Any]]:
+        """Explicit same-origin Notion controls; no model-invoked writes."""
+        route = self.path.removeprefix("/api/notion/")
+        if route == "inspect":
+            return 200, notion_panel.inspect(str(data["page"]))
+        if route == "plan":
+            return 200, notion_panel.plan(
+                self.server.runtime, str(data["page"]), data["edits"],
+            )
+        if route == "apply":
+            with worker_lock(self.server.runtime):
+                return 200, notion_panel.apply(
+                    self.server.runtime, str(data["plan_id"]), str(data["page"]),
+                    str(data.get("approve_page", "")),
+                    str(data.get("approve_manifest", "")),
+                    data.get("human_approved"),
+                )
+        raise ValueError("action Notion inconnue ou non autorisée")
 
     def _github_action(self, data: dict[str, Any]) -> tuple[int, dict[str, Any]]:
         """Only same-origin typed controls may perform approved GitHub writes."""
