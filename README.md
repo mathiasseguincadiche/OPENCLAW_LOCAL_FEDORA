@@ -101,8 +101,10 @@ et de [gabarits de pages Notion](templates/notion/accueil-wiki.md). Les sept age
 actuels se répartissent architecture, rédaction, vérification technique
 GitHub et audit documentaire. Un rendu premium ne transforme ni les
 notes personnelles ni les sorties illustratives en preuves réelles.
-**La création ou l'édition distante de pages Notion reste hors du périmètre
-automatisé** : les modèles sont proposés pour validation.
+Le [module de révision Notion ciblée](docs/NOTION_CONTROLLED_WRITES.md)
+permet désormais de préparer un diff puis de modifier **un bloc texte simple**
+existant après approbation exacte. Ce n'est **ni un éditeur autonome de pages**,
+ni une synchronisation du suivi, ni une écriture commandée par le modèle.
 
 ## GitHub depuis l'atelier et les discussions
 
