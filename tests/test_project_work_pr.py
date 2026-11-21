@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from clawfedora import github_pr, project_work_pr, source_connectors
+from clawfedora import chat_github, github_pr, project_work_pr, source_connectors
 from clawfedora.project_common import read_json, write_json
 from clawfedora.project_intake import create_project, validate_input_integrity
 from clawfedora.project_roadmap import change, initialize
@@ -230,3 +230,52 @@ def test_ambiguous_remote_failure_fails_closed_and_does_not_retry(
             **p, approve_repo=REPO, approve_sha256=preview["approval_sha256"],
             title="Terraform update", body="Checked proposal."
         )
+
+
+def test_chat_bridge_prepares_and_approves_active_work_without_completion(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime, project, p = _setup(tmp_path, monkeypatch)
+    command = "travail-pr " + " ".join([
+        REPO, SHA, BRANCH, "step-04", "infra/main.tf",
+    ])
+    preview = chat_github.run(runtime, "opsdesk-lab", command, local=True)
+    assert "PR technique en cours" in preview
+    pending = read_json(project / "context/github-work-pr-pending.json")
+    assert pending["state"] == "PREVIEWED"
+    digest = pending["approval_sha256"]
+    calls: list[dict[str, Any]] = []
+
+    def fake(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        calls.append({"args": args, **kwargs})
+        return {"url": "https://github.com/example/OpsDesk/pull/99"}
+
+    monkeypatch.setattr(project_work_pr, "publish", fake)
+    assert "rôle local" in chat_github.run(
+        runtime, "opsdesk-lab", f"publier-travail {REPO} {digest}", local=False
+    )
+    assert calls == []
+    assert "approbation différente" in chat_github.run(
+        runtime, "opsdesk-lab", f"publier-travail {REPO} {'0' * 64}", local=True
+    )
+    assert calls == []
+    accepted = chat_github.run(
+        runtime, "opsdesk-lab", f"publier-travail {REPO} {digest}", local=True
+    )
+    assert "brouillon" in accepted and "pull/99" in accepted
+    assert calls[0]["approve_sha256"] == digest
+    assert calls[0]["repo"] == REPO
+    assert calls[0]["milestone_id"] == "step-04"
+    assert read_json(project / "context/github-work-pr-pending.json")["state"] == "CREATED"
+    assert "déjà tenté" in chat_github.run(
+        runtime, "opsdesk-lab", f"publier-travail {REPO} {digest}", local=True
+    )
+
+
+def test_project_completion_gate_of_legacy_chat_pr_is_unchanged(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime, _project, _p = _setup(tmp_path, monkeypatch)
+    command = f"pr {REPO} {SHA} atelier/traditional deliverables/docs"
+    refused = chat_github.run(runtime, "opsdesk-lab", command, local=True)
+    assert "projet non terminé" in refused
