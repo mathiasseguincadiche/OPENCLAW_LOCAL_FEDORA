@@ -4,6 +4,14 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Novembre 2026 — Routage cloud-first par tâche et qualification des moteurs
+
+- Le plan peut déclarer `task_tier` (`simple`, `complex`, `critical`) : DeepSeek adapte son effort indépendamment du spécialiste, sans escalade Sol automatique.
+- Sol reste réservé à la révision approuvée, à la revue finale de l'auditeur et au choix explicite.
+- Nouvelle commande `clawfedora-model-qualify` : comparaison hors ligne de Qwen, DeepSeek et Sol avec résultats humains et facturation attestée ; n'exécute aucune requête ni désinstallation.
+- Le laboratoire Podman rootless accepte `kubeconform` avec schémas locaux, sans réseau, après accord explicite.
+- Les tests et guides documentent les limites : Qwen reste requis par l'installation ; aucun benchmark matériel ni appel OpenRouter réel n'est validé ici.
+
 ### 9 novembre 2026 — Revue documentaire et d'outillage
 
 Aucun changement de comportement du code : documentation, schémas, en-têtes de scripts et aide du Makefile.
