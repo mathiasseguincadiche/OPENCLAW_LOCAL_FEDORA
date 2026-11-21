@@ -229,6 +229,8 @@ def publish_draft(
         raise PublicationError("empreinte du plan non approuvée ou devenue obsolète")
     if not 8 <= len(title.strip()) <= 180 or not 8 <= len(body.strip()) <= 60000:
         raise PublicationError("titre ou description de PR insuffisant")
+    if any(pattern.search(title + "\n" + body) for pattern in SUSPECT_CONTENT):
+        raise PublicationError("contenu sensible dans la description de PR")
     token = os.environ.get("GITHUB_TOKEN", "")
     if not token:
         raise PublicationError("GITHUB_TOKEN requis uniquement pour publication")
