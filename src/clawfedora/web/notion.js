@@ -23,6 +23,7 @@ function clearPlan() {
 }
 function clearInventory() {
   inventory = null;
+  window.dispatchEvent(new CustomEvent("notion:page", { detail: null }));
   byId("page-overview").hidden = true;
   byId("block-inventory").replaceChildren();
   byId("editors").replaceChildren();
@@ -133,6 +134,7 @@ byId("inspect-form").addEventListener("submit", async (event) => {
     clearInventory();
     const result = await post("/api/notion/inspect", { page });
     inventory = result;
+    window.dispatchEvent(new CustomEvent("notion:page", { detail: result }));
     byId("page-overview").hidden = false;
     byId("block-totals").textContent =
       result.editable_count + " blocs textuels candidats · " +
