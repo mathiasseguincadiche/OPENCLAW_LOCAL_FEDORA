@@ -10,7 +10,7 @@ import pytest
 
 from clawfedora import github_refresh, source_connectors
 from clawfedora.project_cloud import consent_path, sources_digest
-from clawfedora.project_common import read_json, sha256_file, write_json
+from clawfedora.project_common import read_json, sha256_file
 from clawfedora.project_intake import create_project, validate_input_integrity
 from clawfedora.project_roadmap import initialize
 
