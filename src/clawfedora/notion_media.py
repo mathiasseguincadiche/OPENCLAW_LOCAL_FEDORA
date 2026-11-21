@@ -151,10 +151,18 @@ def _rows(table_id: str) -> tuple[list[dict[str, Any]], str]:
             or row.get("archived") is not False or identifier in seen
         ):
             raise nw.NotionWriteError("enfant du tableau inattendu")
+        cells_data = row.get("table_row")
+        if not isinstance(cells_data, dict) or set(cells_data) != {"cells"}:
+            raise nw.NotionWriteError("cellules d'inventaire indisponibles")
+        raw_cells = cells_data.get("cells")
+        if not isinstance(raw_cells, list) or len(raw_cells) > MAX_TABLE_WIDTH:
+            raise nw.NotionWriteError("largeur de ligne d'inventaire invalide")
+        cells = [_normalize(cell) for cell in raw_cells]
         seen.add(identifier)
         output.append({
             "id": identifier, "type": "table_row",
             "last_edited_time": row.get("last_edited_time"),
+            "cells": cells,
         })
     return output, nw._digest(output)
 
@@ -205,7 +213,9 @@ def inspect(page: str, block: str) -> dict[str, Any]:
     rows, _ = _rows(block_id)
     details: list[dict[str, Any]] = []
     for child in rows:
-        _, cells = _row(block_id, child["id"], width)
+        cells = child["cells"]
+        if len(cells) != width:
+            raise nw.NotionWriteError("ligne de tableau incohérente")
         details.append({
             "row_id": child["id"], "cells": [_display(cell) for cell in cells],
         })
