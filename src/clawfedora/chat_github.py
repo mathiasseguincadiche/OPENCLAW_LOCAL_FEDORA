@@ -11,9 +11,9 @@ import shlex
 from pathlib import Path
 from typing import Any
 
+from clawfedora import project_work_pr
 from clawfedora.github_pr import make_plan, publish_draft
 from clawfedora.github_quality import audit_repository
-from clawfedora import project_work_pr
 from clawfedora.github_remote import create_plan, create_repository
 from clawfedora.project_common import read_json, write_json
 from clawfedora.project_worker import worker_lock
@@ -29,6 +29,8 @@ HELP = """GitHub : commandes locales du pont (jamais interprétées par le modè
 !github creer MonProjet EMPREINTE : créer le dépôt privé approuvé.
 !github pr owner/repo SHA40 atelier/branche deliverables/tache : préparer une PR.
 !github publier owner/repo EMPREINTE : autoriser la PR brouillon préparée.
+!github travail-pr owner/repo SHA40 atelier/branche jalon chemin1,chemin2 : apercu technique.
+!github publier-travail owner/repo EMPREINTE : PR brouillon du jalon actif.
 
 Les écritures exigent GITHUB_TOKEN dans l'environnement local du pont
 et un projet sélectionné. Elles ne fusionnent aucune PR. La publication
@@ -150,6 +152,55 @@ def run(runtime: Path, current: str | None, arguments: str, *, local: bool) -> s
                 )
                 _record(project, "repo", {**plan, "url": result["url"]}, "CREATED")
             return f"Dépôt privé créé : {result['url']}. Contrôler ses protections."
+        if action == "travail-pr" and len(words) == 6:
+            repo, sha, branch, milestone, paths = words[1:]
+            selected = paths.split(",")
+            with worker_lock(runtime):
+                proposed = project_work_pr.plan(
+                    runtime, project.name, repo, sha, branch, milestone, selected
+                )
+                _record(project, "work-pr", {
+                    "repository": repo, "base_sha": sha, "branch": branch,
+                    "milestone_id": milestone, "allowed": selected,
+                    "approval_sha256": proposed["approval_sha256"],
+                }, "PREVIEWED")
+            names = ", ".join(item["path"] for item in proposed["files"])
+            return (
+                "**PR technique en cours de projet : aperçu local uniquement.**\n"
+                f"Jalon : {milestone} ; dépôt : {repo} ; SHA : {sha[:12]}.\n"
+                f"Fichiers : {names}.\n"
+                f"Empreinte : {proposed['approval_sha256']}\n"
+                "Consulter le diff intégral en CLI avant publication. "
+                f"Pour approuver : !github publier-travail {repo} "
+                f"{proposed['approval_sha256']}"
+            )
+        if action == "publier-travail" and len(words) == 3:
+            if not local:
+                raise ValueError("choisir un rôle local pour publier sur GitHub")
+            repo, digest = words[1:]
+            if SHA256.fullmatch(digest) is None:
+                raise ValueError("empreinte SHA-256 requise")
+            with worker_lock(runtime):
+                pending = _pending(project, "work-pr")
+                if pending["repository"] != repo or pending["approval_sha256"] != digest:
+                    raise ValueError("approbation différente du plan")
+                _record(project, "work-pr", pending, "ATTEMPTED")
+            milestone = pending["milestone_id"]
+            result = project_work_pr.publish(
+                runtime, project.name, repo, pending["base_sha"], pending["branch"],
+                milestone, pending["allowed"], approve_repo=repo,
+                approve_sha256=digest,
+                title="Travail technique du jalon " + milestone,
+                body=(
+                    "Proposition technique pour le jalon " + milestone + ". "
+                    "Les tests et la CI restent à vérifier. "
+                    "Cette PR ne constitue pas une preuve d'acquisition ni "
+                    "une validation de l'infrastructure Fedora ou Rocky."
+                ),
+            )
+            with worker_lock(runtime):
+                _record(project, "work-pr", {**pending, "url": result["url"]}, "CREATED")
+            return f"PR brouillon du jalon {milestone} créée : {result['url']}. Revue requise."
         if action == "pr" and len(words) == 5:
             repo, sha, branch, label = words[1:]
             if read_json(project / "project.json").get("status") != "COMPLETE":
