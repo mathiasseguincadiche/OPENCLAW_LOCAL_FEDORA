@@ -126,6 +126,22 @@ existants** s'en servent suivant le besoin. La génération d'un contenu
 modèle ne déclenche aucune écriture distante. Le rendu natif et la lecture
 sur mobile se vérifient **dans Notion**, pas dans la CI.
 
+## Analyser un snapshot GitHub en lecture seule
+
+Après importation volontaire d'un SHA Git, l'atelier peut maintenant
+produire un inventaire statique des conventions du dépôt :
+
+```bash
+# Remplacer par le chemin réellement créé par l'importation.
+clawfedora-github-audit --path /chemin/vers/intake/GitHub-depot-sha
+```
+
+La [charte GitHub](GITHUB_REPOSITORY_DESIGN_SYSTEM.md) fixe les critères
+de lisibilité, d'architecture, de preuves, de sécurité et de gabarits.
+Les fichiers binaires exclus du snapshot sont **non évalués**, non
+présumés absents ou cassés. Cette commande n'utilise aucun jeton et
+n'exécute aucun fichier importé. Elle ne modifie ni GitHub ni Notion.
+
 ## Parcours OpsDesk conseillé
 
 1. **Notion / Pratiquer** : ouvrir l'énoncé de l'exercice, ses prérequis et
