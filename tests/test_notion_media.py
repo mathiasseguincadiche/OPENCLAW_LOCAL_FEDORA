@@ -48,6 +48,7 @@ def _setup(monkeypatch: pytest.MonkeyPatch, *, signed: bool = False) -> dict[str
             ROW2: [[_part("Ansible")], [_part("Automatiser"), _part(" documentation", url="https://example.org")]],
         },
         "patches": [], "edited": "2026-11-21T19:00:00Z",
+        "row_gets": 0,
         "structure_changed": False, "row_changed": False, "fail_patch": False,
     }
     # Use two columns; row2 has two rich-text spans in its second cell.
@@ -63,12 +64,20 @@ def _setup(monkeypatch: pytest.MonkeyPatch, *, signed: bool = False) -> dict[str
                 })
             return result
         if block_id == TABLE:
-            result = [
-                {"id": ROW1, "type": "table_row", "has_children": False,
-                 "archived": False, "last_edited_time": state["edited"]},
-                {"id": ROW2, "type": "table_row", "has_children": False,
-                 "archived": False, "last_edited_time": state["edited"]},
-            ]
+            result = []
+            for identifier in (ROW1, ROW2):
+                cells = copy.deepcopy(state["cells"][identifier])
+                for cell in cells:
+                    for part in cell:
+                        part["plain_text"] = part["text"]["content"]
+                        link = part["text"]["link"]
+                        part["href"] = link["url"] if link else None
+                result.append({
+                    "id": identifier, "type": "table_row",
+                    "has_children": False, "archived": False,
+                    "last_edited_time": state["edited"],
+                    "table_row": {"cells": cells},
+                })
             if state["row_changed"]:
                 result.reverse()
             return result
@@ -106,6 +115,7 @@ def _setup(monkeypatch: pytest.MonkeyPatch, *, signed: bool = False) -> dict[str
                 },
             }
         if method == "GET" and block_id in {ROW1, ROW2}:
+            state["row_gets"] += 1
             data = copy.deepcopy(state["cells"][block_id])
             for cell in data:
                 for part in cell:
@@ -184,6 +194,7 @@ def test_table_cell_one_segment_preserves_other_cells_and_links(
     page = media.inspect(PAGE, TABLE)
     assert page["kind"] == "table"
     assert page["width"] == 2 and len(page["rows"]) == 2
+    assert state["row_gets"] == 0  # No one-GET-per-row API fanout.
     path = tmp_path / "table.json"
     proposal = media.preview(PAGE, TABLE, ROW2, 1, 0, "Orchestrer les opérations", path)
     assert proposal["mode"] == "TABLE_CELL_PREVIEW_ONLY"
