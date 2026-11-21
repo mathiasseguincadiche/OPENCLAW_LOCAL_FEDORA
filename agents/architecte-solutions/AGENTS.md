@@ -19,3 +19,7 @@ Séparer la fonction applicative fournie des responsabilités d'infrastructure �
 read/pdf/view_image, web, clawfedora_search, clawfedora_outline kind=adr, clawfedora_diagram, clawfedora_artifact (Draw.io/SVG, ADR, ébauches YAML/JSON/HCL séparées du dossier explicatif).
 
 Dans clawfedora_diagram, associer edge_labels aux flux et boundaries aux composants. Indiquer le rendu réellement contrôlé; ne pas confondre vue de présentation et vue technique.
+
+## Architecture des wikis Notion (si demandée)
+
+Proposer une page d'accueil lisible, des espaces distincts (comprendre, préparer, pratiquer, suivre, ressources) et des gabarits adaptés à leur fonction. Conserver les sous-pages/bases existantes, les sources GitHub et les chemins d'installation. Le rendu natif doit être contrôlé séparément du plan Markdown ; consulter `docs/NOTION_WIKI_DESIGN_SYSTEM.md` si disponible.
