@@ -479,14 +479,29 @@ class Action:
             owner_chat = await Chats.get_chat_by_id_and_user_id(chat_id, user_id)
             if owner_chat is None:
                 raise ValueError("conversation absente ou non autorisée")
-            choices = {row["id"]: f"{row['title']} ({row['id']})" for row in rows}
-            chosen = await _choose(
-                __event_call__, "Classer la conversation",
-                "Sélectionnez le projet ClawFedora auquel associer ce fil.",
-                choices,
-            )
+            # A chat started inside a managed project folder already has a
+            # reliable native context. Infer the suggested project from that
+            # owned folder, never from prompt text or a model-generated reply.
+            chosen = None
+            if owner_chat.folder_id:
+                from open_webui.models.folders import Folders
+                current_folder = await Folders.get_folder_by_id_and_user_id(
+                    owner_chat.folder_id, user_id,
+                )
+                if current_folder is not None:
+                    for row in rows:
+                        if _managed(current_folder, "project", row["id"]):
+                            chosen = row["id"]
+                            break
             if chosen is None:
-                return None
+                choices = {row["id"]: f"{row['title']} ({row['id']})" for row in rows}
+                chosen = await _choose(
+                    __event_call__, "Classer la conversation",
+                    "Sélectionnez le projet ClawFedora auquel associer ce fil.",
+                    choices,
+                )
+                if chosen is None:
+                    return None
             refreshed = await asyncio.to_thread(atelier_view, secret, chosen)
             if (refreshed.get("selected") or {}).get("id") != chosen:
                 raise ValueError("le projet n'est plus disponible")
