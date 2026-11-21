@@ -5,6 +5,13 @@
 (() => {
   const main = document.querySelector("body > main");
   if (!main) return;
+  // Keyboard users can bypass the navigation before reaching any forms.
+  if (!main.id) main.id = "main-content";
+  const skip = document.createElement("a");
+  skip.href = "#" + main.id;
+  skip.className = "workspace-skip";
+  skip.textContent = "Aller au contenu principal";
+  document.body.insertBefore(skip, main);
 
   const view = location.pathname === "/github.html" ? "github" :
     location.pathname === "/notion.html" ? "notion" : "projects";
@@ -73,8 +80,11 @@
     {key: "github", label: "Dépôts & CI", href: "/github.html", symbol: "git"},
     {key: "notion", label: "Documentation", href: "/notion.html", symbol: "book"},
   ]) {
-    const link = create("a", "workspace-rail-link", undefined);
+    const link = create("a", "workspace-rail-link");
     link.href = item.href;
+    // On mobile the visual labels are hidden; keep explicit accessible names.
+    link.setAttribute("aria-label", item.label);
+    link.title = item.label;
     if (item.key === view) {
       link.classList.add("is-active");
       link.setAttribute("aria-current", "page");
@@ -184,10 +194,21 @@
       tabBar.setAttribute("role", "tablist");
       tabBar.setAttribute("aria-label", "Étapes de l’espace " + names[view]);
       const tabs = new Map();
+      const stepNavigation = create("div", "workspace-step-navigation");
+      stepNavigation.setAttribute("role", "group");
+      stepNavigation.setAttribute("aria-label", "Changer d’étape");
+      const previous = create("button", "workspace-step-action", "Précédent");
+      const stepCount = create("span", "workspace-step-count");
+      const next = create("button", "workspace-step-action", "Suivant");
+      previous.type = "button";
+      next.type = "button";
+      stepCount.setAttribute("aria-live", "polite");
+      stepNavigation.append(previous, stepCount, next);
       let active = "";
       function activate(id, focus = false) {
         if (!tabs.has(id)) return;
         active = id;
+        const current = [...tabs.keys()].indexOf(id);
         for (const [key, button] of tabs) {
           const selected = key === id;
           document.getElementById(key).hidden = !selected;
@@ -195,8 +216,28 @@
           button.tabIndex = selected ? 0 : -1;
           button.classList.toggle("is-selected", selected);
         }
-        if (focus) tabs.get(id).focus();
+        stepCount.textContent = "Étape " + (current + 1) + " sur " + tabs.size;
+        previous.disabled = current === 0;
+        next.disabled = current === tabs.size - 1;
+        const button = tabs.get(id);
+        const barRect = tabBar.getBoundingClientRect();
+        const tabRect = button.getBoundingClientRect();
+        if (tabRect.left < barRect.left + 8) {
+          tabBar.scrollLeft += tabRect.left - barRect.left - 8;
+        } else if (tabRect.right > barRect.right - 8) {
+          tabBar.scrollLeft += tabRect.right - barRect.right + 8;
+        }
+        if (focus) button.focus();
       }
+      function go(relative) {
+        const keys = [...tabs.keys()];
+        const position = keys.indexOf(active) + relative;
+        if (position < 0 || position >= keys.length) return;
+        activate(keys[position]);
+        history.replaceState(null, "", "#" + keys[position]);
+      }
+      previous.addEventListener("click", () => go(-1));
+      next.addEventListener("click", () => go(1));
       definitions.forEach(([id, label, number]) => {
         const section = document.getElementById(id);
         const tab = create("button", "workspace-tab");
@@ -230,6 +271,7 @@
         tabBar.append(tab);
       });
       panels[0].before(tabBar);
+      tabBar.after(stepNavigation);
       const hashed = location.hash.slice(1);
       activate(tabs.has(hashed) ? hashed : definitions[0][0]);
       window.addEventListener("hashchange", () => {
