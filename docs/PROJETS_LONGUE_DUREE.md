@@ -64,8 +64,12 @@ Elle n'altère pas 'project.json', les tâches du plan multi-agent, les
 sources figées ni les contrôles cloud. Les conversations Open WebUI gardent
 leur propre historique : le contexte du projet doit toujours être sélectionné.
 
-**Limites de cette première tranche :** commandes CLI uniquement, pas
-encore de tableau visuel, pas d'actualisation GitHub/Notion, pas de
+Le tableau de bord Projets présente les jalons en **lecture seule** dans le
+dossier ouvert ; la création et les changements d'état passent toujours par
+la CLI et ses confirmations.
+
+**Limites de cette première tranche :** pas de saisie graphique, pas
+d'actualisation GitHub/Notion, pas de
 synchronisation des preuves, pas d'exécution sur Fedora ou sur les VM Rocky.
 Une évolution ultérieure pourra associer chaque jalon à un SHA Git et à
 des preuves explicites, sans créer de deuxième source de vérité.
