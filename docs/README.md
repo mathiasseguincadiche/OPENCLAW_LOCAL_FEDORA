@@ -11,6 +11,15 @@ explique la séparation des sept rôles, les trois niveaux de tâche,
 la contre-expertise Sol approuvée et le laboratoire Kubernetes hors ligne.
 Ce choix ne modifie ni le cloud désactivé par défaut ni l'accord par projet.
 
+## Référence métier InfraOps
+
+[OpsDesk : architecture du laboratoire et besoins concrets des sept agents](CAS_USAGE_INFRAOPS_OPSDESK.md)
+met en relation Terraform/libvirt, Rocky Linux, Docker Compose, K3s, CI/GHCR,
+observabilité, restauration et preuves individuelles. La nouvelle suite
+`clawfedora-evals --suite infraops --plan` fournit des cas synthétiques
+spécialisés ; elle **n'exécute aucun modèle** et ne remplace pas une recette
+sur Fedora.
+
 ## Commencer simplement
 
 | Je veux… | Ouvrir |
