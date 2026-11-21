@@ -199,6 +199,7 @@ def openclaw_runner(
     def run(
         role: str, prompt: str, session: str, *, route: str = "local",
         escalation_reason: str = "routine",
+        task_tier: str | None = None,
     ) -> dict[str, Any]:
         nonlocal checked_binary, roster_stamp, cloud_stamp
         from clawfedora import ollama_api
@@ -220,6 +221,7 @@ def openclaw_runner(
             require_cloud_ready(runtime, repo_root)
             decision = agent_route(
                 runtime, core_contract(repo_root, "cloud_policy.yaml"), role, escalation_reason,
+                task_tier=task_tier,
             )
         env = openclaw_environment(runtime)
         # Versions are rechecked when the CLI binary changes, not on every message:
@@ -785,6 +787,8 @@ def run_project_tasks(
             if hasattr(invoke, "task"):
                 invoke.task = task_id
             if isinstance(invoke, ProjectRunner):
+                # The tier is part of the human-approved plan, not an LLM guess.
+                invoke.task_tier = task.get("task_tier")
                 invoke.escalation_reason = (
                     "approved_revision" if assignment.get("revision_reason") else "routine"
                 )
