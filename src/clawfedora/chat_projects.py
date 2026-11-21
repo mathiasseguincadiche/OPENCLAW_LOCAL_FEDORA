@@ -23,6 +23,7 @@ from typing import Any
 from clawfedora import chat_approvals, chat_proposals, project_cloud
 from clawfedora.github_refresh import inspect as github_updates
 from clawfedora.knowledge import search
+from clawfedora.milestone_evidence import report as milestone_evidence_report
 from clawfedora.project_common import assert_no_symlinks, project_path, read_json, validate_task_id
 from clawfedora.project_intake import validate_input_integrity
 from clawfedora.project_worker import worker_lock
@@ -335,6 +336,14 @@ def status_text(repo_root: Path, runtime: Path, project: Path) -> str:
         lines.append(
             "Les sources du plan IA restent figées au snapshot initial : "
             "aucune synchronisation automatique."
+        )
+    if (project / "context/continuous_roadmap.json").is_file():
+        evidence = milestone_evidence_report(project)
+        stale = sum(row["to_requalify"] for row in evidence["milestones"])
+        lines.append(
+            "Preuves des exercices : " + str(evidence["total"])
+            + " reçus ; " + str(stale) + " à requalifier ; "
+            + "aucune certification automatique de compétence."
         )
     from clawfedora import chat_flow, chat_run
 

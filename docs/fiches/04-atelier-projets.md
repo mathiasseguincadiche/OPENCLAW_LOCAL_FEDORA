@@ -63,6 +63,13 @@ L'atelier signale les preuves à requalifier ; l'IA continue de travailler
 sur le contexte initial tant qu'un nouveau contexte n'a pas été
 explicitement approuvé.
 
+### Preuves techniques sur plusieurs semaines
+
+L'atelier peut consigner les sorties réellement recueillies par l'utilisateur,
+avec la cible, le SHA et la date, sans déclarer automatiquement une réussite :
+[preuve par jalon et environnement](../PREUVES_JALONS_INFRAOPS.md).
+Les observations privées ne sont pas envoyées aux modèles cloud.
+
 ## Pourquoi ces garde-fous
 
 Un modèle de cette taille fait des erreurs, en local comme en cloud. L'atelier limite leurs conséquences :

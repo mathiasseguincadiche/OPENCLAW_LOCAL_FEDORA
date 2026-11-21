@@ -401,6 +401,7 @@ async function loadProject(id) {
     tell("Projet ouvert : " + data.manifest.title);
     renderRevision(id, data);
     renderRoadmap(data);
+    renderMilestoneEvidence(data);
     renderGithubUpdates(data);
     renderGithubWorkPr(data);
   } catch (error) { tell(error.message, true); }
@@ -462,6 +463,42 @@ function renderGithubUpdates(data) {
     article.append(details);
     area.append(article);
   }
+}
+
+function renderMilestoneEvidence(data) {
+  const area = $("milestone-evidence");
+  area.replaceChildren();
+  const summary = data.milestone_evidence;
+  if (!summary) return;
+  area.append(node("h3", "Preuves techniques par exercice"));
+  area.append(node("p", summary.total + " reçu(s) conservé(s). Une observation ou " +
+    "une CI verte ne certifie pas un exercice ; aucune compétence n'est attribuée."));
+  const table = node("table");
+  const head = node("thead");
+  const tr = node("tr");
+  for (const name of ["Jalon", "Reçus", "À requalifier", "Dernier contrôle"]) {
+    tr.append(node("th", name));
+  }
+  head.append(tr);
+  table.append(head);
+  const body = node("tbody");
+  for (const item of summary.milestones) {
+    const row = node("tr");
+    const last = item.recorded.length ? item.recorded[0] : null;
+    const type = last ? last.verification : "Aucun";
+    for (const value of [
+      item.title + " (" + item.milestone_id + ")",
+      String(item.count), String(item.to_requalify), type
+    ]) {
+      row.append(node("td", value));
+    }
+    body.append(row);
+  }
+  table.append(body);
+  const details = node("details");
+  details.append(node("summary", "Afficher les contrôles des jalons"));
+  details.append(table);
+  area.append(details);
 }
 
 function renderRoadmap(data) {
