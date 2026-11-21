@@ -137,3 +137,19 @@ def test_missing_image_refuses_without_pulling(
     )
     with pytest.raises(lab.LabRefusal, match="aucun téléchargement"):
         lab.run_lab(tmp_path, "terraform-fmt", image, True)
+
+def test_kubeconform_uses_only_offline_schemas_and_manifests(tmp_path: Path) -> None:
+    manifest = (
+        Path(".github/workflows/ci.yml"),
+        Path("k8s/deployment.yaml"),
+        Path("manifests/service.yml"),
+        Path("notes.yaml"),
+    )
+    command = lab.command_for("kubeconform", tmp_path, manifest)
+    assert command == [
+        "kubeconform", "-strict", "-summary", "-schema-location", "/schemas",
+        "/workspace/k8s/deployment.yaml", "/workspace/manifests/service.yml",
+    ]
+    assert "default" not in command
+    with pytest.raises(lab.LabRefusal, match="Aucun manifeste"):
+        lab.command_for("kubeconform", tmp_path, (Path("unrelated.yaml"),))
