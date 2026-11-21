@@ -34,8 +34,15 @@ def _part(text: str, *, bold: bool = False, url: str | None = None) -> dict[str,
 def _setup(monkeypatch: pytest.MonkeyPatch, *, signed: bool = False) -> dict[str, Any]:
     state: dict[str, Any] = {
         "image": [_part("Schéma de présentation", bold=True)],
-        "asset": {"type": "file", "file": {"url": "https://cdn.notion.test/temp-a", "expiry_time": "2026-11-22T00:00:00Z"}}
-        if signed else {"type": "external", "external": {"url": "https://example.org/arch.svg"}},
+        "asset": {
+            "type": "file",
+            "file": {
+                "url": "https://cdn.notion.test/temp-a",
+                "expiry_time": "2026-11-22T00:00:00Z",
+            },
+        } if signed else {
+            "type": "external", "external": {"url": "https://example.org/arch.svg"},
+        },
         "cells": {
             ROW1: [[_part("Outil")], [_part("Objectif", bold=True)]],
             ROW2: [[_part("Ansible")], [_part("Automatiser"), _part(" documentation", url="https://example.org")]],
