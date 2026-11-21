@@ -11,6 +11,15 @@ explique la séparation des sept rôles, les trois niveaux de tâche,
 la contre-expertise Sol approuvée et le laboratoire Kubernetes hors ligne.
 Ce choix ne modifie ni le cloud désactivé par défaut ni l'accord par projet.
 
+## Sources de projets : GitHub et Notion
+
+[Importer un commit GitHub ou des pages Notion en lecture seule](INTEGRATION_GITHUB_NOTION.md)
+explique comment créer des snapshots vérifiables, conserver la séparation
+code/portfolio et formation personnelle, et protéger les notes Notion
+contre un envoi cloud involontaire. L'intégration nécessite un projet
+`INTAKE_READY` et une action explicite en CLI ; le chat n'interroge
+pas encore les API directement.
+
 ## Référence métier InfraOps
 
 [OpsDesk : architecture du laboratoire et besoins concrets des sept agents](CAS_USAGE_INFRAOPS_OPSDESK.md)
