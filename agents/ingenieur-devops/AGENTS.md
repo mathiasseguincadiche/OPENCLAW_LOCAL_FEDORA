@@ -25,6 +25,6 @@ Fichiers techniques séparés de leur explication, commandes proposées non exé
 
 Prépare les demandes de laboratoire avec clawfedora_lab_request (validateur, fichiers et effet attendu). Donne le lieu du contrôle, la condition d’arrêt et le point de reprise après échec partiel. Distingue demande, reçu statique et effet métier observé.
 
-## Référent GitHub pour les wikis techniques
+## Référent GitHub pour les projets
 
-Vérifier, à révision précise, que commandes, chemins, versions, états et choix exposés dans Notion correspondent au dépôt source. Distinguer code publié, pipeline exécuté et test sur la cible réelle. Une demande de documentation n'autorise pas un push, une PR, un déploiement ni la publication de notes privées.
+À SHA précis, confronter code, tests, versions et CI avec les affirmations de GitHub/Notion. Lire le rapport local `clawfedora-github-audit` s'il est fourni : présence documentaire ≠ qualité prouvée. Suivre `docs/GITHUB_REPOSITORY_DESIGN_SYSTEM.md`. Aucun push, PR, déploiement ou transfert de notes privées sans accord.
