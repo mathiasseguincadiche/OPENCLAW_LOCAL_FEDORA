@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 790" role="img" aria-labelledby="title desc">
 <title id="title">Atelier hybride Fedora : Qwen, DeepSeek et Sol</title>
-<desc id="desc">Open WebUI et Atelier Projets alimentent un pont et un moteur contrôlé. OpenClaw applique le rôle spécialisé, puis deux voies sont possibles : Qwen 3.5 local sur Fedora et Intel Arc B580 par défaut ; DeepSeek Routine · Expertise en routine cloud et Sol en expertise approuvée via une passerelle qui impose consentement, confidentialité et budget. Le projet conserve fichiers et preuves ; l'humain décide.</desc>
+<desc id="desc">Open WebUI et Atelier Projets alimentent un pont et un moteur contrôlé. OpenClaw applique le rôle spécialisé, puis deux voies sont possibles : Qwen 3.5 local sur Fedora et Intel Arc B580 par défaut ; DeepSeek V4.1 Flash en routine cloud et Sol en expertise approuvée via une passerelle qui impose consentement, confidentialité et budget. Le projet conserve fichiers et preuves ; l'humain décide.</desc>
 <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#648398"/></marker><marker id="cloudArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#b6783a"/></marker></defs>
 <rect width="1280" height="790" rx="18" fill="#f6f9fc"/>
 <g font-family="DejaVu Sans,Arial,sans-serif">
