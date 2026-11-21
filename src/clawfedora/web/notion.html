@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Notion · Atelier OpenClaw Fedora</title>
+  <link rel="stylesheet" href="/dashboard.css">
+  <link rel="stylesheet" href="/github.css">
+  <link rel="stylesheet" href="/notion.css">
+  <script src="/notion.js" defer></script>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <p class="eyebrow">OPENCLAW · WIKI NOTION</p>
+      <h1>Préparer une révision Notion</h1>
+      <p class="intro">Sélectionner la page, examiner les blocs, comparer les textes puis autoriser le lot exact.</p>
+    </div>
+    <span class="badge">Local · lecture et approbation contrôlées</span>
+  </header>
+  <nav aria-label="Navigation de l'atelier">
+    <a href="/">← Atelier Projets</a>
+    <a href="/github.html">GitHub : dépôts et PR</a>
+    <a href="#inspect">Analyser</a>
+    <a href="#changes">Proposer</a>
+    <a href="#verify">Réception</a>
+  </nav>
+  <p class="activity">Les agents produisent les textes, mais ne peuvent ni sélectionner la page ni approuver une écriture. Aucune donnée Notion n'est transmise au cloud par ce panneau.</p>
+  <p id="notion-status" role="status" aria-live="polite"></p>
+
+  <section id="inspect" class="github-panel" aria-labelledby="inspect-title">
+    <div class="section-top"><span class="step-number">01</span><div>
+      <h2 id="inspect-title">Examiner la page existante</h2>
+      <p>La page doit être partagée avec l'intégration Notion locale. Seuls les blocs textuels directs peuvent être proposés à l'édition ; les autres restent protégés.</p>
+    </div></div>
+    <form id="inspect-form">
+      <label for="notion-page">Identifiant de page Notion (32 caractères hexadécimaux)</label>
+      <input id="notion-page" required pattern="[0-9a-fA-F-]{32,36}" maxlength="36" autocomplete="off" spellcheck="false" placeholder="Ex. 0123456789abcdef0123456789abcdef">
+      <button type="submit">Lister les blocs en lecture seule</button>
+    </form>
+    <div class="overview" id="page-overview" hidden>
+      <span id="block-totals"></span><span id="inventory-short"></span>
+    </div>
+    <div id="block-inventory" class="block-inventory" aria-live="polite"></div>
+  </section>
+
+  <section id="changes" class="github-panel" aria-labelledby="changes-title">
+    <div class="section-top"><span class="step-number">02</span><div>
+      <h2 id="changes-title">Préparer des corrections ciblées</h2>
+      <p>De 1 à 5 blocs simples de la même page, 1 900 caractères par bloc. Les blocs qui portent des liens ou un formatage riche seront refusés par le moteur sécurisé.</p>
+    </div></div>
+    <form id="plan-form">
+      <div id="editors" class="editors"><p class="intro">Commencer par examiner une page pour sélectionner un bloc.</p></div>
+      <div class="buttons">
+        <button id="add-edit" class="secondary" type="button" disabled>Ajouter un bloc</button>
+        <button id="plan-button" type="submit" disabled>Comparer sans modifier Notion</button>
+      </div>
+    </form>
+    <section id="diff-panel" hidden aria-labelledby="diff-title">
+      <h3 id="diff-title">Diffs proposés</h3>
+      <p class="intro">Relire chaque remplacement et vérifier que les informations, commandes et sections d'installation restent cohérentes.</p>
+      <div id="diff-list"></div>
+      <p class="manifest">Empreinte SHA-256 du plan : <code id="plan-digest"></code></p>
+    </section>
+  </section>
+
+  <section class="github-panel" id="approve" aria-labelledby="approve-title">
+    <div class="section-top"><span class="step-number">03</span><div>
+      <h2 id="approve-title">Autoriser cette seule modification</h2>
+      <p>Sans accord humain exact, aucune requête PATCH Notion ne part. Le programme relit les blocs et refuse les conflits ou la réutilisation d'un plan.</p>
+    </div></div>
+    <form id="apply-form" hidden>
+      <label for="approve-page">Recopier l'identifiant exact de la page</label>
+      <input id="approve-page" required autocomplete="off" spellcheck="false">
+      <label for="approve-manifest">Recopier l'empreinte SHA-256 affichée</label>
+      <input id="approve-manifest" required pattern="[0-9a-f]{64}" minlength="64" maxlength="64" autocomplete="off" spellcheck="false">
+      <label class="checkline"><input type="checkbox" id="approve-human" required>
+        J'ai relu chaque diff et j'autorise les modifications de ces blocs sur la page Notion indiquée.</label>
+      <button type="submit">Appliquer le lot explicitement approuvé</button>
+    </form>
+    <p id="no-plan" class="intro">Aucun lot préparé. L'autorisation apparaîtra seulement après un aperçu valide.</p>
+    <pre id="apply-result" aria-live="polite"></pre>
+  </section>
+
+  <section class="github-panel" id="verify" aria-labelledby="verify-title">
+    <div class="section-top"><span class="step-number">04</span><div>
+      <h2 id="verify-title">Contrôler le rendu dans Notion</h2>
+      <p>Une lecture API réussie ne certifie pas le rendu graphique. Ouvrir la page réelle et examiner le résultat avant de marquer les critères comme satisfaits.</p>
+    </div></div>
+    <div class="checklist">
+      <label><input type="checkbox"> Les textes modifiés sont corrects et l'ancien contenu a bien été remplacé</label>
+      <label><input type="checkbox"> Les blocs non ciblés, liens et sous-pages sont intacts</label>
+      <label><input type="checkbox"> La section « Préparer l'environnement / installation des outils » est conservée</label>
+      <label><input type="checkbox"> Les bases de suivi et les exercices personnels sont inchangés</label>
+      <label><input type="checkbox"> Le rendu natif est lisible sur bureau et sur mobile</label>
+    </div>
+    <p class="intro">Ces cases ne sont ni stockées ni comptabilisées comme preuves automatiques. Une interruption en cours de lot peut laisser les premiers blocs modifiés : consulter les reçus locaux et vérifier Notion avant toute nouvelle tentative.</p>
+  </section>
+  <footer>Notion : architecture, rédaction et audit par les sept rôles existants ; approbation humaine obligatoire. Une action dans ce panneau n'est pas une certification Fedora.</footer>
+</main>
+</body>
+</html>
