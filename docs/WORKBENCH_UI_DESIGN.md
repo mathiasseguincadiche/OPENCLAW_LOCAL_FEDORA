@@ -20,13 +20,16 @@ sont gérés par le logiciel tiers.
 
 1. **Navigation permanente :** rail pour Projets, GitHub et Notion avec
    indication de l'espace actif. Sur mobile, ce rail devient une barre
-   horizontale compacte.
+   horizontale compacte. Les liens réduits à des icônes gardent des
+   libellés accessibles et un raccourci clavier évite la navigation.
 2. **Hiérarchie visuelle :** en-tête lisible, cartes sobres, typographie
    système soignée, indicateurs de ressources séparés et actions primaires
    reconnaissables.
 3. **Divulgation progressive :** les processus GitHub et Notion sont
    distribués en onglets clairs ; une seule activité majeure est
-   affichée à la fois. Les formulaires d'approbation ne s'affichent
+   affichée à la fois. Sur mobile, les onglets sont aussi accessibles
+   par des commandes Précédent/Suivant et un compteur d'étapes.
+   Les formulaires d'approbation ne s'affichent
    qu'après obtention d'un plan valide, comme auparavant.
 4. **États et erreurs :** messages, aperçus, diffs et validations restent
    lisibles et distincts. Les permissions du serveur ne changent pas.
@@ -73,6 +76,10 @@ est prêt, l'onglet **Approuver** porte un indicateur discret, sans
 déclencher l'écriture ni automatiquement accepter le plan.
 
 ## Vérifications et limites
+
+L'[audit des neuf captures Chromium](validation/WORKBENCH_BROWSER_VISUAL_FINDINGS_20261121.md)
+a identifié des lacunes mobiles (icônes sans nom accessible, onglets
+peu découvrables) et documente leurs corrections ciblées.
 
 La CI vérifie les pages, les ressources CSS/JS, la conservation des
 identifiants des formulaires et leurs contrôles de sécurité. Le job
