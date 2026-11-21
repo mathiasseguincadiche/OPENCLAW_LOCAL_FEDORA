@@ -2,6 +2,21 @@
 
 [← Réception intégrée](NOTION_GITHUB_ACCEPTANCE.md) · [Panneau Notion](../NOTION_DASHBOARD.md) · [Panneau GitHub](../GITHUB_CHAT_DASHBOARD.md)
 
+## Vérification navigateur automatisée préalable
+
+Le job GitHub Actions `workbench-browser` exécute Chromium sur les
+**trois panneaux locaux** avec une instance de test et des données
+entièrement synthétiques. Il produit des captures bureau clair/sombre
+et mobile dans l'artefact `workbench-browser-synthetic-screenshots`
+(rétention sept jours). Le test échoue en cas d'exception JavaScript,
+débordement horizontal de page, onglet non fonctionnel, bascule de
+thème cassée ou aperçu sensible qui se publie seul.
+
+**Ces captures ne concernent pas le compte Notion/GitHub authentifié,
+ne sont pas prises sur Fedora et ne prouvent pas la qualité esthétique.**
+La réception humaine sur les pages réelles décrite ci-dessous reste
+obligatoire.
+
 ## Objectif et limites
 
 Le nouveau couple **`clawfedora-visual-capture`** /
