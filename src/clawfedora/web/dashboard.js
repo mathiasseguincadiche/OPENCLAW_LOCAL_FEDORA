@@ -400,8 +400,39 @@ async function loadProject(id) {
     renderLearning(id, data);
     tell("Projet ouvert : " + data.manifest.title);
     renderRevision(id, data);
+    renderRoadmap(data);
   } catch (error) { tell(error.message, true); }
 }
+function renderRoadmap(data) {
+  const area = $("continuous-roadmap");
+  area.replaceChildren();
+  const roadmap = data.continuous_roadmap;
+  if (!roadmap) return;
+  const count = roadmap.milestones.length;
+  const heading = node("h3", "Feuille de route · " + count + " jalons");
+  const description = node(
+    "p",
+    "Suivi déclaré par l’opérateur ; IMPLEMENTED ne signifie pas vérifié. " +
+    "Les changements se préparent dans la CLI du projet."
+  );
+  const list = node("ol");
+  const states = {
+    PLANNED: "Prévu", IN_PROGRESS: "En cours", BLOCKED: "Bloqué", IMPLEMENTED: "Réalisé"
+  };
+  for (const item of roadmap.milestones) {
+    const line = node("li");
+    const status = states[item.state] || item.state;
+    line.append(node("strong", item.title + " — " + status));
+    const deps = item.depends_on.length ? " · dépend de : " + item.depends_on.join(", ") : "";
+    line.append(node("p", "ID : " + item.id + deps + " · contrôle : non vérifié"));
+    if (item.note) line.append(node("p", "Note : " + item.note));
+    list.append(line);
+  }
+  const expandable = node("details");
+  expandable.append(node("summary", "Consulter les " + count + " jalons"), list);
+  area.append(heading, description, expandable);
+}
+
 function renderProposal(id, draft, learning) {
   const form = node("form"), proposal = structuredClone(draft.proposal), inputs = {};
   form.append(node("h3", draft.kind === "analysis" ? "Cadrage proposé" : "Plan proposé"));
