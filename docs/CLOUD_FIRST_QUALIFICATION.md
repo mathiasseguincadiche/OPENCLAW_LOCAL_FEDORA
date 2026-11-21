@@ -70,6 +70,15 @@ de déployer ou de transmettre des secrets. Tout passage au cloud est bloqué
 sans consentement préalable. Les agents ne disposent toujours ni de `exec`
 ni de `apply_patch` ni d'écriture native.
 
+## Scénarios correspondant aux infrastructures réelles
+
+En plus des sept cas génériques historiques, la commande
+`clawfedora-evals --suite infraops --plan` fournit sept cas **publics et
+synthétiques** : Terraform/libvirt, Ansible Rocky, Compose/K3s, sécurité
+SELinux/firewalld, GitHub Actions/GHCR et restauration PostgreSQL. Les mêmes
+règles d'autorisation, de budget et de qualification humaine s'appliquent.
+Lire [le cas d'étude OpsDesk](CAS_USAGE_INFRAOPS_OPSDESK.md).
+
 ## Évaluer chaque modèle au lieu de lui attribuer arbitrairement un rôle
 
 La répartition est une **hypothèse technique**, pas un classement universel.

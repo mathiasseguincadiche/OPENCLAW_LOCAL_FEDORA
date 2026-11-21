@@ -4,6 +4,18 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Novembre 2026 — Référence métier OpsDesk pour l'atelier InfraOps
+
+- Étude du dépôt public OpsDesk (FastAPI/React/PostgreSQL, trois VM Rocky,
+  Terraform libvirt, Ansible, Docker Compose, copie K3s, CI, supervision, PRA).
+  Le dépôt OpsDesk reste inchangé et n'est pas synchronisé automatiquement.
+- Nouvelle suite synthétique `clawfedora-evals --suite infraops`,
+  séparée de la référence historique, avec sept scénarios métiers (un par rôle).
+- Consignes Mentor/DevOps/Architecte/Auditeur renforcées sur séparation des
+  environnements, respect des décisions, autonomie personnelle et preuves
+  runtime distinctes de la CI. Pas de modification des permissions ou des modèles.
+
+
 ### Novembre 2026 — Routage cloud-first par tâche et qualification des moteurs
 
 - Le plan peut déclarer `task_tier` (`simple`, `complex`, `critical`) : DeepSeek adapte son effort indépendamment du spécialiste, sans escalade Sol automatique.

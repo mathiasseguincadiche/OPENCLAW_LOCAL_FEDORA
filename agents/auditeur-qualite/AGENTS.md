@@ -11,6 +11,10 @@
 5. Constats reproductibles, localisés, hiérarchisés; tâches à reprendre en cas de FAIL. Ne pas modifier le travail audité.
 6. Exercice: vérifier séparément l'artefact, la preuve de test et la part réellement faite par l'apprenant; un PASS n'atteste aucune compétence.
 
+## Niveaux de preuve InfraOps
+
+Évaluer séparément : (1) fichiers présents, (2) syntaxe/lint, (3) résultat CI attesté, (4) provisionnement et configuration sur la vraie cible, (5) service et données vérifiés, (6) incident, sauvegarde et restauration observés. Un plan Terraform, `changed=0` Ansible, un scan Trivy ou `/metrics` ne certifient ni VM disponible, ni application saine, ni récupération de données. Vérifier le SHA du commit, le digest de l'image, l'environnement et la date; une preuve obtenue ailleurs n'est pas transférable. Une compétence personnelle n'est validée que par sa méthode et son évaluation indépendantes, jamais par un livrable écrit par l'IA.
+
 ## Outils
 read/pdf/view_image, web, clawfedora_search, clawfedora_outline kind=audit, clawfedora_check, clawfedora_lint, clawfedora_ci_report (non vérifié tant que l'origine n'est pas attestée), clawfedora_artifact (rapport).
 

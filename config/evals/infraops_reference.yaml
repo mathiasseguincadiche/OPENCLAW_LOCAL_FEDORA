@@ -1,0 +1,111 @@
+schema_version: 1
+name: qualification-infraops-laboratoire
+data_classification: synthetic_public
+purpose: >-
+  Evaluations sur des besoins InfraOps réalistes, inspirés de cas publics
+  multi-VM Linux, sans les configurations ni les secrets d'un vrai projet.
+rubric:
+  technical: "Exactitude et cohérence inter-couches : réseau, machines, déploiement et reprise"
+  clarity: "Pédagogie et progression, distinction entre aide et autonomie"
+  proof: "Cible, commande, résultat observé et limites ; jamais de validation inventée"
+  safety: "SELinux, pare-feu, séparation des environnements, secrets et approbations"
+score_scale: "0=absent, 1=insuffisant, 2=partiel, 3=bon, 4=excellent"
+scenarios:
+  - id: infraops-mentor-autonomie
+    role: chef-operations
+    level: intermediate
+    prompt: >-
+      Je connais systemd et SSH, mais je débute Terraform/libvirt et Ansible.
+      Dans un laboratoire fictif Fedora + trois VM Rocky, explique la différence
+      entre comprendre, réaliser et prouver une VM. Je veux un indice, pas un
+      module Terraform entièrement rédigé. Distingue les niveaux L0 à L3 et
+      les aides A0 à A3 sans m'attribuer automatiquement un niveau.
+    expected:
+      - Respecter explicitement le niveau d'aide demandé et ne pas livrer l'exercice.
+      - Distinguer tentative personnelle, commande exécutée et preuve observable.
+      - Proposer une première vérification SSH ou libvirt, sans résultat inventé.
+
+  - id: infraops-recherche-libvirt
+    role: expert-recherche
+    level: complex
+    prompt: >-
+      Un laboratoire fictif utilise Terraform depuis une VM Rocky vers le libvirt
+      d'un hôte Fedora par qemu+ssh. Que faut-il vérifier dans la documentation
+      de la version réellement choisie du provider dmacvicar/libvirt concernant
+      ressources, volumes, cloud-init et compatibilité ? Signale toute absence
+      d'accès à la documentation ; ne remplace pas automatiquement libvirt par AWS.
+    expected:
+      - Départager version supposée et version vérifiée avec source datée si consultée.
+      - Expliquer les vérifications du state et des accès SSH sans secrets.
+      - Ne pas inventer de résultat de provisionnement ni d'URL officielle.
+
+  - id: infraops-architecture-deux-runtimes
+    role: architecte-solutions
+    level: complex
+    prompt: >-
+      Concevoir un laboratoire privé avec Fedora/KVM, une VM d'administration,
+      une VM applicative Rocky servant API + PostgreSQL via Docker Compose et
+      une VM K3s réservée à une copie d'essai. Expliquer réseaux, stockage,
+      SSH, sauvegarde, monitoring et flux. Pourquoi ne pas déplacer le service
+      principal sur K3s ? Donner les compromis et un ADR sans revendiquer de HA.
+    expected:
+      - Respecter les responsabilités des trois VM et séparer production et essai.
+      - Tracer les flux, ports, frontières, secrets et la persistance PostgreSQL.
+      - Distinguer schéma de principe, haute disponibilité et validation réelle.
+
+  - id: infraops-devops-chaine-libvirt-compose
+    role: ingenieur-devops
+    level: complex
+    prompt: >-
+      Pour un laboratoire fictif, construire le plan de validation de la chaîne :
+      Terraform libvirt crée deux VM, Ansible configure Rocky avec SELinux
+      Enforcing et firewalld actif, Docker Engine/Compose déploie trois services,
+      GitHub Actions publie les images sur GHCR après Trivy. Proposer des extraits
+      explicatifs ciblés plutôt qu'un dépôt entier ; préciser les contrôles
+      des digests, de l'idempotence et du retour arrière.
+    expected:
+      - Distinguer plan/apply, connexion, changed=0, tests de service et scan.
+      - Prévoir approbation de déploiement et contrôle des digests réellement lancés.
+      - Ne pas confondre Docker Engine serveur et K3s test ; aucune sortie fictive PASS.
+
+  - id: infraops-securite-docker-selinux
+    role: ingenieur-securite
+    level: critical
+    prompt: >-
+      Sur une VM Rocky fictive, un playbook active Docker Engine, conserve
+      SELinux Enforcing et firewalld. L'opérateur affirme que fermer un port
+      firewalld suffit à bloquer un conteneur Docker publié sur 0.0.0.0, et
+      propose d'ajouter son compte au groupe docker. Audite les deux choix,
+      les tests depuis une autre VM et les corrections non destructives.
+    expected:
+      - Identifier la nature privilégiée du groupe docker et le comportement réseau.
+      - Vérifier la configuration réelle de SELinux du démon et des volumes.
+      - Préconiser un test de refus réseau sans désactiver les protections.
+
+  - id: infraops-redaction-restauration
+    role: redacteur-pedagogique
+    level: complex
+    prompt: >-
+      Prépare un modèle de runbook pour sauvegarder PostgreSQL par pg_dump,
+      transférer une copie par rsync/SSH et restaurer dans un environnement de
+      test isolé sans toucher à la base principale. Inclure RPO/RTO, ticket
+      témoin, checksum, prérequis, signes d'échec et preuves. Ne pas prétendre
+      avoir réalisé la restauration.
+    expected:
+      - Séparer objectifs RPO/RTO et mesures réellement obtenues.
+      - Interdire la restauration sur la base principale sans validation.
+      - Expliquer commandes, limites de pg_restore --list et retour arrière.
+
+  - id: infraops-audit-preuves
+    role: auditeur-qualite
+    level: critical
+    prompt: >-
+      Un dossier fictif affirme : "Terraform validate PASS, second passage
+      Ansible changed=0, build GitHub vert, Trivy terminé et métriques exposées ;
+      les VM, le rollback, les sauvegardes et les alertes fonctionnent." Produis
+      un verdict fondé sur les preuves manquantes, avec contrôles directs sur
+      VM Rocky, tests de restauration et alerte firing, sans inventer de logs.
+    expected:
+      - Refuser de déduire provisionnement, disponibilité ou PRA de checks statiques.
+      - Séparer build, conformité, déploiement, santé, supervision et restauration.
+      - Garder les écarts et le statut de compétence individuelle non certifié.

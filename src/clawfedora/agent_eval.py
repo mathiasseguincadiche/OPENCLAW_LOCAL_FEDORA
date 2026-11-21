@@ -25,8 +25,11 @@ class EvaluationError(ValueError):
     pass
 
 
-def load_suite(root: Path) -> dict[str, Any]:
-    path = root / "config/evals/devops_synthetic.yaml"
+def load_suite(root: Path, suite_name: str = "devops") -> dict[str, Any]:
+    allowed = {"devops": "devops_synthetic.yaml", "infraops": "infraops_reference.yaml"}
+    if suite_name not in allowed:
+        raise EvaluationError("Suite inconnue: devops ou infraops uniquement")
+    path = root / "config/evals" / allowed[suite_name]
     payload: object = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise EvaluationError("La suite doit être un objet YAML")
@@ -229,6 +232,10 @@ def compare_finops(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Qualifier les sept agents sans API ni réseau")
     parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument(
+        "--suite", choices=("devops", "infraops"), default="devops",
+        help="scénarios génériques ou laboratoire InfraOps réaliste (aucun appel IA)",
+    )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--plan", action="store_true", help="afficher les sept cas synthétiques")
     group.add_argument("--inputs-only", action="store_true", help="énoncés sans les attendus")
@@ -243,7 +250,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     try:
-        suite = load_suite(args.root)
+        suite = load_suite(args.root, args.suite)
         data: object
         if args.inputs_only:
             data = [{"id": case["id"], "role": case["role"], "prompt": case["prompt"]}

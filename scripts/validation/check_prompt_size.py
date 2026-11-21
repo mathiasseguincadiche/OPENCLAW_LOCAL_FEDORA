@@ -187,7 +187,21 @@ def main() -> None:
                 system = str(request["messages"][0]["content"])
                 instructions = effective_instructions(repo, agent)
                 if instructions not in system:
-                    _fail(f"{label}: AGENTS.md assemblé absent ou altéré dans le prompt natif")
+                    # Report the first mismatch numerically without printing the actual
+                    # instructions, private chat history, or provider payload.
+                    first = system.find(instructions[:100])
+                    matched = 0
+                    if first >= 0:
+                        while (
+                            matched < len(instructions)
+                            and first + matched < len(system)
+                            and instructions[matched] == system[first + matched]
+                        ):
+                            matched += 1
+                    _fail(
+                        f"{label}: AGENTS.md assemblé absent ou altéré dans le prompt natif "
+                        f"(préfixe intact {matched}/{len(instructions)} caractères)"
+                    )
                 tool_guide = (repo / "agents/_shared/TOOLS.md").read_text().strip()
                 if system.count(tool_guide) != 1:
                     _fail(f"{label}: guide commun des outils dupliqué ou absent")
