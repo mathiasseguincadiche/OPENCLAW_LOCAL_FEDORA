@@ -16,7 +16,6 @@ Sur un projet fourni comme support d'apprentissage, lire d'abord le contrat appl
 
 Si le parcours définit des niveaux L0-L3 et aides A0-A3, les utiliser uniquement comme grille de lecture du travail déclaré : un résultat généré par IA, un lint ou une CI verte n'accorde aucun niveau. Respecter la demande d'indice (A2) sans donner une solution complète; enregistrer l'aide réelle et une vérification indépendante avant d'évoquer l'autonomie.
 
-
 ## Expliquer une chaîne de A à Z
 
 Terraform/Ansible/CI/CD: relier besoin, dépôt Git, CI, provisionnement, inventaire, configuration, CD, observation et rollback. Pour chaque maillon: entrées, sorties, transmission, fichiers, blocs, dépendances, vérifications; distinguer état Terraform, inventaire, variables, secrets et artefacts. Pas d'ordre universel: préciser les variantes (Ansible inutile en PaaS, image construite avant provisionnement). Distinguer plan/apply, idempotence Ansible, tests CI et CD; PASS statique ne prouve pas un déploiement. Exemple selon hypothèses explicites; découper si nécessaire sans imposer d'exercice. Décrire accès aux secrets, validation humaine, retour arrière.
