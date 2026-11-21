@@ -52,6 +52,15 @@ def native(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
             return list(state.folders)
 
         @staticmethod
+        async def get_folder_by_id_and_user_id(
+            folder_id: str, user_id: str,
+        ) -> Any:
+            return next((
+                folder for folder in state.folders
+                if folder.id == folder_id and folder.user_id == user_id
+            ), None)
+
+        @staticmethod
         async def insert_new_folder(
             user_id: str, form: FolderForm, parent_id: str | None = None,
         ) -> Any:
@@ -275,3 +284,42 @@ def test_user_and_callback_are_required(
                 {"messages": []}, __id__="folder_sync", __user__=actor,
             ))
     assert native.calls == []
+
+
+
+def test_chat_in_managed_folder_uses_existing_project_without_a_picker(
+    native: SimpleNamespace, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "k" * 64)
+
+    def fake_view(_key: str, chosen: str | None = None) -> dict[str, Any]:
+        return {"projects": PROJECTS, "selected": {"id": chosen} if chosen else None}
+
+    monkeypatch.setitem(API["Action"].action.__globals__, "atelier_view", fake_view)
+    _root, mapping, _count = asyncio.run(
+        API["_native_folders_for_projects"](
+            "admin-1", API["_folder_project_rows"]({"projects": PROJECTS}),
+        ),
+    )
+    native.chats["chat-12345678"].folder_id = mapping["projet-alpha"]
+    dialogs: list[dict[str, Any]] = []
+
+    async def confirm(event: dict[str, Any]) -> bool:
+        dialogs.append(event)
+        if event["type"] != "confirmation":
+            pytest.fail("managed native folder must not require another project picker")
+        return True
+
+    result = asyncio.run(API["Action"]().action(
+        {
+            "chat_id": "chat-12345678", "id": "last",
+            "messages": [{"id": "last", "role": "assistant", "content": "Bonjour"}],
+        },
+        __id__="folder_link", __user__={"role": "admin", "id": "admin-1"},
+        __event_call__=confirm,
+    ))
+    assert result is not None
+    assert result["messages"][0]["content"].startswith("📁 Projet : projet-alpha")
+    assert len(dialogs) == 1
+    assert native.chats["chat-12345678"].folder_id == mapping["projet-alpha"]
+    assert [c for c in native.calls if c[0] == "move"] == []
