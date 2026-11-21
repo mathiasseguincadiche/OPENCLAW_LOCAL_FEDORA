@@ -217,7 +217,7 @@ def _github_snapshot(dest: Path, repo: str, commit: str) -> dict[str, Any]:
         if blob.get("encoding") != "base64" or not isinstance(blob.get("content"), str):
             raise SourceImportError("blob GitHub non décodable")
         try:
-            raw = base64.b64decode(blob["content"], validate=True)
+            raw = base64.b64decode("".join(blob["content"].split()), validate=True)
         except (ValueError, binascii.Error) as exc:
             raise SourceImportError("blob GitHub encodé invalide") from exc
         if len(raw) != expected_size:
@@ -245,7 +245,7 @@ def _notion_title(page: dict[str, Any]) -> str:
     if isinstance(props, dict):
         for item in props.values():
             if isinstance(item, dict) and item.get("type") == "title":
-                return _rich(item)
+                return _rich({"rich_text": item.get("title", [])})
     return "Page Notion sans titre"
 
 
