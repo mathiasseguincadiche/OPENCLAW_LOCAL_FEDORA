@@ -57,7 +57,9 @@ le dossier est en conflit avec un dossier personnel : **refus**.
 **Important :** créer un chat dans le dossier ne suffit pas, en l'état
 actuel, à sélectionner automatiquement le contexte ClawFedora du projet.
 Au début de ce fil, utiliser `!projet <id>` ou
-**Classer cette conversation** après le premier message.
+**Classer cette conversation** après le premier message. Dans un
+sous-dossier ClawFedora reconnu, l'action retrouve automatiquement
+le bon identifiant du projet mais demande toujours une confirmation.
 Le classement des discussions et la sélection du contexte sont
 deux états distincts, même lorsque le dossier est commun.
 
