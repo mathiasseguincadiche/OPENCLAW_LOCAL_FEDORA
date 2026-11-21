@@ -397,7 +397,7 @@ def test_project_runner_passes_an_explicit_tier_without_changing_consent(
     approve(runtime, project)
     runner = project_runner(ROOT, runtime, project, base=base)
     runner.task_tier = "simple"
-    prompt = 'task\\n{"expected_outputs":["work/build-output/result.txt"]}'
+    prompt = 'task\n{"expected_outputs":["work/build-output/result.txt"]}'
     runner("ingenieur-devops", prompt, "tier-check")
     assert base.tiers == ["simple"]
     assert base.routes == ["cloud"] and base.escalations == ["routine"]
