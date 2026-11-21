@@ -114,6 +114,14 @@ peuvent aussi recevoir des modifications textuelles ciblées (cellule ou légend
 sans redimensionner les tableaux ni remplacer les fichiers image. Ni synchronisation du suivi ni écriture autonome
 du modèle n'est autorisée.
 
+## Mes projets dans Open WebUI
+
+La [gestion des dossiers de projets natifs](docs/OPENWEBUI_NATIVE_PROJECT_FOLDERS.md)
+permet d'afficher les projets du registre ClawFedora dans la barre latérale
+Open WebUI et de classer explicitement une conversation dans son dossier.
+L'historique du chat demeure dans Open WebUI ; les sessions terminal natives
+OpenClaw ne sont **pas** fusionnées ou importées automatiquement.
+
 ## Interface locale modernisée
 
 Les trois espaces **Projets, GitHub et Notion** partagent une
