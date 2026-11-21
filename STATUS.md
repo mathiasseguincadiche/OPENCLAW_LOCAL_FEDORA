@@ -1,6 +1,6 @@
 # État du projet — Atelier IA hybride Fedora
 
-**Version 0.2.0 du 3 novembre 2026** ([notes de version](CHANGELOG.md)). **Cycle d'optimisation FinOps #196–#201 intégré au dépôt.** Dernière référence entièrement verte vérifiée avant le lot final : [CI #200](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/44680597623), [CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/44680597903), commit `03026ac`. Consulter les contrôles du commit utilisé avant réception. L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
+**Version 0.2.0 du 3 novembre 2026** ([notes de version](CHANGELOG.md)). **Cycle d'optimisation FinOps #196–#201 intégré au dépôt.** Dernière référence intégrée entièrement verte : [CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/44869604238), [CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/44869604231), commit `c2bfc5f` (#212), avant la présente évolution Notion. Consulter les contrôles du commit utilisé avant réception. L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
 **Évolution en cours de qualification :** routage cloud par niveau de tâche
 approuvé (`simple`, `complex`, `critical`), protocole de mesure
@@ -29,6 +29,7 @@ Voir [stratégie cloud-first](docs/CLOUD_FIRST_QUALIFICATION.md).
 | **Maintenance** | Désinstallation, purge, sauvegarde et réparation protégées | Arrêt vérifié avant suppression, purge sans perte partielle, maintenance refusée pendant une génération. Restauration du vrai état de l’installation **À faire**. |
 | **Parcours WebUI simplifié** | Implémenté ; réception Open WebUI Fedora à effectuer | Six raccourcis, choix du projet et activité locale ; voir [la prise en main](docs/fiches/03-discuter.md) |
 | **Documents ODT** | Export éditable et import textuel implémentés | Limites d’import [documentées](docs/fiches/06-fichiers-et-schemas.md) ; réception dans le navigateur Fedora à effectuer |
+| **GitHub / Notion** | Import en lecture seule ; GitHub sous approbation ; révision ciblée d’un bloc Notion proposée sur branche de travail | [Édition Notion contrôlée](docs/NOTION_CONTROLLED_WRITES.md) ; [recette complète](docs/validation/NOTION_GITHUB_ACCEPTANCE.md). Réception sur Fedora, compte Notion et navigateur réel **à faire**. |
 
 Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n’a pas encore été réceptionné sur cette machine**.
 
