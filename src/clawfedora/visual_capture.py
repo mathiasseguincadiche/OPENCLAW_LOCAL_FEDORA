@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from importlib import import_module
 import os
 import re
 import stat
@@ -182,8 +183,8 @@ def capture(
     if interactive and not sys.stdin.isatty():
         raise CaptureError("capture interactive exige un terminal")
     try:
-        from playwright.sync_api import sync_playwright
-    except ImportError as exc:
+        sync_playwright = import_module("playwright.sync_api").__dict__["sync_playwright"]
+    except (ImportError, KeyError) as exc:
         raise CaptureError(
             "installer l'option visuelle épinglée puis Chromium Playwright",
         ) from exc
