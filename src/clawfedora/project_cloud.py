@@ -88,6 +88,13 @@ def sources_digest(project: Path) -> str:
         assert_no_symlinks(root, label=scope)
         for path in sorted(p for p in root.rglob("*") if p.is_file()):
             digest.update(f"{path.relative_to(project).as_posix()}:{sha256_file(path)}\n".encode())
+    # A newly approved GitHub revision invalidates any older cloud consent,
+    # even while the existing agent plan remains pinned to its original intake.
+    changes = project / "context/github-updates"
+    if changes.exists():
+        assert_no_symlinks(changes, label="révisions GitHub")
+        for ledger in sorted(changes.glob("*/ledger.json")):
+            digest.update(f"{ledger.relative_to(project).as_posix()}:{sha256_file(ledger)}\n".encode())
     return digest.hexdigest()
 
 
