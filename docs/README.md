@@ -43,6 +43,13 @@ et la modification contrôlée d'une cellule ou d'une légende existante.
 
 [Guide de l'intégration GitHub dans l'atelier](GITHUB_CHAT_DASHBOARD.md) : panneau local, commandes explicites Open WebUI, manifestes approuvés, captures réelles et contrôle Fedora. Aucun mot de passe n'est demandé dans le navigateur.
 
+## Réception graphique réelle : navigateur Fedora, Notion et GitHub
+
+La [recette visuelle native](validation/VISUAL_RECEPTION_NATIVE.md) propose
+des captures Playwright opt-in en bureau clair/sombre et largeur mobile,
+avec SHA-256, métriques DOM et grille de revue humaine. Aucune capture de
+compte privé n'est intégrée à Git ou publiée automatiquement.
+
 ## Créer et protéger un dépôt GitHub
 
 Le [guide de création GitHub et de protections](GITHUB_REMOTE_SETUP.md) présente les plans privés par défaut, les rulesets, l'audit des permissions et les limites d'accès GitHub. Les écritures nécessitent une empreinte de plan approuvée.
