@@ -16,7 +16,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from clawfedora import github_refresh, github_pr, project_roadmap, source_connectors
+from clawfedora import github_pr, github_refresh, project_roadmap, source_connectors
 from clawfedora.ci_evidence import verify_public_run
 from clawfedora.core_config import resolve_runtime_root
 from clawfedora.project_common import (
