@@ -39,6 +39,13 @@ voisins et les icônes/couleurs des encadrés existants.
 Le [mode tableaux et images](NOTION_TABLES_IMAGES.md) apporte l'inventaire
 et la modification contrôlée d'une cellule ou d'une légende existante.
 
+## Interface moderne de l'atelier local
+
+Le [design system InfraOps Studio](WORKBENCH_UI_DESIGN.md) unifie les
+espaces Projets, GitHub et Notion : navigation claire, onglets accessibles,
+formulaires mieux agencés et mode sombre. Aucun changement de privilèges.
+Le rendu sur Fedora doit encore être réceptionné réellement.
+
 ## GitHub dans le tableau de bord et le chat
 
 [Guide de l'intégration GitHub dans l'atelier](GITHUB_CHAT_DASHBOARD.md) : panneau local, commandes explicites Open WebUI, manifestes approuvés, captures réelles et contrôle Fedora. Aucun mot de passe n'est demandé dans le navigateur.
