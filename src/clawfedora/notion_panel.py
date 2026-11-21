@@ -13,7 +13,7 @@ import stat
 from pathlib import Path
 from typing import Any
 
-from clawfedora import notion_batch, notion_write, source_connectors
+from clawfedora import notion_batch, notion_rich, notion_write, source_connectors
 
 PLAN_ID = re.compile(r"[0-9a-f]{32}\Z")
 MAX_VISIBLE_BLOCKS = 120
@@ -64,8 +64,13 @@ def inspect(page: str) -> dict[str, Any]:
             and block.get("has_children") is False
             and block.get("archived") is False
         )
+        rich_candidate = (
+            kind in notion_rich.RICH_KINDS
+            and block.get("has_children") is False
+            and block.get("archived") is False
+        )
         label = ""
-        if editable:
+        if editable or rich_candidate:
             data = block.get(kind, {})
             pieces = data.get("rich_text", []) if isinstance(data, dict) else []
             if isinstance(pieces, list):
@@ -77,6 +82,7 @@ def inspect(page: str) -> dict[str, Any]:
             "block_id": notion_write._id(str(block["id"])),
             "type": kind,
             "eligible": editable,
+            "rich_candidate": rich_candidate,
             "excerpt": label,
         })
     return {
@@ -84,6 +90,7 @@ def inspect(page: str) -> dict[str, Any]:
         "page_id": page_id, "inventory_sha256": fingerprint,
         "blocks": rows,
         "editable_count": sum(row["eligible"] for row in rows),
+        "rich_candidate_count": sum(row["rich_candidate"] for row in rows),
         "protected_count": sum(not row["eligible"] for row in rows),
         "remote_writes": False,
     }
@@ -134,5 +141,50 @@ def apply(
         "page_id": page_id,
         "verified_blocks": result["verified_blocks"],
         "manifest_sha256": result["manifest_sha256"],
+        "limitations": result["limitations"],
+    }
+
+
+def rich_inspect(page: str, block_id: str) -> dict[str, Any]:
+    """Read one selected block; returned text stays inside the local browser."""
+    return notion_rich.inspect(page, block_id)
+
+
+def rich_plan(
+    runtime: Path, page: str, block_id: str, segment_index: int, text: str,
+) -> dict[str, Any]:
+    page_id = notion_write._id(page)
+    folder = _store(runtime)
+    name = secrets.token_hex(16)
+    output = folder / (name + ".plan.json")
+    result = notion_rich.preview(page_id, block_id, segment_index, text, output)
+    return {
+        "mode": result["mode"], "page_id": page_id,
+        "block_id": result["block_id"], "segment_index": result["segment_index"],
+        "plan_id": name, "manifest_sha256": result["manifest_sha256"],
+        "preserved_segments": result["preserved_segments"],
+        "diff": result["diff"], "remote_writes": False,
+    }
+
+
+def rich_apply(
+    runtime: Path, plan_id: str, page: str, approve_page: str,
+    approve_manifest: str, human_approved: object,
+) -> dict[str, Any]:
+    if human_approved is not True:
+        raise notion_write.NotionWriteError("accord humain explicite requis")
+    if PLAN_ID.fullmatch(plan_id) is None:
+        raise notion_write.NotionWriteError("identifiant de plan invalide")
+    page_id = notion_write._id(page)
+    if notion_write._id(approve_page) != page_id:
+        raise notion_write.NotionWriteError("page approuvée différente")
+    if notion_write.SHA256.fullmatch(approve_manifest) is None:
+        raise notion_write.NotionWriteError("empreinte de plan SHA-256 requise")
+    path = _store(runtime) / (plan_id + ".plan.json")
+    result = notion_rich.apply(path, page_id, approve_manifest)
+    return {
+        "mode": result["mode"], "page_id": page_id,
+        "block_id": result["block_id"],
+        "preserved_segments": result["preserved_segments"],
         "limitations": result["limitations"],
     }
