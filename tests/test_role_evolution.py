@@ -251,10 +251,11 @@ def test_kubernetes_receipt_never_executes_an_agent_command(
     planned: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     runtime, project = planned
+
     def producer(_role: str, prompt: str, _session: str) -> dict[str, Any]:
-        task = json.loads(prompt.split("\\n", 1)[1])
+        task = json.loads(prompt.split("\n", 1)[1])
         return {
-            "files": {task["expected_outputs"][0]: "apiVersion: v1\\nkind: Pod\\n"},
+            "files": {task["expected_outputs"][0]: "apiVersion: v1\nkind: Pod\n"},
             "summary": "Manifest proposé, non déployé",
         }
     run_project_tasks(ROOT, runtime, project, runner=producer)
@@ -264,6 +265,7 @@ def test_kubernetes_receipt_never_executes_an_agent_command(
         assert tool == "kubeconform" and apply is True
         assert (source / "k8s/deployment.yaml").is_file()
         return 0
+
     monkeypatch.setattr(project_proofs.devops_lab, "run_lab", fake_lab)
     result = collect_operator_proof(
         project, "kube-check", 1, apply=True, image="example@sha256:" + "a" * 64,
