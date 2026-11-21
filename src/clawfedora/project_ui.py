@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.core_config import AGENT_IDS, daily_limits
+from clawfedora.github_refresh import inspect as github_updates
 from clawfedora.learning import checkpoints, contract
 from clawfedora.mentor import copy_profile
 from clawfedora.project_cloud import project_runner
@@ -125,6 +126,7 @@ def details(project: Path) -> dict[str, Any]:
         "documents": read_json(project / "context/ingestion/index.json")["documents"],
         "learning": contract(project),
         "checkpoints": checkpoints(project),
+        "github_updates": github_updates(project),
         "continuous_roadmap": load_roadmap(project)
         if (project / "context/continuous_roadmap.json").is_file()
         else None,

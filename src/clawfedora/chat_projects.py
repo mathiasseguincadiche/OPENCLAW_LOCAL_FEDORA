@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora import chat_approvals, chat_proposals, project_cloud
+from clawfedora.github_refresh import inspect as github_updates
 from clawfedora.knowledge import search
 from clawfedora.project_common import assert_no_symlinks, project_path, read_json, validate_task_id
 from clawfedora.project_intake import validate_input_integrity
@@ -323,6 +324,18 @@ def status_text(repo_root: Path, runtime: Path, project: Path) -> str:
         waiting = sum(r["status"] == "pending" for r in rows)
         notes = sum(r["status"] == "accepted" for r in rows)
         lines.append(f"Propositions : {waiting} en attente, {notes} acceptée(s) comme notes")
+    updates = github_updates(project)
+    for update in updates:
+        changes = update["changes"]
+        lines.append(
+            "GitHub : " + _cell(update["repository"], 120) + " · SHA "
+            + update["current_commit"][:12] + " · "
+            + str(len(changes)) + " changement(s), preuves à requalifier."
+        )
+        lines.append(
+            "Les sources du plan IA restent figées au snapshot initial : "
+            "aucune synchronisation automatique."
+        )
     from clawfedora import chat_flow, chat_run
 
     job = chat_flow.job_line(runtime, project.name)
