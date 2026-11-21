@@ -4,6 +4,9 @@
 
 ## Fonctionnalité
 
+Le [panneau Notion dans l'atelier](NOTION_DASHBOARD.md) permet de parcourir
+ces étapes depuis le navigateur, avec les mêmes validations côté serveur.
+
 `clawfedora-notion-batch` prépare puis applique une **liste exacte de 1 à 5 remplacements
 de blocs textuels simples, tous appartenant directement à une seule page existante**.
 La commande est réservée à l'opérateur local, distincte de l'import GitHub/Notion
