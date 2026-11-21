@@ -8,7 +8,7 @@ Open WebUI est l'interface de discussion, à l'adresse `http://127.0.0.1:3000`. 
 
 ## Huit raccourcis pour commencer
 
-Après la création du compte administrateur et `webui-seal --apply`, six entrées
+Après la création du compte administrateur et `webui-seal --apply`, huit entrées
 regroupent les actions sous les réponses :
 
 | Raccourci | Utilité |
