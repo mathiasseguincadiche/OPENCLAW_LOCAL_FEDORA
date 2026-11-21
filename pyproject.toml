@@ -37,6 +37,7 @@ clawfedora-github-scaffold = "clawfedora.github_scaffold:main"
 clawfedora-github-pr = "clawfedora.github_pr:main"
 clawfedora-github-remote = "clawfedora.github_remote:main"
 clawfedora-github-visual = "clawfedora.github_visual:main"
+clawfedora-visual-capture = "clawfedora.visual_capture:main"
 clawfedora-ci-proof = "clawfedora.ci_evidence:main"
 clawfedora-ci-private-proof = "clawfedora.ci_private_evidence:main"
 clawfedora-fedora-precheck = "clawfedora.fedora_acceptance:main"
@@ -46,6 +47,9 @@ clawfedora-vision-smoke = "clawfedora.vision_acceptance:main"
 clawfedora-doc-bundle = "clawfedora.document_bundle:main"
 
 [project.optional-dependencies]
+visual = [
+  "playwright==1.65.2",
+]
 speech = [
   "faster-whisper==1.2.1",
 ]

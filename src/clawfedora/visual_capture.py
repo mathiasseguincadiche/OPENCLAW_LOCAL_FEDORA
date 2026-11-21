@@ -1,0 +1,306 @@
+"""Opt-in real browser screenshots for local workshop, GitHub and Notion.
+
+Requires optional pinned Playwright and a browser installed by the operator.
+No browser is launched without --capture. No credential/cookie/session export.
+Screenshots are private local files; DOM metrics are checks, not a visual verdict.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import stat
+import sys
+import uuid
+from datetime import UTC, datetime
+from importlib import import_module
+from pathlib import Path
+from typing import Any
+from urllib.parse import urlsplit
+
+from PIL import Image
+
+KINDS = ("local-notion", "local-github", "github-readme", "notion-page")
+GITHUB_PATH = re.compile(
+    r"/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/(?:blob|tree)/[A-Za-z0-9_./-]+)?/?\Z",
+)
+NOTION_PAGE = re.compile(r"/(?:p/)?[A-Za-z0-9_-]*(?:[0-9a-f]{32}|[0-9a-f-]{36})/?\Z")
+SIZES = {
+    "desktop_light": (1440, 900, "light"),
+    "desktop_dark": (1366, 900, "dark"),
+    "mobile_viewport": (390, 844, "light"),
+}
+MAX_SHOTS = 3
+MAX_PICTURE_BYTES = 15_000_000
+MAX_SHOT_PIXELS = 10_000
+METRICS_JS = """() => {
+  const root = document.documentElement;
+  const body = document.body;
+  if (!root || !body) return null;
+  const wide = [...body.querySelectorAll("main, section, table, pre, img, svg, input, textarea")]
+    .filter(el => {
+      const box = el.getBoundingClientRect();
+      const css = getComputedStyle(el);
+      return css.display !== "none" && css.visibility !== "hidden" &&
+        box.width > 0 && (box.left < -5 || box.right > innerWidth + 5);
+    })
+    .slice(0, 12)
+    .map(el => el.tagName.toLowerCase());
+  return {
+    viewport_width: innerWidth,
+    viewport_height: innerHeight,
+    document_width: root.scrollWidth,
+    document_height: Math.max(root.scrollHeight, body.scrollHeight),
+    horizontal_overflow: root.scrollWidth > innerWidth + 5,
+    potential_overflow_elements: wide,
+    h1_count: body.querySelectorAll("h1").length,
+    tables_count: body.querySelectorAll("table").length,
+    images_without_alt: [...body.querySelectorAll("img")].filter(
+      img => !img.hasAttribute("alt")
+    ).length,
+    visible_text_length: (body.innerText || "").length
+  };
+}"""
+
+
+class CaptureError(ValueError):
+    """Capture unavailable; no unsupported evidence or verdict claimed."""
+
+
+def validate_url(kind: str, url: str) -> str:
+    if kind not in KINDS or not isinstance(url, str):
+        raise CaptureError("type de page non autorisé")
+    parts = urlsplit(url)
+    if (
+        parts.username is not None or parts.password is not None
+        or parts.query or parts.fragment or not parts.hostname
+    ):
+        raise CaptureError("URL avec identifiants, paramètres ou fragment interdite")
+    if kind.startswith("local-"):
+        desired = "/notion.html" if kind == "local-notion" else "/github.html"
+        if (
+            parts.scheme != "http" or parts.hostname != "127.0.0.1"
+            or parts.path != desired or parts.port is None
+            or not 1 <= parts.port <= 65535
+        ):
+            raise CaptureError("adresse loopback exacte du panneau requise")
+    elif kind == "github-readme":
+        if (
+            parts.scheme != "https" or parts.hostname != "github.com"
+            or parts.port is not None or GITHUB_PATH.fullmatch(parts.path) is None
+        ):
+            raise CaptureError("URL canonique GitHub de dépôt/README requise")
+    elif (
+        parts.scheme != "https" or parts.hostname not in (
+            "www.notion.so", "notion.so", "app.notion.com",
+        ) or parts.port is not None or NOTION_PAGE.fullmatch(parts.path) is None
+    ):
+        raise CaptureError("URL d'une page Notion identifiable requise")
+    return url
+
+
+def _validate_final_url(kind: str, start: str, current: str) -> None:
+    """Reject login/consent screens and unexpected final browser origins."""
+    final = urlsplit(current)
+    expected = urlsplit(start)
+    if kind.startswith("local-"):
+        if current != start:
+            raise CaptureError("redirection hors du panneau local refusée")
+        return
+    if kind == "github-readme":
+        if (
+            final.scheme != "https" or final.hostname != "github.com"
+            or final.path.startswith(("/login", "/session", "/signup"))
+        ):
+            raise CaptureError("page GitHub non ouverte ou accès insuffisant")
+        return
+    if (
+        final.scheme != "https"
+        or final.hostname not in ("www.notion.so", "notion.so", "app.notion.com")
+        or final.path.startswith(("/login", "/signup", "/sign-in"))
+        or expected.path.replace("-", "").split("/")[-1][-32:].lower() not in
+        final.path.replace("-", "").lower()
+    ):
+        raise CaptureError("page Notion cible non ouverte après authentification")
+
+
+def screenshot_positions(document_height: int, viewport_height: int) -> list[int]:
+    if not 1 <= viewport_height <= 4000 or document_height < 0:
+        raise CaptureError("dimensions du navigateur incorrectes")
+    last = max(0, min(document_height, MAX_SHOT_PIXELS) - viewport_height)
+    if last == 0:
+        return [0]
+    middle = last // 2
+    return sorted({0, middle, last})[:MAX_SHOTS]
+
+
+def _private_destination(root: Path) -> Path:
+    if not root.is_absolute() or root.is_symlink() or not root.is_dir():
+        raise CaptureError("dossier absolu existant, privé et non lié requis")
+    if stat.S_IMODE(root.stat().st_mode) & 0o077:
+        raise CaptureError("dossier privé requis (chmod 700)")
+    # Captures contain private Notion content; never place them in a Git checkout.
+    for parent in (root, *root.parents):
+        if (parent / ".git").exists():
+            raise CaptureError("capture interdite dans un dépôt Git")
+    directory = root / ("capture-" + uuid.uuid4().hex)
+    directory.mkdir(mode=0o700)
+    return directory
+
+
+def _shot(path: Path) -> dict[str, Any]:
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_PICTURE_BYTES:
+        raise CaptureError("capture absente, liée ou trop volumineuse")
+    os.chmod(path, 0o600)
+    with Image.open(path) as picture:
+        if picture.format != "PNG":
+            raise CaptureError("capture non PNG")
+        width, height = picture.size
+        if not 320 <= width <= MAX_SHOT_PIXELS or not 320 <= height <= MAX_SHOT_PIXELS:
+            raise CaptureError("dimensions de capture incorrectes")
+        picture.verify()
+    return {
+        "filename": path.name, "width": width, "height": height,
+        "bytes": path.stat().st_size,
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+    }
+
+
+def capture(
+    kind: str, url: str, output_root: Path, *,
+    interactive: bool, allow_private: bool,
+) -> dict[str, Any]:
+    validate_url(kind, url)
+    if kind == "notion-page" and (
+        not interactive or not allow_private or not sys.stdin.isatty()
+    ):
+        raise CaptureError(
+            "Notion privé : --interactive --allow-private et terminal requis",
+        )
+    if interactive and not sys.stdin.isatty():
+        raise CaptureError("capture interactive exige un terminal")
+    try:
+        sync_playwright = import_module("playwright.sync_api").__dict__["sync_playwright"]
+    except (ImportError, KeyError) as exc:
+        raise CaptureError(
+            "installer l'option visuelle épinglée puis Chromium Playwright",
+        ) from exc
+    output = _private_destination(output_root)
+    previous_umask = os.umask(0o077)
+    items: list[dict[str, Any]] = []
+    try:
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=not interactive)
+            context = browser.new_context(
+                viewport={"width": 1440, "height": 900},
+                color_scheme="light",
+                device_scale_factor=1, accept_downloads=False,
+            )
+            try:
+                page = context.new_page()
+                page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                if interactive:
+                    input(
+                        "Examiner la page cible dans le navigateur temporaire ; "
+                        "pour Notion, se connecter manuellement et revenir à la page. "
+                        "Appuyer sur Entrée uniquement quand la page correcte est affichée : ",
+                    )
+                _validate_final_url(kind, url, page.url)
+                for category, (width, height, scheme) in SIZES.items():
+                    page.set_viewport_size({"width": width, "height": height})
+                    page.emulate_media(color_scheme=scheme)
+                    page.wait_for_timeout(600)
+                    _validate_final_url(kind, url, page.url)
+                    metrics = page.evaluate(METRICS_JS)
+                    if not isinstance(metrics, dict):
+                        raise CaptureError("mesures DOM non disponibles")
+                    if metrics.get("visible_text_length", 0) < 20:
+                        raise CaptureError("page vide ou non chargée")
+                    positions = screenshot_positions(
+                        int(metrics["document_height"]), height,
+                    )
+                    pictures: list[dict[str, Any]] = []
+                    for index, y in enumerate(positions):
+                        page.evaluate("(position) => window.scrollTo(0, position)", y)
+                        page.wait_for_timeout(200)
+                        name = f"{category}-{index + 1}.png"
+                        target = output / name
+                        if target.exists() or target.is_symlink():
+                            raise CaptureError("capture existante")
+                        page.screenshot(
+                            path=str(target), full_page=False, animations="disabled",
+                        )
+                        pictures.append({**_shot(target), "requested_scroll_y": y})
+                    items.append({
+                        "view": category, "requested_color_scheme": scheme,
+                        "metrics": metrics, "sampled_screenshots": pictures,
+                    })
+            finally:
+                context.close()
+                browser.close()
+        report = {
+            "schema": 1, "assessment": "BROWSER_CAPTURED_NOT_VISUALLY_CERTIFIED",
+            "kind": kind, "source_url": url,
+            "captured_at": datetime.now(UTC).isoformat(),
+            "browser_engine": "chromium",
+            "screenshots": items,
+            "quality_verdict": "NOT_EVALUATED",
+            "operator_review": "REQUIRED",
+            "limitations": [
+                "Les captures ne prouvent pas une lecture humaine complète",
+                "Le thème demandé n'est pas forcément le thème appliqué par le site",
+                "Les longues pages peuvent être partiellement échantillonnées",
+                "Tests du GPU, Fedora et des données privées non certifiés par la capture",
+            ],
+        }
+        report_path = output / "manifest.json"
+        with report_path.open("x", encoding="utf-8") as stream:
+            json.dump(report, stream, ensure_ascii=False, indent=2)
+            stream.write("\n")
+        os.chmod(report_path, 0o600)
+        return {**report, "output_directory": str(output)}
+    finally:
+        os.umask(previous_umask)
+
+
+def parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(prog="clawfedora-visual-capture")
+    p.add_argument("--kind", required=True, choices=KINDS)
+    p.add_argument("--url", required=True)
+    p.add_argument("--output-dir", type=Path, required=True)
+    p.add_argument("--capture", action="store_true")
+    p.add_argument("--interactive", action="store_true")
+    p.add_argument("--allow-private", action="store_true")
+    return p
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parser().parse_args(argv)
+    try:
+        validate_url(args.kind, args.url)
+        if not args.capture:
+            print(json.dumps({
+                "assessment": "DRY_RUN_NO_BROWSER",
+                "kind": args.kind, "url": args.url,
+                "remote_writes": False, "local_screenshots": False,
+            }, ensure_ascii=False))
+            return 0
+        result = capture(
+            args.kind, args.url, args.output_dir,
+            interactive=args.interactive, allow_private=args.allow_private,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    except (CaptureError, OSError, ValueError, TypeError) as exc:
+        print(json.dumps({
+            "assessment": "CAPTURE_REFUSED_OR_INCOMPLETE",
+            "reason": str(exc), "quality_verdict": "NOT_EVALUATED",
+        }, ensure_ascii=False))
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

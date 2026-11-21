@@ -2,6 +2,11 @@
 
 [← État](../../STATUS.md) · [Notion contrôlé](../NOTION_CONTROLLED_WRITES.md) · [Notion multi-blocs](../NOTION_MULTI_BLOCK.md) · [Panneau Notion](../NOTION_DASHBOARD.md) · [Mode texte enrichi](../NOTION_RICH_TEXT.md) · [Tableaux et images](../NOTION_TABLES_IMAGES.md) · [GitHub](../GITHUB_CHAT_DASHBOARD.md) · [Réception Fedora](../RECEPTION_ETAPE3.md)
 
+Pour préparer les captures sur le poste cible et vérifier leurs preuves,
+suivre la [procédure de réception visuelle native](VISUAL_RECEPTION_NATIVE.md).
+L'outillage capture et collecte les données ; il ne remplace pas une revue
+humaine de chaque page réelle.
+
 ## Règle d'évaluation
 
 Ce protocole **ne donne aucun verdict d'exploitation sans réalisation effective**.
