@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>GitHub · Atelier OpenClaw Fedora</title>
+  <link rel="stylesheet" href="/dashboard.css">
+  <link rel="stylesheet" href="/github.css">
+  <script src="/github.js" defer></script>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <p class="eyebrow">OPENCLAW · INTÉGRATION GITHUB</p>
+      <h1>Mon dépôt GitHub</h1>
+      <p class="intro">Préparer, vérifier et proposer un dépôt d'ingénierie professionnel.</p>
+    </div>
+    <span class="badge">Local · validations humaines</span>
+  </header>
+  <nav aria-label="Navigation">
+    <a href="/">← Atelier Projets</a>
+    <a href="#create">Nouveau dépôt</a>
+    <a href="#governance">Protections</a>
+    <a href="#propose">PR brouillon</a>
+    <a href="#visual">Recette graphique</a>
+  </nav>
+  <p class="activity">Les aperçus sont hors ligne. Aucune écriture GitHub sans approbation du nom, du dépôt et de l'empreinte exacte du plan. Aucun jeton n'est envoyé au navigateur.</p>
+  <p id="github-status" role="status" aria-live="polite"></p>
+  <section class="github-panel" id="create" aria-labelledby="create-title">
+    <h2 id="create-title">1. Créer un dépôt privé</h2>
+    <p>GitHub crée d'abord un dépôt <strong>privé</strong> initialisé par un README minimal. Le code sera proposé ensuite dans une PR brouillon.</p>
+    <form id="repo-plan-form">
+      <label for="repo-name">Nom du nouveau dépôt</label>
+      <input id="repo-name" placeholder="MonProjetInfraOps" maxlength="80" required>
+      <label for="repo-desc">Description facultative</label>
+      <input id="repo-desc" maxlength="200" placeholder="Laboratoire d'infrastructure Linux automatisé">
+      <button type="submit">Prévisualiser sans réseau</button>
+    </form>
+    <pre id="repo-result" aria-live="polite"></pre>
+    <form id="repo-apply-form" hidden>
+      <p><strong>Vérifie les informations avant publication.</strong> Recopie le nom et l'empreinte du plan. Ces deux valeurs sont contrôlées côté serveur.</p>
+      <label for="repo-approve-name">Nom exact approuvé</label>
+      <input id="repo-approve-name" autocomplete="off" required>
+      <label for="repo-approve-manifest">Empreinte SHA-256 exacte</label>
+      <input id="repo-approve-manifest" maxlength="64" minlength="64" autocomplete="off" required>
+      <label class="checkline"><input type="checkbox" id="repo-human" required> J'autorise la création de ce dépôt privé sur mon compte GitHub.</label>
+      <button type="submit">Créer le dépôt privé approuvé</button>
+    </form>
+  </section>
+
+  <section class="github-panel" id="governance" aria-labelledby="governance-title">
+    <h2 id="governance-title">2. Vérifier et protéger</h2>
+    <p>Lecture des réglages existants, puis proposition séparée pour la protection de <code>main</code> ou les permissions GitHub Actions.</p>
+    <form id="policy-plan-form">
+      <label for="policy-repo">Dépôt existant (propriétaire/nom)</label>
+      <input id="policy-repo" placeholder="compte/MonProjetInfraOps" required>
+      <label for="policy-branch">Branche principale</label>
+      <input id="policy-branch" value="main" required>
+      <label for="policy-kind">Modification éventuelle</label>
+      <select id="policy-kind">
+        <option value="pr-ruleset">Ruleset : PR obligatoire, suppression et force-push interdits</option>
+        <option value="workflow-readonly">GitHub Actions : droits par défaut en lecture seule</option>
+      </select>
+      <div class="buttons">
+        <button type="button" class="secondary" id="audit-settings">Auditer les réglages en lecture seule</button>
+        <button type="submit">Préparer un plan de protection</button>
+      </div>
+    </form>
+    <pre id="policy-result" aria-live="polite"></pre>
+    <form id="policy-apply-form" hidden>
+      <label for="policy-approve-repo">Dépôt exact approuvé</label>
+      <input id="policy-approve-repo" autocomplete="off" required>
+      <label for="policy-approve-manifest">Empreinte SHA-256 du plan</label>
+      <input id="policy-approve-manifest" maxlength="64" minlength="64" autocomplete="off" required>
+      <label class="checkline"><input type="checkbox" id="policy-human" required> J'autorise ce changement de protection GitHub.</label>
+      <button type="submit">Appliquer cette seule protection</button>
+    </form>
+  </section>
+
+  <section class="github-panel" id="propose" aria-labelledby="propose-title">
+    <h2 id="propose-title">3. Proposer les livrables dans une PR brouillon</h2>
+    <p>Un projet de l'atelier doit être <strong>terminé et audité</strong>. Les fichiers proviennent d'un sous-dossier <code>deliverables/</code> connu, jamais des sources importées ou des notes privées.</p>
+    <form id="draft-plan-form">
+      <label for="draft-project">Projet de l'atelier</label>
+      <select id="draft-project" required><option value="">Chargement des projets…</option></select>
+      <label for="draft-stage">Dossier local de livrables</label>
+      <input id="draft-stage" placeholder="deliverables/nom-de-tache" required>
+      <label for="draft-repo">Dépôt GitHub cible</label>
+      <input id="draft-repo" placeholder="compte/MonProjetInfraOps" required>
+      <label for="draft-base-sha">SHA complet de main</label>
+      <input id="draft-base-sha" minlength="40" maxlength="40" pattern="[0-9a-f]{40}" placeholder="40 caractères hexadécimaux" required>
+      <label for="draft-branch">Nouvelle branche de proposition</label>
+      <input id="draft-branch" value="atelier/premiere-documentation" required>
+      <label for="draft-title">Titre de la PR</label>
+      <input id="draft-title" maxlength="180" value="Documentation et qualité du projet InfraOps" required>
+      <label for="draft-body">Description de la PR (sans secret)</label>
+      <textarea id="draft-body" rows="4" maxlength="30000" required>Proposition de fichiers relus localement. Les tests, la sécurité, les schémas et le rendu GitHub restent à vérifier avant fusion.</textarea>
+      <div class="buttons">
+        <button type="button" id="draft-audit" class="secondary">Auditer les livrables localement</button>
+        <button type="submit">Prévisualiser la PR hors ligne</button>
+      </div>
+    </form>
+    <pre id="draft-result" aria-live="polite"></pre>
+    <form id="draft-apply-form" hidden>
+      <p>Cette autorisation couvre le dépôt, la branche, les fichiers et la description exacte affichés au moment du plan.</p>
+      <label for="draft-approve-repo">Dépôt exact approuvé</label>
+      <input id="draft-approve-repo" autocomplete="off" required>
+      <label for="draft-approve-sha">Empreinte du plan et de la description</label>
+      <input id="draft-approve-sha" minlength="64" maxlength="64" autocomplete="off" required>
+      <label class="checkline"><input type="checkbox" id="draft-human" required> J'autorise une nouvelle branche et une PR <strong>brouillon</strong> ; aucune fusion.</label>
+      <button type="submit">Publier la PR brouillon approuvée</button>
+    </form>
+  </section>
+
+  <section class="github-panel" id="visual" aria-labelledby="visual-title">
+    <h2 id="visual-title">4. Recette graphique et validation Fedora</h2>
+    <p>À vérifier dans GitHub avec le navigateur réel. Un SVG valide et une CI verte ne suffisent pas à attester le rendu.</p>
+    <div class="checklist">
+      <label><input type="checkbox"> README lisible sur bureau, thème clair</label>
+      <label><input type="checkbox"> README lisible sur bureau, thème sombre</label>
+      <label><input type="checkbox"> README utilisable sur mobile, sans débordements</label>
+      <label><input type="checkbox"> Schémas source .drawio, exports SVG et légendes concordants</label>
+      <label><input type="checkbox"> Installation, tests et rollback contrôlés sur le Fedora réel</label>
+      <label><input type="checkbox"> Statuts et preuves alignés sur les exécutions réelles</label>
+    </div>
+    <p class="intro">Ces cases sont un pense-bête local à cocher manuellement : leur état n'est pas enregistré et ne constitue pas une certification.</p>
+  </section>
+  <footer>
+    <p>GitHub : DevOps responsable, rédaction et sécurité en revue séparée, auditeur indépendant, publication sur approbation humaine.</p>
+  </footer>
+</main>
+</body>
+</html>
