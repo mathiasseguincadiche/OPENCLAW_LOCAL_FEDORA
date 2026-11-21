@@ -78,6 +78,12 @@ de [PR brouillon liée au jalon](GITHUB_PR_PROJET_EN_COURS.md), après revue
 de diff, vérification du SHA GitHub et approbation explicite. Cette opération
 ne certifie pas l'exercice et ne modifie pas sa progression.
 
+Les [preuves d'exécution par jalon](PREUVES_JALONS_INFRAOPS.md)
+sont conservées séparément et liées à une cible et un SHA GitHub précis.
+Elles ne changent pas les états d'apprentissage et deviennent à requalifier
+lorsqu'un nouveau code, une nouvelle cible ou un plan modifié invalide
+leur portée.
+
 **Limites de cette première tranche :** pas de saisie graphique, pas
 d'actualisation GitHub/Notion, pas de
 synchronisation des preuves, pas d'exécution sur Fedora ou sur les VM Rocky.
