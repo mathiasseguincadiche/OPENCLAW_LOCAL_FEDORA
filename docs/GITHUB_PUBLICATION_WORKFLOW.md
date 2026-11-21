@@ -17,10 +17,12 @@ Cette étape apporte **trois commandes** :
   publier une **nouvelle branche et une pull request en brouillon** dans
   un dépôt distant **existant** ; jamais de push vers `main` et jamais de fusion.
 
-**Non intégré :** création automatique du dépôt distant GitHub, modification
-directe des paramètres de protection de branche, publication depuis le chat
-OpenClaw sans intervention, réception du rendu navigateur, exécution sur la
-machine Fedora de l'utilisateur. Une CI verte ne démontre aucun de ces points.
+**Livré séparément :** la [création contrôlée d'un dépôt distant et les
+protections GitHub](GITHUB_REMOTE_SETUP.md) ainsi que le
+[panneau local et les commandes du chat](GITHUB_CHAT_DASHBOARD.md).
+**Non livré :** publication autonome par le modèle, certification du rendu
+navigateur et validation sur le PC Fedora de l'utilisateur. Une CI verte
+ne démontre pas ces derniers points.
 
 Pour créer au préalable un **nouveau dépôt personnel** et vérifier ses réglages, consulter le [guide GitHub distant](GITHUB_REMOTE_SETUP.md). Ces actions sont séparées des PR brouillon et ne sont jamais automatiques.
 
