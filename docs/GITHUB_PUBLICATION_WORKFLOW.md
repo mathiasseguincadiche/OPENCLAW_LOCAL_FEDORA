@@ -24,6 +24,8 @@ machine Fedora de l'utilisateur. Une CI verte ne démontre aucun de ces points.
 
 Pour créer au préalable un **nouveau dépôt personnel** et vérifier ses réglages, consulter le [guide GitHub distant](GITHUB_REMOTE_SETUP.md). Ces actions sont séparées des PR brouillon et ne sont jamais automatiques.
 
+L'atelier possède aussi un [panneau GitHub et des commandes Open WebUI](GITHUB_CHAT_DASHBOARD.md). Le modèle ne dispose jamais d'un outil de publication directe ; chaque opération est demandée explicitement par l'utilisateur et nécessite l'empreinte du plan.
+
 ## 1. Qui est responsable de quoi ?
 
 | Responsabilité | Responsable principal | Collaborateurs | Critère de sortie |

@@ -18,7 +18,15 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
 
-from clawfedora import chat_approvals, chat_files, chat_flow, chat_projects, chat_run, project_cloud
+from clawfedora import (
+    chat_approvals,
+    chat_files,
+    chat_flow,
+    chat_github,
+    chat_projects,
+    chat_run,
+    project_cloud,
+)
 from clawfedora.agents import load_agent_specs
 from clawfedora.cloud_budget import BudgetRefused, load_ledger
 from clawfedora.cloud_privacy import LABELS, PrivacyFilter, describe
@@ -549,6 +557,14 @@ class BridgeHandler(BaseHTTPRequestHandler):
             )
             return
         command = chat_projects.parse_command(typed) if last else None
+        if command is not None and command[0] == "github" and file_descriptors:
+            self._completion(
+                data, chat_projects.bridge_reply(
+                    current, "Commande GitHub : aucune pièce jointe autorisée. "
+                    "Préparer et vérifier les livrables dans le projet avant publication.",
+                ),
+            )
+            return
         if file_descriptors and not (command is not None and command[0] == "soumettre"):
             project = (
                         chat_projects.open_project(self.server.runtime, current)
@@ -638,7 +654,12 @@ class BridgeHandler(BaseHTTPRequestHandler):
         if command is not None:
             name, args = command
             try:
-                if name in chat_projects.FLOW_COMMANDS:
+                if name == "github":
+                    body = chat_github.run(
+                        self.server.runtime, current, args, local=not cloud_request,
+                    )
+                    reply = chat_projects.bridge_reply(current, body)
+                elif name in chat_projects.FLOW_COMMANDS:
                     flow = chat_flow.Flow(
                         self.server.repo_root, self.server.runtime, current,
                         last_brief(messages), self.server.runner,

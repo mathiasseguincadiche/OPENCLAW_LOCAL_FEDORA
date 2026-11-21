@@ -132,9 +132,10 @@ et être examinés indépendamment.
    et les captures réelles (clair/sombre/mobile).
 9. L'utilisateur reste responsable de déclarer la PR prête et de la fusionner.
 
-Les commandes **ne sont pas encore synchronisées à l'interface conversationnelle**
-sur ce premier lot ; le raccordement au tableau de bord et aux commandes
-explicites Open WebUI est un chantier séparé.
+Le [panneau local GitHub et les commandes Open WebUI](GITHUB_CHAT_DASHBOARD.md)
+permettent également de préparer et de contrôler les opérations par une
+interface dédiée. Les commandes de publication ne sont jamais appelées
+par le modèle lui-même.
 
 ## 6. Limites des validations
 
