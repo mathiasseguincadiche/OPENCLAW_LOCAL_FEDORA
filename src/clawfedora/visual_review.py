@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import stat
 from datetime import UTC, datetime
 from pathlib import Path
@@ -181,10 +182,6 @@ def main(argv: list[str] | None = None) -> int:
                 or output.exists() or output.is_symlink()
             ):
                 raise ReviewError("nouveau reçu privé dans le dossier de capture requis")
-            flags = 0xC1  # O_WRONLY | O_CREAT | O_EXCL on POSIX
-            # Use explicit constants rather than platform-specific literal flags.
-            import os
-
             descriptor = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
             with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
                 json.dump(result, stream, ensure_ascii=False, indent=2)
