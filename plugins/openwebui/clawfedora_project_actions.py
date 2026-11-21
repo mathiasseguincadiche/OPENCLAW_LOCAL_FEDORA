@@ -332,6 +332,12 @@ async def _native_folders_for_projects(
             raise ValueError("impossible de créer le dossier de projets dans Open WebUI")
         created += 1
         folder_list.append(root)
+        # Display the newly created project entries in the native sidebar.
+        expanded = await Folders.update_folder_is_expanded_by_id_and_user_id(
+            root.id, user_id, True,
+        )
+        if expanded is None:
+            raise ValueError("impossible de développer la nouvelle racine de projets")
 
     mapping: dict[str, str] = {}
     for row in rows:
