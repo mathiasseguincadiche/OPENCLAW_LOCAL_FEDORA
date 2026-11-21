@@ -245,6 +245,7 @@ class ProjectRunner:
         self.repo_root, self.runtime, self.project, self.base = repo_root, runtime, project, base
         self.task = ""
         self.escalation_reason = "routine"
+        self.task_tier: str | None = None
 
     def __call__(self, role: str, prompt: str, session: str) -> dict[str, Any]:
         state = consent_state(self.repo_root, self.runtime, self.project)
@@ -265,12 +266,12 @@ class ProjectRunner:
             raise self._pause("budget_refused", BUDGET_MESSAGE)
         started = time.time()
         try:
+            options: dict[str, str] = {"route": "cloud"}
             if self.escalation_reason != "routine":
-                response = self.base(
-                    role, prompt, session, route="cloud", escalation_reason=self.escalation_reason,
-                )
-            else:
-                response = self.base(role, prompt, session, route="cloud")
+                options["escalation_reason"] = self.escalation_reason
+            if self.task_tier is not None:
+                options["task_tier"] = self.task_tier
+            response = self.base(role, prompt, session, **options)
         except Exception as exc:
             self._log(role, session, "cloud", self._spent(ledger, before.spent_eur), failed=True)
             # Gateway events are stamped to whole UTC seconds. Allow the same

@@ -2,6 +2,13 @@
 
 **Version 0.2.0 du 3 novembre 2026** ([notes de version](CHANGELOG.md)). **Cycle d'optimisation FinOps #196–#201 intégré au dépôt.** Dernière référence entièrement verte vérifiée avant le lot final : [CI #200](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/44680597623), [CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/44680597903), commit `03026ac`. Consulter les contrôles du commit utilisé avant réception. L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
+**Évolution en cours de qualification :** routage cloud par niveau de tâche
+approuvé (`simple`, `complex`, `critical`), protocole de mesure
+Qwen/DeepSeek/Sol et validation Kubernetes hors ligne dans le laboratoire
+isolé. Le modèle Qwen n'est **pas supprimé** ; le classement réel
+des trois modèles et la réception Fedora restent à faire.
+Voir [stratégie cloud-first](docs/CLOUD_FIRST_QUALIFICATION.md).
+
 ## Résumé vérifiable
 
 | Dimension | Statut | Preuve ou limite |

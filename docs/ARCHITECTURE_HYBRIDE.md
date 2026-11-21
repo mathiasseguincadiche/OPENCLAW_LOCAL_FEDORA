@@ -2,6 +2,14 @@
 
 [← Guide](GUIDE.md) · [README](../README.md) · [Sept agents](fiches/07-roles-et-outils.md) · [Décision de modèle](DECISION_MODELE.md)
 
+> **Évolution cloud-first (sous consentement)** : DeepSeek est prioritaire
+> pour le travail InfraOps public, Sol pour les contre-expertises approuvées.
+> Qwen reste une option locale tant que sa valeur n'a pas été mesurée. Les
+> niveaux facultatifs de tâche `simple`, `complex` et `critical` sur un
+> plan approuvé peuvent ajuster la routine cloud indépendamment du rôle.
+> Lire [la stratégie et la qualification](CLOUD_FIRST_QUALIFICATION.md).
+> L'installation et le chat conservent la route locale par défaut.
+
 ## L'idée de départ
 
 Un PC Fedora avec une **Intel Arc B580 (12 Go)** peut faire tourner un modèle compact : **Qwen 3.5 9B Q4_K_M**. Il est utile pour expliquer, structurer, rédiger et raisonner sur des tâches ciblées, **sans transmettre la conversation à un service d'inférence distant**.

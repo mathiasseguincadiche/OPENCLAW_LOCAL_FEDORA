@@ -74,6 +74,23 @@ Après installation et configuration de WebUI, depuis le dépôt :
 
 Si le contrôle affiche `RECEPTION=READY_FOR_FIRST_PROJECT`, poser une vraie question dans WebUI et créer un petit projet de test, puis suivre la [liste de contrôle de réception](docs/RECEPTION_ETAPE3.md). Ce qui reste à prouver est indiqué dans [STATUS](STATUS.md).
 
+## Priorité métier : duo cloud, local à qualifier
+
+Pour l'apprentissage et les projets InfraOps autorisés, **DeepSeek V4.1 Flash**
+produit le travail courant et **GPT-6.2 Sol** apporte une contre-expertise
+approuvée. Les plans peuvent classer chaque tâche en `simple`, `complex`
+ou `critical` : le niveau approuvé adapte l'effort DeepSeek, indépendamment
+du nom de l'agent. Sol n'est jamais appelé automatiquement simplement parce
+qu'un texte semble difficile. Les **sept rôles restent distincts**.
+
+**Qwen 3.5 9B reste disponible et requis par l'installateur actuel**, mais son
+intérêt quotidien doit être prouvé. Le comparateur
+[`clawfedora-model-qualify`](docs/CLOUD_FIRST_QUALIFICATION.md) prépare une
+décision de maintien ou de retrait à partir de mesures humaines vérifiables ;
+il n'enlève rien du système. **Le cloud reste désactivé et le chat local par
+défaut** tant que tu ne l'as pas autorisé : « cloud-first » décrit la priorité
+métier après consentement, pas une transmission automatique.
+
 ## Local au quotidien, cloud sur décision
 
 Qwen travaille sur la machine avec Ollama. Après accord cloud, DeepSeek V4.1 Flash sert la routine des sept rôles et **GPT-6.2 Sol** sert les révisions approuvées et la contre-expertise finale selon le rôle, ou un choix manuel explicite : aucun repli automatique du local vers le cloud. L'activation, les accords de projet et le budget sont contrôlés par la passerelle locale ; le plafond configuré est de **35 €/mois**, dont 15 € pour DeepSeek et 10 € pour Sol, avec 10 € de réserve non routable. Une limite fournisseur et le prépaiement restent indispensables.

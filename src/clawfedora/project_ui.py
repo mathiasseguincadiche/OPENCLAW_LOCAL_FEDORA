@@ -174,6 +174,7 @@ def propose(
                     {
                         "id": "decision",
                         "role": "architecte-solutions",
+                        "task_tier": "complex",
                         "title": "Choix",
                         "objective": "Justifier le choix",
                         "depends_on": [],
@@ -185,7 +186,11 @@ def propose(
             instructions = (
                 "Lire l’analyse et les réponses de clarification dans le snapshot. "
                 "Proposer 1 à 4 tâches "
-                "courtes, spécialistes uniquement si utiles, dépendances explicites, chemins "
+                "courtes, spécialistes uniquement si utiles, dépendances explicites. "
+                "Pour chaque tâche, renseigner task_tier: simple (isolée), complex "
+                "(multi-fichiers), critical (fort impact). Ce niveau sera présenté dans "
+                "le plan soumis à approbation humaine; il ne modifie ni confidentialité "
+                "ni autorisation de déploiement. Préciser les chemins "
                 "livrables au format demandé: .md/.txt, .yaml/.yml, .tf, .sh, Dockerfile, .j2, "
                 ".json/.ini/.toml/.xml/.py selon le rôle; PDF/DOCX/ODT avec source .md de même nom "
                 "obligatoire dans le même dossier. Le plugin clawfedora_artifact génère les fichiers "

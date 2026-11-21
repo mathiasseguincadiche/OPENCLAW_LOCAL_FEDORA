@@ -27,6 +27,7 @@ TOOLS = {
     "actionlint",
     "shellcheck",
     "hadolint",
+    "kubeconform",
 }
 IGNORED_DIRS = {
     ".git", ".terraform", ".venv", "venv", "node_modules", "__pycache__",
@@ -106,6 +107,18 @@ def command_for(tool: str, snapshot: Path, manifest: tuple[Path, ...]) -> list[s
         if not scripts:
             raise LabRefusal("Aucun script .sh dans le projet")
         return ["shellcheck", "--", *scripts]
+    if tool == "kubeconform":
+        # Only Kubernetes manifests, never arbitrary YAML such as GitHub Actions.
+        manifests = [
+            "/workspace/" + p.as_posix() for p in manifest
+            if p.suffix in {".yaml", ".yml"}
+            and any(part in {"k8s", "kubernetes", "manifests"} for part in p.parts[:-1])
+        ]
+        if not manifests:
+            raise LabRefusal("Aucun manifeste sous k8s/, kubernetes/ ou manifests/")
+        # /schemas must be packaged INSIDE the pre-installed immutable validator image.
+        # Never use the default Kubeconform remote schema URL.
+        return ["kubeconform", "-strict", "-summary", "-schema-location", "/schemas", *manifests]
     if tool == "hadolint":
         dockerfiles = ["/workspace/" + str(p) for p in manifest if p.name == "Dockerfile"]
         if not dockerfiles:

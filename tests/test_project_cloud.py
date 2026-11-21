@@ -30,6 +30,7 @@ class Base:
         self.runtime = runtime
         self.routes: list[str] = []
         self.escalations: list[str] = []
+        self.tiers: list[str | None] = []
         self.cloud_events: list[dict[str, Any]] = [
             {"decision": "forwarded"}, {"decision": "completed"}]
         self.cloud_error: Exception | None = None
@@ -45,9 +46,11 @@ class Base:
     def __call__(
         self, role: str, prompt: str, session: str, *, route: str = "local",
         escalation_reason: str = "routine",
+        task_tier: str | None = None,
     ) -> dict[str, Any]:
         self.routes.append(route)
         self.escalations.append(escalation_reason)
+        self.tiers.append(task_tier)
         model = "deepseek/deepseek-v4.1-flash-1017" if route == "cloud" else "qwen3.5:9b"
         write_json(
             self.runtime / "state/model-runs" / f"{session}.json",
@@ -386,3 +389,15 @@ def test_revision_escalation_requires_existing_cloud_approval(
     runner("ingenieur-devops", prompt, "cloud-revision")
     assert base.routes == ["local", "cloud"]
     assert base.escalations == ["routine", "approved_revision"]
+
+def test_project_runner_passes_an_explicit_tier_without_changing_consent(
+    workshop: tuple[Path, Path, Base],
+) -> None:
+    runtime, project, base = workshop
+    approve(runtime, project)
+    runner = project_runner(ROOT, runtime, project, base=base)
+    runner.task_tier = "simple"
+    prompt = 'task\n{"expected_outputs":["work/build-output/result.txt"]}'
+    runner("ingenieur-devops", prompt, "tier-check")
+    assert base.tiers == ["simple"]
+    assert base.routes == ["cloud"] and base.escalations == ["routine"]

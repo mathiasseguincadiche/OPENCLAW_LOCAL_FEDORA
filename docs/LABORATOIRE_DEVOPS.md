@@ -80,6 +80,14 @@ La référence ci-dessus est volontairement **un emplacement fictif** : elle n'e
 | `actionlint` | Validation des workflows sous `.github/workflows/` | GitHub Actions réellement exécuté |
 | `shellcheck` | Analyse statique des scripts `.sh` de la copie | Shell script sans défaut métier |
 | `hadolint` | Analyse des `Dockerfile` | Conteneur construit, signé ou démarré |
+| `kubeconform` | Manifestes sous `k8s/`, `kubernetes/` ou `manifests/`, schémas **locaux** `-schema-location /schemas` | Admission par le cluster, politique K3s, CRD sans schéma local, déploiement exécuté |
+
+Pour `kubeconform`, l'image choisie doit inclure des **schémas Kubernetes
+compatibles** accessibles en lecture seule à `/schemas` : aucun
+téléchargement de schémas, aucune résolution distant implicite. Le programme
+refuse un projet sans manifeste sous les répertoires prévus. Une vérification
+positive ne remplace ni un serveur API Kubernetes réel ni un test de déploiement.
+Voir [la stratégie cloud-first](CLOUD_FIRST_QUALIFICATION.md).
 
 Tous les binaires doivent **déjà exister dans l'image**. Si un outil manque, le contrôle échoue ; aucun PASS n'est inventé. Pour `terraform validate`, les dépendances nécessaires doivent être préparées **dans l'image ou l'instantané approuvé** : la politique hors ligne ne doit jamais être contournée pour obtenir une réussite.
 
@@ -104,7 +112,7 @@ Le raccordement ultérieur à l'Atelier Projets devra passer par une **file d'ap
 
 Pour atteindre le niveau « prêt quotidien » :
 1. seulement si le validateur annexe est utilisé, produire et contrôler l'image OCI des validateurs, ses versions et son digest, sans imposer de distribution ;
-2. exécuter les six scénarios réels sous Fedora/Podman rootless, SELinux Enforcing ;
+2. exécuter les sept scénarios réels sous Fedora/Podman rootless, SELinux Enforcing ;
 3. tenter les refus : secret, lien symbolique, timeout, image absente, outil absent, projet volumineux ;
 4. vérifier qu'aucun fichier source original n'a changé ;
 5. conserver les journaux assainis reliés au bon commit du projet ;
