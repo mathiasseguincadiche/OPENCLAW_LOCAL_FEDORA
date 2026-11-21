@@ -117,7 +117,33 @@ def test_publish_needs_explicit_repository_and_token(
                                 body="Description adequate", approve_repo="wrong/repo")
     with pytest.raises(github_pr.PublicationError, match="GITHUB_TOKEN"):
         github_pr.publish_draft(**_kwargs(root), title="Example proposal",
-                                body="Description adequate", approve_repo=REPO)
+                                body="Description adequate", approve_repo=REPO,
+                                approve_manifest=github_pr.make_plan(**_kwargs(root))["manifest_sha256"])
+
+
+def test_manifest_approval_is_required_and_rejects_file_changes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _stage(tmp_path)
+    plan = github_pr.make_plan(**_kwargs(root))
+    monkeypatch.setenv("GITHUB_TOKEN", "dummy-not-real-token")
+
+    def no_network(**_params: Any) -> dict[str, Any]:
+        raise AssertionError("No network access permitted for mismatched manifest")
+
+    monkeypatch.setattr(github_pr, "_api_request", no_network)
+    with pytest.raises(github_pr.PublicationError, match="empreinte"):
+        github_pr.publish_draft(
+            **_kwargs(root), title="Example proposal",
+            body="Description adequate", approve_repo=REPO,
+        )
+    (root / "README.md").write_text("# Changed after approval\\n", encoding="utf-8")
+    with pytest.raises(github_pr.PublicationError, match="empreinte"):
+        github_pr.publish_draft(
+            **_kwargs(root), title="Example proposal",
+            body="Description adequate", approve_repo=REPO,
+            approve_manifest=plan["manifest_sha256"],
+        )
 
 
 def test_remote_sha_mismatch_is_fail_closed(
@@ -138,7 +164,8 @@ def test_remote_sha_mismatch_is_fail_closed(
     monkeypatch.setattr(github_pr, "_api_request", fake)
     with pytest.raises(github_pr.PublicationError, match="modifiée"):
         github_pr.publish_draft(**_kwargs(root), title="Example proposal",
-                                body="Description adequate", approve_repo=REPO)
+                                body="Description adequate", approve_repo=REPO,
+                                approve_manifest=github_pr.make_plan(**_kwargs(root))["manifest_sha256"])
     assert calls == [
         ("GET", "/repos/example/infraops"),
         ("GET", "/repos/example/infraops/git/ref/heads/main"),
@@ -181,6 +208,7 @@ def test_full_publication_is_single_commit_and_draft_pr_only(
     result = github_pr.publish_draft(
         **_kwargs(root), title="Create documentation",
         body="New detailed documentation", approve_repo=REPO,
+        approve_manifest=github_pr.make_plan(**_kwargs(root))["manifest_sha256"],
     )
     assert result["draft"] is True
     assert result["mode"] == "DRAFT_PR_CREATED"
@@ -234,4 +262,5 @@ def test_pr_must_be_confirmed_draft_not_normal(
     monkeypatch.setattr(github_pr, "_api_request", fake)
     with pytest.raises(github_pr.PublicationError, match="brouillon"):
         github_pr.publish_draft(**_kwargs(root), title="Example proposal",
-                                body="Description adequate", approve_repo=REPO)
+                                body="Description adequate", approve_repo=REPO,
+                                approve_manifest=github_pr.make_plan(**_kwargs(root))["manifest_sha256"])
