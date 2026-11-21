@@ -175,6 +175,8 @@ def _prepare(
     external: dict[str, Any] | None = None
     verification = "NOT_VERIFIED"
     if kind == "public-ci":
+        if run_id is None:
+            raise ValueError("identifiant de CI manquant")
         external = verify_public_run("github", repository, run_id, commit)
         if (external.get("repository") != repository or external.get("commit") != commit
                 or external.get("run_id") != run_id):
