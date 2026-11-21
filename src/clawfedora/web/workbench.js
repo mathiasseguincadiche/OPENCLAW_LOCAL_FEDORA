@@ -7,6 +7,7 @@
   if (!main) return;
   // Keyboard users can bypass the navigation before reaching any forms.
   if (!main.id) main.id = "main-content";
+  main.tabIndex = -1;
   const skip = document.createElement("a");
   skip.href = "#" + main.id;
   skip.className = "workspace-skip";
