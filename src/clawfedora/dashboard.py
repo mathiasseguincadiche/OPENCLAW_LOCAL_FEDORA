@@ -196,6 +196,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         try:
             if url.path in {
                 "/", "/dashboard.js", "/dashboard.css",
+                "/workbench.js", "/workbench.css",
                 "/github.html", "/github.js", "/github.css",
                 "/notion.html", "/notion.js", "/notion.css", "/notion-rich.js", "/notion-media.js",
             }:
@@ -203,6 +204,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     "/": "dashboard.html",
                     "/dashboard.js": "dashboard.js",
                     "/dashboard.css": "dashboard.css",
+                    "/workbench.js": "workbench.js",
+                    "/workbench.css": "workbench.css",
                     "/github.html": "github.html",
                     "/github.js": "github.js",
                     "/github.css": "github.css",
@@ -216,6 +219,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     "dashboard.html": "text/html",
                     "dashboard.js": "text/javascript",
                     "dashboard.css": "text/css",
+                    "workbench.js": "text/javascript",
+                    "workbench.css": "text/css",
                     "github.html": "text/html",
                     "github.js": "text/javascript",
                     "github.css": "text/css",
