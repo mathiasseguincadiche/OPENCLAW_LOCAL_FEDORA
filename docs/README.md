@@ -4,6 +4,13 @@
 
 > **Règle de lecture :** un test de CI réussi n’équivaut pas à une réception du logiciel sur le PC Fedora/Intel Arc B580. Les fonctions facultatives ou expérimentales sont identifiées comme telles. L’état réel est dans [STATUS](../STATUS.md).
 
+## Choisir les modèles selon le travail
+
+[Stratégie cloud-first et qualification de Qwen](CLOUD_FIRST_QUALIFICATION.md)
+explique la séparation des sept rôles, les trois niveaux de tâche,
+la contre-expertise Sol approuvée et le laboratoire Kubernetes hors ligne.
+Ce choix ne modifie ni le cloud désactivé par défaut ni l'accord par projet.
+
 ## Commencer simplement
 
 | Je veux… | Ouvrir |
