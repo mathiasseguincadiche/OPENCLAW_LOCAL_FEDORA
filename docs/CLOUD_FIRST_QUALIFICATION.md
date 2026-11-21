@@ -28,7 +28,7 @@ implémentés et soumis à une décision ultérieure*.
 | --- | --- | --- |
 | Confidentialité | Utilisateur : local ou autorisation cloud | Passerelle, accord de projet, filtre |
 | Spécialité | Plan approuvé : mentor, recherche, architecture, DevOps, sécurité, rédaction, audit | Outils du rôle inchangés |
-| Complexité | Plan approuvé : simple, complex ou critical | Champ facultatif \`task_tier\` |
+| Complexité | Plan approuvé : simple, complex ou critical | Champ facultatif `task_tier` |
 | Modèle courant | DeepSeek à faible ou fort effort | Politique déterministe, budget 15 € |
 | Contre-expertise | Sol sur révision approuvée, ou revue finale auditeur | Budget 10 €, aucun repli silencieux |
 | Validations techniques | Outils déterministes dans un laboratoire rootless | Lancement explicite opérateur |
@@ -36,23 +36,23 @@ implémentés et soumis à une décision ultérieure*.
 
 ### Niveaux d'une tâche
 
-Le champ \`task_tier\` est facultatif, mais doit appartenir strictement à :
+Le champ `task_tier` est facultatif, mais doit appartenir strictement à :
 
-- \`simple\` : une commande, une courte explication, un fichier isolé. **DeepSeek rapide**.
-- \`complex\` : fichiers multiples, dépendances, diagnostic croisé. **DeepSeek soutenu**.
-- \`critical\` : risque de sécurité, résilience, déploiement, suppression ou impact majeur.
+- `simple` : une commande, une courte explication, un fichier isolé. **DeepSeek rapide**.
+- `complex` : fichiers multiples, dépendances, diagnostic croisé. **DeepSeek soutenu**.
+- `critical` : risque de sécurité, résilience, déploiement, suppression ou impact majeur.
   **DeepSeek soutenu pour préparer** ; Sol ne prend la relève que lors d'une
   **révision approuvée** ou de la **revue finale**.
 
 La règle est **indépendante du rôle** pour les traitements cloud courants.
-Sans \`task_tier\`, l'ancienne politique par rôle est conservée pour
+Sans `task_tier`, l'ancienne politique par rôle est conservée pour
 compatibilité. Aucune classification par mot-clé du prompt, aucune évaluation
 automatique de sa confidentialité et aucune dépense Sol « parce que le texte
 semble difficile ».
 
 Exemple d'une tâche dans un plan à faire approuver, à adapter :
 
-\`\`\`json
+```json
 {
   "id": "architecture-ops",
   "role": "architecte-solutions",
@@ -63,19 +63,19 @@ Exemple d'une tâche dans un plan à faire approuver, à adapter :
   "expected_outputs": ["deliverables/architecture-ops/adr.md"],
   "acceptance_criteria": ["Hypothèses, options, limites et tests décrits"]
 }
-\`\`\`
+```
 
 Cette classification n'est **pas** une preuve de criticité, ni une autorisation
 de déployer ou de transmettre des secrets. Tout passage au cloud est bloqué
-sans consentement préalable. Les agents ne disposent toujours ni de \`exec\`
-ni de \`apply_patch\` ni d'écriture native.
+sans consentement préalable. Les agents ne disposent toujours ni de `exec`
+ni de `apply_patch` ni d'écriture native.
 
 ## Évaluer chaque modèle au lieu de lui attribuer arbitrairement un rôle
 
 La répartition est une **hypothèse technique**, pas un classement universel.
 Utiliser d'abord les sept cas synthétiques de
-[\`EVALUATION_AGENTS.md\`](EVALUATION_AGENTS.md), puis, si nécessaire,
-les dialogues de [\`EVALUATION_PEDAGOGIE.md\`](EVALUATION_PEDAGOGIE.md).
+[`EVALUATION_AGENTS.md`](EVALUATION_AGENTS.md), puis, si nécessaire,
+les dialogues de [`EVALUATION_PEDAGOGIE.md`](EVALUATION_PEDAGOGIE.md).
 Pour une comparaison InfraOps utile, ajouter à la campagne des cas publics
 identiques : Terraform+Ansible, revue de CI, manifestes K3s, incident de
 stockage et restauration PostgreSQL.
@@ -91,7 +91,7 @@ Après les appels réellement consentis et les évaluations humaines,
 préparer **hors du dépôt** un fichier JSON avec le format suivant.
 Les valeurs sont **illustratives, fictives, non des résultats du projet**.
 
-\`\`\`json
+```json
 {
   "classification": "synthetic_public",
   "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -114,15 +114,15 @@ Les valeurs sont **illustratives, fictives, non des résultats du projet**.
     ]
   }
 }
-\`\`\`
+```
 
 **Attention :** l'exemple montre **un seul cas**. La commande exige **au
 moins quatre cas identiques par modèle** : compléter la suite avec les sorties
 et les factures mesurées avant de lancer le comparateur.
 
-\`\`\`bash
+```bash
 clawfedora-model-qualify /chemin/prive/rapport.json
-\`\`\`
+```
 
 La commande ne lance aucun modèle, n'appelle aucune API et ne vérifie pas
 la sincérité des notes humaines. Elle refuse les mesures absentes,
@@ -144,26 +144,26 @@ une tâche privée ne doit jamais être envoyée au cloud par défaut.
 
 ## Laboratoire InfraOps
 
-Le programme \`clawfedora-lab\` préexiste : il demande une confirmation
-\`--apply\`, n'utilise qu'une image locale épinglée par digest, copie un
+Le programme `clawfedora-lab` préexiste : il demande une confirmation
+`--apply`, n'utilise qu'une image locale épinglée par digest, copie un
 snapshot restreint, et lance Podman rootless sans réseau ni écritures sur
-la source. Il **ne donne aucun droit \`exec\` aux agents**.
+la source. Il **ne donne aucun droit `exec` aux agents**.
 
-Cette évolution ajoute \`kubeconform\` aux validateurs possibles. Seuls les
-YAML placés sous \`k8s/\`, \`kubernetes/\` ou \`manifests/\` sont inspectés ;
-le programme passe \`-schema-location /schemas\` et n'utilise **jamais**
+Cette évolution ajoute `kubeconform` aux validateurs possibles. Seuls les
+YAML placés sous `k8s/`, `kubernetes/` ou `manifests/` sont inspectés ;
+le programme passe `-schema-location /schemas` et n'utilise **jamais**
 la source distante implicite. L'image immutable doit donc contenir
-**Kubeconform et des schémas Kubernetes compatibles dans \`/schemas\`**.
+**Kubeconform et des schémas Kubernetes compatibles dans `/schemas`**.
 Si l'image ne les contient pas, la vérification ne peut pas être déclarée réussie.
 
-\`\`\`bash
+```bash
 # Simulation : aucune commande ni image lancée.
 clawfedora-lab --project ./mon-projet --tool kubeconform
 
 # Validation volontaire, image locale préinstallée et vérifiée.
 clawfedora-lab --project ./mon-projet --tool kubeconform \
   --image registry.example.org/validators@sha256:<DIGEST_COMPLET> --apply
-\`\`\`
+```
 
 Le digest doit être remplacé par celui d'une image **réellement construite,
 installée et auditée**, pas par un digest fictif. Les résultats de tests du
