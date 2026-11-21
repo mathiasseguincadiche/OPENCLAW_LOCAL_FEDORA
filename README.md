@@ -74,6 +74,13 @@ Après installation et configuration de WebUI, depuis le dépôt :
 
 Si le contrôle affiche `RECEPTION=READY_FOR_FIRST_PROJECT`, poser une vraie question dans WebUI et créer un petit projet de test, puis suivre la [liste de contrôle de réception](docs/RECEPTION_ETAPE3.md). Ce qui reste à prouver est indiqué dans [STATUS](STATUS.md).
 
+**Cas métier étudié :** [OpsDesk et ses 13 exercices InfraOps](docs/CAS_USAGE_INFRAOPS_OPSDESK.md).
+La répartition des agents tient compte de la différence entre VM créées par
+Terraform/libvirt, configuration Ansible de Rocky, service Docker Compose,
+copie d'essai K3s et preuve de restauration. Les modèles sont qualifiés
+sur des scénarios synthétiques correspondants, sans solutions toutes faites
+aux exercices personnels.
+
 ## Priorité métier : duo cloud, local à qualifier
 
 Pour l'apprentissage et les projets InfraOps autorisés, **DeepSeek V4.1 Flash**
