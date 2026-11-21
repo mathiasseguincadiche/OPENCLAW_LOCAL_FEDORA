@@ -22,6 +22,13 @@ regroupent les actions sous les réponses :
 | **Actions du projet** | Ouvrir le menu analyse, plan, validation, lancement, pause, relecture et livraison |
 | **Sources, modèles et aide** | Consulter les sources, la liste des projets, le conseil de modèle, le budget et les commandes |
 
+Les [dossiers de projets natifs](../OPENWEBUI_NATIVE_PROJECT_FOLDERS.md)
+sont créés sur demande depuis **Afficher les projets dans le menu**.
+Pour retrouver un fil dans le bon dossier, utiliser **Classer cette
+conversation** après son premier message. Ouvrir un nouveau fil dans un
+sous-dossier ne sélectionne pas encore son contexte ClawFedora
+automatiquement. Les sessions OpenClaw du terminal restent séparées.
+
 Utilise **Choisir un projet sous la dernière réponse** de la conversation : le
 projet choisi apparaît en tête de cette réponse, dont le texte est conservé.
 Ce choix est enregistré dans ce fil ; il ne modifie ni les fichiers, ni les
