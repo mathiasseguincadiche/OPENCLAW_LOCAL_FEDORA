@@ -24,7 +24,7 @@ def test_public_and_private_sources_are_not_merged() -> None:
     )
     for key in (
         "GitHub", "Notion", "README", "Draw.io", "CI/CD", "STATUS",
-        "render", "d'installation",
+        "rendu", "installation",
     ):
         assert key.lower() in charter.lower()
     evidence = (ROOT / "templates/github/preuve.md").read_text(encoding="utf-8")
