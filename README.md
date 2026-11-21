@@ -114,6 +114,16 @@ peuvent aussi recevoir des modifications textuelles ciblées (cellule ou légend
 sans redimensionner les tableaux ni remplacer les fichiers image. Ni synchronisation du suivi ni écriture autonome
 du modèle n'est autorisée.
 
+## Interface locale modernisée
+
+Les trois espaces **Projets, GitHub et Notion** partagent une
+[navigation, des onglets et un design system responsive](docs/WORKBENCH_UI_DESIGN.md).
+La présentation claire/sombre, les cartes et les états de revue sont
+modernisés sans changer les permissions ni les règles d'approbation.
+L'application Open WebUI de discussion sur le port 3000 est distincte.
+La [recette visuelle réelle](docs/validation/VISUAL_RECEPTION_NATIVE.md)
+sur Fedora reste nécessaire.
+
 ## GitHub depuis l'atelier et les discussions
 
 Le [panneau GitHub local et ses commandes de discussion](docs/GITHUB_CHAT_DASHBOARD.md) permettent de préparer un dépôt, lire ses réglages, auditer des livrables et proposer une PR en brouillon après approbation du SHA exact du plan. Les opérations de publication depuis Open WebUI sont **des commandes que l'utilisateur tape**, pas des décisions autonomes du modèle.

@@ -7,6 +7,12 @@ suivre la [procédure de réception visuelle native](VISUAL_RECEPTION_NATIVE.md)
 L'outillage capture et collecte les données ; il ne remplace pas une revue
 humaine de chaque page réelle.
 
+La [refonte de l'interface locale](../WORKBENCH_UI_DESIGN.md) doit être
+contrôlée comme un vrai produit : navigation entre les trois espaces,
+onglets utilisables au clavier, formulaire de plan, approbation et erreurs,
+mode clair/sombre, mobile et absence de débordement. Une capture ne
+remplace pas le test interactif sur Fedora.
+
 ## Règle d'évaluation
 
 Ce protocole **ne donne aucun verdict d'exploitation sans réalisation effective**.
