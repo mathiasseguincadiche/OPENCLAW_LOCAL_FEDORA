@@ -79,7 +79,7 @@ def test_exact_approval_and_single_use(tmp_path: Path, monkeypatch: pytest.Monke
     assert result["mode"] == "NOTION_BLOCK_UPDATED_VERIFIED"
     assert state["value"] == "Version relue"
     assert len(state["patches"]) == 1
-    with pytest.raises(nw.NotionWriteError, match="déjà présent"):
+    with pytest.raises(nw.NotionWriteError, match="déjà tenté"):
         nw.apply(path, PAGE, plan["manifest_sha256"])
     assert len(state["patches"]) == 1
 
