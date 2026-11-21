@@ -144,6 +144,24 @@ def test_theme_responsive_accessibility_and_privacy() -> None:
     assert 'document.body.classList.add("workbench", "workbench--" + view)' in script
 
 
+def test_mobile_a11y_labels_skip_and_step_controls_are_present() -> None:
+    script = (WEB / "workbench.js").read_text(encoding="utf-8")
+    styles = (WEB / "workbench.css").read_text(encoding="utf-8")
+    for expression in (
+        'link.setAttribute("aria-label", item.label)',
+        'skip.textContent = "Aller au contenu principal"',
+        'main.tabIndex = -1',
+        'stepNavigation.setAttribute("role", "group")',
+        'stepCount.setAttribute("aria-live", "polite")',
+        'stepCount.textContent = "Étape "',
+        'previous.type = "button"',
+        'next.type = "button"',
+    ):
+        assert expression in script
+    assert ".workspace-step-navigation" in styles
+    assert ".workspace-skip:focus" in styles
+
+
 def test_shared_frontend_javascript_syntax_when_node_is_available() -> None:
     node = shutil.which("node")
     if node is None:
