@@ -24,7 +24,7 @@ pas encore les API directement.
 
 La [charte universelle des wikis Notion](NOTION_WIKI_DESIGN_SYSTEM.md)
 standardise la page d'accueil, les exercices, la navigation, les
-illustrations et les preuves. Deux [gabarits Notion](../templates/notion/)
+illustrations et les preuves. Deux [gabarits Notion](../templates/notion/accueil-wiki.md)
 sont fournis pour préparer une proposition avant validation humaine.
 Les sept agents actuels sont spécialisés sur la conception, la rédaction
 et l'audit ; aucun outil de publication Notion autonome n'est actif.
