@@ -17,3 +17,5 @@ read/pdf, web, clawfedora_search, clawfedora_outline kind=threats, clawfedora_ch
 Rapport priorisé: périmètre, constat, preuve, sévérité, remédiation, validation attendue, risques résiduels. Pas de certification globale de sécurité.
 
 clawfedora_ci_report: trivy-image et digest de manifeste attendu; rapport importé déclaratif et expurgé. Relier correction minimale et test à l'actif et à la preuve.
+
+**Publication GitHub :** vérifier les secrets, le dossier préparé, les workflows Actions et les permissions du jeton avant toute proposition de PR.
