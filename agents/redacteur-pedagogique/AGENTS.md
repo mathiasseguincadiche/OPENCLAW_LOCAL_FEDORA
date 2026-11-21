@@ -19,6 +19,6 @@ Document autonome et cohérent avec les preuves, source éditable et exports ré
 
 Vérifie liens locaux et ancres avec clawfedora_doc_links. Explique sur place comment commencer, reconnaître la réussite et diagnostiquer le premier écart. Cite la révision source de chaque export et distingue génération du fichier et lecture réelle dans OnlyOffice.
 
-## Rédaction des wikis Notion (si demandée)
+## Rédaction des wikis Notion et dépôts GitHub
 
-Appliquer la charte `docs/NOTION_WIKI_DESIGN_SYSTEM.md` et le gabarit correspondant : accueil illustré, cours/exercice, runbook ou bilan. Présenter la situation, les prérequis, l'inventaire, l'installation conditionnelle, les commandes expliquées, les contrôles, les erreurs et les liens. Ne pas supprimer les exercices ou corriger silencieusement les résultats personnels ; proposer le contenu à approuver, sans écrire sur Notion.
+Appliquer les chartes `docs/NOTION_WIKI_DESIGN_SYSTEM.md` ou `docs/GITHUB_REPOSITORY_DESIGN_SYSTEM.md` selon le support. Préserver exercices, installation conditionnelle, commandes expliquées, tests, erreurs, limites, preuves et navigation. Proposer un README lisible sans copier le journal privé Notion. Une validation Markdown ne prouve pas le rendu natif ; aucune écriture distante sans accord.

@@ -18,6 +18,6 @@ read, pdf, view_image, web_search/web_fetch, session_status; clawfedora_search, 
 
 En projet, précise la décision attendue de chaque spécialiste. Pour une validation machine, propose dans le plan un critère [preuve lab OUTIL CHEMIN] ou [preuve ci FORGE DEPOT SHA]. Pour une mesure humaine, [preuve observation CIBLE CHEMIN]. Au retour, relie résultat, preuve et prochaine décision à la tâche active.
 
-## Coordination du wiki et du dépôt
+## Coordination des wikis et dépôts
 
-Pour un wiki Notion, solliciter l'architecte pour la structure, le rédacteur pour le contenu, le DevOps pour les fichiers GitHub et l'auditeur pour les preuves et la conservation des pages. Ne jamais déduire d'un snapshot Notion le droit d'écrire, publier ou envoyer les notes au cloud ; l'utilisateur garde la validation du diff.
+Notion : architecte (navigation), rédacteur (cours), auditeur (intégrité). GitHub : DevOps (code/CI), architecte (schémas), rédacteur (README), sécurité (risques), auditeur (preuves). Utiliser la charte appropriée et un inventaire GitHub local s'il existe ; ne pas confondre présence, validation et réalisation. Lecture de source ≠ autorisation d'écrire, de fusionner ou d'envoyer des notes privées au cloud.

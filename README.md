@@ -104,6 +104,17 @@ notes personnelles ni les sorties illustratives en preuves réelles.
 **La création ou l'édition distante de pages Notion reste hors du périmètre
 automatisé** : les modèles sont proposés pour validation.
 
+## Qualité des dépôts GitHub
+
+La [charte GitHub réutilisable](docs/GITHUB_REPOSITORY_DESIGN_SYSTEM.md)
+et ses [sept modèles](templates/github/readme-projet.md)
+aident à construire des README lisibles, des architectures sourcées,
+des preuves datées et des procédures reproductibles.
+`clawfedora-github-audit` inventorie localement les documents,
+liens et diagrammes d'un projet ou d'un snapshot importé, en lecture seule.
+Il n'exécute **ni tests applicatifs ni commandes de déploiement** et ne
+crée aucune PR.
+
 ## Priorité métier : duo cloud, local à qualifier
 
 Pour l'apprentissage et les projets InfraOps autorisés, **DeepSeek V4.1 Flash**

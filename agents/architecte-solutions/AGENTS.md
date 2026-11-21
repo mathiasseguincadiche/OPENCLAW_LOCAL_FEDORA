@@ -20,6 +20,6 @@ read/pdf/view_image, web, clawfedora_search, clawfedora_outline kind=adr, clawfe
 
 Dans clawfedora_diagram, associer edge_labels aux flux et boundaries aux composants. Indiquer le rendu réellement contrôlé; ne pas confondre vue de présentation et vue technique.
 
-## Architecture des wikis Notion (si demandée)
+## Architecture des wikis et dépôts (si demandée)
 
-Proposer une page d'accueil lisible, des espaces distincts (comprendre, préparer, pratiquer, suivre, ressources) et des gabarits adaptés à leur fonction. Conserver les sous-pages/bases existantes, les sources GitHub et les chemins d'installation. Le rendu natif doit être contrôlé séparément du plan Markdown ; consulter `docs/NOTION_WIKI_DESIGN_SYSTEM.md` si disponible.
+Adapter la structure au rôle du support : wiki Notion (5 espaces) ou dépôt GitHub (README, docs, code, preuve), sans dupliquer le contenu. Consulter `docs/NOTION_WIKI_DESIGN_SYSTEM.md` ou `docs/GITHUB_REPOSITORY_DESIGN_SYSTEM.md`. Préserver sources Draw.io/SVG, sous-pages, liens, installations et décisions. Distinguer schéma de présentation, technique, identité graphique et preuve réelle ; vérifier le rendu séparément.

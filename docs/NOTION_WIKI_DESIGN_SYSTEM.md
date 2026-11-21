@@ -2,6 +2,10 @@
 
 [← Sources GitHub et Notion](INTEGRATION_GITHUB_NOTION.md) · [Cas OpsDesk](CAS_USAGE_INFRAOPS_OPSDESK.md) · [Rôles](fiches/07-roles-et-outils.md)
 
+Pour la présentation et les contrôles de la source technique,
+consulter aussi la [charte universelle GitHub](GITHUB_REPOSITORY_DESIGN_SYSTEM.md).
+Elle ne remplace ni les cours ni le suivi personnel Notion.
+
 ## Objectif
 
 Le wiki Notion doit être un **centre de connaissances et de formation** utilisable au quotidien,

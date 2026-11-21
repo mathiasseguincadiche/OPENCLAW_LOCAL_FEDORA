@@ -29,6 +29,18 @@ sont fournis pour préparer une proposition avant validation humaine.
 Les sept agents actuels sont spécialisés sur la conception, la rédaction
 et l'audit ; aucun outil de publication Notion autonome n'est actif.
 
+## Créer et auditer un dépôt GitHub premium
+
+La [charte universelle GitHub](GITHUB_REPOSITORY_DESIGN_SYSTEM.md)
+définit les sept gabarits, la lecture par niveaux, les schémas
+Draw.io/SVG, les preuves et les protections avant PR.
+L'outil local `clawfedora-github-audit --path /chemin/vers/depot`
+inspecte **sans réseau ni écriture** les liens et signaux documentaires
+d'un clone ou d'un snapshot GitHub importé.
+
+Le rapport est un inventaire statique, pas une note de qualité absolue,
+un état de CI, une validation de rendu GitHub ni un déploiement de VM.
+
 ## Référence métier InfraOps
 
 [OpsDesk : architecture du laboratoire et besoins concrets des sept agents](CAS_USAGE_INFRAOPS_OPSDESK.md)

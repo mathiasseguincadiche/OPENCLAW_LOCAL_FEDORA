@@ -4,6 +4,18 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Charte GitHub et auditeur local passif
+
+- Sept gabarits GitHub universels : README, architecture/ADR, runbook,
+  preuve, PR, issue et notes de version.
+- `clawfedora-github-audit` produit un inventaire JSON local, sans
+  réseau, exécution de code ou modification du dépôt examiné.
+- Contrôles synthétiques des liens, SVG/draw.io, snapshots partiels,
+  symlinks et protection des contenus sensibles.
+- Répartition des tâches GitHub parmi les sept agents existants ;
+  aucun rôle autonome ne publie ou ne fusionne de PR.
+
+
 ### Wiki Notion premium et compétences des agents
 
 - Charte de wiki réutilisable (accueil, cinq espaces et sept familles de pages).
