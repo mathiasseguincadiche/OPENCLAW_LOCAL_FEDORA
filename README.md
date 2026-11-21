@@ -94,6 +94,16 @@ automatique à OpenRouter, ni de mise à jour du suivi Notion.
 `--apply`. Ce n'est **pas encore une synchronisation en direct depuis le
 chat**, ni un accès aux VM Rocky. [Mode d'emploi et limites](docs/INTEGRATION_GITHUB_NOTION.md).
 
+## Documentation Notion de qualité wiki
+
+L'atelier dispose d'une [charte visuelle et éditoriale universelle](docs/NOTION_WIKI_DESIGN_SYSTEM.md)
+et de [gabarits de pages Notion](templates/notion/). Les sept agents
+actuels se répartissent architecture, rédaction, vérification technique
+GitHub et audit documentaire. Un rendu premium ne transforme ni les
+notes personnelles ni les sorties illustratives en preuves réelles.
+**La création ou l'édition distante de pages Notion reste hors du périmètre
+automatisé** : les modèles sont proposés pour validation.
+
 ## Priorité métier : duo cloud, local à qualifier
 
 Pour l'apprentissage et les projets InfraOps autorisés, **DeepSeek V4.1 Flash**
