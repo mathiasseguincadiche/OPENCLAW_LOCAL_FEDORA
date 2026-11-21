@@ -26,6 +26,9 @@ from clawfedora.project_engine import (
     transition_project,
 )
 from clawfedora.project_intake import create_project
+from clawfedora.project_roadmap import change as roadmap_change
+from clawfedora.project_roadmap import initialize as roadmap_initialize
+from clawfedora.project_roadmap import load as roadmap_load
 from clawfedora.project_revision import impact, revise
 from clawfedora.project_worker import review_project, run_project_tasks, worker_lock
 from clawfedora.storage import load_settings, require_storage
@@ -85,6 +88,30 @@ def add_project_parser(
     status = commands.add_parser("status")
     status.add_argument("--runtime-root")
     status.add_argument("--project-id", required=True)
+
+    roadmap = commands.add_parser("roadmap", help="voir les jalons de longue durée")
+    roadmap.add_argument("--runtime-root")
+    roadmap.add_argument("--project-id", required=True)
+
+    roadmap_init = commands.add_parser(
+        "roadmap-init", help="prévisualiser ou créer une feuille de route (sans remplacement)"
+    )
+    roadmap_init.add_argument("--runtime-root")
+    roadmap_init.add_argument("--project-id", required=True)
+    roadmap_init.add_argument("--file", required=True, help="JSON milestones/depends_on")
+    roadmap_init.add_argument("--apply", action="store_true")
+
+    roadmap_set = commands.add_parser(
+        "roadmap-set", help="prévisualiser ou noter l'état opérateur d'un jalon"
+    )
+    roadmap_set.add_argument("--runtime-root")
+    roadmap_set.add_argument("--project-id", required=True)
+    roadmap_set.add_argument("--milestone-id", required=True)
+    roadmap_set.add_argument(
+        "--state", choices=("PLANNED", "IN_PROGRESS", "BLOCKED", "IMPLEMENTED"), required=True
+    )
+    roadmap_set.add_argument("--note", required=True)
+    roadmap_set.add_argument("--apply", action="store_true")
 
     for name in ("pause", "resume", "index", "search", "remember", "research"):
         command = commands.add_parser(name)
@@ -396,6 +423,24 @@ def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
         elif command == "status":
             project_manifest = read_json(_project(args) / "project.json")
             print(json.dumps(project_manifest, indent=2, ensure_ascii=False))
+        elif command == "roadmap":
+            print(json.dumps(roadmap_load(_project(args)), ensure_ascii=False, indent=2))
+        elif command == "roadmap-init":
+            if args.apply:
+                with worker_lock(_runtime(args), allow_gaming=True):
+                    value = roadmap_initialize(_project(args), _load_object(args.file), apply=True)
+            else:
+                value = roadmap_initialize(_project(args), _load_object(args.file))
+            print(json.dumps(value, ensure_ascii=False))
+        elif command == "roadmap-set":
+            if args.apply:
+                with worker_lock(_runtime(args), allow_gaming=True):
+                    value = roadmap_change(
+                        _project(args), args.milestone_id, args.state, args.note, apply=True
+                    )
+            else:
+                value = roadmap_change(_project(args), args.milestone_id, args.state, args.note)
+            print(json.dumps(value, ensure_ascii=False))
         elif command == "pause":
             request_pause(_runtime(args), _project(args))
             print("PROJECT_PAUSE=requested-at-task-boundary")
