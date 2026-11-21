@@ -141,7 +141,7 @@ def test_theme_responsive_accessibility_and_privacy() -> None:
     assert "document.createElementNS" in script  # Local icon artwork.
     assert "innerHTML" not in script
     assert "eval(" not in script
-    assert 'body.classList.add("workbench"' not in script  # Explicit view class.
+    assert 'document.body.classList.add("workbench", "workbench--" + view)' in script
 
 
 def test_shared_frontend_javascript_syntax_when_node_is_available() -> None:
