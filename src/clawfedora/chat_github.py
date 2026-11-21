@@ -13,6 +13,7 @@ from typing import Any
 
 from clawfedora.github_pr import make_plan, publish_draft
 from clawfedora.github_quality import audit_repository
+from clawfedora import project_work_pr
 from clawfedora.github_remote import create_plan, create_repository
 from clawfedora.project_common import read_json, write_json
 from clawfedora.project_worker import worker_lock
