@@ -95,6 +95,8 @@ def environment(
         # locally managed file filter and project shortcuts require Functions.
         "ENABLE_PLUGINS": "true",
         "ENABLE_FUNCTIONS": "true",
+        # Native sidebar folders are the project navigation, not a custom fork.
+        "ENABLE_FOLDERS": "true",
         "ENABLE_TOOLS": "false",
         "ENABLE_TOOL_SERVERS": "false",
         # Functions are source-managed and pinned; never install dependencies
