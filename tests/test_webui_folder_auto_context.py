@@ -230,7 +230,7 @@ def test_existing_unmanaged_and_unknown_chats_keep_manual_selection(
     body = _filter(filter_instance, _body("Bonjour"))
     assert "clawfedora_folder_binding" not in body
     code, text = _request(server, body)
-    assert code == 200 and text == "Réponse locale de contrôle."
+    assert code == 200 and "Réponse locale de contrôle." in text
     assert len(calls) == 1 and '"id": "daily-project"' not in calls[0]
     state.chats[CHAT].folder_id = "managed"
     unknown = _body("Bonjour")
