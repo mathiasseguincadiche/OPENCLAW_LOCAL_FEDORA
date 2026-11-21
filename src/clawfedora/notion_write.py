@@ -247,6 +247,9 @@ def apply(plan_file: Path, page: str, manifest: str) -> dict[str, Any]:
     age = datetime.now(UTC) - created_at
     if created_at.utcoffset() is None or not timedelta(0) <= age <= timedelta(hours=24):
         raise NotionWriteError("plan expiré ou horodatage invalide")
+    marker = plan_file.with_name(plan_file.name + ".attempted.json")
+    if marker.exists() or marker.is_symlink():
+        raise NotionWriteError("plan déjà tenté : inspecter Notion avant de recommencer")
     current, kind, old = _block(page_id, block_id)
     if kind != data["block_type"] or _fingerprint(current, kind) != data["old_sha256"]:
         raise NotionWriteError("page ou bloc modifié depuis l'aperçu : nouveau plan requis")
@@ -254,7 +257,6 @@ def apply(plan_file: Path, page: str, manifest: str) -> dict[str, Any]:
         raise NotionWriteError("contenu déjà identique : vérifier la page")
     # Durable single-use marker precedes the network write. Never silently retry an
     # ambiguous PATCH: Notion does not expose compare-and-swap on block revisions.
-    marker = plan_file.with_name(plan_file.name + ".attempted.json")
     _private_new(marker, {
         "state": "ATTEMPTED", "page_id": page_id, "block_id": block_id,
         "manifest_sha256": digest, "marked_at": datetime.now(UTC).isoformat(),
