@@ -141,7 +141,7 @@ def audit_links(root: Path, *, snapshot: bool) -> dict[str, Any]:
             if link.startswith("/"):
                 target = _safe_path(root, link.lstrip("/"))
             else:
-                target = _safe_path(root, str((Path(name).parent / link)))
+                target = _safe_path(root, str(Path(name).parent / link))
             label = f"{name} -> {link}"
             if target is None:
                 missing.append(label)
@@ -179,9 +179,8 @@ def audit_graphics(root: Path, *, snapshot: bool) -> dict[str, Any]:
             invalid.append(svg.name + ": symlink")
             continue
         source = _safe_path(root, str(svg.relative_to(root).with_suffix(".drawio")))
-        if source is None or not source.is_file():
-            if not snapshot:
-                absent.append(svg.name + ": draw.io source missing")
+        if (source is None or not source.is_file()) and not snapshot:
+            absent.append(svg.name + ": draw.io source missing")
         xml = _read_text(root, str(svg.relative_to(root)))
         if xml is None:
             invalid.append(svg.name + ": unreadable or oversized SVG")
