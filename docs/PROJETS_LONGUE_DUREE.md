@@ -73,6 +73,11 @@ parcours long, consulter [Actualiser les snapshots GitHub](GITHUB_SNAPSHOT_REFRE
 La nouvelle version est conservée séparément, sans modifier les exercices
 ni les preuves existantes.
 
+Les correctifs d'un exercice en cours peuvent être préparés sous forme
+de [PR brouillon liée au jalon](GITHUB_PR_PROJET_EN_COURS.md), après revue
+de diff, vérification du SHA GitHub et approbation explicite. Cette opération
+ne certifie pas l'exercice et ne modifie pas sa progression.
+
 **Limites de cette première tranche :** pas de saisie graphique, pas
 d'actualisation GitHub/Notion, pas de
 synchronisation des preuves, pas d'exécution sur Fedora ou sur les VM Rocky.

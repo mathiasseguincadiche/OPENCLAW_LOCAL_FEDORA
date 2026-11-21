@@ -33,6 +33,7 @@ from clawfedora.project_engine import (
 )
 from clawfedora.project_intake import create_project, validate_input_integrity
 from clawfedora.project_roadmap import load as load_roadmap
+from clawfedora.project_work_pr import history as github_work_pr_history
 from clawfedora.project_worker import AgentRunner, _guard, openclaw_runner, worker_lock
 
 UPLOAD_FORMATS = {
@@ -127,6 +128,7 @@ def details(project: Path) -> dict[str, Any]:
         "learning": contract(project),
         "checkpoints": checkpoints(project),
         "github_updates": github_updates(project),
+        "github_work_pr": github_work_pr_history(project),
         "continuous_roadmap": load_roadmap(project)
         if (project / "context/continuous_roadmap.json").is_file()
         else None,
