@@ -132,7 +132,7 @@ def _replace(parts: list[dict[str, Any]], index: int, new_text: str) -> list[dic
         raise nw.NotionWriteError("texte portant un lien : segment protégé")
     if parts[index]["text"]["content"] == proposed:
         raise nw.NotionWriteError("segment inchangé")
-    updated = [
+    updated: list[dict[str, Any]] = [
         {"type": "text", "text": dict(part["text"]), "annotations": dict(part["annotations"])}
         for part in parts
     ]
