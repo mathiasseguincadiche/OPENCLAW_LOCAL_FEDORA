@@ -64,3 +64,36 @@ def test_disabled_expert_never_falls_back(tmp_path: Path, policy: dict[str, Any]
     policy["upstream_models"]["expert"]["enabled"] = False
     with pytest.raises(ProfileRefused, match="désactivé"):
         agent_route(tmp_path, policy, "auditeur-qualite", "final_review")
+
+@pytest.mark.parametrize("role", [
+    "chef-operations", "expert-recherche", "architecte-solutions",
+    "ingenieur-devops", "ingenieur-securite", "auditeur-qualite",
+    "redacteur-pedagogique",
+])
+@pytest.mark.parametrize(("tier", "expected"), [
+    ("simple", "atelier/standard-rapide"),
+    ("complex", "atelier/standard-soutenu"),
+    ("critical", "atelier/standard-soutenu"),
+])
+def test_approved_task_tier_overrides_daily_role_without_spending_sol(
+    tmp_path: Path, policy: dict[str, Any], role: str, tier: str, expected: str,
+) -> None:
+    routed = agent_route(tmp_path, policy, role, task_tier=tier)
+    assert routed.model_id == expected
+    assert routed.model_name == "standard"
+    assert gateway_route(tmp_path, policy, routed.model_id) is not None
+
+
+def test_critical_tier_cannot_escalate_to_sol_without_approved_revision(
+    tmp_path: Path, policy: dict[str, Any],
+) -> None:
+    routine = agent_route(tmp_path, policy, "ingenieur-devops", task_tier="critical")
+    approved = agent_route(
+        tmp_path, policy, "ingenieur-devops", "approved_revision", task_tier="critical",
+    )
+    assert routine.model_name == "standard"
+    assert approved.model_name == "expert"
+    with pytest.raises(ProfileRefused, match="niveau de tâche"):
+        agent_route(tmp_path, policy, "ingenieur-devops", task_tier="untrusted")
+    with pytest.raises(ProfileRefused, match="niveau de tâche"):
+        agent_route(tmp_path, policy, "ingenieur-devops", task_tier="Critical")
