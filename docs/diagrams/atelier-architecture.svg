@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 790" role="img" aria-labelledby="title desc">
-<title id="title">Atelier hybride Fedora : Qwen local et DeepSeek cloud</title>
-<desc id="desc">Open WebUI et Atelier Projets alimentent un pont et un moteur contrôlé. OpenClaw applique le rôle spécialisé, puis deux voies sont possibles : Qwen 3.5 local sur Fedora et Intel Arc B580 par défaut ; DeepSeek V4.1 Flash distant via une passerelle qui impose consentement, confidentialité et budget. Le projet conserve fichiers et preuves ; l'humain décide.</desc>
+<title id="title">Atelier hybride Fedora : Qwen, DeepSeek et Sol</title>
+<desc id="desc">Open WebUI et Atelier Projets alimentent un pont et un moteur contrôlé. OpenClaw applique le rôle spécialisé, puis deux voies sont possibles : Qwen 3.5 local sur Fedora et Intel Arc B580 par défaut ; DeepSeek Routine · Expertise en routine cloud et Sol en expertise approuvée via une passerelle qui impose consentement, confidentialité et budget. Le projet conserve fichiers et preuves ; l'humain décide.</desc>
 <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#648398"/></marker><marker id="cloudArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#b6783a"/></marker></defs>
 <rect width="1280" height="790" rx="18" fill="#f6f9fc"/>
 <g font-family="DejaVu Sans,Arial,sans-serif">
-<text x="36" y="48" font-size="29" font-weight="700" fill="#14374c">Un atelier, sept agents, deux moteurs complémentaires</text>
-<text x="36" y="78" font-size="15" fill="#416477">Qwen local : autonomie et confidentialité · DeepSeek cloud : capacité pour les tâches DevOps difficiles</text>
+<text x="36" y="48" font-size="29" font-weight="700" fill="#14374c">Sept agents, Qwen local et duo cloud</text>
+<text x="36" y="78" font-size="15" fill="#416477">Qwen local · DeepSeek cloud en routine · Sol en expertise</text>
 <g font-size="14" font-weight="700"><text x="37" y="132" fill="#116b74">1 · INTERFACES</text><text x="334" y="132" fill="#284659">2 · CONTRÔLES</text><text x="633" y="132" fill="#284659">3 · MISSIONS</text><text x="922" y="132" fill="#234d64">4 · MODÈLES</text></g>
 <!-- Interfaces -->
 <rect x="34" y="158" width="244" height="108" rx="15" fill="#126b74"/>
@@ -55,9 +55,9 @@
 <text x="1081" y="426" text-anchor="middle" fill="#815428" font-size="21" font-weight="700">Passerelle :18892</text>
 <text x="1081" y="451" text-anchor="middle" fill="#815428" font-size="14">Filtre · budget · politique fournisseur</text>
 <rect x="916" y="535" width="330" height="111" rx="15" fill="#fae7cd" stroke="#bd8749" stroke-width="2.5"/>
-<text x="1081" y="570" text-anchor="middle" fill="#784b22" font-size="21" font-weight="700">OpenRouter → DeepSeek</text>
-<text x="1081" y="597" text-anchor="middle" fill="#84572b" font-size="16">V4.1 Flash</text>
-<text x="1081" y="620" text-anchor="middle" fill="#84572b" font-size="13">Analyses longues et complexes</text>
+<text x="1081" y="570" text-anchor="middle" fill="#784b22" font-size="21" font-weight="700">OpenRouter · DeepSeek / Sol</text>
+<text x="1081" y="597" text-anchor="middle" fill="#84572b" font-size="16">Routine · Expertise</text>
+<text x="1081" y="620" text-anchor="middle" fill="#84572b" font-size="13">Choix par rôle et étape</text>
 <!-- arrows -->
 <g fill="none" stroke="#648398" stroke-width="3" marker-end="url(#arrow)">
 <path d="M278 208H332"/><path d="M278 386H332"/>

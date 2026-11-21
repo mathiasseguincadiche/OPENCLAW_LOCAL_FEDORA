@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mxfile host="app.diagrams.net" type="device">
-  <diagram id="atelier-architecture" name="Architecture hybride Qwen et DeepSeek">
+  <diagram id="atelier-architecture" name="Architecture hybride Qwen, DeepSeek et Sol">
     <mxGraphModel dx="1280" dy="790" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1280" pageHeight="790" math="0" shadow="0">
       <root>
         <mxCell id="0" />
@@ -8,10 +8,10 @@
         <mxCell id="c1" parent="1" style="rounded=1;arcSize=12;html=0;fillColor=#f6f9fc;strokeColor=none;strokeWidth=1;" vertex="1" value="">
           <mxGeometry x="0.0" y="0.0" width="1280.0" height="790.0" as="geometry" />
         </mxCell>
-        <mxCell id="c2" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=29;fontStyle=1;fontColor=#14374c;strokeColor=none;fillColor=none;" vertex="1" value="Un atelier, sept agents, deux moteurs complémentaires">
+        <mxCell id="c2" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=29;fontStyle=1;fontColor=#14374c;strokeColor=none;fillColor=none;" vertex="1" value="Sept agents, Qwen local et duo cloud">
           <mxGeometry x="36.00" y="18.13" width="915.31" height="37.70" as="geometry" />
         </mxCell>
-        <mxCell id="c3" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=15;fontStyle=0;fontColor=#416477;strokeColor=none;fillColor=none;" vertex="1" value="Qwen local : autonomie et confidentialité · DeepSeek cloud : capacité pour les tâches DevOps difficiles">
+        <mxCell id="c3" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=15;fontStyle=0;fontColor=#416477;strokeColor=none;fillColor=none;" vertex="1" value="Qwen local · DeepSeek cloud en routine · Sol en expertise">
           <mxGeometry x="36.00" y="62.55" width="777.60" height="19.50" as="geometry" />
         </mxCell>
         <mxCell id="c4" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=14;fontStyle=1;fontColor=#116b74;strokeColor=none;fillColor=none;" vertex="1" value="1 · INTERFACES">
@@ -155,13 +155,13 @@
         <mxCell id="c50" parent="1" style="rounded=1;arcSize=12;html=0;fillColor=#fae7cd;strokeColor=#bd8749;strokeWidth=2.5;" vertex="1" value="">
           <mxGeometry x="916.0" y="535.0" width="330.0" height="111.0" as="geometry" />
         </mxCell>
-        <mxCell id="c51" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=21;fontStyle=1;fontColor=#784b22;strokeColor=none;fillColor=none;" vertex="1" value="OpenRouter → DeepSeek">
+        <mxCell id="c51" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=21;fontStyle=1;fontColor=#784b22;strokeColor=none;fillColor=none;" vertex="1" value="OpenRouter · DeepSeek / Sol">
           <mxGeometry x="932.50" y="548.37" width="297.00" height="27.30" as="geometry" />
         </mxCell>
-        <mxCell id="c52" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=16;fontStyle=0;fontColor=#84572b;strokeColor=none;fillColor=none;" vertex="1" value="V4.1 Flash">
+        <mxCell id="c52" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=16;fontStyle=0;fontColor=#84572b;strokeColor=none;fillColor=none;" vertex="1" value="Routine · Expertise">
           <mxGeometry x="1037.30" y="580.52" width="87.41" height="20.80" as="geometry" />
         </mxCell>
-        <mxCell id="c53" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=13;fontStyle=0;fontColor=#84572b;strokeColor=none;fillColor=none;" vertex="1" value="Analyses longues et complexes">
+        <mxCell id="c53" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=13;fontStyle=0;fontColor=#84572b;strokeColor=none;fillColor=none;" vertex="1" value="Choix par rôle et étape">
           <mxGeometry x="977.01" y="606.61" width="207.97" height="16.90" as="geometry" />
         </mxCell>
         <mxCell id="c54" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=12;fontStyle=0;fontColor=#496779;strokeColor=none;fillColor=none;" vertex="1" value="Fichiers contrôlés">
