@@ -279,7 +279,10 @@ def _validate_plan(tasks: list[dict[str, Any]]) -> None:
             raise ValueError(f"{task_id}: rôle inconnu: {role}")
         if task.get("learning_mode", "direct") not in {"guided", "direct"}:
             raise ValueError(f"{task_id}: learning_mode guided ou direct requis")
-        if "task_tier" in task and (type(task["task_tier"]) is not str or task["task_tier"] not in {"simple", "complex", "critical"}):
+        if "task_tier" in task and (
+            type(task["task_tier"]) is not str
+            or task["task_tier"] not in {"simple", "complex", "critical"}
+        ):
             raise ValueError(f"{task_id}: task_tier simple, complex ou critical requis")
         if "practice_opt_in" in task and not isinstance(task["practice_opt_in"], bool):
             raise ValueError(f"{task_id}: practice_opt_in doit être booléen")
