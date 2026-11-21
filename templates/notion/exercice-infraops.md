@@ -1,5 +1,3 @@
-<!-- MODÈLE DE FICHE : le travail personnel et les preuves doivent rester à renseigner. -->
-
 <callout icon="🎯" color="blue_bg">
 <b>Objectif de cet exercice</b>
 
