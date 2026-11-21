@@ -279,3 +279,79 @@ def test_notion_review_indicator_does_not_approve_anything(
         assert not any("/api/notion/apply" in url for url in requests)
     finally:
         context.close()
+
+
+@pytest.mark.parametrize(
+    ("route", "count", "first", "second", "last"), [
+        ("/github.html", 4, "create", "governance", "visual"),
+        ("/notion.html", 6, "inspect", "changes", "verify"),
+    ],
+)
+def test_mobile_stepper_exposes_hidden_tabs_without_writes(
+    browser: Any, local_server: DashboardServer, tmp_path: Path,
+    route: str, count: int, first: str, second: str, last: str,
+) -> None:
+    context = browser.new_context(
+        viewport={"width": 390, "height": 844}, reduced_motion="reduce",
+    )
+    page = context.new_page()
+    writes: list[str] = []
+    page.on(
+        "request",
+        lambda request: writes.append(request.url)
+        if request.method == "POST" else None,
+    )
+    try:
+        page.goto(_url(local_server, route), wait_until="networkidle")
+        navigation = page.get_by_role("group", name="Changer d’étape")
+        pw.expect(navigation).to_be_visible()
+        pw.expect(page.locator(".workspace-step-count")).to_have_text(
+            f"Étape 1 sur {count}",
+        )
+        previous = navigation.get_by_role("button", name="Précédent")
+        following = navigation.get_by_role("button", name="Suivant")
+        pw.expect(previous).to_be_disabled()
+        following.click()
+        pw.expect(page.locator(f"#workspace-tab-{second}")).to_have_attribute(
+            "aria-selected", "true",
+        )
+        pw.expect(previous).to_be_enabled()
+        pw.expect(page.locator(".workspace-step-count")).to_have_text(
+            f"Étape 2 sur {count}",
+        )
+        page.locator(".workspace-tabs").evaluate(
+            "(el) => el.scrollLeft = el.scrollWidth",
+        )
+        page.locator(f"#workspace-tab-{last}").click()
+        pw.expect(following).to_be_disabled()
+        pw.expect(page.locator(".workspace-step-count")).to_have_text(
+            f"Étape {count} sur {count}",
+        )
+        assert page.url.endswith("#" + last)
+        _screen(page, "mobile-" + route.replace("/", "").replace(".html", "") +
+                "-last-step", tmp_path)
+        assert writes == [], writes
+    finally:
+        context.close()
+
+
+@pytest.mark.parametrize("route", ["/", "/github.html", "/notion.html"])
+def test_mobile_icon_navigation_retains_accessible_names_and_skip_link(
+    browser: Any, local_server: DashboardServer, route: str,
+) -> None:
+    context = browser.new_context(viewport={"width": 390, "height": 844})
+    page = context.new_page()
+    try:
+        page.goto(_url(local_server, route), wait_until="networkidle")
+        for name in ("Tableau de bord", "Dépôts & CI", "Documentation"):
+            link = page.get_by_role("link", name=name, exact=True)
+            pw.expect(link).to_be_visible()
+            assert link.get_attribute("aria-label") == name
+        skip = page.get_by_role("link", name="Aller au contenu principal")
+        pw.expect(skip).to_have_attribute("href", "#main-content")
+        page.keyboard.press("Tab")
+        pw.expect(skip).to_be_focused()
+        page.keyboard.press("Enter")
+        pw.expect(page.locator("#main-content")).to_be_focused()
+    finally:
+        context.close()
