@@ -311,3 +311,95 @@ def test_rich_segment_api_rejects_invalid_index_and_no_secret_exposure(
     assert request(server, "/api/notion/rich-remove", {
         "page": PAGE,
     })[0] == 400
+
+
+def test_media_ui_static_does_not_contact_provider(
+    server: DashboardServer, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        notion_panel, "media_inspect",
+        lambda *_args: pytest.fail("static file contacted Notion"),
+    )
+    code, javascript = request(server, "/notion-media.js")
+    assert code == 200 and "media-apply" in javascript
+    code, markup = request(server, "/notion.html")
+    assert code == 200
+    assert "Tableaux et illustrations existants" in markup
+    assert 'src="/notion-media.js"' in markup
+
+
+def test_media_image_caption_api_requires_exact_approval(
+    server: DashboardServer, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from test_notion_media import IMAGE, _setup
+    from test_notion_media import PAGE as MEDIA_PAGE
+
+    state = _setup(monkeypatch)
+    code, details = request(server, "/api/notion/media-inspect", {
+        "page": MEDIA_PAGE, "block_id": IMAGE,
+    })
+    assert code == 200
+    assert details["mode"] == "IMAGE_CAPTION_READ_ONLY"
+    assert "example.org/arch.svg" not in json.dumps(details)
+    code, proposal = request(server, "/api/notion/media-plan", {
+        "page": MEDIA_PAGE, "block_id": IMAGE,
+        "row_id": None, "cell_index": None,
+        "segment_index": 0, "text": "Légende révisée",
+    })
+    assert code == 200
+    assert proposal["mode"] == "IMAGE_CAPTION_PREVIEW_ONLY"
+    assert "plan_file" not in proposal and state["patches"] == []
+    approval = {
+        "plan_id": proposal["plan_id"], "page": MEDIA_PAGE,
+        "approve_page": MEDIA_PAGE,
+        "approve_manifest": proposal["manifest_sha256"],
+        "human_approved": True,
+    }
+    assert request(server, "/api/notion/media-apply", approval, origin=False)[0] == 403
+    assert request(server, "/api/notion/media-apply", {
+        **approval, "human_approved": False,
+    })[0] == 400
+    assert request(server, "/api/notion/media-apply", {
+        **approval, "approve_manifest": "0" * 64,
+    })[0] == 400
+    assert state["patches"] == []
+    code, verified = request(server, "/api/notion/media-apply", approval)
+    assert code == 200 and verified["mode"] == "IMAGE_CAPTION_API_VERIFIED"
+    assert state["image"][0]["text"]["content"] == "Légende révisée"
+    assert len(state["patches"]) == 1
+    assert request(server, "/api/notion/media-apply", approval)[0] == 400
+
+
+def test_media_table_cell_api_does_not_replace_other_cells(
+    server: DashboardServer, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from test_notion_media import PAGE as MEDIA_PAGE
+    from test_notion_media import ROW2, TABLE, _setup
+
+    state = _setup(monkeypatch)
+    code, contents = request(server, "/api/notion/media-inspect", {
+        "page": MEDIA_PAGE, "block_id": TABLE,
+    })
+    assert code == 200 and contents["kind"] == "table"
+    assert len(contents["rows"]) == 2
+    code, proposal = request(server, "/api/notion/media-plan", {
+        "page": MEDIA_PAGE, "block_id": TABLE, "row_id": ROW2,
+        "cell_index": 1, "segment_index": 0, "text": "Nouvelle instruction",
+    })
+    assert code == 200 and state["patches"] == []
+    approval = {
+        "plan_id": proposal["plan_id"], "page": MEDIA_PAGE,
+        "approve_page": MEDIA_PAGE,
+        "approve_manifest": proposal["manifest_sha256"],
+        "human_approved": True,
+    }
+    code, verified = request(server, "/api/notion/media-apply", approval)
+    assert code == 200 and verified["mode"] == "TABLE_CELL_API_VERIFIED"
+    assert state["cells"][ROW2][1][0]["text"]["content"] == "Nouvelle instruction"
+    assert state["cells"][ROW2][1][1]["text"]["link"]["url"] == "https://example.org"
+    assert len(state["patches"]) == 1
+    assert request(server, "/api/notion/media-plan", {
+        "page": MEDIA_PAGE, "block_id": TABLE,
+        "row_id": ROW2, "cell_index": True, "segment_index": 0,
+        "text": "Rejeté",
+    })[0] == 400

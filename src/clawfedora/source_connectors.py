@@ -260,7 +260,9 @@ def _notion_children(identifier: str) -> list[dict[str, Any]]:
         entries = data.get("results")
         if not isinstance(entries, list):
             raise SourceImportError("blocs Notion invalides")
-        result.extend(item for item in entries if isinstance(item, dict))
+        if any(not isinstance(item, dict) for item in entries):
+            raise SourceImportError("inventaire Notion incomplet ou mal formé")
+        result.extend(entries)
         if not data.get("has_more"):
             return result
         cursor = data.get("next_cursor")

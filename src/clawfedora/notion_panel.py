@@ -13,7 +13,7 @@ import stat
 from pathlib import Path
 from typing import Any
 
-from clawfedora import notion_batch, notion_rich, notion_write, source_connectors
+from clawfedora import notion_batch, notion_media, notion_rich, notion_write, source_connectors
 
 PLAN_ID = re.compile(r"[0-9a-f]{32}\Z")
 MAX_VISIBLE_BLOCKS = 120
@@ -64,6 +64,7 @@ def inspect(page: str) -> dict[str, Any]:
             and block.get("has_children") is False
             and block.get("archived") is False
         )
+        media_candidate = kind in {"image", "table"}
         rich_candidate = (
             kind in notion_rich.RICH_KINDS
             and block.get("has_children") is False
@@ -83,6 +84,7 @@ def inspect(page: str) -> dict[str, Any]:
             "type": kind,
             "eligible": editable,
             "rich_candidate": rich_candidate,
+            "media_candidate": media_candidate,
             "excerpt": label,
         })
     return {
@@ -91,6 +93,7 @@ def inspect(page: str) -> dict[str, Any]:
         "blocks": rows,
         "editable_count": sum(row["eligible"] for row in rows),
         "rich_candidate_count": sum(row["rich_candidate"] for row in rows),
+        "media_candidate_count": sum(row["media_candidate"] for row in rows),
         "protected_count": sum(not row["eligible"] for row in rows),
         "remote_writes": False,
     }
@@ -186,5 +189,51 @@ def rich_apply(
         "mode": result["mode"], "page_id": page_id,
         "block_id": result["block_id"],
         "preserved_segments": result["preserved_segments"],
+        "limitations": result["limitations"],
+    }
+
+
+def media_inspect(page: str, block_id: str) -> dict[str, Any]:
+    """Read an existing image caption or table without exposing image URLs."""
+    return notion_media.inspect(page, block_id)
+
+
+def media_plan(
+    runtime: Path, page: str, block_id: str, row_id: str | None,
+    cell_index: int | None, segment_index: int, new_text: str,
+) -> dict[str, Any]:
+    page_id = notion_write._id(page)
+    folder = _store(runtime)
+    name = secrets.token_hex(16)
+    output = folder / (name + ".plan.json")
+    result = notion_media.preview(
+        page_id, block_id, row_id, cell_index, segment_index, new_text, output,
+    )
+    return {
+        "mode": result["mode"], "page_id": page_id,
+        "block_id": result["block_id"], "plan_id": name,
+        "manifest_sha256": result["manifest_sha256"],
+        "diff": result["diff"], "remote_writes": False,
+    }
+
+
+def media_apply(
+    runtime: Path, plan_id: str, page: str,
+    approve_page: str, approve_manifest: str, human_approved: object,
+) -> dict[str, Any]:
+    if human_approved is not True:
+        raise notion_write.NotionWriteError("approbation humaine requise")
+    if PLAN_ID.fullmatch(plan_id) is None:
+        raise notion_write.NotionWriteError("identifiant de plan invalide")
+    page_id = notion_write._id(page)
+    if notion_write._id(approve_page) != page_id:
+        raise notion_write.NotionWriteError("page approuvée différente")
+    if notion_write.SHA256.fullmatch(approve_manifest) is None:
+        raise notion_write.NotionWriteError("empreinte SHA-256 requise")
+    path = _store(runtime) / (plan_id + ".plan.json")
+    result = notion_media.apply(path, page_id, approve_manifest)
+    return {
+        "mode": result["mode"], "page_id": page_id,
+        "block_id": result["block_id"], "target_id": result["target_id"],
         "limitations": result["limitations"],
     }

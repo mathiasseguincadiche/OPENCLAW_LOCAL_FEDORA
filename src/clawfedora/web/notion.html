@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/notion.css">
   <script src="/notion.js" defer></script>
   <script src="/notion-rich.js" defer></script>
+  <script src="/notion-media.js" defer></script>
 </head>
 <body>
 <main>
@@ -26,6 +27,7 @@
     <a href="#inspect">Analyser</a>
     <a href="#changes">Proposer</a>
     <a href="#rich">Texte enrichi</a>
+    <a href="#media">Tableaux et images</a>
     <a href="#verify">Réception</a>
   </nav>
   <p class="activity">Les agents produisent les textes, mais ne peuvent ni sélectionner la page ni approuver une écriture. Aucune donnée Notion n'est transmise au cloud par ce panneau.</p>
@@ -123,8 +125,51 @@
     <p class="intro">La vérification API ne garantit pas le rendu Notion réel. Le plan est utilisable une seule fois. Éviter toute édition concurrente et contrôler les styles, couleurs et icônes dans Notion.</p>
   </section>
 
-  <section class="github-panel" id="verify" aria-labelledby="verify-title">
+  <section class="github-panel" id="media" aria-labelledby="media-title">
     <div class="section-top"><span class="step-number">05</span><div>
+      <h2 id="media-title">Tableaux et illustrations existants</h2>
+      <p>Corriger le texte d'une cellule ou la légende d'une image, avec contrôle de l'intégrité. Les fichiers SVG/PNG, les autres cellules et les en-têtes restent conservés. Les bases de données et les changements de structure sont interdits.</p>
+    </div></div>
+    <form id="media-select-form">
+      <label for="media-block">Image ou tableau de la page examinée</label>
+      <select id="media-block" required disabled><option>Examiner une page d’abord…</option></select>
+      <button id="media-read" type="submit" disabled>Examiner le contenu et les cellules</button>
+    </form>
+    <div id="media-structure" class="block-inventory" aria-live="polite"></div>
+    <form id="media-plan-form" hidden>
+      <div id="media-row-fields" hidden>
+        <label for="media-row">Ligne du tableau</label>
+        <select id="media-row"></select>
+        <label for="media-cell">Colonne (la première vaut 1)</label>
+        <select id="media-cell"></select>
+      </div>
+      <label for="media-segment">Segment textuel ciblé</label>
+      <select id="media-segment" required></select>
+      <label for="media-new-text">Texte de remplacement de ce seul segment</label>
+      <textarea id="media-new-text" maxlength="1900" rows="4" required></textarea>
+      <button type="submit" id="media-plan-button">Prévisualiser sans écrire sur Notion</button>
+    </form>
+    <div id="media-diff-panel" hidden>
+      <h3>Comparaison de la cellule ou légende</h3>
+      <pre id="media-diff"></pre>
+      <p class="manifest">Empreinte SHA-256 : <code id="media-digest"></code></p>
+    </div>
+    <form id="media-apply-form" hidden>
+      <label for="media-approve-page">Recopier l'ID exact de la page</label>
+      <input id="media-approve-page" required autocomplete="off" spellcheck="false">
+      <label for="media-approve-manifest">Recopier l'empreinte SHA-256 du plan</label>
+      <input id="media-approve-manifest" pattern="[0-9a-f]{64}" minlength="64" maxlength="64" required autocomplete="off" spellcheck="false">
+      <label class="checkline"><input id="media-approve-human" type="checkbox" required>
+        J'ai relu le diff, vérifié les autres cellules ou le fichier image et j'autorise cette écriture unique.
+      </label>
+      <button type="submit">Appliquer cette correction approuvée</button>
+    </form>
+    <pre id="media-result" aria-live="polite"></pre>
+    <p class="intro">Le panneau n'importe aucune image et ne crée aucune ligne. Les liens privés signés des images Notion ne sont jamais transmis au navigateur. Après application, ouvrir la page réelle pour vérifier le rendu desktop/mobile.</p>
+  </section>
+
+  <section class="github-panel" id="verify" aria-labelledby="verify-title">
+    <div class="section-top"><span class="step-number">06</span><div>
       <h2 id="verify-title">Contrôler le rendu dans Notion</h2>
       <p>Une lecture API réussie ne certifie pas le rendu graphique. Ouvrir la page réelle et examiner le résultat avant de marquer les critères comme satisfaits.</p>
     </div></div>

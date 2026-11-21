@@ -36,6 +36,8 @@ Le [panneau Notion local](NOTION_DASHBOARD.md) offre la consultation des blocs,
 les diffs et l'approbation humaine depuis l'atelier. Le [mode riche à
 segment ciblé](NOTION_RICH_TEXT.md) préserve les annotations, les liens
 voisins et les icônes/couleurs des encadrés existants.
+Le [mode tableaux et images](NOTION_TABLES_IMAGES.md) apporte l'inventaire
+et la modification contrôlée d'une cellule ou d'une légende existante.
 
 ## GitHub dans le tableau de bord et le chat
 

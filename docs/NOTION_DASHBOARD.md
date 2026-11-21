@@ -1,6 +1,6 @@
 # Panneau Notion local — prévisualiser et approuver les révisions
 
-[← Accueil documentation](README.md) · [Édition multi-blocs](NOTION_MULTI_BLOCK.md) · [Mode texte enrichi](NOTION_RICH_TEXT.md) · [GitHub dans l'atelier](GITHUB_CHAT_DASHBOARD.md) · [Réception réelle](validation/NOTION_GITHUB_ACCEPTANCE.md)
+[← Accueil documentation](README.md) · [Édition multi-blocs](NOTION_MULTI_BLOCK.md) · [Mode texte enrichi](NOTION_RICH_TEXT.md) · [Tableaux et images](NOTION_TABLES_IMAGES.md) · [GitHub dans l'atelier](GITHUB_CHAT_DASHBOARD.md) · [Réception réelle](validation/NOTION_GITHUB_ACCEPTANCE.md)
 
 ## Accès
 
@@ -87,9 +87,11 @@ appartiennent à la [campagne de réception](validation/NOTION_GITHUB_ACCEPTANCE
 - Import assisté de **propositions validées des agents** depuis les
   livrables d'un projet sélectionné (l'éditeur courant attend
   du texte saisi/collé par l'opérateur).
-- Édition complète de sections multi-segments, mentions et liens, tableaux,
-  médias, images, schémas et ajout contrôlé de pages. Le mode segment enrichi
-  est déjà disponible, mais ne réalise aucun de ces travaux avancés.
+- Édition complète de sections multi-segments, mentions et liens, ajout de
+  tableaux, lignes, colonnes, images ou médias et création de pages.
+  La correction ciblée d'une cellule ou d'une légende existante est disponible
+  via le [mode tableaux et images](NOTION_TABLES_IMAGES.md), sans gérer ces
+  opérations de création ou de réagencement.
 - Prévisualisation visuelle complète des blocs comme ils apparaîtront
   réellement dans Notion, et preuve native bureau/mobile.
 
