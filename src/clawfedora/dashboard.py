@@ -390,6 +390,26 @@ class DashboardHandler(BaseHTTPRequestHandler):
         route = self.path.removeprefix("/api/notion/")
         if route == "inspect":
             return 200, notion_panel.inspect(str(data["page"]))
+        if route == "rich-segments":
+            return 200, notion_panel.rich_inspect(
+                str(data["page"]), str(data["block_id"]),
+            )
+        if route == "rich-plan":
+            index = data["segment_index"]
+            if type(index) is not int:
+                raise ValueError("index de segment entier requis")
+            return 200, notion_panel.rich_plan(
+                self.server.runtime, str(data["page"]), str(data["block_id"]),
+                index, str(data["text"]),
+            )
+        if route == "rich-apply":
+            with worker_lock(self.server.runtime):
+                return 200, notion_panel.rich_apply(
+                    self.server.runtime, str(data["plan_id"]), str(data["page"]),
+                    str(data.get("approve_page", "")),
+                    str(data.get("approve_manifest", "")),
+                    data.get("human_approved"),
+                )
         if route == "plan":
             return 200, notion_panel.plan(
                 self.server.runtime, str(data["page"]), data["edits"],
