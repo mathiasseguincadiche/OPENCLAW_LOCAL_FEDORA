@@ -22,7 +22,6 @@ from clawfedora.project_common import (
     now,
     project_path,
     read_json,
-    sha256_file,
     validate_task_id,
     write_json,
 )
