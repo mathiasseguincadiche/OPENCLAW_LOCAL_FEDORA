@@ -402,8 +402,36 @@ async function loadProject(id) {
     renderRevision(id, data);
     renderRoadmap(data);
     renderGithubUpdates(data);
+    renderGithubWorkPr(data);
   } catch (error) { tell(error.message, true); }
 }
+function renderGithubWorkPr(data) {
+  const area = $("github-work-pr");
+  area.replaceChildren();
+  const attempts = data.github_work_pr || [];
+  if (!attempts.length) return;
+  area.append(node("h3", "PR techniques liées aux jalons"));
+  const list = node("ul");
+  for (const attempt of attempts) {
+    const line = node("li");
+    const status = attempt.state === "CREATED" ? "Brouillon publié" : "Tentative à vérifier";
+    line.append(node("strong", attempt.milestone_id + " — " + status));
+    line.append(node("p", "Dépôt : " + attempt.repository +
+      " · branche : " + attempt.branch +
+      " · base : " + attempt.base_sha.slice(0, 12) +
+      " · preuve non vérifiée"));
+    if (attempt.url && attempt.url.startsWith("https://github.com/")) {
+      const link = node("a", "Examiner la PR sur GitHub");
+      link.href = attempt.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      line.append(link);
+    }
+    list.append(line);
+  }
+  area.append(list);
+}
+
 function renderGithubUpdates(data) {
   const area = $("github-updates");
   area.replaceChildren();
