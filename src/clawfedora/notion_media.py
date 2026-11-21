@@ -9,7 +9,7 @@ from __future__ import annotations
 import difflib
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 from clawfedora import notion_batch as batch
 from clawfedora import notion_rich as rich
@@ -371,10 +371,11 @@ def apply(path: Path, page: str, manifest: str) -> dict[str, Any]:
         raise nw.NotionWriteError("réponse Notion inattendue : inspecter les blocs")
     if kind == "image":
         after = _target(page_id, block_id, kind)
-        checked, _ = _image_parts(after)
-        # The original asset must still exist; captions must be preserved exactly.
-        if checked != proposed:
-            raise nw.NotionWriteError("légende non vérifiée : contrôler Notion")
+        checked, current_asset = _image_parts(after)
+        # The asset may rotate a signed URL but its stable identity must persist.
+        _, original_asset = _image_parts(target)
+        if checked != proposed or current_asset != original_asset:
+            raise nw.NotionWriteError("légende ou image non vérifiée : contrôler Notion")
     else:
         after_row, after_cells = _row(block_id, target_id, width)
         if after_cells != updated or after_row.get("type") != "table_row":
