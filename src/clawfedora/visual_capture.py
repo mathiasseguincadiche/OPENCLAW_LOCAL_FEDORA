@@ -251,7 +251,7 @@ def capture(
             "limitations": [
                 "Les captures ne prouvent pas une lecture humaine complète",
                 "Le thème demandé n'est pas forcément le thème appliqué par le site",
-                "Captures par positions : les pages longues peuvent être partiellement échantillonnées",
+                "Les longues pages peuvent être partiellement échantillonnées",
                 "Tests du GPU, Fedora et des données privées non certifiés par la capture",
             ],
         }
