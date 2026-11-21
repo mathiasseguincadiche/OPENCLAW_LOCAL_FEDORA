@@ -252,7 +252,7 @@ def capture(
             receipt = {
                 **record, "id": identifier, "captured_at": now(),
                 "approval_sha256": proposed["approval_sha256"],
-                "origin": "HUMAN_EXPLICIT_CLI_OR_APPROVED_LOCAL_COMMAND",
+                "origin": "OPERATOR_SUPPLIED_NOT_IDENTITY_VERIFIED",
                 "integrity_notice": "empreinte détecte altération locale, sans signature externe",
             }
             receipt["record_sha256"] = _hash(receipt)
