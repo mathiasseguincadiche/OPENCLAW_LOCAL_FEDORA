@@ -137,7 +137,18 @@ def make_plan(
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,99}", base):
         raise PublicationError("branche de base invalide")
     files = collect_files(changes, allow_workflows=allow_workflows)
+    manifest = {
+        "repository": repo, "base": base, "base_sha": base_sha,
+        "branch": branch, "files": [
+            [name, hashlib.sha256(content).hexdigest()]
+            for name, content in files
+        ],
+    }
+    manifest_sha256 = hashlib.sha256(
+        json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
     return {
+        "manifest_sha256": manifest_sha256,
         "mode": "OFFLINE_DRY_RUN",
         "repository": repo,
         "base": base,
@@ -204,7 +215,8 @@ def _expected_sha(record: dict[str, Any], label: str) -> str:
 
 def publish_draft(
     *, repo: str, base: str, base_sha: str, branch: str, changes: Path,
-    title: str, body: str, approve_repo: str, allow_workflows: bool = False,
+    title: str, body: str, approve_repo: str, approve_manifest: str = "",
+    allow_workflows: bool = False,
 ) -> dict[str, Any]:
     """Only explicit caller-driven publication. Never merges or updates main."""
     plan = make_plan(
@@ -213,6 +225,8 @@ def publish_draft(
     )
     if approve_repo != repo:
         raise PublicationError("l'approbation explicite du dépôt ne correspond pas")
+    if approve_manifest != plan["manifest_sha256"]:
+        raise PublicationError("empreinte du plan non approuvée ou devenue obsolète")
     if not 8 <= len(title.strip()) <= 180 or not 8 <= len(body.strip()) <= 60000:
         raise PublicationError("titre ou description de PR insuffisant")
     token = os.environ.get("GITHUB_TOKEN", "")
@@ -311,6 +325,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--body-file", type=Path)
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--approve-repo", default="")
+    parser.add_argument("--approve-manifest", default="")
     return parser
 
 
@@ -334,6 +349,7 @@ def main(argv: list[str] | None = None) -> int:
             repo=args.repo, base=args.base, base_sha=args.base_sha,
             branch=args.branch, changes=args.changes, title=args.title,
             body=body, approve_repo=args.approve_repo,
+            approve_manifest=args.approve_manifest,
             allow_workflows=args.allow_workflows,
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
