@@ -4,6 +4,14 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Gestion distante GitHub sous autorisation
+
+- Création de dépôt privé par défaut avec approbation liée à une empreinte SHA-256.
+- Rapport en lecture seule des règles de branche et permissions GitHub Actions.
+- Plans séparés pour ruleset de PR obligatoire et permissions Actions en lecture seule.
+- Pas d'application silencieuse, de changement de visibilité ni de fusion automatique.
+
+
 ### Publication GitHub sécurisée sous approbation
 
 - `clawfedora-github-scaffold` crée une structure documentaire locale
