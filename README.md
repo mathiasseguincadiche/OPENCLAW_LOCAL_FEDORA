@@ -104,6 +104,10 @@ notes personnelles ni les sorties illustratives en preuves réelles.
 **La création ou l'édition distante de pages Notion reste hors du périmètre
 automatisé** : les modèles sont proposés pour validation.
 
+## GitHub depuis l'atelier et les discussions
+
+Le [panneau GitHub local et ses commandes de discussion](docs/GITHUB_CHAT_DASHBOARD.md) permettent de préparer un dépôt, lire ses réglages, auditer des livrables et proposer une PR en brouillon après approbation du SHA exact du plan. Les opérations de publication depuis Open WebUI sont **des commandes que l'utilisateur tape**, pas des décisions autonomes du modèle.
+
 ## Création de dépôts et protection GitHub
 
 La [configuration distante GitHub](docs/GITHUB_REMOTE_SETUP.md) ajoute des aperçus hors ligne pour créer un dépôt privé et vérifier les protections, puis des opérations sous approbation explicite. Aucune création distante n'est déclenchée par la simple consultation du README.
