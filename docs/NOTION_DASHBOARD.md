@@ -1,6 +1,6 @@
 # Panneau Notion local — prévisualiser et approuver les révisions
 
-[← Accueil documentation](README.md) · [Édition multi-blocs](NOTION_MULTI_BLOCK.md) · [GitHub dans l'atelier](GITHUB_CHAT_DASHBOARD.md) · [Réception réelle](validation/NOTION_GITHUB_ACCEPTANCE.md)
+[← Accueil documentation](README.md) · [Édition multi-blocs](NOTION_MULTI_BLOCK.md) · [Mode texte enrichi](NOTION_RICH_TEXT.md) · [GitHub dans l'atelier](GITHUB_CHAT_DASHBOARD.md) · [Réception réelle](validation/NOTION_GITHUB_ACCEPTANCE.md)
 
 ## Accès
 
