@@ -331,7 +331,8 @@ def test_media_ui_static_does_not_contact_provider(
 def test_media_image_caption_api_requires_exact_approval(
     server: DashboardServer, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from test_notion_media import IMAGE, PAGE as MEDIA_PAGE, _setup
+    from test_notion_media import IMAGE, _setup
+    from test_notion_media import PAGE as MEDIA_PAGE
 
     state = _setup(monkeypatch)
     code, details = request(server, "/api/notion/media-inspect", {
