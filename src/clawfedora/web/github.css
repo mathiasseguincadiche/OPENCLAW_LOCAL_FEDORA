@@ -1,0 +1,35 @@
+nav { display: flex; flex-wrap: wrap; gap: 18px; margin: 20px 0 28px; }
+nav a { color: var(--accent); font-weight: 600; text-decoration: none; }
+nav a:focus-visible, nav a:hover { text-decoration: underline; }
+.github-panel { background: white; border: 1px solid var(--line); border-radius: 16px;
+  padding: 26px; margin: 26px 0; box-shadow: 0 2px 12px #173d2910; }
+.github-panel h2 { margin: 0 0 8px; }
+.github-panel p { color: var(--muted); }
+.github-panel form { max-width: 800px; }
+.github-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 290px;
+  overflow: auto; border-radius: 10px; background: #edf2f0; color: var(--ink);
+  padding: 16px; margin: 18px 0 0; font-size: 12px; line-height: 1.6; }
+.github-panel pre:empty { display: none; }
+.github-panel form[hidden] { display: none; }
+.github-panel form[id$="-apply-form"] { border-top: 1px solid var(--line); margin-top: 20px;
+  padding-top: 14px; }
+.github-panel label.checkline { display: flex; align-items: flex-start; gap: 10px;
+  margin: 18px 0; font-weight: 500; line-height: 1.5; }
+.github-panel label.checkline input, .checklist input { flex: 0 0 auto;
+  width: 18px; height: 18px; margin-top: 3px; }
+.checklist label { display: flex; align-items: flex-start; gap: 10px; margin: 11px 0; }
+.checklist { background: var(--bg); border-radius: 10px; padding: 15px; }
+#github-status:not(:empty) { padding: 12px 16px; border-left: 4px solid var(--accent);
+  background: #e9f1ea; border-radius: 5px; }
+#github-status.error { border-color: #aa3c34; background: #fff0ed; color: #8a2924; }
+footer { border-top: 1px solid var(--line); margin-top: 35px; padding-top: 14px;
+  color: var(--muted); font-size: 14px; }
+code { overflow-wrap: anywhere; }
+@media(max-width:650px) {
+  main { padding: 22px 14px; }
+  header { align-items: flex-start; flex-direction: column; }
+  h1 { font-size: 30px; }
+  .github-panel { padding: 18px; }
+  nav { gap: 12px; }
+  .buttons button, form > button { width: 100%; }
+}
