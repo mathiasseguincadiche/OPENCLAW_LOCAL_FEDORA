@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import socket
 import threading
@@ -12,7 +13,7 @@ from typing import Any
 from urllib.parse import parse_qs, quote, urlsplit
 from urllib.request import urlopen
 
-from clawfedora import project_cloud, project_ui
+from clawfedora import chat_github, github_pr, github_quality, github_remote, project_cloud, project_ui
 from clawfedora.core_config import root_contract
 from clawfedora.knowledge import build_index, search, store_note
 from clawfedora.learning import awaiting, pending_feedback, submit
@@ -185,16 +186,25 @@ class DashboardHandler(BaseHTTPRequestHandler):
             return
         url = urlsplit(self.path)
         try:
-            if url.path in {"/", "/dashboard.js", "/dashboard.css"}:
+            if url.path in {
+                "/", "/dashboard.js", "/dashboard.css",
+                "/github.html", "/github.js", "/github.css",
+            }:
                 name = {
                     "/": "dashboard.html",
                     "/dashboard.js": "dashboard.js",
                     "/dashboard.css": "dashboard.css",
+                    "/github.html": "github.html",
+                    "/github.js": "github.js",
+                    "/github.css": "github.css",
                 }[url.path]
                 kind = {
                     "dashboard.html": "text/html",
                     "dashboard.js": "text/javascript",
                     "dashboard.css": "text/css",
+                    "github.html": "text/html",
+                    "github.js": "text/javascript",
+                    "github.css": "text/css",
                 }[name]
                 self._send(200, (Path(__file__).parent / "web" / name).read_bytes(), kind)
             elif url.path == "/api/status":
@@ -246,6 +256,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length))
             if not isinstance(data, dict):
                 raise ValueError("objet JSON requis")
+            if self.path.startswith("/api/github/"):
+                status, value = self._github_action(data)
+                self._send(status, value)
+                return
             if self.path == "/api/create":
                 project = project_ui.create_from_browser(
                     self.server.repo_root, self.server.runtime, data
@@ -351,6 +365,81 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self._send(202, {"accepted": True})
         except (OSError, ValueError, KeyError, TypeError) as exc:
             self._send(400, {"error": str(exc)})
+
+    def _github_action(self, data: dict[str, Any]) -> tuple[int, dict[str, Any]]:
+        """Only same-origin typed controls may perform approved GitHub writes."""
+        route = self.path.removeprefix("/api/github/")
+        if route == "create-plan":
+            return 200, github_remote.create_plan(
+                str(data["name"]), str(data.get("description", "")), visibility="private",
+            )
+        if route == "create-apply":
+            if data.get("human_approved") is not True:
+                raise ValueError("approbation GitHub explicite requise")
+            with worker_lock(self.server.runtime):
+                result = github_remote.create_repository(
+                    str(data["name"]), str(data.get("description", "")),
+                    approve_name=str(data.get("approve_name", "")),
+                    approve_manifest=str(data.get("approve_manifest", "")),
+                )
+            return 201, result
+        if route == "settings-audit":
+            with worker_lock(self.server.runtime):
+                return 200, github_remote.settings_audit(str(data["repo"]))
+        if route == "policy-plan":
+            return 200, github_remote.policy_plan(
+                str(data["repo"]), str(data.get("branch", "main")),
+                str(data.get("kind", "pr-ruleset")),
+            )
+        if route == "policy-apply":
+            if data.get("human_approved") is not True:
+                raise ValueError("approbation GitHub explicite requise")
+            with worker_lock(self.server.runtime):
+                result = github_remote.apply_policy(
+                    str(data["repo"]), str(data.get("branch", "main")),
+                    str(data.get("kind", "pr-ruleset")),
+                    approve_repo=str(data.get("approve_repo", "")),
+                    approve_manifest=str(data.get("approve_manifest", "")),
+                )
+            return 200, result
+        if route in {"draft-plan", "draft-apply", "local-audit"}:
+            project = self._project(str(data["project_id"]))
+            stage = chat_github._stage(project, str(data["stage"]))
+            if route == "local-audit":
+                return 200, github_quality.audit_repository(stage)
+            if read_json(project / "project.json").get("status") != "COMPLETE":
+                raise ValueError("livrables à publier : projet non encore livré et audité")
+            repo = str(data["repo"])
+            base_sha = str(data["base_sha"])
+            branch = str(data["branch"])
+            title = str(data.get("title", ""))
+            body = str(data.get("body", ""))
+            plan = github_pr.make_plan(
+                repo=repo, base="main", base_sha=base_sha,
+                branch=branch, changes=stage, allow_workflows=False,
+            )
+            approved_payload = {
+                "manifest": plan["manifest_sha256"], "title": title, "body": body,
+            }
+            approval_sha = hashlib.sha256(
+                json.dumps(approved_payload, sort_keys=True, ensure_ascii=False).encode()
+            ).hexdigest()
+            if route == "draft-plan":
+                return 200, {**plan, "approval_sha256": approval_sha}
+            if (
+                data.get("human_approved") is not True
+                or str(data.get("approve_repo", "")) != repo
+                or str(data.get("approve_sha256", "")) != approval_sha
+            ):
+                raise ValueError("approbation de la PR et de son contenu exact requise")
+            with worker_lock(self.server.runtime):
+                result = github_pr.publish_draft(
+                    repo=repo, base="main", base_sha=base_sha,
+                    branch=branch, changes=stage, title=title, body=body,
+                    approve_repo=repo, approve_manifest=plan["manifest_sha256"],
+                )
+            return 201, result
+        raise ValueError("action GitHub inconnue ou non autorisée")
 
     def _artifact(self, project: Path, relative: str) -> None:
         from clawfedora.project_common import assert_no_symlinks
