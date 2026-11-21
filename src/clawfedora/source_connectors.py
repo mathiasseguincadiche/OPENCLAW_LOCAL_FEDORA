@@ -394,9 +394,10 @@ def import_snapshot(
             raise SourceImportError("sources figées : créer un nouveau projet ou repartir du début")
         if consent_path(runtime, project).exists():
             raise SourceImportError("révoquer l'accord cloud avant d'importer de nouvelles sources")
-        slug = "GitHub-" + github.replace("/", "-") + "-" + commit[:12] if github else (
-            "Notion-" + _safe_page(notion_page or "")
-        )
+        if github is not None and commit is not None:
+            slug = "GitHub-" + github.replace("/", "-") + "-" + commit[:12]
+        else:
+            slug = "Notion-" + _safe_page(notion_page or "")
         if (project / "intake" / slug).exists():
             raise SourceImportError("snapshot déjà présent dans le projet")
         with tempfile.TemporaryDirectory(prefix="clawfedora-source-") as folder:
