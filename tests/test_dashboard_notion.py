@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from test_daily_worker import planned
+from test_daily_worker import planned as planned
 
 from clawfedora import dashboard, notion_panel, notion_write, source_connectors
 from clawfedora.dashboard import DashboardServer, make_server
