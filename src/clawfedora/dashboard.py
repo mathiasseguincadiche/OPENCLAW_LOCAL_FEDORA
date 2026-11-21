@@ -197,7 +197,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             if url.path in {
                 "/", "/dashboard.js", "/dashboard.css",
                 "/github.html", "/github.js", "/github.css",
-                "/notion.html", "/notion.js", "/notion.css", "/notion-rich.js",
+                "/notion.html", "/notion.js", "/notion.css", "/notion-rich.js", "/notion-media.js",
             }:
                 name = {
                     "/": "dashboard.html",
@@ -210,6 +210,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     "/notion.js": "notion.js",
                     "/notion.css": "notion.css",
                     "/notion-rich.js": "notion-rich.js",
+                    "/notion-media.js": "notion-media.js",
                 }[url.path]
                 kind = {
                     "dashboard.html": "text/html",
@@ -222,6 +223,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     "notion.js": "text/javascript",
                     "notion.css": "text/css",
                     "notion-rich.js": "text/javascript",
+                    "notion-media.js": "text/javascript",
                 }[name]
                 self._send(200, (Path(__file__).parent / "web" / name).read_bytes(), kind)
             elif url.path == "/api/status":
