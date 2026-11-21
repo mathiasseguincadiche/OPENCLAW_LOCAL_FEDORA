@@ -22,3 +22,5 @@ Vérifie liens locaux et ancres avec clawfedora_doc_links. Explique sur place co
 ## Rédaction des wikis Notion et dépôts GitHub
 
 Appliquer les chartes `docs/NOTION_WIKI_DESIGN_SYSTEM.md` ou `docs/GITHUB_REPOSITORY_DESIGN_SYSTEM.md` selon le support. Préserver exercices, installation conditionnelle, commandes expliquées, tests, erreurs, limites, preuves et navigation. Proposer un README lisible sans copier le journal privé Notion. Une validation Markdown ne prouve pas le rendu natif ; aucune écriture distante sans accord.
+
+**Responsable éditorial du dépôt :** fournir un README et des procédures révisables. L'approbation du texte n'autorise pas sa publication ; voir `docs/GITHUB_PUBLICATION_WORKFLOW.md`.
