@@ -584,3 +584,17 @@ def test_store_verdict_rejects_malformed_criteria(tmp_path: Path, criterion: obj
             criteria={"build-output": [criterion]},
         )
     assert not (project / "evidence/validation_report.json").exists()
+
+def test_task_tiers_are_checked_before_a_plan_is_accepted() -> None:
+    from clawfedora.project_engine import _validate_plan
+
+    plan = _plan()
+    tasks = plan["tasks"]
+    assert isinstance(tasks, list)
+    for tier in ("simple", "complex", "critical"):
+        tasks[0]["task_tier"] = tier
+        _validate_plan(tasks)
+    for bad in ("unknown", "CRITICAL", True, None, 3, [], {}):
+        tasks[0]["task_tier"] = bad
+        with pytest.raises(ValueError, match="task_tier"):
+            _validate_plan(tasks)
