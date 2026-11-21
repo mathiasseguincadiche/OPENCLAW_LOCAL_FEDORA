@@ -104,6 +104,10 @@ notes personnelles ni les sorties illustratives en preuves réelles.
 **La création ou l'édition distante de pages Notion reste hors du périmètre
 automatisé** : les modèles sont proposés pour validation.
 
+## Création de dépôts et protection GitHub
+
+La [configuration distante GitHub](docs/GITHUB_REMOTE_SETUP.md) ajoute des aperçus hors ligne pour créer un dépôt privé et vérifier les protections, puis des opérations sous approbation explicite. Aucune création distante n'est déclenchée par la simple consultation du README.
+
 ## Publication GitHub après validation humaine
 
 L'[atelier de création et de PR brouillon](docs/GITHUB_PUBLICATION_WORKFLOW.md)

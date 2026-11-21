@@ -115,6 +115,8 @@ d'orchestration supplémentaire ; ne pas dupliquer les compétences existantes.
 7. Effectuer une recette GitHub **native** (clair/sombre, ordinateur/mobile, liens, images) ; ne pas revendiquer cette recette si seul le code a été contrôlé.
 8. Demander la revue avant fusion, conserver les problèmes ouverts et mettre à jour STATUS uniquement sur preuve.
 
+Pour une première publication, consulter aussi [la création et la protection des dépôts GitHub](GITHUB_REMOTE_SETUP.md) ; la visibilité et les règles restent sous approbation.
+
 ## 8. Création de dépôt et publication guidée
 
 Le [protocole de gouvernance et publication GitHub](GITHUB_PUBLICATION_WORKFLOW.md)

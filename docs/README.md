@@ -29,6 +29,10 @@ sont fournis pour préparer une proposition avant validation humaine.
 Les sept agents actuels sont spécialisés sur la conception, la rédaction
 et l'audit ; aucun outil de publication Notion autonome n'est actif.
 
+## Créer et protéger un dépôt GitHub
+
+Le [guide de création GitHub et de protections](GITHUB_REMOTE_SETUP.md) présente les plans privés par défaut, les rulesets, l'audit des permissions et les limites d'accès GitHub. Les écritures nécessitent une empreinte de plan approuvée.
+
 ## Responsabilités et PR GitHub sous approbation
 
 Le [workflow GitHub de l'atelier](GITHUB_PUBLICATION_WORKFLOW.md)
