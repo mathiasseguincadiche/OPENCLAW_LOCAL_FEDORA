@@ -81,6 +81,19 @@ copie d'essai K3s et preuve de restauration. Les modèles sont qualifiés
 sur des scénarios synthétiques correspondants, sans solutions toutes faites
 aux exercices personnels.
 
+## Importations GitHub et Notion (opt-in, lecture seule)
+
+Le projet peut maintenant ingérer un **instantané GitHub lié à un SHA complet**
+ou les **pages Notion explicitement choisies**, avec empreintes et vérification
+des sources. GitHub demeure la référence du code et du portfolio ; Notion
+reste le centre des cours, exercices, notes et progression. Les notes
+Notion importées sont **locales uniquement** : pas de transmission
+automatique à OpenRouter, ni de mise à jour du suivi Notion.
+
+`clawfedora-sources` démarre en mode simulation et ne lit les API qu'avec
+`--apply`. Ce n'est **pas encore une synchronisation en direct depuis le
+chat**, ni un accès aux VM Rocky. [Mode d'emploi et limites](docs/INTEGRATION_GITHUB_NOTION.md).
+
 ## Priorité métier : duo cloud, local à qualifier
 
 Pour l'apprentissage et les projets InfraOps autorisés, **DeepSeek V4.1 Flash**
