@@ -18,6 +18,8 @@ from clawfedora.cloud_profiles import (
 from clawfedora.core_config import AGENT_IDS
 
 REASONS = frozenset({"routine", "approved_revision", "final_review"})
+# Optional, human-approved task classification; never infer sensitivity from prompt text.
+TASK_TIERS = frozenset({"simple", "complex", "critical"})
 ALLOWED_PAIRS = frozenset({
     ("standard", "rapide"), ("standard", "soutenu"),
     ("expert", "equilibre"), ("expert", "soutenu"),
@@ -114,10 +116,13 @@ def _enabled(route: Route) -> Route:
 
 def agent_route(
     runtime: Path, policy: dict[str, Any], role: str, reason: str = "routine",
+    *, task_tier: str | None = None,
 ) -> Route:
     roles = role_routes(policy)
     if role not in roles or reason not in REASONS:
         raise ProfileRefused("routage cloud : rôle ou raison non autorisés")
+    if task_tier is not None and (type(task_tier) is not str or task_tier not in TASK_TIERS):
+        raise ProfileRefused("routage cloud : niveau de tâche non autorisé")
     if reason == "final_review" and role != "auditeur-qualite":
         raise ProfileRefused("routage cloud : revue finale réservée à l'auditeur")
     mode = chosen_routing_mode(runtime, policy)
@@ -125,7 +130,13 @@ def agent_route(
     chosen_profile(runtime, policy)
     if mode != "auto":
         return _manual(runtime, policy)
-    model, profile = roles[role]["routine" if reason == "routine" else "escalation"]
+    # An approved task tier takes precedence over the role for everyday cloud work.
+    # A critical task still uses DeepSeek until a revision/final review is approved;
+    # complexity alone cannot spend Sol credits or bypass human consent.
+    if task_tier is not None and reason == "routine":
+        model, profile = ("standard", "rapide" if task_tier == "simple" else "soutenu")
+    else:
+        model, profile = roles[role]["routine" if reason == "routine" else "escalation"]
     return _enabled(_route(policy, model_alias(model, profile), model, profile, reason))
 
 
