@@ -39,11 +39,11 @@ RUN_COMMANDS = (
 )
 COMMANDS = (
     "aide", "projets", "projet", "etat", "sources", "quitter", "modele", "budget",
-    "garder", "propositions", "voir", "accepter", "refuser",
+    "garder", "propositions", "voir", "accepter", "refuser", "github",
     *FLOW_COMMANDS, *RUN_COMMANDS,
 )
 # Commands whose argument is a sentence the user writes: a longer single line is accepted.
-LONG_COMMANDS = ("repondre", "modifier", "soumettre")
+LONG_COMMANDS = ("repondre", "modifier", "soumettre", "github")
 MAX_COMMAND_CHARS = 200
 MAX_LONG_COMMAND_CHARS = 1700
 
@@ -608,7 +608,7 @@ HELP = """Commandes du pont (comprises par le programme, jamais par le modèle) 
 - `!relire` : seconde relecture indépendante après la validation
 - `!modifier <tâche> <raison>` : révision cohérente, avec confirmation humaine
 - `!livrer` : paquet final et clôture, avec confirmation humaine
-- `!aide` : cette aide
+- `!github aide` : dépôt privé, audit local et PR brouillon sous approbation\n- `!aide` : cette aide
 
 Avec un projet sélectionné, posez vos questions normalement : le rôle lit le projet en
 **lecture seule**. Les commandes du pont peuvent maintenant conduire le même moteur que
