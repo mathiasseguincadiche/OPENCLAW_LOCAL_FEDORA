@@ -608,7 +608,8 @@ HELP = """Commandes du pont (comprises par le programme, jamais par le modèle) 
 - `!relire` : seconde relecture indépendante après la validation
 - `!modifier <tâche> <raison>` : révision cohérente, avec confirmation humaine
 - `!livrer` : paquet final et clôture, avec confirmation humaine
-- `!github aide` : dépôt privé, audit local et PR brouillon sous approbation\n- `!aide` : cette aide
+- `!github aide` : dépôt privé, audit local et PR brouillon sous approbation
+- `!aide` : cette aide
 
 Avec un projet sélectionné, posez vos questions normalement : le rôle lit le projet en
 **lecture seule**. Les commandes du pont peuvent maintenant conduire le même moteur que
