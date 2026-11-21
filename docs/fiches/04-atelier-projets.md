@@ -44,6 +44,18 @@ INTAKE_READY → ANALYZED → PLANNED → ASSIGNED → IN_PROGRESS
              → VALIDATING → REVIEW → PACKAGING → COMPLETE
 ```
 
+## Projets évolutifs et exercices multiples
+
+Pour un parcours long comme OpsDesk, le projet peut conserver une **feuille de
+route persistante** indépendante du plan multi-agent de 1 à 4 tâches. Les jalons,
+dépendances, notes et états opérateur sont suivis dans le même dossier, sans
+déclarer un exercice « vérifié » sur une simple affirmation.
+
+La première version est accessible en CLI :
+[Projets de longue durée](../PROJETS_LONGUE_DUREE.md). Elle ne renouvelle
+ni les snapshots GitHub ni les pages Notion, ne crée pas de nouvelles
+permissions d'exécution et n'impose pas de nouveau projet pour chaque exercice.
+
 ## Pourquoi ces garde-fous
 
 Un modèle de cette taille fait des erreurs, en local comme en cloud. L'atelier limite leurs conséquences :
