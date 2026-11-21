@@ -31,6 +31,7 @@ from clawfedora.project_engine import (
     transition_project,
 )
 from clawfedora.project_intake import create_project, validate_input_integrity
+from clawfedora.project_roadmap import load as load_roadmap
 from clawfedora.project_worker import AgentRunner, _guard, openclaw_runner, worker_lock
 
 UPLOAD_FORMATS = {
@@ -124,6 +125,9 @@ def details(project: Path) -> dict[str, Any]:
         "documents": read_json(project / "context/ingestion/index.json")["documents"],
         "learning": contract(project),
         "checkpoints": checkpoints(project),
+        "continuous_roadmap": load_roadmap(project)
+        if (project / "context/continuous_roadmap.json").is_file()
+        else None,
         "tasks": read_json(project / "context/task_assignments.json").get("tasks", [])
         if (project / "context/task_assignments.json").is_file()
         else [],
