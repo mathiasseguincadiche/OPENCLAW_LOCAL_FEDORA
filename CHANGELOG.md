@@ -4,6 +4,14 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### GitHub accessible depuis l'atelier
+
+- Page GitHub dédiée dans le tableau de bord local, plans sans réseau et actions approuvées uniquement après contrôle des empreintes.
+- Commandes explicites `!github` dans Open WebUI pour les projets locaux et les livrables terminés.
+- Tests d'origine, refus des approbations périmées, publication en brouillon et refus de republication silencieuse.
+- Collecteur local de captures réellement prises dans GitHub (clair, sombre, mobile), qui ne confond pas intégrité des images et certification de leur lisibilité.
+
+
 ### Gestion distante GitHub sous autorisation
 
 - Création de dépôt privé par défaut avec approbation liée à une empreinte SHA-256.
