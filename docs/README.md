@@ -32,6 +32,8 @@ propose un diff avant modification d'un bloc textuel simple, avec consentement
 humain. Le [workflow multi-blocs](NOTION_MULTI_BLOCK.md) prépare ensuite
 jusqu'à cinq corrections textuelles ciblées avec inventaire et approbation
 commune du plan exact ; il ne crée pas de pages et ne modifie pas les blocs riches.
+Le [panneau Notion local](NOTION_DASHBOARD.md) offre la consultation des blocs,
+les diffs et l'approbation humaine depuis l'atelier.
 
 ## GitHub dans le tableau de bord et le chat
 
