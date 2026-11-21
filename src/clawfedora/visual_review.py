@@ -161,10 +161,26 @@ def evaluate(manifest_path: Path, review_path: Path) -> dict[str, Any]:
     }
 
 
+def _write_private(path: Path, manifest: Path, data: dict[str, Any]) -> None:
+    if (
+        not path.is_absolute() or path.parent != manifest.parent
+        or path.is_symlink() or path.exists()
+    ):
+        raise ReviewError("nouveau fichier privé dans le dossier de capture requis")
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    descriptor = os.open(path, flags, 0o600)
+    with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+        json.dump(data, stream, ensure_ascii=False, indent=2)
+        stream.write("\n")
+
+
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="clawfedora-visual-review")
     p.add_argument("--manifest", type=Path, required=True)
-    p.add_argument("--review", type=Path, required=True)
+    p.add_argument("--review", type=Path)
+    p.add_argument("--template-out", type=Path)
     p.add_argument("--output", type=Path)
     p.add_argument("--apply", action="store_true")
     return p
@@ -173,19 +189,27 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
+        if args.template_out is not None:
+            if args.review is not None or args.output is not None or args.apply:
+                raise ReviewError("mode modèle exclusif : aucun reçu produit")
+            manifest, _ = _verify_capture(args.manifest)
+            template = {
+                "inspected_live_site": False,
+                "checks": dict.fromkeys(REQUIRED[manifest["kind"]], "NOT_EVALUATED"),
+            }
+            _write_private(args.template_out, args.manifest, template)
+            print(json.dumps({
+                "assessment": "REVIEW_TEMPLATE_CREATED_NOT_COMPLETED",
+                "template": str(args.template_out),
+            }, ensure_ascii=False))
+            return 0
+        if args.review is None:
+            raise ReviewError("--review ou --template-out requis")
         result = evaluate(args.manifest, args.review)
         if args.apply:
-            output = args.output
-            if (
-                output is None or not output.is_absolute()
-                or output.parent != args.manifest.parent
-                or output.exists() or output.is_symlink()
-            ):
-                raise ReviewError("nouveau reçu privé dans le dossier de capture requis")
-            descriptor = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-            with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-                json.dump(result, stream, ensure_ascii=False, indent=2)
-                stream.write("\n")
+            if args.output is None:
+                raise ReviewError("--output requis")
+            _write_private(args.output, args.manifest, result)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     except (ReviewError, vc.CaptureError, OSError, ValueError, TypeError, KeyError) as exc:
