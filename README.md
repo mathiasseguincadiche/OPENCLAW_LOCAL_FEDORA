@@ -37,7 +37,7 @@ Les sept rôles n'ont aucun outil pour exécuter une commande ni écrire un fich
 
 | Interface | Usage |
 | --- | --- |
-| **Open WebUI 0.12.3** — `http://127.0.0.1:3000` | Le chat : rôles, pièces jointes et six raccourcis pour les projets |
+| **Open WebUI 0.12.3** — `http://127.0.0.1:3000` | Chat, rôles et pièces jointes ; huit raccourcis, dont dossiers de projets natifs et classement des conversations |
 | **Atelier Projets** — `http://127.0.0.1:18890` | Les sources, étapes, décisions et livrables |
 | **Terminal** — `./menu.sh` | Installation, contrôles, services et maintenance ; [CLI des projets](docs/fiches/04-atelier-projets.md#en-ligne-de-commande) |
 
