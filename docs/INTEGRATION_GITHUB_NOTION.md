@@ -152,6 +152,16 @@ dans un dépôt déjà existant, avec SHA de base strict. Lire le
 Les pages Notion et notes personnelles n'y sont jamais transférées
 automatiquement.
 
+## Révisions GitHub sur un projet déjà commencé
+
+Un projet long peut conserver une **nouvelle version GitHub, au SHA complet**,
+sans rouvrir ni remplacer son intake initial. L'opérateur prévisualise les
+changements, approuve leur empreinte, puis relit les travaux et preuves
+susceptibles d'être périmés. Aucune source nouvelle n'est injectée
+automatiquement dans le plan multi-agent.
+
+[Procédure d'actualisation contrôlée](GITHUB_SNAPSHOT_REFRESH.md).
+
 ## Parcours OpsDesk conseillé
 
 1. **Notion / Pratiquer** : ouvrir l'énoncé de l'exercice, ses prérequis et
