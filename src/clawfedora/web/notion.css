@@ -38,3 +38,23 @@
   .inventory-item { grid-template-columns: 70px minmax(0,1fr); }
   .editor { padding: 12px; }
 }
+.media-table-scroll { overflow-x: auto; margin: 14px 0 20px;
+  border: 1px solid var(--line); border-radius: 12px; background: white; }
+.media-table { border-collapse: collapse; width: 100%; min-width: 420px;
+  font-size: 13px; line-height: 1.5; }
+.media-table th, .media-table td { border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line); padding: 11px 12px;
+  min-width: 100px; max-width: 240px; overflow-wrap: anywhere;
+  vertical-align: top; text-align: left; }
+.media-table tr:last-child td { border-bottom: 0; }
+.media-table th { color: var(--ink); background: #e8eee7; font-weight: 700; }
+.media-table tr:nth-child(even) td { background: #f8faf6; }
+.media-table tr > :last-child { border-right: 0; }
+#media-structure > p { margin: 12px 0; color: var(--muted); }
+#media-diff-panel pre { white-space: pre-wrap; overflow-wrap: anywhere;
+  background: #edf3ee; padding: 16px; border-radius: 10px;
+  border: 1px solid var(--line); }
+@media (max-width: 650px) {
+  .media-table { font-size: 12px; }
+  .media-table th, .media-table td { padding: 9px 10px; min-width: 92px; }
+}
