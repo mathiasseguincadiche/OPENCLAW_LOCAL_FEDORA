@@ -237,7 +237,7 @@ def test_link_action_only_moves_current_chat_and_retains_thread_marker(
         __user__={"role": "admin", "id": "admin-1"}, __event_call__=confirm,
     ))
     assert result is not None
-    assert result["messages"][0]["content"].startswith("📁 Projet : projet-beta · pont")
+    assert result["messages"][0]["content"].startswith("📁 Projet : projet-beta")
     assert native.chats["chat-12345678"].folder_id is not None
     assert len([c for c in native.calls if c[0] == "move"]) == 1
     assert all(c[0] not in {"delete", "merge", "export"} for c in native.calls)
