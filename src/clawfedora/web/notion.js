@@ -189,14 +189,15 @@ byId("apply-form").addEventListener("submit", async (event) => {
   await submit(byId("apply-form").querySelector("button[type=submit]"), async () => {
     if (!plan) throw new Error("Plan périmé : refaire l'aperçu.");
     const value = plan;
-    // Even a network error can mean a remote PATCH succeeded. Require inspection.
-    clearPlan();
-    const result = await post("/api/notion/apply", {
+    const approval = {
       plan_id: value.id, page: value.page,
       approve_page: byId("approve-page").value.trim(),
       approve_manifest: byId("approve-manifest").value.trim(),
       human_approved: byId("approve-human").checked,
-    });
+    };
+    // Even a network error can mean a remote PATCH succeeded. Require inspection.
+    clearPlan();
+    const result = await post("/api/notion/apply", approval);
     byId("apply-result").textContent = JSON.stringify(result, null, 2);
     status("Blocs relus après modification. Ouvrir Notion pour vérifier le rendu réel.");
   });
