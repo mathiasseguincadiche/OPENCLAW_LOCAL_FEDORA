@@ -7,6 +7,7 @@ import stat
 import threading
 import time
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -320,7 +321,7 @@ def test_cache_ratio_uses_only_paired_observed_counts(ledger: Ledger) -> None:
     ],
 )
 def test_malformed_reservation_cannot_write_to_ledger(
-    ledger: Ledger, inputs: dict[str, object], reason: str,
+    ledger: Ledger, inputs: dict[str, Any], reason: str,
 ) -> None:
     with pytest.raises(BudgetRefused, match=reason):
         ledger.reserve(**inputs)
