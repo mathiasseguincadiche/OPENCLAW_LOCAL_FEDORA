@@ -105,7 +105,8 @@ Le [module de révision Notion ciblée](docs/NOTION_CONTROLLED_WRITES.md)
 permet de préparer un diff puis de modifier **un bloc texte simple**
 existant après approbation exacte. Le [lot multi-blocs contrôlé](docs/NOTION_MULTI_BLOCK.md)
 étend ce principe à plusieurs blocs simples d'une même page, avec inventaire
-et arrêt en cas de conflit. Ni synchronisation du suivi ni écriture autonome
+et arrêt en cas de conflit. Le [panneau Notion local](docs/NOTION_DASHBOARD.md)
+permet de les examiner et d'approuver les révisions depuis le navigateur. Ni synchronisation du suivi ni écriture autonome
 du modèle n'est autorisée.
 
 ## GitHub depuis l'atelier et les discussions
