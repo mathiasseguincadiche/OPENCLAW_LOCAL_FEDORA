@@ -14,6 +14,8 @@ regroupent les actions sous les réponses :
 | Raccourci | Utilité |
 |---|---|
 | **Choisir un projet** | Choisir dans une liste, sans retenir son identifiant |
+| **Afficher les projets dans le menu** | Créer les dossiers natifs de projets dans Open WebUI après confirmation, sans déplacer les chats |
+| **Classer cette conversation** | Ranger un fil WebUI sauvegardé dans le projet choisi et y enregistrer son contexte, après confirmation |
 | **Projet et prochaine étape** | Lire l’état, les tâches et la suite proposée |
 | **Activité de l’atelier** | Consulter le travail en cours et le temps écoulé connu |
 | **Créer un projet** | Préparer le titre et le besoin, puis demander sa confirmation |
