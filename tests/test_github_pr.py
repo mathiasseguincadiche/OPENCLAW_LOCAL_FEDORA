@@ -146,6 +146,25 @@ def test_manifest_approval_is_required_and_rejects_file_changes(
         )
 
 
+def test_pr_description_cannot_leak_credentials(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _stage(tmp_path)
+    monkeypatch.setenv("GITHUB_TOKEN", "dummy-not-real-token")
+    plan = github_pr.make_plan(**_kwargs(root))
+
+    def no_network(**_params: Any) -> dict[str, Any]:
+        raise AssertionError("Sensitive PR text must be refused before network")
+
+    monkeypatch.setattr(github_pr, "_api_request", no_network)
+    with pytest.raises(github_pr.PublicationError, match="contenu sensible"):
+        github_pr.publish_draft(
+            **_kwargs(root), title="Example proposal",
+            body="Danger: ghp_" + "A" * 40, approve_repo=REPO,
+            approve_manifest=plan["manifest_sha256"],
+        )
+
+
 def test_remote_sha_mismatch_is_fail_closed(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
