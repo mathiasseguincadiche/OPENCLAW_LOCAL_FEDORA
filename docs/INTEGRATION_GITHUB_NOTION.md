@@ -111,6 +111,21 @@ travail publiable, créer **un projet distinct contenant uniquement les
 sources GitHub révisées**, sans notes privées. Il n'existe pas à ce stade
 de déclassement automatique des pages Notion en contenu publiable.
 
+## Conception premium des wikis Notion
+
+La [charte universelle](NOTION_WIKI_DESIGN_SYSTEM.md) décrit l'architecture
+Accueil / Comprendre / Préparer / Pratiquer / Suivre / Ressources, les sept
+modèles éditoriaux, la séparation des sources GitHub et Notion, les
+contrôles de mise en page, de mobile et de conservation des sous-pages.
+
+Deux gabarits de départ sont dans
+[`accueil-wiki.md`](../templates/notion/accueil-wiki.md) et
+[`exercice-infraops.md`](../templates/notion/exercice-infraops.md) : page d'accueil et fiche
+d'exercice. L'architecte, le rédacteur et l'auditeur des **sept rôles
+existants** s'en servent suivant le besoin. La génération d'un contenu
+modèle ne déclenche aucune écriture distante. Le rendu natif et la lecture
+sur mobile se vérifient **dans Notion**, pas dans la CI.
+
 ## Parcours OpsDesk conseillé
 
 1. **Notion / Pratiquer** : ouvrir l'énoncé de l'exercice, ses prérequis et

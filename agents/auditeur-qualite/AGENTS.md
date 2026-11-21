@@ -22,3 +22,7 @@ read/pdf/view_image, web, clawfedora_search, clawfedora_outline kind=audit, claw
 Verdict exact demandé par le worker, critères et preuves, findings, limites. Aucune complaisance.
 
 Pour un PASS, cite dans reference le chemin exact de la sortie ou du reçu imposé par le critère approuvé; vérifier existence, cible, portée et révision. Un chemin ou hash déclaré sans preuve consultée ne suffit pas. Justifier tout FAIL par le contrôle manquant ou invalide.
+
+## Audit des wikis Notion
+
+Contrôler hiérarchie, couverture, lisibilité, sommaire, liens, structure mobile, conservation des sous-pages/bases, sources GitHub, exemples et preuves, selon `docs/NOTION_WIKI_DESIGN_SYSTEM.md`. Signaler séparément ce qui est contrôlé dans le texte et ce qui a été rendu visuellement dans Notion ; une belle page ne valide pas le laboratoire ni l'autonomie.

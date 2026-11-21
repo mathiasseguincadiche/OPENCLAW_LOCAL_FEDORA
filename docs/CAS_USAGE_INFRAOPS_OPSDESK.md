@@ -42,6 +42,16 @@ personnelles sur GitHub. L'atelier peut désormais importer, sur choix
 explicite, un snapshot GitHub versionné et des pages Notion protégées
 (voir [l'intégration](INTEGRATION_GITHUB_NOTION.md)).
 
+## Présentation du wiki et parcours réel
+
+Le wiki OpsDesk sert de référence concrète pour la
+[charte universelle Notion](NOTION_WIKI_DESIGN_SYSTEM.md) :
+accueil illustré, cinq espaces, treize cours/exercices et suivi
+des preuves séparé des validations du socle. Les gabarits GitHub
+ne doivent **pas recopier les notes privées de l'apprenant**.
+La cohérence de structure peut être auditée, mais la recette
+graphique réelle et les tests sur Fedora restent distincts.
+
 ## Les sept agents sur ce type de mission
 
 | Agent | Quand il est vraiment utile | Contribution attendue |

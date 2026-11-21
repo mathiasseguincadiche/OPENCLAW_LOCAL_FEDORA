@@ -20,6 +20,15 @@ contre un envoi cloud involontaire. L'intégration nécessite un projet
 `INTAKE_READY` et une action explicite en CLI ; le chat n'interroge
 pas encore les API directement.
 
+## Construire un wiki Notion premium
+
+La [charte universelle des wikis Notion](NOTION_WIKI_DESIGN_SYSTEM.md)
+standardise la page d'accueil, les exercices, la navigation, les
+illustrations et les preuves. Deux [gabarits Notion](../templates/notion/accueil-wiki.md)
+sont fournis pour préparer une proposition avant validation humaine.
+Les sept agents actuels sont spécialisés sur la conception, la rédaction
+et l'audit ; aucun outil de publication Notion autonome n'est actif.
+
 ## Référence métier InfraOps
 
 [OpsDesk : architecture du laboratoire et besoins concrets des sept agents](CAS_USAGE_INFRAOPS_OPSDESK.md)

@@ -4,6 +4,17 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Wiki Notion premium et compétences des agents
+
+- Charte de wiki réutilisable (accueil, cinq espaces et sept familles de pages).
+- Gabarits Notion natifs de page d'accueil et d'exercice, à remplir sans
+  prévalider de compétences ou de résultats de laboratoire.
+- Répartition entre architecte, rédacteur, DevOps/GitHub, auditeur et chef
+  sans nouvel agent redondant ni écriture distante automatique.
+- Clarification de la recette native, des règles de confidentialité et
+  de la séparation entre modèle documentaire et tests sur Fedora.
+
+
 ### Novembre 2026 — Lecture contrôlée GitHub et Notion
 
 - Ajout de `clawfedora-sources` : importation GitHub épinglée par commit,
