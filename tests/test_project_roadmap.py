@@ -9,6 +9,7 @@ from clawfedora.project_cli import add_project_parser
 from clawfedora.project_common import read_json, write_json
 from clawfedora.project_intake import create_project
 from clawfedora.project_roadmap import change, initialize, load
+from clawfedora.project_ui import details
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -126,3 +127,12 @@ def test_project_cli_exposes_explicit_preview_and_apply() -> None:
     )
     assert args.project_command == "roadmap-set"
     assert args.apply is False
+
+
+def test_project_ui_exposes_only_persisted_operator_roadmap(tmp_path: Path) -> None:
+    directory = project(tmp_path)
+    assert details(directory)["continuous_roadmap"] is None
+    initialize(directory, definitions(), apply=True)
+    reported = details(directory)["continuous_roadmap"]
+    assert reported["milestones"][0]["id"] == "exercice-01"
+    assert reported["milestones"][0]["verification"] == "NOT_VERIFIED"
