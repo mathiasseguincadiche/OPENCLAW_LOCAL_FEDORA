@@ -366,7 +366,7 @@ def _local_only(project: Path) -> bool:
         raise SourceImportError("politique de sources liée interdite")
     if path.is_file() and read_json(path).get("local_only") is True:
         return True
-    return any((project / folder).glob("Notion-*") for folder in ("intake", "sources"))
+    return any(any((project / folder).glob("Notion-*")) for folder in ("intake", "sources"))
 
 
 def import_snapshot(
@@ -411,6 +411,8 @@ def import_snapshot(
                 # Fail closed BEFORE intake changes: no approval can enable cloud
                 # for a project containing private training notes.
                 policy_path = project / "context" / "connected_sources.json"
+                if policy_path.is_symlink():
+                    raise SourceImportError("politique de sources liée interdite")
                 old = read_json(policy_path) if policy_path.is_file() else {}
                 old["local_only"] = True
                 old["reason"] = "notes Notion personnelles : cloud interdit"
