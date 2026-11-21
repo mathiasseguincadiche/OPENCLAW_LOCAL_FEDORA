@@ -285,3 +285,17 @@ def test_uncertain_patch_cannot_retry(
     assert (tmp_path / "image-plan.json.attempted.json").is_file()
     with pytest.raises(nw.NotionWriteError, match="déjà tenté"):
         media.apply(path, PAGE, proposal["manifest_sha256"])
+
+
+def test_child_inventory_malformed_entry_is_not_silently_dropped(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        source_connectors, "_notion",
+        lambda *_args: {
+            "results": [{"id": TABLE, "type": "table"}, "invalid-block"],
+            "has_more": False,
+        },
+    )
+    with pytest.raises(source_connectors.SourceImportError, match="incomplet"):
+        source_connectors._notion_children(PAGE)
