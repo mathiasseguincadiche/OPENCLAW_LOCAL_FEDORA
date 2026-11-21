@@ -1,5 +1,3 @@
-<!-- MODÈLE À PERSONNALISER : ne jamais attribuer une validation en remplissant cette page. -->
-
 <callout icon="🧭" color="blue_bg">
 <b>[Projet] — Centre de connaissance et d'apprentissage</b>
 
