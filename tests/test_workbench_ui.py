@@ -7,6 +7,8 @@ Visual acceptance on real Fedora is tracked separately.
 from __future__ import annotations
 
 import io
+import shutil
+import subprocess
 import threading
 from collections.abc import Iterator
 from html.parser import HTMLParser
@@ -140,3 +142,14 @@ def test_theme_responsive_accessibility_and_privacy() -> None:
     assert "innerHTML" not in script
     assert "eval(" not in script
     assert 'body.classList.add("workbench"' not in script  # Explicit view class.
+
+
+def test_shared_frontend_javascript_syntax_when_node_is_available() -> None:
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("Node absent : lint Python et contrat HTML restent exécutés")
+    result = subprocess.run(
+        [node, "--check", str(WEB / "workbench.js")],
+        capture_output=True, text=True, check=False, timeout=10,
+    )
+    assert result.returncode == 0, result.stderr
