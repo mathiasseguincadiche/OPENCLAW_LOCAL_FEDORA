@@ -96,6 +96,14 @@ def test_remote_drift_refuses_write(tmp_path: Path, monkeypatch: pytest.MonkeyPa
 
 def test_foreign_page_refused(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _stub(monkeypatch)
+    original = nw._request
+
+    def foreign_page(method: str, resource: str, **kwargs: Any) -> dict[str, Any]:
+        if resource == f"/v1/pages/{OTHER_PAGE}":
+            return {"id": OTHER_PAGE, "archived": False}
+        return original(method, resource, **kwargs)
+
+    monkeypatch.setattr(nw, "_request", foreign_page)
     with pytest.raises(nw.NotionWriteError, match="non direct"):
         nw.preview(OTHER_PAGE, BLOCK, "Nouveau", tmp_path / "plan.json")
 
