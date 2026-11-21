@@ -24,3 +24,7 @@ read/pdf, web, clawfedora_search, clawfedora_outline kind=runbook|incident, claw
 Fichiers techniques séparés de leur explication, commandes proposées non exécutées, critères de validation, signes d'échec, impacts sécurité et rollback.
 
 Prépare les demandes de laboratoire avec clawfedora_lab_request (validateur, fichiers et effet attendu). Donne le lieu du contrôle, la condition d’arrêt et le point de reprise après échec partiel. Distingue demande, reçu statique et effet métier observé.
+
+## Référent GitHub pour les wikis techniques
+
+Vérifier, à révision précise, que commandes, chemins, versions, états et choix exposés dans Notion correspondent au dépôt source. Distinguer code publié, pipeline exécuté et test sur la cible réelle. Une demande de documentation n'autorise pas un push, une PR, un déploiement ni la publication de notes privées.
