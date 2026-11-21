@@ -14,6 +14,7 @@ from typing import Any
 from urllib.parse import unquote, urlsplit
 
 from defusedxml import ElementTree as DefusedET
+from defusedxml.common import DefusedXmlException
 
 MARKDOWN_REF = re.compile(r"!?\[[^\]\n]*\]\(([^)\n]+)\)")
 HTML_REF = re.compile(r'(?:src|srcset|href)="([^"]+)"')
@@ -191,7 +192,7 @@ def audit_graphics(root: Path, *, snapshot: bool) -> dict[str, Any]:
                 invalid.append(svg.name + ": incorrect root element")
             else:
                 verified += 1
-        except (DefusedET.ParseError, ValueError):
+        except (DefusedET.ParseError, DefusedXmlException, ValueError):
             invalid.append(svg.name + ": XML invalid or unsafe")
     return {
         "state": "SOURCE_ONLY",
@@ -210,7 +211,7 @@ def audit_repository(path: Path) -> dict[str, Any]:
         raise AuditError("Le chemin doit être un dossier local non lié")
     root = path.resolve(strict=True)
     source = _source(root)
-    snapshot = source["kind"] == "GITHUB_SOURCE_SNAPSHOT"
+    snapshot = source["kind"] != "LOCAL_DIRECTORY"
     signals: list[dict[str, Any]] = []
     for key, choices in SIGNALS:
         candidates = [_safe_path(root, name) for name in choices]
