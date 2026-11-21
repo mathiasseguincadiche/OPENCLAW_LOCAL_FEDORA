@@ -235,3 +235,79 @@ def test_private_plan_without_secret_or_untrusted_path(
     saved = folder / (plan["plan_id"] + ".plan.json")
     assert saved.stat().st_mode & 0o077 == 0
     assert "test-token-never-display" not in saved.read_text(encoding="utf-8")
+
+
+def test_rich_segment_ui_is_static_and_token_free(
+    server: DashboardServer, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        notion_panel, "rich_inspect",
+        lambda *_args: pytest.fail("static file triggered a Notion request"),
+    )
+    code, js = request(server, "/notion-rich.js")
+    assert code == 200 and "rich-apply" in js
+    code, html = request(server, "/notion.html")
+    assert code == 200
+    assert "Réviser un segment de texte enrichi" in html
+    assert "/notion-rich.js" in html
+
+
+def test_rich_segment_api_requires_exact_user_approval(
+    server: DashboardServer, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    state = _mock_notion(monkeypatch)
+    code, details = request(server, "/api/notion/rich-segments", {
+        "page": PAGE, "block_id": FIRST,
+    })
+    assert code == 200 and details["mode"] == "RICH_SEGMENTS_READ_ONLY"
+    assert details["segments"][0]["editable"] is True
+    code, proposal = request(server, "/api/notion/rich-plan", {
+        "page": PAGE, "block_id": FIRST, "segment_index": 0,
+        "text": "Présentation contrôlée",
+    })
+    assert code == 200
+    assert proposal["mode"] == "RICH_SEGMENT_PREVIEW_ONLY"
+    assert len(proposal["plan_id"]) == 32
+    assert state["patches"] == []
+    approval = {
+        "plan_id": proposal["plan_id"], "page": PAGE, "approve_page": PAGE,
+        "approve_manifest": proposal["manifest_sha256"], "human_approved": True,
+    }
+    assert request(server, "/api/notion/rich-apply", approval, origin=False)[0] == 403
+    assert request(server, "/api/notion/rich-apply", {
+        **approval, "human_approved": False,
+    })[0] == 400
+    assert request(server, "/api/notion/rich-apply", {
+        **approval, "approve_manifest": "0" * 64,
+    })[0] == 400
+    assert request(server, "/api/notion/rich-apply", {
+        **approval, "approve_page": SECOND,
+    })[0] == 400
+    assert state["patches"] == []
+    code, result = request(server, "/api/notion/rich-apply", approval)
+    assert code == 200 and result["mode"] == "RICH_SEGMENT_API_VERIFIED"
+    assert state["texts"][FIRST] == "Présentation contrôlée"
+    assert state["patches"] == [FIRST]
+    assert request(server, "/api/notion/rich-apply", approval)[0] == 400
+    assert state["patches"] == [FIRST]
+
+
+def test_rich_segment_api_rejects_invalid_index_and_no_secret_exposure(
+    server: DashboardServer, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    state = _mock_notion(monkeypatch)
+    monkeypatch.setenv("NOTION_WRITE_TOKEN", "hidden-test-token")
+    bad = {
+        "page": PAGE, "block_id": FIRST,
+        "segment_index": True, "text": "Impossible",
+    }
+    assert request(server, "/api/notion/rich-plan", bad)[0] == 400
+    good = {**bad, "segment_index": 0, "text": "Édition sûre"}
+    code, proposal = request(server, "/api/notion/rich-plan", good)
+    assert code == 200
+    assert "hidden-test-token" not in json.dumps(proposal)
+    assert "plan_file" not in proposal
+    assert state["patches"] == []
+    assert request(server, "/api/notion/rich-remove", {
+        "page": PAGE,
+    })[0] == 400
