@@ -401,8 +401,41 @@ async function loadProject(id) {
     tell("Projet ouvert : " + data.manifest.title);
     renderRevision(id, data);
     renderRoadmap(data);
+    renderGithubUpdates(data);
   } catch (error) { tell(error.message, true); }
 }
+function renderGithubUpdates(data) {
+  const area = $("github-updates");
+  area.replaceChildren();
+  const updates = data.github_updates || [];
+  if (!updates.length) return;
+  area.append(node("h3", "Révisions GitHub"));
+  for (const update of updates) {
+    const article = node("section");
+    article.append(node("strong", update.repository));
+    article.append(node(
+      "p", "Version enregistrée : " + update.current_commit.slice(0, 12) +
+      " · version précédente : " + update.previous_commit.slice(0, 12) +
+      " · " + update.changes.length + " changement(s)"
+    ));
+    article.append(node(
+      "p", "Preuves et décisions à requalifier sur le nouveau SHA. " +
+      "L'intake original et les tâches IA restent sur leur version d'origine."
+    ));
+    const details = node("details");
+    details.append(node("summary", "Voir les fichiers ajoutés, modifiés ou supprimés"));
+    const list = node("ul");
+    for (const item of update.changes) {
+      const label = {added: "Ajout", modified: "Modification", removed: "Suppression"}[item.change];
+      list.append(node("li", (label || "Changement") + " · " + item.path));
+    }
+    if (!update.changes.length) list.append(node("li", "Aucun fichier textuel modifié"));
+    details.append(list);
+    article.append(details);
+    area.append(article);
+  }
+}
+
 function renderRoadmap(data) {
   const area = $("continuous-roadmap");
   area.replaceChildren();
