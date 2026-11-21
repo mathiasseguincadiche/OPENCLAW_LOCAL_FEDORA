@@ -7,6 +7,8 @@
 L'atelier dispose de `clawfedora-notion-write` pour **proposer puis modifier un unique
 bloc textuel Notion existant**, après lecture et approbation explicite de l'opérateur.
 Ce module est un **premier sous-ensemble sûr**, pas un éditeur de wiki complet.
+Pour préparer plusieurs modifications simples d'une même page, consulter le
+[workflow de lot multi-blocs sous approbation](NOTION_MULTI_BLOCK.md).
 
 - **Prévisualisation :** lecture des métadonnées de la page et du bloc via l'API Notion ;
   calcul d'un diff lisible et écriture locale d'un plan JSON privé (mode `0600`).

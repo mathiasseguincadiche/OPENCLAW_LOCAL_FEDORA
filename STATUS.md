@@ -1,6 +1,6 @@
 # État du projet — Atelier IA hybride Fedora
 
-**Version 0.2.0 du 3 novembre 2026** ([notes de version](CHANGELOG.md)). **Cycle d'optimisation FinOps #196–#201 intégré au dépôt.** Dernière référence intégrée entièrement verte : [CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/44869604238), [CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/44869604231), commit `c2bfc5f` (#212), avant la présente évolution Notion. Consulter les contrôles du commit utilisé avant réception. L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
+**Version 0.2.0 du 3 novembre 2026** ([notes de version](CHANGELOG.md)). **Cycle d'optimisation FinOps #196–#201 intégré au dépôt.** Révision Notion à un bloc #213 fusionnée dans `main` le 21 novembre 2026 ; le nouveau lot multi-blocs sera évalué séparément dans sa PR. Consulter la CI du SHA effectivement déployé. Consulter les contrôles du commit utilisé avant réception. L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
 **Évolution en cours de qualification :** routage cloud par niveau de tâche
 approuvé (`simple`, `complex`, `critical`), protocole de mesure

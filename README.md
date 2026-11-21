@@ -102,9 +102,11 @@ actuels se répartissent architecture, rédaction, vérification technique
 GitHub et audit documentaire. Un rendu premium ne transforme ni les
 notes personnelles ni les sorties illustratives en preuves réelles.
 Le [module de révision Notion ciblée](docs/NOTION_CONTROLLED_WRITES.md)
-permet désormais de préparer un diff puis de modifier **un bloc texte simple**
-existant après approbation exacte. Ce n'est **ni un éditeur autonome de pages**,
-ni une synchronisation du suivi, ni une écriture commandée par le modèle.
+permet de préparer un diff puis de modifier **un bloc texte simple**
+existant après approbation exacte. Le [lot multi-blocs contrôlé](docs/NOTION_MULTI_BLOCK.md)
+étend ce principe à plusieurs blocs simples d'une même page, avec inventaire
+et arrêt en cas de conflit. Ni synchronisation du suivi ni écriture autonome
+du modèle n'est autorisée.
 
 ## GitHub depuis l'atelier et les discussions
 
