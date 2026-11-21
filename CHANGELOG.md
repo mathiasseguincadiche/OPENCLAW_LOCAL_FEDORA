@@ -4,6 +4,17 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Novembre 2026 — Lecture contrôlée GitHub et Notion
+
+- Ajout de `clawfedora-sources` : importation GitHub épinglée par commit,
+  importation Notion de pages choisies, prévisualisation sans réseau par défaut,
+  quotas et validation des chemins, provenance et empreintes dans l'intake.
+- Les notes Notion sont locales par défaut et bloquent explicitement l'accord
+  cloud du projet. Aucune écriture GitHub/Notion ni exécution des VM.
+- Tests synthétiques sans identifiants réels, documentation des deux
+  référentiels et étapes de validation sur Fedora.
+
+
 ### Novembre 2026 — Référence métier OpsDesk pour l'atelier InfraOps
 
 - Étude du dépôt public OpsDesk (FastAPI/React/PostgreSQL, trois VM Rocky,
