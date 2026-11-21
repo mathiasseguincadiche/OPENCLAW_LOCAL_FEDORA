@@ -373,7 +373,8 @@ def test_media_image_caption_api_requires_exact_approval(
 def test_media_table_cell_api_does_not_replace_other_cells(
     server: DashboardServer, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from test_notion_media import PAGE as MEDIA_PAGE, ROW2, TABLE, _setup
+    from test_notion_media import PAGE as MEDIA_PAGE
+    from test_notion_media import ROW2, TABLE, _setup
 
     state = _setup(monkeypatch)
     code, contents = request(server, "/api/notion/media-inspect", {
