@@ -87,8 +87,9 @@ appartiennent à la [campagne de réception](validation/NOTION_GITHUB_ACCEPTANCE
 - Import assisté de **propositions validées des agents** depuis les
   livrables d'un projet sélectionné (l'éditeur courant attend
   du texte saisi/collé par l'opérateur).
-- Gestion des sections enrichies, callouts, tableaux, médias, schémas et
-  ajout contrôlé de pages.
+- Édition complète de sections multi-segments, mentions et liens, tableaux,
+  médias, images, schémas et ajout contrôlé de pages. Le mode segment enrichi
+  est déjà disponible, mais ne réalise aucun de ces travaux avancés.
 - Prévisualisation visuelle complète des blocs comme ils apparaîtront
   réellement dans Notion, et preuve native bureau/mobile.
 
