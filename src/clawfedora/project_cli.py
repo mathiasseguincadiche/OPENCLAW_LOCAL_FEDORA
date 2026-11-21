@@ -26,10 +26,10 @@ from clawfedora.project_engine import (
     transition_project,
 )
 from clawfedora.project_intake import create_project
+from clawfedora.project_revision import impact, revise
 from clawfedora.project_roadmap import change as roadmap_change
 from clawfedora.project_roadmap import initialize as roadmap_initialize
 from clawfedora.project_roadmap import load as roadmap_load
-from clawfedora.project_revision import impact, revise
 from clawfedora.project_worker import review_project, run_project_tasks, worker_lock
 from clawfedora.storage import load_settings, require_storage
 
