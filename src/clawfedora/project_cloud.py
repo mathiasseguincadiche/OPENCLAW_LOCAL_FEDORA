@@ -102,10 +102,7 @@ def _private_notion_snapshot(project: Path) -> bool:
                 return True
         except (OSError, ValueError):
             return True  # corrupted policy is not permission
-    for scope in ("intake", "sources"):
-        if any((project / scope).glob("Notion-*")):
-            return True
-    return False
+    return any(any((project / scope).glob("Notion-*")) for scope in ("intake", "sources"))
 
 
 # -- consent ------------------------------------------------------------------------
