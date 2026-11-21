@@ -9,10 +9,11 @@ from typing import Any
 
 import pytest
 
-from clawfedora import milestone_evidence, source_connectors
+from clawfedora import chat_projects, milestone_evidence, source_connectors
 from clawfedora.project_common import read_json, write_json
 from clawfedora.project_intake import create_project, validate_input_integrity
 from clawfedora.project_roadmap import change, initialize, load
+from clawfedora.project_ui import details
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO = "example/OpsDesk"
@@ -258,3 +259,20 @@ def test_parser_requires_explicit_apply_and_uses_bounded_arguments() -> None:
     assert args.apply is False
     assert args.kind == "operator"
     assert args.command == "capture"
+
+
+def test_dashboard_and_chat_report_metadata_without_raw_private_logs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _runtime, project, params = setup(tmp_path, monkeypatch)
+    preview = milestone_evidence.capture(**params)
+    milestone_evidence.capture(
+        **params, apply=True, approve=preview["approval_sha256"]
+    )
+    dashboard = details(project)["milestone_evidence"]
+    assert dashboard["total"] == 1
+    assert dashboard["milestones"][1]["count"] == 1
+    assert "Sortie obtenue dans le laboratoire" not in json.dumps(dashboard)
+    summary = chat_projects.status_text(ROOT, _runtime, project)
+    assert "Preuves des exercices : 1 reçus" in summary
+    assert "Sortie obtenue dans le laboratoire" not in summary
