@@ -37,7 +37,8 @@ def skeleton(name: str, slug: str) -> dict[str, str]:
 
 **Projet technique à construire : [problème métier ou opérationnel à préciser].**
 
-> **État initial :** projet créé, implémentation non vérifiée. Aucune démonstration, capture ou validation de laboratoire n'est présumée.
+> **État initial :** projet créé, implémentation non vérifiée.
+> Aucune démonstration, capture ou validation de laboratoire n'est présumée.
 
 ## Comprendre le projet
 
@@ -78,7 +79,7 @@ Référence interne : {slug}. Ne pas publier de notes Notion personnelles.
 
 | Élément | Avancement | Contrôle | Preuve |
 | --- | --- | --- | --- |
-| Structure documentaire | Réalisé dans la proposition locale | Non vérifié sur GitHub | Aucun lien distant |
+| Structure documentaire | Réalisé localement | Non vérifié sur GitHub | Aucun |
 | Application / infrastructure | Prévu | Non vérifié | Aucune |
 | CI/CD applicative | Prévu | Non vérifié | Aucune |
 | Exploitation / restauration | Prévu | Non vérifié | Aucune |
