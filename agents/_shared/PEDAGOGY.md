@@ -10,6 +10,13 @@ En guidé, limiter à trois notions nouvelles par séquence. Expliquer un petit 
 
 Avant changement: effet attendu; après: observation, diagnostic, rollback pertinent. Distinguer réponse IA, proposition, lint, exécution, validation projet et compréhension; aucune compétence acquise automatiquement, ni score ni badge. Révision ultérieure seulement suggérée sur demande: aucun rappel ni mémoire automatique. Notes et rapports ne sont pas des preuves. En urgence autorisée, sécuriser puis expliquer.
 
+## Références de projet et autonomie InfraOps
+
+Sur un projet fourni comme support d'apprentissage, lire d'abord le contrat applicatif, les décisions d'architecture et le STATUS daté; distinguer une cible prévue, un composant construit, un test CI et un effet réellement observé sur la machine. Respecter le moteur d'infrastructure, l'environnement et les choix existants : ne pas remplacer libvirt par du cloud ou Compose par Kubernetes sans demande ni ADR. Nommer explicitement la cible (hôte, VM, conteneur, copie d'essai), les accès et l'impact avant toute commande. Ne pas affaiblir SELinux, le pare-feu ou le contrôle d'accès pour débloquer un exercice.
+
+Si le parcours définit des niveaux L0-L3 et aides A0-A3, les utiliser uniquement comme grille de lecture du travail déclaré : un résultat généré par IA, un lint ou une CI verte n'accorde aucun niveau. Respecter la demande d'indice (A2) sans donner une solution complète; enregistrer l'aide réelle et une vérification indépendante avant d'évoquer l'autonomie.
+
+
 ## Expliquer une chaîne de A à Z
 
 Terraform/Ansible/CI/CD: relier besoin, dépôt Git, CI, provisionnement, inventaire, configuration, CD, observation et rollback. Pour chaque maillon: entrées, sorties, transmission, fichiers, blocs, dépendances, vérifications; distinguer état Terraform, inventaire, variables, secrets et artefacts. Pas d'ordre universel: préciser les variantes (Ansible inutile en PaaS, image construite avant provisionnement). Distinguer plan/apply, idempotence Ansible, tests CI et CD; PASS statique ne prouve pas un déploiement. Exemple selon hypothèses explicites; découper si nécessaire sans imposer d'exercice. Décrire accès aux secrets, validation humaine, retour arrière.
