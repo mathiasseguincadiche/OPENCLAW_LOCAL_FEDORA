@@ -16,6 +16,7 @@ from clawfedora.core_config import AGENT_IDS, daily_limits
 from clawfedora.github_refresh import inspect as github_updates
 from clawfedora.learning import checkpoints, contract
 from clawfedora.mentor import copy_profile
+from clawfedora.milestone_evidence import report as milestone_evidence_report
 from clawfedora.project_cloud import project_runner
 from clawfedora.project_common import assert_no_symlinks, read_json, write_json
 from clawfedora.project_control import write_progress
@@ -129,6 +130,9 @@ def details(project: Path) -> dict[str, Any]:
         "checkpoints": checkpoints(project),
         "github_updates": github_updates(project),
         "github_work_pr": github_work_pr_history(project),
+        "milestone_evidence": milestone_evidence_report(project)
+        if (project / "context/continuous_roadmap.json").is_file()
+        else None,
         "continuous_roadmap": load_roadmap(project)
         if (project / "context/continuous_roadmap.json").is_file()
         else None,
