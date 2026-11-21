@@ -6,19 +6,28 @@ Open WebUI est l'interface de discussion, à l'adresse `http://127.0.0.1:3000`. 
 
 > **En bref.** Pour une question : choisis un rôle ([Choisir à qui tu parles](#choisir-à-qui-tu-parles)), pose-la, et reste en local. Pour un fichier court : [analyse-le dans le chat](#analyser-un-petit-fichier-sans-créer-de-projet). Pour un vrai travail en plusieurs étapes : [passe par un projet](#chat-ou-atelier-). Le reste de cette page est une **référence** : tu n'as pas à tout lire avant de commencer.
 
-## Six raccourcis pour commencer
+## Huit raccourcis pour commencer
 
-Après la création du compte administrateur et `webui-seal --apply`, six entrées
+Après la création du compte administrateur et `webui-seal --apply`, huit entrées
 regroupent les actions sous les réponses :
 
 | Raccourci | Utilité |
 |---|---|
 | **Choisir un projet** | Choisir dans une liste, sans retenir son identifiant |
+| **Afficher les projets dans le menu** | Créer les dossiers natifs de projets dans Open WebUI après confirmation, sans déplacer les chats |
+| **Classer cette conversation** | Ranger un fil WebUI sauvegardé dans le projet choisi et y enregistrer son contexte, après confirmation |
 | **Projet et prochaine étape** | Lire l’état, les tâches et la suite proposée |
 | **Activité de l’atelier** | Consulter le travail en cours et le temps écoulé connu |
 | **Créer un projet** | Préparer le titre et le besoin, puis demander sa confirmation |
 | **Actions du projet** | Ouvrir le menu analyse, plan, validation, lancement, pause, relecture et livraison |
 | **Sources, modèles et aide** | Consulter les sources, la liste des projets, le conseil de modèle, le budget et les commandes |
+
+Les [dossiers de projets natifs](../OPENWEBUI_NATIVE_PROJECT_FOLDERS.md)
+sont créés sur demande depuis **Afficher les projets dans le menu**.
+Pour retrouver un fil dans le bon dossier, utiliser **Classer cette
+conversation** après son premier message. Ouvrir un nouveau fil dans un
+sous-dossier ne sélectionne pas encore son contexte ClawFedora
+automatiquement. Les sessions OpenClaw du terminal restent séparées.
 
 Utilise **Choisir un projet sous la dernière réponse** de la conversation : le
 projet choisi apparaît en tête de cette réponse, dont le texte est conservé.

@@ -182,6 +182,7 @@ def test_setup_pins_limits_preserves_secrets_and_closes_registration(tmp_path: P
     assert "ENABLE_SIGNUP=false" in (state / "webui.env").read_text()
     settings = environment(ROOT, TOKEN, "b" * 64, "c" * 64, sealed=True)
     assert settings["HOST"] == "127.0.0.1"
+    assert settings["ENABLE_FOLDERS"] == "true"
     assert settings["WEBSOCKET_EVENT_CALLER_TIMEOUT"] == "300"
     assert "WEBSOCKET_EVENT_CALLER_TIMEOUT=300" in (
         state / "webui.env"
@@ -219,7 +220,8 @@ def test_setup_pins_limits_preserves_secrets_and_closes_registration(tmp_path: P
     toolbar = next(n.value for n in action_class.body if isinstance(n, ast.Assign)
                    and any(isinstance(t, ast.Name) and t.id == "actions" for t in n.targets))
     assert {item["id"] for item in ast.literal_eval(toolbar)} == {
-        "choose", "status", "activity", "create", "project_actions", "resources",
+        "choose", "folder_sync", "folder_link", "status", "activity",
+        "create", "project_actions", "resources",
     }
     menu = next(n.value for n in module.body if isinstance(n, ast.Assign)
                 and any(isinstance(t, ast.Name) and t.id == "PROJECT_MENU" for t in n.targets))

@@ -244,9 +244,167 @@ def read_only_bridge(
     return local_bridge(command, history, key=key, port=port)
 
 
+# Namespace metadata distinguishes ClawFedora-owned folders from user folders.
+# Open WebUI itself owns the chats, their permissions and their history.
+FOLDER_ROOT_NAME = "Projets ClawFedora"
+FOLDER_KIND_KEY = "clawfedora_folder_kind"
+FOLDER_PROJECT_KEY = "clawfedora_project_id"
+FOLDER_SCHEMA_KEY = "clawfedora_schema"
+PROJECT_ID_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]{1,62}[a-z0-9]")
+
+
+def _folder_project_rows(view: dict[str, Any]) -> list[dict[str, str]]:
+    """Bound the project list obtained from the authenticated local bridge."""
+    raw = view.get("projects")
+    if not isinstance(raw, list) or len(raw) > 50:
+        raise ValueError("registre de projets indisponible ou trop volumineux")
+    entries: list[dict[str, str]] = []
+    used: set[str] = set()
+    for row in raw:
+        if not isinstance(row, dict):
+            raise ValueError("entrée de projet incorrecte")
+        project_id, title = row.get("id"), row.get("title")
+        if (
+            not isinstance(project_id, str)
+            or PROJECT_ID_PATTERN.fullmatch(project_id) is None
+            or project_id in used
+            or not isinstance(title, str)
+            or not title.strip()
+            or len(title) > 193
+        ):
+            raise ValueError("projet invalide ou dupliqué")
+        used.add(project_id)
+        # Folder names are display-only, not instructions and not file paths.
+        clean = " ".join(title.split())
+        clean = "".join(char for char in clean if ord(char) >= 32)[:72].strip()
+        if not clean:
+            clean = project_id
+        entries.append({"id": project_id, "title": clean})
+    return entries
+
+
+def _managed(folder: Any, kind: str, project_id: str | None = None) -> bool:
+    metadata = getattr(folder, "meta", None)
+    if not isinstance(metadata, dict):
+        return False
+    if metadata.get(FOLDER_SCHEMA_KEY) != 1 or metadata.get(FOLDER_KIND_KEY) != kind:
+        return False
+    if kind == "project":
+        return metadata.get(FOLDER_PROJECT_KEY) == project_id
+    return metadata.get(FOLDER_PROJECT_KEY) is None
+
+
+async def _native_folders_for_projects(
+    user_id: str, rows: list[dict[str, str]],
+) -> tuple[str, dict[str, str], int]:
+    """Create only namespaced native WebUI folders, never migrate chats.
+
+    This function deliberately uses the native installed WebUI 0.12.3 folder
+    ORM, not direct SQL and not an admin API token. Existing personal folders
+    and conversations are left untouched. Repeat calls are idempotent.
+    """
+    from open_webui.models.folders import FolderForm, Folders
+
+    if not isinstance(user_id, str) or not user_id or len(user_id) > 128:
+        raise ValueError("identité Open WebUI absente")
+    folder_list = await Folders.get_folders_by_user_id(user_id)
+    roots = [f for f in folder_list if _managed(f, "root")]
+    if len(roots) > 1:
+        raise ValueError("plusieurs racines ClawFedora : intervention manuelle requise")
+    root = roots[0] if roots else None
+    if root and root.parent_id is not None:
+        raise ValueError("dossier racine ClawFedora déplacé : contrôle manuel requis")
+    created = 0
+    if root is None:
+        if any(
+            f.parent_id is None and f.name.casefold() == FOLDER_ROOT_NAME.casefold()
+            for f in folder_list
+        ):
+            raise ValueError("nom du dossier racine déjà utilisé par un dossier personnel")
+        root = await Folders.insert_new_folder(
+            user_id,
+            FolderForm(
+                name=FOLDER_ROOT_NAME,
+                meta={FOLDER_SCHEMA_KEY: 1, FOLDER_KIND_KEY: "root"},
+            ),
+        )
+        if root is None:
+            raise ValueError("impossible de créer le dossier de projets dans Open WebUI")
+        created += 1
+        folder_list.append(root)
+        # Display the newly created project entries in the native sidebar.
+        expanded = await Folders.update_folder_is_expanded_by_id_and_user_id(
+            root.id, user_id, True,
+        )
+        if expanded is None:
+            raise ValueError("impossible de développer la nouvelle racine de projets")
+
+    mapping: dict[str, str] = {}
+    for row in rows:
+        project_id = row["id"]
+        matches = [
+            f for f in folder_list if _managed(f, "project", project_id)
+        ]
+        if len(matches) > 1:
+            raise ValueError("dossier ClawFedora dupliqué : contrôle manuel requis")
+        folder = matches[0] if matches else None
+        if folder is not None and folder.parent_id != root.id:
+            raise ValueError("dossier projet déplacé : contrôle manuel requis")
+        if folder is None:
+            name = row["title"] + " · " + project_id
+            if any(f.parent_id == root.id and f.name.casefold() == name.casefold()
+                   for f in folder_list):
+                raise ValueError("collision avec un dossier existant")
+            folder = await Folders.insert_new_folder(
+                user_id,
+                FolderForm(
+                    name=name,
+                    meta={
+                        FOLDER_SCHEMA_KEY: 1,
+                        FOLDER_KIND_KEY: "project",
+                        FOLDER_PROJECT_KEY: project_id,
+                    },
+                    parent_id=root.id,
+                ),
+                root.id,
+            )
+            if folder is None:
+                raise ValueError("impossible de créer le dossier d'un projet Open WebUI")
+            created += 1
+            folder_list.append(folder)
+        mapping[project_id] = folder.id
+    return root.id, mapping, created
+
+
+async def _chat_to_project_folder(
+    user_id: str, chat_id: str, folder_id: str,
+) -> str:
+    """Move only a saved conversation owned by the active Open WebUI user."""
+    from open_webui.models.chats import Chats
+
+    if (
+        not isinstance(chat_id, str) or not 8 <= len(chat_id) <= 128
+        or re.fullmatch(r"[a-zA-Z0-9-]+", chat_id) is None
+    ):
+        raise ValueError("conversation enregistrée introuvable : envoyer un premier message")
+    chat = await Chats.get_chat_by_id_and_user_id(chat_id, user_id)
+    if chat is None:
+        raise ValueError("conversation absente ou appartenant à un autre compte")
+    if chat.folder_id == folder_id:
+        return "déjà classée"
+    moved = await Chats.update_chat_folder_id_by_id_and_user_id(
+        chat_id, user_id, folder_id,
+    )
+    if moved is None or moved.folder_id != folder_id:
+        raise ValueError("déplacement de conversation non confirmé")
+    return "classée"
+
+
 class Action:
     actions = [
         {"id": "choose", "name": "Choisir un projet"},
+        {"id": "folder_sync", "name": "Afficher les projets dans le menu"},
+        {"id": "folder_link", "name": "Classer cette conversation"},
         {"id": "status", "name": "Projet et prochaine étape"},
         {"id": "activity", "name": "Activité de l’atelier"},
         {"id": "create", "name": "Créer un projet"},
@@ -267,6 +425,116 @@ class Action:
             raise ValueError("action interdite")
         secret = os.environ.get("OPENAI_API_KEY", "")
         history = body.get("messages")
+        if __id__ in {"folder_sync", "folder_link"}:
+            if __event_call__ is None:
+                raise ValueError("confirmation navigateur indisponible")
+            user_id = (__user__ or {}).get("id")
+            if not isinstance(user_id, str) or not user_id:
+                raise ValueError("compte utilisateur Open WebUI absent")
+            view = await asyncio.to_thread(atelier_view, secret)
+            rows = _folder_project_rows(view)
+            if not rows:
+                if __event_emitter__ is not None:
+                    await __event_emitter__({"type": "notification", "data": {
+                        "type": "info", "content": "Aucun projet à afficher : créez-en un d'abord.",
+                    }})
+                return None
+            if __id__ == "folder_sync":
+                confirmed = await __event_call__({
+                    "type": "confirmation", "data": {
+                        "title": "Mes projets dans Open WebUI",
+                        "message": (
+                            f"Créer les dossiers natifs pour {len(rows)} projet(s) "
+                            "sous « Projets ClawFedora » ? Les conversations existantes "
+                            "ne seront ni déplacées, ni copiées, ni effacées."
+                        ),
+                    },
+                })
+                if confirmed is not True:
+                    return None
+                _root, mapping, created = await _native_folders_for_projects(user_id, rows)
+                message = (
+                    f"{len(mapping)} projet(s) disponibles dans la section Dossiers "
+                    f"Open WebUI ({created} nouveau(x) dossier(s)). "
+                    "Actualisez la barre latérale si nécessaire. Pour lier une "
+                    "conversation à son projet, utilisez « Classer cette conversation »."
+                )
+                if __event_emitter__ is not None:
+                    await __event_emitter__({"type": "notification", "data": {
+                        "type": "info", "content": message,
+                    }})
+                return None
+
+            # Only the saved current chat can be moved; no bulk chat migration.
+            chat_id = body.get("chat_id")
+            if (
+                type(chat_id) is not str or not 8 <= len(chat_id) <= 128
+                or re.fullmatch(r"[a-zA-Z0-9-]+", chat_id) is None
+            ):
+                raise ValueError(
+                    "conversation non enregistrée : envoyer un message et réessayer"
+                )
+            # Read and check owner before any folder mutation.
+            from open_webui.models.chats import Chats
+            owner_chat = await Chats.get_chat_by_id_and_user_id(chat_id, user_id)
+            if owner_chat is None:
+                raise ValueError("conversation absente ou non autorisée")
+            # A chat started inside a managed project folder already has a
+            # reliable native context. Infer the suggested project from that
+            # owned folder, never from prompt text or a model-generated reply.
+            chosen = None
+            if owner_chat.folder_id:
+                from open_webui.models.folders import Folders
+                current_folder = await Folders.get_folder_by_id_and_user_id(
+                    owner_chat.folder_id, user_id,
+                )
+                if current_folder is not None:
+                    for row in rows:
+                        if _managed(current_folder, "project", row["id"]):
+                            chosen = row["id"]
+                            break
+            if chosen is None:
+                choices = {row["id"]: f"{row['title']} ({row['id']})" for row in rows}
+                chosen = await _choose(
+                    __event_call__, "Classer la conversation",
+                    "Sélectionnez le projet ClawFedora auquel associer ce fil.",
+                    choices,
+                )
+                if chosen is None:
+                    return None
+            refreshed = await asyncio.to_thread(atelier_view, secret, chosen)
+            if (refreshed.get("selected") or {}).get("id") != chosen:
+                raise ValueError("le projet n'est plus disponible")
+            # Verify the assistant message can preserve the chosen marker
+            # before moving anything in Open WebUI.
+            result = _selection(body, chosen)
+            confirmed = await __event_call__({
+                "type": "confirmation", "data": {
+                    "title": "Classer ce fil dans « " + chosen + " »",
+                    "message": (
+                        "Déplacer uniquement CETTE conversation dans le dossier "
+                        "Open WebUI du projet et sélectionner ce projet dans son fil ? "
+                        "Un éventuel ancien classement sera remplacé. Aucun "
+                        "historique terminal n'est importé."
+                    ),
+                },
+            })
+            if confirmed is not True:
+                return None
+            _root, mapping, _created = await _native_folders_for_projects(
+                user_id, [row for row in rows if row["id"] == chosen],
+            )
+            outcome = await _chat_to_project_folder(user_id, chat_id, mapping[chosen])
+            if __event_emitter__ is not None:
+                await __event_emitter__({"type": "notification", "data": {
+                    "type": "info",
+                    "content": (
+                        f"Conversation {outcome} dans « {chosen} ». "
+                        "Le dossier contient l'historique WebUI de ce fil ; "
+                        "les sessions terminal OpenClaw restent séparées."
+                    ),
+                }})
+            return result
         if __id__ == "choose":
             view = await asyncio.to_thread(atelier_view, secret)
             choices = {

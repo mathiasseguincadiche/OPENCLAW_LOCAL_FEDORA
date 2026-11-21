@@ -167,6 +167,18 @@ Cette protection est **une règle de capacité**, pas la preuve qu'un contexte d
 
 La validation automatique mesure le code et les contrats du dépôt ; elle ne démontre pas la protection effective du poste contre toutes les attaques.
 
+## Les projets et les conversations ne sont pas le même registre
+
+Les projets ClawFedora restent centralisés sous `/data/IA/Openclaw/projects/`.
+Les conversations WebUI appartiennent à Open WebUI ; ses dossiers natifs
+peuvent maintenant représenter le même catalogue de projets via
+[l'action explicite de synchronisation](../OPENWEBUI_NATIVE_PROJECT_FOLDERS.md).
+Le moteur et la CLI partagent les fichiers et états de projets, mais
+les sessions de la CLI native OpenClaw ne sont pas importées dans les
+historiques WebUI. Classer un chat et sélectionner son contexte restent
+également deux actions distinctes ; l'action de classement fait les deux
+après confirmation.
+
 ## Le dépôt : où regarder sans se perdre
 
 ```text

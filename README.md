@@ -37,7 +37,7 @@ Les sept rôles n'ont aucun outil pour exécuter une commande ni écrire un fich
 
 | Interface | Usage |
 | --- | --- |
-| **Open WebUI 0.12.3** — `http://127.0.0.1:3000` | Le chat : rôles, pièces jointes et six raccourcis pour les projets |
+| **Open WebUI 0.12.3** — `http://127.0.0.1:3000` | Chat, rôles et pièces jointes ; huit raccourcis, dont dossiers de projets natifs et classement des conversations |
 | **Atelier Projets** — `http://127.0.0.1:18890` | Les sources, étapes, décisions et livrables |
 | **Terminal** — `./menu.sh` | Installation, contrôles, services et maintenance ; [CLI des projets](docs/fiches/04-atelier-projets.md#en-ligne-de-commande) |
 
@@ -113,6 +113,14 @@ segments, leurs styles ou leurs liens. Les [tableaux et illustrations existants]
 peuvent aussi recevoir des modifications textuelles ciblées (cellule ou légende),
 sans redimensionner les tableaux ni remplacer les fichiers image. Ni synchronisation du suivi ni écriture autonome
 du modèle n'est autorisée.
+
+## Mes projets dans Open WebUI
+
+La [gestion des dossiers de projets natifs](docs/OPENWEBUI_NATIVE_PROJECT_FOLDERS.md)
+permet d'afficher les projets du registre ClawFedora dans la barre latérale
+Open WebUI et de classer explicitement une conversation dans son dossier.
+L'historique du chat demeure dans Open WebUI ; les sessions terminal natives
+OpenClaw ne sont **pas** fusionnées ou importées automatiquement.
 
 ## Interface locale modernisée
 

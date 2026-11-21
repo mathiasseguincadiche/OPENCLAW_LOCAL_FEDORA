@@ -60,9 +60,20 @@ Redémarrer Open WebUI et confirmer qu'un second compte ne peut pas être créé
 Après `webui-seal --apply`, dans le navigateur :
 - vérifier que les filtres et actions `clawfedora_files` et
   `clawfedora_project_actions` sont présents, actifs et globaux ;
-- vérifier les six entrées **Choisir un projet**, **Projet et prochaine étape**,
+- vérifier les huit entrées **Choisir un projet**, **Afficher les projets dans le menu**,
+  **Classer cette conversation**, **Projet et prochaine étape**,
   **Activité de l’atelier**, **Créer un projet**, **Actions du projet** et
   **Sources, modèles et aide** ;
+- cliquer **Afficher les projets dans le menu**, refuser puis confirmer ; vérifier
+  les sous-dossiers natifs, le non-déplacement des anciens fils et l'absence
+  de doublon après une seconde synchronisation ;
+- cliquer **Classer cette conversation** sur un fil sauvegardé, refuser puis
+  confirmer ; vérifier sa présence dans le dossier natif et le marqueur
+  `📁 Projet : <id>` dans la dernière réponse ;
+- essayer un compte non administrateur, un chat inexistant et un projet
+  supprimé : aucune création ni aucun déplacement ;
+- vérifier que les sessions OpenClaw terminal restent distinctes des
+  conversations Open WebUI (pas d'import automatique) ;
 - ouvrir **Choisir un projet sous la dernière réponse**, sélectionner un projet
   de test et recharger la page : sélection conservée, texte de la réponse et
   liens de téléchargement préservés, aucun appel au modèle ni transition du projet ;
