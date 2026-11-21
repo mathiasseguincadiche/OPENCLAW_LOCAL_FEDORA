@@ -7,7 +7,6 @@ this adapter. The underlying Notion writer remains the sole mutation engine.
 
 from __future__ import annotations
 
-import json
 import re
 import secrets
 import stat
