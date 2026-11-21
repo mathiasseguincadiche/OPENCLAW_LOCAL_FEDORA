@@ -14,7 +14,12 @@ from urllib.parse import parse_qs, quote, urlsplit
 from urllib.request import urlopen
 
 from clawfedora import (
-    chat_github, github_pr, github_quality, github_remote, project_cloud, project_ui,
+    chat_github,
+    github_pr,
+    github_quality,
+    github_remote,
+    project_cloud,
+    project_ui,
 )
 from clawfedora.core_config import root_contract
 from clawfedora.knowledge import build_index, search, store_note
