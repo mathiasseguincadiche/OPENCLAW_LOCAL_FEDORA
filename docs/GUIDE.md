@@ -2,7 +2,7 @@
 
 [← Accueil du dépôt](../README.md)
 
-**Objectif de ce guide :** comprendre **pourquoi Qwen local et DeepSeek cloud coexistent**, savoir à qui poser une question, comment choisir une route d'inférence et distinguer ce qui est **proposé** de ce qui est **réellement vérifié**. Pas besoin de connaître OpenClaw pour commencer.
+**Objectif de ce guide :** comprendre **pourquoi Qwen local, DeepSeek cloud et Sol expert coexistent**, savoir à qui poser une question, comment choisir une route d'inférence et distinguer ce qui est **proposé** de ce qui est **réellement vérifié**. Pas besoin de connaître OpenClaw pour commencer.
 
 **Pour mesurer ta progression dans la qualité des réponses** : [scénarios multi-tours et notation clarté/profondeur/interactivité/exactitude sur 20](EVALUATION_PEDAGOGIE.md). C'est une grille humaine, pas une note calculée par l'IA ni une garantie de supériorité face à Gemini.
 
@@ -17,11 +17,11 @@ L'atelier est conçu pour apprendre **en comprenant**. Tu peux demander une rép
 
 ### Les trois choses à retenir
 
-1. **C'est une architecture hybride à deux moteurs.** Qwen local est le socle du quotidien ; DeepSeek cloud apporte une **capacité supplémentaire** sur des problèmes complexes ou de longs contextes, quand ce choix est utile et autorisé.
-2. **Les sept agents sont sept métiers, pas sept moteurs supplémentaires.** Un même agent (mentor, DevOps, auditeur…) travaille sur Qwen **ou** DeepSeek avec **les mêmes outils autorisés**. Le modèle propose, le moteur contrôle et l'humain valide.
-3. **Le cloud est une décision, pas une bascule magique.** Il faut l'activer ; un projet exige son accord. Il n'existe pas de sélection automatique du meilleur modèle pour chaque tâche. Une recherche Web est une sortie réseau distincte.
+1. **C'est une architecture hybride à trois modèles.** Qwen local est le socle privé ; DeepSeek traite la routine cloud autorisée ; Sol est réservé à l'expertise ciblée.
+2. **Les sept agents sont sept métiers, pas sept moteurs supplémentaires.** Un même agent (mentor, DevOps, auditeur…) travaille sur Qwen, DeepSeek ou Sol avec **les mêmes outils autorisés**. Le modèle propose, le moteur contrôle et l'humain valide.
+3. **Le cloud est une décision, pas une bascule magique.** Il faut l'activer ; un projet exige son accord. Le mode `auto` sélectionne un modèle interne au cloud selon le rôle et l'étape autorisée, sans analyser la difficulté et sans bascule automatique du local vers le cloud. Une recherche Web est une sortie réseau distincte.
 
-→ **[Pourquoi Qwen + DeepSeek ? Stratégie et exemples d'efficacité](ARCHITECTURE_HYBRIDE.md)**.
+→ **[Pourquoi Qwen + DeepSeek + Sol ? Stratégie et exemples d'efficacité](ARCHITECTURE_HYBRIDE.md)**.
 
 ![Les sept spécialités autour du même moteur](diagrams/atelier-roles.svg)
 

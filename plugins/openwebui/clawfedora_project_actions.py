@@ -48,7 +48,7 @@ PROJECT_MENU = {
 }
 RESOURCE_MENU = {
     "projects": "Lister les projets", "sources": "Voir les sources du projet",
-    "models": "Quel modèle choisir ?", "budget": "Consulter le budget DeepSeek",
+    "models": "Quel modèle choisir ?", "budget": "Consulter le budget cloud",
     "help": "Toutes les commandes",
 }
 

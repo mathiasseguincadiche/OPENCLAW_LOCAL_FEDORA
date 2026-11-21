@@ -9,7 +9,7 @@ par OpenRouter.
 
 **Statut : tout est en place (lots 3 à 8) : fondation, exécuteur, passerelle et filtre, modes Apprendre/Travail, budget et activation contrôlée, accord par projet dans l'atelier. Le cloud reste désactivé tant qu'il n'est pas activé par `cloud-enable --apply`. Il n'a jamais été essayé avec le vrai OpenRouter.**
 
-Ce document décrit la conception, fixe le contrat que le code respecte (imposé par `clawfedora validate`) et consigne ce qui a été **vérifié avec le vrai OpenClaw 2026.9.8** (`make native-cloud`, `make native-schema`, `make native-prompt`).
+Ce document décrit la conception, fixe le contrat que le code respecte (imposé par `clawfedora validate`) et consigne ce qui a été **vérifié avec le CLI OpenClaw épinglé par le dépôt (2026.10.5), sur fournisseur factice** (`make native-cloud`, `make native-schema`, `make native-prompt`).
 
 ## Principe
 
@@ -24,14 +24,14 @@ OpenClaw ──► fournisseur "cloudgw" (127.0.0.1:18892/v1) ──► [filtre 
 | Question | Constat |
 |---|---|
 | OpenClaw accepte-t-il un fournisseur personnalisé à URL locale ? | Oui. `models.providers.cloudgw`, `api: openai-completions`, modèles déclarés statiquement, `models.mode: replace` : aucune découverte de catalogue, donc aucun accès réseau au démarrage. |
-| Peut-on choisir le modèle par requête ? | Oui : `openclaw agent --model cloudgw/deepseek/deepseek-v4.1-flash-1017`. Les sept rôles gardent Qwen comme modèle principal ; le cloud se choisit à chaque tour. |
+| Peut-on choisir le modèle par requête ? | Oui : après accord cloud, le worker peut demander un alias local `cloudgw/atelier/standard-soutenu`, `standard-rapide`, `expert-equilibre` ou `expert-soutenu`. En mode manuel, l'alias historique est conservé. Les sept rôles gardent Qwen en route locale. |
 | Qui voit quoi ? | La passerelle reçoit le prompt système, l'historique et, au second appel d'une boucle d'outil, **les résultats d'outils**. Un tour avec un outil fait **deux appels facturables**. |
 | Quel jeton circule ? | Un jeton **local** (`Authorization: Bearer <jeton local>`), lu dans la variable `CLAWFEDORA_CLOUD_GATEWAY_TOKEN`. La clé du fournisseur n'atteint jamais OpenClaw : le contrôle fait échouer toute fuite. |
 | Usage en streaming ? | OpenClaw envoie `stream: true` et `stream_options.include_usage: true` ; l'usage et le coût peuvent donc être lus dans le dernier fragment. |
 | Peut-on piloter le raisonnement ? | Oui par la **passerelle**, pas par le client : elle injecte l'effort du profil choisi (medium par défaut) dans chaque requête cloud. Le modèle ou Open WebUI ne peuvent pas affaiblir ce réglage. |
 | Que se passe-t-il si le jeton manque ? | OpenClaw résout les secrets de **tous** les fournisseurs avant un tour : un jeton absent fait échouer **même un tour local**. L'environnement d'exécution doit donc toujours définir ce jeton dès que le fournisseur est configuré (lot 4). Avec le jeton défini et la passerelle arrêtée, les rôles locaux fonctionnent (`make native-prompt`). |
 | Retour arrière | Désactiver le cloud supprime le fournisseur `cloudgw` d'une installation existante (migration vérifiée par `make native-schema`). |
-| Quels modèles `--model` peut-il choisir ? | Seulement ceux de `agents.defaults.modelPolicy.allow` : Qwen, et le modèle cloud uniquement si le cloud est activé. |
+| Quels modèles `--model` peut-il choisir ? | Seulement ceux de `agents.defaults.modelPolicy.allow` : Qwen et, si le cloud est activé, les quatre alias automatiques ainsi que l'alias manuel historique. Deux modèles externes seulement. |
 
 ## Exécuteur (lot 4)
 
@@ -229,7 +229,7 @@ Documentation : [cache OpenRouter](https://openrouter.ai/blog/tutorials/prompt-c
   Aucun cache local de réponses ni nouvelle transmission implicite. Le gain
   réel de tokens/coût et le taux de cache sont à mesurer lors de la réception.
 
-### Cible approuvée, migration de la configuration
+### Configuration actuelle et limites de qualification
 
 Deux modèles **cloud** seulement : [DeepSeek V4.1 Flash 1017](https://openrouter.ai/deepseek/deepseek-v4.1-flash-1017)
 pour la production et [GPT-6.2 Sol](https://openrouter.ai/openai/gpt-6.2-sol)

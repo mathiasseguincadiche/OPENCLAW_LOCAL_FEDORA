@@ -113,7 +113,7 @@ Après `webui-seal --apply`, dans le navigateur :
   code valide sur un projet de test ;
 - vérifier que l'Action installée se nomme « ClawFedora — contrôle des projets »
   et que sa description ne prétend plus limiter les boutons à la lecture seule ;
-- comparer `!budget` et Sources, modèles et aide → Consulter le budget DeepSeek : mêmes montants du
+- comparer `!budget` et Sources, modèles et aide → Consulter le budget cloud : mêmes montants du
   journal local, aucune génération IA ni appel OpenRouter ;
 - saisir un relevé fournisseur factice uniquement dans un laboratoire de test
   séparé, vérifier que l'estimation ne devient **jamais** une facture annoncée.
