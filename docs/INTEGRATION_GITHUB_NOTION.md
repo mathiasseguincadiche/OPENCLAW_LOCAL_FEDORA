@@ -175,8 +175,11 @@ automatiquement.
 
 - Pas de navigation GitHub ou Notion **en direct depuis chaque message du
   modèle** ; snapshots CLI choisis par l'opérateur uniquement.
-- Pas d'écriture Notion, création de PR, commentaire GitHub, synchronisation
-  bidirectionnelle ni modification automatique d'une ligne de suivi.
+- L'importateur `clawfedora-sources` ne modifie jamais Notion ni GitHub.
+  Des modules séparés permettent désormais, **sous approbation explicite**,
+  la [révision ciblée d'un bloc Notion](NOTION_CONTROLLED_WRITES.md) ou
+  la création d'une PR GitHub brouillon. Aucune synchronisation bidirectionnelle
+  ou mise à jour automatique d'une ligne de suivi.
 - Pas de collecte ou exécution dans les VM ni de preuve d'exploitation :
   cette intégration concerne les **sources**, pas leur fonctionnement réel.
 - Pas de vérification sur le poste Fedora ni de connexion réelle au compte
