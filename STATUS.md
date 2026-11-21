@@ -1,6 +1,6 @@
 # État du projet — Atelier IA hybride Fedora
 
-**Version 0.2.0 du 3 novembre 2026** ([notes de version](CHANGELOG.md)). **Cycle d'optimisation FinOps #196–#201 intégré au dépôt.** Les PR Notion #213 (bloc simple) et #215 (lot multi-blocs) ont été fusionnées le 21 novembre 2026. Le panneau local Notion est proposé séparément dans la PR #216 ; vérifier la CI et la réception du SHA effectivement déployé. L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
+**Version 0.2.0 du 3 novembre 2026** ([notes de version](CHANGELOG.md)). **Cycle d'optimisation FinOps #196–#201 intégré au dépôt.** Les PR Notion #213 (bloc simple), #215 (lot multi-blocs) et #216 (panneau local) ont été fusionnées le 21 novembre 2026. La prise en charge conservatrice des segments enrichis est proposée séparément dans une nouvelle PR. Vérifier la CI et la réception du SHA effectivement déployé. L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
 **Évolution en cours de qualification :** routage cloud par niveau de tâche
 approuvé (`simple`, `complex`, `critical`), protocole de mesure
