@@ -122,8 +122,12 @@ Refuser ou demander correction avant d'annoncer un wiki final lorsque :
 existants et importation en lecture seule de sources choisies via
 `clawfedora-sources` (PR #206).
 
-**Non livré dans OpenClaw :** éditeur de blocs Notion autonome, synchronisation
-en direct depuis le chat, publication GitHub ou Notion, synchronisation de
-la base de suivi, contrôle graphique du navigateur et tests du PC Fedora.
-Le design appliqué au wiki réel est une action distincte faite via la connexion Notion
-de l'utilisateur, pas une opération automatisée par l'atelier Fedora.
+**Ajout ciblé :** le module local [`clawfedora-notion-write`](NOTION_CONTROLLED_WRITES.md)
+permet désormais de prévisualiser puis de remplacer un bloc textuel simple existant,
+uniquement sous approbation exacte. Cette action utilise une intégration Notion
+locale dotée du droit adapté, pas la connexion Notion de ChatGPT.
+
+**Toujours non livré :** éditeur Notion autonome multi-blocs, synchronisation en
+direct depuis le chat, mise à jour de la base de suivi, pilotage graphique du
+navigateur et validation sur le PC Fedora. Le wiki déjà mis en forme via Notion
+n'est pas une preuve d'intégration complète dans l'atelier.

@@ -27,7 +27,9 @@ standardise la page d'accueil, les exercices, la navigation, les
 illustrations et les preuves. Deux [gabarits Notion](../templates/notion/accueil-wiki.md)
 sont fournis pour préparer une proposition avant validation humaine.
 Les sept agents actuels sont spécialisés sur la conception, la rédaction
-et l'audit ; aucun outil de publication Notion autonome n'est actif.
+et l'audit. Un [éditeur Notion à portée contrôlée](NOTION_CONTROLLED_WRITES.md)
+propose un diff avant modification d'un bloc textuel simple, avec consentement
+humain. Ce n'est pas une publication autonome ou un éditeur multi-blocs.
 
 ## GitHub dans le tableau de bord et le chat
 
