@@ -104,6 +104,15 @@ notes personnelles ni les sorties illustratives en preuves réelles.
 **La création ou l'édition distante de pages Notion reste hors du périmètre
 automatisé** : les modèles sont proposés pour validation.
 
+## Publication GitHub après validation humaine
+
+L'[atelier de création et de PR brouillon](docs/GITHUB_PUBLICATION_WORKFLOW.md)
+prépare des structures locales réutilisables et peut publier une proposition
+dans un dépôt GitHub **existant**, avec un SHA de base vérifié et une
+autorisation explicite. La fusion, les droits de dépôt et la publication
+en tant que dépôt public restent sous contrôle humain. Les agents ne
+prétendent pas avoir validé le rendu GitHub ni Fedora.
+
 ## Qualité des dépôts GitHub
 
 La [charte GitHub réutilisable](docs/GITHUB_REPOSITORY_DESIGN_SYSTEM.md)

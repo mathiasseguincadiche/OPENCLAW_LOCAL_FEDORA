@@ -4,6 +4,19 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Publication GitHub sécurisée sous approbation
+
+- `clawfedora-github-scaffold` crée une structure documentaire locale
+  après accord explicite, sans licence, CI ou preuve fictive.
+- `clawfedora-github-pr` affiche un plan local et peut créer une seule
+  branche neuve et une **draft PR** après vérification du SHA de base,
+  de l'approbation exacte et d'un jeton local aux permissions limitées.
+- Rôles GitHub formalisés : DevOps mainteneur, rédacteur éditorial,
+  sécurité, architecture, auditeur et chef coordinateur.
+- Pas de création de dépôt distant, fusion, modification de `main`
+  ou publication depuis le chat en autonome.
+
+
 ### Charte GitHub et auditeur local passif
 
 - Sept gabarits GitHub universels : README, architecture/ADR, runbook,

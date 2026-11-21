@@ -115,7 +115,17 @@ d'orchestration supplémentaire ; ne pas dupliquer les compétences existantes.
 7. Effectuer une recette GitHub **native** (clair/sombre, ordinateur/mobile, liens, images) ; ne pas revendiquer cette recette si seul le code a été contrôlé.
 8. Demander la revue avant fusion, conserver les problèmes ouverts et mettre à jour STATUS uniquement sur preuve.
 
-## 8. Cas d'usage vérifié de la démarche
+## 8. Création de dépôt et publication guidée
+
+Le [protocole de gouvernance et publication GitHub](GITHUB_PUBLICATION_WORKFLOW.md)
+précise les responsabilités et trois commandes : `clawfedora-github-scaffold`
+(structure locale), `clawfedora-github-audit` (inventaire statique) et
+`clawfedora-github-pr` (préparation hors ligne, puis création
+**explicite** d'une branche et d'une PR en brouillon dans un dépôt existant).
+La création d'un nouveau dépôt distant, la fusion et les paramètres GitHub
+restent des opérations humaines distinctes.
+
+## 9. Cas d'usage vérifié de la démarche
 
 Le dépôt [OpsDesk](https://github.com/mathiasseguincadiche/OpsDesk)
 fournit un exemple de charte appliquée ; ce n'est **pas** un modèle fixe que

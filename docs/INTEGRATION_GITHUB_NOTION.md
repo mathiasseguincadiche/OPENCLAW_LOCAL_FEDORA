@@ -142,6 +142,16 @@ Les fichiers binaires exclus du snapshot sont **non évalués**, non
 présumés absents ou cassés. Cette commande n'utilise aucun jeton et
 n'exécute aucun fichier importé. Elle ne modifie ni GitHub ni Notion.
 
+## Écritures GitHub : processus séparé et approuvé
+
+L'importateur `clawfedora-sources` **reste strictement en lecture seule**.
+L'outil indépendant `clawfedora-github-pr` peut proposer puis publier
+une nouvelle PR en brouillon uniquement sur approbation explicite,
+dans un dépôt déjà existant, avec SHA de base strict. Lire le
+[workflow de publication](GITHUB_PUBLICATION_WORKFLOW.md).
+Les pages Notion et notes personnelles n'y sont jamais transférées
+automatiquement.
+
 ## Parcours OpsDesk conseillé
 
 1. **Notion / Pratiquer** : ouvrir l'énoncé de l'exercice, ses prérequis et

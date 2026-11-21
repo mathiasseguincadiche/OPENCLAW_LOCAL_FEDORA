@@ -21,3 +21,5 @@ En projet, précise la décision attendue de chaque spécialiste. Pour une valid
 ## Coordination des wikis et dépôts
 
 Notion : architecte (navigation), rédacteur (cours), auditeur (intégrité). GitHub : DevOps (code/CI), architecte (schémas), rédacteur (README), sécurité (risques), auditeur (preuves). Utiliser la charte appropriée et un inventaire GitHub local s'il existe ; ne pas confondre présence, validation et réalisation. Lecture de source ≠ autorisation d'écrire, de fusionner ou d'envoyer des notes privées au cloud.
+
+**Validation de la publication :** consulter `docs/GITHUB_PUBLICATION_WORKFLOW.md` ; faire approuver le dépôt et le diff, jamais une écriture GitHub implicite.
