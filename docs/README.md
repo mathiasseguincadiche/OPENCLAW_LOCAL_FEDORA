@@ -29,6 +29,16 @@ sont fournis pour préparer une proposition avant validation humaine.
 Les sept agents actuels sont spécialisés sur la conception, la rédaction
 et l'audit ; aucun outil de publication Notion autonome n'est actif.
 
+## Responsabilités et PR GitHub sous approbation
+
+Le [workflow GitHub de l'atelier](GITHUB_PUBLICATION_WORKFLOW.md)
+attribue les rôles : DevOps responsable du dépôt, rédacteur responsable
+éditorial, auditeur pour la contre-vérification, utilisateur pour
+l'autorisation et la fusion. Il documente
+`clawfedora-github-scaffold` (création locale) et
+`clawfedora-github-pr` (prévisualisation puis **PR brouillon** autorisée).
+Sans `--apply`, aucune écriture distante n'est effectuée.
+
 ## Créer et auditer un dépôt GitHub premium
 
 La [charte universelle GitHub](GITHUB_REPOSITORY_DESIGN_SYSTEM.md)
