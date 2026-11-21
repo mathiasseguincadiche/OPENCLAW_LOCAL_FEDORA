@@ -19,6 +19,10 @@ indique l’activité partagée et le temps écoulé connu ; une action indispon
 explique la condition à remplir. Le formulaire de création est replié lorsque
 des projets existent ; **Créer un projet** l’ouvre et le conserve pendant la saisie.
 
+## Piloter les dépôts GitHub
+
+L'atelier propose désormais l'espace local [GitHub — dépôts et PR](../GITHUB_CHAT_DASHBOARD.md) : audits, plans, protections et PR brouillon sous approbation explicite. Le pont de discussion Open WebUI reconnaît aussi `!github aide`. Ces commandes sont exécutées par le code du pont, **pas** par le modèle. Les tokens restent locaux ; aucune fusion automatique.
+
 ## Le parcours d'un projet
 
 **Une façon de s'y retrouver :** le mentor **cadre**, l'architecte **conçoit**, le DevOps **prépare**, la sécurité **relit les risques**, le rédacteur **explique** et l'auditeur **vérifie les preuves**. Ces spécialistes ne sont appelés que si la tâche le justifie ; ce sont des rôles du même modèle, pas sept IA simultanées. [Le détail des rôles](07-roles-et-outils.md).
