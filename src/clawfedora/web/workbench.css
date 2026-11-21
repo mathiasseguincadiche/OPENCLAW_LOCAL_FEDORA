@@ -60,6 +60,23 @@ body.workbench p { overflow-wrap: anywhere; }
 body.workbench a { color: var(--accent); text-underline-offset: 3px; }
 body.workbench a:hover { text-decoration-color: currentColor; }
 
+/* Keyboard shortcut to the main workspace */
+.workspace-skip {
+  position: fixed;
+  z-index: 90;
+  top: -90px;
+  left: 16px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  color: #fff;
+  background: #545bda;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 8px 22px #11182745;
+}
+.workspace-skip:focus,
+.workspace-skip:focus-visible { top: 12px; }
+
 /* Global application navigation */
 .workspace-rail {
   position: fixed;
@@ -376,6 +393,26 @@ button.workspace-tab.is-selected {
   box-shadow: 0 0 0 3px #21b58c2a;
 }
 
+/* A compact sequential alternative makes clipped mobile tabs discoverable. */
+.workspace-step-navigation { display: none; }
+.workspace-step-count { font-size: 12px; font-weight: 720; color: var(--muted); }
+body.workbench .workspace-step-action {
+  margin: 0;
+  min-height: 38px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: none;
+  font-size: 12px;
+  font-weight: 720;
+}
+body.workbench .workspace-step-action:disabled {
+  opacity: .36;
+  cursor: not-allowed;
+}
+
 /* Calm, purposeful form controls */
 body.workbench label {
   display: block;
@@ -471,7 +508,7 @@ body.workbench code {
   padding: .1em .3em;
   overflow-wrap: anywhere;
 }
-body.workbench button:not(.theme-toggle):not(.workspace-tab) {
+body.workbench button:not(.theme-toggle):not(.workspace-tab):not(.workspace-step-action) {
   border: 1px solid transparent;
   background: linear-gradient(125deg, #545bda, #6871ec);
   color: #fff;
@@ -622,7 +659,15 @@ body.workbench [hidden] { display: none !important; }
   .workspace-local { display: none; }
   .workspace-hero h1 { font-size: 29px; }
   body.workbench main > header.workspace-hero { margin-top: 16px; padding: 25px; }
-  .workspace-tabs { top: 74px; margin: 17px 0; }
+  .workspace-tabs { top: 74px; margin: 17px 0 7px; }
+  .workspace-step-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 18px;
+    padding: 0 3px;
+  }
   body.workbench .github-panel,
   body.workbench .knowledge,
   body.workbench #project-editor,
@@ -643,6 +688,8 @@ body.workbench [hidden] { display: none !important; }
   body.workbench main > header.workspace-hero h1 { font-size: 29px; }
   .workspace-tabs { padding: 5px; gap: 2px; border-radius: 12px; }
   button.workspace-tab { min-height: 42px; padding: 10px 12px; }
+  .workspace-step-count { font-size: 11px; }
+  body.workbench .workspace-step-action { padding: 8px 11px; }
   body.workbench .github-panel,
   body.workbench .knowledge,
   body.workbench #project-editor,
