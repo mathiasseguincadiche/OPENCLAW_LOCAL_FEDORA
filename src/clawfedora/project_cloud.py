@@ -91,11 +91,30 @@ def sources_digest(project: Path) -> str:
     return digest.hexdigest()
 
 
+def _private_notion_snapshot(project: Path) -> bool:
+    """Private Notion snapshots can be used locally but never cloud-approved."""
+    policy = project / "context" / "connected_sources.json"
+    if policy.is_symlink():
+        return True  # fail closed
+    if policy.exists():
+        try:
+            if read_json(policy).get("local_only") is True:
+                return True
+        except (OSError, ValueError):
+            return True  # corrupted policy is not permission
+    for scope in ("intake", "sources"):
+        if any((project / scope).glob("Notion-*")):
+            return True
+    return False
+
+
 # -- consent ------------------------------------------------------------------------
 def grant(repo_root: Path, runtime: Path, project: Path, *, acknowledged: bool) -> dict[str, Any]:
     """Approve the cloud for this project. Requires the cloud to be verified and activated."""
     if acknowledged is not True:
         raise ValueError("accord explicite requis: lire et accepter le texte d'accord cloud")
+    if _private_notion_snapshot(project):
+        raise ValueError("cloud interdit: notes Notion privées dans ce projet; mode local requis")
     ready, reason = cloud_status(runtime, repo_root)
     if not ready:
         raise ValueError(f"cloud indisponible, accord impossible: {reason}")
@@ -134,6 +153,9 @@ def consent_state(repo_root: Path, runtime: Path, project: Path) -> dict[str, An
     path = consent_path(runtime, project)
     if not path.is_file():
         return {"state": "none", "reason": "aucun accord cloud pour ce projet"}
+    if _private_notion_snapshot(project):
+        return {"state": "source_restricted",
+                "reason": "notes Notion personnelles : poursuivre en local uniquement"}
     record = read_json(path)
     if record.get("sources_digest") != sources_digest(project):
         return {
@@ -255,7 +277,9 @@ class ProjectRunner:
             return response  # type: ignore[no-any-return]
         if state["state"] != "granted":
             raise self._pause(
-                "consent_stale" if state["state"] == "stale" else "cloud_inactive", state["reason"]
+                ("consent_stale" if state["state"] == "stale" else
+                 "source_restricted" if state["state"] == "source_restricted" else
+                 "cloud_inactive"), state["reason"]
             )
         ledger = load_ledger(self.runtime, self.repo_root)
         try:
