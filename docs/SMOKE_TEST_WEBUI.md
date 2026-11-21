@@ -60,7 +60,8 @@ Redémarrer Open WebUI et confirmer qu'un second compte ne peut pas être créé
 Après `webui-seal --apply`, dans le navigateur :
 - vérifier que les filtres et actions `clawfedora_files` et
   `clawfedora_project_actions` sont présents, actifs et globaux ;
-- vérifier les six entrées **Choisir un projet**, **Projet et prochaine étape**,
+- vérifier les huit entrées **Choisir un projet**, **Afficher les projets dans le menu**,
+  **Classer cette conversation**, **Projet et prochaine étape**,
   **Activité de l’atelier**, **Créer un projet**, **Actions du projet** et
   **Sources, modèles et aide** ;
 - ouvrir **Choisir un projet sous la dernière réponse**, sélectionner un projet
