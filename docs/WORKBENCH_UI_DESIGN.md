@@ -74,12 +74,20 @@ déclencher l'écriture ni automatiquement accepter le plan.
 
 ## Vérifications et limites
 
-La CI confirme que les pages restent accessibles, que les ressources
-CSS/JS sont servies localement, que les identifiants des formulaires
-sont préservés et que la navigation par onglets est cohérente.
+La CI vérifie les pages, les ressources CSS/JS, la conservation des
+identifiants des formulaires et leurs contrôles de sécurité. Le job
+**`workbench-browser`** ajoute un vrai navigateur Chromium : ouverture
+de chaque espace en **1440 × 900 (clair)**, **1366 × 900 (sombre)** et
+**390 × 844 (mobile)**, détection des débordements horizontaux,
+erreurs JavaScript, navigation par onglets au clavier, bascule de thème
+et prévisualisations sans écritures GitHub/Notion. Il conserve jusqu'à
+neuf captures d'un **environnement synthétique**, accessibles pendant
+sept jours en artefact GitHub Actions.
+
 Ces tests **ne prouvent pas** que le rendu est visuellement excellent
 sur le vrai GNOME/Fedora ni qu'un formulaire est optimal pour un
-utilisateur réel.
+utilisateur réel. Le navigateur s'exécute sur un runner Ubuntu
+avec une installation de test sans accès à tes comptes.
 
 Pour la réception visuelle :
 
