@@ -1,3 +1,5 @@
+> **Archive de conception 2026.** Ce dossier décrit l'ancienne passerelle OpenRouter, désormais retirée. Ne pas exécuter les commandes d'activation ci-dessous. Référence actuelle : [architecture locale Qwen/Ornith](ARCHITECTURE_LOCALE_QWEN_ORNITH.md).
+
 # Passerelle cloud locale : conception et faits vérifiés
 
 [← Guide pédagogique](GUIDE.md) · [Trajet des requêtes](fiches/11-comment-ca-marche.md) · [Mode d'emploi cloud](fiches/12-cloud.md)
