@@ -39,6 +39,14 @@ voisins et les icônes/couleurs des encadrés existants.
 Le [mode tableaux et images](NOTION_TABLES_IMAGES.md) apporte l'inventaire
 et la modification contrôlée d'une cellule ou d'une légende existante.
 
+## Méthodes d'amélioration des agents et des outils
+
+Les [méthodes V26 adaptées aux sept agents](METHODES_V26_CLAWFEDORA.md)
+décrivent les compositions Draw.io supplémentaires, l'audit d'impact
+GitHub/Notion à partir d'un snapshot local, la revue des quatre parcours
+de lecture et les contrats de passation/réception. Aucun Skill n'est
+installé ; la validation sur Fedora reste une étape séparée.
+
 ## Interface unique : discussions et pilotage
 
 [L'Atelier natif avec Ollama / OpenClaw](ATELIER_UNIQUE_CHAT_OLLAMA.md)
