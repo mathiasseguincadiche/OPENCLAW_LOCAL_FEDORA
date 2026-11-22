@@ -305,11 +305,22 @@ def search(
     # hide a second relevant Terraform/Ansible file. Fetch bounded candidates,
     # then prefer one passage per source before filling spare slots by rank.
     candidates = min(128, max_results * 16)
+    # The exclusion must happen BEFORE LIMIT. Otherwise hundreds of chunks
+    # from an obsolete GitHub intake can exhaust the candidates and hide Notion.
+    if len(excluded_prefixes) > 20 or any(
+        not prefix or len(prefix) > 240 for prefix in excluded_prefixes
+    ):
+        raise ValueError("préfixes d'exclusion documentaire hors limites")
+    exclusion = "".join(" AND substr(path, 1, ?) <> ?" for _ in excluded_prefixes)
+    args: list[Any] = [match]
+    for prefix in excluded_prefixes:
+        args.extend((len(prefix), prefix))
+    args.append(candidates)
     with closing(sqlite3.connect(path.as_uri() + "?mode=ro", uri=True, timeout=2)) as db:
         rows = db.execute(
             "SELECT text,path,page,line,metadata FROM chunks WHERE chunks MATCH ? "
-            "ORDER BY bm25(chunks), path, page, line LIMIT ?",
-            (match, candidates),
+            + exclusion + " ORDER BY bm25(chunks), path, page, line LIMIT ?",
+            args,
         ).fetchall()
     # Old indexes and modified/deleted sources must not produce unverified citations.
     # Check each file at most once per retrieval, before choosing the ranked passages.
