@@ -113,11 +113,11 @@ def test_model_advice_never_calls_an_agent(chat: tuple[Any, Runner, Path, Path])
     with worker_lock(runtime):
         code, message = ask(server, MODEL_IDS[0], ("user", "!modele iac"))
         assert code == 200
-        assert "DeepSeek" in message and "Terraform" in message
-        assert "aucun passage automatique" in message.lower()
+        assert "Ornith" in message and "Terraform" in message
+        assert "Aucune route OpenRouter" in message
         assert runner.calls == []
         code, generic = ask(server, MODEL_IDS[0], ("user", "!modele"))
-        assert code == 200 and "Qwen local" in generic
+        assert code == 200 and "Qwen" in generic and "Ornith" in generic
         assert runner.calls == []
 
 
