@@ -36,7 +36,8 @@ def test_models_dry_run_lists_the_single_daily_model(capsys: pytest.CaptureFixtu
     output = capsys.readouterr().out
     assert '"verdict": "PLAN"' in output
     assert "qwen3.5:9b-q4_K_M" in output
-    assert output.count("runtime_id") == 1
+    assert "ornith-1.5:9b" in output
+    assert output.count("runtime_id") == 2
 
 
 def test_cleanup_dry_run_never_deletes(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
