@@ -38,17 +38,7 @@ Installer et utiliser:
   web-status             Mode Web désiré (ne certifie pas le réseau)
   web-private            Couper la recherche Web des sept rôles, appliquer et vérifier
   web-connected          Réactiver volontairement la recherche Web des rôles
-  cloud-status           État du cloud optionnel, de la clé et du budget du mois
-  cloud-profile          Afficher le profil de raisonnement cloud actuel
-  cloud-set-profile      Préparer/changer le profil via --value
-                         rapide|equilibre|soutenu|approfondi, et --apply pour confirmer
-  cloud-model            Afficher les modèles cloud et celui qui répond (auto, standard ou expert)
-  cloud-set-model        Préparer/changer le modèle cloud via --value auto|standard|expert,
-                         et --apply pour confirmer
-  cloud-set-key          Enregistrer la clé OpenRouter (saisie masquée)
-  cloud-enable           Contrôler puis activer le cloud (--value = limite de la clé en $)
-  cloud-disable          Désactiver le cloud et arrêter la passerelle
-  cloud-reconcile        Enregistrer le montant réellement facturé (--value = euros)
+  cloud-disable          Ancienne passerelle : désactiver et arrêter le service (migration)
   dashboard              Ouvrir l'atelier Projets dans ce terminal
   gaming                 Libérer le GPU pour jouer
   daily                  Reprendre les services IA
