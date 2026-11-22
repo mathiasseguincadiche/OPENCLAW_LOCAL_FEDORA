@@ -156,7 +156,9 @@ case "$ACTION" in
     run_ops "${args[@]}"
     ;;
   atelier-install|atelier-start|atelier-stop|atelier-status)
-    with_apply 21_atelier.sh "${ACTION#atelier-}"
+    args=("${ACTION#atelier-}")
+    ((APPLY == 0)) || { claw_require_storage "$(claw_runtime_root)"; args+=(--apply); }
+    bash "$LINUX/21_atelier.sh" "${args[@]}"
     ;;
   webui-install|webui-start|webui-stop|webui-seal|webui-status)
     with_apply 13_openwebui.sh "${ACTION#webui-}"
