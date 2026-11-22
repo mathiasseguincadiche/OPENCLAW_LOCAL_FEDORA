@@ -114,6 +114,7 @@ agents:
     - clawfedora_artifact
     - clawfedora_lint
     - clawfedora_lab_request
+    - clawfedora_sandbox_validate
     - clawfedora_impact
     deny:
     - apply_patch
