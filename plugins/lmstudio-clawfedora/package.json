@@ -1,0 +1,16 @@
+{
+  "name": "lms-plugin-clawfedora-local",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-only LM Studio generator for the existing ClawFedora project bridge",
+  "main": "index.js",
+  "scripts": {
+    "dev": "lms dev",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@lmstudio/sdk": "1.4.0"
+  }
+}
