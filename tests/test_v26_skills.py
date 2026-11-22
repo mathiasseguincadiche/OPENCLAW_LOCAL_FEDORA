@@ -5,7 +5,9 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SPEC = importlib.util.spec_from_file_location("v26_deployer", ROOT / "scripts/linux/20_deploy_v26_skills.py")
+SPEC = importlib.util.spec_from_file_location(
+    "v26_deployer", ROOT / "scripts/linux/20_deploy_v26_skills.py"
+)
 assert SPEC and SPEC.loader
 module = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(module)
