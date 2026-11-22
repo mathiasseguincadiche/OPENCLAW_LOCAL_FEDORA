@@ -106,9 +106,7 @@ def openclaw_environment(runtime: Path | None = None) -> dict[str, str]:
         OPENCLAW_LOCAL_FEDORA_ROOT=str(root),
         OLLAMA_API_KEY="ollama-local",
     )
-    # OpenClaw resolves every provider secret before a turn: the local gateway token must
-    # always exist, or a configured cloud provider would also break local turns.
-    from clawfedora.cloud_state import ensure_gateway_token
-
-    env[CLOUD_TOKEN_ENV] = ensure_gateway_token(root)
+    # A retired OpenRouter credential must never be inherited by an agent process.
+    env.pop(CLOUD_TOKEN_ENV, None)
+    env.pop("OPENROUTER_API_KEY", None)
     return env
