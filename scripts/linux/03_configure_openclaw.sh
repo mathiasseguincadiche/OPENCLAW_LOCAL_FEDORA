@@ -55,14 +55,17 @@ require_daily_model() {
   local -a expected actual
   mapfile -t expected < <(jq -r '.models.providers.ollama.models[]?.id' "$PATCH_PATH")
   mapfile -t actual < <(jq -r '.models[]? | (.model // .name // empty)' <<<"$inventory_json")
-  [[ "${#expected[@]}" -eq 1 ]] || {
-    echo "ERREUR: la configuration n'expose pas exactement un modèle quotidien." >&2
+  [[ "${#expected[@]}" -eq 2 ]] || {
+    echo "ERREUR: la configuration doit exposer exactement deux modèles locaux." >&2
     return 2
   }
-  contains_model "${expected[0]}" "${actual[@]}" || {
-    echo "ERREUR: modèle requis absent d'Ollama: ${expected[0]}" >&2
-    return 2
-  }
+  local required
+  for required in "${expected[@]}"; do
+    contains_model "$required" "${actual[@]}" || {
+      echo "ERREUR: modèle requis absent d'Ollama: $required" >&2
+      return 2
+    }
+  done
 }
 
 printf 'OPENCLAW_CONFIG_PLAN runtime=%s state=%s\n' "$RUNTIME_ROOT" "$STATE_ROOT"
