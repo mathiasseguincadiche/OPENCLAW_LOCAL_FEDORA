@@ -64,6 +64,10 @@ La boucle fonctionne à partir des **retours réels des validateurs**, et pas d'
 
 Le worker limite également à deux les exécutions d'une même tâche approuvée, et expose désormais l'état `blocked_local` si elles sont épuisées. Il ne passe jamais au cloud.
 
+## Nouvelle boucle persistante (PR #243)
+
+Le nouveau mécanisme `clawfedora_sandbox_iterate` conserve les révisions du code d'une tâche et produit des références immuables vers les fichiers ayant passé les validateurs. Le worker ne collecte que ces octets vérifiés, dans les chemins prévus et avec leurs reçus; la revue humaine est maintenue. La procédure, les limites et la préparation manuelle de l'image OCI sont détaillées dans [Boucle Ornith édition/tests/correction](BOUCLE_ORNITH_EDIT_TEST.md).
+
 ## Audit indépendant
 
 L'auditeur reçoit les sources, le plan approuvé, les livrables et les preuves du projet. Son **snapshot d'audit retire** l'historique des discussions, les synthèses non vérifiées des producteurs et le résumé des résultats des tâches. Les véritables reçus d'outils, rapports de tests et pièces sont conservés. Un second avis Qwen n'est pas une garantie d'indépendance intellectuelle : le verdict reste soumis à des références et à des contrôles objectifs.
