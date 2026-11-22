@@ -4,14 +4,86 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 
-from clawfedora import retrieval_acceptance, source_connectors
+from clawfedora import github_refresh, retrieval_acceptance, source_connectors
+from clawfedora.knowledge import build_index
+from clawfedora.project_intake import create_project
 from clawfedora.project_retrieval import retrieve
-from test_project_retrieval import OLD, REPO, workspace
 
 ROOT = Path(__file__).resolve().parents[1]
+REPO = "example/OpsDesk"
+OLD = "a" * 40
+NEW = "b" * 40
+PAGE = "1" * 32
+
+
+@pytest.fixture
+def workspace(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> tuple[Path, Path]:
+    runtime = tmp_path / "runtime"
+    brief = tmp_path / "brief.md"
+    brief.write_text("Projet InfraOps Terraform et Ansible", encoding="utf-8")
+    project = create_project(
+        ROOT, runtime, "cross-search", "Recherche croisée", intake_items=[brief]
+    )
+
+    def github(dest: Path, repo: str, commit: str) -> dict[str, Any]:
+        assert repo == REPO
+        if commit == OLD:
+            documents = {
+                "infra/main.tf": "Terraform legacy_backend frozen old-code.",
+                "docs/readme.md": "Ancien snapshot du service legacy_backend.",
+            }
+        else:
+            assert commit == NEW
+            documents = {
+                "infra/main.tf": "Terraform bridge_network source approuvée.",
+                "ops/ansible.yml": "Ansible bridge_network deploiement cible.",
+                "docs/readme.md": "Revue de l'architecture bridge_network.",
+            }
+        for name, value in documents.items():
+            target = dest / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(value, encoding="utf-8")
+        return {
+            "provider": "github", "repository": repo, "commit": commit,
+            "file_count": len(documents), "skipped": 0,
+        }
+
+    def notion(dest: Path, page_id: str, include_children: bool) -> dict[str, Any]:
+        assert page_id == PAGE and include_children is False
+        (dest / "architecture.md").write_text(
+            "# Architecture privée\nTerraform bridge_network procédure "
+            "de vérification, rôle Ansible et journal de formation.\n",
+            encoding="utf-8",
+        )
+        return {
+            "provider": "notion", "page_id": page_id,
+            "classification": "private_local_only", "file_count": 1,
+        }
+
+    monkeypatch.setattr(source_connectors, "_github_snapshot", github)
+    monkeypatch.setattr(source_connectors, "_notion_snapshot", notion)
+    source_connectors.import_snapshot(
+        ROOT, runtime, project.name, github=REPO, commit=OLD
+    )
+    source_connectors.import_snapshot(
+        ROOT, runtime, project.name, notion_page=PAGE
+    )
+    build_index(ROOT, project)
+    preview = github_refresh.refresh(runtime, project.name, REPO, NEW)
+    github_refresh.refresh(
+        runtime, project.name, REPO, NEW,
+        approve=preview["approve_sha256"], apply=True,
+    )
+    return runtime, project
+
+
+
 
 
 def _write_cases(tmp_path: Path, cases: list[dict[str, object]]) -> Path:
