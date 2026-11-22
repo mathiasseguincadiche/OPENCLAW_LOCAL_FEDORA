@@ -1,13 +1,8 @@
-# État du projet — Atelier IA hybride Fedora
+# État du projet — Atelier IA local Fedora
 
 **Version 0.2.0 du 3 novembre 2026** ([notes de version](CHANGELOG.md)). **Cycle d'optimisation FinOps #196–#201 intégré au dépôt.** Les PR Notion #213, #215, #216, #217 et #218 (blocs simples, lots, panneau local, texte enrichi, cellules et légendes) sont fusionnées dans `main`. La campagne de réception visuelle native est préparée dans une PR dédiée, mais **les captures de compte Notion/GitHub et les tests sur le PC Fedora restent à effectuer**. Vérifier la CI et la réception du SHA effectivement déployé. L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
-**Évolution en cours de qualification :** routage cloud par niveau de tâche
-approuvé (`simple`, `complex`, `critical`), protocole de mesure
-Qwen/DeepSeek/Sol et validation Kubernetes hors ligne dans le laboratoire
-isolé. Le modèle Qwen n'est **pas supprimé** ; le classement réel
-des trois modèles et la réception Fedora restent à faire.
-Voir [stratégie cloud-first](docs/CLOUD_FIRST_QUALIFICATION.md).
+**Migration locale Qwen + Ornith en PR #240 (22 novembre 2026).** Qwen 3.5 9B est conservé pour six agents ; Ornith 1.5 9B est ajouté pour l'ingénieur DevOps. Les routes cloud OpenRouter sont retirées de la configuration active et une procédure explicite permet de supprimer les anciennes clés locales. **La réception Fedora et l'autonomie agentique restent à réaliser.** Voir [l'architecture locale](docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md).
 
 ## Résumé vérifiable
 
@@ -25,10 +20,10 @@ Voir [stratégie cloud-first](docs/CLOUD_FIRST_QUALIFICATION.md).
 | **Recette graphique Notion/GitHub** | Capture Chromium synthétique automatisée (#221) et protocole privé de réception humaine (#219) fusionnés | [Protocole visuel](docs/validation/VISUAL_RECEPTION_NATIVE.md). Aucun verdict natif Fedora ou compte Notion n'est encore acquis. |
 | **Montage et stockage `/data/IA/Openclaw/`** | Configuration commune Bash/Python/services, à qualifier sur le poste | EXT4 distinct du système, absence du disque refusée, UUID optionnel, liens interdits, stockage Podman dédié ; [procédure](docs/STOCKAGE_DATA.md) |
 | **Fedora 45 / GNOME 51 / B580** | **À faire** | Installation, pilote `xe`, Vulkan, affichage et veille sur le PC réel. Node.js : le paquet `nodejs24` (24.18.0) est installé, car le `nodejs` par défaut de Fedora 45 (Node 22) est refusé par OpenClaw (vérifié en CI dans le conteneur Fedora 45). |
-| **Qwen local et contexte 8K–32K** | Implémenté | Inférence courte dans `quick-check` ; débit réel, VRAM et contexte optimal **À mesurer** |
+| **Qwen + Ornith locaux et contexte 8K–32K** | Migration en PR | Débit, VRAM et contexte optimal des deux modèles **À mesurer** sur Fedora |
 | **Open WebUI 0.12.3** | Implémenté et testé en simulation ou intégration partielle | Navigateur, boutons, fichiers et microphone **À faire** en réception réelle |
-| **Sept rôles et projets multiples** | Contrats et tests automatisés ; livrables scellés par les audits | Réponses réelles et qualité comparée Qwen/DeepSeek/Sol **À mesurer**, sans note automatique |
-| **Cloud OpenRouter / DeepSeek et Sol** | Routage cloud par rôle et étape approuvée, choix manuel conservé ; qualification réelle à faire | `auto` par défaut : `standard` (V4.1 Flash 1017) en routine et `expert` (GPT-6.2 Sol, [fiche cloud](docs/fiches/12-cloud.md)). Appel réel, fournisseur effectivement retenu, coût et facturation **À faire** avec accord. |
+| **Sept rôles et projets multiples** | Contrats et tests automatisés ; livrables scellés par les audits | Qualité comparative Qwen/Ornith sur OpsDesk **À mesurer**, sans note automatique |
+| **Retrait OpenRouter** | Route cloud retirée du catalogue et du worker ; ancienne clé supprimable explicitement | Migration en PR #240, tests et réception Fedora à vérifier. |
 | **Maintenance** | Désinstallation, purge, sauvegarde et réparation protégées | Arrêt vérifié avant suppression, purge sans perte partielle, maintenance refusée pendant une génération. Restauration du vrai état de l’installation **À faire**. |
 | **Parcours WebUI simplifié** | Implémenté ; réception Open WebUI Fedora à effectuer | Six raccourcis, choix du projet et activité locale ; voir [la prise en main](docs/fiches/03-discuter.md) |
 | **Documents ODT** | Export éditable et import textuel implémentés | Limites d’import [documentées](docs/fiches/06-fichiers-et-schemas.md) ; réception dans le navigateur Fedora à effectuer |
@@ -46,10 +41,10 @@ Ces tests du dépôt **ne sont pas des essais sur le PC cible**. Le projet **n�
 | Node.js | Fedora `nodejs24` (24.18.0) ; le `nodejs` par défaut (22) est refusé par OpenClaw |
 | Ollama | `0.40.6` |
 | Open WebUI | `v0.12.3-slim`, image résolue par digest à l’installation |
-| Modèle local obligatoire | `qwen3.5:9b-q4_K_M` |
-| Route cloud facultative | `deepseek/deepseek-v4.1-flash-1017` par défaut ; `openai/gpt-6.2-sol` en expertise selon le rôle et l'étape, ou sur choix manuel, via OpenRouter |
+| Modèles locaux obligatoires | `qwen3.5:9b-q4_K_M` et `ornith-1.5:9b` |
+| Route de modèles externe | Retirée du profil actif ; ancien fonctionnement conservé uniquement dans l'historique Git |
 | Contexte et cache | Historique JSON compact, extraits vérifiés SHA-256 et ratio de cache documenté ; gain réel à mesurer. |
-| Budget cloud | 35 €/mois, dont enveloppes de 15 € DeepSeek / 10 € Sol et 10 € non routables ; activation et consentement explicites |
+| Coût API de l'inférence locale | 0 € ; énergie et stockage à charge |
 | Racine des données | `/data/IA/Openclaw/` sur le deuxième disque monté sous `/data` |
 
 **Sources canoniques :** [versions](config/runtime_versions.yaml), [modèles](config/model_catalog.yaml), [plateforme](config/platform.yaml), [stockage](config/storage.json), [politique WebUI](config/webui_policy.yaml) et [politique cloud](config/core/cloud_policy.yaml). Le verrou des versions de production Python est décrit [ici](docs/PYTHON_RUNTIME_LOCK.md). **Une version déclarée n’est pas la preuve de sa présence sur le PC.**
@@ -86,7 +81,7 @@ Les benchmarks poussés, les cycles de veille et reprise et les canaries (voix, 
 
 - **Une génération à la fois** : les projets sont persistants et indépendants, mais l’exécution GPU est partagée ; aucune file FIFO durable n’est garantie. Un traitement interrompu (délai dépassé, redémarrage) s’affiche en échec ou « interrompu », jamais « en cours » indéfiniment.
 - **Pas de déploiement autonome** : les agents produisent des propositions, scripts et documents ; l’utilisateur approuve et exécute les actions sensibles. Un livrable modifié après les audits ne peut pas être livré sans reprise approuvée.
-- **Cloud désactivé par défaut** ; aucune bascule cachée du local vers le cloud, ni escalade sur panne ou refus ; le choix interne au cloud suit les règles de rôle et d'étape. Un accord cloud vise un seul projet et ne garantit pas qu’un contenu privé soit publiable. Une liste de termes sensibles illisible refuse le cloud.
+- **Cloud retiré du routage actif** ; aucune bascule cachée, y compris en cas d'échec. Les consentements historiques ne peuvent pas réactiver OpenRouter. La recherche Web de sources est distincte de l'inférence.
 - Les outils `web_search` et `web_fetch` peuvent accéder à Internet même en mode local ; un [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) est pilotable par `web-private --apply`, avec contrôle de la configuration enregistrée et du redémarrage du Gateway. L’absence réelle de trafic réseau reste à vérifier.
 - Le streaming SSE et la vision avancée sont disponibles sous **canary contrôlé**, ni activés ni qualifiés par défaut.
 - Le verrou Python fixe les versions et les hashes SHA-256 des artefacts de production ; le verrou npm SHA-512 est appliqué par `npm ci`, avec les correctifs imposés contrôlés. Les **21 dépendances de voix** sont aussi épinglées par versions et SHA-256 ; leur installation sous Fedora 45/Python 3.13 est vérifiée en CI. L'outil de construction setuptools (84.2.1, le paquet `wheel` n'étant plus nécessaire) est fixé par SHA-256 ; le runtime refuse les distributions sources et toute isolation PEP 517 non verrouillée. Les RPM Fedora et les extras de développement restent hors de ce verrou. Voir [les limites de reproductibilité](docs/PYTHON_RUNTIME_LOCK.md).
