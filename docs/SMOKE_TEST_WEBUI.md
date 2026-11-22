@@ -1,3 +1,5 @@
+> **Archive de conception 2026.** Réception historique Open WebUI/DeepSeek. L'interface principale est désormais l'Atelier natif et aucun modèle OpenRouter n'est activable. Ne pas exécuter les commandes cloud de ce document ; lire [la recette locale](RECEPTION_ETAPE3.md).
+
 # Réception avancée Open WebUI — Fedora 45 Workstation / GNOME 51
 
 > **Facultatif lors de la première installation.** Pour commencer rapidement, suivre [l’installation simple](INSTALLATION_SIMPLE_FEDORA45.md), exécuter `./menu.sh --action quick-check`, puis essayer une vraie conversation et un projet. Ce protocole approfondi sert à qualifier les options supplémentaires (voix, formulaires, streaming, cloud, sauvegarde).
