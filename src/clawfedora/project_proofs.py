@@ -69,7 +69,32 @@ def lab_request(data: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("fichiers de tâche et résultat attendu requis")
     criterion = f"[preuve lab {tool} {' '.join(paths)}] {expected.strip()}"
     requirement(criterion, paths)
-    return {"criterion": criterion, "files": paths, "status": "PROPOSED", "executed": False}
+    proposal: dict[str, Any] = {
+        "criterion": criterion, "files": paths, "status": "PROPOSED", "executed": False,
+    }
+    scenario = data.get("scenario")
+    if scenario is not None:
+        kinds = {"reprovision", "idempotence", "incident", "restore", "rollback",
+                 "access-control", "performance", "resilience"}
+        fields = ("target", "initial_state", "expected_observation",
+                  "stop_condition", "recovery")
+        if scenario not in kinds or any(
+            not isinstance(data.get(field), str)
+            or not 1 <= len(data[field].strip()) <= 500
+            for field in fields
+        ):
+            raise ValueError("scénario opérationnel et cinq champs bornés requis")
+        proposal["scenario_plan"] = {
+            "kind": scenario,
+            **{field: data[field].strip() for field in fields},
+            "state": "PROPOSED_NEEDS_OPERATOR_EXECUTION",
+            "proof": "NOT_COLLECTED",
+            "note": (
+                "Le critère lab ci-dessus contrôle uniquement le validateur statique. "
+                "Il ne valide ni la panne, ni le rollback, ni la restauration réelle."
+            ),
+        }
+    return proposal
 
 
 def _epoch(project: Path, task_id: str) -> int:
