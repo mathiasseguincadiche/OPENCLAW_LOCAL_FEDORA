@@ -165,7 +165,8 @@ def test_fedora_is_native_host_and_rocky_validation_is_only_optional() -> None:
     lab = (ROOT / "docs/LABORATOIRE_DEVOPS.md").read_text(encoding="utf-8")
     assert "Fedora est le système hôte du projet IA" in readme
     assert "Aucune installation de Rocky" in readme
-    assert "Podman rootless sur ce même Fedora" in readme
+    assert "l'Atelier natif se lance comme service utilisateur" in readme
+    assert "Open WebUI sous Podman reste facultatif" in readme
     assert "aucun prérequis Rocky pour OpenClaw" in roadmap
     assert "Streaming canary prêt en code" in roadmap
     assert "Pilotage visuel des projets" in roadmap
