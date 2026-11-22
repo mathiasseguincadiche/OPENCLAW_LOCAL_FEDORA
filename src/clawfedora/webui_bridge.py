@@ -752,7 +752,8 @@ class BridgeHandler(BaseHTTPRequestHandler):
                 current = None
             else:
                 context += "\n" + chat_projects.project_context(
-                    self.server.repo_root, self.server.runtime, project, str(last.get("content", ""))
+                    self.server.repo_root, self.server.runtime, project,
+                    str(last.get("content", "")), include_revisions=not cloud,
                 )
         # First integration gate: plain local Mentor chat only. No project thread,
         # uploads or cloud ever reach this alternative source. Production keeps the
