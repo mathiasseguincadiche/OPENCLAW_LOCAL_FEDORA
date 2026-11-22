@@ -78,7 +78,7 @@ def lab_request(data: dict[str, Any]) -> dict[str, Any]:
                  "access-control", "performance", "resilience"}
         fields = ("target", "initial_state", "expected_observation",
                   "stop_condition", "recovery")
-        if scenario not in kinds or any(
+        if not isinstance(scenario, str) or scenario not in kinds or any(
             not isinstance(data.get(field), str)
             or not 1 <= len(data[field].strip()) <= 500
             for field in fields

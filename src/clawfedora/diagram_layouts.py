@@ -100,7 +100,7 @@ def style_and_arrange(page: ET.Element, data: dict[str, Any]) -> str:
              if not node.attrib.get("id", "").startswith("group")]
     edges = root.findall("mxCell[@edge='1']")
     layout = data.get("layout", "column")
-    if layout not in LAYOUTS:
+    if not isinstance(layout, str) or layout not in LAYOUTS:
         raise ValueError("Draw.io: composition non reconnue")
     kinds = _typed_list(data, "node_types", len(nodes), NODE_TYPES, "component")
     flows = _typed_list(data, "edge_types", len(edges), EDGE_TYPES, "application")
@@ -124,7 +124,9 @@ def style_and_arrange(page: ET.Element, data: dict[str, Any]) -> str:
         return layout
     if layout == "flow":
         if any(node.get("parent") != "1" for node in nodes):
-            raise ValueError("Draw.io: flux en grille et frontières nommées incompatibles; utiliser zones")
+            raise ValueError(
+                "Draw.io: flux en grille incompatible avec les frontières; utiliser zones"
+            )
         for index, node in enumerate(nodes):
             _place(node, 28 + (index % 3) * 268, 35 + (index // 3) * 115, 225, 72)
     else:

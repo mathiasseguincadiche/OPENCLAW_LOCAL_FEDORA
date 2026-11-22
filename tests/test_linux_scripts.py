@@ -208,7 +208,7 @@ def test_openclaw_toolkit_inventory_matches_the_plugin() -> None:
     expected = re.search(r"\(\[(\"clawfedora_[^\]]+)\] \| sort\)", script)
     assert expected is not None
     declared = set(re.findall(r'"(clawfedora_[a-z_]+)"', expected.group(1)))
-    assert len(plugin) == 10
+    assert len(plugin) == 12
     assert declared == plugin
 
 

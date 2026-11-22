@@ -67,6 +67,7 @@ def inspect(root: Path, changed: list[str]) -> dict[str, Any]:
         raise ValueError("dossier de projet non lié requis")
     root = root.resolve(strict=True)
     if (not isinstance(changed, list) or not 1 <= len(changed) <= MAX_CHANGES
+            or any(not isinstance(path, str) for path in changed)
             or len(changed) != len(set(changed))):
         raise ValueError("1 à 25 chemins différents requis")
     changed = [_relative(path) for path in changed]
