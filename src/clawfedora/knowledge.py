@@ -282,7 +282,10 @@ def _overlap(first: tuple[Any, ...], second: tuple[Any, ...]) -> bool:
     return a < b + len(second[0]) and b < a + len(first[0])
 
 
-def search(repo_root: Path, project: Path, query: str) -> list[dict[str, Any]]:
+def search(
+    repo_root: Path, project: Path, query: str, *,
+    excluded_prefixes: tuple[str, ...] = (),
+) -> list[dict[str, Any]]:
     path = _database(project)
     if not path.is_file():
         return []
@@ -313,6 +316,8 @@ def search(repo_root: Path, project: Path, query: str) -> list[dict[str, Any]]:
     checked: dict[tuple[str, str, str, str], bool] = {}
     verified = []
     for row in rows:
+        if str(row[1]).startswith(excluded_prefixes):
+            continue  # A newer approved GitHub SHA supersedes this initial intake source.
         meta = json.loads(row[4])
         key = (
             str(row[1]), str(meta.get("source_sha256", "")),
