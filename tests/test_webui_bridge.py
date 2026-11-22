@@ -15,7 +15,6 @@ from clawfedora.project_worker import worker_lock
 from clawfedora.webui_bridge import (
     CLOUD_MODEL_IDS,
     MODEL_IDS,
-    BridgeHandler,
     bounded_history,
     chat_prompt,
     make_server,
