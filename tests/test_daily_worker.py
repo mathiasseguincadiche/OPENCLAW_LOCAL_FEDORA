@@ -368,7 +368,8 @@ def test_exhausted_local_attempts_require_operator_intervention(
     from clawfedora.project_control import progress
 
     runtime, project = planned
-    bad = lambda *_args: {"files": {"deliverables/other-task/escape.md": "bad"}}
+    def bad(*_args: object) -> dict[str, object]:
+        return {"files": {"deliverables/other-task/escape.md": "bad"}}
     assert run_project_tasks(ROOT, runtime, project, runner=bad)[0]["status"] == "FAIL"
     assert run_project_tasks(ROOT, runtime, project, runner=bad)[0]["status"] == "FAIL"
     assert progress(runtime)["phase"] == "blocked_local"
