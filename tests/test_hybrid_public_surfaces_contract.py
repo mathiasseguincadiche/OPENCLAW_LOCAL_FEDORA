@@ -14,7 +14,6 @@ from typing import Any
 import pytest
 
 from clawfedora import chat_projects, ci_evidence
-from clawfedora.cloud_budget import load_ledger
 from clawfedora.model_advice import advise
 
 ROOT = Path(__file__).resolve().parents[1]
