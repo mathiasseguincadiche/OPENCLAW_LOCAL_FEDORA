@@ -384,7 +384,7 @@ def test_standalone_uploads_reach_only_the_local_chat(tmp_path: Path, extension:
         assert not (tmp_path / "projects").exists()
         payload["model"] = CLOUD_MODEL_IDS[0]
         status, answer = request(server, "/v1/chat/completions", payload)
-        assert status == 400 and "cloud" in answer.lower()
+        assert status == 400 and "rôles locaux" in answer
         assert len(prompts) == 1
         server.shutdown()
         thread.join(timeout=5)
