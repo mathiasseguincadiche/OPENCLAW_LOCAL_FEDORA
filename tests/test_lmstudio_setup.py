@@ -72,6 +72,15 @@ def test_bad_permissions_symlinks_and_foreign_unit_fail_closed(tmp_path: Path) -
         render(ROOT, runtime, units)
 
 
+def test_uninstall_stops_the_independent_bridge() -> None:
+    uninstall = (
+        ROOT / "scripts/linux/10_uninstall.sh"
+    ).read_text(encoding="utf-8")
+    assert "for unit in clawfedora-lmstudio-bridge.service " in uninstall
+    assert "systemctl --user disable --now" in uninstall
+    assert "systemctl --user is-active --quiet" in uninstall
+
+
 def test_parent_state_symlink_is_rejected_before_creating_secret(tmp_path: Path) -> None:
     runtime = _runtime(tmp_path)
     outside = tmp_path / "outside"
