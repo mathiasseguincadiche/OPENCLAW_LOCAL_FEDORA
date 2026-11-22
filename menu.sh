@@ -33,6 +33,8 @@ Installer et utiliser:
   webui-seal             Fermer les inscriptions après le premier compte
   webui-start|webui-stop Démarrer ou arrêter le chat
   webui-status           État du chat et de l'atelier
+  lmstudio-install        Préparer le pont LM Studio indépendant (--apply)
+  lmstudio-start|lmstudio-stop|lmstudio-status  Gérer le pont LM Studio
   web-status             Mode Web désiré (ne certifie pas le réseau)
   web-private            Couper la recherche Web des sept rôles, appliquer et vérifier
   web-connected          Réactiver volontairement la recherche Web des rôles
@@ -155,6 +157,11 @@ case "$ACTION" in
     ;;
   webui-install|webui-start|webui-stop|webui-seal|webui-status)
     with_apply 13_openwebui.sh "${ACTION#webui-}"
+    ;;
+  lmstudio-install|lmstudio-start|lmstudio-stop|lmstudio-status)
+    args=("${ACTION#lmstudio-}")
+    ((APPLY == 0)) || args+=(--apply)
+    bash "$LINUX/20_lmstudio.sh" "${args[@]}"
     ;;
   web-status|web-private|web-connected)
     args=()
