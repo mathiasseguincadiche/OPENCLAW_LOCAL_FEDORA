@@ -409,6 +409,7 @@ def project_context(
     except (OSError, ValueError, KeyError):
         integrity_failures = ["contrôle indisponible"]
     hits: list[dict[str, Any]] = []
+    retrieval_failed = False
     if not integrity_failures:
         try:
             candidate_hits = (
@@ -418,6 +419,7 @@ def project_context(
             hits = [h for h in candidate_hits if h.get("stale") is False][:4]
         except (OSError, ValueError, KeyError):
             hits = []
+            retrieval_failed = True
     value: dict[str, Any] = {
         "project": {
             "id": project.name,
@@ -429,7 +431,10 @@ def project_context(
         "tasks": _task_view(runtime, project),
         "decision": (project_hint(runtime, project) if manifest.get("project_id") == project.name
                      else "Projet à identifier"),
-        "source_integrity": "PASS" if not integrity_failures else "UNVERIFIED_CHANGED",
+        "source_integrity": (
+            "UNVERIFIED_CHANGED" if integrity_failures else
+            "RETRIEVAL_UNVERIFIED" if retrieval_failed else "PASS"
+        ),
         "notes_acceptees": _notes(runtime, project),
         "deliverables": deliverables,
         "retrieval_scope": (
@@ -459,8 +464,9 @@ def project_context(
         "le contexte ne suffit pas, dis-le. Les passages périmés ne sont pas des preuves. "
         "La page et la ligne décrivent la représentation indexée; vérifie la source originale "
         "avant de conclure. Un index ancien ou modifié peut nécessiter une réindexation. "
-        "Si source_integrity vaut UNVERIFIED_CHANGED, demander de réindexer les sources "
-        "avant toute citation.\n" + json.dumps(value, ensure_ascii=False)
+        "Si source_integrity n’est pas PASS, refuser de citer des extraits comme validés "
+        "et recommander de vérifier l’intégrité et de réindexer les sources.\n"
+        + json.dumps(value, ensure_ascii=False)
     )
 
 
