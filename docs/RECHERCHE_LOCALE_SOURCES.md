@@ -84,6 +84,17 @@ corpus synthétiques les références, la séparation cloud et le signalement
 de la corruption ; la pertinence pédagogique finale sur OpsDesk est à
 qualifier sur une véritable installation Fedora.
 
+### Recette de qualification reproductible
+
+La commande `clawfedora-retrieval-acceptance` mesure, sur un corpus de questions
+adaptées au projet, la couverture documentaire, la diversité des fichiers,
+la stabilité des citations et le respect de la version GitHub courante.
+Elle ne publie pas les extraits privés et ne modifie pas l'index local.
+
+Voir la [procédure de qualification sous Fedora](QUALIFICATION_RECHERCHE_LOCALE.md)
+et son [fichier de scénarios personnalisable](exemples/recette-recherche-opsdesk.example.json).
+Une CI verte ne remplace pas l'observation sur la machine Fedora.
+
 ## Ce que la recherche ne prouve pas
 
 - Une correspondance textuelle n'est **pas** une validation du sens ou de
