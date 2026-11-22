@@ -100,7 +100,7 @@ def style_and_arrange(page: ET.Element, data: dict[str, Any]) -> str:
              if not node.attrib.get("id", "").startswith("group")]
     edges = root.findall("mxCell[@edge='1']")
     layout = data.get("layout", "column")
-    if layout not in LAYOUTS:
+    if not isinstance(layout, str) or layout not in LAYOUTS:
         raise ValueError("Draw.io: composition non reconnue")
     kinds = _typed_list(data, "node_types", len(nodes), NODE_TYPES, "component")
     flows = _typed_list(data, "edge_types", len(edges), EDGE_TYPES, "application")
