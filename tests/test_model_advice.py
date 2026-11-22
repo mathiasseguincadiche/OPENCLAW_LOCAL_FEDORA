@@ -16,7 +16,7 @@ def test_every_category_is_grounded_in_local_role_and_capabilities(category: str
 
 
 @pytest.mark.parametrize(
-    ("request", "model"),
+    ("category", "model"),
     [
         ("linux", "Qwen"),
         ("PRIVE", "Qwen ou Ornith"),
@@ -27,8 +27,8 @@ def test_every_category_is_grounded_in_local_role_and_capabilities(category: str
         ("securite", "Qwen"),
     ],
 )
-def test_aliases_resolve_to_the_right_specialist(request: str, model: str) -> None:
-    assert model in advise(request)
+def test_aliases_resolve_to_the_right_specialist(category: str, model: str) -> None:
+    assert model in advise(category)
 
 
 def test_unrecognized_free_text_never_leads_to_a_provider_call() -> None:
