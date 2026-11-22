@@ -28,7 +28,7 @@ Vers un autre disque :
 scripts/linux/08_backup_restore.sh backup --output-dir /chemin/vers/le/disque
 ```
 
-Les sauvegardes **ne sont pas chiffrées** : elles peuvent contenir tes conversations et les documents du projet. Protège l'archive comme des données confidentielles. Elles excluent la clé OpenRouter, le jeton de passerelle cloud, les jetons et la clé de session WebUI, le fichier `webui.env` ainsi que les codes d'approbation encore en attente. Après restauration, réinstalle WebUI pour régénérer ses secrets et sa configuration, puis ressaisis la clé OpenRouter (`cloud-set-key`). Le journal budgétaire reste sauvegardé pour conserver le plafond.
+Les sauvegardes **ne sont pas chiffrées** : elles peuvent contenir tes conversations et les documents du projet. Protège l'archive comme des données confidentielles. Elles excluent la clé OpenRouter, le jeton de passerelle cloud, les jetons et la clé de session WebUI, le fichier `webui.env` ainsi que les codes d'approbation encore en attente. Après restauration, reconfigure l'Atelier natif et vérifie les modèles Ollama Qwen et Ornith. La route OpenRouter ne doit pas être réactivée ; les anciens journaux de facturation restent des archives.
 
 ## Restaurer
 
