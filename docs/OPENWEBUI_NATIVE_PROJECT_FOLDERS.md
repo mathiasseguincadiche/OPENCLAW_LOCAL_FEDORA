@@ -54,14 +54,41 @@ Si la confirmation est annulée, si l'utilisateur n'est pas administrateur,
 si l'identifiant du chat est absent, si le projet a été supprimé ou si
 le dossier est en conflit avec un dossier personnel : **refus**.
 
-**Important :** créer un chat dans le dossier ne suffit pas, en l'état
-actuel, à sélectionner automatiquement le contexte ClawFedora du projet.
-Au début de ce fil, utiliser `!projet <id>` ou
-**Classer cette conversation** après le premier message. Dans un
-sous-dossier ClawFedora reconnu, l'action retrouve automatiquement
-le bon identifiant du projet mais demande toujours une confirmation.
-Le classement des discussions et la sélection du contexte sont
-deux états distincts, même lorsque le dossier est commun.
+## Continuité automatique du contexte pour les chats enregistrés
+
+Après la mise à jour du filtre géré par `webui-seal --apply`, une **conversation
+déjà enregistrée** dans un sous-dossier natif ClawFedora peut récupérer
+automatiquement **en lecture seule** le contexte de ce projet dès son prochain
+message, sans taper `!projet` et sans nouveau clic de classement :
+
+1. Le filtre Open WebUI actif consulte le chat **appartenant à l'admin connecté**,
+   puis son dossier et la racine gérée par les API natives de la version épinglée.
+2. Il signe un petit reçu de contexte (projet canonique, chat, propriétaire,
+   horodatage et empreinte du dernier message) avec le secret du pont local.
+3. Le pont vérifie la signature, l'expiration, la correspondance du message
+   et l'existence du projet avant de charger son contexte.
+4. Le prochain message de réponse porte le marqueur `📁 Projet : <id>`, ce qui
+   permet de conserver cette sélection dans l'historique natif.
+
+**Un fil nouvellement ouvert, mais pas encore enregistré**, ou un fil hors
+dossier géré, conserve le fonctionnement antérieur : utiliser `!projet <id>`
+ou **Classer cette conversation** après le premier message si nécessaire.
+La création d'un simple dossier n'ouvre aucune session native OpenClaw.
+
+Si un fil possède déjà un marqueur pointant vers un **autre projet** que son
+dossier géré, le pont refuse la requête : il ne choisit pas silencieusement
+entre deux contextes. Reclasser explicitement la conversation ou la déplacer
+vers le bon dossier. Tant que le fil reste dans son dossier ClawFedora géré,
+`!quitter` et `!projet autre-id` sont refusés ; il faut d'abord changer
+son classement.
+
+Le filtre ne signe **que les conversations enregistrées** dont l'utilisateur
+et le dossier sont confirmés par les API natives. Les noms de dossiers,
+messages du modèle et champs de requête non signés ne donnent aucun droit.
+Une sélection par dossier **n'accorde ni consentement cloud, ni approbation
+d'action, ni accès aux VM**, et n'importe **aucun historique de terminal**.
+Les anciens projets cités dans le même fil continuent de compter dans les
+contrôles de confidentialité cloud.
 
 ## Conversations terminal et WebUI : séparation volontaire
 
@@ -114,13 +141,24 @@ Sur Fedora, après installation et scellement :
   Open WebUI et vérifier l'historique et le marqueur sélectionné.
 - Vérifier que l'ancien dossier d'un autre fil ne change pas.
 - Annuler le classement et vérifier qu'aucun déplacement n'a lieu.
-- Créer un nouveau fil dans un dossier ; noter que le contexte nécessite
-  encore `!projet` (ne pas déclarer de sélection automatique).
+- Après enregistrement d'un fil dans un dossier géré, envoyer un nouveau
+  message et vérifier la sélection automatique et le bon contenu de projet.
+- Confirmer que le **tout premier message d'un fil non encore enregistré**
+  garde le parcours manuel `!projet` ou « Classer cette conversation ».
+- Déplacer un fil déjà marqué dans un autre dossier géré : contrôler le
+  **refus du conflit**, sans écriture, exécution ni appel au cloud.
+- Essayer un dossier personnel homonyme, un chat d'un autre propriétaire,
+  un reçu expiré, une signature falsifiée et un projet supprimé : aucun
+  chargement de contexte ne doit être autorisé.
+- Vérifier le garde-fou cloud avec un projet privé et les éventuelles
+  références précédentes à d'autres projets dans le même fil.
 - Tester les parcours terminaux sans s'attendre à voir des sessions
   OpenClaw natives apparaître comme des conversations WebUI.
 
 Conserver les résultats sous forme de preuves **privées**, sans exporter
 les historiques, jetons, captures de pages personnelles ni documents Notion.
 
-**Statut :** couche d'intégration implémentée, contrôle navigateur natif
-Fedora **à effectuer**.
+**Statut :** continuité de contexte implémentée pour les chats gérés et
+enregistrés, sous réserve de l'exécution des tests automatisés et de la
+recette navigateur Open WebUI native sur Fedora. La CI simulée ne remplace
+pas cette recette.
