@@ -22,15 +22,17 @@ def render(repo_root: Path, runtime: Path, unit_root: Path) -> dict[str, str]:
                 raise ValueError("Lien symbolique sur chemin géré interdit")
     if not (runtime / ".openclaw-fedora-runtime").is_file():
         raise ValueError("Runtime ClawFedora non initialisé")
+    python = runtime / "runtime/venv/bin/python"
+    if not python.is_file():
+        raise ValueError("Environnement Python ClawFedora absent")
+    if (runtime / "state").is_symlink():
+        raise ValueError("État ClawFedora lié interdit")
     state = runtime / "state/lmstudio"
     state.mkdir(parents=True, exist_ok=True, mode=0o700)
     assert_no_symlinks(state, label="LM Studio")
     state.chmod(0o700)
     token = state / "bridge.token"
     _secret(token)  # exact 64-hex, private, stable across rerenders
-    python = runtime / "runtime/venv/bin/python"
-    if not python.is_file():
-        raise ValueError("Environnement Python ClawFedora absent")
     unit_root.mkdir(parents=True, exist_ok=True)
     unit = unit_root / (SERVICE + ".service")
     if unit.is_symlink():
