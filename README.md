@@ -46,6 +46,11 @@ la récupération de ses anciens chats ; il n'est plus requis pour créer
 une discussion dans l'Atelier. Aucune suppression automatique de données.
 [Architecture, installation et limites du chat natif](docs/ATELIER_UNIQUE_CHAT_OLLAMA.md).
 
+Les [améliorations des sept agents et outils documentaires](docs/METHODES_V26_CLAWFEDORA.md)
+renforcent les schémas Draw.io, la relecture GitHub/Notion et les propositions
+de recette opérationnelle. Elles n'ajoutent aucun Skill et n'autorisent
+aucune exécution de commande par un modèle.
+
 Les projets restent indépendants, avec un seul moteur exécutant une génération
 à la fois. Les commandes humaines et approbations passent par le moteur OpenClaw
 déjà configuré. Le diagnostic du PC est **en lecture seule** par défaut.
@@ -73,13 +78,13 @@ Sur Fedora installé, suivre le [guide d'installation](docs/INSTALLATION_SIMPLE_
 
 ### 3. Vérifier, puis réceptionner
 
-Après installation et configuration de WebUI, depuis le dépôt :
+Après installation de l'Atelier natif, depuis le dépôt :
 
 ```bash
 ./menu.sh --action quick-check
 ```
 
-Si le contrôle affiche `RECEPTION=READY_FOR_FIRST_PROJECT`, poser une vraie question dans WebUI et créer un petit projet de test, puis suivre la [liste de contrôle de réception](docs/RECEPTION_ETAPE3.md). Ce qui reste à prouver est indiqué dans [STATUS](STATUS.md).
+Si le contrôle affiche `RECEPTION=READY_FOR_FIRST_PROJECT`, poser une vraie question dans l'espace Discussions et créer un petit projet de test, puis suivre la [liste de contrôle de réception](docs/RECEPTION_ETAPE3.md). Ce qui reste à prouver est indiqué dans [STATUS](STATUS.md).
 
 **Cas métier étudié :** [OpsDesk et ses 13 exercices InfraOps](docs/CAS_USAGE_INFRAOPS_OPSDESK.md).
 La répartition des agents tient compte de la différence entre VM créées par
