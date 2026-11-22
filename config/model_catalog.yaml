@@ -25,6 +25,7 @@ models:
     input:
     - text
     capabilities:
+    - thinking
     - tools
     - coding
     - orchestration

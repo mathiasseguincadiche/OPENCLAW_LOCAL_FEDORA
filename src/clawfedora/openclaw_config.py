@@ -64,13 +64,13 @@ def _ollama_provider(catalog: dict[str, Any], limits: dict[str, Any]) -> dict[st
                 "id": runtime_id,
                 "name": runtime_id,
                 "input": list(model_input) if isinstance(model_input, list) else ["text"],
+                "reasoning": "thinking" in model.get("capabilities", []),
                 "contextTokens": context_tokens,
                 "maxTokens": output_tokens,
                 "params": {
                     "num_ctx": context_tokens,
                     "num_predict": output_tokens,
                     "keep_alive": str(limits["keep_alive"]),
-                    "think": False,
                 },
             }
         )

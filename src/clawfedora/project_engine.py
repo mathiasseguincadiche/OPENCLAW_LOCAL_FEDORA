@@ -426,7 +426,9 @@ def create_assignments(repo_root: Path, project: Path) -> Path:
     return path
 
 
-def ready_tasks(repo_root: Path, project: Path) -> list[dict[str, Any]]:
+def ready_tasks(
+    repo_root: Path, project: Path, *, prefer_model: str | None = None
+) -> list[dict[str, Any]]:
     if current_status(project) != "IN_PROGRESS":
         return []
     assignments = _require(repo_root, project, "assignments")
@@ -452,7 +454,15 @@ def ready_tasks(repo_root: Path, project: Path) -> list[dict[str, Any]]:
             )
         ):
             ready.append(item)
-    limit = int(dict(_policy(repo_root)["execution"])["max_parallel_tasks"])
+    execution = dict(_policy(repo_root)["execution"])
+    if execution.get("model_affinity_for_independent_tasks") is True and prefer_model:
+        # Stable order among equal-model tasks. Only already-ready tasks are reordered;
+        # dependency constraints and the single-worker concurrency limit remain intact.
+        routes = core_contract(repo_root, "model_routing.yaml")["agents"]
+        ready.sort(
+            key=lambda item: routes[str(item["role"])]["local_primary"] != prefer_model
+        )
+    limit = int(execution["max_parallel_tasks"])
     return ready[:limit]
 
 

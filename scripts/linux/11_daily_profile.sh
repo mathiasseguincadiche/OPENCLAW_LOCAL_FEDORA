@@ -47,6 +47,18 @@ from clawfedora.core_config import daily_limits
 print(daily_limits(Path(sys.argv[1]))["context_tokens"])
 ' "$(claw_repo_root)")"
     [[ "$CONTEXT_TOKENS" =~ ^[0-9]+$ ]] || { echo "ERREUR: contexte quotidien illisible" >&2; exit 2; }
+    # KV quantization is opt-in only: Vulkan/B580 support must be proven first.
+    KV_TYPE="${CLAWFEDORA_KV_CACHE_TYPE:-f16}"
+    KV_ENV='Environment="OLLAMA_KV_CACHE_TYPE=f16"'
+    FLASH_ENV=""
+    case "$KV_TYPE" in
+      f16) ;;
+      q8_0)
+        KV_ENV='Environment="OLLAMA_KV_CACHE_TYPE=q8_0"'
+        FLASH_ENV='Environment="OLLAMA_FLASH_ATTENTION=1"'
+        ;;
+      *) echo "ERREUR: cache KV attendu f16 ou q8_0" >&2; exit 2 ;;
+    esac
     # The Ollama *service account* also needs access to /dev/dri/renderD*.
     # Session group changes for TARGET_USER do not grant GPU access to ollama.
     # Restrict this capability to the managed systemd service (no permanent
@@ -75,6 +87,9 @@ Environment="OLLAMA_MAX_LOADED_MODELS=1"
 Environment="OLLAMA_MAX_QUEUE=4"
 Environment="OLLAMA_CONTEXT_LENGTH=$CONTEXT_TOKENS"
 Environment="OLLAMA_KEEP_ALIVE=3m"
+Environment="OLLAMA_NO_CLOUD=1"
+$KV_ENV
+$FLASH_ENV
 EOF
     # Grant directory traversal only, not access to user projects or secrets.
     # Include /data/IA and every parent up to the declared mount; grant traversal only.

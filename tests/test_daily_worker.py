@@ -112,6 +112,11 @@ def test_worker_executes_dependency_order_then_requires_real_review(
 
     def auditor(role: str, _prompt: str, session: str) -> dict[str, Any]:
         assert role == "auditeur-qualite" and session not in sessions
+        snapshot = runtime / "workspaces/auditeur-qualite/projects/reviews" / session
+        assert not (snapshot / "history").exists()
+        assert not (snapshot / "context/project_analysis.json").exists()
+        assert not (snapshot / "evidence/task_results.json").exists()
+        assert (snapshot / "context/audit-proofs.json").is_file()
         return {
             "verdict": "FAIL",
             "findings": [{"reason": "preuves insuffisantes"}],
@@ -247,8 +252,8 @@ def test_daily_patch_really_bounds_memory_and_disables_unsafe_tools(tmp_path: Pa
         "num_ctx": 32768,
         "num_predict": 4096,
         "keep_alive": "3m",
-        "think": False,
     } for model in models)
+    assert all(model["reasoning"] is True for model in models)
     # The model must never be able to update OpenClaw or chain a three-step tool search.
     assert {"gateway", "presence"} <= set(patch["tools"]["deny"])
     assert patch["tools"]["toolSearch"] is False
@@ -321,3 +326,51 @@ def test_changed_output_blocks_audit_before_inference(planned: tuple[Path, Path]
     with pytest.raises(ValueError, match="artifact exchange invalide avant audit"):
         review_project(ROOT, runtime, project, "validation", runner=forbidden)
     assert not (project / "evidence/validation_report.json").exists()
+
+
+@pytest.mark.parametrize(
+    "planned",
+    [[
+        {"id": "design", "role": "architecte-solutions", "title": "Design",
+         "objective": "Concevoir", "depends_on": [],
+         "expected_outputs": ["deliverables/design/report.md"],
+         "acceptance_criteria": ["Schéma lisible"]},
+        {"id": "code", "role": "ingenieur-devops", "title": "Code",
+         "objective": "Corriger", "depends_on": [],
+         "expected_outputs": ["deliverables/code/report.md"],
+         "acceptance_criteria": ["Validation mesurée"]},
+        {"id": "docs", "role": "expert-recherche", "title": "Documentation",
+         "objective": "Expliquer", "depends_on": [],
+         "expected_outputs": ["deliverables/docs/report.md"],
+         "acceptance_criteria": ["Sources identifiées"]},
+    ]],
+    indirect=True,
+)
+def test_model_affinity_preserves_approved_dependencies(
+    planned: tuple[Path, Path],
+) -> None:
+    runtime, project = planned
+    transition_project(
+        ROOT, project, "IN_PROGRESS", actor="chef-operations", reason="test"
+    )
+    assert ready_tasks(ROOT, project, prefer_model="ornith-code")[0]["role"] == (
+        "ingenieur-devops"
+    )
+    assert ready_tasks(ROOT, project, prefer_model="qwen-max")[0]["role"] == (
+        "architecte-solutions"
+    )
+    assert len(ready_tasks(ROOT, project, prefer_model="qwen-max")) == 1
+
+
+def test_exhausted_local_attempts_require_operator_intervention(
+    planned: tuple[Path, Path],
+) -> None:
+    from clawfedora.project_control import progress
+
+    runtime, project = planned
+    def bad(*_args: object) -> dict[str, object]:
+        return {"files": {"deliverables/other-task/escape.md": "bad"}}
+    assert run_project_tasks(ROOT, runtime, project, runner=bad)[0]["status"] == "FAIL"
+    assert run_project_tasks(ROOT, runtime, project, runner=bad)[0]["status"] == "FAIL"
+    assert progress(runtime)["phase"] == "blocked_local"
+    assert run_project_tasks(ROOT, runtime, project, runner=bad) == []

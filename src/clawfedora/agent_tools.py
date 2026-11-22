@@ -29,6 +29,7 @@ TOOL_ROLES = {
     "clawfedora_outline": set(AGENT_IDS),
     "clawfedora_diagram": {"architecte-solutions"},
     "clawfedora_lab_request": {"ingenieur-devops"},
+    "clawfedora_sandbox_validate": {"ingenieur-devops"},
     "clawfedora_doc_links": {"redacteur-pedagogique", "auditeur-qualite"},
     "clawfedora_impact": {"chef-operations", "architecte-solutions", "ingenieur-devops",
                          "redacteur-pedagogique", "auditeur-qualite"},
@@ -332,6 +333,17 @@ def invoke(
                 and role not in {"ingenieur-securite", "auditeur-qualite"}):
             raise ValueError("rapport Trivy réservé à la sécurité et à l’audit")
         return summarize(data)
+    if tool == "clawfedora_sandbox_validate":
+        from clawfedora.devops_sandbox import validate_proposal
+
+        scope, validator, files = data.get("scope"), data.get("validator"), data.get("files")
+        if (
+            not isinstance(scope, str) or not isinstance(validator, str)
+            or not isinstance(files, dict)
+            or any(not isinstance(k, str) or not isinstance(v, str) for k, v in files.items())
+        ):
+            raise ValueError("scope, validator et fichiers texte requis")
+        return validate_proposal(runtime, root, scope, validator, files)
     if tool == "clawfedora_lab_request":
         from clawfedora.project_proofs import lab_request
 

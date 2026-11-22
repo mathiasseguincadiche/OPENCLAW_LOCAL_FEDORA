@@ -31,7 +31,7 @@
 - **Organiser un projet** : sources, plan, tâches, validations humaines et livrables persistants.
 - **Rédiger et vérifier** : Markdown, exports PDF/DOCX/ODT, schémas Draw.io et audits de cohérence.
 
-Les sept rôles n'ont aucun outil pour exécuter une commande ni écrire un fichier à ta place : l'IA explique et propose, et les actions sensibles comme la livraison restent soumises à ta validation. L'atelier ne déploie pas automatiquement l'infrastructure préparée.
+Les sept rôles n'ont pas de shell libre sur l'hôte. Le seul outil d'exécution proposé est un validateur DevOps Podman hors réseau, limité à une copie de la proposition et à une image approuvée manuellement. Les actions sensibles comme la livraison restent soumises à ta validation. L'atelier ne déploie pas automatiquement l'infrastructure préparée.
 
 ## Une seule interface graphique principale
 

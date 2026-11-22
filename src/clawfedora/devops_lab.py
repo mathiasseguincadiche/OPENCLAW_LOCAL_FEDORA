@@ -1,8 +1,9 @@
 """Opt-in, offline and rootless DevOps validation in a disposable container.
 
-This is deliberately *not* an OpenClaw agent tool: an LLM cannot invoke it.
-The user must specify a local, immutable, pre-installed validator image and
-approve --apply. Nothing is mounted from the original project directory.
+The CLI requires a manually chosen immutable, pre-installed validator image.
+A separate DevOps-only tool may reuse this runner after operator approval;
+it can validate proposed contents only in an isolated, disposable copy.
+Nothing from the original project is mounted writable.
 """
 
 from __future__ import annotations
@@ -178,7 +179,13 @@ def run_lab(source: Path, tool: str, image: str | None, apply: bool) -> int:
         argv = isolated_argv(image, work, command, name)
         print(f"LAB tool={tool} files={len(manifest)} network=none image={image}")
         try:
-            result = subprocess.run(argv, check=False, timeout=180)
+            result = subprocess.run(
+                argv, check=False, timeout=180, capture_output=True, text=True
+            )
+            # Bounded evidence: no uncontrolled container output on the plugin JSON channel.
+            output = (result.stdout or "") + (result.stderr or "")
+            if output:
+                print("LAB_OUTPUT=" + output[-6000:])
             verdict = "PASS" if result.returncode == 0 else "FAIL"
             print(f"LAB_RESULT={verdict} exit={result.returncode}")
             return result.returncode
