@@ -171,6 +171,7 @@ agents:
     - clawfedora_lint
     - clawfedora_doc_links
     - clawfedora_impact
+    - clawfedora_doc_review
     deny:
     - apply_patch
     - edit
@@ -199,6 +200,7 @@ agents:
     - clawfedora_artifact
     - clawfedora_doc_links
     - clawfedora_impact
+    - clawfedora_doc_review
     deny:
     - apply_patch
     - edit
