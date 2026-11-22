@@ -304,7 +304,11 @@ def openclaw_runner(
                     != (runtime / "workspaces" / agent_id).resolve()
                 ):
                     raise ValueError(f"workspace divergent: {agent_id}")
-                if entry.get("model") != {"primary": f"ollama/{daily_model}", "fallbacks": []}:
+                expected_alias = str(core_contract(repo_root, "model_routing.yaml")["agents"][agent_id]["local_primary"])
+                from clawfedora.openclaw_config import _model_ref
+
+                expected_model = _model_ref(expected_alias, root_contract(repo_root, "model_catalog.yaml"))
+                if entry.get("model") != {"primary": expected_model, "fallbacks": []}:
                     raise ValueError(f"routage quotidien divergent: {agent_id}")
             roster_stamp = stamp
             if cloud:
