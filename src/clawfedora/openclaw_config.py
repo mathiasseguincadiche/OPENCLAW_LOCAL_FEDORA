@@ -156,7 +156,9 @@ def _cloud_provider(cloud: dict[str, Any], limits: dict[str, Any]) -> dict[str, 
 def build_openclaw_patch(
     repo_root: Path, runtime_root: Path, *, cloud_enabled: bool = False
 ) -> dict[str, Any]:
-    """OpenClaw configuration. The cloud provider exists only when explicitly enabled."""
+    """OpenClaw configuration, local-only. Cloud requests fail closed."""
+    if cloud_enabled:
+        raise ValueError("OpenRouter retiré : aucune configuration cloud autorisée")
     catalog = root_contract(repo_root, "model_catalog.yaml")
     routing = core_contract(repo_root, "model_routing.yaml")
     tools = core_contract(repo_root, "tool_policy.yaml")
