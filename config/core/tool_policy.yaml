@@ -33,6 +33,7 @@ agents:
     - clawfedora_ci_report
     - clawfedora_tool_status
     - clawfedora_artifact
+    - clawfedora_impact
     deny:
     - apply_patch
     - edit
@@ -84,6 +85,7 @@ agents:
     - clawfedora_ci_report
     - clawfedora_tool_status
     - clawfedora_artifact
+    - clawfedora_impact
     deny:
     - apply_patch
     - edit
@@ -112,6 +114,7 @@ agents:
     - clawfedora_artifact
     - clawfedora_lint
     - clawfedora_lab_request
+    - clawfedora_impact
     deny:
     - apply_patch
     - edit
@@ -167,6 +170,7 @@ agents:
     - clawfedora_artifact
     - clawfedora_lint
     - clawfedora_doc_links
+    - clawfedora_impact
     deny:
     - apply_patch
     - edit
@@ -194,6 +198,7 @@ agents:
     - clawfedora_tool_status
     - clawfedora_artifact
     - clawfedora_doc_links
+    - clawfedora_impact
     deny:
     - apply_patch
     - edit
