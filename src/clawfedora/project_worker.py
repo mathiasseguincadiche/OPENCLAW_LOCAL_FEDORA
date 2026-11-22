@@ -876,7 +876,14 @@ def run_project_tasks(
                     "local_primary"
                 ]
             if status == "FAIL":
-                write_progress(runtime, project, "failed", task=task_id, role=role, session=session)
+                assignments = read_json(project / "context/task_assignments.json")["tasks"]
+                current = next(item for item in assignments if item["task_id"] == task_id)
+                limits = core_contract(repo_root, "orchestration_policy.yaml")["execution"]
+                attempts = int(current["attempts"]) - int(
+                    current.get("revision_attempt_base", 0)
+                )
+                phase = "blocked_local" if attempts >= int(limits["max_task_attempts"]) else "failed"
+                write_progress(runtime, project, phase, task=task_id, role=role, session=session)
                 break
         if all_tasks_pass(repo_root, project):
             # No task remains; validation is a separate, explicit operator action.
