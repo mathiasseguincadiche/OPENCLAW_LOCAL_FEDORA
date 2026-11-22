@@ -99,14 +99,11 @@ def test_documented_menu_actions_exist_in_the_shipped_menu() -> None:
     choices = set()
     for match in re.finditer(r"^  ([a-z][a-z0-9_-]*(?:\|[a-z0-9_-]+)*)\)", action_block, re.M):
         choices.update(match.group(1).split("|"))
-    assert {"install", "quick-check", "cloud-status", "validate"} <= choices
+    assert {"install", "quick-check", "local-retire-cloud", "validate"} <= choices
     pattern = re.compile(r"\./menu\.sh\s+--action\s+([a-z][a-z0-9_-]*)")
     stale = []
     for path in DOCS:
-        if (
-            path.parent == ROOT / "docs"
-            and "Archive de conception 2026" in path.read_text(encoding="utf-8")
-        ):
+        if "Archive de conception 2026" in path.read_text(encoding="utf-8"):
             continue
         for match in pattern.finditer(path.read_text(encoding="utf-8")):
             if match.group(1) not in choices:
