@@ -165,8 +165,8 @@ def test_first_installation_guide_does_not_require_missing_python_dependencies()
         )
         assert "findmnt --mountpoint /data" in document
         # A new GNOME login starts in HOME, not in the git clone's directory.
-        webui = document.index("./menu.sh --action webui-install --apply")
-        assert document.rfind('cd "/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA"', 0, webui) > (
+        atelier = document.index("./menu.sh --action atelier-status")
+        assert document.rfind('cd "/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA"', 0, atelier) > (
             document.index("./menu.sh --action install --apply")
         )
     assert "python3.13 -m venv" in (ROOT / "scripts/linux/00_bootstrap.sh").read_text(
@@ -214,8 +214,7 @@ def test_install_guide_has_precheck_install_smoke_and_32k_acceptance_in_order() 
         commands = (
             "./menu.sh --action precheck",
             "./menu.sh --action install --apply",
-            "./menu.sh --action webui-install --apply",
-            "./menu.sh --action webui-seal --apply",
+            "./menu.sh --action atelier-status",
             "./menu.sh --action quick-check",
             "./menu.sh --action acceptance-32k --apply",
         )
