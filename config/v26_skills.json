@@ -1,0 +1,44 @@
+{
+  "chef-operations": [
+    "v26-cadrage-projet",
+    "v26-preuves-validation",
+    "v26-synchronisation-supports",
+    "v26-audit-qualite"
+  ],
+  "expert-recherche": [
+    "v26-cadrage-projet",
+    "v26-decisions-architecture",
+    "v26-redaction-pedagogique"
+  ],
+  "architecte-solutions": [
+    "v26-cadrage-projet",
+    "v26-decisions-architecture",
+    "v26-schemas-drawio",
+    "v26-preuves-validation"
+  ],
+  "ingenieur-devops": [
+    "v26-construction-infraops",
+    "v26-exploitation-diagnostic",
+    "v26-preuves-validation",
+    "v26-decisions-architecture"
+  ],
+  "ingenieur-securite": [
+    "v26-decisions-architecture",
+    "v26-preuves-validation",
+    "v26-exploitation-diagnostic",
+    "v26-audit-qualite"
+  ],
+  "redacteur-pedagogique": [
+    "v26-redaction-pedagogique",
+    "v26-notion-formation",
+    "v26-github-portfolio",
+    "v26-schemas-drawio",
+    "v26-synchronisation-supports"
+  ],
+  "auditeur-qualite": [
+    "v26-audit-qualite",
+    "v26-preuves-validation",
+    "v26-synchronisation-supports",
+    "v26-schemas-drawio"
+  ]
+}
