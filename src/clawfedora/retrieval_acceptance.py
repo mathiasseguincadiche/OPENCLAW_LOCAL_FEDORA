@@ -13,7 +13,7 @@ import json
 import re
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from clawfedora import github_refresh
 from clawfedora.core_config import resolve_runtime_root
@@ -41,7 +41,7 @@ def _safe_terms(value: Any, *, max_count: int) -> list[str]:
                or "\n" in term or "\x00" in term for term in value)
     ):
         raise ValueError("liste de références attendues invalide")
-    return value
+    return cast(list[str], value)
 
 
 def _cases(path: Path) -> list[dict[str, Any]]:
@@ -79,7 +79,7 @@ def _cases(path: Path) -> list[dict[str, Any]]:
         if (empty and (required or min_hits > 0 or min_sources > 0)
                 or not empty and not required):
             raise ValueError("une question positive exige au moins une source attendue")
-    return cases
+    return cast(list[dict[str, Any]], cases)
 
 
 def _citation(
