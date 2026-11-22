@@ -46,18 +46,24 @@ Lancer ces commandes **après** la vérification du montage `/data` dans le [gui
 
 Après l'installation, ferme ta session et rouvre-la une fois : tu viens d'être ajouté aux groupes `render` et `video`, et ils ne s'appliquent qu'à une nouvelle session.
 
-Pour ajouter le chat Open WebUI **dans un nouveau terminal après la reconnexion** :
+Après reconnexion, vérifie le service Atelier dans un nouveau terminal :
 
 ```bash
 cd "/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA"
-./menu.sh --action webui-install --apply
+./menu.sh --action atelier-status
 ```
 
-Ouvre `http://127.0.0.1:3000`, crée ton compte (il est local, aucun mail n'est envoyé), puis ferme les inscriptions :
+L'interface principale est `http://127.0.0.1:18890` : Discussions,
+Projets, GitHub et Notion dans **une seule application**. L'installation
+complète active normalement le service. Sur une installation plus ancienne :
 
 ```bash
-./menu.sh --action webui-seal --apply
+./menu.sh --action atelier-install        # aperçu
+./menu.sh --action atelier-install --apply
 ```
+
+Open WebUI est désormais **facultatif et transitoire** pour consulter les
+anciens fils. Ne pas le supprimer avant sauvegarde et vérification de restauration.
 
 ## Ce que fait l'installation, dans l'ordre
 
@@ -71,6 +77,7 @@ Ouvre `http://127.0.0.1:3000`, crée ton compte (il est local, aucun mail n'est 
 | 6. Configuration | Application de la configuration OpenClaw générée par le dépôt | `./menu.sh --action configure-openclaw --apply` |
 | 7. Service | Démarrage du Gateway OpenClaw comme service de ton compte | — |
 | 8. Vérification | Contrôle de santé avec une courte génération | `./menu.sh --action quick-check` |
+| 9. Atelier natif | Démarrage de l’interface unique avec les sept agents | `./menu.sh --action atelier-status` |
 
 Les versions installées sont écrites dans `config/runtime_versions.yaml`. L'installation refuse de continuer si une autre version est présente : voir [Réglages](08-reglages.md) pour en changer volontairement.
 
@@ -101,6 +108,6 @@ projets, conversations et autres données du runtime restent en dehors de ce dé
 
 ## Ensuite
 
-Lance **`./menu.sh --action quick-check`**. Si le résultat est `READY_FOR_FIRST_PROJECT`, ouvre Open WebUI, pose une question réelle et crée ton premier projet.
+Lance **`./menu.sh --action quick-check`**. Si le résultat est `READY_FOR_FIRST_PROJECT`, ouvre l'Atelier natif à `http://127.0.0.1:18890`, pose une question dans Discussions et crée ton premier projet.
 
 Pour mesurer ensuite la capacité 32K de la B580, tu peux lancer **`./menu.sh --action acceptance-32k --apply`** : ce test local, potentiellement long, est **facultatif pour commencer à travailler**. Un `quick-check` réussi ne certifie pas 32 768 tokens. Le protocole 32K et les autres diagnostics sont détaillés dans [Premier essai](02-premier-essai.md).
