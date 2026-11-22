@@ -321,3 +321,50 @@ def test_changed_output_blocks_audit_before_inference(planned: tuple[Path, Path]
     with pytest.raises(ValueError, match="artifact exchange invalide avant audit"):
         review_project(ROOT, runtime, project, "validation", runner=forbidden)
     assert not (project / "evidence/validation_report.json").exists()
+
+
+@pytest.mark.parametrize(
+    "planned",
+    [[
+        {"id": "design", "role": "architecte-solutions", "title": "Design",
+         "objective": "Concevoir", "depends_on": [],
+         "expected_outputs": ["deliverables/design/report.md"],
+         "acceptance_criteria": ["Schéma lisible"]},
+        {"id": "code", "role": "ingenieur-devops", "title": "Code",
+         "objective": "Corriger", "depends_on": [],
+         "expected_outputs": ["deliverables/code/report.md"],
+         "acceptance_criteria": ["Validation mesurée"]},
+        {"id": "docs", "role": "redacteur-pedagogique", "title": "Documentation",
+         "objective": "Expliquer", "depends_on": [],
+         "expected_outputs": ["deliverables/docs/report.md"],
+         "acceptance_criteria": ["Sources identifiées"]},
+    ]],
+    indirect=True,
+)
+def test_model_affinity_preserves_approved_dependencies(
+    planned: tuple[Path, Path],
+) -> None:
+    runtime, project = planned
+    transition_project(
+        ROOT, project, "IN_PROGRESS", actor="chef-operations", reason="test"
+    )
+    assert ready_tasks(ROOT, project, prefer_model="ornith-code")[0]["role"] == (
+        "ingenieur-devops"
+    )
+    assert ready_tasks(ROOT, project, prefer_model="qwen-max")[0]["role"] == (
+        "architecte-solutions"
+    )
+    assert len(ready_tasks(ROOT, project, prefer_model="qwen-max")) == 1
+
+
+def test_exhausted_local_attempts_require_operator_intervention(
+    planned: tuple[Path, Path],
+) -> None:
+    from clawfedora.project_control import progress
+
+    runtime, project = planned
+    bad = lambda *_args: {"files": {"deliverables/other-task/escape.md": "bad"}}
+    assert run_project_tasks(ROOT, runtime, project, runner=bad)[0]["status"] == "FAIL"
+    assert run_project_tasks(ROOT, runtime, project, runner=bad)[0]["status"] == "FAIL"
+    assert progress(runtime)["phase"] == "blocked_local"
+    assert run_project_tasks(ROOT, runtime, project, runner=bad) == []
