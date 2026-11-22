@@ -41,18 +41,16 @@ def test_all_readonly_entrypoints_exist_without_cloud_permission() -> None:
     assert "livrer" not in actions["READ_ONLY_ACTIONS"].values()
 
 
-def test_provenance_and_hybrid_guidance_cannot_claim_production_validation(
-    monkeypatch: pytest.MonkeyPatch
+def test_provenance_and_local_guidance_cannot_claim_production_validation(
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[str] = []
 
     def official(url: str) -> dict[str, Any]:
         calls.append(url)
         return {
-            "id": 987,
-            "head_sha": SHA,
-            "status": "completed",
-            "conclusion": "success",
+            "id": 987, "head_sha": SHA,
+            "status": "completed", "conclusion": "success",
         }
 
     monkeypatch.setattr(ci_evidence, "_json_get", official)
@@ -63,15 +61,13 @@ def test_provenance_and_hybrid_guidance_cannot_claim_production_validation(
     assert calls == ["https://api.github.com/repos/octo/repo/actions/runs/987"]
 
     for request in ("iac", "confidentiel", ""):
-        text = advise(request)
-        assert "sans requête Qwen ou DeepSeek" in text
-        assert "Aucun passage automatique" in text
+        hint = advise(request)
+        assert "Aucune route OpenRouter" in hint
+        assert "sans analyse des documents" in hint
 
 
-def test_budget_and_route_advice_are_local_deterministic_readonly(tmp_path: Path) -> None:
+def test_budget_hint_is_local_and_cannot_mutate_project_state(tmp_path: Path) -> None:
     (tmp_path / "state").mkdir()
-    ledger = load_ledger(tmp_path, ROOT)
-    ledger.record_invoice(7.25)
     before = sorted(
         (p.relative_to(tmp_path).as_posix(), p.read_bytes())
         for p in tmp_path.rglob("*") if p.is_file()
@@ -79,10 +75,12 @@ def test_budget_and_route_advice_are_local_deterministic_readonly(tmp_path: Path
     for command, arg in (("modele", "iac"), ("modele", ""), ("budget", "")):
         reply = chat_projects.run_command(ROOT, tmp_path, command, arg, None)
         assert reply.startswith("📁 Aucun projet · pont")
-        assert "cloud" in reply.lower() or "DeepSeek" in reply
+        assert "local" in reply.lower() or "Ornith" in reply
     after = sorted(
         (p.relative_to(tmp_path).as_posix(), p.read_bytes())
         for p in tmp_path.rglob("*") if p.is_file()
     )
     assert before == after
-    assert "7.25" in chat_projects.run_command(ROOT, tmp_path, "budget", "", None)
+    assert "aucun budget API" in chat_projects.run_command(
+        ROOT, tmp_path, "budget", "", None
+    )
