@@ -33,6 +33,7 @@ from clawfedora.cloud_privacy import LABELS, PrivacyFilter, describe
 from clawfedora.cloud_profiles import ProfileRefused, chosen_upstream_model
 from clawfedora.cloud_state import CLOUD_STATE, cloud_status, recent_events
 from clawfedora.core_config import AGENT_IDS, core_contract, daily_limits
+from clawfedora.lmstudio_context import resolve as resolve_lmstudio_context
 from clawfedora.local_http import LocalServer
 from clawfedora.mentor import context as mentor_context
 from clawfedora.project_common import failure_message
@@ -40,7 +41,6 @@ from clawfedora.project_control import write_progress
 from clawfedora.project_worker import AgentRunner, openclaw_runner, worker_lock
 from clawfedora.storage import load_settings, require_storage
 from clawfedora.webui_folder_binding import resolve as resolve_folder_binding
-from clawfedora.lmstudio_context import resolve as resolve_lmstudio_context
 from clawfedora.webui_stream import progressive_completion
 
 MODEL_IDS = tuple(f"openclaw/{role}" for role in AGENT_IDS)
