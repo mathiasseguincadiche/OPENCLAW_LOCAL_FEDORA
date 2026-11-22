@@ -813,7 +813,8 @@ def run_project_tasks(
                 'Rends uniquement un objet JSON {"files":{"chemin_attendu":"contenu"},'
                 '"summary":"résumé"}. Aucun bloc Markdown autour du JSON. '
                 "Les critères seront vérifiés séparément par auditeur-qualite. "
-                "Produire le format demandé avec clawfedora_artifact; renvoyer ses références. "
+                "Produire avec clawfedora_artifact; pour le code DevOps, privilégier "
+                "clawfedora_sandbox_iterate et ses références @tool-sandbox après PASS. "
                 "PDF/DOCX/ODT: inclure la source .md de même nom; "
                 "les exports sont dérivés localement. "
                 + instructions(project, task)
