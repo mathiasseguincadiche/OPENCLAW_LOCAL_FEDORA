@@ -173,7 +173,8 @@ def test_obsolete_source_is_not_citable_and_corruption_fails_closed(
     # Even when the old code is indexed and still readable, it is no
     # longer part of the approved latest GitHub retrieval view.
     assert retrieve(ROOT, project, "legacy_backend") == []
-    new_file = next((project / "context/github-updates").glob("*/" + "b" * 40 + "/files/infra/main.tf"))
+    pattern = f"*/{NEW}/files/infra/main.tf"
+    new_file = next((project / "context/github-updates").glob(pattern))
     new_file.write_text("modified without approval", encoding="utf-8")
     with pytest.raises(ValueError, match="modifié"):
         retrieval_acceptance.evaluate(
