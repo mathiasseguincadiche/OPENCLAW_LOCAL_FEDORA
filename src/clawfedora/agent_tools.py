@@ -343,7 +343,10 @@ def invoke(
 
         return check_links(root, data)
     if tool == "clawfedora_doc_review":
-        return inspect_document(data.get("content"), data.get("kind"))
+        content, kind = data.get("content"), data.get("kind")
+        if not isinstance(content, str) or not isinstance(kind, str):
+            raise ValueError("contenu et type documentaire texte requis")
+        return inspect_document(content, kind)
     if tool == "clawfedora_impact":
         scope = data.get("scope")
         changed = data.get("changed_paths")
