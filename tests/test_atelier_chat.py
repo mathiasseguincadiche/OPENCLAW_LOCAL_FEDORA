@@ -90,6 +90,11 @@ def test_status_readonly_and_no_project_switch(
     )
     changed = atelier_chat.send(ROOT, tmp_path, session["id"], "!fedora etat")
     assert "lecture seule" in changed["messages"][-1]["content"]
+    monkeypatch.setattr(
+        atelier_chat, "fedora_applications", lambda: "Flatpak : inventaire limité"
+    )
+    changed = atelier_chat.send(ROOT, tmp_path, session["id"], "!fedora applications")
+    assert "inventaire limité" in changed["messages"][-1]["content"]
     changed = atelier_chat.send(ROOT, tmp_path, session["id"], "!projet autre")
     assert "immuable" in changed["messages"][-1]["content"]
     assert changed["project"] == "opsdesk"
@@ -126,6 +131,7 @@ def test_symlinks_and_malformed_history_are_rejected(tmp_path: Path) -> None:
         atelier_chat.send(ROOT, tmp_path, item["id"], "test")
     record.unlink()
     record.write_text('{"id":"wrong"}')
+    record.chmod(0o600)
     with pytest.raises(ValueError, match="invalide"):
         atelier_chat.read(tmp_path, item["id"])
 
