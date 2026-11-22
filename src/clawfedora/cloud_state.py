@@ -14,7 +14,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from clawfedora.core_config import core_contract
+from clawfedora.core_config import core_contract, root_contract
 
 CLOUD_STATE = "state/cloud"
 TOKEN_FILE = "gateway.token"
@@ -96,6 +96,9 @@ def revoke_activation(runtime: Path) -> None:
 
 def cloud_status(runtime: Path, repo_root: Path) -> tuple[bool, str]:
     """(ready, reason). Ready only if the policy allows it and every control is verified."""
+    fleet = root_contract(repo_root, "model_catalog.yaml").get("fleet_policy", {})
+    if fleet.get("local_only") is True:
+        return False, "OpenRouter retiré : atelier exclusivement local"
     policy = core_contract(repo_root, "cloud_policy.yaml")["policy"]
     required = set(policy.get("requires", []))
     if not required:
