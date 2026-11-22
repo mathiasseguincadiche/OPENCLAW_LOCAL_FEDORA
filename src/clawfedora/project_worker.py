@@ -306,7 +306,11 @@ def openclaw_runner(
                     != (runtime / "workspaces" / agent_id).resolve()
                 ):
                     raise ValueError(f"workspace divergent: {agent_id}")
-                if entry.get("model") != {"primary": "ollama/" + str(root_contract(repo_root, "model_catalog.yaml")["models"][core_contract(repo_root, "model_routing.yaml")["agents"][agent_id]["local_primary"]]["runtime_id"]), "fallbacks": []}:
+                routes_config = core_contract(repo_root, "model_routing.yaml")["agents"]
+                model_catalog = root_contract(repo_root, "model_catalog.yaml")["models"]
+                expected_alias = routes_config[agent_id]["local_primary"]
+                expected_model = "ollama/" + str(model_catalog[expected_alias]["runtime_id"])
+                if entry.get("model") != {"primary": expected_model, "fallbacks": []}:
                     raise ValueError(f"routage quotidien divergent: {agent_id}")
             roster_stamp = stamp
             if cloud:
