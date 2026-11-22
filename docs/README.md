@@ -39,6 +39,15 @@ voisins et les icônes/couleurs des encadrés existants.
 Le [mode tableaux et images](NOTION_TABLES_IMAGES.md) apporte l'inventaire
 et la modification contrôlée d'une cellule ou d'une légende existante.
 
+## Migration contrôlée vers LM Studio
+
+La [première intégration LM Studio](LMSTUDIO_PRIMARY_INTERFACE.md) installe un
+pont privé indépendant de WebUI et un générateur avec sélection de projet
+et des sept agents par conversation. Les commandes et confirmations humaines
+restent dans le moteur ClawFedora. C'est un **pilote non réceptionné** :
+l'API du plugin, les dossiers et conversations natifs et le rendu Fedora
+doivent être testés avant de retirer Open WebUI.
+
 ## Interface moderne de l'atelier local
 
 Le [design system InfraOps Studio](WORKBENCH_UI_DESIGN.md) unifie les
