@@ -29,6 +29,8 @@ Installer et utiliser:
   acceptance-32k         Réception Qwen près de la limite 32K (--apply explicite)
   context-probe          Mesurer si le contexte tient sur le GPU, et la vitesse
                          (--context 8192|16384|32768 pour comparer une autre taille)
+  atelier-install        Installer l'interface unique native (sans WebUI)
+  atelier-start|atelier-stop|atelier-status  Piloter l'interface Atelier
   webui-install          Installer le chat Open WebUI
   webui-seal             Fermer les inscriptions après le premier compte
   webui-start|webui-stop Démarrer ou arrêter le chat
@@ -152,6 +154,9 @@ case "$ACTION" in
     [[ -z "$CONTEXT" ]] || args+=(--context "$CONTEXT")
     ((APPLY == 1)) && args+=(--apply)
     run_ops "${args[@]}"
+    ;;
+  atelier-install|atelier-start|atelier-stop|atelier-status)
+    with_apply 21_atelier.sh "${ACTION#atelier-}"
     ;;
   webui-install|webui-start|webui-stop|webui-seal|webui-status)
     with_apply 13_openwebui.sh "${ACTION#webui-}"
