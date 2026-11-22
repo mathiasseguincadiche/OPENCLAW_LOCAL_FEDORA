@@ -422,10 +422,16 @@ def validate_core_contracts(
         failures.append("core/local: mode entièrement local requis")
     if routing_policy.get("supported_local_aliases") != ["qwen-max", "ornith-code"]:
         failures.append("core/local: flotte Ollama Qwen + Ornith requise")
-    if any(_mapping(raw).get("provider") != "ollama" for raw in _mapping(catalog.get("models")).values()):
+    if any(
+        _mapping(raw).get("provider") != "ollama"
+        for raw in _mapping(catalog.get("models")).values()
+    ):
         failures.append("core/local: un fournisseur non Ollama est interdit")
     cloud_contract = _mapping(contracts["cloud_policy.yaml"].get("policy"))
-    if cloud_contract.get("retired") is not True or cloud_contract.get("enabled_by_default") is not False:
+    if (
+        cloud_contract.get("retired") is not True
+        or cloud_contract.get("enabled_by_default") is not False
+    ):
         failures.append("core/local: ancienne route OpenRouter non retirée")
     tools = _mapping(contracts["tool_policy.yaml"].get("agents"))
     if set(routing) != expected or set(tools) != expected:
