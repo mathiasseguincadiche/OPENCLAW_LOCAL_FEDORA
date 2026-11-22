@@ -153,7 +153,11 @@ def _text_digest() -> str:
 
 
 def consent_state(repo_root: Path, runtime: Path, project: Path) -> dict[str, Any]:
-    """none (local), granted (cloud allowed now), stale (sources changed), inactive (cloud off)."""
+    """An old cloud approval must never stall a project after local-only migration."""
+    from clawfedora.core_config import root_contract
+
+    if root_contract(repo_root, "model_catalog.yaml")["fleet_policy"]["local_only"] is True:
+        return {"state": "none", "reason": "inférence locale seule ; accord cloud historique ignoré"}
     path = consent_path(runtime, project)
     if not path.is_file():
         return {"state": "none", "reason": "aucun accord cloud pour ce projet"}
