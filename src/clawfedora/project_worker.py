@@ -566,6 +566,38 @@ def _resolve_tool_files(
         return
     original = dict(files)
     for output, value in list(files.items()):
+        if isinstance(value, str) and value.startswith("@tool-sandbox:"):
+            # Only an immutable, passing file from THIS model turn may be collected.
+            if task["role"] != "ingenieur-devops":
+                raise ValueError("références sandbox réservées au DevOps")
+            parts = value.split(":")
+            if len(parts) != 3 or parts[1] not in current:
+                raise ValueError("référence sandbox hors de la tâche courante")
+            _, identifier, digest = parts
+            if (len(digest) != 64
+                    or any(ch not in "0123456789abcdef" for ch in digest)):
+                raise ValueError("empreinte sandbox invalide")
+            proof = read_json(current[identifier])
+            if (proof.get("origin") != "managed-tool-runner"
+                    or proof.get("tool") != "clawfedora_sandbox_iterate"
+                    or proof.get("role") != "ingenieur-devops"
+                    or proof.get("status") != "PASS"
+                    or proof.get("exit_code") != 0):
+                raise ValueError("preuve sandbox sans PASS valide")
+            matches = [
+                name for name, sha in proof.get("files_sha256", {}).items()
+                if sha == digest and Path(name).name == Path(output).name
+            ]
+            if len(matches) != 1:
+                raise ValueError("nom du fichier sandbox non conforme au livrable")
+            artifact = workspace / ".clawfedora-tool-evidence" / (
+                f"{identifier}-{digest}.sandbox.data"
+            )
+            if (artifact.is_symlink() or not artifact.is_file()
+                    or artifact.stat().st_size > 16000
+                    or sha256_file(artifact) != digest):
+                raise ValueError("fichier sandbox modifié ou absent")
+            files[output] = artifact.read_text(encoding="utf-8")
         if isinstance(value, str) and value.startswith("@tool-file:"):
             from clawfedora.document_exports import EXPORT_PREFIX, output_bytes
             from clawfedora.file_artifacts import read_artifact
@@ -781,7 +813,8 @@ def run_project_tasks(
                 'Rends uniquement un objet JSON {"files":{"chemin_attendu":"contenu"},'
                 '"summary":"résumé"}. Aucun bloc Markdown autour du JSON. '
                 "Les critères seront vérifiés séparément par auditeur-qualite. "
-                "Produire le format demandé avec clawfedora_artifact; renvoyer ses références. "
+                "Produire avec clawfedora_artifact; pour le code DevOps, privilégier "
+                "clawfedora_sandbox_iterate et ses références @tool-sandbox après PASS. "
                 "PDF/DOCX/ODT: inclure la source .md de même nom; "
                 "les exports sont dérivés localement. "
                 + instructions(project, task)

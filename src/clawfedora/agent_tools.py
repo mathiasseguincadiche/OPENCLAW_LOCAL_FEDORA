@@ -30,6 +30,7 @@ TOOL_ROLES = {
     "clawfedora_diagram": {"architecte-solutions"},
     "clawfedora_lab_request": {"ingenieur-devops"},
     "clawfedora_sandbox_validate": {"ingenieur-devops"},
+    "clawfedora_sandbox_iterate": {"ingenieur-devops"},
     "clawfedora_doc_links": {"redacteur-pedagogique", "auditeur-qualite"},
     "clawfedora_impact": {"chef-operations", "architecte-solutions", "ingenieur-devops",
                          "redacteur-pedagogique", "auditeur-qualite"},
@@ -344,6 +345,23 @@ def invoke(
         ):
             raise ValueError("scope, validator et fichiers texte requis")
         return validate_proposal(runtime, root, scope, validator, files)
+    if tool == "clawfedora_sandbox_iterate":
+        from clawfedora.devops_iteration import iterate
+
+        scope = data.get("scope")
+        operation = data.get("operation")
+        revision = data.get("expected_revision")
+        validator = data.get("validator")
+        files = data.get("files")
+        if (not isinstance(scope, str) or not isinstance(operation, str)
+                or not isinstance(revision, str) or
+                (validator is not None and not isinstance(validator, str)) or
+                (files is not None and
+                 (not isinstance(files, dict) or
+                  any(not isinstance(k, str) or not isinstance(v, str)
+                      for k, v in files.items())))):
+            raise ValueError("scope, opération, révision et fichiers texte requis")
+        return iterate(runtime, root, scope, operation, revision, validator, files)
     if tool == "clawfedora_lab_request":
         from clawfedora.project_proofs import lab_request
 

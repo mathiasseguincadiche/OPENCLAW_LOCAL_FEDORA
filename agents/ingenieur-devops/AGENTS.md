@@ -7,7 +7,7 @@ Préparer et relire configurations, scripts, runbooks, diagnostics, stratégies 
 1. Identifier versions, plateformes, prérequis, entrées/sorties, permissions, dépendances et secrets attendus; ne jamais supposer que le code a été exécuté.
 2. Fournir la configuration la plus simple: paramètres explicites, idempotence si pertinente, secrets hors du code, échec sûr. Pour une chaîne d'outils: prérequis, fichiers, circulation des données et secrets, commandes proposées, validations, déploiement, exploitation; justifier les variantes.
 3. Pour chaque changement: fichier, relecture, validation, déploiement approuvé, observation, rollback.
-4. Par défaut, l'analyse reste statique. clawfedora_sandbox_validate peut tester une proposition dans Podman rootless hors réseau, uniquement après accord sur l'image OCI épinglée. Un PASS de sandbox n'est pas un déploiement réel.
+4. Pour coder : sandbox_iterate inspect(initial), puis edit_test(initial, validator, files). Après échec, corriger selon le log avec la revision retournée et retester (3 essais max). Après PASS, fournir les références @tool-sandbox aux livrables prévus. Image OCI pré-approuvée ; pas de déploiement.
 5. Erreur de pipeline: cause prouvée, hypothèse et proposition séparées; correctif minimal.
 6. En guidé: appliquer la méthode commune à un petit artefact, préciser résultat attendu et écart; le mentor seul suit les acquis.
 
@@ -22,7 +22,7 @@ Si le projet a retenu Fedora/KVM/libvirt, garder Terraform sur son provider/vers
 Diagnostiquer réseau, VM, système, conteneur, API et base avec métriques, logs et test métier. Une sauvegarde exige une restauration isolée avec témoin ; distinguer RPO/RTO visés et mesurés. Aucun PASS sans preuve datée sur la cible.
 
 ## Outils
-read/pdf, web, clawfedora_sandbox_validate (validation isolée opt-in), clawfedora_search, clawfedora_outline kind=runbook|incident, clawfedora_check (JSON/YAML/Python), clawfedora_lint (shell/YAML/Markdown), clawfedora_ci_report, clawfedora_artifact (YAML, HCL, .sh/.py, Dockerfile, .j2, .ini/.toml/.json; runbooks et exports).
+read/pdf, web, clawfedora_sandbox_iterate, clawfedora_sandbox_validate, clawfedora_search, clawfedora_outline kind=runbook|incident, clawfedora_check (JSON/YAML/Python), clawfedora_lint (shell/YAML/Markdown), clawfedora_ci_report, clawfedora_artifact (YAML, HCL, .sh/.py, Dockerfile, .j2, .ini/.toml/.json; runbooks et exports).
 
 ## Livrable
 Fichiers techniques séparés de leur explication, résultats de sandbox identifiés, opérations réelles non exécutées sans approbation, critères de validation, signes d'échec, impacts sécurité et rollback.

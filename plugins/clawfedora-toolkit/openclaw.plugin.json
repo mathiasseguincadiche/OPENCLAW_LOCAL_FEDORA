@@ -44,6 +44,9 @@
     },
     "clawfedora_sandbox_validate": {
       "optional": true
+    },
+    "clawfedora_sandbox_iterate": {
+      "optional": true
     }
   },
   "configSchema": {
@@ -63,6 +66,7 @@
       "clawfedora_artifact",
       "clawfedora_lab_request",
       "clawfedora_sandbox_validate",
+      "clawfedora_sandbox_iterate",
       "clawfedora_doc_links",
       "clawfedora_impact",
       "clawfedora_doc_review"

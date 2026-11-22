@@ -165,6 +165,8 @@ def collect_operator_proof(
             "ansible-lint": any(p.suffix in {".yml", ".yaml"} for p in filenames),
             "shellcheck": all(p.suffix == ".sh" for p in filenames),
             "hadolint": all(p.name == "Dockerfile" for p in filenames),
+            "pytest": any(p.parts[:1] == ("tests",) and p.suffix == ".py"
+                          and p.name.startswith("test_") for p in filenames),
             "kubeconform": any(
                 p.suffix in {".yaml", ".yml"}
                 and any(part in {"k8s", "kubernetes", "manifests"} for part in p.parts[:-1])

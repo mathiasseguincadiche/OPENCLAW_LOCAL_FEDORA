@@ -29,6 +29,7 @@ TOOLS = {
     "shellcheck",
     "hadolint",
     "kubeconform",
+    "pytest",
 }
 IGNORED_DIRS = {
     ".git", ".terraform", ".venv", "venv", "node_modules", "__pycache__",
@@ -93,6 +94,18 @@ def snapshot_manifest(source: Path) -> tuple[Path, ...]:
 
 def command_for(tool: str, snapshot: Path, manifest: tuple[Path, ...]) -> list[str]:
     """Fixed argv only; no shell, project-supplied command, or executable scripts."""
+    if tool == "pytest":
+        tests = [
+            "/workspace/" + p.as_posix() for p in manifest
+            if len(p.parts) >= 2 and p.parts[0] == "tests"
+            and p.suffix == ".py" and p.name.startswith("test_")
+        ]
+        if not tests:
+            raise LabRefusal("Aucun test Python sous tests/test_*.py")
+        return [
+            "python3", "-B", "-m", "pytest", "-q", "--disable-warnings",
+            "--maxfail=1", "-p", "no:cacheprovider", *tests,
+        ]
     if tool == "terraform-fmt":
         return ["terraform", "-chdir=/workspace", "fmt", "-check", "-recursive", "-no-color"]
     if tool == "terraform-validate":

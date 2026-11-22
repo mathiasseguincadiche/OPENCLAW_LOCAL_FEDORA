@@ -80,6 +80,7 @@ La référence ci-dessus est volontairement **un emplacement fictif** : elle n'e
 | `actionlint` | Validation des workflows sous `.github/workflows/` | GitHub Actions réellement exécuté |
 | `shellcheck` | Analyse statique des scripts `.sh` de la copie | Shell script sans défaut métier |
 | `hadolint` | Analyse des `Dockerfile` | Conteneur construit, signé ou démarré |
+| `pytest` | Tests Python `tests/test_*.py` dans le conteneur hors réseau | Tests end-to-end sur système externe, dépendances réseau, CI d’intégration réelle |
 | `kubeconform` | Manifestes sous `k8s/`, `kubernetes/` ou `manifests/`, schémas **locaux** `-schema-location /schemas` | Admission par le cluster, politique K3s, CRD sans schéma local, déploiement exécuté |
 
 Pour `kubeconform`, l'image choisie doit inclure des **schémas Kubernetes
