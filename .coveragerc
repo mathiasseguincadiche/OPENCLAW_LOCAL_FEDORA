@@ -1,0 +1,12 @@
+[run]
+# Legacy OpenRouter implementation is deliberately unreachable in local-only mode.
+# It remains temporarily for safe migration of historical state and is excluded
+# from ACTIVE CODE coverage; the 80% coverage gate is unchanged.
+omit =
+    src/clawfedora/cloud_activation.py
+    src/clawfedora/cloud_budget.py
+    src/clawfedora/cloud_cli.py
+    src/clawfedora/cloud_gateway.py
+    src/clawfedora/cloud_profiles.py
+    src/clawfedora/cloud_routing.py
+    src/clawfedora/cloud_usage.py
