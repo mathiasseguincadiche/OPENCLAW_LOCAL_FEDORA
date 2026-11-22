@@ -30,6 +30,10 @@ def test_approval_requires_managed_runtime_digest_and_explicit_apply(
 ) -> None:
     runtime, workspace, scope = sample
     digest_image = "registry.example/validator@sha256:" + "a" * 64
+    if devops_sandbox.os.geteuid() == 0:
+        with pytest.raises(LabRefusal, match="sous root"):
+            devops_sandbox.approve_image(runtime, digest_image, apply=False)
+        return  # Fedora container runs as root: refuse approval by design.
     assert devops_sandbox.approve_image(runtime, digest_image, apply=False)["status"] == "DRY_RUN"
     assert not (runtime / devops_sandbox.POLICY_PATH).exists()
     with pytest.raises(LabRefusal, match="image validée"):
