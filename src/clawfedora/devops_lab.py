@@ -178,7 +178,13 @@ def run_lab(source: Path, tool: str, image: str | None, apply: bool) -> int:
         argv = isolated_argv(image, work, command, name)
         print(f"LAB tool={tool} files={len(manifest)} network=none image={image}")
         try:
-            result = subprocess.run(argv, check=False, timeout=180)
+            result = subprocess.run(
+                argv, check=False, timeout=180, capture_output=True, text=True
+            )
+            # Bounded evidence: no uncontrolled container output on the plugin JSON channel.
+            output = (result.stdout or "") + (result.stderr or "")
+            if output:
+                print("LAB_OUTPUT=" + output[-6000:])
             verdict = "PASS" if result.returncode == 0 else "FAIL"
             print(f"LAB_RESULT={verdict} exit={result.returncode}")
             return result.returncode
