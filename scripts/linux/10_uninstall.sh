@@ -27,7 +27,7 @@ done
 RUNTIME_ROOT="$(claw_runtime_root)"
 cat <<EOF
 UNINSTALL_PLAN runtime=$RUNTIME_ROOT
-  services WebUI/bridge/voix/tableau: stop verified
+  services LM Studio/WebUI/bridge/voix/tableau: stop verified
   gateway service (managed CLI + state): stop verified, then uninstall
   managed workspaces: remove
   managed venv: remove
@@ -44,7 +44,7 @@ fi
 claw_lock_worker
 # Services built on top of the Gateway stop first. A unit that is installed must really stop:
 # its failure aborts before anything is removed. Units never installed are simply skipped.
-for unit in clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-speech.service clawfedora-dashboard.service; do
+for unit in clawfedora-lmstudio-bridge.service clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-speech.service clawfedora-dashboard.service; do
   systemctl --user cat "$unit" >/dev/null 2>&1 || continue
   systemctl --user disable --now "$unit" || {
     echo "UNINSTALL_RESULT=FAIL arrêt de $unit refusé; rien n'a été supprimé" >&2
