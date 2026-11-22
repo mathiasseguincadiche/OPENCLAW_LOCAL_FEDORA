@@ -73,8 +73,9 @@ def _save(runtime: Path, document: dict[str, Any]) -> None:
 
 def read(runtime: Path, identifier: str) -> dict[str, Any]:
     path = _path(runtime, identifier)
-    if not path.is_file() or path.stat().st_size > MAX_CHAT_BYTES:
-        raise ValueError("Conversation introuvable ou illisible")
+    if (not path.is_file() or path.stat().st_size > MAX_CHAT_BYTES
+            or path.stat().st_mode & 0o077):
+        raise ValueError("Conversation introuvable, non privée (0600) ou illisible")
     document = json.loads(path.read_text(encoding="utf-8"))
     if (
         not isinstance(document, dict) or document.get("id") != identifier
@@ -162,6 +163,22 @@ def fedora_status() -> str:
     return "\n".join(lines)
 
 
+def fedora_applications() -> str:
+    """List installed Flatpak apps without launching or modifying anything."""
+    try:
+        response = subprocess.run(
+            ["/usr/bin/flatpak", "list", "--app", "--columns=application,name"],
+            capture_output=True, text=True, check=False, timeout=5,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return "Flatpak indisponible ; aucun changement effectué."
+    if response.returncode:
+        return "Inventaire Flatpak indisponible ; aucun changement effectué."
+    rows = [row[:160] for row in response.stdout.splitlines() if row.strip()][:30]
+    return ("Applications Flatpak installées (30 max, lecture seule) :\n"
+            + ("\n".join(rows) if rows else "Aucune application détectée."))
+
+
 def _policy_answer(
     repo_root: Path, runtime: Path, document: dict[str, Any], message: str
 ) -> str:
@@ -229,6 +246,8 @@ def send(repo_root: Path, runtime: Path, identifier: str, message: str) -> dict[
         )
     elif message.strip() == "!fedora etat":
         reply = chat_projects.bridge_reply(document["project"], fedora_status())
+    elif message.strip() == "!fedora applications":
+        reply = chat_projects.bridge_reply(document["project"], fedora_applications())
     else:
         # Persist the intent BEFORE handing off to the policy/approval engine.
         # An interrupted action must never be retried implicitly.
