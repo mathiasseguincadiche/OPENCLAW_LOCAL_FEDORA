@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "infra-terraform-ansible",
+      "query": "Terraform Ansible configuration déploiement",
+      "required_paths_contain": ["github:"],
+      "forbidden_paths_contain": ["intake/GitHub-"],
+      "minimum_hits": 1,
+      "minimum_distinct_sources": 1
+    },
+    {
+      "id": "architecture-notion",
+      "query": "architecture documentation déploiement",
+      "required_paths_contain": ["Notion-"],
+      "minimum_hits": 1,
+      "minimum_distinct_sources": 1
+    },
+    {
+      "id": "ancien-composant-absent",
+      "query": "NOM_UNIQUE_D_UN_ANCIEN_COMPOSANT_SUPPRIME",
+      "expect_empty": true,
+      "minimum_hits": 0,
+      "minimum_distinct_sources": 0
+    }
+  ]
+}
