@@ -1,3 +1,5 @@
+> **Archive de conception 2026.** Ce document conserve l'historique des décisions sur les prompts et les anciennes routes cloud. Ne pas exécuter les commandes OpenRouter qu'il contient. Politique actuelle : [architecture locale Qwen/Ornith](ARCHITECTURE_LOCALE_QWEN_ORNITH.md).
+
 # Consignes pédagogiques et contrôles d'intégration
 
 [← Guide pour commencer](GUIDE.md) · [Les sept agents expliqués](fiches/07-roles-et-outils.md) · [Architecture](fiches/11-comment-ca-marche.md)
