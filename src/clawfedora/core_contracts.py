@@ -412,9 +412,12 @@ def validate_core_contracts(
     if (
         fleet.get("local_only") is not True
         or fleet.get("cloud_models_supported") is not False
+        or fleet.get("cloud_enabled_by_default") is not False
         or routing_policy.get("local_only") is not True
         or routing_policy.get("cloud_models_supported") is not False
         or routing_policy.get("cloud_enabled_by_default") is not False
+        or routing_policy.get("local_to_cloud_fallback") != "forbidden"
+        or routing_policy.get("no_hidden_small_model_fallback") is not True
     ):
         failures.append("core/local: mode entièrement local requis")
     if routing_policy.get("supported_local_aliases") != ["qwen-max", "ornith-code"]:
