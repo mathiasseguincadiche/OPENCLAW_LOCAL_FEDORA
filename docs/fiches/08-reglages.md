@@ -4,9 +4,9 @@
 
 Chaque réglage appartient à une couche précise (interface, pont, moteur de projets, OpenClaw, modèle) : regarde le diagramme avant de modifier un port, un rôle ou une limite.
 
-## Deux profils de capacité, une seule politique de sécurité
+## Deux modèles locaux, une seule politique de sécurité
 
-Qwen 3.5 9B est la route locale par défaut. DeepSeek V4.1 Flash 1017 est la route cloud de capacité, choisie explicitement pour les tâches exigeantes et seulement lorsque la confidentialité et le coût le permettent. Le modèle utilisé ne change **pas** les outils autorisés au rôle.
+Qwen 3.5 9B sert six agents polyvalents ; Ornith 1.5 9B sert l'ingénieur DevOps. Le modèle utilisé ne change **pas** les outils autorisés au rôle. Aucune route d'inférence OpenRouter n'est active.
 
 Le choix des modèles est fixé dans `config/model_catalog.yaml` et `config/core/model_routing.yaml` ; la passerelle et le budget sont déclarés dans `config/core/cloud_policy.yaml`. La route cloud n'est **pas** sélectionnée automatiquement selon la complexité de chaque tâche. [Comprendre la stratégie hybride](../ARCHITECTURE_HYBRIDE.md).
 
@@ -61,38 +61,13 @@ Toutes les générations utilisent le même contexte. C'est voulu : Ollama recha
 
 À 16K, l'atelier reste utilisable mais le chat a la mémoire courte : il ne transmet plus que 3 000 octets d'historique, environ 500 mots. La raison : OpenClaw réserve un quart du contexte à la réponse, et les consignes fixes occupent déjà environ 10 000 des 12 000 tokens restants. Ces valeurs sont vérifiées avec le vrai OpenClaw ; `make native-prompt` échoue si tu en choisis de trop grandes.
 
-## Réglages du cloud
+## Modèles locaux et retrait de la passerelle
 
-Fichier : `config/core/cloud_policy.yaml`. `./menu.sh --action validate` refuse les valeurs dangereuses.
+`config/model_catalog.yaml` définit les deux modèles obligatoires et leur quantification. `config/core/model_routing.yaml` définit le modèle de chaque agent. Ils sont chargés alternativement par Ollama ; ne pas forcer plusieurs modèles sur la B580 de 12 Go.
 
-| Réglage | Valeur | Remarque |
-|---|---|---|
-| `budget.monthly_cap_eur` | 35 | Plafond en euros réels. **Borné à 35 dans le code** : un fichier de configuration ne peut pas le relever. |
-| `budget.eur_per_usd` | 1,3 | Facteur prudent (change, frais d'achat de crédits, TVA). Doit rester ≥ 1. |
-| `budget.alert_ratio` | 0,8 | Seuil d'alerte (80 % du plafond). |
-| `budget.recommended_key_limit_usd` | 23 | Limite de clé conseillée. La limite déclarée ne peut pas dépasser `monthly_cap_eur / eur_per_usd` (≈ 26,92 $). |
-| `model` | `deepseek/deepseek-v4.1-flash-1017` | Modèle cloud épinglé. |
-| `model.context_tokens` | 1 048 576 | Contexte cloud distinct du 32K local. |
-| `model.max_output_tokens` | 32 768 | Sortie cloud plus large pour les analyses et livrables complexes. |
-| `default_reasoning_profile` | `equilibre` | Défaut sobre (`medium`) ; le choix explicite existant reste conservé. |
-| `reasoning_profiles` | `rapide` / `equilibre` / `soutenu` / `approfondi` | Efforts `low` / `medium` / `high` / `xhigh` et plafonds par appel bornés à 4K / 8K / 16K / 32K, validés dans les contrats. |
-| `upstream_params.reasoning.effort` | `medium` | Référence immuable du profil par défaut ; la passerelle remplace seulement l'effort si l'opérateur choisit explicitement un autre profil. |
-| `provider.sort` | `throughput` | Choisit le fournisseur admissible le plus rapide. |
-| `provider.max_price` | 0,25 $ entrée / 0,75 $ sortie par M tokens | Hard cap fournisseur, identique au pire coût réservé localement. |
-| `provider.data_collection` | `deny` | Écarte les routes qui ne respectent pas ce réglage. |
-| `gateway.port` | 18892 | Boucle locale seulement. |
+Après sauvegarde, `./menu.sh --action local-retire-cloud --apply` arrête l'ancien service OpenRouter et retire ses anciens secrets locaux. Les anciennes commandes d'activation n'existent plus.
 
-**Sobriété cloud :** sélectionner `equilibre` (medium/8K) manuellement pour des explications courantes lorsque c'est suffisant. `equilibre` est le défaut manuel ; en mode `auto`, les profils dépendent du rôle et de l'étape approuvée. `cloud-set-model --value auto --apply` rétablit ce mode.
-
-Le raisonnement long du modèle local reste désactivé pour préserver la latence et la VRAM.
-Le cloud offre quatre profils, dont **`medium` par défaut**, choisis manuellement via
-`./menu.sh --action cloud-set-profile --value rapide|equilibre|soutenu|approfondi --apply`.
-Le client n'a jamais la possibilité d'envoyer son propre paramètre de
-raisonnement ; le modèle et les prix plafonds sont inchangés. Les protections
-de confidentialité et les limites de budget ne peuvent pas être diminuées.
-[Guide détaillé](12-cloud.md).
-
-Pour changer le plafond, baisse-le : tu ne peux pas dépasser 35 €. Après toute modification : `./menu.sh --action validate`, puis `./menu.sh --action cloud-enable --value 23 --apply` pour revalider.
+[Architecture et critères de qualification](../ARCHITECTURE_LOCALE_QWEN_ORNITH.md).
 
 ## Préférences d'apprentissage et mémoire approuvée
 
@@ -148,4 +123,4 @@ scripts/linux/06_install.sh --apply --enable-linger
 
 ## Recherche Web : mode privé ou connecté
 
-L'inférence Qwen peut rester locale même si les outils Web consultent Internet. Pour interdire les outils Web des **sept rôles** après installation, lancer `./menu.sh --action web-private --apply`. La procédure applique le nouveau contrat et vérifie que le Gateway redémarre ; le cloud DeepSeek est **indépendant** et nécessite une autorisation distincte. Voir [la procédure et ses limites](../WEB_ACCESS_PRIVATE_MODE.md).
+L'inférence Qwen peut rester locale même si les outils Web consultent Internet. Pour interdire les outils Web des **sept rôles** après installation, lancer `./menu.sh --action web-private --apply`. La procédure applique le nouveau contrat et vérifie que le Gateway redémarre ; les modèles Ollama restent locaux, même quand un outil Web consulte des sources publiques. Voir [la procédure et ses limites](../WEB_ACCESS_PRIVATE_MODE.md).
