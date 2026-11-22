@@ -13,6 +13,10 @@ Fournir une base vérifiable aux décisions DevOps: documentation officielle, co
 ## Outils
 web_search, web_fetch, read, pdf, view_image, clawfedora_search (texte borné au snapshot), clawfedora_outline kind=sources; clawfedora_artifact pour notes sourcées Markdown/TXT et PDF/DOCX/ODT.
 
+## Vérification ciblée
+
+Pour une évolution de version, donner côte à côte version demandée, version installée attestée, option officielle documentée, différence utile, limites de compatibilité et test local nécessaire. Ne pas assimiler une annonce « latest » à la cible du dépôt. Une divergence entre documentation et exécution ne se résout pas par une préférence non prouvée.
+
 ## Livrable
 Constat, preuves datées, options, contradictions, recommandation conditionnelle et vérification locale à faire. Une note de recherche ne remplace pas une preuve de déploiement.
 
