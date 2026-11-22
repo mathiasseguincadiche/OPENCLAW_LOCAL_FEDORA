@@ -55,6 +55,7 @@ def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
     }
     assert set(by_id) == {
         "qwen3.5:9b-q4_K_M",
+        "ornith-1.5:9b",
     }
     assert all(entry["contextTokens"] == 32768 for entry in by_id.values())
     assert all(entry["maxTokens"] == 4096 for entry in by_id.values())
@@ -68,7 +69,7 @@ def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
     assert patch["agents"]["defaults"]["systemAgent"] == {"agentId": "chef-operations"}
     assert patch["talk"] == {"agentId": "chef-operations"}
     assert agents["ingenieur-devops"]["model"] == {
-        "primary": "ollama/qwen3.5:9b-q4_K_M",
+        "primary": "ollama/ornith-1.5:9b",
         "fallbacks": [],
     }
     research_tools = agents["expert-recherche"]["tools"]
