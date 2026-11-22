@@ -64,7 +64,7 @@ def model_plan(repo_root: Path) -> list[dict[str, Any]]:
                 "approximate_weight_gib": float(raw.get("approximate_weight_gib", 0.0)),
             }
         )
-    if len(result) != 1 or any(not item["runtime_id"] for item in result):
+    if len(result) != 2 or {item["alias"] for item in result} != {"qwen-max", "ornith-code"} or any(not item["runtime_id"] for item in result):
         raise ValueError("lifecycle: flotte nominale invalide")
     return result
 
