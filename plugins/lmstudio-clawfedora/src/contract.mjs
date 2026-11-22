@@ -39,6 +39,14 @@ function getTextMessage(item) {
   if (typeof content !== "string" || content.includes("\u0000")) {
     throw new Error("Seuls les échanges textuels sont admis par le pont ClawFedora.");
   }
+  // An assistant message may contain native tool calls without having role "tool".
+  // Never erase those calls and silently forward its plain text as trusted history.
+  if (role === "assistant" && typeof item.getToolCallRequests === "function") {
+    const calls = item.getToolCallRequests();
+    if (!Array.isArray(calls) || calls.length !== 0) {
+      throw new Error("Historique avec appels d'outils LM Studio : nouveau chat ClawFedora dédié.");
+    }
+  }
   // LM Studio attachments are not an ingestion route for project documents.
   for (const method of ["getImages", "getFiles"]) {
     if (typeof item[method] === "function") {
