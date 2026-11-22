@@ -112,6 +112,11 @@ def test_worker_executes_dependency_order_then_requires_real_review(
 
     def auditor(role: str, _prompt: str, session: str) -> dict[str, Any]:
         assert role == "auditeur-qualite" and session not in sessions
+        snapshot = runtime / "workspaces/auditeur-qualite/projects/reviews" / session
+        assert not (snapshot / "history").exists()
+        assert not (snapshot / "context/project_analysis.json").exists()
+        assert not (snapshot / "evidence/task_results.json").exists()
+        assert (snapshot / "context/audit-proofs.json").is_file()
         return {
             "verdict": "FAIL",
             "findings": [{"reason": "preuves insuffisantes"}],
