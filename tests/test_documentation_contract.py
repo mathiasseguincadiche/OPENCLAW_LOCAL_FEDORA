@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from clawfedora.chat_files import MAX_STANDALONE_TEXT_BYTES, MAX_STANDALONE_TEXT_FILES
-from clawfedora.core_config import core_contract, root_contract
+from clawfedora.core_config import root_contract
 
 ROOT = Path(__file__).resolve().parents[1]
 
