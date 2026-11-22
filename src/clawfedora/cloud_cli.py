@@ -156,6 +156,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.command in {"enable", "set-key", "set-model", "set-profile", "render-unit"}:
+        print("OpenRouter retiré : commande cloud indisponible", file=sys.stderr)
+        return 2
     root = args.root.resolve()
     runtime = resolve_runtime_root(args.runtime_root)
     try:
