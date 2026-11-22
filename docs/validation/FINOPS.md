@@ -1,3 +1,5 @@
+> **Archive de conception 2026.** Recette de facturation du fournisseur OpenRouter retiré. Ce test n'appartient plus à la réception active de l'atelier exclusivement local. Voir [architecture locale](../ARCHITECTURE_LOCALE_QWEN_ORNITH.md).
+
 # Recette finale FinOps — atelier hybride
 
 **Statut : protocole de réception, pas un résultat de réception.** Aucun
