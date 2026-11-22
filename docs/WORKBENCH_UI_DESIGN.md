@@ -4,15 +4,16 @@
 
 ## Périmètre
 
-Le design system commun modernise les **trois pages de l'atelier local** :
+Le design system commun modernise les **quatre espaces de l'atelier local** :
 
 - `http://127.0.0.1:18890/` : vue d'ensemble, ressources, projets et espace documentaire ;
+- `http://127.0.0.1:18890/discussions.html` : conversations natives et sept agents OpenClaw via Ollama ;
 - `http://127.0.0.1:18890/github.html` : publication GitHub sous approbation ;
 - `http://127.0.0.1:18890/notion.html` : préparation et revue Notion sous approbation.
 
-Il ne remplace **pas** l'application Open WebUI de discussion
-(`http://127.0.0.1:3000`), dont le thème, la navigation et les composants
-sont gérés par le logiciel tiers.
+Le chat **natif** de l'Atelier devient l'interface principale : aucune
+application WebUI externe n'est requise pour une nouvelle conversation.
+Open WebUI reste temporairement disponible pour récupérer les anciens fils.
 
 ## Principes d'expérience retenus
 
@@ -88,7 +89,7 @@ de chaque espace en **1440 × 900 (clair)**, **1366 × 900 (sombre)** et
 **390 × 844 (mobile)**, détection des débordements horizontaux,
 erreurs JavaScript, navigation par onglets au clavier, bascule de thème
 et prévisualisations sans écritures GitHub/Notion. Il conserve jusqu'à
-neuf captures d'un **environnement synthétique**, accessibles pendant
+douze captures d'un **environnement synthétique**, accessibles pendant
 sept jours en artefact GitHub Actions.
 
 Ces tests **ne prouvent pas** que le rendu est visuellement excellent
