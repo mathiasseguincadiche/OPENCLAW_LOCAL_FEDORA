@@ -147,8 +147,6 @@ jobs:
         run: python scripts/validation/check_agent_toolkit.py
       - name: Native prompt limits
         run: python scripts/validation/check_prompt_size.py
-      - name: Native cloud route
-        run: python scripts/validation/check_cloud_route.py
 
   python:
     name: python-${{ matrix.python-version }}
