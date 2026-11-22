@@ -155,11 +155,7 @@ def test_menu_exposes_daily_actions_and_no_retired_machinery() -> None:
         "health",
         "context-probe",
         "webui-install",
-        "cloud-status",
-        "cloud-set-key",
-        "cloud-enable",
-        "cloud-disable",
-        "cloud-reconcile",
+        "local-retire-cloud",
         "dashboard",
         "gaming",
         "daily",
@@ -212,77 +208,23 @@ def test_openclaw_toolkit_inventory_matches_the_plugin() -> None:
     assert declared == plugin
 
 
-def test_cloud_script_keeps_the_key_off_the_command_line_and_gates_the_service() -> None:
+def test_cloud_script_is_retirement_only_and_cannot_activate_openrouter() -> None:
     text = _read("scripts/linux/14_cloud.sh")
-    assert "read -r -s" in text and "| cloud set-key" in text
-    assert "--key" not in text.replace("--key-limit-usd", "")
-    enable = text[text.index("  enable)") : text.index("  disable)")]
-    # The activation record is written first and the service only starts if it succeeded.
-    assert enable.index('cloud "${args[@]}" --apply') < enable.index("systemctl --user enable")
-    assert enable.index("systemctl --user enable") < enable.index("03_configure_openclaw.sh")
-    assert "--confirm-prepaid" in enable and "oui" in enable
-    disable = text[text.index("  disable)") :]
-    assert disable.index("cloud disable") < disable.index("03_configure_openclaw.sh")
+    assert "LOCAL_RETIRE_RESULT=PASS" in text
+    assert "systemctl --user disable --now" in text
+    assert "upstream.key" in text and "gateway.token" in text
+    assert "case \"$ACTION\" in" in text
+    assert "  enable)" not in text and "cloud set-key" not in text
+    assert "--key-limit-usd" not in text
 
-
-def test_cloud_menu_actions_validate_their_values_before_touching_anything() -> None:
+def test_legacy_cloud_menu_actions_are_refused_without_side_effects() -> None:
     env = {**os.environ, "OPENCLAW_LOCAL_FEDORA_ROOT": "/nonexistent-runtime"}
-    for action, extra in (
-        ("cloud-reconcile", []),
-        ("cloud-reconcile", ["--value", "abc"]),
-        ("cloud-enable", []),
-        ("cloud-enable", ["--value", "-3"]),
-    ):
+    for action in ("cloud-enable", "cloud-set-key", "cloud-reconcile"):
         result = subprocess.run(
-            [str(ROOT / "menu.sh"), "--action", action, *extra],
+            [str(ROOT / "menu.sh"), "--action", action],
             capture_output=True, text=True, env=env, timeout=60, check=False,
         )
-        assert result.returncode == 2, (action, extra, result.stdout, result.stderr)
-        assert "--value" in result.stderr
-
-
-@pytest.mark.skipif(os.geteuid() == 0, reason="operator script deliberately refuses root")
-def test_webui_stop_preserves_native_atelier_without_host_mutation(tmp_path: Path) -> None:
-    """Stop only optional legacy services; native Atelier must remain available."""
-    script = ROOT / "scripts/linux/13_openwebui.sh"
-    runtime = tmp_path / "runtime"
-    (runtime / "state").mkdir(parents=True)
-    (runtime / ".openclaw-fedora-runtime").touch()
-    fake_bin = tmp_path / "bin"
-    fake_bin.mkdir()
-    systemctl = fake_bin / "systemctl"
-    systemctl.write_text(
-        '#!/usr/bin/env bash\nprintf "%s\\n" "$*" >> "$CLAWFEDORA_SYSTEMCTL_LOG"\n',
-        encoding="utf-8",
-    )
-    systemctl.chmod(0o755)
-    log = tmp_path / "systemctl.log"
-    result = subprocess.run(
-        ["bash", str(script), "stop", "--apply"],
-        capture_output=True,
-        text=True,
-        check=False,
-        env={
-            **os.environ,
-            "PATH": f"{fake_bin}:{os.environ['PATH']}",
-            "OPENCLAW_LOCAL_FEDORA_ROOT": str(runtime),
-            "CLAWFEDORA_SYSTEMCTL_LOG": str(log),
-        },
-        timeout=20,
-    )
-    assert result.returncode == 0, result.stderr
-    calls = log.read_text(encoding="utf-8").splitlines()
-    assert len(calls) == 1
-    assert calls[0].startswith("--user stop ")
-    stopped = set(calls[0].split()[2:])
-    assert stopped == {
-        "clawfedora-webui.service",
-        "clawfedora-webui-bridge.service",
-        "clawfedora-speech.service",
-    }
-    assert "clawfedora-dashboard.service" not in stopped
-    assert "OPENWEBUI_RESULT=PASS" in result.stdout
-
+        assert result.returncode != 0, (action, result.stdout, result.stderr)
 
 def test_bootstrap_avoids_unbounded_toolchain_upgrade_and_checks_prod_deps() -> None:
     source = _read("scripts/linux/00_bootstrap.sh")
