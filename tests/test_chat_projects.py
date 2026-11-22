@@ -18,7 +18,6 @@ from clawfedora.cloud_budget import load_ledger
 from clawfedora.cloud_state import write_activation
 from clawfedora.project_worker import worker_lock
 from clawfedora.webui_bridge import (
-    CLOUD_BANNER,
     CLOUD_MODEL_IDS,
     MODEL_IDS,
     STICKY_MARKER,
@@ -121,38 +120,34 @@ def test_model_advice_never_calls_an_agent(chat: tuple[Any, Runner, Path, Path])
         assert runner.calls == []
 
 
-def test_budget_is_local_private_and_does_not_run_an_agent(
-    chat: tuple[Any, Runner, Path, Path]
+def test_budget_command_never_bills_or_uses_a_model(
+    chat: tuple[Any, Runner, Path, Path],
 ) -> None:
     server, runner, runtime, _ = chat
-    ledger = load_ledger(runtime, ROOT)
-    ledger.record_invoice(21.35)
     with worker_lock(runtime):
         code, response = ask(server, MODEL_IDS[0], ("user", "!budget"))
     assert code == 200
-    assert "Budget cloud" in response and "21.35" in response
-    assert "35.00" in response
-    assert "facture en temps réel" in response
+    assert "aucun budget API" in response
     assert runner.calls == []
     code, response = ask(server, MODEL_IDS[0], ("user", "!budget avec secret"))
     assert code == 200 and "sans argument" in response
     assert runner.calls == []
 
 
-def test_budget_refuses_linked_ledger_without_reading(
-    chat: tuple[Any, Runner, Path, Path], tmp_path: Path
+def test_historical_budget_ledger_is_not_read_or_leaked(
+    chat: tuple[Any, Runner, Path, Path], tmp_path: Path,
 ) -> None:
     server, runner, runtime, _ = chat
     ledger = load_ledger(runtime, ROOT)
     month = ledger.summary().month
     ledger.path(month).parent.mkdir(parents=True, exist_ok=True)
-    private_file = tmp_path / "fake-budget.jsonl"
-    private_file.write_text('{"secret":"should not be read"}')
+    private_file = tmp_path / "private-budget.jsonl"
+    private_file.write_text('{"secret":"DO_NOT_DISCLOSE"}')
     ledger.path(month).symlink_to(private_file)
     code, response = ask(server, MODEL_IDS[0], ("user", "!budget"))
-    assert code == 200 and "Budget cloud indisponible" in response
-    assert "secret" not in response
-    assert runner.calls == []
+    assert code == 200 and "aucun budget API" in response
+    assert "DO_NOT_DISCLOSE" not in response
+    assert not runner.calls
 
 
 def test_help_and_unknown_commands(chat: tuple[Any, Runner, Path, Path]) -> None:
@@ -283,73 +278,64 @@ def test_the_busy_worker_refuses_a_question_but_not_the_listing(
                    ("user", "!etat"))[0] == 200
 
 
-def test_status_shows_the_cloud_pause_and_cost(chat: tuple[Any, Runner, Path, Path]) -> None:
-    server, _, runtime, project = chat
+def test_old_cloud_activation_never_changes_a_local_project(
+    chat: tuple[Any, Runner, Path, Path],
+) -> None:
+    server, runner, runtime, project = chat
     write_activation(runtime, BOTH)
-    project_cloud.grant(ROOT, runtime, project, acknowledged=True)
-    project_cloud.write_pause(runtime, project, "budget_refused", "plafond atteint", "design-choice")
+    with pytest.raises(ValueError, match="cloud indisponible"):
+        project_cloud.grant(ROOT, runtime, project, acknowledged=True)
+    assert project_cloud.consent_state(ROOT, runtime, project)["state"] == "none"
     _, text = ask(server, MODEL_IDS[0], ("user", f"!projet {PROJECT}"))
-    assert "☁️ cloud autorisé" in text and "Pause cloud" in text and "plafond atteint" in text
+    assert "💻 local" in text and "cloud autorisé" not in text
+    assert not runner.calls
 
 
-# -- cloud ----------------------------------------------------------------------------
-def test_a_cloud_question_about_a_project_without_consent_sends_nothing(
+def test_legacy_cloud_model_is_refused_for_project_and_fresh_chat(
     chat: tuple[Any, Runner, Path, Path],
 ) -> None:
     server, runner, runtime, _ = chat
     write_activation(runtime, BOTH)
     selected = ask(server, MODEL_IDS[0], ("user", f"!projet {PROJECT}"))[1]
-    _, text = ask(server, CLOUD_MODEL_IDS[0], ("user", "x"), ("assistant", selected),
-                  ("user", "Explique-moi le plan"))
-    assert "n'a pas d'accord cloud valide" in text and "rien n'est envoyé" in text
+    for history in (
+        (("user", "x"), ("assistant", selected), ("user", "Explique le plan")),
+        (("user", "Question publique"),),
+    ):
+        code, text = ask(server, CLOUD_MODEL_IDS[0], *history)
+        assert code == 400 and "rôles locaux" in text
     assert runner.calls == []
 
 
-def test_leaving_the_project_does_not_unlock_the_cloud_for_the_same_thread(
+def test_quitting_project_cannot_unlock_a_retired_cloud_model(
     chat: tuple[Any, Runner, Path, Path],
 ) -> None:
-    server, runner, runtime, _ = chat
-    write_activation(runtime, BOTH)
+    server, runner, _, _ = chat
     selected = ask(server, MODEL_IDS[0], ("user", f"!projet {PROJECT}"))[1]
-    left = ask(server, MODEL_IDS[0], ("user", "x"), ("assistant", selected), ("user", "!quitter"))[1]
-    _, text = ask(server, CLOUD_MODEL_IDS[0], ("user", "x"), ("assistant", selected),
-                  ("user", "!quitter"), ("assistant", left), ("user", "Question publique"))
-    assert "n'a pas d'accord cloud valide" in text and runner.calls == []
-    # A fresh conversation is free of that history.
-    _, fresh = ask(server, CLOUD_MODEL_IDS[0], ("user", "Question publique"))
-    assert fresh.startswith(CLOUD_BANNER) and runner.calls[0][0] == "cloud"
+    left = ask(
+        server, MODEL_IDS[0], ("user", "x"), ("assistant", selected),
+        ("user", "!quitter"),
+    )[1]
+    code, text = ask(
+        server, CLOUD_MODEL_IDS[0], ("user", "x"), ("assistant", selected),
+        ("user", "!quitter"), ("assistant", left), ("user", "Question publique"),
+    )
+    assert code == 400 and "rôles locaux" in text and not runner.calls
 
 
-def test_with_a_valid_consent_the_cloud_gets_the_context_and_the_markers_keep_their_order(
+def test_modified_sources_remain_private_after_legacy_activation(
     chat: tuple[Any, Runner, Path, Path],
 ) -> None:
     server, runner, runtime, project = chat
     write_activation(runtime, BOTH)
-    project_cloud.grant(ROOT, runtime, project, acknowledged=True)
-    selected = ask(server, MODEL_IDS[0], ("user", f"!projet {PROJECT}"))[1]
-    _, text = ask(server, CLOUD_MODEL_IDS[0], ("user", "x"), ("assistant", selected),
-                  ("user", "Explique-moi le plan"))
-    assert runner.calls[0][0] == "cloud" and "design-choice" in runner.calls[0][2]
-    heads = leading_banners(text)
-    assert heads[0] == f"📁 Projet : {PROJECT}" and heads[1].startswith(CLOUD_BANNER)
-    # The next turn still sees the project and does not feed the markers to the model.
-    assert chat_projects.thread_state([{"role": "assistant", "content": text}])[0] == PROJECT
-    assert strip_banners(text) == "Réponse cloud."
-
-
-def test_changed_sources_cancel_the_consent_for_the_chat_too(
-    chat: tuple[Any, Runner, Path, Path],
-) -> None:
-    server, runner, runtime, project = chat
-    write_activation(runtime, BOTH)
-    project_cloud.grant(ROOT, runtime, project, acknowledged=True)
     selected = ask(server, MODEL_IDS[0], ("user", f"!projet {PROJECT}"))[1]
     source = next((project / "intake").rglob("*.md"))
-    source.chmod(0o644)
-    source.write_text(source.read_text() + "\nChangé.")
-    _, text = ask(server, CLOUD_MODEL_IDS[0], ("user", "x"), ("assistant", selected),
-                  ("user", "Question"))
-    assert "n'a pas d'accord cloud valide" in text and runner.calls == []
+    source.write_text(source.read_text() + "\nModification locale.")
+    code, text = ask(
+        server, CLOUD_MODEL_IDS[0], ("user", "x"),
+        ("assistant", selected), ("user", "Question"),
+    )
+    assert code == 400 and "rôles locaux" in text
+    assert not runner.calls
 
 
 # -- markers ------------------------------------------------------------------------
