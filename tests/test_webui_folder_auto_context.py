@@ -313,8 +313,8 @@ def test_folder_context_never_bypasses_cloud_consent(
         body = _filter(filter_instance, _body("Mes fichiers privés ?"))
         body["model"] = CLOUD_MODEL_IDS[0]
         code, response = _request(server, body)
-        assert code == 200
-        assert "n'a pas d'accord cloud valide" in response
+        assert code == 400
+        assert "rôles locaux" in response
         assert calls == []
     finally:
         server.shutdown()
