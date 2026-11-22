@@ -52,6 +52,7 @@ artifacts:
   final_report: evidence/final_report.json
 execution:
   max_parallel_tasks: 1
+  model_affinity_for_independent_tasks: true
   max_task_attempts: 2
   task_output_namespaced_by_task: true
   propagate_passed_outputs_to_dependents: true
