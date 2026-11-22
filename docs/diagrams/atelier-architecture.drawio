@@ -179,7 +179,7 @@
         <mxCell id="c58" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=14;fontStyle=0;fontColor=#3c6074;strokeColor=none;fillColor=none;" vertex="1" value="Une seule génération à la fois · permissions et preuves">
           <mxGeometry x="661.00" y="688.58" width="406.14" height="18.20" as="geometry" />
         </mxCell>
-        <mxCell id="c59" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=13;fontStyle=0;fontColor=#4a6272;strokeColor=none;fillColor=none;" vertex="1" value="Schéma logique, pas preuve de déploiement. Aucune route OpenRouter active.">
+        <mxCell id="c59" parent="1" style="text;html=0;whiteSpace=wrap;overflow=visible;align=center;verticalAlign=middle;spacing=0;fontFamily=DejaVu Sans;fontSize=13;fontStyle=0;fontColor=#4a6272;strokeColor=none;fillColor=none;" vertex="1" value="Schéma logique, pas preuve de déploiement. Aucune route externe active.">
           <mxGeometry x="40.00" y="740.61" width="639.97" height="16.90" as="geometry" />
         </mxCell>
         <mxCell id="c60" parent="1" style="edgeStyle=none;noEdgeStyle=1;rounded=0;html=0;strokeColor=#648398;strokeWidth=3;endArrow=block;endFill=1;dashed=0;exitX=1.000000;exitY=0.462963;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.000000;entryY=0.462963;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" source="c8" target="c20">
