@@ -2,7 +2,7 @@
 # Elles ne touchent ni au système Fedora ni à l'installation : pour l'atelier, utiliser ./menu.sh.
 
 .DEFAULT_GOAL := help
-.PHONY: help install validate test docs lint shellcheck ci native-schema native-tools native-prompt native-cloud
+.PHONY: help install validate test docs lint shellcheck ci native-schema native-tools native-prompt
 
 help: ## Afficher cette aide
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-14s %s\n", $$1, $$2}'
@@ -41,5 +41,3 @@ native-tools: ## Avec le vrai OpenClaw : les outils du plugin géré sont charg�
 native-prompt: ## Avec le vrai OpenClaw : les consignes ne sont pas tronquées
 	.venv/bin/python scripts/validation/check_prompt_size.py
 
-native-cloud: ## Avec le vrai OpenClaw : un tour cloud passe par la passerelle locale
-	.venv/bin/python scripts/validation/check_cloud_route.py
