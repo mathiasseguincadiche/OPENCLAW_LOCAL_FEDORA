@@ -153,3 +153,20 @@ def test_kubeconform_uses_only_offline_schemas_and_manifests(tmp_path: Path) -> 
     assert "default" not in command
     with pytest.raises(lab.LabRefusal, match="Aucun manifeste"):
         lab.command_for("kubeconform", tmp_path, (Path("unrelated.yaml"),))
+
+
+def test_pytest_runner_is_fixed_and_requires_project_tests(tmp_path: Path) -> None:
+    files = (Path("app.py"), Path("tests/test_app.py"), Path("tests/helpers.py"))
+    command = lab.command_for("pytest", tmp_path, files)
+    assert command == [
+        "python3", "-B", "-m", "pytest", "-q", "--disable-warnings",
+        "--maxfail=1", "-p", "no:cacheprovider", "/workspace/tests/test_app.py",
+    ]
+    with pytest.raises(lab.LabRefusal, match="Aucun test Python"):
+        lab.command_for("pytest", tmp_path, (Path("app.py"),))
+    argv = lab.isolated_argv(
+        "registry.example/validators@sha256:" + "a" * 64,
+        tmp_path, command, "test-validator",
+    )
+    assert "--network=none" in argv and "--read-only" in argv
+    assert "--cap-drop=ALL" in argv and "bash" not in argv
