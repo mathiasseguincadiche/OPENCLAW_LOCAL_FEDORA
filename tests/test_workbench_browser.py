@@ -75,6 +75,7 @@ def _screen(page: Any, name: str, tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("route", "label"), [
         ("/", "projects"),
+        ("/discussions.html", "discussions"),
         ("/github.html", "github"),
         ("/notion.html", "notion"),
     ],
@@ -102,7 +103,7 @@ def test_real_chromium_renders_workspaces_without_document_overflow(
         pw.expect(page.locator("body")).to_have_class(
             "workbench workbench--" + label,
         )
-        pw.expect(page.locator(".workspace-rail-link")).to_have_count(3)
+        pw.expect(page.locator(".workspace-rail-link")).to_have_count(4)
         pw.expect(page.locator("header.workspace-hero h1")).to_be_visible()
         pw.expect(page.locator(".workspace-topbar")).to_be_visible()
         layout: dict[str, Any] = page.evaluate(
