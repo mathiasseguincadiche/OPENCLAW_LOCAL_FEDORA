@@ -408,7 +408,22 @@ def validate_core_contracts(
     model_aliases = set(_mapping(catalog.get("models")))
     routing = _mapping(contracts["model_routing.yaml"].get("agents"))
     routing_policy = _mapping(contracts["model_routing.yaml"].get("policy"))
-    _validate_cloud_contracts(repo_root, contracts, catalog, routing_policy, failures)
+    fleet = _mapping(catalog.get("fleet_policy"))
+    if (
+        fleet.get("local_only") is not True
+        or fleet.get("cloud_models_supported") is not False
+        or routing_policy.get("local_only") is not True
+        or routing_policy.get("cloud_models_supported") is not False
+        or routing_policy.get("cloud_enabled_by_default") is not False
+    ):
+        failures.append("core/local: mode entièrement local requis")
+    if routing_policy.get("supported_local_aliases") != ["qwen-max", "ornith-code"]:
+        failures.append("core/local: flotte Ollama Qwen + Ornith requise")
+    if any(_mapping(raw).get("provider") != "ollama" for raw in _mapping(catalog.get("models")).values()):
+        failures.append("core/local: un fournisseur non Ollama est interdit")
+    cloud_contract = _mapping(contracts["cloud_policy.yaml"].get("policy"))
+    if cloud_contract.get("retired") is not True or cloud_contract.get("enabled_by_default") is not False:
+        failures.append("core/local: ancienne route OpenRouter non retirée")
     tools = _mapping(contracts["tool_policy.yaml"].get("agents"))
     if set(routing) != expected or set(tools) != expected:
         failures.append("core: routage et politique outils doivent couvrir tous les agents")
@@ -422,8 +437,8 @@ def validate_core_contracts(
         route = _mapping(routing.get(agent_id))
         if route.get("local_primary") != model or route.get("local_fallback") != fallback:
             failures.append(f"core/routing: divergence de routage pour {agent_id}")
-        if route.get("cloud_primary") != routing_policy.get("cloud_alias"):
-            failures.append(f"core/routing: route cloud divergente pour {agent_id}")
+        if "cloud_primary" in route or "cloud_alias" in routing_policy:
+            failures.append(f"core/routing: ancienne route cloud interdite pour {agent_id}")
 
     defaults = _mapping(contracts["tool_policy.yaml"].get("security_defaults"))
     if defaults.get("fs_workspace_only") is not True:
