@@ -2,55 +2,25 @@
 
 [← Guide](../GUIDE.md) · [Architecture expliquée](11-comment-ca-marche.md) · [Exemple concret](../EXEMPLE_PARCOURS_DEVOPS.md)
 
-## D'abord, comprendre le mot « agent »
+## Deux modèles locaux pour sept métiers
 
-Imagine une **équipe de sept spécialités** réunie autour d'un même dossier : elle dispose **d'un modèle local et de deux modèles cloud complémentaires**, mais garde les mêmes missions et outils autorisés.
+L'atelier OpenClaw utilise **deux modèles Ollama**, pas sept modèles indépendants : **Qwen 3.5 9B Q4_K_M** pour six agents, **Ornith 1.5 9B** pour l'ingénieur DevOps. Les modèles sont chargés alternativement sur la B580 de 12 Go, sous le contrôle du worker.
 
-- **Qwen local** : traitement quotidien privé, raisonnements ciblés, zéro coût API.
-- **DeepSeek V4.1 Flash 1017 cloud** : production quotidienne des rôles après accord, avec effort adapté.
-- **GPT-6.2 Sol cloud** : expertise ciblée, révisions approuvées et contre-expertise finale ; performances réelles à mesurer.
-- **OpenClaw + worker** : une couche commune de consignes, outils, ordonnanceur et protections. Les sept agents **ne constituent pas sept modèles distincts**.
+**OpenRouter a été retiré de la configuration active** : aucune route cloud, aucune bascule automatique, aucune facturation API d'inférence. La recherche Web de *sources* est distincte du service de modèles.
 
-Le choix **local/cloud reste explicite**. Une fois le cloud autorisé, le mode `auto` choisit le modèle interne et l'effort selon le rôle et l'étape approuvée. [Stratégie hybride et cas d'usage](../ARCHITECTURE_HYBRIDE.md).
-
-- **Le modèle** est le moteur qui rédige et raisonne : **Qwen 3.5 9B Q4_K_M** via Ollama en local, ou **DeepSeek V4.1 Flash 1017 / GPT-6.2 Sol** via OpenRouter si le cloud est activé et autorisé.
-- **Le rôle** indique la mission, les règles et les outils auxquels le modèle a droit. En local, changer de rôle ne change pas Qwen ; dans un projet cloud en mode `auto`, le rôle et l'étape déterminent le couple modèle/effort.
-- **Le worker** (moteur du projet) choisit l'ordre des tâches, fournit les éléments autorisés et récupère les résultats. Les agents **ne s'appellent pas entre eux**.
-- **Toi** : tu approuves les étapes et décides si le résultat convient. Un fichier rédigé n'est pas un logiciel installé.
-
-![Les sept spécialités et les modèles autorisés](../diagrams/atelier-roles.svg)
-
-**Un point crucial :** les agents qui travaillent en local emploient **le même modèle** Qwen. Le cloud, lorsqu'il est autorisé, change la route d'inférence mais pas les règles d'accès aux outils. Un audit sur une session distincte ne devient pas indépendant simplement parce que le nom du rôle change.
-
-### Quelle route pour quel spécialiste ?
-
-**Aucun modèle ne remplace un spécialiste.** DeepSeek traite les tâches cloud ordinaires ; Sol intervient lors des étapes d'expertise prévues ou sur choix manuel. Les outils disponibles restent ceux du rôle. Les deux modèles peuvent se tromper.
-
-| Agent | Qwen local : exemple | DeepSeek cloud en routine : exemple, si autorisé |
+| Agent | Moteur principal | Missions pertinentes |
 |---|---|---|
-| Mentor | Explication d'Ansible ou de systemd | Relier plusieurs concepts complexes d'architecture/CI et pédagogie détaillée |
-| Recherche | Collecte ciblée de sources officielles | Synthèse critique de nombreuses sources publiques contradictoires |
-| Architecte | Petit diagramme réseau, ADR simple | Comparaison multi-critères de scénarios d'infrastructure |
-| DevOps | Relecture d'un petit YAML, runbook | Cohérence de plusieurs modules Terraform/Ansible et workflow CI/CD |
-| Sécurité | Vérification statique d'une configuration locale privée | Revue documentaire approfondie d'un ensemble public assaini |
-| Rédacteur | Fiche courte ou compte-rendu interne | Document public long et cohérence interchapitres |
-| Auditeur | Vérification de quelques critères | Confrontation de nombreux critères et preuves **autorisées à sortir** |
+| Mentor / Chef des opérations | **Qwen** | Expliquer, cadrer et planifier la progression InfraOps |
+| Expert recherche | **Qwen** | Documentation officielle, versions, compatibilités sourcées |
+| Architecte solutions | **Qwen** | ADR, flux, topologies KVM/Rocky/Compose/K3s, Draw.io |
+| Ingénieur DevOps | **Ornith** | Terraform, Ansible, Bash/Python, Docker, K3s, GitHub Actions |
+| Ingénieur sécurité | **Qwen** | Menaces, durcissement, revue des scans ; code corrigé par le DevOps |
+| Rédacteur pédagogique | **Qwen** | Wiki Notion, README, runbooks, supports et commandes expliquées |
+| Auditeur qualité | **Qwen** | Critères, diff, preuves, résultat de tests ; lecture seule |
 
-**Ce sont des usages visés, pas des performances déjà mesurées.** L'accord cloud couvre le projet, sans bascule automatique de Qwen vers le cloud. **À l'intérieur de la route cloud**, le mode `auto` applique la répartition déterministe suivante :
+**Le rôle ne change pas les permissions.** Les sept agents ne possèdent pas d'accès libre à `exec`, `edit`, `write` ou `apply_patch`. Leur production de fichiers et leurs contrôles statiques ne prouvent pas le déploiement d'OpsDesk. Le worker affecte uniquement les rôles utiles à un plan approuvé. Quand le DevOps produit une modification, le modèle Qwen de l'auditeur constitue un second regard, mais les preuves des outils restent l'autorité.
 
-| Rôle | Routine | Révision approuvée / revue finale |
-|---|---|---|
-| Mentor | DeepSeek High | Sol Medium |
-| Recherche | DeepSeek Low | DeepSeek High |
-| Architecte | DeepSeek High | Sol High |
-| DevOps | DeepSeek High | Sol High |
-| Sécurité | DeepSeek High | Sol High |
-| Rédacteur | DeepSeek Low | Sol Medium |
-| Auditeur | DeepSeek High | Sol High (revue finale) |
-
-Les enveloppes sont de 15 € pour DeepSeek et 10 € pour Sol ; 10 € restent non routables. Les limites du fournisseur, la confidentialité et la validation humaine restent obligatoires.
-
-**Un projet n'a pas besoin des sept agents.** Pour une question Linux simple, le mentor suffit. Pour un pipeline sensible, DevOps + sécurité + audit peuvent être utiles. Ajouter des agents inutilement **augmente les générations, la durée et éventuellement le coût cloud**.
+[Décision, limites et scénarios OpsDesk](../ARCHITECTURE_LOCALE_QWEN_ORNITH.md).
 
 ## Choisir le bon interlocuteur
 
