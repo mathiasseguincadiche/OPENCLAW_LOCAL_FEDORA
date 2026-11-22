@@ -107,6 +107,31 @@ test("require a human question and reject unsupported attachments", () => {
   );
 });
 
+test("assistant tool calls cannot be hidden in plain-text LM Studio history", () => {
+  const conversation = [
+    assistant("J'ai préparé une action", {
+      getToolCallRequests: () => [{ name: "execute", arguments: { command: "!lancer" } }],
+    }),
+    user("continue"),
+  ];
+  assert.throws(
+    () => bridgePayload(conversation, "opsdesk", AGENTS[0]),
+    /appels d'outils LM Studio/,
+  );
+  assert.throws(
+    () => bridgePayload([
+      assistant("Réponse", { getToolCallRequests: () => null }),
+      user("suite"),
+    ], "opsdesk", AGENTS[0]),
+    /appels d'outils LM Studio/,
+  );
+  const normal = bridgePayload([
+    assistant("📁 Projet : opsdesk · pont\\n\\nOK", { getToolCallRequests: () => [] }),
+    user("!etat"),
+  ], "opsdesk", AGENTS[0]);
+  assert.equal(normal.messages.at(-1).content, "!etat");
+});
+
 test("no silent dropping of thousands of turns or large history", () => {
   assert.throws(
     () => bridgePayload(Array.from({ length: 1001 }, () => user("x")), "", AGENTS[0]),
