@@ -11,13 +11,12 @@ ACTION="status"
 APPLY=0
 PURGE_DATA=0
 CONTEXT=""
-VALUE=""
 
 usage() {
   cat <<'EOF_USAGE'
 Atelier IA local — Infrastructure & OPS · centre de contrôle
 
-Usage: ./menu.sh --action ACTION [--apply] [--purge-data] [--context N] [--value N|PROFIL]
+Usage: ./menu.sh --action ACTION [--apply] [--purge-data] [--context N]
 
 Sans --apply, une action qui modifie le système affiche seulement ce qu'elle ferait.
 
@@ -77,11 +76,6 @@ while (($#)); do
       shift
       [[ $# -gt 0 ]] || { echo "ERREUR: --context exige une valeur" >&2; exit 2; }
       CONTEXT="$1"
-      ;;
-    --value)
-      shift
-      [[ $# -gt 0 ]] || { echo "ERREUR: --value exige une valeur" >&2; exit 2; }
-      VALUE="$1"
       ;;
     -h|--help) usage; exit 0 ;;
     *) echo "ERREUR: argument inconnu: $1" >&2; usage >&2; exit 2 ;;
