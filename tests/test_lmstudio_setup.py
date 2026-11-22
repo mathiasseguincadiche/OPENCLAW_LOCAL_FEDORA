@@ -72,6 +72,16 @@ def test_bad_permissions_symlinks_and_foreign_unit_fail_closed(tmp_path: Path) -
         render(ROOT, runtime, units)
 
 
+def test_parent_state_symlink_is_rejected_before_creating_secret(tmp_path: Path) -> None:
+    runtime = _runtime(tmp_path)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (runtime / "state").symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ValueError, match="État ClawFedora lié"):
+        render(ROOT, runtime, tmp_path / "units")
+    assert not (outside / "lmstudio").exists()
+
+
 def test_missing_runtime_or_managed_venv_is_not_created(tmp_path: Path) -> None:
     runtime = tmp_path / "missing"
     runtime.mkdir()
