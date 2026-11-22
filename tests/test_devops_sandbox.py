@@ -38,7 +38,7 @@ def test_approval_requires_managed_runtime_digest_and_explicit_apply(
         )
     with pytest.raises(LabRefusal, match="digest"):
         devops_sandbox.approve_image(runtime, "latest", apply=False)
-    monkeypatch.setattr(devops_sandbox.os, "geteuid", lambda: 1000)
+    monkeypatch.setattr(devops_sandbox.os, "geteuid", lambda: runtime.stat().st_uid)
     monkeypatch.setattr(devops_sandbox.shutil, "which", lambda name: "/usr/bin/podman")
     monkeypatch.setattr(
         devops_sandbox.subprocess,
