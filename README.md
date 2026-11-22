@@ -33,10 +33,18 @@
 
 Les sept rôles n'ont aucun outil pour exécuter une commande ni écrire un fichier à ta place : l'IA explique et propose, et les actions sensibles comme la livraison restent soumises à ta validation. L'atelier ne déploie pas automatiquement l'infrastructure préparée.
 
-## Trois façons de travailler
+## Interfaces — LM Studio en migration pilote
+
+**Cible de migration :** [LM Studio comme interface principale](docs/LMSTUDIO_PRIMARY_INTERFACE.md)
+pour retrouver les discussions, le choix du projet par conversation, les sept agents,
+les commandes et les validations humaines. Un pont local indépendant (`:18894`)
+permet le test sans dépendre du conteneur WebUI. **Le plugin et le rendu Fedora ne
+sont pas encore réceptionnés sur la machine ; WebUI reste le secours.**
+
 
 | Interface | Usage |
 | --- | --- |
+| **LM Studio (pilote)** — application locale | Conversations et dossier natifs, projet et agent sélectionnés par chat ; commandes humaines vers le pont sécurisé. [Recette et limites](docs/LMSTUDIO_PRIMARY_INTERFACE.md) |
 | **Open WebUI 0.12.3** — `http://127.0.0.1:3000` | Chat, rôles et pièces jointes ; huit raccourcis, dont dossiers de projets natifs et classement des conversations |
 | **Atelier Projets** — `http://127.0.0.1:18890` | Les sources, étapes, décisions et livrables |
 | **Terminal** — `./menu.sh` | Installation, contrôles, services et maintenance ; [CLI des projets](docs/fiches/04-atelier-projets.md#en-ligne-de-commande) |
