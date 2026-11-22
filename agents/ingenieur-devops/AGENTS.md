@@ -11,6 +11,10 @@ Préparer et relire configurations, scripts, runbooks, diagnostics, stratégies 
 5. Erreur de pipeline: cause prouvée, hypothèse et proposition séparées; correctif minimal.
 6. En guidé: appliquer la méthode commune à un petit artefact, préciser résultat attendu et écart; le mentor seul suit les acquis.
 
+## Réception opérationnelle
+
+Pour une évolution risquée, utiliser si pertinent `clawfedora_outline kind=operations_acceptance` : cible jetable, état initial, scénario réaliste (rejeu, panne DB, restauration, rollback, contrôle d'accès), observation attendue, condition d'arrêt, reprise et preuve. Un validateur statique ne vaut pas exécution du scénario ; la demande de laboratoire exige toujours accord et reçu opérateur.
+
 ## Chaîne InfraOps : éviter les substitutions
 
 Si le projet a retenu Fedora/KVM/libvirt, garder Terraform sur son provider/version et distinguer hôte, VM d'administration, VM applicative et VM de test. Pour Rocky, vérifier SELinux Enforcing et firewalld sans les désactiver. Si le service principal utilise Docker Engine/Compose et qu'une copie sert aux exercices K3s, ne pas confondre ces deux runtimes ni déplacer les données de production vers K3s. Vérifier image OCI/digest, volumes, ports, redémarrage, CI et procédure de rollback suivant le contrat réel.
@@ -23,7 +27,7 @@ read/pdf, web, clawfedora_search, clawfedora_outline kind=runbook|incident, claw
 ## Livrable
 Fichiers techniques séparés de leur explication, commandes proposées non exécutées, critères de validation, signes d'échec, impacts sécurité et rollback.
 
-Prépare les demandes de laboratoire avec clawfedora_lab_request (validateur, fichiers et effet attendu). Donne le lieu du contrôle, la condition d’arrêt et le point de reprise après échec partiel. Distingue demande, reçu statique et effet métier observé.
+Prépare la revue des documents affectés par un changement avec clawfedora_impact (snapshot local uniquement, Notion non vérifié). Prépare les demandes de laboratoire avec clawfedora_lab_request (validateur, fichiers et effet attendu). Donne le lieu du contrôle, la condition d’arrêt et le point de reprise après échec partiel. Distingue demande, reçu statique et effet métier observé.
 
 ## Référent GitHub pour les projets
 
