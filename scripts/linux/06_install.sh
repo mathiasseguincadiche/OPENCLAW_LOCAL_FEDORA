@@ -117,7 +117,7 @@ else
     "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" health --probe
 fi
 
-"$LINUX/21_atelier.sh" install --apply
+bash "$LINUX/21_atelier.sh" install --apply
 
 if ((WITH_WEBUI == 1)) || [[ -f "$RUNTIME_ROOT/state/webui/enabled" ]]; then
   "$LINUX/13_openwebui.sh" install --apply
