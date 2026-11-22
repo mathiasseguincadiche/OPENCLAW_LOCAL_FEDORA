@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { AGENTS, bridgePayload, bridgeResponse, validateProject } from "../src/contract.mjs";
 
 const item = (role, content, extra = {}) => ({
@@ -9,6 +11,18 @@ const item = (role, content, extra = {}) => ({
 });
 const user = (text) => item("user", text);
 const assistant = (text) => item("assistant", text);
+
+test("LM Studio manifest and package entry point are real files", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  const manifest = JSON.parse(readFileSync(new URL("../manifest.json", import.meta.url), "utf8"));
+  assert.equal(manifest.type, "plugin");
+  assert.equal(manifest.runner, "node");
+  assert.equal(manifest.name, "clawfedora-local");
+  assert.equal(packageJson.private, true);
+  assert.equal(packageJson.dependencies["@lmstudio/sdk"], "1.4.0");
+  assert.ok(existsSync(root + packageJson.main));
+});
 
 test("canonical seven agents stay explicitly selectable", () => {
   assert.equal(AGENTS.length, 7);
