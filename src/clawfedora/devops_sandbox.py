@@ -6,6 +6,7 @@ The original workspace, central project, host and GitHub are never modified.
 from __future__ import annotations
 
 import argparse
+import fcntl
 import hashlib
 import io
 import json
@@ -105,6 +106,8 @@ def _overlay(target: Path, changes: dict[str, str]) -> dict[str, str]:
         raise LabRefusal("Un à cinq fichiers de correction requis")
     if sum(len(v.encode("utf-8")) for v in changes.values()) > MAX_PATCH_BYTES:
         raise LabRefusal("Corrections supérieures au budget")
+    if any(not isinstance(k, str) or not isinstance(v, str) for k, v in changes.items()):
+        raise LabRefusal("Proposition de fichiers texte obligatoire")
     hashes: dict[str, str] = {}
     for name, content in changes.items():
         relative = PurePosixPath(name)
@@ -127,6 +130,29 @@ def _overlay(target: Path, changes: dict[str, str]) -> dict[str, str]:
     return hashes
 
 
+def _reserve_attempt(runtime: Path, scope: str) -> int:
+    """Bounded attempts owned by the trusted worker runtime, not the agent workspace."""
+    base = runtime / "state/sandbox-attempts"
+    if base.is_symlink():
+        raise LabRefusal("État de tentative lié interdit")
+    base.mkdir(mode=0o700, parents=True, exist_ok=True)
+    key = hashlib.sha256(scope.encode()).hexdigest()
+    file = base / (key + ".json")
+    descriptor = os.open(file, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(descriptor, "r+", encoding="utf-8") as handle:
+        fcntl.flock(handle, fcntl.LOCK_EX)
+        value = handle.read().strip()
+        count = int(json.loads(value).get("attempts", 0)) if value else 0
+        if count >= 3:
+            raise LabRefusal("Trois tentatives locales atteintes : contrôle humain requis")
+        handle.seek(0)
+        handle.truncate()
+        json.dump({"attempts": count + 1}, handle)
+        handle.flush()
+        os.fsync(handle.fileno())
+        return count + 1
+
+
 def validate_proposal(
     runtime: Path, workspace: Path, scope: str, tool: str, changes: dict[str, str]
 ) -> dict[str, Any]:
@@ -136,6 +162,7 @@ def validate_proposal(
     image = _approved_image(runtime)
     source = _validated_scope(workspace, scope)
     manifest = snapshot_manifest(source)
+    attempt = _reserve_attempt(runtime, scope)
     with tempfile.TemporaryDirectory(prefix="clawfedora-proposed-") as directory:
         isolated = Path(directory) / "source"
         isolated.mkdir(mode=0o700)
@@ -155,6 +182,7 @@ def validate_proposal(
         "status": "PASS" if code == 0 else "FAIL",
         "exit_code": code,
         "validator": tool,
+        "attempt": attempt,
         "files_sha256": hashes,
         "log": log,
         "executed": True,
