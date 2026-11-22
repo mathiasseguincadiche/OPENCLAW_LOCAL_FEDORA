@@ -126,7 +126,7 @@ test("assistant tool calls cannot be hidden in plain-text LM Studio history", ()
     /appels d'outils LM Studio/,
   );
   const normal = bridgePayload([
-    assistant("📁 Projet : opsdesk · pont\\n\\nOK", { getToolCallRequests: () => [] }),
+    assistant("📁 Projet : opsdesk · pont\n\nOK", { getToolCallRequests: () => [] }),
     user("!etat"),
   ], "opsdesk", AGENTS[0]);
   assert.equal(normal.messages.at(-1).content, "!etat");
