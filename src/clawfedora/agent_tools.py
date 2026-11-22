@@ -46,6 +46,14 @@ OUTLINES = {
             "Décision attendue du spécialiste",
             "Livrable et preuve",
             "Décision de l’opérateur et prochaine pratique",
+        ],
+        "handover": [
+            "Service reçu et fonction métier",
+            "Sources, version, artefact immuable et empreintes",
+            "Topologie, dépendances, ports, identités et stockage",
+            "Démarrage, surveillance, sauvegarde et restauration",
+            "Conditions d'échec, diagnostic et retour arrière",
+            "Réception sur cible, preuves et validation humaine",
         ]
     },
     "expert-recherche": {
@@ -65,6 +73,14 @@ OUTLINES = {
             "Conséquences",
             "Réversibilité",
         ],
+        "service_contract": [
+            "Fonction applicative et responsabilités d'exploitation",
+            "Architecture actuelle et cible : ne pas les confondre",
+            "Flux, ports, frontières, secrets et états",
+            "Observabilité, dépendances et persistance",
+            "Alternatives, limites, pannes et récupération",
+            "Critères de réception à faire vérifier par le DevOps",
+        ],
     },
     "ingenieur-devops": {
         "runbook": [
@@ -77,6 +93,14 @@ OUTLINES = {
             "Reprise après échec partiel et retour arrière",
         ],
         "incident": ["Symptômes", "Impact", "Diagnostic", "Correction", "Validation", "Prévention"],
+        "operations_acceptance": [
+            "Cible isolée et accord de l'opérateur",
+            "État initial, version et configuration",
+            "Scénario de panne, répétition ou restauration",
+            "Observation attendue, journaux et métriques",
+            "Seuil d'arrêt, rollback et reprise",
+            "Preuves datées, limites et réception humaine",
+        ],
     },
     "ingenieur-securite": {
         "threats": [
@@ -94,7 +118,16 @@ OUTLINES = {
             "Portée",
             "Verdict",
             "Contrôle manquant",
-        ]
+        ],
+        "reader_review": [
+            "Source, SHA et périmètre réellement consulté",
+            "Découverte : trouver le but et commencer",
+            "Apprentissage : suivre les prérequis et contrôles",
+            "Recherche : retrouver une information ciblée",
+            "Analyse experte : choix, limites et preuves",
+            "Défauts prouvés, risques et améliorations proportionnées",
+            "Verdict par critère, limites et droit de s'arrêter",
+        ],
     },
     "redacteur-pedagogique": {
         "guide": [
