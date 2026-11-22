@@ -208,8 +208,8 @@ def openclaw_runner(
         from clawfedora.model_identity import verify_model_lock
         from clawfedora.version_lock import extract_openclaw_version
 
-        if route not in ROUTES:
-            raise ValueError(f"route inconnue: {route}")
+        if route != "local":
+            raise ValueError("route cloud refusée : OpenRouter retiré, exécution locale seulement")
         if role not in AGENT_IDS:
             raise ValueError("rôle OpenClaw non autorisé")
         if preflight_only and route != "local":
