@@ -69,7 +69,7 @@ def test_seven_agents_explained_match_canonical_policy() -> None:
         "clawfedora_ci_report",
     ):
         assert tool in roles
-    assert "même modèle" in roles or "même moteur" in roles
+    assert "deux modèles" in roles.lower() and "Ornith" in roles
     assert "pas" in roles.lower() and "exécut" in roles.lower()
 
 
