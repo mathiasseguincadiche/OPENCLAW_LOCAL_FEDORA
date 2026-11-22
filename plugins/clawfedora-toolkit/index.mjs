@@ -27,6 +27,13 @@ const definitions = [
     validator: {type:"string",enum:["terraform-fmt","terraform-validate","ansible-lint","actionlint","shellcheck","hadolint","kubeconform"]},
     files: {type:"object",minProperties:1,maxProperties:5,additionalProperties:{type:"string",maxLength:16000}}
   }, ["scope","validator","files"]],
+  ["clawfedora_sandbox_iterate", "DevOps: modifier un worktree de tâche persistant, tester via Podman rootless hors réseau, corriger puis retester (3 essais maximum). Image OCI locale approuvée par opérateur. PASS donne des références prouvées au collecteur; aucune publication.", {
+    scope: {type:"string",minLength:1,maxLength:280},
+    operation: {type:"string",enum:["inspect","edit_test"]},
+    expected_revision: {type:"string",minLength:7,maxLength:64},
+    validator: {type:"string",enum:["terraform-fmt","terraform-validate","ansible-lint","actionlint","shellcheck","hadolint","kubeconform"]},
+    files: {type:"object",minProperties:1,maxProperties:5,additionalProperties:{type:"string",maxLength:16000}}
+  }, ["scope","operation","expected_revision"]],
   ["clawfedora_doc_links", "Vérifier liens locaux et ancres de titres Markdown dans un snapshot. document est relatif au scope.", {scope: string, document: string, content: string}, ["scope","document","content"]],
   ["clawfedora_doc_review", "Préparer un audit de structure et les quatre situations de lecture d'un README, cours ou runbook. Aucun verdict sémantique ni visuel n'est attribué.", {
     kind: {type:"string",enum:["readme","procedure","course"]},
@@ -50,6 +57,7 @@ const specialists = {
   clawfedora_lint: ["ingenieur-devops", "ingenieur-securite", "redacteur-pedagogique", "auditeur-qualite"],
   clawfedora_lab_request: ["ingenieur-devops"],
   clawfedora_sandbox_validate: ["ingenieur-devops"],
+  clawfedora_sandbox_iterate: ["ingenieur-devops"],
   clawfedora_doc_links: ["redacteur-pedagogique", "auditeur-qualite"],
   clawfedora_doc_review: ["redacteur-pedagogique", "auditeur-qualite"],
   clawfedora_impact: ["chef-operations", "architecte-solutions", "ingenieur-devops",
@@ -75,7 +83,7 @@ export default {
             const result = await new Promise((resolve, reject) => {
               const child = execFile(join(runtime, "runtime/venv/bin/python"),
                 ["-m", "clawfedora.agent_tools", role, workspace, name],
-                { timeout: name === "clawfedora_sandbox_validate" ? 215000 : 10000,
+                { timeout: ["clawfedora_sandbox_validate", "clawfedora_sandbox_iterate"].includes(name) ? 215000 : 10000,
                   maxBuffer: 32000, signal, env: process.env },
                 (error, stdout) => error ? reject(new Error(stdout || "Outil refusé")) : resolve(stdout));
               child.stdin.end(input);
