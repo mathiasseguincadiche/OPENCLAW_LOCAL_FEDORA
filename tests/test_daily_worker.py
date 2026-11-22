@@ -247,8 +247,8 @@ def test_daily_patch_really_bounds_memory_and_disables_unsafe_tools(tmp_path: Pa
         "num_ctx": 32768,
         "num_predict": 4096,
         "keep_alive": "3m",
-        "think": False,
     } for model in models)
+    assert all(model["reasoning"] is True for model in models)
     # The model must never be able to update OpenClaw or chain a three-step tool search.
     assert {"gateway", "presence"} <= set(patch["tools"]["deny"])
     assert patch["tools"]["toolSearch"] is False
