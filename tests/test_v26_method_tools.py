@@ -99,3 +99,31 @@ def test_review_tools_are_workspace_scoped_and_role_restricted(tmp_path: Path) -
     report = invoke(tmp_path, writer, other, "clawfedora_doc_review",
                     {"kind": "readme", "content": "# Test"})
     assert report["reader_situations"][0]["verdict"] == "NOT_EVALUATED"
+
+
+def test_operational_scenario_is_only_a_separate_proposal() -> None:
+    from clawfedora.project_proofs import lab_request
+
+    request = {
+        "validator": "shellcheck",
+        "files": ["work/diagnostic/script.sh"],
+        "expected": "Script vérifiable statiquement",
+        "scenario": "restore",
+        "target": "VM d'essai sans données réelles",
+        "initial_state": "Archive test présente et base vide",
+        "expected_observation": "Donnée témoin relue après restauration",
+        "stop_condition": "Données inattendues ou permission absente",
+        "recovery": "Détruire uniquement la VM jetable autorisée",
+    }
+    report = lab_request(request)
+    assert report["status"] == "PROPOSED" and report["executed"] is False
+    assert report["scenario_plan"]["proof"] == "NOT_COLLECTED"
+    assert report["scenario_plan"]["state"] == "PROPOSED_NEEDS_OPERATOR_EXECUTION"
+    assert "contrôle uniquement" in report["scenario_plan"]["note"]
+    assert "scenario_plan" not in lab_request({key: value for key, value
+                                               in request.items() if key not in
+                                               {"scenario", "target", "initial_state",
+                                                "expected_observation", "stop_condition",
+                                                "recovery"}})
+    with pytest.raises(ValueError):
+        lab_request({**request, "recovery": ""})
