@@ -15,6 +15,9 @@ import yaml
 
 from clawfedora.ci_reports import summarize
 from clawfedora.core_config import AGENT_IDS
+from clawfedora.diagram_layouts import style_and_arrange
+from clawfedora.document_impact import inspect as inspect_impact
+from clawfedora.document_review import inspect_document
 from clawfedora.drawio import decorate_page, export_page_svg, inspect_diagram, multi_view_diagram
 from clawfedora.file_artifacts import formats, produce
 from clawfedora.project_common import assert_no_symlinks, read_json
@@ -27,6 +30,9 @@ TOOL_ROLES = {
     "clawfedora_diagram": {"architecte-solutions"},
     "clawfedora_lab_request": {"ingenieur-devops"},
     "clawfedora_doc_links": {"redacteur-pedagogique", "auditeur-qualite"},
+    "clawfedora_impact": {"chef-operations", "architecte-solutions", "ingenieur-devops",
+                         "redacteur-pedagogique", "auditeur-qualite"},
+    "clawfedora_doc_review": {"redacteur-pedagogique", "auditeur-qualite"},
     "clawfedora_check": {"ingenieur-devops", "ingenieur-securite", "auditeur-qualite"},
     "clawfedora_lint": set(FORMATS),
     "clawfedora_tool_status": set(AGENT_IDS),
@@ -40,6 +46,14 @@ OUTLINES = {
             "Décision attendue du spécialiste",
             "Livrable et preuve",
             "Décision de l’opérateur et prochaine pratique",
+        ],
+        "handover": [
+            "Service reçu et fonction métier",
+            "Sources, version, artefact immuable et empreintes",
+            "Topologie, dépendances, ports, identités et stockage",
+            "Démarrage, surveillance, sauvegarde et restauration",
+            "Conditions d'échec, diagnostic et retour arrière",
+            "Réception sur cible, preuves et validation humaine",
         ]
     },
     "expert-recherche": {
@@ -59,6 +73,14 @@ OUTLINES = {
             "Conséquences",
             "Réversibilité",
         ],
+        "service_contract": [
+            "Fonction applicative et responsabilités d'exploitation",
+            "Architecture actuelle et cible : ne pas les confondre",
+            "Flux, ports, frontières, secrets et états",
+            "Observabilité, dépendances et persistance",
+            "Alternatives, limites, pannes et récupération",
+            "Critères de réception à faire vérifier par le DevOps",
+        ],
     },
     "ingenieur-devops": {
         "runbook": [
@@ -71,6 +93,14 @@ OUTLINES = {
             "Reprise après échec partiel et retour arrière",
         ],
         "incident": ["Symptômes", "Impact", "Diagnostic", "Correction", "Validation", "Prévention"],
+        "operations_acceptance": [
+            "Cible isolée et accord de l'opérateur",
+            "État initial, version et configuration",
+            "Scénario de panne, répétition ou restauration",
+            "Observation attendue, journaux et métriques",
+            "Seuil d'arrêt, rollback et reprise",
+            "Preuves datées, limites et réception humaine",
+        ],
     },
     "ingenieur-securite": {
         "threats": [
@@ -88,7 +118,16 @@ OUTLINES = {
             "Portée",
             "Verdict",
             "Contrôle manquant",
-        ]
+        ],
+        "reader_review": [
+            "Source, SHA et périmètre réellement consulté",
+            "Découverte : trouver le but et commencer",
+            "Apprentissage : suivre les prérequis et contrôles",
+            "Recherche : retrouver une information ciblée",
+            "Analyse experte : choix, limites et preuves",
+            "Défauts prouvés, risques et améliorations proportionnées",
+            "Verdict par critère, limites et droit de s'arrêter",
+        ],
     },
     "redacteur-pedagogique": {
         "guide": [
@@ -205,14 +244,17 @@ def diagram(data: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(title, str) or not 1 <= len(title.strip()) <= 60 or not title.isprintable():
             raise ValueError("titre de vue invalide")
         pages[0].set("name", title)
+    layouts = []
     for page, view in zip(pages, [data, *views], strict=True):
         decorate_page(page, view)
+        layouts.append(style_and_arrange(page, view))
     drawio = ET.tostring(document, encoding="unicode")
     inspect_diagram(drawio)
     exports = [(page.attrib["name"], export_page_svg(page))
                for page in ET.fromstring(drawio).findall("diagram")]
     return {
         "drawio": drawio, "views_generated": len(exports), "svg_views": exports,
+        "compositions": layouts,
         "svg_view": "svg: vue principale uniquement; svg_views couvre toutes les vues",
         "svg": exports[0][1], "renderer": "drawio-xml", "svg_renderer": "clawfedora-svg/1",
         "scope": "export des formes du générateur; rendu dans Draw.io et support final à vérifier",
@@ -300,6 +342,19 @@ def invoke(
         from clawfedora.document_links import check_links
 
         return check_links(root, data)
+    if tool == "clawfedora_doc_review":
+        return inspect_document(data.get("content"), data.get("kind"))
+    if tool == "clawfedora_impact":
+        scope = data.get("scope")
+        changed = data.get("changed_paths")
+        if (not isinstance(scope, str) or not scope or Path(scope).is_absolute()
+                or ".." in Path(scope).parts or not isinstance(changed, list)):
+            raise ValueError("snapshot relatif et chemins modifiés requis")
+        target = root / scope
+        if not target.is_dir() or not target.resolve().is_relative_to(root.resolve()):
+            raise ValueError("snapshot hors workspace")
+        assert_no_symlinks(target, label="snapshot documentaire")
+        return inspect_impact(target, changed)
     if tool == "clawfedora_tool_status":
         return {
             "available": available(),

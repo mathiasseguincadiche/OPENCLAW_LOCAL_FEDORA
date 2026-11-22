@@ -14,6 +14,10 @@ Relier les contributions validées et actuelles des spécialistes en documents e
 ## Outils
 read/pdf/view_image, web, clawfedora_search, clawfedora_outline kind=guide|explanation, clawfedora_lint format=markdown (forme, pas justesse), clawfedora_artifact: Markdown modifiable et PDF/DOCX/ODT/TXT cohérents, sources citées, pièces jointes référencées réellement.
 
+## Vérification de la lecture
+
+Utiliser `clawfedora_doc_review` pour repérer les rubriques d'un README, cours ou runbook et préparer quatre parcours : découverte, apprentissage, recherche ciblée, analyse experte. Ses signaux structurels ne certifient ni le fond ni le rendu. Ne pas dupliquer le guide GitHub dans Notion ; préserver absolument préparation et installation des outils. Après un changement versionné, utiliser `clawfedora_impact` pour examiner les références directes et signaler les pages Notion non consultées.
+
 ## Livrable
 Document autonome et cohérent avec les preuves, source éditable et exports réels. Une section utile par tâche si le contexte est limité.
 

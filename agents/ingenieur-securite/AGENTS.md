@@ -3,6 +3,10 @@
 ## Mission
 Évaluer actifs, flux, scénarios, exposition, privilèges, secrets, dépendances, images, IaC, CI/CD, sauvegardes et risque résiduel; prioriser des corrections défensives proportionnées au PC personnel. Sur Fedora, préserver SELinux Enforcing, pare-feu, loopback et la distinction service utilisateur/système. Un modèle n'est pas un scanner: aucune analyse ne garantit l'absence de vulnérabilité.
 
+## Proportionner au contexte
+
+Définir d'abord s'il s'agit d'un exemple, d'un laboratoire isolé, d'un service privé ou d'un service exposé. Relier le risque à un actif, un accès et une surface réellement présents. Ne pas imposer des composants de production à un exercice simple ; conserver SELinux, firewalld et les autorisations strictes quel que soit le contexte.
+
 ## Méthode
 1. Définir le périmètre autorisé: actifs, flux, menaces, hypothèses, protections existantes.
 2. N'inspecter que des extraits assainis; ne jamais réclamer clés, certificats privés, jetons, .env ou dumps de secrets.

@@ -274,17 +274,32 @@ def decorate_page(page: ET.Element, data: dict[str, Any]) -> None:
 
 
 def export_page_svg(page: ET.Element) -> str:
-    """SVG export of the editable shapes/waypoints supported by our version-1 generator."""
+    """Inert SVG preview of Draw.io cells, typed flows and bounded compositions.
+
+    Structural export only: browser legibility and infrastructure truth need
+    independent review on the real target. All labels remain XML-escaped.
+    """
     root = page.find("mxGraphModel/root")
     assert root is not None
     boxes: dict[str, tuple[int, int, int, int]] = {}
     svg = ET.Element("svg", xmlns="http://www.w3.org/2000/svg", role="img")
     ET.SubElement(svg, "title").text = page.get("name")
-    ET.SubElement(svg, "desc").text = "Composants, frontières et flux de la vue Draw.io."
+    ET.SubElement(svg, "desc").text = (
+        "Schéma de principe : composants, frontières et flux, sans preuve de déploiement."
+    )
     ET.SubElement(svg, "rect", width="100%", height="100%", fill="#ffffff")
-    marker = ET.SubElement(ET.SubElement(svg, "defs"), "marker", id="arrow", markerWidth="8",
-                           markerHeight="8", refX="8", refY="4", orient="auto")
-    ET.SubElement(marker, "path", d="M0 0 L8 4 L0 8 Z", fill="#367a93")
+    marker = ET.SubElement(ET.SubElement(svg, "defs"), "marker", id="arrow",
+                           markerWidth="8", markerHeight="8", refX="8", refY="4",
+                           orient="auto")
+    ET.SubElement(marker, "path", d="M0 0 L8 4 L0 8 Z", fill="#33445D")
+
+    def style(cell: ET.Element, key: str, fallback: str) -> str:
+        for field in cell.get("style", "").split(";"):
+            name, sep, value = field.partition("=")
+            if sep and name == key and value:
+                return value
+        return fallback
+
     for cell in root.findall("mxCell[@vertex='1']"):
         g = cell.find("mxGeometry")
         assert g is not None
@@ -294,40 +309,70 @@ def export_page_svg(page: ET.Element) -> str:
         ident = cell.attrib["id"]
         boxes[ident] = x, y, w, h
         frame = ident.startswith("group")
-        ET.SubElement(svg, "rect", x=str(x), y=str(y), width=str(w), height=str(h), rx="8",
-                      fill="#ecf4f8" if frame else "#173a56", stroke="#367a93")
-        label = ET.SubElement(svg, "text", {"x": str(x + w // 2), "y": str(y + (21 if frame else 29)),
-                              "fill": "#173a56" if frame else "#ffffff",
-                              "text-anchor": "middle", "font-family": "sans-serif",
-                              "font-size": "13"})
-        label.text = cell.get("value", "")
-    names = {cell.attrib["id"]: cell.get("value", "") for cell in root.findall("mxCell[@vertex='1']")}
-    height = max(y + h for _, y, _, h in boxes.values()) + 20
-    legend_y = height
-    markers = []
+        fill = "#ecf4f8" if frame else style(cell, "fillColor", "#173a56")
+        stroke = "#367a93" if frame else style(cell, "strokeColor", "#367a93")
+        font = "#173a56" if frame else style(cell, "fontColor", "#ffffff")
+        if cell.get("clawfedoraKind") == "database":
+            # Recognizable storage shape even in the SVG preview.
+            ET.SubElement(svg, "rect", x=str(x), y=str(y + 8), width=str(w),
+                          height=str(max(1, h - 16)), fill=fill, stroke=stroke)
+            for top in (y + 8, y + h - 8):
+                ET.SubElement(svg, "ellipse", cx=str(x + w // 2), cy=str(top),
+                              rx=str(w // 2), ry="8", fill=fill, stroke=stroke)
+        else:
+            ET.SubElement(svg, "rect", x=str(x), y=str(y), width=str(w),
+                          height=str(h), rx="8", fill=fill, stroke=stroke)
+        value = cell.get("value", "")
+        # SVG has no automatic wrapping. Keep labels inside the actual card.
+        max_chars = max(12, (w - 22) // 7)
+        lines = wrap(value, max_chars, break_long_words=True) or [""]
+        if len(lines) > max(1, (h - 8) // 16):
+            raise ValueError("Draw.io: libellé illisible pour la taille de la forme")
+        top = y + 18 if frame else y + (h - 16 * len(lines)) // 2 + 13
+        label = ET.SubElement(svg, "text", {"x": str(x + w // 2),
+                              "fill": font, "text-anchor": "middle",
+                              "font-family": "sans-serif", "font-size": "13"})
+        for index, line in enumerate(lines):
+            ET.SubElement(label, "tspan", {"x": str(x + w // 2),
+                          "y": str(top + index * 16)}).text = line
+
+    names = {cell.attrib["id"]: cell.get("value", "")
+             for cell in root.findall("mxCell[@vertex='1']")}
+    max_x = max(x + w for x, _, w, _ in boxes.values()) + 28
+    legend_y = max(y + h for _, y, _, h in boxes.values()) + 24
+    markers: list[tuple[str, str, str]] = []
     for index, cell in enumerate(root.findall("mxCell[@edge='1']"), 1):
-        sx, sy, _, sh = boxes[cell.attrib["source"]]
-        tx, ty, _, th = boxes[cell.attrib["target"]]
+        sx, sy, sw, sh = boxes[cell.attrib["source"]]
+        tx, ty, tw, th = boxes[cell.attrib["target"]]
+        src_cx, src_cy = sx + sw // 2, sy + sh // 2
+        dst_cx, dst_cy = tx + tw // 2, ty + th // 2
+        if abs(dst_cx - src_cx) > abs(dst_cy - src_cy):
+            start = (sx + sw if dst_cx >= src_cx else sx, src_cy)
+            end = (tx if dst_cx >= src_cx else tx + tw, dst_cy)
+        else:
+            start = (src_cx, sy + sh if dst_cy >= src_cy else sy)
+            end = (dst_cx, ty if dst_cy >= src_cy else ty + th)
         points = cell.findall("mxGeometry/Array/mxPoint")
         via = " ".join(f"L {p.attrib['x']} {p.attrib['y']}" for p in points)
-        ET.SubElement(svg, "path", {"d": f"M {sx} {sy + sh // 2} {via} L {tx} {ty + th // 2}",
-                      "fill": "none", "stroke": "#367a93", "marker-end": "url(#arrow)"})
+        stroke = style(cell, "strokeColor", "#367a93")
+        ET.SubElement(svg, "path", {"d": f"M {start[0]} {start[1]} {via} "
+                          f"L {end[0]} {end[1]}", "fill": "none", "stroke": stroke,
+                          "stroke-width": "2", "marker-end": "url(#arrow)"})
         if text := cell.get("value"):
-            mid = (sy + sh // 2 + ty + th // 2) // 2
-            markers.append((points[0].attrib["x"], mid, str(index)))
+            position = points[0].attrib if points else {"x": str(start[0]), "y": str(start[1])}
+            markers.append((position["x"], position["y"], str(index)))
             source, target = (names[cell.attrib[key]] for key in ("source", "target"))
-            lines = [*wrap(f"{index}. {source} → {target}", 62), *wrap(text, 62)]
+            lines = [*wrap(f"{index}. {source} → {target}", 75), *wrap(text, 75)]
             for line_number, line in enumerate(lines):
                 legend_y += 19
                 ET.SubElement(svg, "text", {"x": "26" if line_number == 0 else "42",
-                              "y": str(legend_y), "fill": "#173a56",
+                              "y": str(legend_y), "fill": stroke,
                               "font-family": "sans-serif", "font-size": "14"}).text = line
             legend_y += 8
-    # Draw identifiers last so overlapping routes cannot hide their labels.
     for lane_x, mid, number in markers:
-        ET.SubElement(svg, "circle", cx=lane_x, cy=str(mid), r="7", fill="#173a56")
-        ET.SubElement(svg, "text", {"x": lane_x, "y": str(mid + 3), "fill": "#ffffff",
-                      "text-anchor": "middle", "font-family": "sans-serif",
-                      "font-size": "9"}).text = number
-    svg.set("viewBox", f"0 0 720 {legend_y + (12 if markers else 0)}")
+        ET.SubElement(svg, "circle", cx=lane_x, cy=mid, r="9", fill="#173a56")
+        ET.SubElement(svg, "text", {"x": lane_x, "y": str(int(mid) + 4),
+                      "fill": "#ffffff", "text-anchor": "middle",
+                      "font-family": "sans-serif", "font-size": "10"}).text = number
+    svg.set("viewBox", f"0 0 {max(720, max_x)} {legend_y + (12 if markers else 0)}")
     return ET.tostring(svg, encoding="unicode")

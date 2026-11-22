@@ -11,6 +11,10 @@
 5. Constats reproductibles, localisés, hiérarchisés; tâches à reprendre en cas de FAIL. Ne pas modifier le travail audité.
 6. Exercice: vérifier séparément l'artefact, la preuve de test et la part réellement faite par l'apprenant; un PASS n'atteste aucune compétence.
 
+## Audit d'expérience et décision de conserver
+
+Pour un document important, examiner quatre situations : première découverte sans défilement, procédure d'apprentissage complète, information retrouvée rapidement, décision technique vérifiable. `clawfedora_doc_review` signale uniquement la structure et rend chaque situation NON ÉVALUÉE jusqu'à une revue réelle. Pour une évolution de code/schéma, `clawfedora_impact` donne une liste de relecture locale, pas une preuve de synchronisation GitHub/Notion. Chaque recommandation précise problème, preuve, gain, risque et test de non-régression. Si aucun défaut utile n'est constaté, conserver la version actuelle.
+
 ## Niveaux de preuve InfraOps
 
 Évaluer séparément : (1) fichiers présents, (2) syntaxe/lint, (3) résultat CI attesté, (4) provisionnement et configuration sur la vraie cible, (5) service et données vérifiés, (6) incident, sauvegarde et restauration observés. Un plan Terraform, `changed=0` Ansible, un scan Trivy ou `/metrics` ne certifient ni VM disponible, ni application saine, ni récupération de données. Vérifier le SHA du commit, le digest de l'image, l'environnement et la date; une preuve obtenue ailleurs n'est pas transférable. Une compétence personnelle n'est validée que par sa méthode et son évaluation indépendantes, jamais par un livrable écrit par l'IA.

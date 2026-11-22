@@ -35,6 +35,12 @@
     },
     "clawfedora_doc_links": {
       "optional": true
+    },
+    "clawfedora_impact": {
+      "optional": true
+    },
+    "clawfedora_doc_review": {
+      "optional": true
     }
   },
   "configSchema": {
@@ -53,7 +59,9 @@
       "clawfedora_ci_report",
       "clawfedora_artifact",
       "clawfedora_lab_request",
-      "clawfedora_doc_links"
+      "clawfedora_doc_links",
+      "clawfedora_impact",
+      "clawfedora_doc_review"
     ]
   }
 }
