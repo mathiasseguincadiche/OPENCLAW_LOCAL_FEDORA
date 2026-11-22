@@ -28,7 +28,8 @@ if [[ "$ACTION" == stop ]]; then
   echo "OPENWEBUI_PLAN action=stop"
   ((APPLY == 1)) || { echo "DRY_RUN=PASS"; exit 0; }
   ((EUID != 0)) || { echo "ERREUR: lancer avec le compte Fedora habituel" >&2; exit 2; }
-  systemctl --user stop clawfedora-dashboard.service clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-speech.service
+  # Native Atelier remains available when the optional WebUI container stops.
+  systemctl --user stop clawfedora-webui.service clawfedora-webui-bridge.service clawfedora-speech.service
   echo "OPENWEBUI_RESULT=PASS"
   exit 0
 fi
