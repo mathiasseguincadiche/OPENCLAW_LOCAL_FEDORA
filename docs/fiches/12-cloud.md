@@ -24,3 +24,5 @@ Le retrait arrête l'ancienne passerelle et retire les clés et l'activation du 
 **Zéro facturation API pour les inférences exécutées localement**, pas de garantie d'équivalence avec les meilleurs modèles cloud. Les performances et la mémoire réelle des deux modèles doivent être réceptionnées sur la B580. Les permissions système restent strictes, l'exécution autonome générale n'est pas encore activée.
 
 L'historique Git conserve la description de l'ancien mode hybride. Les commandes `cloud-enable` et `cloud-set-key` ne font plus partie du menu actuel.
+
+Pour évaluer l'accompagnement pédagogique, utiliser [EVALUATION_PEDAGOGIE.md](../EVALUATION_PEDAGOGIE.md), une grille humaine et non un score attribué automatiquement par le modèle.
