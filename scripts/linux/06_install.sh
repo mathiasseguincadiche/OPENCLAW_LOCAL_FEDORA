@@ -32,7 +32,7 @@ INSTALL_PLAN Fedora=45 GNOME=51 runtime=$RUNTIME_ROOT
   1. paquets Fedora, dossier de données et environnement Python
   2. Ollama $OLLAMA_PIN, configuré pour la B580 en Vulkan
   3. OpenClaw $OPENCLAW_PIN exactement
-  4. téléchargement du modèle Qwen
+  4. téléchargement des modèles Qwen et Ornith
   5. consignes des sept rôles et configuration OpenClaw
   6. service OpenClaw (Gateway) du compte utilisateur
   7. contrôle de santé avec une courte génération
