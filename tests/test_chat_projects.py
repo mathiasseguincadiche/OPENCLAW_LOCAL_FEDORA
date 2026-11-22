@@ -14,7 +14,6 @@ import pytest
 from test_daily_worker import planned as planned
 
 from clawfedora import chat_projects, project_cloud
-from clawfedora.cloud_budget import load_ledger
 from clawfedora.cloud_state import write_activation
 from clawfedora.project_worker import worker_lock
 from clawfedora.webui_bridge import (
@@ -136,14 +135,21 @@ def test_budget_command_never_bills_or_uses_a_model(
 
 def test_historical_budget_ledger_is_not_read_or_leaked(
     chat: tuple[Any, Runner, Path, Path], tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    from clawfedora import cloud_budget
+
     server, runner, runtime, _ = chat
-    ledger = load_ledger(runtime, ROOT)
-    month = ledger.summary().month
-    ledger.path(month).parent.mkdir(parents=True, exist_ok=True)
+    old_path = runtime / "state/cloud/ledger-2026-11.jsonl"
+    old_path.parent.mkdir(parents=True, exist_ok=True)
     private_file = tmp_path / "private-budget.jsonl"
     private_file.write_text('{"secret":"DO_NOT_DISCLOSE"}')
-    ledger.path(month).symlink_to(private_file)
+    old_path.symlink_to(private_file)
+
+    def disallow_ledger(*_args: Any, **_kwargs: Any) -> None:
+        raise AssertionError("Une commande locale ne doit jamais lire l'ancien budget cloud")
+
+    monkeypatch.setattr(cloud_budget, "load_ledger", disallow_ledger)
     code, response = ask(server, MODEL_IDS[0], ("user", "!budget"))
     assert code == 200 and "aucun budget API" in response
     assert "DO_NOT_DISCLOSE" not in response
