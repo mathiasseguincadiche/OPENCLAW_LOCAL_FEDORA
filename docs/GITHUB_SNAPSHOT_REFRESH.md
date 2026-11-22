@@ -69,12 +69,14 @@ devient **pas** une preuve d'absence de vulnérabilité ou de changement.
   ne sont jamais modifiés ni déclarés automatiquement vérifiés.
 
 **IMPORTANT : la révision enregistrée est un snapshot conservé pour revue,
-pas encore un changement automatique des sources du plan multi-agent.**
-Le moteur de tâches et sa recherche restent sur le snapshot initial.
-Il faut encore une étape séparée d'approbation/requalification de
-l'usage de cette nouvelle version par les agents. Cela évite de faire
-passer une ancienne analyse ou une ancienne preuve pour une validation
-du nouveau code.
+et non une modification automatique du plan multi-agent.**
+Le moteur de tâches, les décisions et leurs preuves restent liés à leurs
+sources initiales. La [recherche locale transversale](RECHERCHE_LOCALE_SOURCES.md)
+peut désormais consulter les fichiers de la dernière révision **approuvée**
+pour répondre à une question dans un chat local, sans indexer ces fichiers
+ni remplacer les sources d'une tâche. Cette lecture de documentation ne
+valide ni le nouveau code, ni les preuves de l'ancienne version.
+Les modèles cloud n'obtiennent pas cette nouvelle révision par ce mécanisme.
 
 Après chaque mise à jour, vérifier manuellement si les objectifs,
 configurations et preuves antérieurs couvrent toujours le nouveau SHA.

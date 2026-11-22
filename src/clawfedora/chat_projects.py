@@ -26,6 +26,7 @@ from clawfedora.knowledge import search
 from clawfedora.milestone_evidence import report as milestone_evidence_report
 from clawfedora.project_common import assert_no_symlinks, project_path, read_json, validate_task_id
 from clawfedora.project_intake import validate_input_integrity
+from clawfedora.project_retrieval import retrieve
 from clawfedora.project_worker import worker_lock
 
 PROJECT_MARKER = "📁 Projet : "
@@ -389,7 +390,10 @@ def _deliverables(runtime: Path, project: Path) -> list[str]:
     return found[:20]
 
 
-def project_context(repo_root: Path, runtime: Path, project: Path, question: str) -> str:
+def project_context(
+    repo_root: Path, runtime: Path, project: Path, question: str, *,
+    include_revisions: bool = False,
+) -> str:
     """Read-only context for the role: summary, plan, deliverables and passages for the question."""
     from clawfedora.usage_view import project_hint
 
@@ -405,11 +409,17 @@ def project_context(repo_root: Path, runtime: Path, project: Path, question: str
     except (OSError, ValueError, KeyError):
         integrity_failures = ["contrôle indisponible"]
     hits: list[dict[str, Any]] = []
+    retrieval_failed = False
     if not integrity_failures:
         try:
-            hits = [h for h in search(repo_root, project, question) if h.get("stale") is False][:4]
+            candidate_hits = (
+                retrieve(repo_root, project, question)
+                if include_revisions else search(repo_root, project, question)
+            )
+            hits = [h for h in candidate_hits if h.get("stale") is False][:4]
         except (OSError, ValueError, KeyError):
             hits = []
+            retrieval_failed = True
     value: dict[str, Any] = {
         "project": {
             "id": project.name,
@@ -421,16 +431,24 @@ def project_context(repo_root: Path, runtime: Path, project: Path, question: str
         "tasks": _task_view(runtime, project),
         "decision": (project_hint(runtime, project) if manifest.get("project_id") == project.name
                      else "Projet à identifier"),
-        "source_integrity": "PASS" if not integrity_failures else "UNVERIFIED_CHANGED",
+        "source_integrity": (
+            "UNVERIFIED_CHANGED" if integrity_failures else
+            "RETRIEVAL_UNVERIFIED" if retrieval_failed else "PASS"
+        ),
         "notes_acceptees": _notes(runtime, project),
         "deliverables": deliverables,
+        "retrieval_scope": (
+            "LOCAL_APPROVED_GITHUB_REVISIONS_AND_INITIAL_PROJECT_SOURCES"
+            if include_revisions else "INITIAL_PROJECT_SOURCES_ONLY"
+        ),
         "passages": [
             {"path": h["path"], "page": h.get("page"), "line": h.get("line"),
              "kind": h.get("kind"), "text": str(h["text"])[:700], "stale": False,
              "source_sha256": h.get("source_sha256"),
              "representation_path": h.get("representation_path"),
              "representation_sha256": h.get("representation_sha256"),
-             "start_char": h.get("start_char")}
+             "start_char": h.get("start_char"),
+             "repository": h.get("repository"), "commit": h.get("commit")}
             for h in hits
         ],
     }
@@ -446,8 +464,9 @@ def project_context(repo_root: Path, runtime: Path, project: Path, question: str
         "le contexte ne suffit pas, dis-le. Les passages périmés ne sont pas des preuves. "
         "La page et la ligne décrivent la représentation indexée; vérifie la source originale "
         "avant de conclure. Un index ancien ou modifié peut nécessiter une réindexation. "
-        "Si source_integrity vaut UNVERIFIED_CHANGED, demander de réindexer les sources "
-        "avant toute citation.\n" + json.dumps(value, ensure_ascii=False)
+        "Si source_integrity n’est pas PASS, refuser de citer des extraits comme validés "
+        "et recommander de vérifier l’intégrité et de réindexer les sources.\n"
+        + json.dumps(value, ensure_ascii=False)
     )
 
 
