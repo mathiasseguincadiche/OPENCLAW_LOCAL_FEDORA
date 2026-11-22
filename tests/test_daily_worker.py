@@ -339,7 +339,7 @@ def test_changed_output_blocks_audit_before_inference(planned: tuple[Path, Path]
          "objective": "Corriger", "depends_on": [],
          "expected_outputs": ["deliverables/code/report.md"],
          "acceptance_criteria": ["Validation mesurée"]},
-        {"id": "docs", "role": "redacteur-pedagogique", "title": "Documentation",
+        {"id": "docs", "role": "expert-recherche", "title": "Documentation",
          "objective": "Expliquer", "depends_on": [],
          "expected_outputs": ["deliverables/docs/report.md"],
          "acceptance_criteria": ["Sources identifiées"]},
