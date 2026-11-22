@@ -280,8 +280,8 @@ class ProjectRunner:
     def __call__(self, role: str, prompt: str, session: str) -> dict[str, Any]:
         state = consent_state(self.repo_root, self.runtime, self.project)
         if state["state"] == "none":
-            options = {"task_tier": self.task_tier} if self.task_tier is not None else {}
-            response = self.base(role, prompt, session, **options)
+            local_options = {"task_tier": self.task_tier} if self.task_tier is not None else {}
+            response = self.base(role, prompt, session, **local_options)
             self._log(role, session, "local", 0.0)
             return response  # type: ignore[no-any-return]
         if state["state"] != "granted":
