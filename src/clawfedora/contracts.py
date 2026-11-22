@@ -110,7 +110,10 @@ def validate_repository(root: Path) -> ContractReport:
     fleet_policy = models.get("fleet_policy", {})
     if int(fleet_policy.get("exact_required_model_count", 0)) != 2:
         failures.append("models: deux modèles locaux requis")
-    if fleet_policy.get("local_only") is not True or fleet_policy.get("cloud_models_supported") is not False:
+    if (
+        fleet_policy.get("local_only") is not True
+        or fleet_policy.get("cloud_models_supported") is not False
+    ):
         failures.append("models: fonctionnement exclusivement local requis")
     if any(value.get("provider") != "ollama" for value in model_map.values()):
         failures.append("models: aucun fournisseur distant autorisé")
