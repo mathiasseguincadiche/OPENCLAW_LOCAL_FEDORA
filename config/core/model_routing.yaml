@@ -9,6 +9,7 @@ policy:
   cloud_alias: cloud-main
   supported_local_aliases:
   - qwen-max
+  - ornith-code
   no_hidden_small_model_fallback: true
   local_to_cloud_fallback: forbidden
 agents:
@@ -25,8 +26,8 @@ agents:
     local_fallback: qwen-max
     cloud_primary: cloud-main
   ingenieur-devops:
-    local_primary: qwen-max
-    local_fallback: qwen-max
+    local_primary: ornith-code
+    local_fallback: ornith-code
     cloud_primary: cloud-main
   ingenieur-securite:
     local_primary: qwen-max
