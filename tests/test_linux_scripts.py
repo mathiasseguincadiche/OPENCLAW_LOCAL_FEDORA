@@ -91,7 +91,7 @@ def test_openclaw_config_is_dry_run_by_default_and_fail_closed() -> None:
     assert '[[ "$OPENCLAW_VERSION" == *"$OPENCLAW_PIN"* ]]' not in text
     assert "require_daily_model" in text
     assert "--backend" not in text
-    assert "exactement un modèle quotidien" in text
+    assert "exactement deux modèles locaux" in text
     assert 'config patch --file "$PATCH_PATH" --dry-run' in text
     assert "config validate --json" in text
     assert "agents list --json" in text
