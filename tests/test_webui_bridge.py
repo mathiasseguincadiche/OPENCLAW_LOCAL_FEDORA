@@ -345,60 +345,12 @@ def test_project_images_are_sanitized_and_never_forward_media_urls() -> None:
     assert "image_url" not in prompt
 
 
-def test_cloud_long_response_is_not_rejected_by_local_64k_limit(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    # A 16K-token cloud response can exceed 64 KiB in UTF-8. It must be accepted while
-    # keeping the small-model limit unchanged for the local route.
-    def fake_answer(*_args: Any) -> tuple[dict[str, str], str]:
-        return {"text": "Réponse détaillée. " * 6_000}, ""
-
-    monkeypatch.setattr(BridgeHandler, "_answer", fake_answer)
+def test_local_bridge_cannot_enable_cloud_by_injected_callback(tmp_path: Path) -> None:
     with make_server(
         ROOT, tmp_path, TOKEN, 0, cloud_ready=lambda: True,
-        runner=lambda *_args: {"text": "non utilisé"},
+        runner=lambda *_args: {"text": "test"},
     ) as server:
-        thread = threading.Thread(target=server.serve_forever, daemon=True)
-        thread.start()
-        payload = {
-            "model": CLOUD_MODEL_IDS[0],
-            "messages": [{"role": "user", "content": "Analyse détaillée"}],
-        }
-        status, raw = request(server, "/v1/chat/completions", payload)
-        assert status == 200
-        reply = json.loads(raw)["choices"][0]["message"]["content"]
-        assert len(reply.encode()) > 64_000
-        assert "Réponse détaillée." in reply
-        server.shutdown()
-        thread.join(timeout=5)
-
-
-def test_full_deepseek_window_accepts_large_history_but_qwen_stays_bounded(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    prompts: list[int] = []
-
-    def fake_answer(
-        _handler: Any, _role: str, _context: str, prompt: str, *_args: Any
-    ) -> tuple[dict[str, str], str]:
-        prompts.append(len(prompt.encode()))
-        return {"text": "Historique long admis."}, ""
-
-    monkeypatch.setattr(BridgeHandler, "_answer", fake_answer)
-    with make_server(
-        ROOT, tmp_path, TOKEN, 0, cloud_ready=lambda: True,
-        runner=lambda *_args: {"text": "non utilisé"},
-    ) as server:
-        thread = threading.Thread(target=server.serve_forever, daemon=True)
-        thread.start()
-        long_history = [{"role": "user", "content": "A" * 1_200_000}]
-        cloud_payload = {"model": CLOUD_MODEL_IDS[0], "messages": long_history}
-        assert request(server, "/v1/chat/completions", cloud_payload)[0] == 200
-        assert prompts and prompts[0] > 1_048_576
-        local_payload = {"model": MODEL_IDS[0], "messages": long_history}
-        assert request(server, "/v1/chat/completions", local_payload)[0] == 400
-        server.shutdown()
-        thread.join(timeout=5)
+        assert server.cloud_ready() is False
 
 
 @pytest.mark.parametrize("extension", ["tf", "odt"])
@@ -433,7 +385,7 @@ def test_standalone_uploads_reach_only_the_local_chat(tmp_path: Path, extension:
         assert not (tmp_path / "projects").exists()
         payload["model"] = CLOUD_MODEL_IDS[0]
         status, answer = request(server, "/v1/chat/completions", payload)
-        assert status == 200 and "uniquement en chat local" in answer
+        assert status == 400 and "cloud" in answer.lower()
         assert len(prompts) == 1
         server.shutdown()
         thread.join(timeout=5)
