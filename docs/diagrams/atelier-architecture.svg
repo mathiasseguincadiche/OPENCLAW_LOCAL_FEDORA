@@ -77,6 +77,6 @@
 <line x1="290" y1="699" x2="339" y2="699" stroke="#b6783a" stroke-width="3" stroke-dasharray="9 7" marker-end="url(#cloudArrow)"/>
 <text x="358" y="703" font-size="14" fill="#8c5b2d">Ornith · DevOps</text>
 <text x="661" y="703" font-size="14" fill="#3c6074">Une seule génération à la fois · permissions et preuves</text>
-<text x="40" y="754" font-size="13" fill="#4a6272">Schéma logique, pas preuve de déploiement. Aucune route OpenRouter active.</text>
+<text x="40" y="754" font-size="13" fill="#4a6272">Schéma logique, pas preuve de déploiement. Aucune route externe active.</text>
 </g>
 </svg>
