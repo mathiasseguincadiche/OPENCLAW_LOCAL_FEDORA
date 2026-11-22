@@ -75,7 +75,8 @@ export default {
             const result = await new Promise((resolve, reject) => {
               const child = execFile(join(runtime, "runtime/venv/bin/python"),
                 ["-m", "clawfedora.agent_tools", role, workspace, name],
-                { timeout: name === "clawfedora_sandbox_validate" ? 215000 : 10000,\n                  maxBuffer: 32000, signal, env: process.env },
+                { timeout: name === "clawfedora_sandbox_validate" ? 215000 : 10000,
+                  maxBuffer: 32000, signal, env: process.env },
                 (error, stdout) => error ? reject(new Error(stdout || "Outil refusé")) : resolve(stdout));
               child.stdin.end(input);
             });
