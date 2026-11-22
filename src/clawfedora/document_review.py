@@ -57,9 +57,8 @@ def inspect_document(content: str, kind: str) -> dict[str, Any]:
             headings.append({"line": line_number, "level": len(match.group(1)),
                              "title": match.group(2)[:140]})
     levels = [int(item["level"]) for item in headings]
-    skipped = [item["line"] for prev, item in zip(levels, headings[1:])
+    skipped = [item["line"] for prev, item in zip(levels, headings[1:], strict=False)
                if int(item["level"]) > prev + 1]
-    headings_text = "\n".join(str(item["title"]) for item in headings).casefold()
     indicators: list[dict[str, Any]] = []
     for label, variants in KINDS[kind].items():
         found = [item["line"] for item in headings if any(
