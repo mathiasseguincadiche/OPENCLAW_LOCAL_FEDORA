@@ -25,8 +25,8 @@ Installer et utiliser:
   precheck              Pré-check matériel, OS, disque et dépendances (lecture seule)
   install                Pré-check puis installation complète
   health                 Vérifier les services (rapport détaillé)
-  quick-check            Vérification courte : Qwen, B580, WebUI, projets
-  acceptance-32k         Réception Qwen près de la limite 32K (--apply explicite)
+  quick-check            Vérification courte : Qwen/Ornith, B580, Atelier, projets
+  acceptance-32k         Réception des modèles locaux près de 32K (--apply explicite)
   context-probe          Mesurer si le contexte tient sur le GPU, et la vitesse
                          (--context 8192|16384|32768 pour comparer une autre taille)
   atelier-install        Installer l'interface unique native (sans WebUI)
@@ -38,17 +38,7 @@ Installer et utiliser:
   web-status             Mode Web désiré (ne certifie pas le réseau)
   web-private            Couper la recherche Web des sept rôles, appliquer et vérifier
   web-connected          Réactiver volontairement la recherche Web des rôles
-  cloud-status           État du cloud optionnel, de la clé et du budget du mois
-  cloud-profile          Afficher le profil de raisonnement cloud actuel
-  cloud-set-profile      Préparer/changer le profil via --value
-                         rapide|equilibre|soutenu|approfondi, et --apply pour confirmer
-  cloud-model            Afficher les modèles cloud et celui qui répond (auto, standard ou expert)
-  cloud-set-model        Préparer/changer le modèle cloud via --value auto|standard|expert,
-                         et --apply pour confirmer
-  cloud-set-key          Enregistrer la clé OpenRouter (saisie masquée)
-  cloud-enable           Contrôler puis activer le cloud (--value = limite de la clé en $)
-  cloud-disable          Désactiver le cloud et arrêter la passerelle
-  cloud-reconcile        Enregistrer le montant réellement facturé (--value = euros)
+  local-retire-cloud     Arrêter et retirer OpenRouter (--apply ; clés locales supprimées)
   dashboard              Ouvrir l'atelier Projets dans ce terminal
   gaming                 Libérer le GPU pour jouer
   daily                  Reprendre les services IA
@@ -68,7 +58,7 @@ Diagnostiquer:
 
 Étapes d'installation, utiles séparément pour dépanner:
   bootstrap              Paquets Fedora, dossiers et environnement Python
-  models                 Télécharger le modèle Qwen
+  models                 Télécharger Qwen et Ornith
   agents                 Déployer les consignes des sept rôles
   configure-openclaw     Appliquer la configuration OpenClaw
 EOF_USAGE
@@ -168,35 +158,7 @@ case "$ACTION" in
     ((APPLY == 0)) || args+=(--apply)
     bash "$LINUX/17_web_access.sh" "${ACTION#web-}" "${args[@]}"
     ;;
-  cloud-status|cloud-set-key|cloud-enable|cloud-disable|cloud-reconcile)
-    args=()
-    [[ -z "$VALUE" ]] || args+=(--value "$VALUE")
-    with_apply 14_cloud.sh "${ACTION#cloud-}" "${args[@]}"
-    ;;
-  cloud-profile)
-    run_module cloud_cli --runtime-root "$(claw_runtime_root)" profile
-    ;;
-  cloud-set-profile)
-    [[ -n "$VALUE" ]] || {
-      echo "ERREUR: cloud-set-profile exige --value rapide|equilibre|soutenu|approfondi" >&2
-      exit 2
-    }
-    args=(--runtime-root "$(claw_runtime_root)" set-profile --name "$VALUE")
-    ((APPLY == 1)) && { claw_require_storage "$(claw_runtime_root)"; args+=(--apply); }
-    run_module cloud_cli "${args[@]}"
-    ;;
-  cloud-model)
-    run_module cloud_cli --runtime-root "$(claw_runtime_root)" model
-    ;;
-  cloud-set-model)
-    [[ -n "$VALUE" ]] || {
-      echo "ERREUR: cloud-set-model exige --value auto|standard|expert" >&2
-      exit 2
-    }
-    args=(--runtime-root "$(claw_runtime_root)" set-model --name "$VALUE")
-    ((APPLY == 1)) && { claw_require_storage "$(claw_runtime_root)"; args+=(--apply); }
-    run_module cloud_cli "${args[@]}"
-    ;;
+  local-retire-cloud) with_apply 14_cloud.sh retire ;;
   dashboard) claw_require_storage "$(claw_runtime_root)"; run_cli dashboard --serve ;;
   gaming) with_apply 11_daily_profile.sh gaming ;;
   daily) with_apply 11_daily_profile.sh daily ;;
