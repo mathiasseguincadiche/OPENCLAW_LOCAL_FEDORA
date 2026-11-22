@@ -6,6 +6,6 @@ clawfedora_artifact: fichiers locaux et references. Tous les rôles: Markdown/TX
 
 clawfedora_check et clawfedora_lint: contrôles statiques permis, lire résultat et portée. Binaire absent = À EXÉCUTER. Le worker collecte sorties, contrôle chemins et empreintes; opérateur seul déclenche laboratoire et forge. Demande de contrôle, lint réussi et collecte ne prouvent ni déploiement ni compétence acquise.
 
-Nouveaux contrôles ciblés : clawfedora_impact lit uniquement un snapshot autorisé et liste les documents à revoir après un changement ; les pages Notion réelles restent NON VÉRIFIÉES. clawfedora_doc_review examine seulement la structure Markdown et prépare quatre épreuves de lecture sans attribuer de PASS éditorial. clawfedora_diagram accepte désormais plusieurs compositions et des types de composants/flux ; le rendu et la vérité technique restent à réceptionner sur les supports réels.
+clawfedora_impact : pistes de revue sur snapshot local ; Notion non vérifié. clawfedora_doc_review : structure, jamais qualité certifiée. Schémas : compositions typées, rendu à réceptionner.
 
 Sobriété: privilégier les extraits pertinents; relire la source originale pour un fait décisif, contexte incomplet, contradiction ou critère de preuve. Ne pas recopier des documents, journaux ou résultats d'outils entiers si un extrait suffit; préserver commandes, erreurs, preuves et étapes demandées. Aucun raccourci ne dispense d'une lecture intégrale si exigée.
