@@ -119,28 +119,17 @@ with tempfile.TemporaryDirectory(prefix="clawfedora-native-schema-") as temporar
         raise SystemExit(f"Native schema rejected private Web mode: {private_payload}")
     set_private_mode(state, False)
     config["agents"]["defaults"].pop("pdfMaxBytesMb", None)
-    # The cloud provider (loopback gateway) must also be accepted by the real schema.
-    cloud_config = build_openclaw_patch(repo, state, cloud_enabled=True)
-    cloud_config["plugins"] = config["plugins"]
-    path.write_text(json.dumps(cloud_config))
-    result = subprocess.run(
-        [cli, "config", "validate", "--json"],
-        env=dict(env, CLAWFEDORA_CLOUD_GATEWAY_TOKEN="local-token"),
-        capture_output=True,
-        text=True,
-        timeout=120,
-        check=False,
+    # Legacy fixture only: a pre-migration install may still contain an old cloud
+    # provider. Construct it here without permitting activation in the current app.
+    from clawfedora.core_config import core_contract, daily_limits
+    from clawfedora.openclaw_config import _cloud_provider
+
+    cloud_config = json.loads(json.dumps(config))
+    cloud_config["models"]["providers"]["cloudgw"] = _cloud_provider(
+        core_contract(repo, "cloud_policy.yaml"), daily_limits(repo)
     )
-    try:
-        payload = json.loads(result.stdout)
-    except ValueError as exc:
-        raise SystemExit(f"Native schema returned no JSON: {result.stderr[-1000:]}") from exc
-    if result.returncode != 0 or payload.get("valid") is not True:
-        raise SystemExit(f"Native schema rejected the cloud configuration: {payload}")
-    if "cloudgw" not in cloud_config["models"]["providers"] or "cloudgw" in config["models"][
-        "providers"
-    ]:
-        raise SystemExit("Cloud provider must exist only when the cloud is enabled")
+    if "cloudgw" in config["models"]["providers"]:
+        raise SystemExit("Local-only patch must never include a cloud provider")
     current = json.loads(json.dumps(config))
     # An installation that had the cloud on must lose its provider when it is switched off.
     current["models"]["providers"]["cloudgw"] = cloud_config["models"]["providers"]["cloudgw"]
