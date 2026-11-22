@@ -55,10 +55,15 @@ def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
     }
     assert set(by_id) == {
         "qwen3.5:9b-q4_K_M",
+        "ornith-1.5:9b",
     }
     assert all(entry["contextTokens"] == 32768 for entry in by_id.values())
     assert all(entry["maxTokens"] == 4096 for entry in by_id.values())
     assert by_id["qwen3.5:9b-q4_K_M"]["input"] == ["text", "image"]
+    assert by_id["ornith-1.5:9b"]["input"] == ["text"]
+    assert patch["agents"]["defaults"]["modelPolicy"]["allow"] == [
+        "ollama/qwen3.5:9b-q4_K_M", "ollama/ornith-1.5:9b",
+    ]
 
     agents = _agents_by_id(patch)
     assert len(agents) == 7
@@ -68,7 +73,7 @@ def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
     assert patch["agents"]["defaults"]["systemAgent"] == {"agentId": "chef-operations"}
     assert patch["talk"] == {"agentId": "chef-operations"}
     assert agents["ingenieur-devops"]["model"] == {
-        "primary": "ollama/qwen3.5:9b-q4_K_M",
+        "primary": "ollama/ornith-1.5:9b",
         "fallbacks": [],
     }
     research_tools = agents["expert-recherche"]["tools"]
@@ -122,3 +127,8 @@ def test_generated_configuration_contains_references_without_credential_values(
     providers = patch["models"]["providers"]
     assert providers["ollama"]["apiKey"]["id"] == "OLLAMA_API_KEY"
     assert set(providers) == {"ollama"}
+
+
+def test_no_cloud_provider_can_be_enabled_even_by_a_legacy_caller(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="OpenRouter retiré"):
+        build_openclaw_patch(ROOT, tmp_path, cloud_enabled=True)
