@@ -32,7 +32,8 @@ SUGGESTIONS: dict[str, Advice] = {
     "iac": Advice(
         "Ingénieur DevOps", "Ornith 1.5 9B",
         "Terraform, Ansible, CI/CD, Bash et Docker exigent des corrections et diagnostics de code.",
-        "Un fichier correct n'est pas un déploiement ; plan, tests et observations réelles sont requis.",
+        "Un fichier correct n'est pas un déploiement ; plan, tests et "
+        "observations réelles sont requis.",
     ),
     "ci": Advice(
         "Ingénieur DevOps", "Ornith 1.5 9B",
@@ -46,7 +47,8 @@ SUGGESTIONS: dict[str, Advice] = {
     ),
     "audit": Advice(
         "Auditeur qualité", "Qwen 3.5 9B",
-        "Confronter critères, diff, rapports de tests et références, sans modifier le travail audité.",
+        "Confronter critères, diff, rapports de tests et références, sans "
+        "modifier le travail audité.",
         "Le modèle ne peut pas certifier une infrastructure sans résultats d'exécution.",
     ),
 }
