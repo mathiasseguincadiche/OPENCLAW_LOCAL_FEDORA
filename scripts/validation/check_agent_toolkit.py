@@ -45,7 +45,7 @@ with tempfile.TemporaryDirectory(prefix="clawfedora-native-tools-") as temporary
         + """
 const registry=await loadOpenClawPlugins({config,onlyPluginIds:['clawfedora-toolkit'],
  activate:false,cache:false,throwOnLoadError:true});
-if(registry.tools.length!==10) throw new Error('Native tool registration incomplete');
+if(registry.tools.length!==12) throw new Error('Native tool registration incomplete');
 for (const [name,role,params] of [
  ['clawfedora_artifact','redacteur-pedagogique',{format:'markdown',
   content:'# Guide\\n\\nUne étape.\\n',
@@ -58,6 +58,8 @@ for (const [name,role,params] of [
  ['clawfedora_lab_request','ingenieur-devops',{validator:'shellcheck',
   files:['deliverables/test/run.sh'],expected:'Syntaxe correcte'}],
  ['clawfedora_doc_links','redacteur-pedagogique',{scope:'.',document:'guide.md',content:'# Guide'}],
+ ['clawfedora_doc_review','redacteur-pedagogique',{kind:'readme',content:'# Guide'}],
+ ['clawfedora_impact','ingenieur-devops',{scope:'.',changed_paths:['README.md']}],
  ['clawfedora_tool_status','chef-operations',{}],
  ['clawfedora_ci_report','chef-operations',{format:'ci-checks',content:JSON.stringify({checks:[{tool:'restore',exit_code:0}]})}],
 ]) {
