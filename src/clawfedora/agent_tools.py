@@ -15,6 +15,7 @@ import yaml
 
 from clawfedora.ci_reports import summarize
 from clawfedora.core_config import AGENT_IDS
+from clawfedora.diagram_layouts import style_and_arrange
 from clawfedora.drawio import decorate_page, export_page_svg, inspect_diagram, multi_view_diagram
 from clawfedora.file_artifacts import formats, produce
 from clawfedora.project_common import assert_no_symlinks, read_json
@@ -205,14 +206,17 @@ def diagram(data: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(title, str) or not 1 <= len(title.strip()) <= 60 or not title.isprintable():
             raise ValueError("titre de vue invalide")
         pages[0].set("name", title)
+    layouts = []
     for page, view in zip(pages, [data, *views], strict=True):
         decorate_page(page, view)
+        layouts.append(style_and_arrange(page, view))
     drawio = ET.tostring(document, encoding="unicode")
     inspect_diagram(drawio)
     exports = [(page.attrib["name"], export_page_svg(page))
                for page in ET.fromstring(drawio).findall("diagram")]
     return {
         "drawio": drawio, "views_generated": len(exports), "svg_views": exports,
+        "compositions": layouts,
         "svg_view": "svg: vue principale uniquement; svg_views couvre toutes les vues",
         "svg": exports[0][1], "renderer": "drawio-xml", "svg_renderer": "clawfedora-svg/1",
         "scope": "export des formes du générateur; rendu dans Draw.io et support final à vérifier",
