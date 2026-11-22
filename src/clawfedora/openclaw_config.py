@@ -201,7 +201,11 @@ def build_openclaw_patch(
 
     daily_model = _model_ref("qwen-max", catalog)
     # A per-run --model can only select a model declared here, never an arbitrary reference.
-    allowed_models = [daily_model] + (cloud_model_refs(cloud) if cloud_enabled else [])
+    allowed_models = [
+        _model_ref(str(alias), catalog)
+        for alias, entry in _mapping(catalog.get("models")).items()
+        if _mapping(entry).get("provider") == "ollama" and _mapping(entry).get("required") is True
+    ] + (cloud_model_refs(cloud) if cloud_enabled else [])
     defaults = _mapping(openclaw_policy.get("agents"))
     web = _mapping(web_policy.get("nominal_path"))
     global_tools = _mapping(tools.get("security_defaults"))
