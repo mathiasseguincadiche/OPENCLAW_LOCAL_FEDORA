@@ -15,7 +15,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from clawfedora import github_refresh, source_connectors
+from clawfedora import github_refresh
 from clawfedora.core_config import resolve_runtime_root
 from clawfedora.knowledge import search
 from clawfedora.project_common import project_path
@@ -118,12 +118,11 @@ def retrieve(
     if validate_input_integrity(project):
         raise ValueError("sources initiales du projet altérées : recherche refusée")
 
-    indexed = search(repo_root, project, query)
     if not include_revisions:
-        return indexed
+        return search(repo_root, project, query)
     changes = github_refresh.inspect(project)
     if not changes:
-        return indexed
+        return search(repo_root, project, query)
 
     # The FTS index may still contain the *original* GitHub commit.
     # The approved latest revision supersedes only those files, not Notion
@@ -133,10 +132,7 @@ def retrieve(
         + "-" + entry["initial_commit"][:12] + "/"
         for entry in changes
     )
-    indexed = [
-        hit for hit in indexed
-        if not str(hit["path"]).startswith(previous_prefixes)
-    ]
+    indexed = search(repo_root, project, query, excluded_prefixes=previous_prefixes)
     fresh = _git_candidates(project, terms, changes)
     # Prefer two distinct current GitHub files and two distinct original
     # sources when both groups are relevant. Fill unused places by rank.
@@ -182,9 +178,7 @@ def main(argv: list[str] | None = None) -> int:
         runtime = resolve_runtime_root(str(args.runtime_root) if args.runtime_root else None)
         project = project_path(runtime, args.project_id)
         # The CLI cannot send sources to a cloud model. It only emits local JSON.
-        from clawfedora.core_config import resolve_repo_root
-
-        root = resolve_repo_root()
+        root = Path(__file__).resolve().parents[2]
         hits = retrieve(root, project, args.query, include_revisions=not args.initial_only)
         print(json.dumps({
             "project_id": args.project_id,
