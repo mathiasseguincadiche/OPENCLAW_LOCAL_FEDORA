@@ -110,7 +110,7 @@ def test_migration_patch_retires_old_provider_without_deleting_user_work(
     active = build_openclaw_patch(ROOT, tmp_path)
     migration = prepare_migration_patch(active)
     assert "cloudgw" not in active["models"]["providers"]
-    assert "cloudgw" not in migration.get("models", {}).get("providers", {})
+    assert migration["models"]["providers"].get("cloudgw") is None
 
 
 def test_agent_tool_permissions_remain_strict() -> None:
