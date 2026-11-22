@@ -97,6 +97,8 @@ def revoke_activation(runtime: Path) -> None:
 def cloud_status(runtime: Path, repo_root: Path) -> tuple[bool, str]:
     """(ready, reason). Ready only if the policy allows it and every control is verified."""
     policy = core_contract(repo_root, "cloud_policy.yaml")["policy"]
+    if policy.get("retired") is True:
+        return False, "OpenRouter retiré : atelier uniquement local"
     required = set(policy.get("requires", []))
     if not required:
         return False, "politique cloud sans contrôles requis"
