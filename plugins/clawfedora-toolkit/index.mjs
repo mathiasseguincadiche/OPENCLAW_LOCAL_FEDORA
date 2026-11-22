@@ -31,7 +31,7 @@ const definitions = [
     scope: {type:"string",minLength:1,maxLength:280},
     operation: {type:"string",enum:["inspect","edit_test"]},
     expected_revision: {type:"string",minLength:7,maxLength:64},
-    validator: {type:"string",enum:["terraform-fmt","terraform-validate","ansible-lint","actionlint","shellcheck","hadolint","kubeconform"]},
+    validator: {type:"string",enum:["terraform-fmt","terraform-validate","ansible-lint","actionlint","shellcheck","hadolint","kubeconform","pytest"]},
     files: {type:"object",minProperties:1,maxProperties:5,additionalProperties:{type:"string",maxLength:16000}}
   }, ["scope","operation","expected_revision"]],
   ["clawfedora_doc_links", "Vérifier liens locaux et ancres de titres Markdown dans un snapshot. document est relatif au scope.", {scope: string, document: string, content: string}, ["scope","document","content"]],
