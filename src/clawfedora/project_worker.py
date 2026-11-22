@@ -706,7 +706,8 @@ def run_project_tasks(
         invoke = runner or project_runner(repo_root, runtime, project)
         write_progress(runtime, project, "preparing")
         build_index(repo_root, project)
-        while tasks := ready_tasks(repo_root, project):
+        previous_model: str | None = None
+        while tasks := ready_tasks(repo_root, project, prefer_model=previous_model):
             if is_paused(runtime, project):
                 break
             if validate_input_integrity(project):
@@ -869,6 +870,11 @@ def run_project_tasks(
                     summary=summary,
                 )
             )
+            if status == "PASS":
+                # Reuse the loaded Ollama model when another independent task is ready.
+                previous_model = core_contract(repo_root, "model_routing.yaml")["agents"][role][
+                    "local_primary"
+                ]
             if status == "FAIL":
                 write_progress(runtime, project, "failed", task=task_id, role=role, session=session)
                 break
