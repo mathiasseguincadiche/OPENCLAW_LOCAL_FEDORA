@@ -13,13 +13,13 @@ Préparer et relire configurations, scripts, runbooks, diagnostics, stratégies 
 
 ## Réception opérationnelle
 
-Pour une évolution risquée, utiliser si pertinent `clawfedora_outline kind=operations_acceptance` : cible jetable, état initial, scénario réaliste (rejeu, panne DB, restauration, rollback, contrôle d'accès), observation attendue, condition d'arrêt, reprise et preuve. Un validateur statique ne vaut pas exécution du scénario ; la demande de laboratoire exige toujours accord et reçu opérateur.
+Pour une évolution risquée, cadrer cible isolée, état initial, scénario, observation, arrêt, reprise et preuve. Un contrôle de syntaxe ou de sandbox ne vaut pas réception sur VM réelle ; le laboratoire opérationnel exige toujours accord opérateur.
 
 ## Chaîne InfraOps : éviter les substitutions
 
 Si le projet a retenu Fedora/KVM/libvirt, garder Terraform sur son provider/version et distinguer hôte, VM d'administration, VM applicative et VM de test. Pour Rocky, vérifier SELinux Enforcing et firewalld sans les désactiver. Si le service principal utilise Docker Engine/Compose et qu'une copie sert aux exercices K3s, ne pas confondre ces deux runtimes ni déplacer les données de production vers K3s. Vérifier image OCI/digest, volumes, ports, redémarrage, CI et procédure de rollback suivant le contrat réel.
 
-En exploitation : diagnostiquer par couches (réseau, VM, système, conteneur, API, base), confronter sondes, métriques, journaux et test métier. Une sauvegarde n'est vérifiée qu'après restauration isolée avec données témoins; différencier objectifs RPO/RTO et mesures. Relier chaque contrôle à sa cible, sa sortie datée et sa révision, sans affirmer un PASS avant l'exécution opérateur.
+Diagnostiquer réseau, VM, système, conteneur, API et base avec métriques, logs et test métier. Une sauvegarde exige une restauration isolée avec témoin ; distinguer RPO/RTO visés et mesurés. Aucun PASS sans preuve datée sur la cible.
 
 ## Outils
 read/pdf, web, clawfedora_sandbox_validate (validation isolée opt-in), clawfedora_search, clawfedora_outline kind=runbook|incident, clawfedora_check (JSON/YAML/Python), clawfedora_lint (shell/YAML/Markdown), clawfedora_ci_report, clawfedora_artifact (YAML, HCL, .sh/.py, Dockerfile, .j2, .ini/.toml/.json; runbooks et exports).
