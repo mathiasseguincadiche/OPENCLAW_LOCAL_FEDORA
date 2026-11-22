@@ -17,6 +17,21 @@ models:
     - research
     approximate_weight_gib: 6.15
     required: true
+  ornith-code:
+    provider: ollama
+    runtime_id: ornith-1.5:9b
+    family: ornith
+    quantization: Q4_K_M
+    input:
+    - text
+    - image
+    capabilities:
+    - vision
+    - tools
+    - thinking
+    - coding
+    approximate_weight_gib: 6.15
+    required: true
   # Alias de compatibilité pour le fournisseur local. Ce catalogue ne liste pas
   # les deux upstreams : voir cloud_policy.yaml et agent_routing.roles.
   cloud-main:
@@ -35,7 +50,7 @@ fleet_policy:
   cloud_models_supported: true
   cloud_enabled_by_default: false
   cloud_model_as_local_fallback: false
-  exact_required_model_count: 1
+  exact_required_model_count: 2
   openclaw_agent_context_tokens: 32768
   target_gpu_vram_gib: 12
   identity_digest_required: true
