@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Rôle       : Télécharger le modèle local Qwen avec Ollama.
+# Rôle       : Télécharger les deux modèles locaux Qwen et Ornith avec Ollama.
 # Usage      : 05_provision_models.sh [--apply]
 # Effets     : sans --apply : plan seulement (MODEL_PROVISION_PLAN=PASS). Avec --apply : télécharge le modèle (plusieurs Go).
 # Prérequis  : Ollama installé ; /data monté ; connexion Internet.
