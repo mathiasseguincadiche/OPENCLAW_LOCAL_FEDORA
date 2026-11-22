@@ -62,7 +62,11 @@ def key_path(repo_root: Path, runtime: Path) -> Path:
 
 
 def set_key(repo_root: Path, runtime: Path, key: str, *, replace: bool = False) -> Path:
-    """Store the provider key, private (0600), in the one file only the gateway reads."""
+    """Legacy API: a retired provider must never accept a new credential."""
+    from clawfedora.core_config import root_contract
+
+    if root_contract(repo_root, "model_catalog.yaml")["fleet_policy"]["local_only"] is True:
+        raise ValueError("OpenRouter retiré : enregistrement de clé interdit")
     key = key.strip()
     if not KEY_PATTERN.fullmatch(key):
         raise ValueError("clé du fournisseur invalide: une clé OpenRouter commence par sk-or-")
@@ -343,7 +347,11 @@ def enable(
     apply: bool = False,
     fetch: Callable[..., dict[str, Any]] = fetch_key_info,
 ) -> tuple[list[Check], bool]:
-    """Run every self-test. The activation is written only with ``apply`` and no failure."""
+    """Legacy API: a retired provider cannot be reactivated, even by direct calls."""
+    from clawfedora.core_config import root_contract
+
+    if root_contract(repo_root, "model_catalog.yaml")["fleet_policy"]["local_only"] is True:
+        raise ValueError("OpenRouter retiré : activation interdite")
     checks = run_selftests(
         repo_root, runtime, key_limit_usd=key_limit_usd, prepaid=prepaid,
         verify_online=verify_online, fetch=fetch,
