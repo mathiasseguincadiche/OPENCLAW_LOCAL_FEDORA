@@ -335,7 +335,7 @@ def test_modified_sources_remain_private_after_legacy_activation(
     write_activation(runtime, BOTH)
     selected = ask(server, MODEL_IDS[0], ("user", f"!projet {PROJECT}"))[1]
     source = next((project / "intake").rglob("*.md"))
-    source.write_text(source.read_text() + "\nModification locale.")
+    # Simulate a local edit to an immutable imported snapshot without weakening runtime policy.\n    source.chmod(source.stat().st_mode | 0o200)\n    source.write_text(source.read_text() + "\nModification locale.")
     code, text = ask(
         server, CLOUD_MODEL_IDS[0], ("user", "x"),
         ("assistant", selected), ("user", "Question"),
