@@ -9,8 +9,8 @@ import pytest
 
 from clawfedora import devops_iteration
 from clawfedora.devops_lab import LabRefusal
-from clawfedora.project_worker import _resolve_tool_files
 from clawfedora.project_common import read_json
+from clawfedora.project_worker import _resolve_tool_files
 
 
 @pytest.fixture
