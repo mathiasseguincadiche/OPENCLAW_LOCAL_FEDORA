@@ -1,3 +1,5 @@
+[← Guide](../GUIDE.md)
+
 # OpenRouter — route retirée de l'Atelier Fedora
 
 > **Ne pas utiliser les anciennes commandes d'activation.** Cette page remplace l'ancien guide DeepSeek/OpenRouter du dépôt : le routage cloud n'est plus disponible.
