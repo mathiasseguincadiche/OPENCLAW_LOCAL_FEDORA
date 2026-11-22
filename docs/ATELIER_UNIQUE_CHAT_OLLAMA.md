@@ -38,7 +38,9 @@ et le rôle sont figés** par conversation. Les messages \`!etat\`,
 \`!sources\`, \`!planifier\`, etc. sont des commandes humaines traitées
 par le pont existant, avec les mêmes validations explicites.
 
-Le diagnostic \`!fedora etat\` consulte seulement des états de service
+Les commandes \`!fedora etat\` et \`!fedora applications\` consultent
+respectivement les états des services et les applications Flatpak installées
+**sans les ouvrir**. Le diagnostic de services
 \`systemctl\` **sur liste fixe**, sans commande arbitraire ; il ne redémarre
 rien, n'installe rien et ne modifie aucune application. Les opérations
 d'administration (sudo, installation Flatpak/RPM, fichiers système,
