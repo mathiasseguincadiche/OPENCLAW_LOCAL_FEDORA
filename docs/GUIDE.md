@@ -1,8 +1,8 @@
-# Découvrir l'Atelier IA **hybride** Fedora — guide pas à pas
+# Découvrir l'Atelier IA **local** Fedora — guide pas à pas
 
 [← Accueil du dépôt](../README.md)
 
-**Objectif de ce guide :** comprendre **pourquoi Qwen local, DeepSeek cloud et Sol expert coexistent**, savoir à qui poser une question, comment choisir une route d'inférence et distinguer ce qui est **proposé** de ce qui est **réellement vérifié**. Pas besoin de connaître OpenClaw pour commencer.
+**Objectif de ce guide :** comprendre la répartition **Qwen 3.5 9B + Ornith 1.5 9B**, savoir quel agent solliciter et distinguer ce qui est **proposé** de ce qui est **réellement vérifié**. Pas besoin de connaître OpenClaw pour commencer.
 
 **Pour mesurer ta progression dans la qualité des réponses** : [scénarios multi-tours et notation clarté/profondeur/interactivité/exactitude sur 20](EVALUATION_PEDAGOGIE.md). C'est une grille humaine, pas une note calculée par l'IA ni une garantie de supériorité face à Gemini.
 
@@ -17,37 +17,33 @@ L'atelier est conçu pour apprendre **en comprenant**. Tu peux demander une rép
 
 ### Les trois choses à retenir
 
-1. **C'est une architecture hybride à trois modèles.** Qwen local est le socle privé ; DeepSeek traite la routine cloud autorisée ; Sol est réservé à l'expertise ciblée.
-2. **Les sept agents sont sept métiers, pas sept moteurs supplémentaires.** Un même agent (mentor, DevOps, auditeur…) travaille sur Qwen, DeepSeek ou Sol avec **les mêmes outils autorisés**. Le modèle propose, le moteur contrôle et l'humain valide.
-3. **Le cloud est une décision, pas une bascule magique.** Il faut l'activer ; un projet exige son accord. Le mode `auto` sélectionne un modèle interne au cloud selon le rôle et l'étape autorisée, sans analyser la difficulté et sans bascule automatique du local vers le cloud. Une recherche Web est une sortie réseau distincte.
+1. **Deux modèles locaux.** Qwen assure le mentorat, la recherche, l'architecture, la sécurité, la documentation et l'audit ; Ornith est affecté à l'ingénieur DevOps.
+2. **Sept agents sont sept métiers, pas sept modèles.** Le worker applique les règles de coordination ; les outils effectuent les vérifications, l'humain approuve les opérations sensibles.
+3. **OpenRouter est retiré.** Aucune route de modèles cloud n'est disponible. La recherche Web de *sources* reste un outil distinct, désactivable depuis le mode privé.
 
-→ **[Pourquoi Qwen + DeepSeek + Sol ? Stratégie et exemples d'efficacité](ARCHITECTURE_HYBRIDE.md)**.
+→ **[Architecture locale, modèles et qualification](ARCHITECTURE_LOCALE_QWEN_ORNITH.md)**.
 
-![Les sept spécialités autour du même moteur](diagrams/atelier-roles.svg)
-
-→ [Découvrir les sept rôles, leurs outils et des demandes types](fiches/07-roles-et-outils.md).
+![Les sept spécialités et leurs modèles locaux](diagrams/atelier-roles.svg)
 
 ## 2. L'architecture en image
 
-![Les deux interfaces, le moteur de projet, OpenClaw et les modèles](diagrams/atelier-architecture.svg)
+![Atelier natif, worker et moteurs locaux](diagrams/atelier-architecture.svg)
 
-Suis les flèches **de gauche vers la droite**, puis vers le bas : **ta demande → les règles et le rôle → le modèle → la réponse ou les fichiers contrôlés**. Le système comporte deux interfaces mais un seul moteur de projet :
+La demande arrive dans **l'atelier natif unique** (`127.0.0.1:18890`) : Discussions, Projets, GitHub et Notion. Le worker sélectionne le rôle autorisé, qui utilise Qwen ou Ornith via Ollama. Les fichiers générés ne constituent pas des preuves d'exécution.
 
-| Partie | Pour toi, c'est… | Ce qu'elle fait |
-|---|---|---|
-| **Open WebUI** | Le chat de tous les jours | Discuter, choisir un rôle, joindre des fichiers |
-| **Atelier Projets** | Le tableau de bord | Créer, organiser, approuver et suivre |
-| **Pont / worker** | Les règles du jeu | Limites, étapes, verrous, collecte et confirmations |
-| **OpenClaw** | La fiche métier | Appliquer consignes et outils du rôle |
-| **Ollama / Qwen** | Le moteur local quotidien | Autonomie, confidentialité et tâches ciblées |
-| **OpenRouter / DeepSeek** | Le moteur cloud de capacité | Analyses complexes, grands dossiers publics et raisonnement DevOps |
-| **Passerelle cloud locale** | Le contrôleur d'accès | Consentement, filtre des secrets, prix et budget |
+| Partie | Rôle dans le système |
+|---|---|
+| **Atelier natif** | Interface unique Discussions · Projets · GitHub · Notion |
+| **OpenClaw + worker** | Missions, permissions, orchestration et confirmations |
+| **Ollama / Qwen** | Compréhension, pédagogie, synthèse et audits documentaires |
+| **Ollama / Ornith** | Code, IaC, CI et diagnostics techniques |
+| **Vérifications** | Lint, rapports, reçus, preuves humaines ; aucun shell général ouvert par défaut |
 
-→ [Lire le schéma composant par composant](fiches/11-comment-ca-marche.md).
+→ [Sept agents](fiches/07-roles-et-outils.md) · [Architecture détaillée](ARCHITECTURE_LOCALE_QWEN_ORNITH.md).
 
 ## 3. Premier scénario : une question simple
 
-Tu ouvres **Open WebUI** (`http://127.0.0.1:3000`, une fois installé), sélectionnes **Mentor infrastructure/OPS** et demandes :
+Tu ouvres **l'Atelier natif** (`http://127.0.0.1:18890`), sélectionnes **Mentor infrastructure/OPS** et demandes :
 
 > Je connais les services systemd et les scripts Bash. Explique-moi ce qu'Ansible apporte, avec un exemple simple, ce qu'il faut vérifier et ses limites.
 
@@ -122,23 +118,22 @@ Les benchmarks et canaries restent facultatifs.
 
 → [Fichiers, limites et Draw.io](fiches/06-fichiers-et-schemas.md).
 
-## 8. Local ou DeepSeek : optimiser le travail, pas simplement le coût
+## 8. Choisir le bon modèle local
 
-| Situation | Route recommandée | Pourquoi |
+| Situation | Agent / modèle | Pourquoi |
 |---|---|---|
-| Expliquer `systemd`, documenter un petit playbook, travailler sur des données privées | **Qwen local** | Tâche courte ou sensible, coût API nul |
-| Revoir plusieurs modules Terraform **publics**, une CI complexe, un ADR multi-contraintes | **DeepSeek cloud**, sur choix explicite | Contexte et raisonnement supplémentaires, gain de qualité **attendu, pas encore mesuré** |
-| Projet avec données professionnelles confidentielles | **Qwen local** | Le filtre de secrets ne détecte pas tous les contenus sensibles |
+| Apprendre Linux, Ansible, expliquer le fonctionnement des VM | Mentor / **Qwen** | Compréhension, guidage et pédagogie |
+| Définir les frontières, ADR et schémas | Architecte / **Qwen** | Synthèse des contraintes et compromis |
+| Préparer ou corriger Terraform, CI, Bash, K3s | DevOps / **Ornith** | Programmation agentique et diagnostics |
+| Vérifier sécurité et qualité d'une réalisation | Sécurité ou auditeur / **Qwen** | Contrôle sur résultats externes vérifiables |
 
-En chat, tu choisis la **variante locale ou cloud** ; en atelier, un **accord au niveau du projet** permet la route DeepSeek. **Le routage par difficulté ou par agent n'est pas encore automatique.** Les mêmes consignes et restrictions d'outils s'appliquent.
+Les modèles sont exécutés localement, l'un après l'autre. Un autre spécialiste peut être sollicité après un plan approuvé ; aucun changement de modèle n'augmente les permissions d'outils.
 
-La recherche Web d'un agent peut interroger Internet **même avec Qwen** : elle est distincte de l'envoi d'une conversation à DeepSeek.
-
-→ **[Pourquoi cette architecture hybride ?](ARCHITECTURE_HYBRIDE.md)** · [Activer le cloud](fiches/12-cloud.md) · [Choix du modèle](DECISION_MODELE.md).
+→ [Architecture locale Qwen/Ornith](ARCHITECTURE_LOCALE_QWEN_ORNITH.md) · [Retrait de l'ancien OpenRouter](fiches/12-cloud.md).
 
 ## 9. Quel est le vrai niveau de maturité ?
 
-Le code et les tests automatiques existent. Les performances GPU, la vraie compatibilité du conteneur Open WebUI, la voix, les uploads, la restauration et le fournisseur cloud doivent encore être **essayés sur le PC Fedora**. Le streaming SSE est préparé mais désactivé par défaut ; aucune migration WebUI historique n'est requise pour une installation neuve sous **Open WebUI 0.12.3**.
+Le code et les tests automatiques existent. Les performances GPU, la vraie compatibilité du chat natif, la voix, les uploads, la restauration et les deux modèles locaux doivent encore être **essayés sur le PC Fedora**. Le streaming SSE est préparé mais désactivé par défaut ; aucune migration WebUI historique n'est requise pour une installation neuve sous **Open WebUI 0.12.3**.
 
 → [État actuel](../STATUS.md) · [Validation facultative](validation/README.md) · [Historique des plans](archives/2026/README.md).
 
