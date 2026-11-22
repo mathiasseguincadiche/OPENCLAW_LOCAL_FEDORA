@@ -16,9 +16,13 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from clawfedora.devops_lab import LabRefusal, snapshot_manifest, run_lab, TOOLS
+from clawfedora.devops_lab import TOOLS, LabRefusal, run_lab, snapshot_manifest
 from clawfedora.devops_sandbox import (
-    _approved_image, _validated_scope, _overlay, _reserve_attempt, _policy_file,
+    _approved_image,
+    _overlay,
+    _policy_file,
+    _reserve_attempt,
+    _validated_scope,
 )
 from clawfedora.project_common import assert_no_symlinks
 from clawfedora.specialist_tools import receipt
@@ -48,7 +52,9 @@ def _source_digest(source: Path) -> str:
         if path.is_symlink():
             raise LabRefusal("Lien symbolique interdit")
         if path.is_file() and path != guard_file:
-            actual[path.relative_to(source).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+            actual[path.relative_to(source).as_posix()] = hashlib.sha256(
+                path.read_bytes()
+            ).hexdigest()
     if guard != actual:
         raise LabRefusal("Snapshot modifié : intégrité des entrées invalide")
     return _digest(source)
@@ -105,7 +111,9 @@ def iterate(
     with os.fdopen(fd, "r+") as handle:
         fcntl.flock(handle, fcntl.LOCK_EX)
         state_file = root / "state.json"
-        state: dict[str, Any] = json.loads(state_file.read_text("utf-8")) if state_file.exists() else {}
+        state: dict[str, Any] = (
+            json.loads(state_file.read_text("utf-8")) if state_file.exists() else {}
+        )
         if state and state.get("source_digest") != initial_digest:
             raise LabRefusal("Snapshot initial différent : nouvelle tâche requise")
         revision = str(state.get("revision", "initial"))
@@ -131,9 +139,8 @@ def iterate(
             raise LabRefusal("Au moins un fichier de correction requis")
         image = _approved_image(runtime)
         parent = root / str(state.get("worktree", "")) if state else source
-        if state:
-            if parent.is_symlink() or not parent.is_dir() or _digest(parent) != revision:
-                raise LabRefusal("Révision de travail altérée")
+        if state and (parent.is_symlink() or not parent.is_dir() or _digest(parent) != revision):
+            raise LabRefusal("Révision de travail altérée")
         with tempfile.TemporaryDirectory(prefix="candidate-", dir=root) as scratch:
             candidate = Path(scratch) / "source"
             candidate.mkdir(mode=0o700)
