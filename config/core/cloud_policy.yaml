@@ -4,6 +4,7 @@ platform_version: 0.2.0
 # d'exécution (état local, hors dépôt) qui exige que le filtre de confidentialité et le contrôle
 # du budget soient opérationnels ensemble.
 policy:
+  retired: true  # Route fournisseur désactivée définitivement dans l'atelier local.
   enabled_by_default: false
   requires:
   - privacy_filter
