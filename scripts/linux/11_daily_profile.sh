@@ -75,6 +75,7 @@ Environment="OLLAMA_MAX_LOADED_MODELS=1"
 Environment="OLLAMA_MAX_QUEUE=4"
 Environment="OLLAMA_CONTEXT_LENGTH=$CONTEXT_TOKENS"
 Environment="OLLAMA_KEEP_ALIVE=3m"
+Environment="OLLAMA_NO_CLOUD=1"
 EOF
     # Grant directory traversal only, not access to user projects or secrets.
     # Include /data/IA and every parent up to the declared mount; grant traversal only.
