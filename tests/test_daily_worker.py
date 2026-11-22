@@ -239,7 +239,7 @@ def test_daily_patch_really_bounds_memory_and_disables_unsafe_tools(tmp_path: Pa
         assert role["model"]["fallbacks"] == []
         assert {"exec", "process", "write", "edit", "apply_patch"}.issubset(role["tools"]["deny"])
     models = patch["models"]["providers"]["ollama"]["models"]
-    assert len(models) == 1
+    assert len(models) == 2
     assert models[0]["params"] == {
         "num_ctx": 32768,
         "num_predict": 4096,
