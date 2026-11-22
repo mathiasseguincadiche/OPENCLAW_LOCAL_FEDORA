@@ -165,11 +165,8 @@ def build_openclaw_patch(
     openclaw_policy = core_contract(repo_root, "openclaw_policy.yaml")
     limits = daily_limits(repo_root)
     providers: dict[str, Any] = {"ollama": _ollama_provider(catalog, limits)}
-    cloud = core_contract(repo_root, "cloud_policy.yaml")
     if cloud_enabled:
-        providers[str(_mapping(cloud.get("policy"))["provider_id"])] = _cloud_provider(
-            cloud, limits
-        )
+        raise ValueError("OpenRouter retiré : atelier exclusivement local")
 
     routes = _mapping(routing.get("agents"))
     agent_list: list[dict[str, Any]] = []
@@ -201,7 +198,11 @@ def build_openclaw_patch(
 
     daily_model = _model_ref("qwen-max", catalog)
     # A per-run --model can only select a model declared here, never an arbitrary reference.
-    allowed_models = [daily_model] + (cloud_model_refs(cloud) if cloud_enabled else [])
+    allowed_models = [
+        _model_ref(alias, catalog)
+        for alias, spec in _mapping(catalog.get("models")).items()
+        if _mapping(spec).get("provider") == "ollama" and _mapping(spec).get("required") is True
+    ]
     defaults = _mapping(openclaw_policy.get("agents"))
     web = _mapping(web_policy.get("nominal_path"))
     global_tools = _mapping(tools.get("security_defaults"))
