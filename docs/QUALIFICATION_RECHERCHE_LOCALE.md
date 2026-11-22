@@ -7,7 +7,7 @@ ClawFedora correspondent-ils aux fichiers attendus, à la dernière révision
 GitHub approuvée, et aux documents Notion du même projet local ?**
 
 Elle complète le [moteur de recherche locale](RECHERCHE_LOCALE_SOURCES.md)
-et réutilise strictement \`clawfedora.project_retrieval.retrieve\`.
+et réutilise strictement `clawfedora.project_retrieval.retrieve`.
 Ce n'est pas un autre moteur de recherche et elle ne modifie **ni** les
 snapshots GitHub **ni** l'index SQLite FTS5 **ni** les pages Notion.
 
@@ -15,14 +15,14 @@ snapshots GitHub **ni** l'index SQLite FTS5 **ni** les pages Notion.
 
 1. Installer la version de ClawFedora contenant cette commande dans le
    même environnement Python que l'atelier. Ne pas faire d'installation
-   \`pip\` globale sur le système Fedora ; utiliser l'environnement isolé
+   `pip` globale sur le système Fedora ; utiliser l'environnement isolé
    ou le processus d'installation standard du projet.
 2. Avoir déjà importé GitHub et, si nécessaire, Notion dans le **même**
    projet ClawFedora, avec la politique locale applicable.
 3. Pour tester la dernière version du code, avoir enregistré un
-   snapshot approuvé par \`clawfedora-github-refresh\`. La commande
+   snapshot approuvé par `clawfedora-github-refresh`. La commande
    de recette **ne télécharge aucune mise à jour**.
-4. S'assurer que \`clawfedora-source-search\` fournit des résultats
+4. S'assurer que `clawfedora-source-search` fournit des résultats
    et que l'index FTS5 a été construit après l'import initial.
 5. Copier l'[exemple JSON](exemples/recette-recherche-opsdesk.example.json)
    dans un dossier local temporaire et remplacer les questions et
@@ -42,8 +42,8 @@ clawfedora-retrieval-acceptance \
   --project-id opsdesk --cases /chemin/vers/recette-opsdesk.json
 ~~~
 
-Valeur de retour : \`0\` pour \`PASS\` ou \`PASS_WITH_LIMITATIONS\`,
-\`1\` lorsqu'au moins une attente échoue, \`2\` si la configuration ou
+Valeur de retour : `0` pour `PASS` ou `PASS_WITH_LIMITATIONS`,
+`1` lorsqu'au moins une attente échoue, `2` si la configuration ou
 l'intégrité du projet empêchent la qualification.
 
 Le rapport JSON est envoyé sur la sortie standard, **sans texte brut des
@@ -68,20 +68,20 @@ si le rapport doit devenir une capture publique du portfolio.
 | Temps de réponse | Durée observée en millisecondes, **sans seuil universel inventé** |
 
 Une recherche positive doit déclarer au moins un fragment de chemin
-\`required_paths_contain\` et éventuellement
-\`forbidden_paths_contain\`, \`minimum_hits\` et
-\`minimum_distinct_sources\` (tous bornés entre 0 et 4).
+`required_paths_contain` et éventuellement
+`forbidden_paths_contain`, `minimum_hits` et
+`minimum_distinct_sources` (tous bornés entre 0 et 4).
 
 Pour tester la disparition d'un **terme unique d'un ancien fichier GitHub**,
-utiliser \`"expect_empty": true\`, \`"minimum_hits": 0\` et
-\`"minimum_distinct_sources": 0\`. Le terme doit réellement être absent
+utiliser `"expect_empty": true`, `"minimum_hits": 0` et
+`"minimum_distinct_sources": 0`. Le terme doit réellement être absent
 des autres sources du projet, sinon le scénario est mal choisi.
 
 L'outil contrôle les empreintes avant chaque qualification. Il revérifie
 aussi la position des extraits dans la représentation textuelle ; pour un
 PDF indexé directement sans représentation textuelle disponible, seul le
 hash source peut être revérifié : le statut global devient alors
-\`PASS_WITH_LIMITATIONS\` et non un \`PASS\` plein.
+`PASS_WITH_LIMITATIONS` et non un `PASS` plein.
 
 ## Recette fonctionnelle sur la vraie installation Fedora
 
@@ -109,16 +109,16 @@ sur l'atelier installé :
 
 ### Interprétation honnête
 
-\`PASS\` = les **scénarios du corpus, sur cette exécution**, satisfont les
+`PASS` = les **scénarios du corpus, sur cette exécution**, satisfont les
 conditions mesurées. Ce statut ne signifie **ni** que toutes les sources
 sont couvertes **ni** qu'un modèle donne de bonnes réponses **ni** que
 Terraform, K3s, les VM ou les compétences humaines sont validés.
 
-\`FAIL\` = une attente du scénario n'a pas été remplie ; examiner les
+`FAIL` = une attente du scénario n'a pas été remplie ; examiner les
 sources avant de modifier le moteur. Une question trop générale ou une
 attente de chemin irréaliste peut suffire à provoquer un échec.
 
-\`PASS_WITH_LIMITATIONS\` = les contrôles attendus passent, mais la
+`PASS_WITH_LIMITATIONS` = les contrôles attendus passent, mais la
 position de certains extraits PDF n'a pas pu être revérifiée sans
 une représentation textuelle.
 
