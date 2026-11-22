@@ -240,64 +240,27 @@ cd /data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA
 
 - [ ] En mode jeu, `ollama ps` ne répond plus (service arrêté) et le chat refuse de générer (« mode jeux actif ») ; en mode quotidien, il répond de nouveau.
 
-## Phase 10 — Le cloud, borné (facultatif)
+## Phase 10 — Deux modèles locaux, aucune passerelle OpenRouter
 
-**Chez OpenRouter, toi-même :**
-
-- [ ] Paramètres de confidentialité restrictifs : refuser les fournisseurs qui conservent tes données ou s'en servent pour l'entraînement.
-- [ ] Crédits **prépayés**, rechargement automatique **désactivé**, montant inférieur à 35 €.
-- [ ] Une clé API avec une **limite de 23 $**.
-
-**Sur le PC :**
+**Sur une ancienne installation gérée :**
 
 ```bash
-./menu.sh --action cloud-set-key
-./menu.sh --action cloud-enable --value 23
-./menu.sh --action cloud-enable --value 23 --apply
-./menu.sh --action cloud-status
+./menu.sh --action local-retire-cloud
+./menu.sh --action local-retire-cloud --apply
+./menu.sh --action models --apply
+./menu.sh --action configure-openclaw --apply
+./menu.sh --action health
 ```
 
-| Attendu | Si ça échoue |
-| --- | --- |
-| [ ] Les contrôles sans `--apply` passent : secret bloqué, appel sain relayé, plafond respecté | Le cloud reste désactivé ; lire le contrôle en échec |
-| [ ] `CLOUD_STATUS ready=1`, `CLOUD_ROUTING_MODE mode=auto`, budget à 0 € | Revoir la clé (`cloud-set-key`) et sa limite chez OpenRouter |
+- [ ] L'ancienne passerelle cloud est arrêtée et non activable ; aucune clé API fournisseur n'est héritée par les processus OpenClaw.
+- [ ] Le modèle `qwen3.5:9b-q4_K_M` est disponible pour le mentor, la recherche, l'architecte, la sécurité, le rédacteur et l'auditeur.
+- [ ] Le modèle `ornith-1.5:9b` est disponible pour l'ingénieur DevOps.
+- [ ] `openclaw config get models.providers --json` ne retourne que `ollama`; la liste des modèles autorisés comprend les deux références attendues.
+- [ ] `./menu.sh --action health` et les contrôles de VRAM mesurent séparément les deux modèles.
+- [ ] Les anciennes approbations cloud ne bloquent plus les projets, ne déclenchent aucun appel API et ne modifient pas leurs preuves historiques.
+- [ ] Une demande explicite de route cloud est refusée. Les données GitHub/Notion et les discussions sont préservées.
 
-**Filtre de confidentialité, sans rien envoyer de réel :**
-
-```bash
-printf 'NomFictifReception42\n' >> /data/IA/Openclaw/state/cloud/denylist.txt
-```
-
-- [ ] Dans WebUI, avec un rôle « · cloud », écrire « Parle-moi de NomFictifReception42 ». La réponse **repasse en local** avec un bandeau 🔒, et rien n'apparaît dans l'activité OpenRouter.
-
-**Un appel Flash (standard) :**
-
-- [ ] Poser une question publique, par exemple « Compare Ansible et Terraform pour configurer 3 serveurs ». Le bandeau ☁️ indique « Modèle : DeepSeek V4.1 Flash 1017 ».
-- [ ] `!budget` dans le chat affiche un petit montant, le mode `auto` et les deux enveloppes.
-
-**Un appel expert (GPT-6.2 Sol) :**
-
-```bash
-./menu.sh --action cloud-set-profile --value equilibre --apply
-./menu.sh --action cloud-set-model --value expert
-./menu.sh --action cloud-set-model --value expert --apply
-```
-
-- [ ] La simulation (sans `--apply`) affiche `max_usd_per_million=5.0/15.0` ; le choix est ensuite confirmé.
-- [ ] Une question exigeante reçoit une réponse dont le bandeau indique « Modèle : GPT-6.2 Sol ».
-- [ ] Dans l'**activité OpenRouter**, le fournisseur utilisé est un endpoint Sol admissible, et les prix correspondent aux plafonds prudents 5 $ / 15 $ par million. Sinon, noter le fournisseur et le prix affichés et me les transmettre.
-- [ ] **Si l'appel échoue** avec « aucun fournisseur » ou une erreur 404/503 : revenir en `auto` (commande ci-dessous) et noter le message exact. Les fournisseurs ont peut-être changé depuis le [catalogue OpenRouter](https://openrouter.ai/openai/gpt-6.2-sol).
-
-**Rapprochement et retour au routage automatique :**
-
-```bash
-./menu.sh --action cloud-reconcile --value MONTANT_FACTURE_EN_EUROS --apply
-./menu.sh --action cloud-set-model --value auto --apply
-```
-
-- [ ] Le coût des appels observé chez OpenRouter est rapproché du journal (`cloud-status`) ; relever séparément change, taxes, frais et éventuel écart. Ne pas confondre achat de crédits et consommation.
-- [ ] Suivre la [recette FinOps](validation/FINOPS.md) si le duo doit être qualifié sur les sept rôles. Ne pas déclarer les gains de cache sans relevés.
-- [ ] Facultatif : `./menu.sh --action cloud-disable --apply` ; tout redevient local.
+L'inférence locale ne donne pas accès à un shell arbitraire ni à une application Terraform non approuvée. La validation des workflows agents et des VM est distincte des tests de modèle.
 
 ## Phase 11 — Mesures facultatives
 
