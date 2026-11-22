@@ -457,6 +457,10 @@ def make_server(
     key_reader: Callable[[], str] | None = None,
     privacy: PrivacyFilter | None = None,
 ) -> GatewayServer:
+    from clawfedora.core_config import root_contract
+
+    if root_contract(repo_root, "model_catalog.yaml")["fleet_policy"]["local_only"] is True:
+        raise ValueError("OpenRouter retiré : passerelle interdite")
     policy = core_contract(repo_root, "cloud_policy.yaml")
     gateway = policy["gateway"]
     server = GatewayServer(

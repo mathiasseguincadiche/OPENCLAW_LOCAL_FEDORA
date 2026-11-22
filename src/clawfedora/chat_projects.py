@@ -703,6 +703,10 @@ def run_command(
     if name == "budget":
         if args:
             return bridge_reply(current, "Utilisez seulement `!budget` sans argument.")
+        from clawfedora.core_config import root_contract
+
+        if root_contract(repo_root, "model_catalog.yaml")["fleet_policy"]["local_only"] is True:
+            return bridge_reply(current, "Inférence entièrement locale : aucun budget API.")
         import time
 
         from clawfedora.cloud_budget import BudgetRefused, load_ledger, month_key

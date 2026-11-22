@@ -55,14 +55,17 @@ require_daily_model() {
   local -a expected actual
   mapfile -t expected < <(jq -r '.models.providers.ollama.models[]?.id' "$PATCH_PATH")
   mapfile -t actual < <(jq -r '.models[]? | (.model // .name // empty)' <<<"$inventory_json")
-  [[ "${#expected[@]}" -eq 1 ]] || {
-    echo "ERREUR: la configuration n'expose pas exactement un modèle quotidien." >&2
+  [[ "${#expected[@]}" -eq 2 ]] || {
+    echo "ERREUR: exactement deux modèles locaux sont requis." >&2
     return 2
   }
-  contains_model "${expected[0]}" "${actual[@]}" || {
-    echo "ERREUR: modèle requis absent d'Ollama: ${expected[0]}" >&2
-    return 2
-  }
+  local model
+  for model in "${expected[@]}"; do
+    contains_model "$model" "${actual[@]}" || {
+      echo "ERREUR: modèle local requis absent d'Ollama: $model" >&2
+      return 2
+    }
+  done
 }
 
 printf 'OPENCLAW_CONFIG_PLAN runtime=%s state=%s\n' "$RUNTIME_ROOT" "$STATE_ROOT"
@@ -146,6 +149,9 @@ PYCODE
 "$PYTHON" -m clawfedora.cli --root "$REPO_ROOT" agents deploy --runtime-root "$RUNTIME_ROOT"
 "$PYTHON" -m clawfedora.cli --root "$REPO_ROOT" openclaw render \
   --runtime-root "$RUNTIME_ROOT" --output "$PATCH_PATH"
+
+# Retire the legacy cloud gateway before updating the local-only configuration.
+systemctl --user disable --now clawfedora-cloud-gateway.service 2>/dev/null || true
 
 # Preserve retired entries temporarily: the native SDK removes only their config records.
 "$PYTHON" - "$PATCH_PATH" <<'PYCODE'

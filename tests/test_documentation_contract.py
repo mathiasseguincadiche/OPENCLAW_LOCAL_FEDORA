@@ -3,20 +3,22 @@
 from pathlib import Path
 
 from clawfedora.chat_files import MAX_STANDALONE_TEXT_BYTES, MAX_STANDALONE_TEXT_FILES
-from clawfedora.core_config import core_contract, root_contract
+from clawfedora.core_config import root_contract
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_chat_guide_tracks_cloud_context_and_standalone_file_caps() -> None:
-    cloud = core_contract(ROOT, "cloud_policy.yaml")
+def test_chat_guide_tracks_local_context_and_standalone_file_caps() -> None:
+    fleet = root_contract(ROOT, "model_catalog.yaml")["fleet_policy"]
     webui = root_contract(ROOT, "webui_policy.yaml")
     guide = (ROOT / "docs/fiches/03-discuter.md").read_text(encoding="utf-8")
     files = (ROOT / "docs/fiches/06-fichiers-et-schemas.md").read_text(
         encoding="utf-8"
     )
-    context = f"{int(cloud['model']['context_tokens']):,}".replace(",", " ")
-    assert context in guide
+    context = int(fleet["openclaw_agent_context_tokens"])
+    architecture = (ROOT / "docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md").read_text()
+    assert str(context) in architecture
+    assert "Qwen" in architecture and "Ornith" in architecture
     assert "3 Mio" in guide
     assert int(webui["max_history_bytes"]) == 32_000
     assert str(MAX_STANDALONE_TEXT_BYTES // 1_000) in guide

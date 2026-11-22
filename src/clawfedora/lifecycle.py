@@ -64,7 +64,11 @@ def model_plan(repo_root: Path) -> list[dict[str, Any]]:
                 "approximate_weight_gib": float(raw.get("approximate_weight_gib", 0.0)),
             }
         )
-    if len(result) != 1 or any(not item["runtime_id"] for item in result):
+    if (
+        len(result) != 2
+        or {item["alias"] for item in result} != {"qwen-max", "ornith-code"}
+        or any(not item["runtime_id"] for item in result)
+    ):
         raise ValueError("lifecycle: flotte nominale invalide")
     return result
 
@@ -187,37 +191,38 @@ def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) 
             HealthCheck("model-inventory", "PASS", "digests et Q4_K_M conformes au verrou local")
         )
         if probe:
-            model = str(model_plan(repo_root)[0]["runtime_id"])
-            answer = ollama_api.request_json(
-                endpoint + "/api/generate",
-                payload={
-                    "model": model,
-                    "prompt": "Réponds OK",
-                    "stream": False,
-                    "think": False,
-                    "options": {
-                        "num_ctx": int(daily_limits(repo_root)["context_tokens"]),
-                        "num_predict": 8,
+            for required_model in model_plan(repo_root):
+                model = str(required_model["runtime_id"])
+                answer = ollama_api.request_json(
+                    endpoint + "/api/generate",
+                    payload={
+                        "model": model,
+                        "prompt": "Réponds OK",
+                        "stream": False,
+                        "think": False,
+                        "options": {
+                            "num_ctx": int(daily_limits(repo_root)["context_tokens"]),
+                            "num_predict": 8,
+                        },
+                        "keep_alive": "3m",
                     },
-                    "keep_alive": "3m",
-                },
-                timeout=60,
-            )
-            runners = ollama_api.request_json(endpoint + "/api/ps").get("models", [])
-            offloaded = any(
-                isinstance(item, dict)
-                and item.get("name") == model
-                and int(item.get("size_vram", 0)) > 0
-                for item in runners
-            )
-            ok = answer.get("done") is True and bool(answer.get("response")) and offloaded
-            checks.append(
-                HealthCheck(
-                    "model-gpu-probe",
-                    "PASS" if ok else "FAIL",
-                    "inférence courte et VRAM observées",
+                    timeout=120,
                 )
-            )
+                runners = ollama_api.request_json(endpoint + "/api/ps").get("models", [])
+                offloaded = any(
+                    isinstance(item, dict)
+                    and item.get("name") == model
+                    and int(item.get("size_vram", 0)) > 0
+                    for item in runners
+                )
+                ok = answer.get("done") is True and bool(answer.get("response")) and offloaded
+                checks.append(
+                    HealthCheck(
+                        "model-gpu-probe-" + str(required_model["alias"]),
+                        "PASS" if ok else "FAIL",
+                        f"modèle={model}, inférence courte et VRAM observées",
+                    )
+                )
     except (OSError, ValueError, KeyError, TypeError) as exc:
         checks.append(HealthCheck("model-inventory", "FAIL", str(exc)))
     for command, check_id, expected_value in (

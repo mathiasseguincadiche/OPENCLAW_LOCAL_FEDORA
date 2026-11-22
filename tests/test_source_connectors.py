@@ -129,7 +129,8 @@ def test_notion_training_notes_are_imported_as_local_only(
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({"project_id": "connector-test",
                                 "sources_digest": project_cloud.sources_digest(project)}))
-    assert project_cloud.consent_state(ROOT, runtime, project)["state"] == "source_restricted"
+    assert project_cloud.consent_state(ROOT, runtime, project)["state"] == "none"
+    # An older consent record is ignored in local-only mode.
 
 
 def test_a_notion_page_without_children_does_not_fetch_the_children_content(

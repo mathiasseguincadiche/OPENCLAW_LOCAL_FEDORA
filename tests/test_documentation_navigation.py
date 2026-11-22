@@ -14,6 +14,7 @@ GUIDES = (
     "STATUS.md",
     "docs/GUIDE.md",
     "docs/ARCHITECTURE_HYBRIDE.md",
+    "docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md",
     "docs/LABORATOIRE_DEVOPS.md",
     "docs/PREUVES_CI_GITHUB_GITLAB.md",
     "docs/RECHERCHE_LOCALE_SOURCES.md",
@@ -68,7 +69,7 @@ def test_seven_agents_explained_match_canonical_policy() -> None:
         "clawfedora_ci_report",
     ):
         assert tool in roles
-    assert "même modèle" in roles or "même moteur" in roles
+    assert "deux modèles" in roles.lower() and "Ornith" in roles
     assert "pas" in roles.lower() and "exécut" in roles.lower()
 
 
@@ -99,62 +100,34 @@ def test_readme_architecture_mentions_really_pinned_webui() -> None:
     assert "approbation" in architecture.lower()
 
 
-def test_hybrid_documentation_describes_both_configured_engines() -> None:
-    models = yaml.safe_load(
-        (ROOT / "config/model_catalog.yaml").read_text(encoding="utf-8")
-    )["models"]
-    routing = yaml.safe_load(
-        (ROOT / "config/core/model_routing.yaml").read_text(encoding="utf-8")
-    )
-    cloud = yaml.safe_load(
-        (ROOT / "config/core/cloud_policy.yaml").read_text(encoding="utf-8")
-    )
-    assert models["qwen-max"]["provider"] == "ollama"
-    assert models["cloud-main"]["provider"] == "cloud-gateway"
-    assert models["cloud-main"]["runtime_id"] == cloud["model"]["upstream_id"]
-    assert cloud["model"]["upstream_id"] == "deepseek/deepseek-v4.1-flash-1017"
-    assert routing["policy"]["cloud_enabled_by_default"] is False
+def test_local_documentation_matches_seven_agents_and_two_models() -> None:
+    models = yaml.safe_load((ROOT / "config/model_catalog.yaml").read_text())["models"]
+    routing = yaml.safe_load((ROOT / "config/core/model_routing.yaml").read_text())
+    agents = yaml.safe_load((ROOT / "config/core/agents.yaml").read_text())["agents"]
+    cloud = yaml.safe_load((ROOT / "config/core/cloud_policy.yaml").read_text())
+    assert set(models) == {"qwen-max", "ornith-code"}
+    assert all(spec["provider"] == "ollama" for spec in models.values())
+    assert cloud["policy"]["retired"] is True
+    assert routing["policy"]["local_only"] is True
     assert routing["policy"]["local_to_cloud_fallback"] == "forbidden"
-    assert set(routing["agents"]) == set(
-        yaml.safe_load((ROOT / "config/core/agents.yaml").read_text(encoding="utf-8"))[
-            "agents"
-        ]
-    )
-    for spec in routing["agents"].values():
-        assert spec["local_primary"] == "qwen-max"
-        assert spec["cloud_primary"] == "cloud-main"
-
-    docs = [
-        "README.md",
-        "docs/GUIDE.md",
-        "docs/ARCHITECTURE_HYBRIDE.md",
-        "docs/fiches/07-roles-et-outils.md",
-        "docs/fiches/11-comment-ca-marche.md",
-        "docs/fiches/12-cloud.md",
-    ]
-    for name in docs:
-        text = (ROOT / name).read_text(encoding="utf-8")
-        assert "Qwen" in text, name
-        assert "DeepSeek" in text, name
-        assert "cloud" in text.lower(), name
-    strategy = (ROOT / "docs/ARCHITECTURE_HYBRIDE.md").read_text(
-        encoding="utf-8"
-    )
-    assert "automatique" in strategy.lower()
-    assert "consentement" in strategy.lower()
-    assert "35 €/mois" in strategy
-    assert str(cloud["model"]["context_tokens"]) in strategy.replace(" ", "")
+    assert set(routing["agents"]) == set(agents)
+    assert routing["agents"]["ingenieur-devops"]["local_primary"] == "ornith-code"
+    assert all(spec["local_primary"] == "qwen-max" for role, spec in routing["agents"].items()
+               if role != "ingenieur-devops")
+    for name in ("README.md", "docs/GUIDE.md",
+                 "docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md",
+                 "docs/fiches/07-roles-et-outils.md"):
+        content = (ROOT / name).read_text()
+        assert "Qwen" in content and "Ornith" in content, name
 
 
-def test_hybrid_social_preview_contains_both_models() -> None:
+def test_local_social_preview_contains_the_two_models() -> None:
     cover = ROOT / ".github/social-preview.svg"
     picture = ElementTree.parse(cover).getroot()
     assert picture.find("{http://www.w3.org/2000/svg}title") is not None
     content = cover.read_text(encoding="utf-8")
-    assert "hybride" in content
-    assert "Qwen" in content
-    assert "DeepSeek" in content
-
+    assert "local" in content and "Qwen" in content and "Ornith" in content
+    assert "DeepSeek" not in content and "OpenRouter" not in content
 
 
 def test_fedora_is_native_host_and_rocky_validation_is_only_optional() -> None:
@@ -177,40 +150,19 @@ def test_fedora_is_native_host_and_rocky_validation_is_only_optional() -> None:
     assert "n'a pas besoin" in lab and "Rocky Linux" in lab
 
 
-def test_current_hybrid_guides_and_editable_diagrams_name_both_cloud_models() -> None:
-    cloud = yaml.safe_load((ROOT / "config/core/cloud_policy.yaml").read_text(encoding="utf-8"))
-    ids = {spec["upstream_id"] for spec in cloud["upstream_models"].values()}
-    assert ids == {"deepseek/deepseek-v4.1-flash-1017", "openai/gpt-6.2-sol"}
-
-    for name in (
-        "docs/GUIDE.md",
-        "docs/fiches/03-discuter.md",
-        "docs/fiches/04-atelier-projets.md",
-        "docs/fiches/07-roles-et-outils.md",
-    ):
+def test_current_guides_and_editable_diagrams_are_local_only() -> None:
+    for name in ("README.md", "docs/GUIDE.md",
+                 "docs/fiches/07-roles-et-outils.md",
+                 "docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md"):
         content = (ROOT / name).read_text(encoding="utf-8")
-        assert "Qwen" in content and "DeepSeek" in content and "Sol" in content, name
-    roles = (ROOT / "docs/fiches/07-roles-et-outils.md").read_text(encoding="utf-8")
-    assert "DeepSeek Low" in roles and "Sol High" in roles
-    assert "Sol Medium" in roles
-
-    for stem, labels in (
-        ("atelier-architecture", ["Qwen local · DeepSeek cloud en routine · Sol en expertise",
-                                  "OpenRouter · DeepSeek / Sol"]),
-        ("atelier-roles", ["Sept métiers, trois modèles, un travail à la fois",
-                           "Qwen / Flash / Sol"]),
-    ):
+        assert "Qwen" in content and "Ornith" in content, name
+    for stem in ("atelier-architecture", "atelier-roles"):
         svg = ROOT / "docs/diagrams" / (stem + ".svg")
         drawio = ROOT / "docs/diagrams" / (stem + ".drawio")
         ElementTree.parse(svg)
         ElementTree.parse(drawio)
-        svg_text = svg.read_text(encoding="utf-8")
-        drawio_text = drawio.read_text(encoding="utf-8")
-        for label in labels:
-            assert label in svg_text and label in drawio_text, (stem, label)
+        for path in (svg, drawio):
+            content = path.read_text(encoding="utf-8")
+            assert "Qwen" in content and "Ornith" in content, path
+            assert "DeepSeek" not in content and "OpenRouter" not in content, path
 
-    ui = (ROOT / "plugins/openwebui/clawfedora_project_actions.py").read_text(
-        encoding="utf-8"
-    )
-    assert "Consulter le budget cloud" in ui
-    assert "Consulter le budget DeepSeek" not in ui

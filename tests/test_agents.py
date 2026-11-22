@@ -17,7 +17,8 @@ def test_agent_assets_and_specs_are_complete() -> None:
     assert tuple(spec.agent_id for spec in specs) == AGENT_IDS
     assert len(specs) == 7
     assert specs[0].agent_id == "chef-operations"
-    assert {spec.model for spec in specs} == {"qwen-max"}
+    assert {spec.model for spec in specs} == {"qwen-max", "ornith-code"}
+    assert {spec.agent_id for spec in specs if spec.model == "ornith-code"} == {"ingenieur-devops"}
 
 
 def test_deploy_workspaces_is_managed_and_idempotent(tmp_path: Path) -> None:

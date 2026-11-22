@@ -1,13 +1,13 @@
-# Atelier IA hybride — Infrastructure & OPS
+# Atelier IA local — Infrastructure & OPS
 
-<p align="center"><img src=".github/social-preview.svg" alt="Atelier IA Fedora : Qwen local, DeepSeek cloud facultatif et sept rôles OpenClaw" width="100%"></p>
+<p align="center"><img src=".github/social-preview.svg" alt="Atelier IA Fedora : Qwen et Ornith locaux, sept rôles OpenClaw" width="100%"></p>
 
 [![CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml)
 [![Fedora 45](https://img.shields.io/badge/Fedora-45-51A2DA?logo=fedora&logoColor=white)](https://fedoraproject.org/)
 [![Licence MIT](https://img.shields.io/badge/Licence-MIT-green.svg)](LICENSE)
 
-**Un atelier IA personnel pour apprendre, préparer et documenter des projets DevOps sur Fedora.** Un assistant en ligne classique reçoit tes questions sur un service distant et propose des commandes qu'on n'a pas toujours le temps de comprendre. Cet atelier fait le choix inverse : le modèle **Qwen 3.5 9B tourne sur ton PC par défaut**, il explique avant de proposer, et c'est **toi** qui exécutes. OpenClaw organise sept rôles autour de ce modèle local ; **DeepSeek et GPT-6.2 Sol via OpenRouter** apportent une route cloud facultative, sur autorisation explicite.
+**Un atelier IA personnel pour comprendre, préparer, auditer et documenter des projets DevOps sur Fedora.** Les sept agents OpenClaw utilisent **uniquement Ollama en local** : **Qwen 3.5 9B** pour six rôles d'analyse/pédagogie et **Ornith 1.5 9B** pour l'ingénieur DevOps. **OpenRouter est retiré de la configuration active** : aucune facturation API ni bascule automatique vers un modèle distant. Les actions sensibles restent soumises aux règles de validation ; les agents ne disposent pas encore d'un shell autonome général.
 
 [Découvrir](docs/GUIDE.md) · [Tester en Live USB](docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md) · [Installer](docs/INSTALLATION_SIMPLE_FEDORA45.md) · [Documentation](docs/README.md) · [État du projet](STATUS.md)
 
@@ -21,8 +21,8 @@
 | --- | --- | --- | --- |
 | Code, règles et tests automatisés | Implémenté | Vérifié en CI (instantané du 3 novembre) et en local (9 novembre) | [STATUS](STATUS.md) ; un test réussi n'est pas un essai sur Fedora |
 | Installation et réception sur le PC (Fedora 45, Intel Arc B580) | À faire | Non vérifié | [Liste de contrôle de réception](docs/RECEPTION_ETAPE3.md) |
-| Qwen local : débit, VRAM, contexte 32K | Implémenté | À mesurer | [Premiers essais](docs/fiches/02-premier-essai.md) |
-| Route cloud DeepSeek / Sol avec un vrai fournisseur | Implémenté, testé avec un faux fournisseur | Non vérifié : appel réel, coût et facturation à faire | [Fiche cloud](docs/fiches/12-cloud.md) |
+| Qwen et Ornith locaux : débit, VRAM, contexte 32K | Migration en PR | À mesurer sur la B580 | [Architecture locale](docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md) |
+| OpenRouter / passerelle cloud | Retiré des routes actives | Contrats et CI de migration en vérification | [Retrait et reprise](docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md) |
 
 ## Ce que tu peux faire
 
@@ -38,7 +38,7 @@ Les sept rôles n'ont aucun outil pour exécuter une commande ni écrire un fich
 **Atelier IA Fedora** — `http://127.0.0.1:18890` : quatre espaces
 dans une même application locale : **Discussions**, **Projets**, **GitHub**
 et **Notion**. Les conversations utilisent les sept rôles OpenClaw et
-le modèle local fourni par Ollama. `./menu.sh` reste l'outil de maintenance
+les deux modèles locaux fournis par Ollama. `./menu.sh` reste l'outil de maintenance
 en terminal, et non une seconde interface graphique.
 
 Le conteneur **Open WebUI** n'est conservé que pour la transition et
@@ -99,8 +99,7 @@ Le projet peut maintenant ingérer un **instantané GitHub lié à un SHA comple
 ou les **pages Notion explicitement choisies**, avec empreintes et vérification
 des sources. GitHub demeure la référence du code et du portfolio ; Notion
 reste le centre des cours, exercices, notes et progression. Les notes
-Notion importées sont **locales uniquement** : pas de transmission
-automatique à OpenRouter, ni de mise à jour du suivi Notion.
+Notion importées sont **locales uniquement** : pas d'inférence distante par OpenRouter ; aucune mise à jour automatique du suivi Notion.
 
 `clawfedora-sources` démarre en mode simulation et ne lit les API qu'avec
 `--apply`. Ce n'est **pas encore une synchronisation en direct depuis le
@@ -181,30 +180,15 @@ liens et diagrammes d'un projet ou d'un snapshot importé, en lecture seule.
 Il n'exécute **ni tests applicatifs ni commandes de déploiement** et ne
 crée aucune PR.
 
-## Priorité métier : duo cloud, local à qualifier
+## Priorité métier : deux modèles locaux, sept rôles
 
-Pour l'apprentissage et les projets InfraOps autorisés, **DeepSeek V4.1 Flash**
-produit le travail courant et **GPT-6.2 Sol** apporte une contre-expertise
-approuvée. Les plans peuvent classer chaque tâche en `simple`, `complex`
-ou `critical` : le niveau approuvé adapte l'effort DeepSeek, indépendamment
-du nom de l'agent. Sol n'est jamais appelé automatiquement simplement parce
-qu'un texte semble difficile. Les **sept rôles restent distincts**.
+L'atelier conserve **Qwen 3.5 9B Q4_K_M** pour le mentor, la recherche, l'architecture, la sécurité, la rédaction et l'audit. **Ornith 1.5 9B Q4** est affecté à l'ingénieur DevOps pour Terraform, Ansible, Docker, Kubernetes, scripts et CI/CD. Les modèles sont chargés alternativement par Ollama (`OLLAMA_MAX_LOADED_MODELS=1`). Les projets et la mémoire restent sous contrôle du worker.
 
-**Qwen 3.5 9B reste disponible et requis par l'installateur actuel**, mais son
-intérêt quotidien doit être prouvé. Le comparateur
-[`clawfedora-model-qualify`](docs/CLOUD_FIRST_QUALIFICATION.md) prépare une
-décision de maintien ou de retrait à partir de mesures humaines vérifiables ;
-il n'enlève rien du système. **Le cloud reste désactivé et le chat local par
-défaut** tant que tu ne l'as pas autorisé : « cloud-first » décrit la priorité
-métier après consentement, pas une transmission automatique.
+**OpenRouter, DeepSeek et Sol ne font plus partie du routage actif.** Le mode cloud, y compris les anciens appels de l'interface CLI, est refusé. Le retrait des clés du poste est une opération distincte et explicite (`./menu.sh --action local-retire-cloud --apply`) ; les journaux historiques ne sont pas effacés.
 
-## Local au quotidien, cloud sur décision
+La recherche Web peut encore consulter Internet pour récupérer des *sources* si tu la laisses activée ; cela n'envoie pas les conversations à un fournisseur de modèle payant. Le [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) désactive les outils Web.
 
-Qwen travaille sur la machine avec Ollama. Après accord cloud, DeepSeek V4.1 Flash sert la routine des sept rôles et **GPT-6.2 Sol** sert les révisions approuvées et la contre-expertise finale selon le rôle, ou un choix manuel explicite : aucun repli automatique du local vers le cloud. L'activation, les accords de projet et le budget sont contrôlés par la passerelle locale ; le plafond configuré est de **35 €/mois**, dont 15 € pour DeepSeek et 10 € pour Sol, avec 10 € de réserve non routable. Une limite fournisseur et le prépaiement restent indispensables.
-
-Une recherche Web peut contacter Internet même avec Qwen local. Le [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) désactive ces outils. Le filtre de confidentialité reste une aide ; il ne garantit pas qu'un contenu autorisé pour le cloud soit publiable.
-
-[Comprendre les deux routes](docs/ARCHITECTURE_HYBRIDE.md) · [Activer le cloud](docs/fiches/12-cloud.md) · [Sécurité](SECURITY.md)
+[Architecture locale, choix des modèles et réception](docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md) · [Sécurité](SECURITY.md)
 
 ## Sept rôles, un même atelier
 
@@ -218,8 +202,8 @@ L'atelier assemble des composants tiers et y ajoute son propre code. La distinct
 
 | Origine | Éléments | Rôle dans l'atelier |
 | --- | --- | --- |
-| **Composants tiers**, versions épinglées | OpenClaw 2026.10.5, Ollama 0.40.6, Open WebUI 0.12.3, modèle Qwen 3.5 9B, DeepSeek et GPT-6.2 Sol via OpenRouter | Agents, inférence locale, interface de chat, modèles |
-| **Ce dépôt** | Paquet Python `clawfedora` (`src/`), scripts d'installation et de maintenance (`scripts/`), consignes des sept rôles (`agents/`), politiques (`config/`), plugins (`plugins/`), tests (`tests/`), documentation (`docs/`) | Passerelle cloud, moteur de projets, contrôles, installation, pédagogie |
+| **Composants tiers**, versions épinglées | OpenClaw 2026.10.5, Ollama 0.40.6, Open WebUI 0.12.3 facultatif, modèles Qwen 3.5 9B et Ornith 1.5 9B | Agents, inférence locale, interface de chat, modèles |
+| **Ce dépôt** | Paquet Python `clawfedora` (`src/`), scripts d'installation et de maintenance (`scripts/`), consignes des sept rôles (`agents/`), politiques (`config/`), plugins (`plugins/`), tests (`tests/`), documentation (`docs/`) | Moteur de projets, contrôles locaux, installation, pédagogie et retrait de l'ancienne passerelle |
 
 Les versions exactes sont dans [`config/runtime_versions.yaml`](config/runtime_versions.yaml) et expliquées dans [les références techniques](docs/reference/README.md).
 
@@ -228,11 +212,11 @@ Les versions exactes sont dans [`config/runtime_versions.yaml`](config/runtime_v
 - **Pas encore essayé sur le PC cible** : toutes les mesures réelles (GPU, WebUI dans le navigateur, voix, restauration) restent à faire.
 - **Pas de déploiement autonome** : les fichiers proposés par les agents ne prouvent pas qu'un Terraform ou un Ansible a réussi.
 - **Usage prévu : une personne, sur son propre PC.** L'atelier n'est pas conçu pour être exposé sur un réseau ; les sauvegardes locales ne sont pas chiffrées ([Sécurité](SECURITY.md)).
-- **Qualité des réponses non mesurée** : la comparaison Qwen, DeepSeek et Sol repose sur une grille humaine ([Évaluation pédagogique](docs/EVALUATION_PEDAGOGIE.md)), sans note automatique.
+- **Qualité des réponses non mesurée** : la qualité de Qwen et Ornith sur OpsDesk reste à qualifier avec des preuves réelles ([Évaluation pédagogique](docs/EVALUATION_PEDAGOGIE.md)), sans note automatique.
 
 ## Trois points à retenir
 
-1. Le modèle est **local par défaut** ; le cloud est une option désactivée, activée par toi, projet par projet.
+1. Les **deux modèles sont locaux uniquement**, sans inférence payante ni route de secours OpenRouter.
 2. Le modèle propose, le moteur encadre, **tu valides et tu exécutes**.
 3. Le code est testé automatiquement, mais **le PC Fedora n'a pas encore réceptionné l'atelier**.
 

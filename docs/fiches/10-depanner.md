@@ -135,24 +135,18 @@ du -sh /data/IA/Openclaw/* | sort -h
 
 Supprime d'anciennes sauvegardes dans `backups/`.
 
-## Le cloud ne répond pas ou se met en pause
+## L'ancienne route OpenRouter apparaît encore
 
-Tout est détaillé dans [Le cloud, facultatif](12-cloud.md). Pour commencer :
+Depuis le passage à Qwen + Ornith, aucun modèle cloud n'est autorisé. Un ancien service ou une clé peut néanmoins rester sur une installation existante tant que tu n'as pas exécuté son retrait contrôlé.
 
 ```bash
-./menu.sh --action cloud-status
-systemctl --user status clawfedora-cloud-gateway
-journalctl --user -u clawfedora-cloud-gateway -n 50
+./menu.sh --action local-retire-cloud
+./menu.sh --action local-retire-cloud --apply
+./menu.sh --action configure-openclaw --apply
+./menu.sh --action health
 ```
 
-| Symptôme | Piste |
-|---|---|
-| « ready=0 » | Le cloud n'est pas activé, ou un contrôle a échoué : relance `./menu.sh --action cloud-enable --value 12` et lis l'échec |
-| Un projet est en pause, « passerelle injoignable » | Le service est arrêté : `systemctl --user restart clawfedora-cloud-gateway`, puis **Reprendre** |
-| Un projet est en pause, « filtre de confidentialité » | Le message nomme la catégorie. Retire ce contenu des sources, ou **Retirer l'accord cloud** pour poursuivre en local |
-| « plafond atteint » | Le plafond mensuel de 35 € est atteint, ou le journal est illisible (`cloud-status` le dit) |
-| Le coût affiché diffère de la facture | Normal : c'est une estimation prudente. Enregistre la facture avec `cloud-reconcile` |
-| Tu veux tout remettre en local, tout de suite | `./menu.sh --action cloud-disable --apply` |
+Si un ancien projet présente une approbation cloud, ses données ne doivent pas être perdues : la politique locale ignore cette autorisation et impose l'inférence Ollama. Vérifier l'état du projet et le journal avant toute suppression manuelle.
 
 ## Demander de l'aide
 

@@ -58,7 +58,7 @@ from clawfedora.structured_response import (
 # runner(role, prompt, session) runs the local model; a caller that has decided to use the cloud
 # passes route="cloud" explicitly. Nothing falls back from local to cloud.
 AgentRunner = Callable[..., dict[str, Any]]
-ROUTES = ("local", "cloud")
+ROUTES = ("local",)
 
 
 @contextmanager
@@ -262,7 +262,10 @@ def openclaw_runner(
             checked_binary = binary_stamp
 
         plan = model_plan(repo_root)
-        daily_model = str(plan[0]["runtime_id"])
+        routing = core_contract(repo_root, "model_routing.yaml")["agents"][role]
+        model_alias = str(routing["local_primary"])
+        catalog_models = root_contract(repo_root, "model_catalog.yaml")["models"]
+        daily_model = str(catalog_models[model_alias]["runtime_id"])
         if not cloud:
             identities = ollama_api.model_inventory(
                 ollama_api.request_json("http://127.0.0.1:11434/api/tags"), plan
@@ -304,7 +307,11 @@ def openclaw_runner(
                     != (runtime / "workspaces" / agent_id).resolve()
                 ):
                     raise ValueError(f"workspace divergent: {agent_id}")
-                if entry.get("model") != {"primary": f"ollama/{daily_model}", "fallbacks": []}:
+                routes_config = core_contract(repo_root, "model_routing.yaml")["agents"]
+                model_catalog = root_contract(repo_root, "model_catalog.yaml")["models"]
+                expected_alias = routes_config[agent_id]["local_primary"]
+                expected_model = "ollama/" + str(model_catalog[expected_alias]["runtime_id"])
+                if entry.get("model") != {"primary": expected_model, "fallbacks": []}:
                     raise ValueError(f"routage quotidien divergent: {agent_id}")
             roster_stamp = stamp
             if cloud:

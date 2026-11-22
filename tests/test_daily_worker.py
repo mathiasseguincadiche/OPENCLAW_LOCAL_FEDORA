@@ -239,13 +239,16 @@ def test_daily_patch_really_bounds_memory_and_disables_unsafe_tools(tmp_path: Pa
         assert role["model"]["fallbacks"] == []
         assert {"exec", "process", "write", "edit", "apply_patch"}.issubset(role["tools"]["deny"])
     models = patch["models"]["providers"]["ollama"]["models"]
-    assert len(models) == 1
-    assert models[0]["params"] == {
+    assert len(models) == 2
+    assert {model["id"] for model in models} == {
+        "qwen3.5:9b-q4_K_M", "ornith-1.5:9b",
+    }
+    assert all(model["params"] == {
         "num_ctx": 32768,
         "num_predict": 4096,
         "keep_alive": "3m",
         "think": False,
-    }
+    } for model in models)
     # The model must never be able to update OpenClaw or chain a three-step tool search.
     assert {"gateway", "presence"} <= set(patch["tools"]["deny"])
     assert patch["tools"]["toolSearch"] is False

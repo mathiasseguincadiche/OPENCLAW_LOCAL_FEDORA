@@ -100,16 +100,23 @@ def validate_repository(root: Path) -> ContractReport:
     models = contracts["models"]
     model_map = models.get("models", {})
     required_models = {key for key, value in model_map.items() if value.get("required") is True}
-    if required_models != {"qwen-max"}:
-        failures.append("models: seul qwen-max est requis pour le profil quotidien")
+    if required_models != {"qwen-max", "ornith-code"}:
+        failures.append("models: Qwen et Ornith sont les deux modèles locaux requis")
     runtime_ids = [str(value.get("runtime_id", "")) for value in model_map.values()]
     runtime_ids_invalid = any(not runtime_id for runtime_id in runtime_ids)
     runtime_ids_duplicated = len(runtime_ids) != len(set(runtime_ids))
     if runtime_ids_invalid or runtime_ids_duplicated:
         failures.append("models: runtime_id absents ou dupliqués")
     fleet_policy = models.get("fleet_policy", {})
-    if int(fleet_policy.get("exact_required_model_count", 0)) != 1:
-        failures.append("models: exactement un modèle quotidien requis")
+    if int(fleet_policy.get("exact_required_model_count", 0)) != 2:
+        failures.append("models: deux modèles locaux requis")
+    if (
+        fleet_policy.get("local_only") is not True
+        or fleet_policy.get("cloud_models_supported") is not False
+    ):
+        failures.append("models: fonctionnement exclusivement local requis")
+    if any(value.get("provider") != "ollama" for value in model_map.values()):
+        failures.append("models: aucun fournisseur distant autorisé")
     if fleet_policy.get("cloud_model_as_local_fallback") is not False:
         failures.append("models: fallback cloud interdit")
 

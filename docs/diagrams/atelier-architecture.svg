@@ -1,29 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 790" role="img" aria-labelledby="title desc">
-<title id="title">Atelier hybride Fedora : Qwen, DeepSeek et Sol</title>
-<desc id="desc">Open WebUI et Atelier Projets alimentent un pont et un moteur contrôlé. OpenClaw applique le rôle spécialisé, puis deux voies sont possibles : Qwen 3.5 local sur Fedora et Intel Arc B580 par défaut ; DeepSeek V4.1 Flash en routine cloud et Sol en expertise approuvée via une passerelle qui impose consentement, confidentialité et budget. Le projet conserve fichiers et preuves ; l'humain décide.</desc>
+<title id="title">Atelier local Fedora : Qwen et Ornith</title>
+<desc id="desc">Atelier natif Discussions, Projets, GitHub et Notion, contrôles worker et sept rôles OpenClaw. Ollama route Qwen 3.5 9B sur six rôles et Ornith 1.5 9B sur le DevOps, un modèle chargé à la fois. Aucun fournisseur de modèle cloud ; les preuves et approbations humaines restent obligatoires.</desc>
 <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#648398"/></marker><marker id="cloudArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#b6783a"/></marker></defs>
 <rect width="1280" height="790" rx="18" fill="#f6f9fc"/>
 <g font-family="DejaVu Sans,Arial,sans-serif">
-<text x="36" y="48" font-size="29" font-weight="700" fill="#14374c">Sept agents, Qwen local et duo cloud</text>
-<text x="36" y="78" font-size="15" fill="#416477">Qwen local · DeepSeek cloud en routine · Sol en expertise</text>
-<g font-size="14" font-weight="700"><text x="37" y="132" fill="#116b74">1 · INTERFACES</text><text x="334" y="132" fill="#284659">2 · CONTRÔLES</text><text x="633" y="132" fill="#284659">3 · MISSIONS</text><text x="922" y="132" fill="#234d64">4 · MODÈLES</text></g>
+<text x="36" y="48" font-size="29" font-weight="700" fill="#14374c">Sept agents, deux moteurs locaux</text>
+<text x="36" y="78" font-size="15" fill="#416477">Qwen analyse · Ornith code · Aucun cloud</text>
+<g font-size="14" font-weight="700"><text x="37" y="132" fill="#116b74">1 · ESPACES</text><text x="334" y="132" fill="#284659">2 · CONTRÔLES</text><text x="633" y="132" fill="#284659">3 · MISSIONS</text><text x="922" y="132" fill="#234d64">4 · MODÈLES</text></g>
 <!-- Interfaces -->
 <rect x="34" y="158" width="244" height="108" rx="15" fill="#126b74"/>
-<text x="156" y="193" fill="#fff" text-anchor="middle" font-weight="700" font-size="21">Open WebUI</text>
+<text x="156" y="193" fill="#fff" text-anchor="middle" font-weight="700" font-size="21">Discussions</text>
 <text x="156" y="221" fill="#e5f8f6" text-anchor="middle" font-size="14">Chat · rôles · fichiers</text>
-<text x="156" y="243" fill="#e5f8f6" text-anchor="middle" font-size="13">Modèle choisi dans le chat</text>
+<text x="156" y="243" fill="#e5f8f6" text-anchor="middle" font-size="13">Qwen · six agents</text>
 <rect x="34" y="332" width="244" height="107" rx="15" fill="#126b74"/>
-<text x="156" y="368" fill="#fff" text-anchor="middle" font-weight="700" font-size="21">Atelier Projets</text>
+<text x="156" y="368" fill="#fff" text-anchor="middle" font-weight="700" font-size="21">Projets · GitHub · Notion</text>
 <text x="156" y="395" fill="#e5f8f6" text-anchor="middle" font-size="14">Tâches · sources · accords</text>
-<text x="156" y="417" fill="#e5f8f6" text-anchor="middle" font-size="13">Consentement cloud du projet</text>
+<text x="156" y="417" fill="#e5f8f6" text-anchor="middle" font-size="13">Choix du rôle approuvé</text>
 <rect x="34" y="535" width="244" height="111" rx="15" fill="#ffffff" stroke="#a3becb" stroke-width="2"/>
 <text x="156" y="567" fill="#183d50" text-anchor="middle" font-size="19" font-weight="700">Tu gardes la décision</text>
-<text x="156" y="593" fill="#436579" text-anchor="middle" font-size="14">Choisir le modèle et le plan</text>
+<text x="156" y="593" fill="#436579" text-anchor="middle" font-size="14">Valider le plan et la mission</text>
 <text x="156" y="616" fill="#436579" text-anchor="middle" font-size="14">Approuver · vérifier · tester</text>
 <!-- Control plane -->
 <rect x="332" y="158" width="250" height="108" rx="15" fill="#284659"/>
 <text x="457" y="193" fill="#fff" text-anchor="middle" font-weight="700" font-size="20">Pont de chat</text>
-<text x="457" y="219" fill="#e0eef2" text-anchor="middle" font-size="14">Port 18891</text>
+<text x="457" y="219" fill="#e0eef2" text-anchor="middle" font-size="14">Pont natif en mémoire</text>
 <text x="457" y="240" fill="#e0eef2" text-anchor="middle" font-size="14">Commandes et historique</text>
 <rect x="332" y="332" width="250" height="107" rx="15" fill="#284659"/>
 <text x="457" y="368" fill="#fff" text-anchor="middle" font-weight="700" font-size="20">Moteur de projets</text>
@@ -38,26 +38,26 @@
 <text x="749" y="284" fill="#fff" text-anchor="middle" font-size="23" font-weight="700">OpenClaw</text>
 <text x="749" y="315" fill="#e2eef4" text-anchor="middle" font-size="15">Un des sept rôles</text>
 <text x="749" y="340" fill="#e2eef4" text-anchor="middle" font-size="14">Consignes et outils</text>
-<text x="749" y="361" fill="#e2eef4" text-anchor="middle" font-size="13">Même mission sur les 2 routes</text>
+<text x="749" y="361" fill="#e2eef4" text-anchor="middle" font-size="13">Modèle lié à la mission</text>
 <rect x="633" y="535" width="232" height="111" rx="15" fill="#e4f0f3" stroke="#87aabb" stroke-width="2"/>
 <text x="749" y="569" fill="#254d5f" text-anchor="middle" font-size="19" font-weight="700">Outils métier</text>
 <text x="749" y="594" fill="#416576" text-anchor="middle" font-size="14">Recherche · statique</text>
 <text x="749" y="617" fill="#416576" text-anchor="middle" font-size="13">Exports et schémas locaux</text>
 <!-- Local model -->
 <rect x="916" y="155" width="330" height="155" rx="15" fill="#dbeef3" stroke="#6097a8" stroke-width="2.5"/>
-<text x="939" y="184" fill="#1d6579" font-size="16" font-weight="700">A · LOCAL PAR DÉFAUT</text>
+<text x="939" y="184" fill="#1d6579" font-size="16" font-weight="700">A · LOCAL · ANALYSE</text>
 <text x="1081" y="222" text-anchor="middle" fill="#173d4e" font-size="23" font-weight="700">Ollama + Qwen 3.5 9B</text>
 <text x="1081" y="251" text-anchor="middle" fill="#315c70" font-size="14">Fedora · Intel Arc B580</text>
-<text x="1081" y="278" text-anchor="middle" fill="#315c70" font-size="14">Quotidien · privé · tâches ciblées</text>
+<text x="1081" y="278" text-anchor="middle" fill="#315c70" font-size="14">Six agents · analyse · pédagogie</text>
 <!-- Cloud gateway and model -->
 <rect x="916" y="365" width="330" height="118" rx="15" fill="#fff1de" stroke="#bd8749" stroke-width="2.5"/>
-<text x="939" y="392" fill="#906029" font-size="16" font-weight="700">B · CLOUD SUR ACCORD</text>
-<text x="1081" y="426" text-anchor="middle" fill="#815428" font-size="21" font-weight="700">Passerelle :18892</text>
-<text x="1081" y="451" text-anchor="middle" fill="#815428" font-size="14">Filtre · budget · politique fournisseur</text>
+<text x="939" y="392" fill="#906029" font-size="16" font-weight="700">B · LOCAL · CODE</text>
+<text x="1081" y="426" text-anchor="middle" fill="#815428" font-size="21" font-weight="700">Exécution Ollama locale</text>
+<text x="1081" y="451" text-anchor="middle" fill="#815428" font-size="14">Permissions · contexte · tests</text>
 <rect x="916" y="535" width="330" height="111" rx="15" fill="#fae7cd" stroke="#bd8749" stroke-width="2.5"/>
-<text x="1081" y="570" text-anchor="middle" fill="#784b22" font-size="21" font-weight="700">OpenRouter · DeepSeek / Sol</text>
-<text x="1081" y="597" text-anchor="middle" fill="#84572b" font-size="16">Routine · Expertise</text>
-<text x="1081" y="620" text-anchor="middle" fill="#84572b" font-size="13">Choix par rôle et étape</text>
+<text x="1081" y="570" text-anchor="middle" fill="#784b22" font-size="21" font-weight="700">Ollama · Ornith 1.5 9B</text>
+<text x="1081" y="597" text-anchor="middle" fill="#84572b" font-size="16">IaC · code · diagnostics</text>
+<text x="1081" y="620" text-anchor="middle" fill="#84572b" font-size="13">Ingénieur DevOps uniquement</text>
 <!-- arrows -->
 <g fill="none" stroke="#648398" stroke-width="3" marker-end="url(#arrow)">
 <path d="M278 208H332"/><path d="M278 386H332"/>
@@ -71,12 +71,12 @@
 </g>
 <path d="M278 590H332" fill="none" stroke="#648398" stroke-width="2" stroke-dasharray="5 6" marker-end="url(#arrow)"/>
 <text x="599" y="495" font-size="12" fill="#496779">Fichiers contrôlés</text>
-<text x="877" y="349" font-size="12" fill="#8a5a2b">Choix explicite</text>
+<text x="877" y="349" font-size="12" fill="#8a5a2b">Rôle approuvé</text>
 <line x1="42" y1="699" x2="91" y2="699" stroke="#648398" stroke-width="3" marker-end="url(#arrow)"/>
-<text x="108" y="703" font-size="14" fill="#3c6074">Route locale</text>
+<text x="108" y="703" font-size="14" fill="#3c6074">Qwen · 6 rôles</text>
 <line x1="290" y1="699" x2="339" y2="699" stroke="#b6783a" stroke-width="3" stroke-dasharray="9 7" marker-end="url(#cloudArrow)"/>
-<text x="358" y="703" font-size="14" fill="#8c5b2d">Route cloud autorisée</text>
-<text x="661" y="703" font-size="14" fill="#3c6074">Une seule génération à la fois · consentement et preuves</text>
-<text x="40" y="754" font-size="13" fill="#4a6272">Schéma logique, pas preuve de déploiement. Le cloud n'est jamais un repli automatique du local.</text>
+<text x="358" y="703" font-size="14" fill="#8c5b2d">Ornith · DevOps</text>
+<text x="661" y="703" font-size="14" fill="#3c6074">Une seule génération à la fois · permissions et preuves</text>
+<text x="40" y="754" font-size="13" fill="#4a6272">Schéma logique, pas preuve de déploiement. Aucune route externe active.</text>
 </g>
 </svg>

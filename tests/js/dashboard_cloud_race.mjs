@@ -86,62 +86,20 @@ const reset = async () => {
   document.getElementById("message").textContent = "";
 };
 
-// 1. Open A then B; answers arrive B first, then A. Only B may be drawn and approved.
+// Retired cloud actions must stay absent even when a user switches projects rapidly.
 await reset();
 context.loadProject("alpha"); await settle();
 context.loadProject("beta"); await settle();
-pendingCloud.get("beta")(reply(true, cloudInfo)); await settle();
-pendingCloud.get("alpha")(reply(true, cloudInfo)); await settle();
-check(box().text.includes("Projet Beta"), "le panneau cloud doit nommer le projet ouvert (Beta)");
-check(!box().text.includes("Projet Alpha"), "une réponse tardive de A ne doit rien afficher dans B");
-const approves = [];
-box().find((el) => { if (el.textContent === "Autoriser le cloud pour ce projet") approves.push(el); return false; });
-check(approves.length === 1, `un seul bouton d’accord attendu, ${approves.length} trouvé(s)`);
-const ack = box().find((el) => el.id === "cloud-ack");
-if (ack && approves.length) {
-  ack.checked = true; ack.dispatch("change");
-  approves[approves.length - 1].dispatch("click"); await settle();
-}
-const approvals = posts.filter((p) => p.path === "/api/cloud-approve");
-check(approvals.length === 1 && approvals[0].body.project_id === "beta",
-  "l’accord doit viser beta uniquement: " + JSON.stringify(approvals));
-
-// 2. A control kept from A and clicked after B was opened sends nothing.
-await reset();
+check(pendingCloud.size === 0, "local-only dashboard must never request /api/cloud");
+check(posts.every((p) => !p.path.startsWith("/api/cloud")), "no cloud approval/revoke POST");
+check(box().children.length === 0, "no cloud approval panel may be rendered");
+check(document.getElementById("message").textContent !== "panne simulée", "no retired cloud error");
+// Repeat after navigation to ensure no deferred cloud request reappears.
 context.loadProject("alpha"); await settle();
-pendingCloud.get("alpha")(reply(true, cloudInfo)); await settle();
-const staleAck = box().find((el) => el.id === "cloud-ack");
-const staleApprove = box().find((el) => el.textContent === "Autoriser le cloud pour ce projet");
-context.loadProject("beta"); await settle();
-if (staleAck && staleApprove) {
-  staleAck.checked = true; staleAck.dispatch("change");
-  staleApprove.dispatch("click"); await settle();
-} else failures.push("contrôles cloud de A introuvables");
-check(posts.filter((p) => p.path.startsWith("/api/cloud-")).length === 0,
-  "un contrôle périmé ne doit envoyer aucun accord: " + JSON.stringify(posts));
-check(document.getElementById("message").textContent.includes("autre projet"),
-  "l’utilisateur doit être averti que le contrôle est périmé");
-
-// 3. A stale revoke (project already approved) sends nothing either.
-await reset();
-context.loadProject("alpha"); await settle();
-pendingCloud.get("alpha")(reply(true, { ...cloudInfo, state: "approved" })); await settle();
-const staleRevoke = box().find((el) => el.textContent.startsWith("Retirer l’accord cloud"));
-context.loadProject("beta"); await settle();
-if (staleRevoke) { staleRevoke.dispatch("click"); await settle(); }
-else failures.push("bouton de retrait de A introuvable");
-check(posts.length === 0, "un retrait périmé ne doit rien envoyer: " + JSON.stringify(posts));
-
-// 4. A late error for A is not shown inside B.
-await reset();
-context.loadProject("alpha"); await settle();
-context.loadProject("beta"); await settle();
-pendingCloud.get("beta")(reply(true, cloudInfo)); await settle();
-pendingCloud.get("alpha")(reply(false, { error: "panne simulée" })); await settle();
-check(!box().text.includes("panne simulée"), "une erreur tardive de A ne doit pas apparaître dans B");
-
+check(pendingCloud.size === 0, "project switch triggered an obsolete cloud request");
+check(posts.every((p) => !p.path.startsWith("/api/cloud")), "project switch triggered cloud mutation");
 if (failures.length) {
-  console.error(failures.map((f) => "ÉCHEC: " + f).join("\n"));
+  console.error(failures.map((f) => "ÉCHEC: " + f).join("\\n"));
   process.exit(1);
 }
 console.log("DASHBOARD_CLOUD_RACE=PASS");

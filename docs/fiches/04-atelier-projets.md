@@ -80,20 +80,13 @@ Un modèle de cette taille fait des erreurs, en local comme en cloud. L'atelier 
 - **Une tâche attend celles dont elle dépend.** Elle ne reçoit leur travail qu'une fois relu.
 - **Deux tentatives maximum par tâche**, pour ne pas tourner en rond.
 
-## Pourquoi DeepSeek et Sol peuvent être utiles à un projet
+## Pourquoi deux modèles locaux peuvent servir le même projet
 
-L'atelier est **hybride** : Qwen traite le travail local et privé. Après consentement pour un projet public, DeepSeek V4.1 Flash traite la routine des sept agents ; GPT-6.2 Sol intervient pour les révisions approuvées et la contre-expertise finale selon le rôle. Le gain de qualité réel reste à mesurer.
+**Qwen 3.5 9B** assure six rôles (mentor, recherche, architecture, sécurité, rédaction, audit) et **Ornith 1.5 9B** prend en charge l'ingénieur DevOps. Le worker choisit l'agent habilité et Ollama charge le modèle correspondant, un seul à la fois.
 
-**Le comportement réel distingue deux décisions :** un projet sans accord reste local. Si tu autorises le cloud, **l'accord couvre les étapes du projet** ; le mode `auto` sélectionne ensuite le couple DeepSeek/Sol et l'effort à partir du rôle et de l'étape approuvée, sans classer la difficulté du texte. Les rôles, leurs outils et les règles d'approbation restent les mêmes. [Comprendre le choix des deux modèles](../ARCHITECTURE_HYBRIDE.md).
+Les anciens accords OpenRouter sont historiques et ne déclenchent plus de route facturée. Aucun repli distant ne peut être activé depuis un projet. Les rapports et preuves sont conservés.
 
-## Le cloud dans un projet
-
-Par défaut, un projet travaille en local. Si tu as activé le cloud ([Le cloud, facultatif](12-cloud.md)), le panneau **Cloud pour ce projet** te laisse l'autoriser pour ce projet seulement, après lecture d'un texte d'accord.
-
-- L'accord couvre tout le projet (cadrage, plan, tâches, audits) et est lié à ses sources : si elles changent, il faut approuver à nouveau.
-- Si une étape cloud ne peut pas s'exécuter (filtre, plafond, fournisseur, passerelle arrêtée), **le projet se met en pause** et la raison s'affiche sur sa carte. Rien n'est refait en local sans ta décision : pour poursuivre en local, clique **Retirer l'accord cloud**, puis **Reprendre**.
-- Chaque projet montre le dernier modèle utilisé, le nombre d'appels cloud et un coût estimé ; le pied de page montre la dépense du mois sur 35 €.
-- En ligne de commande : `clawfedora project cloud-status`, `cloud-approve --acknowledge`, `cloud-revoke`. Un `run` ou un `resume` interrompu par une pause rend le code de sortie 3.
+[Voir les rôles et leurs outils](07-roles-et-outils.md) · [Architecture locale](../ARCHITECTURE_LOCALE_QWEN_ORNITH.md).
 
 ## Chercher dans tes documents
 

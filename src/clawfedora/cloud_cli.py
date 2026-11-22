@@ -156,7 +156,14 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    # An old executable may remain after upgrade; fail closed for every cloud command.
+    from clawfedora.core_config import root_contract
+
     root = args.root.resolve()
+    fleet = root_contract(root, "model_catalog.yaml").get("fleet_policy", {})
+    if fleet.get("local_only") is True:
+        print("CLOUD_RESULT=DISABLED OpenRouter retiré : utiliser les modèles Ollama locaux")
+        return 2
     runtime = resolve_runtime_root(args.runtime_root)
     try:
         if getattr(args, "apply", False) or args.command in {

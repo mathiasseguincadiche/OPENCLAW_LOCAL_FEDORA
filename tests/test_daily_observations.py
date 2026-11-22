@@ -12,6 +12,7 @@ from clawfedora.project_common import read_json, write_json
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = "qwen3.5:9b-q4_K_M"
+SECOND_MODEL = "ornith-1.5:9b"
 
 
 def tags(digest: str = "a" * 64, quant: str = "Q4_K_M") -> dict[str, Any]:
@@ -22,7 +23,13 @@ def tags(digest: str = "a" * 64, quant: str = "Q4_K_M") -> dict[str, Any]:
                 "digest": digest,
                 "size": 6_600_000_000,
                 "details": {"quantization_level": quant},
-            }
+            },
+            {
+                "name": SECOND_MODEL,
+                "digest": "b" * 64,
+                "size": 6_600_000_000,
+                "details": {"quantization_level": "Q4_K_M"},
+            },
         ]
     }
 
@@ -86,7 +93,10 @@ def test_health_uses_full_json_inventory_and_reports_no_gpu_offload(
     (tmp_path / lifecycle.RUNTIME_MARKER).touch()
     write_json(
         tmp_path / "state/model-identities.json",
-        {"models": {MODEL: {"digest": "a" * 64, "quantization_level": "Q4_K_M"}}},
+        {"models": {
+            MODEL: {"digest": "a" * 64, "quantization_level": "Q4_K_M"},
+            SECOND_MODEL: {"digest": "b" * 64, "quantization_level": "Q4_K_M"},
+        }},
     )
     monkeypatch.setattr(
         lifecycle, "collect_hardware_gate", lambda *_args: HardwareGateReport("gpu", (), "now")
@@ -119,14 +129,16 @@ def test_health_uses_full_json_inventory_and_reports_no_gpu_offload(
             return inventory
         if url.endswith("/api/generate"):
             return {"done": True, "response": "OK"}
-        return {"models": [{"name": MODEL, "size_vram": 0}]}
+        return {"models": [{"name": MODEL, "size_vram": 0},
+                           {"name": SECOND_MODEL, "size_vram": 0}]}
 
     monkeypatch.setattr(ollama_api, "request_json", request)
     report = lifecycle.collect_health(ROOT, tmp_path, probe=True)
     checks = {item.id: item.status for item in report.checks}
     assert checks["model-inventory"] == "PASS"
     assert checks["effective-inference-limits"] == "PASS"
-    assert checks["model-gpu-probe"] == "FAIL"
+    assert checks["model-gpu-probe-qwen-max"] == "FAIL"
+    assert checks["model-gpu-probe-ornith-code"] == "FAIL"
     assert report.ok is False
 
 

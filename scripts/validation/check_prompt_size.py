@@ -26,7 +26,11 @@ from clawfedora.version_lock import extract_openclaw_version
 from clawfedora.webui_bridge import chat_prompt
 
 repo = Path(__file__).resolve().parents[2]
-MODEL = str(root_contract(repo, "model_catalog.yaml")["models"]["qwen-max"]["runtime_id"])
+MODELS = {
+    alias: str(spec["runtime_id"])
+    for alias, spec in root_contract(repo, "model_catalog.yaml")["models"].items()
+}
+MODEL = MODELS["qwen-max"]
 captured: list[dict[str, Any]] = []
 
 
@@ -46,15 +50,16 @@ class FakeOllama(BaseHTTPRequestHandler):
         if self.path == "/api/version":
             self._json({"version": "0.0.0-fake"})
         else:
-            self._json({"models": [{"name": MODEL, "model": MODEL}]})
+            self._json({"models": [{"name": name, "model": name} for name in MODELS.values()]})
 
     def do_POST(self) -> None:
         body = self.rfile.read(int(self.headers.get("Content-Length", "0")))
         if self.path == "/api/chat":
-            captured.append(json.loads(body))
+            message = json.loads(body)
+            captured.append(message)
             self._json(
                 {
-                    "model": MODEL,
+                    "model": message.get("model", MODEL),
                     "message": {"role": "assistant", "content": "Réponse factice."},
                     "done": True,
                     "done_reason": "stop",
@@ -98,11 +103,8 @@ def main() -> None:
             toolkit.chmod(0o750)
             for asset in toolkit.iterdir():
                 asset.chmod(0o640)
-            # The cloud provider is configured but its gateway is not running: local roles must
-            # still work, as they do offline. OpenClaw resolves the secrets of every provider
-            # before a turn, so the local gateway token must always be defined (a missing
-            # token breaks local turns too: the runtime environment always provides it).
-            config = build_openclaw_patch(repo, runtime, cloud_enabled=True)
+            # The seven agents must run through Ollama only (two model IDs, no cloud token).
+            config = build_openclaw_patch(repo, runtime)
             config["models"]["providers"]["ollama"]["baseUrl"] = (
                 f"http://127.0.0.1:{server.server_port}"
             )
@@ -120,7 +122,6 @@ def main() -> None:
                 OPENCLAW_CONFIG_PATH=str(path),
                 OPENCLAW_LOCAL_FEDORA_ROOT=str(runtime),
                 OLLAMA_API_KEY="ollama-local",
-                CLAWFEDORA_CLOUD_GATEWAY_TOKEN="unused-local-token",
             )
             (runtime / "home").mkdir()
 

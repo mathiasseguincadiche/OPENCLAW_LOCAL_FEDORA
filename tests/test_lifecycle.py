@@ -22,7 +22,7 @@ def _mark_runtime(runtime: Path) -> None:
 def test_model_plan_is_exact_rightsized_fleet() -> None:
     plan = lifecycle.model_plan(ROOT)
     assert [item["runtime_id"] for item in plan] == [
-        "qwen3.5:9b-q4_K_M",
+        "qwen3.5:9b-q4_K_M", "ornith-1.5:9b",
     ]
 
 
@@ -150,10 +150,13 @@ def test_health_reports_all_components(monkeypatch: pytest.MonkeyPatch, tmp_path
     from clawfedora.hardware_gate import HardwareGateReport
     from clawfedora.project_common import write_json
 
-    model = str(lifecycle.model_plan(ROOT)[0]["runtime_id"])
+    models = [str(item["runtime_id"]) for item in lifecycle.model_plan(ROOT)]
     write_json(
         runtime / "state/model-identities.json",
-        {"models": {model: {"digest": "a" * 64, "quantization_level": "Q4_K_M"}}},
+        {"models": {
+            model: {"digest": chr(97 + i) * 64, "quantization_level": "Q4_K_M"}
+            for i, model in enumerate(models)
+        }},
     )
 
     def request(url: str, **_kwargs: object) -> dict[str, object]:
@@ -161,7 +164,9 @@ def test_health_reports_all_components(monkeypatch: pytest.MonkeyPatch, tmp_path
             return {"version": "0.40.6"}
         return {
             "models": [
-                {"name": model, "digest": "a" * 64, "details": {"quantization_level": "Q4_K_M"}}
+                {"name": model, "digest": chr(97 + i) * 64,
+                 "details": {"quantization_level": "Q4_K_M"}}
+                for i, model in enumerate(models)
             ]
         }
 

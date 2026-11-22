@@ -117,16 +117,20 @@ Qwen locale et exige les précontrôles du modèle et du worker. Une réponse
 de Qwen **ne certifie pas l'exactitude de sa description** : vérifier
 manuellement la forme et la couleur retournées et l'absence de cloud.
 
-## 6. OpenRouter et coût
+## 6. Vérifier les deux moteurs Ollama locaux
 
 ```bash
-bash scripts/linux/14_cloud.sh status
+./menu.sh --action models
+./menu.sh --action health
+./menu.sh --action local-retire-cloud
 ```
 
-Un appel réel doit faire l'objet d'un accord spécifique, d'une limite de clé
-chez OpenRouter, d'un compte prépayé **sans recharge automatique**, puis d'un
-contrôle de la facturation dans le plafond de 35 €/mois. Pour DeepSeek et Sol, suivre la [recette FinOps](validation/FINOPS.md). Aucun contenu privé
-n'est transmis sans consentement.
+Confirmer que Qwen 3.5 9B et Ornith 1.5 9B figurent dans l'inventaire, que
+l'atelier n'expose que le fournisseur Ollama et que l'ancienne passerelle
+OpenRouter est arrêtée. Sur une ancienne installation, exécuter le retrait
+avec `--apply` après sauvegarde. Mesurer séparément la VRAM, le contexte,
+les réponses et les validations d'outils sur Fedora / B580. Un résultat
+syntactiquement correct n'est pas une preuve d'exécution InfraOps.
 
 ## 7. Sauvegarde et restauration
 

@@ -1,8 +1,4 @@
-"""Deterministic hybrid-model guidance, not an automatic router or data classifier.
-
-Never reads a conversation, source file, secret, cloud token, or network service.
-An agent's requested tool scope and project authorizations are unchanged.
-"""
+"""Conseils déterministes pour le routage des sept agents Ollama, sans cloud."""
 
 from __future__ import annotations
 
@@ -11,59 +7,49 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Advice:
-    route: str
+    agent: str
+    model: str
     reason: str
     limitation: str
 
 
 SUGGESTIONS: dict[str, Advice] = {
     "simple": Advice(
-        "Qwen local",
-        "Expliquer Linux, lire un petit YAML ou préparer une procédure courte ne nécessite "
-        "généralement pas une requête API payante.",
-        "Si les résultats sont insuffisants, reformule ou demande une analyse plus structurée.",
+        "Mentor infrastructure/OPS", "Qwen 3.5 9B",
+        "Une explication Linux ou la lecture d'un YAML est un travail de compréhension.",
+        "Ne pas confondre une commande proposée et sa réussite sur Fedora.",
     ),
     "confidentiel": Advice(
-        "Qwen local uniquement",
-        "Configuration privée, noms internes, journaux sensibles et contenus professionnels "
-        "ne doivent pas partir vers un modèle distant simplement pour gagner en qualité.",
-        "Le filtre de secrets n'identifie pas toutes les informations confidentielles.",
+        "Spécialiste selon la mission", "Qwen ou Ornith, local uniquement",
+        "Les fichiers et journaux de projet ne doivent pas être envoyés vers une API de modèle.",
+        "Les outils Web sont indépendants : désactiver la recherche Web si nécessaire.",
     ),
     "architecture": Advice(
-        "DeepSeek cloud à envisager ; Sol en contre-expertise approuvée",
-        "Un ADR complexe ou des compromis d'infrastructure multi-contrainte peuvent bénéficier "
-        "d'un contexte et d'un raisonnement cloud plus importants.",
-        "N'utiliser cette route que pour des sources autorisées, avec consentement explicite et "
-        "budget disponible ; les gains ne sont pas encore mesurés.",
+        "Architecte solutions", "Qwen 3.5 9B",
+        "Cadrer les flux, le réseau, les risques et les compromis avant le code.",
+        "Si Terraform ou Kubernetes doit être corrigé, ouvrir une tâche DevOps Ornith.",
     ),
     "iac": Advice(
-        "DeepSeek cloud à envisager ; Sol en révision approuvée",
-        "La cohérence de plusieurs modules Terraform et playbooks Ansible peut demander "
-        "davantage de raisonnement que la relecture d'un seul fichier.",
-        "Aucun modèle ne remplace terraform validate, ansible-lint, un plan vérifié ou les "
-        "preuves de déploiement ; ne pas exporter des variables sensibles.",
+        "Ingénieur DevOps", "Ornith 1.5 9B",
+        "Terraform, Ansible, CI/CD, Bash et Docker exigent des corrections et diagnostics de code.",
+        "Un fichier correct n'est pas un déploiement ; plan, tests et "
+        "observations réelles sont requis.",
     ),
     "ci": Advice(
-        "Qwen local pour un incident simple ; DeepSeek pour un incident complexe et assaini",
-        "Un journal CI difficile et plusieurs dépendances peuvent justifier une analyse "
-        "approfondie par DeepSeek ; Sol intervient pour une révision approuvée "
-        "ou sur un choix manuel explicite.",
-        "Les secrets et jetons doivent être exclus et le statut réel doit venir du bon run "
-        "et du bon commit, pas d'une affirmation du modèle.",
+        "Ingénieur DevOps", "Ornith 1.5 9B",
+        "Analyser le workflow, interpréter les logs puis corriger les causes vérifiées.",
+        "Seule la CI associée au bon SHA confirme le résultat ; ne pas exposer les secrets.",
     ),
     "documents": Advice(
-        "Qwen pour le privé ; DeepSeek pour une synthèse publique ; Sol pour sa revue",
-        "Un gros dossier d'architecture ou un runbook multi-section peut bénéficier "
-        "du contexte cloud.",
-        "Une sortie longue n'est pas nécessairement exacte : vérifier références, fichiers "
-        "et rendus ; un dossier confidentiel reste local.",
+        "Rédacteur pédagogique", "Qwen 3.5 9B",
+        "Construire des cours, procédures et runbooks cohérents avec les contributions validées.",
+        "Vérifier liens, version des commandes, preuves et rendu réel.",
     ),
     "audit": Advice(
-        "DeepSeek en audit courant ; Sol pour la contre-expertise finale",
-        "Le travail consiste à vérifier critères, reçus et preuves. En projet cloud "
-        "approuvé, la revue finale utilise Sol suivant la politique.",
-        "Sol ne remplace pas la vérification des références. Dans le chat, "
-        "le mode expert est un choix manuel.",
+        "Auditeur qualité", "Qwen 3.5 9B",
+        "Confronter critères, diff, rapports de tests et références, sans "
+        "modifier le travail audité.",
+        "Le modèle ne peut pas certifier une infrastructure sans résultats d'exécution.",
     ),
 }
 
@@ -79,54 +65,47 @@ ALIASES = {
     "securite": "audit",
     "long": "documents",
 }
-
 CATEGORIES = ("simple", "confidentiel", "architecture", "iac", "ci", "documents", "audit")
 
 
 def advise(category: str = "") -> str:
-    """Return fixed, user-auditable guidance with no implicit cloud eligibility."""
+    """Conseil de rôle déterministe, sans accès aux conversations ni appel de modèle."""
     key = category.strip().casefold()
     if not key:
-        rows = [
-            "**Quel moteur choisir pour ton travail ?**",
+        lines = [
+            "**Quel agent et quel modèle local ?**",
             "",
-            "| Besoin | Conseil initial |",
-            "|---|---|",
-            "| Question simple ou Linux quotidien | **Qwen local** |",
-            "| Projet privé ou données sensibles | **Qwen local** |",
-            "| Architecture publique complexe | **DeepSeek à envisager** |",
-            "| IaC multi-fichiers autorisé au cloud | **DeepSeek à envisager** |",
-            "| CI difficile avec journaux assainis | **DeepSeek à envisager** |",
-            "| Dossier long et public | **DeepSeek à envisager** |",
-            "| Audit final cloud approuvé | **Sol pour la contre-expertise** |",
+            "| Besoin | Agent | Modèle |",
+            "|---|---|---|",
+            "| Linux quotidien / mentorat | Mentor | Qwen 3.5 9B |",
+            "| Données privées | Spécialiste autorisé | Local uniquement |",
+            "| Architecture | Architecte | Qwen 3.5 9B |",
+            "| Terraform / Ansible / CI/CD | Ingénieur DevOps | Ornith 1.5 9B |",
+            "| Documentation | Rédacteur pédagogique | Qwen 3.5 9B |",
+            "| Audit et preuves | Auditeur qualité | Qwen 3.5 9B |",
             "",
-            "Pour les détails : `!modele simple`, `!modele confidentiel`, "
-            "`!modele architecture`, `!modele iac`, `!modele ci`, "
-            "`!modele documents`, `!modele audit`.",
+            "Détails : `!modele simple`, `!modele architecture`, `!modele iac`, "
+            "`!modele ci`, `!modele documents`, `!modele audit`.",
         ]
-        advice = "\n".join(rows)
+        advice = "\n".join(lines)
     else:
         canonical = ALIASES.get(key, key)
         if canonical not in SUGGESTIONS:
             return (
-                "Catégorie non reconnue. Utilise `!modele` sans argument pour voir "
-                "les catégories disponibles. **Aucun contenu n'a été envoyé à une IA.**"
+                "Catégorie non reconnue. Utilise `!modele` sans argument. "
+                "**Aucun contenu n'a été envoyé à une IA.**"
             )
         item = SUGGESTIONS[canonical]
         advice = (
             f"**Cas : {canonical}**\n\n"
-            f"**Route recommandée : {item.route}.**\n\n"
+            f"**Agent : {item.agent} · Modèle : {item.model}.**\n\n"
             f"**Pourquoi :** {item.reason}\n\n"
             f"**Précaution :** {item.limitation}"
         )
     return (
         advice
-        + "\n\n**Important :** ce conseil est déterministe, sans lecture de ton "
-        "historique, sans analyse des documents et sans requête Qwen ou DeepSeek ni Sol. "
-        "Il **ne classe pas les données comme sûres pour le cloud**. "
-        "Le choix local/cloud dans Open WebUI reste **manuel**, la passerelle exige "
-        "son activation et tout projet requiert son accord cloud valide. "
-        "En mode auto, une fois le projet autorisé, DeepSeek traite la routine "
-        "et Sol les révisions approuvées et la revue finale prévue par le rôle. "
-        "Aucun passage automatique de Qwen à DeepSeek ni Sol."
+        + "\n\n**Important :** conseil statique sans analyse des documents ni inférence. "
+        "Les sept rôles utilisent exclusivement Ollama sur ce poste. "
+        "Aucune route OpenRouter et aucune escalade implicite vers un modèle cloud. "
+        "Le worker gère les affectations approuvées, les permissions et les preuves."
     )
