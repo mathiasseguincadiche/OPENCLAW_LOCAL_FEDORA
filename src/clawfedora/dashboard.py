@@ -298,14 +298,21 @@ class DashboardHandler(BaseHTTPRequestHandler):
             if self.path == "/api/chat/new":
                 agent = data.get("agent")
                 project = data.get("project")
+                if not isinstance(agent, str):
+                    raise ValueError("Agent de discussion invalide")
                 if project == "":
                     project = None
+                if project is not None and not isinstance(project, str):
+                    raise ValueError("Projet de discussion invalide")
                 self._send(201, atelier_chat.create(self.server.runtime, project, agent))
                 return
             if self.path == "/api/chat/send":
+                identifier = data.get("id")
+                message = data.get("message")
+                if not isinstance(identifier, str) or not isinstance(message, str):
+                    raise ValueError("Identifiant et message texte requis")
                 self._send(200, atelier_chat.send(
-                    self.server.repo_root, self.server.runtime,
-                    data.get("id"), data.get("message"),
+                    self.server.repo_root, self.server.runtime, identifier, message,
                 ))
                 return
             if self.path.startswith("/api/github/"):
