@@ -1,5 +1,5 @@
 """Short read-only acceptance test for installed Fedora + B580 + IA stack.
-Run after installing OpenClaw and WebUI. Does not test cloud or GPU stress.
+Run after installing OpenClaw and the native Atelier. Does not test cloud or GPU stress.
 """
 from __future__ import annotations
 
@@ -14,8 +14,8 @@ from clawfedora.lifecycle import collect_health
 from clawfedora.storage import load_settings, require_storage
 
 ENDPOINTS = {
-    "WebUI": "http://127.0.0.1:3000/health",
     "Projects": "http://127.0.0.1:18890/api/status",
+    "Discussions": "http://127.0.0.1:18890/discussions.html",
 }
 
 

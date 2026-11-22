@@ -36,6 +36,7 @@ INSTALL_PLAN Fedora=45 GNOME=51 runtime=$RUNTIME_ROOT
   5. consignes des sept rôles et configuration OpenClaw
   6. service OpenClaw (Gateway) du compte utilisateur
   7. contrôle de santé avec une courte génération
+  8. interface Atelier native sur 127.0.0.1:18890 (sans Open WebUI)
 EOF
 
 if ((APPLY == 0)); then
@@ -115,6 +116,8 @@ else
   PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" \
     "$PYTHON" -m clawfedora.ops_cli --root "$REPO_ROOT" --runtime-root "$RUNTIME_ROOT" health --probe
 fi
+
+bash "$LINUX/21_atelier.sh" install --apply
 
 if ((WITH_WEBUI == 1)) || [[ -f "$RUNTIME_ROOT/state/webui/enabled" ]]; then
   "$LINUX/13_openwebui.sh" install --apply

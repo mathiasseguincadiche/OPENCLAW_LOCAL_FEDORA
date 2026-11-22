@@ -242,8 +242,8 @@ def test_cloud_menu_actions_validate_their_values_before_touching_anything() -> 
 
 
 @pytest.mark.skipif(os.geteuid() == 0, reason="operator script deliberately refuses root")
-def test_webui_stop_covers_all_started_services_without_host_mutation(tmp_path: Path) -> None:
-    """A fake systemctl proves the stop action closes every component started by start."""
+def test_webui_stop_preserves_native_atelier_without_host_mutation(tmp_path: Path) -> None:
+    """Stop only optional legacy services; native Atelier must remain available."""
     script = ROOT / "scripts/linux/13_openwebui.sh"
     runtime = tmp_path / "runtime"
     (runtime / "state").mkdir(parents=True)
@@ -276,11 +276,11 @@ def test_webui_stop_covers_all_started_services_without_host_mutation(tmp_path: 
     assert calls[0].startswith("--user stop ")
     stopped = set(calls[0].split()[2:])
     assert stopped == {
-        "clawfedora-dashboard.service",
         "clawfedora-webui.service",
         "clawfedora-webui-bridge.service",
         "clawfedora-speech.service",
     }
+    assert "clawfedora-dashboard.service" not in stopped
     assert "OPENWEBUI_RESULT=PASS" in result.stdout
 
 

@@ -33,15 +33,22 @@
 
 Les sept rôles n'ont aucun outil pour exécuter une commande ni écrire un fichier à ta place : l'IA explique et propose, et les actions sensibles comme la livraison restent soumises à ta validation. L'atelier ne déploie pas automatiquement l'infrastructure préparée.
 
-## Trois façons de travailler
+## Une seule interface graphique principale
 
-| Interface | Usage |
-| --- | --- |
-| **Open WebUI 0.12.3** — `http://127.0.0.1:3000` | Chat, rôles et pièces jointes ; huit raccourcis, dont dossiers de projets natifs et classement des conversations |
-| **Atelier Projets** — `http://127.0.0.1:18890` | Les sources, étapes, décisions et livrables |
-| **Terminal** — `./menu.sh` | Installation, contrôles, services et maintenance ; [CLI des projets](docs/fiches/04-atelier-projets.md#en-ligne-de-commande) |
+**Atelier IA Fedora** — `http://127.0.0.1:18890` : quatre espaces
+dans une même application locale : **Discussions**, **Projets**, **GitHub**
+et **Notion**. Les conversations utilisent les sept rôles OpenClaw et
+le modèle local fourni par Ollama. `./menu.sh` reste l'outil de maintenance
+en terminal, et non une seconde interface graphique.
 
-Les projets restent indépendants. Une seule génération utilise le moteur à la fois. Le chat répond en un bloc par défaut ; le streaming reste expérimental.
+Le conteneur **Open WebUI** n'est conservé que pour la transition et
+la récupération de ses anciens chats ; il n'est plus requis pour créer
+une discussion dans l'Atelier. Aucune suppression automatique de données.
+[Architecture, installation et limites du chat natif](docs/ATELIER_UNIQUE_CHAT_OLLAMA.md).
+
+Les projets restent indépendants, avec un seul moteur exécutant une génération
+à la fois. Les commandes humaines et approbations passent par le moteur OpenClaw
+déjà configuré. Le diagnostic du PC est **en lecture seule** par défaut.
 
 ## Commencer
 
@@ -60,9 +67,9 @@ Suivre le [guide Live USB](docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md) pour pré
 
 ### 2. Installer l'atelier
 
-Sur Fedora installé, suivre le [guide d'installation](docs/INSTALLATION_SIMPLE_FEDORA45.md), qui regroupe la préparation du stockage, le précontrôle, l'installation et la création du compte WebUI. Le runtime et ses projets utilisent **`/data/IA/Openclaw/`**, sur le disque secondaire EXT4.
+Sur Fedora installé, suivre le [guide d'installation](docs/INSTALLATION_SIMPLE_FEDORA45.md), qui regroupe la préparation du stockage, le précontrôle, l'installation et l'ouverture de l'Atelier natif (WebUI facultatif pour les anciens chats). Le runtime et ses projets utilisent **`/data/IA/Openclaw/`**, sur le disque secondaire EXT4.
 
-**Machine cible :** Ryzen 7 7700, 48 Go de RAM, Intel Arc B580 12 Go. Fedora est le système hôte du projet IA ; Open WebUI tourne sous Podman rootless sur ce même Fedora. Aucune installation de Rocky Linux n'est nécessaire. [Stockage et prérequis](docs/STOCKAGE_DATA.md).
+**Machine cible :** Ryzen 7 7700, 48 Go de RAM, Intel Arc B580 12 Go. Fedora est le système hôte du projet IA ; l'Atelier natif se lance comme service utilisateur. Open WebUI sous Podman reste facultatif pour la transition. Aucune installation de Rocky Linux n'est nécessaire. [Stockage et prérequis](docs/STOCKAGE_DATA.md).
 
 ### 3. Vérifier, puis réceptionner
 

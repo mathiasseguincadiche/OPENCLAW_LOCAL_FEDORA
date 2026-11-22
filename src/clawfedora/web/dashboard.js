@@ -90,7 +90,6 @@ async function refresh() {
       : "Ollama arrêté";
     $("model").textContent =
       data.models.map((m) => m.name).join(", ") || "Aucun modèle chargé";
-    $("discussions").hidden = !data.webui_installed;
     const worker = data.worker;
     workerBusy = worker.active;
     gamingProfile = data.profile === "gaming";

@@ -89,15 +89,22 @@ Après reconnexion, le nouveau terminal revient normalement dans ton dossier per
 
 ```bash
 cd "/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA"
-./menu.sh --action webui-install --apply
+./menu.sh --action atelier-status
 ```
 
-Ouvrir `http://127.0.0.1:3000`, créer l'unique compte local puis fermer
-les inscriptions :
+L'installation principale a déjà créé le service utilisateur de l'Atelier
+sans avoir besoin d'Open WebUI. Ouvrir **`http://127.0.0.1:18890`**,
+puis utiliser la section **Discussions** pour les sept agents et les projets.
+Si nécessaire après une installation plus ancienne :
 
 ```bash
-./menu.sh --action webui-seal --apply
+./menu.sh --action atelier-install             # prévisualisation
+./menu.sh --action atelier-install --apply     # installer/démarrer
 ```
+
+**Open WebUI est facultatif et transitoire** : ne l'installer que pour
+consulter ou récupérer d'anciennes conversations, sans fusion automatique
+ni suppression de la base de données historique.
 
 ## 3. Un seul contrôle rapide
 
@@ -107,16 +114,16 @@ les inscriptions :
 
 Ce contrôle ne lance **qu'une petite génération Qwen locale**, vérifie
 que la B580 utilise de la VRAM, la version du modèle, OpenClaw, Ollama,
-le réseau local des interfaces WebUI/Projets, SELinux et le répertoire projets.
+le réseau local de l'Atelier et de ses discussions natives, SELinux et le répertoire projets.
 Il affiche les composants en `PASS` ou `FAIL` puis un verdict final.
 
-Si `RECEPTION=READY_FOR_FIRST_PROJECT`, ouvrir :
-
-- Discussions : `http://127.0.0.1:3000` ;
-- Atelier Projets : `http://127.0.0.1:18890`.
+Si `RECEPTION=READY_FOR_FIRST_PROJECT`, ouvrir
+**`http://127.0.0.1:18890`** : toutes les sections sont dans ce même
+Atelier. Les conversations se trouvent sous **Discussions**.
 
 Poser une question réelle sur Terraform ou Ansible ; créer un petit projet
-de test puis changer de projet avec la commande de navigation.
+de test, puis ouvrir un **nouveau fil** pour sélectionner un autre projet.
+Ne pas modifier silencieusement le projet d'un historique existant.
 Il n'est **pas nécessaire** de lancer immédiatement des essais 32K,
 cinq veilles/réveils ou les sept scénarios d'évaluation.
 Ces tests complémentaires sont disponibles **si une anomalie apparaît** ou

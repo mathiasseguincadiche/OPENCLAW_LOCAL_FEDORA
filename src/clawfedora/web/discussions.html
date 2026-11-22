@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Discussions · Atelier IA Fedora</title>
+  <link rel="stylesheet" href="/dashboard.css">
+  <link rel="stylesheet" href="/workbench.css">
+  <link rel="stylesheet" href="/discussions.css">
+  <script src="/discussions.js" defer></script>
+  <script src="/workbench.js" defer></script>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <p class="eyebrow">OPENCLAW · OLLAMA · FEDORA</p>
+      <h1>Discussions</h1>
+      <p class="intro">Les sept agents, les conversations et les projets dans le même atelier.</p>
+    </div>
+    <span class="badge">Inférence locale</span>
+  </header>
+  <nav aria-label="Autres espaces"><a href="/">Projets</a> ·
+    <a href="/github.html">GitHub</a> · <a href="/notion.html">Notion</a></nav>
+  <div class="chat-layout">
+    <aside class="chat-sidebar" aria-label="Conversations">
+      <h2>Nouvelle discussion</h2>
+      <form id="new-chat">
+        <label for="new-project">Projet (facultatif)</label>
+        <select id="new-project"><option value="">Sans projet</option></select>
+        <label for="new-agent">Agent OpenClaw</label>
+        <select id="new-agent"></select>
+        <button type="submit">Créer la discussion</button>
+      </form>
+      <h2>Historique</h2>
+      <div id="chat-list" aria-live="polite"></div>
+    </aside>
+    <section class="chat-panel" aria-label="Conversation sélectionnée">
+      <div class="chat-heading">
+        <h2 id="chat-title">Choisir une conversation</h2>
+        <p id="chat-context">Projet et agent figés pour chaque fil.</p>
+      </div>
+      <div id="chat-messages" role="log" aria-live="polite" aria-label="Messages de discussion"></div>
+      <p id="chat-warning" class="chat-warning" role="status"></p>
+      <form id="chat-form">
+        <label for="chat-input">Votre message à OpenClaw</label>
+        <textarea id="chat-input" rows="3" maxlength="8000" placeholder="Une question, !etat, !sources ou !fedora etat / !fedora applications…" required disabled></textarea>
+        <div class="chat-controls">
+          <span>Commandes et approbations : uniquement vos messages, jamais une décision autonome du modèle.</span>
+          <button id="chat-send" type="submit" disabled>Envoyer</button>
+        </div>
+      </form>
+    </section>
+  </div>
+  <footer><p>L'historique reste dans l'état local privé de l'Atelier. Le mode cloud n'est pas proposé dans cette interface pilote. Aucune commande système arbitraire.</p></footer>
+</main>
+</body>
+</html>

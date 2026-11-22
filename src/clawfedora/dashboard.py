@@ -14,6 +14,7 @@ from urllib.parse import parse_qs, quote, urlsplit
 from urllib.request import urlopen
 
 from clawfedora import (
+    atelier_chat,
     chat_github,
     github_pr,
     github_quality,
@@ -196,12 +197,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
         try:
             if url.path in {
                 "/", "/dashboard.js", "/dashboard.css",
+                "/discussions.html", "/discussions.js", "/discussions.css",
                 "/workbench.js", "/workbench.css",
                 "/github.html", "/github.js", "/github.css",
                 "/notion.html", "/notion.js", "/notion.css", "/notion-rich.js", "/notion-media.js",
             }:
                 name = {
                     "/": "dashboard.html",
+                    "/discussions.html": "discussions.html",
+                    "/discussions.js": "discussions.js",
+                    "/discussions.css": "discussions.css",
                     "/dashboard.js": "dashboard.js",
                     "/dashboard.css": "dashboard.css",
                     "/workbench.js": "workbench.js",
@@ -217,6 +222,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 }[url.path]
                 kind = {
                     "dashboard.html": "text/html",
+                    "discussions.html": "text/html",
+                    "discussions.js": "text/javascript",
+                    "discussions.css": "text/css",
                     "dashboard.js": "text/javascript",
                     "dashboard.css": "text/css",
                     "workbench.js": "text/javascript",
@@ -231,6 +239,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     "notion-media.js": "text/javascript",
                 }[name]
                 self._send(200, (Path(__file__).parent / "web" / name).read_bytes(), kind)
+            elif url.path == "/api/chats":
+                self._send(200, atelier_chat.listing(self.server.runtime))
+            elif url.path == "/api/chat":
+                query = parse_qs(url.query)
+                if set(query) != {"id"} or len(query["id"]) != 1:
+                    raise ValueError("Identifiant de conversation requis")
+                self._send(200, atelier_chat.read(self.server.runtime, query["id"][0]))
             elif url.path == "/api/status":
                 value = snapshot(self.server.repo_root, self.server.runtime)
                 value["errors"] = dict(self.server.errors)
@@ -280,6 +295,26 @@ class DashboardHandler(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length))
             if not isinstance(data, dict):
                 raise ValueError("objet JSON requis")
+            if self.path == "/api/chat/new":
+                agent = data.get("agent")
+                project = data.get("project")
+                if not isinstance(agent, str):
+                    raise ValueError("Agent de discussion invalide")
+                if project == "":
+                    project = None
+                if project is not None and not isinstance(project, str):
+                    raise ValueError("Projet de discussion invalide")
+                self._send(201, atelier_chat.create(self.server.runtime, project, agent))
+                return
+            if self.path == "/api/chat/send":
+                identifier = data.get("id")
+                message = data.get("message")
+                if not isinstance(identifier, str) or not isinstance(message, str):
+                    raise ValueError("Identifiant et message texte requis")
+                self._send(200, atelier_chat.send(
+                    self.server.repo_root, self.server.runtime, identifier, message,
+                ))
+                return
             if self.path.startswith("/api/github/"):
                 status, value = self._github_action(data)
                 self._send(status, value)

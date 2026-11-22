@@ -15,9 +15,11 @@
   document.body.insertBefore(skip, main);
 
   const view = location.pathname === "/github.html" ? "github" :
-    location.pathname === "/notion.html" ? "notion" : "projects";
+    location.pathname === "/notion.html" ? "notion" :
+    location.pathname === "/discussions.html" ? "discussions" : "projects";
   const names = {
     projects: "Vue d’ensemble", github: "GitHub", notion: "Notion",
+    discussions: "Discussions",
   };
   document.body.classList.add("workbench", "workbench--" + view);
 
@@ -28,6 +30,7 @@
     return node;
   };
   const icons = {
+    chat: ["M21 11.5a8.38 8.38 0 0 1-.9 3.8A8.5 8.5 0 0 1 12.5 20a8.3 8.3 0 0 1-3.8-.9L3 21l1.9-5.7a8.3 8.3 0 0 1-.9-3.8A8.5 8.5 0 0 1 12.5 3a8.5 8.5 0 0 1 8.5 8.5z"],
     grid: ["M3 3h7v7H3z", "M14 3h7v7h-7z", "M3 14h7v7H3z", "M14 14h7v7h-7z"],
     git: ["M7 3v11a5 5 0 0 0 5 5h5", "M7 7a3 3 0 1 0 0-6a3 3 0 0 0 0 6",
       "M17 22a3 3 0 1 0 0-6a3 3 0 0 0 0 6"],
@@ -78,6 +81,7 @@
   railNav.append(create("p", "rail-caption", "ESPACES DE TRAVAIL"));
   for (const item of [
     {key: "projects", label: "Tableau de bord", href: "/", symbol: "grid"},
+    {key: "discussions", label: "Discussions · 7 agents", href: "/discussions.html", symbol: "chat"},
     {key: "github", label: "Dépôts & CI", href: "/github.html", symbol: "git"},
     {key: "notion", label: "Documentation", href: "/notion.html", symbol: "book"},
   ]) {

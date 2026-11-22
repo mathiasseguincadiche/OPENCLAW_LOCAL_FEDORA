@@ -39,6 +39,15 @@ voisins et les icônes/couleurs des encadrés existants.
 Le [mode tableaux et images](NOTION_TABLES_IMAGES.md) apporte l'inventaire
 et la modification contrôlée d'une cellule ou d'une légende existante.
 
+## Interface unique : discussions et pilotage
+
+[L'Atelier natif avec Ollama / OpenClaw](ATELIER_UNIQUE_CHAT_OLLAMA.md)
+réunit les conversations, les sept agents, les projets et les espaces
+GitHub/Notion dans une seule application sur `127.0.0.1:18890`.
+Le diagnostic Fedora et l'inventaire Flatpak sont en lecture seule ;
+les actions d'administration ou de contrôle GNOME ne sont pas encore
+autorisées. L'ancien conteneur WebUI est facultatif pour la migration.
+
 ## Interface moderne de l'atelier local
 
 Le [design system InfraOps Studio](WORKBENCH_UI_DESIGN.md) unifie les
