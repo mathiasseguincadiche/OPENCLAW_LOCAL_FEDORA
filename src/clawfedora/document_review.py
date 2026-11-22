@@ -40,7 +40,7 @@ READERS = (
 
 
 def inspect_document(content: str, kind: str) -> dict[str, Any]:
-    if kind not in KINDS:
+    if not isinstance(kind, str) or kind not in KINDS:
         raise ValueError("type de document inconnu")
     if not isinstance(content, str) or not 0 < len(content.encode("utf-8")) <= 12_000:
         raise ValueError("document texte limité à 12000 octets")
