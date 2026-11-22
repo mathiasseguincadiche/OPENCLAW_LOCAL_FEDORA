@@ -17,6 +17,7 @@ from clawfedora.ci_reports import summarize
 from clawfedora.core_config import AGENT_IDS
 from clawfedora.diagram_layouts import style_and_arrange
 from clawfedora.document_impact import inspect as inspect_impact
+from clawfedora.document_review import inspect_document
 from clawfedora.drawio import decorate_page, export_page_svg, inspect_diagram, multi_view_diagram
 from clawfedora.file_artifacts import formats, produce
 from clawfedora.project_common import assert_no_symlinks, read_json
@@ -31,6 +32,7 @@ TOOL_ROLES = {
     "clawfedora_doc_links": {"redacteur-pedagogique", "auditeur-qualite"},
     "clawfedora_impact": {"chef-operations", "architecte-solutions", "ingenieur-devops",
                          "redacteur-pedagogique", "auditeur-qualite"},
+    "clawfedora_doc_review": {"redacteur-pedagogique", "auditeur-qualite"},
     "clawfedora_check": {"ingenieur-devops", "ingenieur-securite", "auditeur-qualite"},
     "clawfedora_lint": set(FORMATS),
     "clawfedora_tool_status": set(AGENT_IDS),
@@ -307,6 +309,8 @@ def invoke(
         from clawfedora.document_links import check_links
 
         return check_links(root, data)
+    if tool == "clawfedora_doc_review":
+        return inspect_document(data.get("content"), data.get("kind"))
     if tool == "clawfedora_impact":
         scope = data.get("scope")
         changed = data.get("changed_paths")
