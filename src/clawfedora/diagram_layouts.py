@@ -124,7 +124,9 @@ def style_and_arrange(page: ET.Element, data: dict[str, Any]) -> str:
         return layout
     if layout == "flow":
         if any(node.get("parent") != "1" for node in nodes):
-            raise ValueError("Draw.io: flux en grille et frontières nommées incompatibles; utiliser zones")
+            raise ValueError(
+                "Draw.io: flux en grille incompatible avec les frontières; utiliser zones"
+            )
         for index, node in enumerate(nodes):
             _place(node, 28 + (index % 3) * 268, 35 + (index // 3) * 115, 225, 72)
     else:
