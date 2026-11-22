@@ -14,8 +14,8 @@ from urllib.parse import parse_qs, quote, urlsplit
 from urllib.request import urlopen
 
 from clawfedora import (
-    chat_github,
     atelier_chat,
+    chat_github,
     github_pr,
     github_quality,
     github_remote,
