@@ -188,3 +188,30 @@ def test_cli_exposes_no_remote_fetch_or_silent_cloud_transfer() -> None:
     ])
     assert args.project_id == "cross-search"
     assert args.initial_only is False
+
+
+def test_sql_excludes_old_github_rows_before_candidate_limit(
+    tmp_path: Path,
+) -> None:
+    obsolete = tmp_path / "obsolete.md"
+    current = tmp_path / "current.md"
+    obsolete.write_text(
+        "# Ancienne copie GitHub\n" + ("Terraform bridge_network Ansible\n" * 4000),
+        encoding="utf-8",
+    )
+    current.write_text(
+        "# Note Notion locale\nTerraform bridge_network Ansible review\n" * 3,
+        encoding="utf-8",
+    )
+    project = create_project(
+        ROOT, tmp_path / "runtime", "exclude-before-limit", "Exclusion",
+        intake_items=[obsolete, current],
+    )
+    build_index(ROOT, project)
+    matches = search(
+        ROOT, project, "Terraform bridge_network Ansible",
+        excluded_prefixes=("intake/obsolete.md",),
+    )
+    assert matches
+    assert all(hit["path"] == "intake/current.md" for hit in matches)
+    assert any("Notion locale" in hit["text"] for hit in matches)
