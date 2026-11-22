@@ -16,6 +16,8 @@ def test_only_exact_loopback_probes_allowed() -> None:
         smoke.local_ok("https://example.com/health")
     assert all(url.startswith("http://127.0.0.1:") for url in smoke.ENDPOINTS.values())
     assert smoke.ENDPOINTS["Projects"].endswith("/api/status")
+    assert smoke.ENDPOINTS["Discussions"].endswith("/discussions.html")
+    assert "WebUI" not in smoke.ENDPOINTS
 
 
 def test_unmounted_secondary_storage_fails_before_ai_probe(
