@@ -849,15 +849,12 @@ def make_server(
     server.runtime, server.token = runtime, token
     server.repo_root = repo_root
     server.limits = daily_limits(repo_root)
-    cloud_model = dict(core_contract(repo_root, "cloud_policy.yaml")["model"])
-    # Cloud requests have a separate bounded 4-MiB envelope; small local requests retain
-    # their 1-MiB guard. Most chats stay short: only long cloud threads can use the full window.
+    # Legacy Cloud-completions clients remain rejected by cloud_ready=False.
+    # Keep a bounded shape for old chat bridges without consulting retired policy fields.
     server.cloud_limits = {
-        "max_output_tokens": int(cloud_model["max_output_tokens"]),
-        "max_history_bytes": min(3_145_728, int(cloud_model["context_tokens"]) * 3),
-        "max_response_bytes": min(
-            524_288, int(cloud_model["max_output_tokens"]) * 16
-        ),
+        "max_output_tokens": int(server.limits["max_output_tokens"]),
+        "max_history_bytes": int(server.limits["max_history_bytes"]),
+        "max_response_bytes": min(524_288, int(server.limits["max_output_tokens"]) * 16),
     }
     server.model_names = {
         f"openclaw/{spec.agent_id}": spec.name for spec in load_agent_specs(repo_root)
