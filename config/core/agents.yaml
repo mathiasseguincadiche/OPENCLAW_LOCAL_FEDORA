@@ -25,8 +25,8 @@ agents:
     mission: concevoir l’infrastructure, les flux, les schémas et les décisions d’architecture
   ingenieur-devops:
     name: Ingénieur DevOps
-    model: qwen-max
-    fallback: qwen-max
+    model: ornith-code
+    fallback: ornith-code
     mission: implémenter, vérifier et préparer les livraisons avec leurs preuves
   ingenieur-securite:
     name: Ingénieur sécurité
