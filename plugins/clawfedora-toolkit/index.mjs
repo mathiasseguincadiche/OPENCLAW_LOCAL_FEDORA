@@ -23,6 +23,11 @@ const definitions = [
   ["clawfedora_diagram", "Draw.io éditable et SVG de chaque vue. layout=column (défaut), flow (parcours en grille) ou zones (frontières en colonnes); node_types et edge_types facultatifs. boundaries nomme la vraie frontière de chaque nœud, edge_labels nomme chaque flux. Un rendu ne prouve jamais l’architecture.", {...graph, views: {type: "array", maxItems: 7, items: {type: "object", properties: graph, additionalProperties: false, required: ["title", "nodes"]}}}, ["nodes"]],
   ["clawfedora_lab_request", "DevOps: préparer un critère de laboratoire à approuver.", {validator: {type: "string", enum: ["shellcheck","actionlint","ansible-lint","hadolint","terraform-fmt","terraform-validate","kubeconform"]}, files: {type: "array", minItems: 1, maxItems: 20, items: string}, expected: string}, ["validator","files","expected"]],
   ["clawfedora_doc_links", "Vérifier liens locaux et ancres de titres Markdown dans un snapshot. document est relatif au scope.", {scope: string, document: string, content: string}, ["scope","document","content"]],
+  ["clawfedora_impact", "Préparer une revue locale des documents GitHub affectés par un changement de fichier. Ne vérifie pas Notion en direct et ne synchronise rien. Le scope est un répertoire snapshot relatif au workspace.", {
+    scope: {type:"string",minLength:1,maxLength:200},
+    changed_paths: {type:"array",minItems:1,maxItems:25,uniqueItems:true,
+      items:{type:"string",minLength:1,maxLength:240}}
+  }, ["scope","changed_paths"]],
   ["clawfedora_check", "DevOps/sécurité/audit: syntaxe JSON/YAML/Python et alertes OPS statiques; aucune exécution.", { format: { type: "string", enum: ["json", "yaml", "python", "text"] }, content: string }, ["format", "content"]],
 ];
 definitions.push(
@@ -36,6 +41,8 @@ const specialists = {
   clawfedora_lint: ["ingenieur-devops", "ingenieur-securite", "redacteur-pedagogique", "auditeur-qualite"],
   clawfedora_lab_request: ["ingenieur-devops"],
   clawfedora_doc_links: ["redacteur-pedagogique", "auditeur-qualite"],
+  clawfedora_impact: ["chef-operations", "architecte-solutions", "ingenieur-devops",
+    "redacteur-pedagogique", "auditeur-qualite"],
 };
 const roles = ["chef-operations", "expert-recherche", "architecte-solutions", "ingenieur-devops", "ingenieur-securite", "redacteur-pedagogique", "auditeur-qualite"];
 const allowed = (name, role) => (specialists[name] ?? roles).includes(role);
