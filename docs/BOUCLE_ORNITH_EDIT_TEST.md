@@ -31,6 +31,6 @@ Le worker vérifie le reçu PASS émis pendant **cette session**, la corresponda
 
 ## Limites et sécurité
 
-Les validateurs disponibles sont `terraform-fmt`, `terraform-validate`, `ansible-lint`, `actionlint`, `shellcheck`, `hadolint`, `kubeconform`. Ce sont des commandes prédéfinies : aucun shell arbitraire, code applicatif arbitraire, `terraform apply`, déploiement ou accès direct aux secrets. Les conteneurs sont éphémères, sans réseau, avec limites CPU/RAM/PID/temps. Trois validations maximum par snapshot.
+Les validateurs disponibles sont `terraform-fmt`, `terraform-validate`, `ansible-lint`, `actionlint`, `shellcheck`, `hadolint`, `kubeconform` et `pytest` (tests Python du répertoire `tests/`). Ce sont des commandes prédéfinies : aucun shell arbitraire, code applicatif arbitraire, `terraform apply`, déploiement ou accès direct aux secrets. Les conteneurs sont éphémères, sans réseau, avec limites CPU/RAM/PID/temps. Trois validations maximum par snapshot.
 
 **Statut de recette :** la CI couvre les contrats et la mécanique de la boucle avec Podman simulé. La qualification réelle sur Fedora, l'image de validateurs et le GPU Intel Arc B580 reste à mener sur la machine cible. Ne pas confondre « PR fusionnée », « tests unitaires verts » et « validation matérielle réelle ».
