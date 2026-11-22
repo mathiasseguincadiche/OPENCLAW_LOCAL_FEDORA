@@ -19,8 +19,14 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from clawfedora.devops_lab import (
-    LabRefusal, SAFE_SUFFIXES, SENSITIVE_NAMES, SENSITIVE_SUFFIXES,
-    TOOLS, image_is_pinned, run_lab, snapshot_manifest,
+    SAFE_SUFFIXES,
+    SENSITIVE_NAMES,
+    SENSITIVE_SUFFIXES,
+    TOOLS,
+    LabRefusal,
+    image_is_pinned,
+    run_lab,
+    snapshot_manifest,
 )
 from clawfedora.project_common import assert_no_symlinks
 from clawfedora.specialist_tools import receipt
