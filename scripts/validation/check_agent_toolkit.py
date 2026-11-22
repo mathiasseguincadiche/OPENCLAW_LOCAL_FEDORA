@@ -45,7 +45,7 @@ with tempfile.TemporaryDirectory(prefix="clawfedora-native-tools-") as temporary
         + """
 const registry=await loadOpenClawPlugins({config,onlyPluginIds:['clawfedora-toolkit'],
  activate:false,cache:false,throwOnLoadError:true});
-if(registry.tools.length!==13) throw new Error('Native tool registration incomplete');
+if(registry.tools.length!==14) throw new Error('Native tool registration incomplete');
 for (const [name,role,params] of [
  ['clawfedora_artifact','redacteur-pedagogique',{format:'markdown',
   content:'# Guide\\n\\nUne étape.\\n',
@@ -81,6 +81,13 @@ for (const [name,role,params] of [
  }
  console.log('NATIVE_TOOL=PASS name='+name);
 }
+const iterator=registry.tools.find(x=>x.names.includes('clawfedora_sandbox_iterate'));
+if(!iterator || !iterator.factory({agentId:'ingenieur-devops',
+ workspaceDir:runtime+'/workspaces/ingenieur-devops'}))
+ throw new Error('DevOps edit-test helper unavailable');
+if(iterator.factory({agentId:'chef-operations',
+ workspaceDir:runtime+'/workspaces/chef-operations'})!==null)
+ throw new Error('DevOps edit-test exposed to another agent');
 const sandbox=registry.tools.find(x=>x.names.includes('clawfedora_sandbox_validate'));
 if(!sandbox || !sandbox.factory({agentId:'ingenieur-devops',
  workspaceDir:runtime+'/workspaces/ingenieur-devops'}))
