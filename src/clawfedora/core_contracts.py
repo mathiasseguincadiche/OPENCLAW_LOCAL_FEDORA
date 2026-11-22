@@ -409,6 +409,10 @@ def validate_core_contracts(
     routing = _mapping(contracts["model_routing.yaml"].get("agents"))
     routing_policy = _mapping(contracts["model_routing.yaml"].get("policy"))
     _validate_cloud_contracts(repo_root, contracts, catalog, routing_policy, failures)
+    if routing_policy.get("local_only") is not True or routing_policy.get("cloud_models_supported") is not False:
+        failures.append("core/routing: profil local-only obligatoire")
+    if _mapping(contracts["cloud_policy.yaml"].get("policy")).get("retired") is not True:
+        failures.append("core/cloud: OpenRouter doit rester retiré")
     tools = _mapping(contracts["tool_policy.yaml"].get("agents"))
     if set(routing) != expected or set(tools) != expected:
         failures.append("core: routage et politique outils doivent couvrir tous les agents")
