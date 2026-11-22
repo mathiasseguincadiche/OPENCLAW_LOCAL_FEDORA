@@ -86,7 +86,7 @@ Les consignes communes renforcent la réponse utile et l'exemple **court, concre
 
 **Qualification à faire avec des appels réels :** utiliser les mêmes demandes publiques sur les deux routes, par exemple : expliquer `terraform plan` versus `apply`, diagnostiquer un journal GitHub Actions synthétique, relier Ansible à une VM Rocky Linux, décrire un rollback et le rôle des secrets. Comparer exactitude, clarté, exemples, vérifications, nombre de tours, tokens et coût. La grille par rôle existante reste dans la suite d'évaluation du dépôt. Ces mesures ne sont **pas encore réalisées** sur Fedora.
 
-Pour économiser des tokens cloud, l'opérateur peut choisir **manuellement** `equilibre` (medium / 8192 tokens de sortie maximum), après installation : `./menu.sh --action cloud-set-profile --value equilibre --apply`. `equilibre` devient le défaut ; `soutenu` (high / 16384) et `approfondi` (xhigh / 32768) restent des choix explicites pour les incidents difficiles. Il s'agit de plafonds, pas de budgets consommés automatiquement. Les vérifications restent obligatoires même lorsqu'on cherche une réponse concise.
+Pour économiser des tokens cloud, l'opérateur peut choisir **manuellement** `equilibre` (medium / 8192 tokens de sortie maximum), après installation : `commande historique de sélection du profil cloud (retirée)`. `equilibre` devient le défaut ; `soutenu` (high / 16384) et `approfondi` (xhigh / 32768) restent des choix explicites pour les incidents difficiles. Il s'agit de plafonds, pas de budgets consommés automatiquement. Les vérifications restent obligatoires même lorsqu'on cherche une réponse concise.
 
 ## Liberté pédagogique
 
