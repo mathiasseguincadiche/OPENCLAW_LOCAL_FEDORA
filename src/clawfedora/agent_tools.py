@@ -16,6 +16,7 @@ import yaml
 from clawfedora.ci_reports import summarize
 from clawfedora.core_config import AGENT_IDS
 from clawfedora.diagram_layouts import style_and_arrange
+from clawfedora.document_impact import inspect as inspect_impact
 from clawfedora.drawio import decorate_page, export_page_svg, inspect_diagram, multi_view_diagram
 from clawfedora.file_artifacts import formats, produce
 from clawfedora.project_common import assert_no_symlinks, read_json
@@ -28,6 +29,8 @@ TOOL_ROLES = {
     "clawfedora_diagram": {"architecte-solutions"},
     "clawfedora_lab_request": {"ingenieur-devops"},
     "clawfedora_doc_links": {"redacteur-pedagogique", "auditeur-qualite"},
+    "clawfedora_impact": {"chef-operations", "architecte-solutions", "ingenieur-devops",
+                         "redacteur-pedagogique", "auditeur-qualite"},
     "clawfedora_check": {"ingenieur-devops", "ingenieur-securite", "auditeur-qualite"},
     "clawfedora_lint": set(FORMATS),
     "clawfedora_tool_status": set(AGENT_IDS),
@@ -304,6 +307,17 @@ def invoke(
         from clawfedora.document_links import check_links
 
         return check_links(root, data)
+    if tool == "clawfedora_impact":
+        scope = data.get("scope")
+        changed = data.get("changed_paths")
+        if (not isinstance(scope, str) or not scope or Path(scope).is_absolute()
+                or ".." in Path(scope).parts or not isinstance(changed, list)):
+            raise ValueError("snapshot relatif et chemins modifiés requis")
+        target = root / scope
+        if not target.is_dir() or not target.resolve().is_relative_to(root.resolve()):
+            raise ValueError("snapshot hors workspace")
+        assert_no_symlinks(target, label="snapshot documentaire")
+        return inspect_impact(target, changed)
     if tool == "clawfedora_tool_status":
         return {
             "available": available(),
