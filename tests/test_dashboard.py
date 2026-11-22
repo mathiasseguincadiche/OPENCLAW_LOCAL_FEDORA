@@ -190,8 +190,8 @@ def test_missing_ollama_is_reported_and_does_not_load_anything(
     assert snapshot(ROOT, runtime)["ollama_available"] is False
 
 
-def test_workshop_shows_cloud_state_pause_models_and_budget(
-    server: DashboardServer, planned: tuple[Path, Path]
+def test_workshop_shows_only_local_project_state_even_with_old_activation(
+    server: DashboardServer, planned: tuple[Path, Path],
 ) -> None:
     from clawfedora import project_cloud
     from clawfedora.cloud_state import write_activation
@@ -199,22 +199,19 @@ def test_workshop_shows_cloud_state_pause_models_and_budget(
     runtime, project = planned
     (runtime / "state").mkdir(exist_ok=True)
     _, data = request(server, "/api/status")
-    assert data["cloud"] == {"ready": False, "reason": "cloud non activé"}
+    assert data["cloud"]["ready"] is False
+    assert "local" in data["cloud"]["reason"]
     assert data["projects"][0]["cloud"]["state"] == "none"
     write_activation(runtime, {"privacy_filter": "x", "budget_guard": "x"})
-    project_cloud.grant(ROOT, runtime, project, acknowledged=True)
-    project_cloud.write_pause(runtime, project, "budget_refused", "plafond atteint", "design-choice")
+    with pytest.raises(ValueError, match="cloud indisponible"):
+        project_cloud.grant(ROOT, runtime, project, acknowledged=True)
     _, data = request(server, "/api/status")
-    assert data["cloud"]["ready"] and data["cloud"]["budget"]["cap_eur"] == 35
-    brief = data["projects"][0]["cloud"]
-    assert brief["state"] == "granted" and brief["pause"]["code"] == "budget_refused"
-    status, detail = request(server, "/api/cloud?project=daily-project")
-    assert status == 200 and detail["pause"]["message"] == "plafond atteint"
-    assert "ne repasse jamais en local" in detail["consent_text"]
+    assert data["cloud"]["ready"] is False
+    assert data["projects"][0]["cloud"]["state"] == "none"
 
 
-def test_cloud_approval_through_the_api_needs_both_explicit_flags_and_a_local_origin(
-    server: DashboardServer, planned: tuple[Path, Path]
+def test_legacy_cloud_approval_api_cannot_reactivate_any_provider(
+    server: DashboardServer, planned: tuple[Path, Path],
 ) -> None:
     from clawfedora import project_cloud
     from clawfedora.cloud_state import write_activation
@@ -226,18 +223,18 @@ def test_cloud_approval_through_the_api_needs_both_explicit_flags_and_a_local_or
     for partial in ({"human_approved": True}, {"acknowledged": True}, {}):
         status, _ = request(server, "/api/cloud-approve", {"project_id": "daily-project", **partial})
         assert status == 400
-    # The cloud is not activated: even a complete request is refused.
     status, answer = request(server, "/api/cloud-approve", body)
     assert status == 400 and "cloud indisponible" in answer["error"]
     write_activation(runtime, {"privacy_filter": "x", "budget_guard": "x"})
-    assert request(server, "/api/cloud-approve", body)[0] == 202
-    assert project_cloud.consent_state(ROOT, runtime, project)["state"] == "granted"
-    assert request(server, "/api/cloud-revoke", {"project_id": "daily-project"})[0] == 202
+    status, answer = request(server, "/api/cloud-approve", body)
+    assert status == 400 and "cloud indisponible" in answer["error"]
     assert project_cloud.consent_state(ROOT, runtime, project)["state"] == "none"
 
 
-def test_dashboard_page_has_the_cloud_panels(server: DashboardServer) -> None:
+def test_dashboard_page_has_no_cloud_activation_controls(server: DashboardServer) -> None:
     _, page = request(server, "/")
-    assert 'id="cloud-budget"' in page and 'id="cloud"' in page
+    assert 'id="cloud-budget"' not in page and 'id="cloud"' not in page
     _, script = request(server, "/dashboard.js")
-    assert "/api/cloud-approve" in script and "/api/cloud-revoke" in script
+    assert "/api/cloud-approve" not in script
+    assert "/api/cloud-revoke" not in script
+    assert "Ornith" in (ROOT / "docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md").read_text()
