@@ -131,7 +131,12 @@ def overview(
         "project_title": _display(manifest.get("title", project.name)),
         "project_status": _display(manifest.get("status", "UNKNOWN"), 40),
         "roadmap": roadmap,
-        "accepted_decisions": _decisions(runtime, project),
+        # The ordinary chat context already contains accepted_notes; do not
+        # scan and decode the proposal register a second time on each message.
+        "accepted_decisions": (
+            _decisions(runtime, project) if check_evidence else
+            {"status": "IN_PROJECT_CONTEXT", "source": "notes_acceptees", "items": []}
+        ),
         "provenance": "persisted_project_state_not_previous_chat_messages",
     }
     if check_evidence:
