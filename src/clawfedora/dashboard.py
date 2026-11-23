@@ -6,7 +6,7 @@ import hashlib
 import json
 import socket
 import threading
-from contextlib import suppress
+from contextlib import closing, suppress
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
@@ -15,6 +15,7 @@ from urllib.request import urlopen
 
 from clawfedora import (
     atelier_chat,
+    atelier_chat_stream,
     chat_github,
     github_pr,
     github_quality,
@@ -189,6 +190,40 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _chat_stream(self, identifier: str, message: str) -> None:
+        """Trusted, same-origin SSE fanout; project and tool streams remain disabled."""
+        # Perform all deterministic request checks before sending headers.
+        atelier_chat_stream.allowed(self.server.runtime, identifier, message)
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Connection", "close")
+        self.end_headers()
+
+        def event(value: dict[str, Any]) -> None:
+            payload = json.dumps(value, ensure_ascii=False).encode("utf-8")
+            self.wfile.write(b"data: " + payload + b"\\n\\n")
+            self.wfile.flush()
+
+        with closing(atelier_chat_stream.stream(
+            self.server.repo_root, self.server.runtime, identifier, message,
+        )) as stream:
+            try:
+                for item in stream:
+                    event(item)
+            except (BrokenPipeError, ConnectionResetError, TimeoutError):
+                # Closing the generator aborts its upstream bridge connection.
+                return
+            except (OSError, ValueError, RuntimeError, KeyError, TypeError):
+                # No successful completion event; the durable pending marker
+                # requires an operator check before any subsequent turn.
+                with suppress(OSError, BrokenPipeError, ConnectionResetError):
+                    event({
+                        "type": "error",
+                        "message": "Génération interrompue : vérifier le fil avant toute relance.",
+                    })
+
     def do_GET(self) -> None:
         if not self._valid_host():
             self._send(403, {"error": "hôte local requis"})
@@ -239,6 +274,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     "notion-media.js": "text/javascript",
                 }[name]
                 self._send(200, (Path(__file__).parent / "web" / name).read_bytes(), kind)
+            elif url.path == "/api/chat/stream-capability":
+                try:
+                    active = atelier_chat_stream.enabled(self.server.runtime)
+                except (OSError, ValueError):
+                    active = False
+                self._send(200, {"enabled": active, "scope": "local_mentor_without_project"})
             elif url.path == "/api/chats":
                 self._send(200, atelier_chat.listing(self.server.runtime))
             elif url.path == "/api/chat":
@@ -305,6 +346,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 if project is not None and not isinstance(project, str):
                     raise ValueError("Projet de discussion invalide")
                 self._send(201, atelier_chat.create(self.server.runtime, project, agent))
+                return
+            if self.path == "/api/chat/send-stream":
+                identifier = data.get("id")
+                message = data.get("message")
+                if not isinstance(identifier, str) or not isinstance(message, str):
+                    raise ValueError("Identifiant et message texte requis")
+                self._chat_stream(identifier, message)
                 return
             if self.path == "/api/chat/send":
                 identifier = data.get("id")
