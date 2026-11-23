@@ -7,7 +7,6 @@ approvals, or a substitute for the project's canonical records.
 from __future__ import annotations
 
 import re
-from typing import Any
 
 # Characters, not tokens: intentionally conservative relative to the 32K model
 # contract, which also has to accommodate role instructions, tools and the reply.
