@@ -38,13 +38,13 @@ def test_never_sends_only_half_a_turn_or_exceeds_budget() -> None:
         + _turn("troisième", "C" * 40)
     )
     selected, stats = select_history(
-        history, "nouvelle question", char_budget=120,
+        history, "nouvelle question", char_budget=80,
         recent_turns=3, recalled_turns=0,
     )
     assert selected == history[-2:]
     assert stats["sent_turns"] == 1
     assert stats["omitted_turns"] == 2
-    assert stats["sent_chars"] <= 120
+    assert stats["sent_chars"] <= 80
 
 
 def test_large_recent_turn_does_not_leak_beyond_budget() -> None:
