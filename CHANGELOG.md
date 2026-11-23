@@ -4,6 +4,13 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Performance des projets longs — lot de qualification
+
+- Sélection déterministe du contexte des discussions natives : échanges récents complets, rappels lexicaux limités et budget de caractères, sans supprimer l'historique privé ni modifier les autorisations OpenClaw.
+- Benchmark GPU sur Qwen **et** Ornith par alias autorisé, en lecture seule sur les réglages, avec rapport indépendant 8K/16K/32K, temps de chargement et tests de refus des modèles inconnus.
+- Aucun réglage Flash Attention, cache KV, keep-alive ou pilote GPU modifié sans mesures réelles sur Fedora/B580. Documentation : [projets longs](docs/PERFORMANCE_PROJETS_LONGS.md).
+
+
 ### GitHub accessible depuis l'atelier
 
 - Page GitHub dédiée dans le tableau de bord local, plans sans réseau et actions approuvées uniquement après contrôle des empreintes.
