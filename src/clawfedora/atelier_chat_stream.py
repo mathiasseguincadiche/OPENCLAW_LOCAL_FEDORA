@@ -130,4 +130,4 @@ def stream(
     document["updated"] = int(time.time())
     document["pending"] = None
     atelier_chat._save(runtime, document)
-    yield {"type": "complete", "chat": document}
+    yield {"type": "complete", "id": identifier}
