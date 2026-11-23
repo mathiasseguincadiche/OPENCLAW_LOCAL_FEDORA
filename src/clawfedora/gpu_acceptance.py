@@ -17,7 +17,7 @@ Probe = Callable[..., dict[str, Any]]
 
 def benchmark(
     repo: Path, *, context_sizes: tuple[int, ...], near_limit: bool = False,
-    probe: Probe = probe_context,
+    model_alias: str | None = None, probe: Probe = probe_context,
 ) -> dict[str, Any]:
     if not context_sizes or len(context_sizes) > 3 or any(
         context not in (8192, 16384, 32768) for context in context_sizes
@@ -26,7 +26,10 @@ def benchmark(
     requested_fill = 0.9 if near_limit else 0.6
     results: list[dict[str, Any]] = []
     for context in context_sizes:
-        result = probe(repo, context_tokens=context, fill_ratio=requested_fill)
+        arguments: dict[str, Any] = {"context_tokens": context, "fill_ratio": requested_fill}
+        if model_alias is not None:
+            arguments["model_alias"] = model_alias
+        result = probe(repo, **arguments)
         if result.get("verdict") not in {
             "FULL_GPU", "PARTIAL_CPU_OFFLOAD", "CPU_ONLY", "PROMPT_TRUNCATED"
         }:
@@ -48,7 +51,7 @@ def benchmark(
             for key in (
                 "context_tokens", "prompt_tokens", "prompt_fill_pct",
                 "allocated_context_tokens", "gpu_share_pct",
-                "resident_gib", "resident_vram_gib",
+                "resident_gib", "resident_vram_gib", "load_seconds",
                 "prompt_tokens_per_second", "output_tokens_per_second", "verdict",
             )
         }
@@ -63,7 +66,8 @@ def benchmark(
         default=None,
     )
     return {
-        "scope": "local_ollama_qwen_benchmark_only",
+        "scope": "local_ollama_model_benchmark_only",
+        "model_alias": model_alias or "qwen-max",
         "model_content_not_exported": True,
         "config_modified": False,
         "cloud_used": False,
@@ -79,9 +83,13 @@ def benchmark(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Mesurer Qwen local sur la B580 sans mutation")
+    parser = argparse.ArgumentParser(description="Mesurer Qwen et Ornith sur la B580 sans mutation")
     parser.add_argument("--root", required=True, type=Path)
     parser.add_argument("--contexts", default="8192,16384,32768")
+    parser.add_argument(
+        "--models", choices=("qwen-max", "ornith-code", "all"), default="qwen-max",
+        help="Modèle à mesurer, ou les deux modèles locaux (all)",
+    )
     parser.add_argument(
         "--near-limit", action="store_true",
         help="Essai exigeant 90%% du contexte ; jamais exécuté sans --apply",
@@ -96,17 +104,28 @@ def main(argv: list[str] | None = None) -> int:
             item not in (8192, 16384, 32768) for item in contexts
         ):
             raise ValueError("liste de contextes invalide")
+        aliases = ("qwen-max", "ornith-code") if args.models == "all" else (args.models,)
         if not args.apply:
             print(json.dumps({
-                "verdict": "DRY_RUN", "contexts": contexts,
+                "verdict": "DRY_RUN", "contexts": contexts, "models": aliases,
                 "near_limit_requested": bool(args.near_limit),
                 "cloud_used": False, "model_calls": 0, "config_modified": False,
             }))
             return 0
-        print(json.dumps(
-            benchmark(args.root, context_sizes=contexts, near_limit=args.near_limit),
-            ensure_ascii=False, indent=2,
-        ))
+        measured = {
+            alias: benchmark(
+                args.root, context_sizes=contexts, near_limit=args.near_limit,
+                model_alias=alias,
+            ) for alias in aliases
+        }
+        report = (
+            {
+                "scope": "local_ollama_two_model_benchmark",
+                "config_modified": False, "cloud_used": False,
+                "benchmarks": measured,
+            } if args.models == "all" else measured[aliases[0]]
+        )
+        print(json.dumps(report, ensure_ascii=False, indent=2))
     except (ValueError, OSError, TimeoutError) as exc:
         print(json.dumps({"verdict": "REFUSED", "reason": str(exc)}, ensure_ascii=False))
         return 2
