@@ -203,7 +203,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
         def event(value: dict[str, Any]) -> None:
             payload = json.dumps(value, ensure_ascii=False).encode("utf-8")
-            self.wfile.write(b"data: " + payload + b"\\n\\n")
+            self.wfile.write(b"data: " + payload + b"\n\n")
             self.wfile.flush()
 
         with closing(atelier_chat_stream.stream(
