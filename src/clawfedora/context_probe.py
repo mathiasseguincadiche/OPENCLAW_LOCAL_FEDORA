@@ -38,6 +38,7 @@ def probe_context(
     *,
     fill_ratio: float = 0.6,
     verify_near_limit: bool = False,
+    model_alias: str | None = None,
     request: Request = ollama_api.request_json,
 ) -> dict[str, Any]:
     """Fill a share of the context, generate a short answer and read the GPU share."""
@@ -49,7 +50,12 @@ def probe_context(
         raise ValueError("fill_ratio entre 0.1 et 0.95")
     if verify_near_limit and (context != 32768 or fill_ratio < 0.85):
         raise ValueError("réception 32K exige contexte 32768 et remplissage >= 85 %")
-    model = str(model_plan(repo_root)[0]["runtime_id"])
+    models = model_plan(repo_root)
+    choices = {str(item["alias"]): str(item["runtime_id"]) for item in models}
+    if model_alias is not None and model_alias not in choices:
+        raise ValueError("Modèle non autorisé pour la sonde GPU")
+    selected_alias = model_alias if model_alias is not None else str(models[0]["alias"])
+    model = choices[selected_alias]
     repeats = max(1, int(context * fill_ratio / 30))
     answer = request(
         ENDPOINT + "/api/generate",
@@ -102,6 +108,7 @@ def probe_context(
     return {
         "verdict": verdict,
         "model": model,
+        "model_alias": selected_alias,
         "context_tokens": context,
         "allocated_context_tokens": loaded.get("context_length"),
         "prompt_tokens": prompt_tokens,
