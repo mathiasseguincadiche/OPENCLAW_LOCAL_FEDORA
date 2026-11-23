@@ -188,7 +188,7 @@ L'atelier conserve **Qwen 3.5 9B Q4_K_M** pour le mentor, la recherche, l'archit
 
 La recherche Web peut encore consulter Internet pour récupérer des *sources* si tu la laisses activée ; cela n'envoie pas les conversations à un fournisseur de modèle payant. Le [mode Web privé](docs/WEB_ACCESS_PRIVATE_MODE.md) désactive les outils Web.
 
-[Architecture locale, choix des modèles et réception](docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md) · [Sécurité](SECURITY.md)
+[Architecture locale, choix des modèles et réception](docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md) · [Optimisations des projets longs](docs/PERFORMANCE_PROJETS_LONGS.md) · [Sécurité](SECURITY.md)
 
 ## Sept rôles, un même atelier
 
