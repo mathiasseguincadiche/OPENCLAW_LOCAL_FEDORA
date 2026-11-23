@@ -404,7 +404,7 @@ def test_project_context_only_includes_verified_fresh_source_passages(
     runtime = tmp_path / "runtime"
     project = runtime / "projects" / "valid-proj"
     project.mkdir(parents=True)
-    (project / "project.json").write_text('{"title":"Demo", "status":"INTAKE_READY"}')
+    (project / "project.json").write_text('{"project_id":"valid-proj", "title":"Demo", "status":"INTAKE_READY"}')
     hits = [
         {"path": "intake/expired.md", "page": 1, "line": 3,
          "kind": "research", "text": "Do not cite expired advice", "stale": True},
