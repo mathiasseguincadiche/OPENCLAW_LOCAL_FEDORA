@@ -100,3 +100,26 @@ def test_near_limit_32k_requires_real_answer_allocation_and_fill() -> None:
     with pytest.raises(ValueError, match="réception 32K"):
         probe_context(ROOT, fill_ratio=0.6, verify_near_limit=True,
                       request=realistic(29000))
+
+
+def test_probe_can_select_ornith_without_changing_default_model() -> None:
+    ornith = "ornith-1.5:9b"
+    seen: list[str] = []
+
+    def request(url: str, *, payload: dict[str, Any] | None = None,
+                timeout: float = 10) -> Any:
+        if url.endswith("/api/generate"):
+            assert payload is not None
+            seen.append(payload["model"])
+            return {"prompt_eval_count": 3000, "response": "OK", "eval_count": 2,
+                    "eval_duration": 1_000_000_000}
+        return {"models": [{"name": ornith, "size": 6 * 1024**3,
+                            "size_vram": 6 * 1024**3, "context_length": 8192}]}
+
+    result = probe_context(ROOT, 8192, model_alias="ornith-code", request=request)
+    assert result["verdict"] == "FULL_GPU"
+    assert result["model_alias"] == "ornith-code"
+    assert seen == [ornith]
+    with pytest.raises(ValueError, match="non autorisé"):
+        probe_context(ROOT, 8192, model_alias="unknown-model", request=request)
+    assert seen == [ornith]
