@@ -41,15 +41,15 @@ et l'affichage. Aucune prétention de validation de la B580 sans mesure locale.
 ## 2 bis. Benchmark B580 opt-in (aucune modification de configuration)
 
 ```bash
-clawfedora-gpu-benchmark --root "$PWD"
-clawfedora-gpu-benchmark --root "$PWD" --apply
+clawfedora-gpu-benchmark --root "$PWD" --models all
+clawfedora-gpu-benchmark --root "$PWD" --models all --apply
 # Réception exigeante uniquement sur la vraie B580, après préqualification :
-clawfedora-gpu-benchmark --root "$PWD" --near-limit
-clawfedora-gpu-benchmark --root "$PWD" --near-limit --apply
+clawfedora-gpu-benchmark --root "$PWD" --models all --near-limit
+clawfedora-gpu-benchmark --root "$PWD" --models all --near-limit --apply
 ```
 
-Cette commande teste 8K, 16K puis 32K de contexte via Ollama
-**exclusivement local**, enregistre les tokens/s et la part VRAM et
+Cette commande teste 8K, 16K puis 32K séparément pour Qwen et Ornith
+via Ollama **exclusivement local** (option explicite `--models all`), enregistre les tokens/s et la part VRAM et
 propose le plus grand contexte entièrement sur GPU parmi les mesures,
 mais **le profil normal ne remplit que 60 % du contexte : sa recommandation est provisoire**.
 Le mode `--near-limit` sollicite environ 90 % du contexte et ne reconnaît
@@ -58,7 +58,8 @@ entrants**, une allocation de contexte suffisante et un modèle totalement en VR
 Toute mesure tronquée, offload CPU ou preuve incomplète laisse ce champ vide.
 Même un rapport favorable exige les tests de stabilité et une réception humaine
 sur la vraie machine Fedora 45/B580.
-Elle ne change **aucun** réglage. L'opérateur décide ensuite si 16K
+Elle ne change **aucun** réglage. Voir aussi [Optimisations pour projets longs](PERFORMANCE_PROJETS_LONGS.md)
+pour la sélection bornée des anciens échanges et les limites de cette première tranche. L'opérateur décide ensuite si 16K
 est préférable à 32K ; aucune vitesse ou qualité ne peut être affirmée
 sans les mesures sur la vraie B580.
 
