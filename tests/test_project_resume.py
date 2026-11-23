@@ -131,7 +131,7 @@ def test_new_native_threads_share_only_canonical_project_state(
     initialize(project, milestones(), apply=True)
     first = atelier_chat.create(tmp_path, "opsdesk", "chef-operations")
     second = atelier_chat.create(tmp_path, "opsdesk", "ingenieur-devops")
-    other = make_project(tmp_path, "bankflow")
+    make_project(tmp_path, "bankflow")
     third = atelier_chat.create(tmp_path, "bankflow", "chef-operations")
 
     def no_model(*_args: Any) -> str:
