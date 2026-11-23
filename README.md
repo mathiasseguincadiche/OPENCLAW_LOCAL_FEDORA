@@ -51,6 +51,12 @@ renforcent les schémas Draw.io, la relecture GitHub/Notion et les propositions
 de recette opérationnelle. Elles n'ajoutent aucun Skill et n'autorisent
 aucune exécution de commande par un modèle.
 
+Pour les projets longs, une nouvelle discussion liée au même projet retrouve un
+résumé des jalons et des décisions acceptées. La commande `!continuer` montre
+les prochaines étapes possibles et vérifie les reçus sans relancer d'agent ;
+les conversations privées ne sont pas fusionnées.
+[Reprise des projets longs](docs/PROJETS_LONGUE_DUREE.md).
+
 Les projets restent indépendants, avec un seul moteur exécutant une génération
 à la fois. Les commandes humaines et approbations passent par le moteur OpenClaw
 déjà configuré. Le diagnostic du PC est **en lecture seule** par défaut.

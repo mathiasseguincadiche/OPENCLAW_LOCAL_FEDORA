@@ -205,6 +205,34 @@ def test_the_selected_project_survives_in_the_thread_and_quit_clears_it(
     assert "Aucun projet sélectionné" in after
 
 
+
+def test_continue_command_is_read_only_and_requires_selected_project(
+    chat: tuple[Any, Runner, Path, Path],
+) -> None:
+    from clawfedora.project_roadmap import initialize
+
+    server, runner, runtime, project = chat
+    initialize(project, {"milestones": [
+        {"id": "milestone-one", "title": "Architecture InfraOps", "depends_on": []},
+    ]}, apply=True)
+    before = tree_hash(project)
+    code, absent = ask(server, MODEL_IDS[0], ("user", "!continuer"))
+    assert code == 200 and "Aucun projet sélectionné" in absent
+    selected = ask(server, MODEL_IDS[0], ("user", f"!projet {PROJECT}"))[1]
+    code, resumed = ask(
+        server, MODEL_IDS[0],
+        ("user", f"!projet {PROJECT}"), ("assistant", selected),
+        ("user", "!continuer"),
+    )
+    assert code == 200 and "milestone-one" in resumed
+    assert "NOT_VERIFIED" in resumed
+    assert "aucun agent" in resumed.lower()
+    assert tree_hash(project) == before
+    assert runner.calls == []
+
+
+
+
 # -- questions about a project --------------------------------------------------------
 def test_a_question_gets_a_read_only_project_context_and_changes_nothing(
     chat: tuple[Any, Runner, Path, Path],
@@ -376,7 +404,9 @@ def test_project_context_only_includes_verified_fresh_source_passages(
     runtime = tmp_path / "runtime"
     project = runtime / "projects" / "valid-proj"
     project.mkdir(parents=True)
-    (project / "project.json").write_text('{"title":"Demo", "status":"INTAKE_READY"}')
+    (project / "project.json").write_text(
+        '{"project_id":"valid-proj", "title":"Demo", "status":"INTAKE_READY"}'
+    )
     hits = [
         {"path": "intake/expired.md", "page": 1, "line": 3,
          "kind": "research", "text": "Do not cite expired advice", "stale": True},

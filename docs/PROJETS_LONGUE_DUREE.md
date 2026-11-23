@@ -50,6 +50,37 @@ dépendances le sont déjà. Les changements sont enregistrés avec date et note
 La feuille de route n'est **jamais écrasée implicitement** par une nouvelle
 initialisation.
 
+## Reprendre dans une nouvelle discussion
+
+Dans **Discussions**, sélectionnez le projet ClawFedora déjà créé et
+le rôle souhaité. Une nouvelle conversation n'importe ni ne copie les
+anciens échanges : le pont OpenClaw injecte un **aperçu en lecture seule**
+des jalons, de leurs états déclarés et des titres de propositions acceptées,
+extraits directement des fichiers canoniques du projet.
+
+Saisissez `!continuer` (ou `/continuer`) pour afficher, **sans lancer
+de modèle ni déclencher de tâche** :
+
+- les jalons déclarés en cours ou bloqués ;
+- les jalons planifiés dont toutes les dépendances sont déclarées réalisées ;
+- les références des dernières propositions acceptées, sans recopier leurs textes ;
+- un bilan des reçus de jalons et de ceux à requalifier, après contrôle des
+  empreintes/sources existantes ;
+- l'état d'intégrité des sources du projet.
+
+Le récapitulatif n'invente pas de décision issue de l'ancien fil. Un échange
+non conservé dans les ADR, les notes acceptées ou les autres fichiers du
+projet **ne devient pas une mémoire officielle**. Un nouvel agent reçoit
+les mêmes états persistés du projet mais pas l'historique privé d'un autre
+agent. Il faut toujours utiliser les commandes et validations habituelles
+pour exécuter ou publier une modification.
+
+La sélection des jalons est une **suggestion structurelle par dépendances**,
+pas un lancement de travail. Les états `IMPLEMENTED` sont des déclarations,
+jamais des certifications. Le contrôle complet des preuves n'est réalisé
+que lors de la commande explicite `!continuer` pour limiter le travail
+disque lors des échanges ordinaires.
+
 ## Ce que ces états prouvent (et ne prouvent pas)
 
 **IMPLEMENTED signifie uniquement « déclaré réalisé par l'opérateur »**.

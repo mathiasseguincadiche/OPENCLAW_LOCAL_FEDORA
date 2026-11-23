@@ -248,6 +248,12 @@ def send(repo_root: Path, runtime: Path, identifier: str, message: str) -> dict[
             document["project"], "Le projet de cette conversation est immuable. "
             "Ouvrir un nouveau fil pour choisir un autre projet."
         )
+    elif command and command[0] == "continuer":
+        # This native command is read-only; it never goes to a model or replays
+        # an old thread, and the selected project is immutable.
+        reply = chat_projects.run_command(
+            repo_root, runtime, command[0], command[1], document["project"],
+        )
     elif message.strip() == "!fedora etat":
         reply = chat_projects.bridge_reply(document["project"], fedora_status())
     elif message.strip() == "!fedora applications":

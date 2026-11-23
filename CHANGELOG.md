@@ -4,6 +4,20 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Continuité des projets longs entre conversations
+
+- Une nouvelle discussion liée au même projet retrouve les jalons actifs,
+  les prochaines étapes possibles et les titres de décisions acceptées à
+  partir des sources canoniques, sans lire l'historique privé d'un autre fil.
+- Nouvelle commande déterministe `!continuer` : résumé des jalons,
+  intégrité des sources et contrôle des reçus existants, sans appel au LLM,
+  exécution, écriture ou certification automatique.
+- Les réponses ordinaires ne déclenchent pas la vérification de l'ensemble
+  des reçus : contexte compact, coût disque limité, isolation par projet.
+- Tests : nouveaux fils, projets distincts, absence de modèle, refus d'un
+  registre malformé ou lié, métadonnées de contrôle bornées.
+
+
 ### Performance des projets longs — lot de qualification
 
 - Sélection déterministe du contexte des discussions natives : échanges récents complets, rappels lexicaux limités et budget de caractères, sans supprimer l'historique privé ni modifier les autorisations OpenClaw.

@@ -45,8 +45,23 @@ Les décisions officielles doivent rester dans les ADR, notes validées,
 fichiers de projet et preuves, jamais seulement dans l'historique du chat.
 Cette sélection n'est pas une mémoire sémantique universelle. Le fil
 conserve les plafonds existants de 900 messages et 850 Ko ; un nouveau fil
-reste nécessaire à leur atteinte. La reprise multi-fils et les
-références canoniques automatiques sont des chantiers distincts.
+reste nécessaire à leur atteinte. Les nouveaux fils retrouvent maintenant l'état canonique de leur projet
+sélectionné, **sans récupération automatique de l'historique des anciens chats**.
+
+## Reprise des projets longs entre fils
+
+Le lot suivant introduit `project_resume.py`. Il ne crée pas une seconde
+mémoire : il lit la feuille de route persistée et les références des décisions
+acceptées du même projet. Le pont ajoute un `continuity` borné au contexte
+des questions normales ; `!continuer` donne un état plus complet avec
+contrôle des reçus et de l'intégrité des sources, **sans appeler le LLM**.
+
+L'historique complet des autres fils reste privé et n'est ni copié ni
+réinterprété automatiquement. Les preuves et jalons restent déclaratifs ou
+à requalifier selon leurs propres reçus ; il n'y a pas de reprise automatique
+de processus, de publication ou de validation humaine.
+
+Voir [la procédure pour projets longs](PROJETS_LONGUE_DUREE.md).
 
 ## Mesurer Qwen ET Ornith sur Fedora
 
@@ -86,9 +101,9 @@ Les réglages `Flash Attention`, `OLLAMA_KV_CACHE_TYPE=q8_0`, la durée
 au profil actuel sur le PC réel, en maintenant constants modèle, prompt,
 contexte, température et scénario. Aucun de ces réglages n'est modifié ici.
 
-L'adaptation du streaming SSE à l'Atelier natif et la reprise automatique
-entre plusieurs fils ne font pas partie de ce lot ; ils exigent des
-tests spécifiques d'annulation, d'isolation et de permissions.
+L'adaptation du streaming SSE à l'Atelier natif et la reprise des actions
+interrompues restent des chantiers distincts, qui exigent des tests d'annulation,
+d'isolation et de permissions.
 
 ## Réception avant fusion ou activation
 
