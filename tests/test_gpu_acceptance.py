@@ -110,3 +110,42 @@ def test_near_limit_dry_run_never_calls_a_model(tmp_path: Path, capsys: Any) -> 
     output = capsys.readouterr().out
     assert '"model_calls": 0' in output
     assert '"near_limit_requested": true' in output
+
+
+def test_all_models_are_benchmarked_separately_without_remote_calls(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: Any,
+) -> None:
+    import json
+
+    from clawfedora import gpu_acceptance
+
+    calls: list[str] = []
+
+    def fake_benchmark(
+        _repo: Path, *, context_sizes: tuple[int, ...],
+        near_limit: bool, model_alias: str,
+    ) -> dict[str, Any]:
+        assert context_sizes == (8192,)
+        assert near_limit is False
+        calls.append(model_alias)
+        return {"model_alias": model_alias, "cloud_used": False,
+                "config_modified": False}
+
+    monkeypatch.setattr(gpu_acceptance, "benchmark", fake_benchmark)
+    assert main(["--root", str(tmp_path), "--contexts", "8192",
+                 "--models", "all", "--apply"]) == 0
+    output = json.loads(capsys.readouterr().out)
+    assert calls == ["qwen-max", "ornith-code"]
+    assert output["cloud_used"] is False
+    assert output["config_modified"] is False
+    assert set(output["benchmarks"]) == {"qwen-max", "ornith-code"}
+
+
+def test_all_models_dry_run_is_inert(tmp_path: Path, capsys: Any) -> None:
+    import json
+
+    assert main(["--root", str(tmp_path), "--models", "all"]) == 0
+    output = json.loads(capsys.readouterr().out)
+    assert output["model_calls"] == 0
+    assert output["models"] == ["qwen-max", "ornith-code"]
+    assert output["config_modified"] is False
