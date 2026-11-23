@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora import chat_projects
+from clawfedora.chat_context import select_history
 from clawfedora.core_config import AGENT_IDS
 from clawfedora.project_common import PROJECT_ID_RE
 from clawfedora.webui_bridge import make_server as make_policy_bridge
@@ -189,8 +190,11 @@ def _policy_answer(
             document["project"], "Contexte de conversation Atelier figé."
         )}
     ] if document["project"] else []
-    history.extend(document["messages"])
+    relevant_history, context_stats = select_history(document["messages"], message)
+    history.extend(relevant_history)
     history.append({"role": "user", "content": message})
+    # Counts only; the full, unmodified transcript stays in the private chat file.
+    document["context_window"] = context_stats
     payload: dict[str, Any] = {
         "model": "openclaw/" + document["agent"], "stream": False,
         "messages": history,
