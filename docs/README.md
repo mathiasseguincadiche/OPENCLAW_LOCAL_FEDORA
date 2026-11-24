@@ -112,6 +112,16 @@ observabilité, restauration et preuves individuelles. La nouvelle suite
 spécialisés ; elle **n'exécute aucun modèle** et ne remplace pas une recette
 sur Fedora.
 
+## Travailler sans complexité inutile
+
+Commencer par le mentor pour comprendre ou co-construire ; demander directement
+un schéma, une recherche ou une rédaction si le besoin est borné. Ne mobiliser
+que les spécialistes nécessaires. Pour une réalisation, approuver un plan court,
+observer les preuves sur la cible et publier seulement après revue. Les anciens
+parcours cloud (y compris FinOps) et Open WebUI sont historiques ou de migration,
+pas des prérequis pour l'atelier natif. La qualification graphique et matérielle
+reste celle de la recette globale.
+
 ## Commencer simplement
 
 | Je veux… | Ouvrir |
@@ -140,7 +150,7 @@ Les fiches sont un **parcours de référence**, pas douze étapes obligatoires �
 
 ## Approfondir, sans alourdir le premier démarrage
 
-- [Recette finale FinOps](validation/FINOPS.md) : budget, routage, cache et coût par tâche acceptée.
+- [Recette finale FinOps (historique)](validation/FINOPS.md) : budget, routage, cache et coût par tâche acceptée.
 
 Les pages ci-dessous sont classées par **ce que tu cherches à faire**.
 

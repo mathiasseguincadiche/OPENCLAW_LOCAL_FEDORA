@@ -46,3 +46,14 @@ def test_unknown_suite_is_refused_without_arbitrary_file_access() -> None:
 
 def test_prompts_still_fit_bootstrap_limits() -> None:
     assert validate_agent_assets(ROOT) == ()
+
+
+def test_reference_matches_current_local_architecture() -> None:
+    reference = (ROOT / "docs/CAS_USAGE_INFRAOPS_OPSDESK.md").read_text(encoding="utf-8")
+    assert "623fcd69626e78ec856033e4dc82a9b6aec08ad2" in reference
+    for value in ("hôte Fedora", "Borg chiffrée", "GHCR privé", "Ansible Vault", "Ornith"):
+        assert value in reference
+    assert "DeepSeek" not in reference and "OpenRouter" not in reference
+    suite = load_suite(ROOT, "infraops")
+    research = next(case for case in suite["scenarios"] if case["role"] == "expert-recherche")
+    assert "sur l'hôte Fedora" in research["prompt"]
