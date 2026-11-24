@@ -39,9 +39,9 @@ systemctl is-active --quiet ollama.service || {
   echo "ERREUR: Ollama doit être actif avant la modification" >&2; exit 2;
 }
 MANAGED="/etc/systemd/system/ollama.service.d/openclaw-daily.conf"
-sudo test -f "$MANAGED" && sudo test ! -L "$MANAGED" || {
-  echo "ERREUR: complément Ollama géré absent ou lié" >&2; exit 2;
-}
+if ! sudo test -f "$MANAGED" || sudo test -L "$MANAGED"; then
+  echo "ERREUR: complément Ollama géré absent ou lié" >&2; exit 2
+fi
 umask 077
 TMP="$(mktemp -d)"
 CHANGED=0
@@ -80,6 +80,8 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
+# Redirect as the operator, so the private backup belongs to the operator.
+# shellcheck disable=SC2024
 sudo cat -- "$MANAGED" > "$TMP/before.conf"
 profile_tool patch "$PROFILE" < "$TMP/before.conf" > "$TMP/after.conf"
 CHANGED=1
