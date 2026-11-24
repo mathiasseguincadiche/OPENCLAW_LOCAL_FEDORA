@@ -61,8 +61,10 @@ fusionnées artificiellement dans une même comparaison.
 
 Le chargement du rapport vérifie le format, la provenance déclarée,
 les plages numériques, l'identité des modèles, l'absence de lien
-symbolique et les permissions. Un rapport corrompu, falsifié ou
-accessible à d'autres utilisateurs n'affiche **aucune métrique**.
+symbolique et les permissions. Un rapport corrompu, aux valeurs incohérentes
+ou accessible à d'autres utilisateurs n'affiche **aucune métrique**.
+Ce contrôle de format et de permissions ne constitue toutefois pas une
+attestation cryptographique des mesures.
 Un rapport de plus de 30 jours est marqué **ancien**.
 
 ## Lire les résultats correctement
