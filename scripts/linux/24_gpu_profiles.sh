@@ -48,9 +48,9 @@ CHANGED=0
 STAGED=""
 # Atomically replace only the existing, managed daily drop-in.
 replace_config() {
-  STAGED="$(sudo mktemp "${MANAGED}.tmp.XXXXXXXX")"
-  sudo install -o root -g root -m 0644 -- "$1" "$STAGED"
-  sudo mv -fT -- "$STAGED" "$MANAGED"
+  STAGED="$(sudo mktemp "${MANAGED}.tmp.XXXXXXXX")" || return 2
+  sudo install -o root -g root -m 0644 -- "$1" "$STAGED" || return 2
+  sudo mv -fT -- "$STAGED" "$MANAGED" || return 2
   STAGED=""
 }
 cleanup() {
@@ -58,6 +58,10 @@ cleanup() {
   trap - EXIT INT TERM
   if ((CHANGED == 1 && rc != 0)); then
     echo "GPU_PROFILE_ROLLBACK=ATTEMPT" >&2
+    if [[ -n "$STAGED" ]]; then
+      sudo rm -f -- "$STAGED" || true
+      STAGED=""
+    fi
     if replace_config "$TMP/before.conf" && sudo systemctl daemon-reload &&
         sudo systemctl restart ollama.service &&
         systemctl is-active --quiet ollama.service; then
