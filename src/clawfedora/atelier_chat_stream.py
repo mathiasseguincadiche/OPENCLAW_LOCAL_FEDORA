@@ -52,7 +52,7 @@ def allowed(runtime: Path, identifier: str, message: str) -> dict[str, Any]:
 
 def _bridge_deltas(
     repo_root: Path, runtime: Path, document: dict[str, Any], message: str,
-) -> Iterator[str]:
+) -> Generator[str, None, None]:
     """Consume validated OpenAI-compatible SSE through a private loopback bridge."""
     history, stats = select_history(document["messages"], message)
     document["context_window"] = stats
