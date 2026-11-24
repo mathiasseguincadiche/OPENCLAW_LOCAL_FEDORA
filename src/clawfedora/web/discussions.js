@@ -76,6 +76,21 @@
       const text = document.createElement("p");
       text.textContent = entry.content;
       bubble.append(who, text);
+      if (entry.role === "assistant" && Array.isArray(entry.artifacts)) {
+        const files = document.createElement("div");
+        files.className = "chat-files";
+        for (const file of entry.artifacts) {
+          const link = document.createElement("a");
+          const query = new URLSearchParams({
+            id: chat.id, receipt: file.receipt, format: file.format,
+          });
+          link.href = "/api/chat/artifact?" + query.toString();
+          link.textContent = "Télécharger " + file.name;
+          link.download = file.name;
+          files.append(link);
+        }
+        if (files.childElementCount) bubble.append(files);
+      }
       feed.append(bubble);
     }
     feed.scrollTop = feed.scrollHeight;
