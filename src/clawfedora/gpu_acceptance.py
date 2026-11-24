@@ -125,9 +125,10 @@ def main(argv: list[str] | None = None) -> int:
             }))
             return 0
         if args.record:
-            from clawfedora.performance_reports import save
+            from clawfedora.performance_reports import prepare_record, save
             from clawfedora.project_worker import worker_lock
 
+            prepare_record(args.runtime_root)
             # Run the whole measurement under the SAME non-blocking lock as
             # the agents. Do not contend with a live worker or gaming profile.
             with worker_lock(args.runtime_root):
