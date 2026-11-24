@@ -43,7 +43,7 @@ La demande arrive dans **l'atelier natif unique** (`127.0.0.1:18890`) : Discussi
 
 ## 3. Premier scénario : une question simple
 
-Tu ouvres **l'Atelier natif** (`http://127.0.0.1:18890`), sélectionnes **Mentor infrastructure/OPS** et demandes :
+Tu ouvres **l'Atelier natif** (`http://127.0.0.1:18890`), ouvres Discussions et sélectionnes **Mentor infrastructure/OPS** et demandes :
 
 > Je connais les services systemd et les scripts Bash. Explique-moi ce qu'Ansible apporte, avec un exemple simple, ce qu'il faut vérifier et ses limites.
 
@@ -65,7 +65,7 @@ Pour une application Linux à déployer, l'intérêt est de ne pas mélanger arc
 6. **L'auditeur relit** les critères et les preuves. S'il manque une preuve, le travail doit être repris.
 7. **Tu approuves la livraison**. Si une application doit être réellement installée, c'est **toi** qui exécutes et observes l'opération dans ton laboratoire.
 
-**Règle pratique :** si tu as déjà un fichier `.tf` et veux seulement comprendre son contenu, **ne crée pas un projet**. Un petit fichier texte peut être joint au chat local (4 fichiers, 12 000 octets cumulés).
+**Règle pratique :** si tu as déjà un fichier `.tf` et veux seulement comprendre son contenu, **ne crée pas un projet**. Pour un extrait court sans secret, colle le texte utile dans le fil ; pour les documents de référence, utilise les imports du projet.
 
 → [Parcours DevOps commenté, du besoin au livrable](EXEMPLE_PARCOURS_DEVOPS.md) · [Piloter les projets](fiches/04-atelier-projets.md).
 
@@ -93,9 +93,9 @@ installation de l'atelier ni écriture sur les SSD internes par le script.
 **Pour l'atelier complet :** suivre ensuite le [guide d'installation unique](INSTALLATION_SIMPLE_FEDORA45.md)
 sur Fedora installé, avec le disque secondaire monté sous **`/data`** et le runtime
 **`/data/IA/Openclaw/`**. Le guide regroupe les prérequis, le clonage, les contrôles,
-l'installation et la reconnexion nécessaire avant WebUI.
+l'installation et la reconnexion nécessaire avant l'atelier natif.
 
-Après installation et configuration du compte WebUI, depuis le dépôt :
+Après installation et ouverture de la session Fedora, depuis le dépôt :
 
 ```bash
 ./menu.sh --action quick-check
@@ -112,7 +112,7 @@ Les benchmarks et canaries restent facultatifs.
 
 - **Markdown** : la source éditable d'un guide. Le PDF, le DOCX et l’ODT sont des exports issus de cette source.
 - **Draw.io** : le schéma éditable de l'architecte. Le SVG n'est qu'un aperçu qui ne se resynchronise pas automatiquement.
-- **Contrôle statique** : peut signaler des erreurs JSON/YAML/Python, Bash, Markdown ou secrets selon l'agent. Cela **n'exécute ni Terraform ni Ansible**.
+- **Contrôle statique** : peut signaler des erreurs JSON/YAML/Python, Bash, Markdown ou secrets selon l'agent. La sandbox Ornith peut aussi lancer des validateurs Terraform et Ansible Lint hors réseau, sur une tâche approuvée ; ni apply ni déploiement réel.
 - **Preuve d'exécution** : un résultat réellement obtenu sur la plateforme cible, daté et attribuable à la bonne version.
 - **Livraison** : fichiers attendus, critères et approbation humaine ; elle ne certifie pas que ton infrastructure externe est en production.
 
@@ -133,7 +133,7 @@ Les modèles sont exécutés localement, l'un après l'autre. Un autre spéciali
 
 ## 9. Quel est le vrai niveau de maturité ?
 
-Le code et les tests automatiques existent. Les performances GPU, la vraie compatibilité du chat natif, la voix, les uploads, la restauration et les deux modèles locaux doivent encore être **essayés sur le PC Fedora**. Le streaming SSE est préparé mais désactivé par défaut ; aucune migration WebUI historique n'est requise pour une installation neuve sous **Open WebUI 0.12.3**.
+Le code et les tests automatiques existent. Les performances GPU, la vraie compatibilité du chat natif, la voix, les uploads, la restauration et les deux modèles locaux doivent encore être **essayés sur le PC Fedora**. Le streaming SSE est préparé mais désactivé par défaut ; aucune installation ou migration Open WebUI n'est requise pour une installation neuve de l'atelier natif.
 
 → [État actuel](../STATUS.md) · [Validation facultative](validation/README.md) · [Historique des plans](archives/2026/README.md).
 
@@ -152,6 +152,6 @@ Le code et les tests automatiques existent. Les performances GPU, la vraie compa
 | Sauvegarder et mettre à jour | [09 — Entretenir](fiches/09-entretenir.md) |
 | Diagnostiquer | [10 — Dépanner](fiches/10-depanner.md) |
 | Comprendre les composants et flux | [11 — Comment ça marche](fiches/11-comment-ca-marche.md) |
-| Activer ou désactiver le cloud | [12 — Le cloud, facultatif](fiches/12-cloud.md) |
+| Comprendre le retrait des modèles cloud | [12 — Historique du cloud](fiches/12-cloud.md) |
 
 **Pour retenir l'essentiel :** **le modèle propose ; le moteur encadre et collecte ; tu vérifies et approuves.**

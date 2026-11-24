@@ -30,7 +30,8 @@
         <label for="new-project">Projet (facultatif)</label>
         <select id="new-project"><option value="">Sans projet</option></select>
         <label for="new-agent">Agent OpenClaw</label>
-        <select id="new-agent"></select>
+        <select id="new-agent" aria-describedby="agent-help"></select>
+        <p id="agent-help" class="intro" aria-live="polite">Choisissez un rôle selon votre besoin.</p>
         <button type="submit">Créer la discussion</button>
       </form>
       <h2>Historique</h2>
@@ -40,6 +41,7 @@
       <div class="chat-heading">
         <h2 id="chat-title">Choisir une conversation</h2>
         <p id="chat-context">Projet et agent figés pour chaque fil.</p>
+        <p id="chat-example" class="intro" hidden></p>
       </div>
       <div id="chat-messages" role="log" aria-live="polite" aria-label="Messages de discussion"></div>
       <p id="chat-warning" class="chat-warning" role="status"></p>
@@ -57,7 +59,7 @@
       </form>
       <form id="chat-form">
         <label for="chat-input">Votre message à OpenClaw</label>
-        <textarea id="chat-input" rows="3" maxlength="8000" placeholder="Une question, !etat, !sources ou !fedora etat / !fedora applications…" required disabled></textarea>
+        <textarea id="chat-input" rows="3" maxlength="8000" placeholder="Décrivez votre besoin ou demandez une explication…" required disabled></textarea>
         <div class="chat-controls">
           <span>Commandes et approbations : uniquement vos messages, jamais une décision autonome du modèle.</span>
           <button id="chat-send" type="submit" disabled>Envoyer</button>
@@ -65,7 +67,7 @@
       </form>
     </section>
   </div>
-  <footer><p>L'historique reste dans l'état local privé de l'Atelier. Le mode cloud n'est pas proposé dans cette interface pilote. Aucune commande système arbitraire.</p></footer>
+  <footer><p>L'historique reste dans l'état local privé de l'Atelier. L’inférence utilise uniquement les modèles locaux. Aucune commande système arbitraire.</p></footer>
 </main>
 </body>
 </html>
