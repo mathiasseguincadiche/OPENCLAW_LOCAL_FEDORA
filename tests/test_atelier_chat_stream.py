@@ -224,3 +224,19 @@ def test_native_stream_reuses_bridge_preflight_and_validated_sse_frames(
     assert events[-1]["type"] == "complete"
     assert routes == ["stream"]
     assert atelier_chat.read(runtime, identifier)["pending"] is None
+
+
+def test_invisible_banner_prefix_alone_is_not_a_completed_answer(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime, identifier = _prepare(tmp_path)
+    _permit(monkeypatch)
+
+    def empty(*_args: Any) -> Iterator[str]:
+        yield "\u200b"
+
+    monkeypatch.setattr(atelier_chat_stream, "_bridge_deltas", empty)
+    with pytest.raises(ValueError, match="vide"):
+        list(atelier_chat_stream.stream(ROOT, runtime, identifier, "Question"))
+    doc = atelier_chat.read(runtime, identifier)
+    assert doc["messages"] == [] and doc["pending"] is not None
