@@ -50,7 +50,7 @@ print(daily_limits(Path(sys.argv[1]))["context_tokens"])
     # KV quantization is opt-in only: Vulkan/B580 support must be proven first.
     KV_TYPE="${CLAWFEDORA_KV_CACHE_TYPE:-f16}"
     KV_ENV='Environment="OLLAMA_KV_CACHE_TYPE=f16"'
-    FLASH_ENV=""
+    FLASH_ENV='Environment="OLLAMA_FLASH_ATTENTION=0"'
     case "$KV_TYPE" in
       f16) ;;
       q8_0)
