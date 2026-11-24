@@ -177,8 +177,9 @@ as_target install -d -m 0750 \
   "$RUNTIME_ROOT/workspaces" \
   "$RUNTIME_ROOT/projects" \
   "$RUNTIME_ROOT/proofs" \
-  "$RUNTIME_ROOT/state" \
   "$RUNTIME_ROOT/backups"
+# Chats, measurements, credentials and approvals require private state.
+as_target install -d -m 0700 "$RUNTIME_ROOT/state"
 as_target touch "$RUNTIME_ROOT/$RUNTIME_MARKER"
 as_target chmod 0600 "$RUNTIME_ROOT/$RUNTIME_MARKER"
 

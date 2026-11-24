@@ -9,6 +9,7 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import tempfile
 import time
@@ -65,17 +66,22 @@ ROUTES = ("local",)
 def worker_lock(runtime: Path, *, allow_gaming: bool = False) -> Iterator[None]:
     """One worker across projects. Fail promptly instead of accumulating jobs."""
     state = runtime / "state"
-    state.mkdir(parents=True, exist_ok=True)
+    if runtime.is_symlink() or state.is_symlink():
+        raise ValueError("verrou dans un runtime lié")
+    state.mkdir(parents=True, exist_ok=True, mode=0o700)
     if not allow_gaming and (state / "gaming-mode").exists():
         raise ValueError("mode jeux actif: reprendre le profil quotidien avant exécution")
     path = state / "worker.lock"
-    fd = os.open(path, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+    fd = os.open(path, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)
     with os.fdopen(fd, "w") as handle:
+        if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
+            raise ValueError("verrou worker non régulier")
         try:
             fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as exc:
             raise ValueError("un worker est déjà actif sur ce runtime") from exc
         try:
+            os.fchmod(handle.fileno(), 0o600)
             if not allow_gaming and (state / "gaming-mode").exists():
                 raise ValueError("mode jeux actif: reprendre le profil quotidien avant exécution")
             yield
@@ -97,10 +103,14 @@ def maintenance_lock(
     description succeeds, so a child reuses its parent's lock instead of deadlocking.
     """
     path = runtime / "state/worker.lock"
+    if any(item.is_symlink() for item in (runtime, path.parent, path)):
+        raise ValueError("verrou worker lié")
     try:
         inherited = os.fstat(inherited_fd)
-        lock = os.stat(path)
-        reuse = (inherited.st_dev, inherited.st_ino) == (lock.st_dev, lock.st_ino)
+        lock = os.stat(path, follow_symlinks=False)
+        reuse = stat.S_ISREG(inherited.st_mode) and stat.S_ISREG(lock.st_mode) and (
+            (inherited.st_dev, inherited.st_ino) == (lock.st_dev, lock.st_ino)
+        )
     except OSError:
         reuse = False
     if not reuse:

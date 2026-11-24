@@ -136,7 +136,10 @@ def _agents_deploy(root: Path, runtime_value: str | None, as_json: bool) -> int:
     runtime_root = resolve_runtime_root(runtime_value)
     try:
         require_storage(runtime_root, load_settings(root))
-        deployed = deploy_workspaces(root, runtime_root)
+        from clawfedora.project_worker import maintenance_lock
+
+        with maintenance_lock(runtime_root, allow_gaming=False):
+            deployed = deploy_workspaces(root, runtime_root)
     except (OSError, PermissionError, ValueError) as exc:
         if as_json:
             print(json.dumps({"verdict": "FAIL", "error": str(exc)}, ensure_ascii=False))

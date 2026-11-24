@@ -51,11 +51,16 @@ if ((EUID == 0)); then
   exit 2
 fi
 
+if [[ -f "$RUNTIME_ROOT/.openclaw-fedora-runtime" ]]; then
+  claw_lock_worker
+fi
 BOOTSTRAP_ARGS=(--apply --runtime-root "$RUNTIME_ROOT")
 # Installation state, model storage and projects MUST remain on the mounted disk.
 claw_require_storage "$RUNTIME_ROOT"
 ((ENABLE_LINGER == 0)) || BOOTSTRAP_ARGS+=(--enable-linger)
 "$LINUX/00_bootstrap.sh" "${BOOTSTRAP_ARGS[@]}"
+# Fresh installation now has a managed marker; upgrade reuses the inherited lock.
+claw_lock_worker
 
 OLLAMA_VERSION_TEXT="$(ollama --version 2>/dev/null || true)"
 ollama_version="$(claw_extract_ollama_version "$OLLAMA_VERSION_TEXT" || true)"

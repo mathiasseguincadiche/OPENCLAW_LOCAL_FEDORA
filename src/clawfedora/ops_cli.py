@@ -154,9 +154,14 @@ def main(argv: list[str] | None = None) -> int:
         if not args.apply:
             print("MODEL_LOCK_PLAN=explicit-adoption")
             return 0
-        path = adopt_model_lock(
-            runtime_root, model_plan(repo_root)
-        )
+        from clawfedora.project_worker import maintenance_lock
+
+        try:
+            with maintenance_lock(runtime_root, allow_gaming=False):
+                path = adopt_model_lock(runtime_root, model_plan(repo_root))
+        except (OSError, ValueError) as exc:
+            print(f"MODEL_LOCK_RESULT=REFUSED: {exc}")
+            return 2
         print(f"MODEL_LOCK_RESULT=PASS path={path}")
         return 0
     if args.command == "migrate-state":
@@ -167,7 +172,16 @@ def main(argv: list[str] | None = None) -> int:
         print(f"STATE_MIGRATION_RESULT=PASS path={path}")
         return 0
     if args.command == "models":
-        return _models(repo_root, bool(args.apply))
+        if not args.apply:
+            return _models(repo_root, False)
+        from clawfedora.project_worker import maintenance_lock
+
+        try:
+            with maintenance_lock(runtime_root, allow_gaming=False):
+                return _models(repo_root, True)
+        except (OSError, ValueError) as exc:
+            print(f"MODEL_PROVISION_RESULT=REFUSED: {exc}")
+            return 2
     if args.command == "backup":
         from clawfedora.project_worker import maintenance_lock
 

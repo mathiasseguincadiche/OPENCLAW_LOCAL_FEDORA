@@ -4,6 +4,15 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Cohérence installation, maintenance et restauration
+
+- État privé 0700 dès le bootstrap et répertoires restaurés privés :
+  les discussions et rapports GPU restent lisibles après restauration.
+- Verrou de maintenance conservé pendant l'installation, la configuration,
+  les changements de profils, le déploiement des agents et les modèles.
+- Verrou worker : fichier régulier, privé, non tronqué, refus des liens.
+
+
 ### Durcissement avant réception
 
 - Transport Ollama commun à destination fixe, sans redirection ni proxy,
