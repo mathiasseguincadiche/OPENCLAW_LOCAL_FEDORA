@@ -182,7 +182,12 @@ def isolated_argv(image: str, snapshot: Path, tool_argv: list[str], name: str) -
     ]
 
 
-def run_lab(source: Path, tool: str, image: str | None, apply: bool) -> int:
+def run_lab(
+    source: Path, tool: str, image: str | None, apply: bool, *, timeout: int = 180
+) -> int:
+    if not 1 <= timeout <= 180:
+        raise LabRefusal("Budget de temps invalide")
+    housekeeping = 20 if timeout == 180 else 10
     if tool not in TOOLS:
         raise LabRefusal("Outil inconnu")
     if os.geteuid() == 0 and apply:
@@ -199,7 +204,7 @@ def run_lab(source: Path, tool: str, image: str | None, apply: bool) -> int:
     if not shutil.which("podman"):
         raise LabRefusal("Podman introuvable")
     present = subprocess.run(
-        ["podman", "image", "exists", image], check=False, capture_output=True, timeout=20
+        ["podman", "image", "exists", image], check=False, capture_output=True, timeout=housekeeping
     )
     if present.returncode:
         raise LabRefusal("Image immuable absente localement : aucun téléchargement automatique")
@@ -221,7 +226,7 @@ def run_lab(source: Path, tool: str, image: str | None, apply: bool) -> int:
         print(f"LAB tool={tool} files={len(manifest)} network=none image={image}")
         try:
             result = subprocess.run(
-                argv, check=False, timeout=180, capture_output=True, text=True
+                argv, check=False, timeout=timeout, capture_output=True, text=True
             )
             # Bounded evidence: no uncontrolled container output on the plugin JSON channel.
             output = (result.stdout or "") + (result.stderr or "")
@@ -231,13 +236,13 @@ def run_lab(source: Path, tool: str, image: str | None, apply: bool) -> int:
             print(f"LAB_RESULT={verdict} exit={result.returncode}")
             return result.returncode
         except subprocess.TimeoutExpired:
-            print("LAB_RESULT=FAIL timeout=180s")
+            print(f"LAB_RESULT=FAIL timeout={timeout}s")
             return 124
         finally:
             # A timed-out Podman client may have left a container behind.
             subprocess.run(
                 ["podman", "rm", "-f", "--ignore", name],
-                check=False, capture_output=True, timeout=20,
+                check=False, capture_output=True, timeout=housekeeping,
             )
 
 

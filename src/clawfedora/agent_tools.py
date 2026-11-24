@@ -371,17 +371,23 @@ def invoke(
         operation = data.get("operation")
         revision = data.get("expected_revision")
         validator = data.get("validator")
+        validators = data.get("validators")
         files = data.get("files")
         if (not isinstance(scope, str) or not isinstance(operation, str)
                 or not isinstance(revision, str) or
                 (validator is not None and not isinstance(validator, str)) or
+                (validators is not None and not isinstance(validators, list)) or
                 (files is not None and
                  (not isinstance(files, dict) or
                   any(not isinstance(k, str) or not isinstance(v, str)
                       for k, v in files.items())))):
             raise ValueError("scope, opération, révision et fichiers texte requis")
         _require_active_sandbox_scope(runtime, scope)
-        return iterate(runtime, root, scope, operation, revision, validator, files)
+        if validators is None:
+            return iterate(runtime, root, scope, operation, revision, validator, files)
+        return iterate(
+            runtime, root, scope, operation, revision, validator, files, validators=validators,
+        )
     if tool == "clawfedora_lab_request":
         from clawfedora.project_proofs import lab_request
 

@@ -27,11 +27,12 @@ const definitions = [
     validator: {type:"string",enum:["terraform-fmt","terraform-validate","ansible-lint","actionlint","shellcheck","hadolint","kubeconform","pytest"]},
     files: {type:"object",minProperties:1,maxProperties:5,additionalProperties:{type:"string",maxLength:16000}}
   }, ["scope","validator","files"]],
-  ["clawfedora_sandbox_iterate", "DevOps: modifier un worktree de tâche persistant, tester via Podman rootless hors réseau, corriger puis retester (3 essais maximum). Image OCI locale approuvée par opérateur. PASS donne des références prouvées au collecteur; aucune publication.", {
+  ["clawfedora_sandbox_iterate", "DevOps: modifier un worktree de tâche persistant, tester via Podman rootless hors réseau, corriger puis retester (3 essais maximum). Image OCI locale approuvée par opérateur. Choisir validator OU validators (2 à 3 distincts, même suite à chaque correction). PASS si tous les contrôles choisis réussissent; aucune publication.", {
     scope: {type:"string",minLength:1,maxLength:280},
     operation: {type:"string",enum:["inspect","edit_test"]},
     expected_revision: {type:"string",minLength:7,maxLength:64},
     validator: {type:"string",enum:["terraform-fmt","terraform-validate","ansible-lint","actionlint","shellcheck","hadolint","kubeconform","pytest"]},
+    validators: {type:"array",minItems:2,maxItems:3,uniqueItems:true,items:{type:"string",enum:["terraform-fmt","terraform-validate","ansible-lint","actionlint","shellcheck","hadolint","kubeconform","pytest"]}},
     files: {type:"object",minProperties:1,maxProperties:5,additionalProperties:{type:"string",maxLength:16000}}
   }, ["scope","operation","expected_revision"]],
   ["clawfedora_doc_links", "Vérifier liens locaux et ancres de titres Markdown dans un snapshot. document est relatif au scope.", {scope: string, document: string, content: string}, ["scope","document","content"]],
