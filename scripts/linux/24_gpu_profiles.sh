@@ -52,6 +52,7 @@ replace_config() {
   sudo install -o root -g root -m 0644 -- "$1" "$STAGED" || return 2
   sudo mv -fT -- "$STAGED" "$MANAGED" || return 2
   STAGED=""
+  sudo restorecon -- "$MANAGED" || return 2
 }
 cleanup() {
   local rc=$?
