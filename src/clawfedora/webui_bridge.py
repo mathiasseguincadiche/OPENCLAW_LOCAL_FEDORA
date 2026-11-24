@@ -837,9 +837,11 @@ class BridgeHandler(BaseHTTPRequestHandler):
                     session = str(uuid.uuid4())
                     write_progress(self.server.runtime, None, "chat", role=role, session=session)
                     try:
-                        if self.server.native_thread is not None and current:
-                            if chat_projects.open_project(self.server.runtime, current) is None:
-                                raise ValueError("Projet du fil introuvable avant génération")
+                        if (
+                            self.server.native_thread is not None and current
+                            and chat_projects.open_project(self.server.runtime, current) is None
+                        ):
+                            raise ValueError("Projet du fil introuvable avant génération")
                         pieces = self.server.stream_runner(
                             role, context + "\n" + prompt, session
                         )
