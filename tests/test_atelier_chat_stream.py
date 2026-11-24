@@ -187,3 +187,40 @@ def test_dashboard_sse_is_same_origin_scoped_and_persists(
         finally:
             server.shutdown()
             thread.join(timeout=5)
+
+
+def test_native_stream_reuses_bridge_preflight_and_validated_sse_frames(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from clawfedora.webui_bridge import make_server
+
+    runtime, identifier = _prepare(tmp_path)
+    _permit(monkeypatch)
+    routes: list[str] = []
+
+    def fail_cli(*_args: Any) -> dict[str, Any]:
+        pytest.fail("CLI should not replace a qualified SSE source")
+
+    def remote(role: str, prompt: str, session: str) -> Iterator[str]:
+        assert role == "chef-operations"
+        assert "Fedora" in prompt
+        assert len(session) == 36
+        routes.append("stream")
+        yield "un "
+        yield "test"
+
+    def bridge(_repo: Path, _runtime: Path, bearer: str, _port: int) -> Any:
+        assert bearer and len(bearer) == 64
+        return make_server(
+            ROOT, runtime, bearer, 0,
+            runner=fail_cli, stream_runner=remote,
+        )
+
+    monkeypatch.setattr(atelier_chat_stream, "make_policy_bridge", bridge)
+    events = list(atelier_chat_stream.stream(ROOT, runtime, identifier, "Fedora ?"))
+    assert "".join(x["text"] for x in events if x["type"] == "delta").endswith(
+        "un test"
+    )
+    assert events[-1]["type"] == "complete"
+    assert routes == ["stream"]
+    assert atelier_chat.read(runtime, identifier)["pending"] is None
