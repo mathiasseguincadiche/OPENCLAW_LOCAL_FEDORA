@@ -567,9 +567,11 @@ def _collect_tool_receipts(
         proof = read_json(path)
         if proof.get("origin") != "managed-tool-runner":
             raise ValueError("preuve outil invalide")
-        if proof.get("tool") in {"clawfedora_sandbox_iterate", "clawfedora_sandbox_validate"}:
-            if proof.get("scope") != scope or proof.get("role") != "ingenieur-devops":
-                raise ValueError("preuve sandbox hors du snapshot courant")
+        if (
+            proof.get("tool") in {"clawfedora_sandbox_iterate", "clawfedora_sandbox_validate"}
+            and (proof.get("scope") != scope or proof.get("role") != "ingenieur-devops")
+        ):
+            raise ValueError("preuve sandbox hors du snapshot courant")
     for path in sorted(paths):
         target = project / "evidence" / task_id / f"tool-{path.name}"
         target.parent.mkdir(parents=True, exist_ok=True)
