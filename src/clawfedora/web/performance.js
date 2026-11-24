@@ -80,7 +80,7 @@
         NOT_MEASURED: "Aucune mesure enregistrée. Les modèles ne sont pas sollicités.",
         MEASURED: "Rapport local disponible. Mesures indicatives, non certifiées.",
         STALE: "Rapport de plus de 30 jours : mesures anciennes à requalifier.",
-        UNVERIFIED: "Rapport absent, modifié ou non vérifiable : valeurs masquées.",
+        UNVERIFIED: "Rapport invalide, insuffisamment protégé ou inaccessible : valeurs masquées.",
       };
       $("perf-status").textContent =
         messages[data.status] || "État du rapport indéterminé.";
