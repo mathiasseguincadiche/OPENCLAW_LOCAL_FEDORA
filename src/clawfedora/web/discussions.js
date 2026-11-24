@@ -12,6 +12,8 @@
     "auditeur-qualite": "Auditeur qualité",
   };
   let selected = null;
+  let selectedChat = null;
+  let streamingEnabled = false;
   let busy = false;
   let list = [];
 
@@ -59,6 +61,7 @@
   }
   function renderChat(chat) {
     selected = chat.id;
+    selectedChat = chat;
     $("chat-title").textContent = chat.title;
     $("chat-context").textContent = (chat.project || "Sans projet") + " · " +
       (labels[chat.agent] || chat.agent) + " · Contexte verrouillé";
@@ -88,11 +91,83 @@
     try { renderChat(await api("/api/chat?id=" + encodeURIComponent(id))); }
     catch (error) { messageError(error.message); }
   }
+  async function streamChat(id, content) {
+    // Only the server owns the OpenClaw bearer and the upstream Gateway stream.
+    const response = await fetch("/api/chat/send-stream", {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "Accept": "text/event-stream"},
+      body: JSON.stringify({id, message: content}),
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || "Streaming local refusé");
+    }
+    if (!response.body) throw new Error("Flux SSE indisponible");
+
+    const feed = $("chat-messages");
+    let answerNode = null;
+    const decoder = new TextDecoder();
+    const reader = response.body.getReader();
+    let buffer = "";
+    let complete = false;
+    try {
+      while (true) {
+        const {value, done} = await reader.read();
+        buffer += decoder.decode(value || new Uint8Array(), {stream: !done});
+        if (buffer.length > 256000) throw new Error("Réponse SSE démesurée");
+        let separator;
+        while ((separator = buffer.indexOf("\n\n")) !== -1) {
+          const frame = buffer.slice(0, separator);
+          buffer = buffer.slice(separator + 2);
+          if (!frame.startsWith("data: ")) throw new Error("Trame SSE invalide");
+          const item = JSON.parse(frame.slice(6));
+          if (item.type === "delta" && typeof item.text === "string") {
+            if (!answerNode) {
+              const user = document.createElement("article");
+              user.className = "chat-message user";
+              const userLabel = document.createElement("strong");
+              userLabel.textContent = "Vous";
+              const userText = document.createElement("p");
+              userText.textContent = content;
+              user.append(userLabel, userText);
+              feed.append(user);
+              const assistant = document.createElement("article");
+              assistant.className = "chat-message assistant";
+              const name = document.createElement("strong");
+              name.textContent = "OpenClaw";
+              answerNode = document.createElement("p");
+              assistant.append(name, answerNode);
+              feed.append(assistant);
+            }
+            answerNode.textContent += item.text;
+            feed.scrollTop = feed.scrollHeight;
+          } else if (item.type === "complete" && item.id === id) {
+            complete = true;
+          } else if (item.type === "error") {
+            throw new Error(item.message || "Génération interrompue");
+          } else {
+            throw new Error("Événement SSE inconnu");
+          }
+        }
+        if (done) break;
+      }
+      if (!complete || buffer.trim()) {
+        throw new Error("Flux terminé sans confirmation de la réponse");
+      }
+      // The persisted server transcript, not the temporary preview, is authoritative.
+      return await api("/api/chat?id=" + encodeURIComponent(id));
+    } finally {
+      await reader.cancel().catch(() => {});
+    }
+  }
+
   async function load() {
     try {
-      const [status, threads] = await Promise.all([
+      const [status, threads, stream] = await Promise.all([
         api("/api/status"), api("/api/chats"),
+        api("/api/chat/stream-capability").catch(() => ({enabled: false})),
       ]);
+      streamingEnabled = stream.enabled === true;
       list = threads.chats;
       $("new-agent").replaceChildren(...threads.agents.map(id =>
         option(id, labels[id] || id)));
@@ -127,7 +202,12 @@
     $("chat-input").disabled = true;
     messageError("OpenClaw traite votre message. Ne pas renvoyer une confirmation.");
     try {
-      const updated = await api("/api/chat/send", {id: selected, message: content});
+      const useStream = streamingEnabled && selectedChat
+        && selectedChat.agent === "chef-operations" && selectedChat.project === null
+        && !/^[!/]/.test(content.trim());
+      const updated = useStream
+        ? await streamChat(selected, content)
+        : await api("/api/chat/send", {id: selected, message: content});
       $("chat-input").value = "";
       const index = list.findIndex(item => item.id === updated.id);
       if (index >= 0) {

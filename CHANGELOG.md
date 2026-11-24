@@ -4,6 +4,21 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Streaming progressif des discussions natives — canary local
+
+- Raccordement SSE de la vue Discussions pour les questions texte du Mentor local
+  sans projet, uniquement après activation opérateur de l'API OpenClaw via
+  le marqueur privé existant.
+- Les fragments sont affichés progressivement ; l'historique est validé
+  seulement après `finish_reason=stop` et `[DONE]`. En cas de coupure,
+  le marqueur `pending` impose une vérification humaine avant relance.
+- Pas de jeton Gateway côté navigateur, ni de streaming d'outils, des projets
+  ou des autres rôles ; la route JSON reste disponible par défaut.
+- Tests hors ligne : refus de périmètre, origine HTTP, coupures, marqueur
+  incertain et raccordement au faux pont OpenClaw.
+  Voir [la réception Fedora](docs/STREAMING_DISCUSSIONS_NATIVES.md).
+
+
 ### Continuité des projets longs entre conversations
 
 - Une nouvelle discussion liée au même projet retrouve les jalons actifs,
