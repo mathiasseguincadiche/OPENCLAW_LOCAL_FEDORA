@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def _runtime(tmp_path: Path) -> Path:
     runtime = tmp_path / "runtime"
     runtime.mkdir()
+    (runtime / "state").mkdir(mode=0o700)
     (runtime / ".openclaw-fedora-runtime").touch()
     return runtime
 
@@ -52,7 +53,7 @@ def test_dashboard_empty_does_not_create_files_or_run_any_model(tmp_path: Path) 
     assert [m["status"] for m in result["models"]] == ["NOT_MEASURED"] * 2
     assert result["hardware_certified"] is False
     assert not (runtime / performance_reports.RELATIVE).exists()
-    assert not (runtime / "state").exists()
+    assert not (runtime / "state/performance").exists()
 
 
 def test_operator_record_preserves_both_models_and_private_permissions(
