@@ -61,6 +61,11 @@ Le streaming natif du Mentor sans projet est disponible uniquement via un canary
 local explicite, sans changer la route stable des autres agents et projets.
 [Streaming des discussions natives](docs/STREAMING_DISCUSSIONS_NATIVES.md).
 
+Une page [Performances](docs/PERFORMANCES_QWEN_ORNITH.md) compare les relevés
+réels de Qwen et Ornith (8K, 16K, 32K) sans exécuter de modèle en ouvrant
+l'interface. Le rapport privé exige un benchmark explicitement lancé sur Fedora.
+
+
 Les projets restent indépendants, avec un seul moteur exécutant une génération
 à la fois. Les commandes humaines et approbations passent par le moteur OpenClaw
 déjà configuré. Le diagnostic du PC est **en lecture seule** par défaut.
