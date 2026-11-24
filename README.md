@@ -57,6 +57,10 @@ les prochaines étapes possibles et vérifie les reçus sans relancer d'agent ;
 les conversations privées ne sont pas fusionnées.
 [Reprise des projets longs](docs/PROJETS_LONGUE_DUREE.md).
 
+Le streaming natif du Mentor sans projet est disponible uniquement via un canary
+local explicite, sans changer la route stable des autres agents et projets.
+[Streaming des discussions natives](docs/STREAMING_DISCUSSIONS_NATIVES.md).
+
 Les projets restent indépendants, avec un seul moteur exécutant une génération
 à la fois. Les commandes humaines et approbations passent par le moteur OpenClaw
 déjà configuré. Le diagnostic du PC est **en lecture seule** par défaut.
