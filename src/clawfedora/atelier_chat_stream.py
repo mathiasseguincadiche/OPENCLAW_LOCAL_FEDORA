@@ -10,7 +10,6 @@ import json
 import secrets
 import threading
 import time
-import uuid
 from collections.abc import Generator, Iterator
 from contextlib import closing
 from http.client import HTTPConnection
