@@ -97,8 +97,20 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--apply", action="store_true", help="Effectuer les inférences Ollama locales"
     )
+    parser.add_argument(
+        "--record", action="store_true",
+        help="Conserver un rapport privé après un benchmark explicitement exécuté",
+    )
+    parser.add_argument(
+        "--runtime-root", type=Path,
+        help="Runtime Fedora géré nécessaire pour --record (aucune écriture sinon)",
+    )
     args = parser.parse_args(argv)
     try:
+        if args.record and (not args.apply or args.runtime_root is None):
+            raise ValueError("--record exige --apply et --runtime-root")
+        if args.runtime_root is not None and not args.record:
+            raise ValueError("--runtime-root est réservé à --record")
         contexts = tuple(int(item) for item in args.contexts.split(","))
         if not contexts or len(set(contexts)) != len(contexts) or any(
             item not in (8192, 16384, 32768) for item in contexts
@@ -112,12 +124,28 @@ def main(argv: list[str] | None = None) -> int:
                 "cloud_used": False, "model_calls": 0, "config_modified": False,
             }))
             return 0
-        measured = {
-            alias: benchmark(
-                args.root, context_sizes=contexts, near_limit=args.near_limit,
-                model_alias=alias,
-            ) for alias in aliases
-        }
+        if args.record:
+            from clawfedora.performance_reports import prepare_record, save
+            from clawfedora.project_worker import worker_lock
+
+            prepare_record(args.runtime_root)
+            # Run the whole measurement under the SAME non-blocking lock as
+            # the agents. Do not contend with a live worker or gaming profile.
+            with worker_lock(args.runtime_root):
+                measured = {
+                    alias: benchmark(
+                        args.root, context_sizes=contexts, near_limit=args.near_limit,
+                        model_alias=alias,
+                    ) for alias in aliases
+                }
+                save(args.runtime_root, measured)
+        else:
+            measured = {
+                alias: benchmark(
+                    args.root, context_sizes=contexts, near_limit=args.near_limit,
+                    model_alias=alias,
+                ) for alias in aliases
+            }
         report = (
             {
                 "scope": "local_ollama_two_model_benchmark",

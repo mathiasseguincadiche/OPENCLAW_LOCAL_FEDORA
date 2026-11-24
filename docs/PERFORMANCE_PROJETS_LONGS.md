@@ -63,6 +63,11 @@ de processus, de publication ou de validation humaine.
 
 Voir [la procédure pour projets longs](PROJETS_LONGUE_DUREE.md).
 
+La page [Performances Qwen/Ornith](PERFORMANCES_QWEN_ORNITH.md) permet maintenant
+de consulter le dernier rapport de mesure local, seulement après un benchmark
+explicitement enregistré par l'opérateur. Aucun calcul GPU ne se déclenche
+depuis le tableau de bord.
+
 ## Mesurer Qwen ET Ornith sur Fedora
 
 Depuis le dépôt et l'environnement Python installé :

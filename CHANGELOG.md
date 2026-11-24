@@ -4,6 +4,21 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Tableau de performances local Qwen / Ornith
+
+- Nouvelle page `/performance.html` et lecture `GET /api/performance` :
+  comparaison des contextes 8K/16K/32K avec débits, temps de chargement et
+  VRAM résidente, uniquement si mesurés réellement sur Fedora.
+- `clawfedora-gpu-benchmark --models all --apply --record --runtime-root …` :
+  exécution volontaire sous verrou exclusif, rapport privé 0600 et écriture
+  atomique ; jamais de lancement de modèle depuis le navigateur.
+- Rapports absents/anciens/non vérifiables signalés distinctement ; aucun
+  mélange de sessions, de modèles, de prompts ou de données personnelles.
+- Tests de validation des rapports, des refus (permissions, liens, métriques
+  invalides), du verrou de worker et de l'API en lecture seule.
+  [Procédure Fedora](docs/PERFORMANCES_QWEN_ORNITH.md).
+
+
 ### Streaming progressif des discussions natives — canary local
 
 - Raccordement SSE de la vue Discussions pour les questions texte du Mentor local

@@ -238,3 +238,25 @@ def test_dashboard_page_has_no_cloud_activation_controls(server: DashboardServer
     assert "/api/cloud-approve" not in script
     assert "/api/cloud-revoke" not in script
     assert "Ornith" in (ROOT / "docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md").read_text()
+
+
+def test_performance_page_is_read_only_and_never_starts_ollama(
+    server: DashboardServer, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from clawfedora import performance_reports
+
+    def forbidden(*_args: Any, **_kwargs: Any) -> Any:
+        pytest.fail("La consultation des performances ne doit pas exécuter de modèle")
+
+    monkeypatch.setattr(dashboard, "urlopen", forbidden)
+    monkeypatch.setattr(dashboard, "run_project_tasks", forbidden)
+    monkeypatch.setattr(performance_reports, "save", forbidden)
+    status, value = request(server, "/api/performance")
+    assert status == 200
+    assert value["hardware_certified"] is False
+    assert value["status"] in {"NOT_MEASURED", "UNVERIFIED"}
+    assert {row["alias"] for row in value["models"]} == {"qwen-max", "ornith-code"}
+    for path in ("/performance.html", "/performance.js", "/performance.css"):
+        result, source = request(server, path)
+        assert result == 200 and len(source) > 100
+    assert request(server, "/api/performance", host="untrusted.local")[0] == 403
