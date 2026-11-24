@@ -14,6 +14,8 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from clawfedora.gpu_profiles import PROFILES
+
 ALIASES = ("qwen-max", "ornith-code")
 LABELS = {"qwen-max": "Qwen 3.5 9B", "ornith-code": "Ornith 1.5 9B"}
 CONTEXTS = (8192, 16384, 32768)
@@ -146,14 +148,19 @@ def prepare_record(runtime: Path) -> Path:
     return path
 
 
-def save(runtime: Path, measured: dict[str, Any]) -> None:
+def save(
+    runtime: Path, measured: dict[str, Any], *, configured_profile: str | None = None,
+) -> None:
     """Atomically replace only the last explicit run; never merge unrelated dates."""
+    if configured_profile is not None and configured_profile not in PROFILES:
+        raise ValueError("profil GPU de mesure inconnu")
     models = _normalise(measured)
     path = prepare_record(runtime)
     value = {
         "schema_version": 1,
         "source": SOURCE,
         "recorded_at": datetime.now(UTC).isoformat(),
+        "configured_profile": configured_profile,
         "models": models,
     }
     raw = (json.dumps(value, ensure_ascii=False, separators=(",", ":")) + "\n").encode()
@@ -193,6 +200,7 @@ def view(runtime: Path) -> dict[str, Any]:
         "status": "NOT_MEASURED",
         "source": SOURCE,
         "recorded_at": None,
+        "configured_profile": None,
         "models": _model_cards({}),
         "hardware_certified": False,
         "note": "Mesures locales indicatives ; la réception Fedora reste humaine.",
@@ -216,6 +224,11 @@ def view(runtime: Path) -> dict[str, Any]:
             raise ValueError("format de rapport GPU inconnu")
         if data.get("source") != SOURCE:
             raise ValueError("source de rapport GPU inconnue")
+        configured_profile = data.get("configured_profile")
+        if configured_profile is not None and (
+            not isinstance(configured_profile, str) or configured_profile not in PROFILES
+        ):
+            raise ValueError("profil GPU de mesure inconnu")
         instant = datetime.fromisoformat(data["recorded_at"])
         if instant.utcoffset() is None:
             raise ValueError("date de mesure non horodatée")
@@ -234,6 +247,7 @@ def view(runtime: Path) -> dict[str, Any]:
         base.update({
             "status": "STALE" if age > MAX_AGE else "MEASURED",
             "recorded_at": instant.astimezone(UTC).isoformat(),
+            "configured_profile": configured_profile,
             "models": _model_cards(models),
         })
     except (OSError, ValueError, KeyError, TypeError, OverflowError, AttributeError):
