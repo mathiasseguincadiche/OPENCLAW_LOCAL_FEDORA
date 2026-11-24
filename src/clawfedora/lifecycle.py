@@ -403,12 +403,13 @@ def restore_backup(archive: Path, destination: Path) -> Path:
     target = destination.resolve()
     if target.exists() and any(target.iterdir()):
         raise ValueError("restore: destination doit être vide")
-    target.mkdir(parents=True, exist_ok=True)
+    target.mkdir(parents=True, exist_ok=True, mode=0o700)
+    target.chmod(0o700)
     with tarfile.open(archive.resolve(), "r:gz") as tar:
         members = tar.getmembers()
         for member in members:
             _safe_member(member.name)
-            if member.issym() or member.islnk() or member.isdev():
+            if not (member.isfile() or member.isdir()):
                 raise ValueError(f"restore: type archive interdit: {member.name}")
         manifest = _manifest_from_archive(tar)
         files = manifest.get("files", {})
@@ -423,6 +424,12 @@ def restore_backup(archive: Path, destination: Path) -> Path:
                 f"restore: contenu archive non déclaré extras={extras} missing={missing}"
             )
         tar.extractall(target, members=members, filter="data")
+    # Backup stores regular files, not their parent directory permissions.
+    # Restore all directories as private so chats, receipts and GPU reports
+    # remain usable without exposing the restored data.
+    for directory in target.rglob("*"):
+        if directory.is_dir():
+            directory.chmod(0o700)
     for relative, expected in files.items():
         path = target / _safe_member(str(relative))
         if not path.is_file() or _sha256(path) != str(expected):

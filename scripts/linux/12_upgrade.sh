@@ -23,9 +23,7 @@ echo "Arrêt des services, sauvegarde cohérente, convergence des versions, migr
 claw_require_storage "$RUNTIME_ROOT"
 [[ -f "$RUNTIME_ROOT/.openclaw-fedora-runtime" ]] || { echo "ERREUR: installation gérée absente" >&2; exit 2; }
 [[ ! -e "$RUNTIME_ROOT/state/gaming-mode" ]] || { echo "ERREUR: reprendre le profil quotidien avant la migration" >&2; exit 2; }
-mkdir -p "$RUNTIME_ROOT/state"
-exec 9>"$RUNTIME_ROOT/state/worker.lock"
-flock -n 9 || { echo "ERREUR: worker actif; demander une pause et attendre la fin de tâche" >&2; exit 2; }
+claw_lock_worker
 finish() {
   local result=$?
   if ((result != 0)); then

@@ -15,7 +15,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SENSITIVE_DIRECTORIES = (
     "models", "models/ollama", "models/whisper", "projects", "workspaces",
     "state", "state/openclaw", "state/webui", "state/webui/data", "state/cloud",
-    "state/web-access", "runtime", "runtime/venv", "runtime/generated",
+    "state/web-access", "state/atelier-chats", "state/performance",
+    "runtime", "runtime/venv", "runtime/generated",
     "runtime/extensions", "runtime/downloads", "runtime/podman", "runtime/podman/storage",
     "runtime/podman/tmp", "proofs", "backups",
 )

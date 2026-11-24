@@ -27,7 +27,7 @@ printf 'DAILY_PROFILE_PLAN action=%s root=%s one_model=1 parallel=1 queue=4 cont
 ((APPLY == 1)) || { echo "DRY_RUN=PASS"; exit 0; }
 claw_require_storage "$RUNTIME_ROOT"
 [[ -f "$RUNTIME_ROOT/.openclaw-fedora-runtime" ]] || { echo "ERREUR: runtime non géré" >&2; exit 2; }
-mkdir -p "$RUNTIME_ROOT/state"
+claw_lock_worker
 case "$ACTION" in
   configure-ollama)
     # Match the B580 in Vulkan enumeration instead of assuming device zero.
@@ -129,8 +129,6 @@ EOF
     ;;
   gaming)
     # Refuse to interrupt a project mutation; mark before stopping services.
-    exec 9>"$RUNTIME_ROOT/state/worker.lock"
-    flock -n 9 || { echo "ERREUR: worker actif; terminer la tâche avant le mode jeux" >&2; exit 2; }
     touch "$RUNTIME_ROOT/state/gaming-mode"
     systemctl --user stop openclaw-gateway.service
     sudo systemctl stop ollama.service

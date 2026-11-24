@@ -28,6 +28,7 @@ fi
 printf 'ATELIER_PLAN action=%s standalone=1 port=18890\n' "$ACTION"
 ((APPLY == 1)) || { echo "DRY_RUN=PASS"; exit 0; }
 ((EUID != 0)) || { echo "Compte Fedora normal requis" >&2; exit 2; }
+claw_lock_worker
 if [[ "$ACTION" == stop ]]; then
   systemctl --user stop "$UNIT"
   echo "ATELIER_RESULT=PASS action=stop"
