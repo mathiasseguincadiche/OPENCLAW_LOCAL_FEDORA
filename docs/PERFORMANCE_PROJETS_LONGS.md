@@ -68,6 +68,34 @@ de consulter le dernier rapport de mesure local, seulement après un benchmark
 explicitement enregistré par l'opérateur. Aucun calcul GPU ne se déclenche
 depuis le tableau de bord.
 
+## Réutiliser le modèle résident entre projets et reprises
+
+Au démarrage ou à la reprise d'un worker local réel, après vérification des
+identités des modèles et sous verrou exclusif, une lecture bornée de
+`GET /api/ps` observe le modèle résident. L'affinité n'est utilisée que si
+un seul modèle autorisé, au digest exact et au contexte contractuel 32K,
+est identifié. Le délai de lecture est limité à deux secondes. Inventaire
+vide, ambigu, divergent ou indisponible : ordre normal des tâches.
+
+Par exemple, si Ornith est encore chargé après une discussion technique,
+le worker privilégie une tâche DevOps indépendante déjà prête plutôt que
+de charger immédiatement Qwen. Aucune tâche dont les dépendances ne sont
+pas satisfaites n'est avancée. Les rôles, le modèle imposé à chaque agent,
+les approbations, les snapshots et le verrou restent inchangés. Il n'y a
+ni préchargement, ni éviction forcée, ni second modèle résident, ni requête
+supplémentaire de génération.
+
+L'affinité pendant une même exécution continue d'utiliser le dernier
+modèle ayant traité une tâche avec succès. La préférence initiale est
+indicative : le modèle peut expirer ou être utilisé par un client externe
+après l'observation. Elle ne constitue pas une décision d'autorisation.
+Les tests utilisent un inventaire simulé et vérifient l'ordre des tâches,
+les refus de l'inventaire et l'intégrité des dépendances.
+
+La réduction des changements de modèle est attendue, mais le gain en temps
+de chargement reste à mesurer sur Fedora / B580. Aucun changement du
+keep-alive 3m ni du contexte de production dans ce lot.
+
 ## Mesurer Qwen ET Ornith sur Fedora
 
 Depuis le dépôt et l'environnement Python installé :
