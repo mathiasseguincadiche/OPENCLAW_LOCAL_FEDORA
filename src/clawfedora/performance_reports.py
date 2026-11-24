@@ -136,14 +136,20 @@ def _normalise(value: Any) -> dict[str, Any]:
     return models
 
 
-def save(runtime: Path, measured: dict[str, Any]) -> None:
-    """Atomically replace only the last explicit run; never merge unrelated dates."""
-    models = _normalise(measured)
+def prepare_record(runtime: Path) -> Path:
+    """Check private storage before starting an expensive operator benchmark."""
     path = _root(runtime, create=True)
     if path.is_symlink() or (path.exists() and (
         not path.is_file() or path.stat().st_mode & 0o077
     )):
         raise ValueError("rapport GPU non privé ou lié (0600 requis)")
+    return path
+
+
+def save(runtime: Path, measured: dict[str, Any]) -> None:
+    """Atomically replace only the last explicit run; never merge unrelated dates."""
+    models = _normalise(measured)
+    path = prepare_record(runtime)
     value = {
         "schema_version": 1,
         "source": SOURCE,
