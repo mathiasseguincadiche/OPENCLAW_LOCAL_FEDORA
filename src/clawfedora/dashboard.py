@@ -21,6 +21,7 @@ from clawfedora import (
     github_quality,
     github_remote,
     notion_panel,
+    performance_reports,
     project_cloud,
     project_ui,
 )
@@ -236,6 +237,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 "/workbench.js", "/workbench.css",
                 "/github.html", "/github.js", "/github.css",
                 "/notion.html", "/notion.js", "/notion.css", "/notion-rich.js", "/notion-media.js",
+                "/performance.html", "/performance.js", "/performance.css",
             }:
                 name = {
                     "/": "dashboard.html",
@@ -254,6 +256,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     "/notion.css": "notion.css",
                     "/notion-rich.js": "notion-rich.js",
                     "/notion-media.js": "notion-media.js",
+                    "/performance.html": "performance.html",
+                    "/performance.js": "performance.js",
+                    "/performance.css": "performance.css",
                 }[url.path]
                 kind = {
                     "dashboard.html": "text/html",
@@ -272,6 +277,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     "notion.css": "text/css",
                     "notion-rich.js": "text/javascript",
                     "notion-media.js": "text/javascript",
+                    "performance.html": "text/html",
+                    "performance.js": "text/javascript",
+                    "performance.css": "text/css",
                 }[name]
                 self._send(200, (Path(__file__).parent / "web" / name).read_bytes(), kind)
             elif url.path == "/api/chat/stream-capability":
@@ -287,6 +295,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 if set(query) != {"id"} or len(query["id"]) != 1:
                     raise ValueError("Identifiant de conversation requis")
                 self._send(200, atelier_chat.read(self.server.runtime, query["id"][0]))
+            elif url.path == "/api/performance":
+                self._send(200, performance_reports.view(self.server.runtime))
             elif url.path == "/api/status":
                 value = snapshot(self.server.repo_root, self.server.runtime)
                 value["errors"] = dict(self.server.errors)
