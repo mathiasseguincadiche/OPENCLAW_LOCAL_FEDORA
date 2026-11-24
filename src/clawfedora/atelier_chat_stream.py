@@ -120,7 +120,7 @@ def stream(
     answer = "".join(pieces)
     # The bridge prefixes streams with an invisible anti-banner marker.
     # A prefix-only response is not a successful model answer.
-    if not answer.strip("\u200b \\t\\r\\n"):
+    if not answer.strip("\u200b \t\r\n"):
         raise ValueError("Réponse locale vide ou incomplète")
     document["messages"].extend([
         {"role": "user", "content": message},
