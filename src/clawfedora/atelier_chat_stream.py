@@ -80,7 +80,9 @@ def _bridge_deltas(
         if document["agent"] != "chef-operations" or document["project"] is not None:
             raise ValueError("Activation SSE étendue retirée avant génération")
         bridge_server = make_policy_bridge(repo_root, runtime, bearer, 0)
+    captured: list[dict[str, Any]] = []
     with bridge_server as bridge:
+        bridge.artifact_sink = captured.extend
         if bridge.stream_runner is None:
             raise ValueError("Source SSE indisponible")
         worker = threading.Thread(target=bridge.serve_forever, daemon=True)
@@ -106,6 +108,7 @@ def _bridge_deltas(
                     while raw := response.readline(MAX_SSE_EVENT_BYTES + 1):
                         yield raw
                 yield from content_deltas(lines(), max_output_bytes=MAX_OUTPUT_BYTES)
+                document["_turn_artifacts"] = captured
             finally:
                 client.close()
         finally:
@@ -151,7 +154,7 @@ def _stream_locked(
         raise ValueError("Réponse locale vide ou incomplète")
     document["messages"].extend([
         {"role": "user", "content": message},
-        {"role": "assistant", "content": answer},
+        atelier_chat.assistant_message(document, answer),
     ])
     if document["title"] == "Nouvelle discussion":
         document["title"] = message.strip().replace("\n", " ")[:72]
