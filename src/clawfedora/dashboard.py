@@ -375,6 +375,18 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     raise ValueError("Projet de discussion invalide")
                 self._send(201, atelier_chat.create(self.server.runtime, project, agent))
                 return
+            if self.path == "/api/chat/recover":
+                if (
+                    set(data) != {"id", "pending", "human_approved"}
+                    or not isinstance(data.get("id"), str)
+                    or data.get("human_approved") is not True
+                ):
+                    raise ValueError("Fil, intention exacte et confirmation humaine requis")
+                self._send(200, atelier_chat.recover(
+                    self.server.runtime, data["id"], data["pending"],
+                    human_approved=True,
+                ))
+                return
             if self.path == "/api/chat/send-stream":
                 identifier = data.get("id")
                 message = data.get("message")
