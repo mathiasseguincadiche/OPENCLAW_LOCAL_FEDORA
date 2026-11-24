@@ -240,3 +240,133 @@ def test_invisible_banner_prefix_alone_is_not_a_completed_answer(
         list(atelier_chat_stream.stream(ROOT, runtime, identifier, "Question"))
     doc = atelier_chat.read(runtime, identifier)
     assert doc["messages"] == [] and doc["pending"] is not None
+
+
+def _extended(runtime: Path) -> Path:
+    marker = runtime / atelier_chat_stream.native_stream.MARKER
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    (runtime / ".openclaw-fedora-runtime").touch()
+    marker.write_text(atelier_chat_stream.native_stream.EXTENDED_APPROVAL + "\n")
+    marker.chmod(0o600)
+    return marker
+
+
+@pytest.mark.parametrize("project_bound", [False, True])
+def test_v2_admits_each_role_and_rejects_actions(
+    tmp_path: Path, project_bound: bool,
+) -> None:
+    from clawfedora.core_config import AGENT_IDS
+
+    runtime, _ = _prepare(tmp_path)
+    marker = _extended(runtime)
+    _project(runtime)
+    project = "opsdesk" if project_bound else None
+    for role in AGENT_IDS:
+        chat = atelier_chat.create(runtime, project, role)
+        identifier = chat["id"]
+        doc = atelier_chat_stream.allowed(runtime, identifier, "Une question")
+        assert doc["agent"] == role and doc["project"] == project
+        for action in ("!lancer", "/etat", "approuver livraison ABCD"):
+            with pytest.raises(ValueError, match="questions texte"):
+                atelier_chat_stream.allowed(runtime, identifier, action)
+    marker.write_text(atelier_chat_stream.native_stream.APPROVAL + "\n")
+    assert not atelier_chat_stream.native_stream.extended_opted_in(runtime)
+
+
+def test_json_and_sse_cannot_overwrite_same_turn(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime, identifier = _prepare(tmp_path)
+    _extended(runtime)
+
+    def source(*_args: Any) -> Iterator[str]:
+        yield "Premier "
+        yield "second"
+
+    monkeypatch.setattr(atelier_chat_stream, "_bridge_deltas", source)
+    with closing(atelier_chat_stream.stream(ROOT, runtime, identifier, "Question")) as events:
+        assert next(events)["text"] == "Premier "
+        with pytest.raises(ValueError, match="déjà en cours"):
+            atelier_chat.send(ROOT, runtime, identifier, "!fedora etat")
+        with pytest.raises(ValueError, match="déjà en cours"):
+            list(atelier_chat_stream.stream(ROOT, runtime, identifier, "Autre"))
+        assert [event["type"] for event in events] == ["delta", "complete"]
+    doc = atelier_chat.read(runtime, identifier)
+    assert doc["pending"] is None and len(doc["messages"]) == 2
+    assert doc["messages"][-1]["content"] == "Premier second"
+
+
+def test_v2_project_stream_has_canonical_context_and_no_cli_fallback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from clawfedora import chat_projects
+    from clawfedora.webui_bridge import make_server
+
+    runtime, _ = _prepare(tmp_path)
+    _extended(runtime)
+    _project(runtime)
+    chat = atelier_chat.create(runtime, "opsdesk", "ingenieur-devops")
+    seen: list[str] = []
+
+    def context(_repo: Path, _runtime: Path, project: Path, question: str,
+                *, include_revisions: bool) -> str:
+        assert project.name == "opsdesk" and include_revisions
+        assert question == "Décris la CI"
+        return "Contexte canonique OpsDesk, lecture seule"
+
+    def fail_cli(*_args: Any) -> dict[str, Any]:
+        pytest.fail("Aucun repli CLI")
+
+    def remote(role: str, prompt: str, _session: str) -> Iterator[str]:
+        assert role == "ingenieur-devops" and "Contexte canonique OpsDesk" in prompt
+        seen.append(role)
+        yield "CI "
+        yield "validée"
+
+    def bridge(_repo: Path, _runtime: Path, bearer: str, _port: int,
+               *, native_thread: tuple[str, str | None]) -> Any:
+        assert native_thread == ("ingenieur-devops", "opsdesk")
+        return make_server(ROOT, runtime, bearer, 0, runner=fail_cli,
+                           stream_runner=remote, native_thread=native_thread)
+
+    monkeypatch.setattr(chat_projects, "project_context", context)
+    monkeypatch.setattr(atelier_chat_stream, "make_policy_bridge", bridge)
+    events = list(atelier_chat_stream.stream(ROOT, runtime, chat["id"], "Décris la CI"))
+    assert seen == ["ingenieur-devops"]
+    assert events[-1]["type"] == "complete"
+    doc = atelier_chat.read(runtime, chat["id"])
+    assert doc["project"] == "opsdesk" and doc["pending"] is None
+    assert doc["messages"][-1]["content"].endswith("CI validée")
+
+
+def test_v2_refuses_history_switch_and_missing_project(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from clawfedora.webui_bridge import make_server
+
+    runtime, _ = _prepare(tmp_path)
+    _extended(runtime)
+    _project(runtime)
+    chat = atelier_chat.create(runtime, "opsdesk", "ingenieur-devops")
+
+    def forbidden(*_args: Any) -> Iterator[str]:
+        pytest.fail("Le mauvais projet ne doit pas atteindre le modèle")
+        yield "never"
+
+    def bridge(_repo: Path, _runtime: Path, bearer: str, _port: int,
+               *, native_thread: tuple[str, str | None]) -> Any:
+        return make_server(ROOT, runtime, bearer, 0, stream_runner=forbidden,
+                           native_thread=native_thread)
+
+    chat["messages"] = [
+        {"role": "user", "content": "Question passée"},
+        {"role": "assistant", "content": "📁 Projet : autre-projet\n\nAutre contenu"},
+    ]
+    atelier_chat._save(runtime, chat)
+    monkeypatch.setattr(atelier_chat_stream, "make_policy_bridge", bridge)
+    with pytest.raises(ValueError, match="refusée"):
+        list(atelier_chat_stream.stream(ROOT, runtime, chat["id"], "Question"))
+    assert atelier_chat.read(runtime, chat["id"])["pending"] is not None
+    (runtime / "projects/opsdesk/project.json").unlink()
+    with pytest.raises(ValueError, match="introuvable"):
+        atelier_chat_stream.allowed(runtime, chat["id"], "Question")

@@ -14,6 +14,7 @@
   let selected = null;
   let selectedChat = null;
   let streamingEnabled = false;
+  let expandedStreaming = false;
   let busy = false;
   let list = [];
 
@@ -168,6 +169,7 @@
         api("/api/chat/stream-capability").catch(() => ({enabled: false})),
       ]);
       streamingEnabled = stream.enabled === true;
+      expandedStreaming = stream.scope === "local_seven_roles_and_projects";
       list = threads.chats;
       $("new-agent").replaceChildren(...threads.agents.map(id =>
         option(id, labels[id] || id)));
@@ -203,8 +205,10 @@
     messageError("OpenClaw traite votre message. Ne pas renvoyer une confirmation.");
     try {
       const useStream = streamingEnabled && selectedChat
-        && selectedChat.agent === "chef-operations" && selectedChat.project === null
-        && !/^[!/]/.test(content.trim());
+        && (expandedStreaming ||
+          (selectedChat.agent === "chef-operations" && selectedChat.project === null))
+        && !/^[!/]/.test(content.trim())
+        && !/^approuver\s/i.test(content.trim());
       const updated = useStream
         ? await streamChat(selected, content)
         : await api("/api/chat/send", {id: selected, message: content});

@@ -215,3 +215,37 @@ def test_opted_in_bridge_streams_local_only_under_lock_without_token_leak(
         server.shutdown()
         server_thread.join(timeout=5)
     assert called == ["preflight:chef-operations", "gateway", "closed"]
+
+
+def test_extended_opt_in_keeps_public_source_mentor_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from clawfedora.core_config import AGENT_IDS
+
+    runtime = _runtime(tmp_path)
+    marker = runtime / native_stream.MARKER
+    marker.write_text(native_stream.EXTENDED_APPROVAL + "\n")
+    assert native_stream.opted_in(runtime)
+    assert native_stream.extended_opted_in(runtime)
+    calls: list[str] = []
+
+    def checker(role: str, _prompt: str, _session: str) -> dict[str, Any]:
+        calls.append(role)
+        return {"route": "local"}
+
+    def remote(role: str, _prompt: str, _session: str,
+               *, operator_token: str) -> Generator[str, None, None]:
+        assert operator_token == OPERATOR_TOKEN
+        yield role
+
+    monkeypatch.setattr(native_stream, "gateway_local_deltas", remote)
+    public = native_stream.native_source(runtime, ROOT, preflight=checker)
+    with pytest.raises(ValueError, match="Mentor"):
+        public("ingenieur-devops", "Question", "123e4567-e89b-12d3-a456-426614174000")
+    private = native_stream.native_source(runtime, ROOT, preflight=checker, extended=True)
+    for role in AGENT_IDS:
+        assert list(private(role, "Question", "123e4567-e89b-12d3-a456-426614174000")) == [role]
+    assert calls == list(AGENT_IDS)
+    marker.write_text(native_stream.APPROVAL + "\n")
+    with pytest.raises(ValueError, match="non autorisé"):
+        private("ingenieur-devops", "Question", "123e4567-e89b-12d3-a456-426614174000")

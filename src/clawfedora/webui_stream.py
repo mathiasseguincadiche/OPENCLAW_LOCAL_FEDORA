@@ -56,6 +56,7 @@ def progressive_completion(
         handler.wfile.flush()
 
     size = 0
+    visible = False
     # Prefix breaks all bridge banners: streamed model text cannot spoof a
     # project selection or a provenance marker in the next user turn.
     prefix = "\u200b"
@@ -73,8 +74,12 @@ def progressive_completion(
                 size += len(piece.encode("utf-8"))
                 if size > max_output_bytes:
                     raise ValueError("réponse SSE supérieure au plafond local")
+                if piece.strip("\u200b \t\r\n"):
+                    visible = True
                 if piece:
                     send(_event(base, {"content": piece}, None))
+            if not visible:
+                raise ValueError("réponse SSE vide")
             send(_event(base, {}, "stop"))
             send(b"data: [DONE]\n\n")
             return "PASS"

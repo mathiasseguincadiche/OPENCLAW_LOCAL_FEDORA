@@ -228,6 +228,7 @@ class BridgeServer(LocalServer):
     cloud_ready: Callable[[], bool]
     privacy: PrivacyFilter
     stream_runner: Callable[[str, str, str], Generator[str, None, None]] | None
+    native_thread: tuple[str, str | None] | None
 
 
 class BridgeHandler(BaseHTTPRequestHandler):
@@ -479,6 +480,32 @@ class BridgeHandler(BaseHTTPRequestHandler):
         with suppress(BrokenPipeError, ConnectionResetError):
             self.wfile.write(raw.encode())
 
+    def _native_pieces(
+        self, role: str, pieces: Generator[str, None, None],
+    ) -> Generator[str, None, None]:
+        """Collect the same checked tool receipts as the complete-answer path."""
+        from clawfedora.chat_artifacts import links
+        from clawfedora.project_worker import _tool_receipts
+
+        workspace = self.server.runtime / "workspaces" / role
+        before = _tool_receipts(workspace)
+        visible = False
+        try:
+            for piece in pieces:
+                if piece.strip("\u200b \t\r\n"):
+                    visible = True
+                yield piece
+            if not visible:
+                raise ValueError("Réponse du modèle vide")
+            # Preserve the existing receipt verification and link contract.
+            attachments = links(
+                self.server.runtime, role, before, self.server.server_port, self.server.token
+            )
+            if attachments:
+                yield attachments
+        finally:
+            pieces.close()
+
     def _cloud_without_consent(self, referenced: set[str]) -> list[str]:
         """Projects this thread touched that may not be sent to the cloud."""
         refused = []
@@ -509,6 +536,37 @@ class BridgeHandler(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length))
             if not isinstance(data, dict):
                 raise ValueError("objet JSON requis")
+            bound = self.server.native_thread
+            if bound is not None:
+                # The ephemeral native bridge has a server-selected role and project.
+                # Neither the browser nor a chat history marker can redefine them.
+                if (
+                    set(data) != {"model", "stream", "messages"}
+                    or data.get("model") != "openclaw/" + bound[0]
+                    or data.get("stream") is not True
+                ):
+                    raise ValueError("Requête hors périmètre du fil SSE natif")
+                entries = data.get("messages")
+                if not isinstance(entries, list) or not entries:
+                    raise ValueError("Message texte requis")
+                last_entry = entries[-1]
+                if (
+                    not isinstance(last_entry, dict) or last_entry.get("role") != "user"
+                    or not isinstance(last_entry.get("content"), str)
+                ):
+                    raise ValueError("Dernier message utilisateur texte requis")
+                typed_message = last_entry["content"]
+                if (
+                    not typed_message.strip() or typed_message.strip().startswith(("!", "/"))
+                    or chat_projects.parse_command(typed_message)
+                    or chat_approvals.parse_phrase(typed_message)
+                ):
+                    raise ValueError("Commandes et approbations utilisent la route stable")
+                _, mentioned = chat_projects.thread_state(entries)
+                if mentioned - ({bound[1]} if bound[1] else set()):
+                    raise ValueError("Marqueur historique hors du projet canonique")
+                if bound[1] and chat_projects.open_project(self.server.runtime, bound[1]) is None:
+                    raise ValueError("Projet du fil introuvable")
             cloud_request = str(data.get("model", "")).startswith(CLOUD_PREFIX)
             if not cloud_request and length > MAX_LOCAL_REQUEST_BYTES:
                 raise ValueError("requête locale supérieure à 1 Mio")
@@ -551,6 +609,9 @@ class BridgeHandler(BaseHTTPRequestHandler):
             return
         messages = data["messages"]
         current, referenced = chat_projects.thread_state(messages)
+        if self.server.native_thread is not None:
+            current = self.server.native_thread[1]
+            referenced = {current} if current else set()
         if native_project is not None:
             current = native_project
             # The cloud safety gate must see folder-derived context too.
@@ -749,20 +810,26 @@ class BridgeHandler(BaseHTTPRequestHandler):
         if current:
             project = chat_projects.open_project(self.server.runtime, current)
             if project is None:
+                if self.server.native_thread is not None:
+                    self._send(409, {"error": {"message": "Projet du fil introuvable"}})
+                    return
                 current = None
             else:
                 context += "\n" + chat_projects.project_context(
                     self.server.repo_root, self.server.runtime, project,
                     str(last.get("content", "")), include_revisions=not cloud,
                 )
-        # First integration gate: plain local Mentor chat only. No project thread,
-        # uploads or cloud ever reach this alternative source. Production keeps the
-        # CLI path until the native SSE source passes the exact same preflight.
+        # Legacy callers keep the v1 Mentor-only gate. The v2 native bridge is
+        # privately bound to the immutable stored role/project before admission.
+        # Neither streaming path admits a command, approval, upload or cloud route.
         if (
             data.get("stream") is True
             and self.server.stream_runner is not None
-            and not cloud and role == "chef-operations"
-            and current is None and not referenced
+            and not cloud
+            and (
+                self.server.native_thread is not None
+                or (role == "chef-operations" and current is None and not referenced)
+            )
             and not file_descriptors and not standalone_attachment_context
         ):
             try:
@@ -770,9 +837,16 @@ class BridgeHandler(BaseHTTPRequestHandler):
                     session = str(uuid.uuid4())
                     write_progress(self.server.runtime, None, "chat", role=role, session=session)
                     try:
+                        if (
+                            self.server.native_thread is not None and current
+                            and chat_projects.open_project(self.server.runtime, current) is None
+                        ):
+                            raise ValueError("Projet du fil introuvable avant génération")
                         pieces = self.server.stream_runner(
                             role, context + "\n" + prompt, session
                         )
+                        if self.server.native_thread is not None:
+                            pieces = self._native_pieces(role, pieces)
                         progressive_completion(
                             self, str(data["model"]), pieces, truncated_history=omitted
                         )
@@ -780,6 +854,10 @@ class BridgeHandler(BaseHTTPRequestHandler):
                         write_progress(self.server.runtime, None, "idle")
             except (OSError, ValueError, KeyError, RuntimeError, subprocess.SubprocessError) as exc:
                 self._send(409, {"error": {"message": failure_message(exc)}})
+            return
+        if self.server.native_thread is not None:
+            # Never silently fall back to the CLI or execute a second request.
+            self._send(409, {"error": {"message": "Source SSE native indisponible"}})
             return
         try:
             with worker_lock(self.server.runtime):
@@ -842,10 +920,21 @@ def make_server(
     runner: AgentRunner | None = None,
     cloud_ready: Callable[[], bool] | None = None,
     stream_runner: Callable[[str, str, str], Generator[str, None, None]] | None = None,
+    native_thread: tuple[str, str | None] | None = None,
 ) -> BridgeServer:
     if len(token) < 32:
         raise ValueError("jeton d’intégration privé requis")
+    if native_thread is not None:
+        from clawfedora.native_stream import extended_opted_in
+
+        role, project = native_thread
+        if (
+            not extended_opted_in(runtime) or role not in AGENT_IDS
+            or (project is not None and chat_projects.open_project(runtime, project) is None)
+        ):
+            raise ValueError("Fil SSE natif étendu non autorisé")
     server = BridgeServer(("127.0.0.1", port), BridgeHandler)
+    server.native_thread = native_thread
     server.runtime, server.token = runtime, token
     server.repo_root = repo_root
     server.limits = daily_limits(repo_root)
@@ -878,7 +967,10 @@ def make_server(
     else:
         from clawfedora.native_stream import native_source, opted_in
 
-        server.stream_runner = native_source(runtime, repo_root) if opted_in(runtime) else None
+        if native_thread is not None:
+            server.stream_runner = native_source(runtime, repo_root, extended=True)
+        else:
+            server.stream_runner = native_source(runtime, repo_root) if opted_in(runtime) else None
     return server
 
 

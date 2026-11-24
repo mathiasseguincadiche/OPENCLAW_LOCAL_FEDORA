@@ -5,15 +5,19 @@ selects a model, injects history, or obtains the internal bridge bearer.
 """
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import platform
 import re
 import secrets
+import stat
 import subprocess
 import threading
 import time
 import uuid
+from collections.abc import Iterator
+from contextlib import contextmanager
 from http.client import HTTPConnection
 from pathlib import Path
 from typing import Any
@@ -70,6 +74,25 @@ def _save(runtime: Path, document: dict[str, Any]) -> None:
         os.replace(temporary, path)
     finally:
         temporary.unlink(missing_ok=True)
+
+
+@contextmanager
+def turn_lock(runtime: Path, identifier: str) -> Iterator[None]:
+    """Serialize JSON and SSE turns for the same durable chat, never block indefinitely."""
+    chat = _path(runtime, identifier)
+    if not chat.is_file():
+        raise ValueError("Conversation introuvable")
+    lock = chat.with_suffix(".lock")
+    fd = os.open(lock, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)
+    with os.fdopen(fd, "w") as handle:
+        mode = os.fstat(handle.fileno()).st_mode
+        if not stat.S_ISREG(mode) or mode & 0o077:
+            raise ValueError("Verrou de conversation non privé")
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise ValueError("Une réponse est déjà en cours dans ce fil") from exc
+        yield
 
 
 def read(runtime: Path, identifier: str) -> dict[str, Any]:
@@ -228,6 +251,13 @@ def _policy_answer(
 
 
 def send(repo_root: Path, runtime: Path, identifier: str, message: str) -> dict[str, Any]:
+    with turn_lock(runtime, identifier):
+        return _send_locked(repo_root, runtime, identifier, message)
+
+
+def _send_locked(
+    repo_root: Path, runtime: Path, identifier: str, message: str,
+) -> dict[str, Any]:
     if not isinstance(message, str) or not message.strip() or (
         len(message.encode("utf-8")) > MAX_USER_BYTES
     ):

@@ -20,6 +20,7 @@ from clawfedora import (
     github_pr,
     github_quality,
     github_remote,
+    native_stream,
     notion_panel,
     performance_reports,
     project_cloud,
@@ -192,7 +193,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def _chat_stream(self, identifier: str, message: str) -> None:
-        """Trusted, same-origin SSE fanout; project and tool streams remain disabled."""
+        """Trusted same-origin SSE fanout for explicitly admitted native text turns."""
         # Perform all deterministic request checks before sending headers.
         atelier_chat_stream.allowed(self.server.runtime, identifier, message)
         self.send_response(200)
@@ -285,9 +286,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
             elif url.path == "/api/chat/stream-capability":
                 try:
                     active = atelier_chat_stream.enabled(self.server.runtime)
+                    expanded = active and native_stream.extended_opted_in(
+                        self.server.runtime
+                    )
                 except (OSError, ValueError):
-                    active = False
-                self._send(200, {"enabled": active, "scope": "local_mentor_without_project"})
+                    active, expanded = False, False
+                self._send(200, {
+                    "enabled": active,
+                    "scope": "local_seven_roles_and_projects" if expanded
+                    else "local_mentor_without_project",
+                })
             elif url.path == "/api/chats":
                 self._send(200, atelier_chat.listing(self.server.runtime))
             elif url.path == "/api/chat":
