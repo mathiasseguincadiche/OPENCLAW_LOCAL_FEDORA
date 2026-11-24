@@ -374,3 +374,73 @@ def test_exhausted_local_attempts_require_operator_intervention(
     assert run_project_tasks(ROOT, runtime, project, runner=bad)[0]["status"] == "FAIL"
     assert progress(runtime)["phase"] == "blocked_local"
     assert run_project_tasks(ROOT, runtime, project, runner=bad) == []
+
+
+@pytest.mark.parametrize(
+    "planned",
+    [[
+        {"id": "design", "role": "architecte-solutions", "title": "Design",
+         "objective": "Comparer", "depends_on": [],
+         "expected_outputs": ["deliverables/design/report.md"],
+         "acceptance_criteria": ["Deux choix"]},
+        {"id": "code", "role": "ingenieur-devops", "title": "Code",
+         "objective": "Documenter", "depends_on": [],
+         "expected_outputs": ["deliverables/code/report.md"],
+         "acceptance_criteria": ["Validation"]},
+        {"id": "followup", "role": "ingenieur-devops", "title": "Suite",
+         "objective": "Documenter", "depends_on": ["design"],
+         "expected_outputs": ["deliverables/followup/report.md"],
+         "acceptance_criteria": ["Preuve"]},
+    ]],
+    indirect=True,
+)
+def test_worker_reuses_resident_model_on_entry_without_skipping_dependencies(
+    planned: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from clawfedora import ollama_api, project_worker
+    from clawfedora.lifecycle import model_plan
+    from clawfedora.project_common import write_json
+
+    runtime, project = planned
+    models = model_plan(ROOT)
+    identities = [
+        {**item, "digest": str(index + 1) * 64, "quantization_level": "Q4_K_M"}
+        for index, item in enumerate(models)
+    ]
+    write_json(runtime / "state/model-identities.json", {
+        "models": {item["runtime_id"]: item for item in identities},
+    })
+    resident = next(item for item in identities if item["alias"] == "ornith-code")
+    reads: list[str] = []
+
+    def request(url: str, **_kwargs: Any) -> dict[str, Any]:
+        reads.append(url)
+        if url.endswith("/api/tags"):
+            return {"models": [
+                {"name": item["runtime_id"], "digest": item["digest"],
+                 "details": {"quantization_level": "Q4_K_M"}}
+                for item in identities
+            ]}
+        assert url.endswith("/api/ps")
+        return {"models": [{
+            "name": resident["runtime_id"], "digest": resident["digest"],
+            "context_length": 32768, "size": 8 * 1024**3,
+        }]}
+
+    tasks: list[str] = []
+
+    def invoke_local(_role: str, prompt: str, _session: str) -> dict[str, Any]:
+        task = json.loads(prompt.split("\n", 1)[1])
+        tasks.append(task["id"])
+        return {"files": {task["expected_outputs"][0]: "Choix et preuve."},
+                "summary": "Document collecté"}
+
+    monkeypatch.setattr(ollama_api, "request_json", request)
+    monkeypatch.setattr(project_worker, "project_runner", lambda *_args: invoke_local)
+    result = run_project_tasks(ROOT, runtime, project)
+    assert tasks == ["code", "design", "followup"]
+    assert all(row["status"] == "PASS" for row in result)
+    assert reads == [
+        "http://127.0.0.1:11434/api/tags", "http://127.0.0.1:11434/api/ps",
+    ]
+    assert read_json(project / "project.json")["status"] == "VALIDATING"
