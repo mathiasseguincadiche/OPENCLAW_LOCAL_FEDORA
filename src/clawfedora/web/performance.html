@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Performances · Atelier IA Fedora</title>
+  <link rel="stylesheet" href="/dashboard.css">
+  <link rel="stylesheet" href="/performance.css">
+  <script src="/performance.js" defer></script>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <p class="eyebrow">OPENCLAW · OLLAMA · FEDORA</p>
+      <h1>Performances des modèles</h1>
+      <p class="intro">Mesures locales de Qwen et Ornith, sans démarrage automatique du GPU.</p>
+    </div>
+    <span class="badge">Lecture seule</span>
+  </header>
+  <nav aria-label="Espaces de travail">
+    <a href="/">Projets</a>
+    <a href="/discussions.html">Discussions</a>
+    <a href="/github.html">GitHub</a>
+    <a href="/notion.html">Notion</a>
+  </nav>
+
+  <section aria-labelledby="summary-heading">
+    <h2 id="summary-heading">Dernière mesure enregistrée</h2>
+    <p id="perf-status" class="activity" role="status" aria-live="polite">
+      Lecture du rapport local…
+    </p>
+    <p id="perf-date" class="intro"></p>
+    <p id="perf-note" class="intro"></p>
+  </section>
+
+  <section aria-labelledby="compare-heading">
+    <h2 id="compare-heading">Qwen et Ornith, comparés</h2>
+    <p class="intro">Chaque ligne correspond à un contexte réellement testé.
+      Le taux GPU décrit la part résidente du modèle, pas l'utilisation totale
+      de la carte. Un résultat FULL_GPU n'est pas une certification matérielle.
+    </p>
+    <div id="perf-models" class="perf-models" aria-live="polite"></div>
+  </section>
+
+  <section class="perf-help" aria-labelledby="capture-heading">
+    <h2 id="capture-heading">Mesurer sur ton Fedora</h2>
+    <p>Depuis le dépôt, après installation du programme et vérification de
+      l'inactivité du worker, exécute volontairement la commande suivante.
+      Remplace le chemin du runtime par celui de ton installation.</p>
+    <pre><code>clawfedora-gpu-benchmark --root "$PWD" --models all \
+  --apply --record --runtime-root "$RUNTIME_ROOT"</code></pre>
+    <p>Le benchmark examine 8K, 16K et 32K séparément pour les deux modèles
+      et remplace le dernier rapport privé. Pour un essai de remplissage plus
+      exigeant, ajoute <code>--near-limit</code>. Il ne modifie jamais les réglages
+      d'Ollama ou du GPU. Le rapport est conservé sous
+      <code>state/performance/gpu-benchmark.json</code> du runtime avec accès privé.</p>
+    <p>Le tableau de bord ne lance aucun benchmark, ne télécharge aucun modèle
+      et n'autorise aucune modification de configuration.</p>
+  </section>
+
+  <footer><p>Performances mesurées ≠ validation fonctionnelle des sept agents.
+    Une réception sur la B580 et des tâches InfraOps réelles restent nécessaires.</p></footer>
+</main>
+</body>
+</html>
