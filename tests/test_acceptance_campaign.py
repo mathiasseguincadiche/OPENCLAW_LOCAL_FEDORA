@@ -13,6 +13,9 @@ from clawfedora.hardware_gate import GateCheck, HardwareGateReport
 from clawfedora.lifecycle import HealthCheck, HealthReport
 
 ROOT = Path(__file__).resolve().parents[1]
+PRIVATE_HARDWARE = "TEST_ONLY_HARDWARE_DETAIL_9a0e77"
+PRIVATE_HEALTH = "TEST_ONLY_HEALTH_STDOUT_2d71e8"
+PRIVATE_FAILURE = "TEST_ONLY_HEALTH_FAILURE_731f0c"
 
 
 def _no_call(*_args: Any, **_kwargs: Any) -> Any:
@@ -74,7 +77,7 @@ def test_inspect_reports_only_status_and_never_certifies_hardware(
     monkeypatch.setattr(ac, "validate_repository", lambda _: ContractReport((), ()))
     monkeypatch.setattr(ac, "require_storage", lambda *_args: None)
     monkeypatch.setattr(ac, "collect_hardware_gate", lambda *_args: HardwareGateReport(
-        "system", (GateCheck("host", "WARN" if problem == "warning" else "PASS", "secret"),),
+        "system", (GateCheck("host", "WARN" if problem == "warning" else "PASS", PRIVATE_HARDWARE),),
         "now",
     ))
     calls: list[list[str]] = []
@@ -86,10 +89,10 @@ def test_inspect_reports_only_status_and_never_certifies_hardware(
     def health(_repo: Path, runtime: Path, *, probe: bool, ollama_request: Any) -> HealthReport:
         assert runtime == tmp_path and probe is False
         assert ollama_request is ac._ollama_read
-        checks = [HealthCheck(name, "PASS", "private stdout") for name in ac.HEALTH_IDS
+        checks = [HealthCheck(name, "PASS", PRIVATE_HEALTH) for name in ac.HEALTH_IDS
                   if problem != "missing" or name != "model-inventory"]
         if problem == "duplicate":
-            checks.append(HealthCheck("model-inventory", "FAIL", "secret"))
+            checks.append(HealthCheck("model-inventory", "FAIL", PRIVATE_FAILURE))
         return HealthReport(tuple(checks))
 
     monkeypatch.setattr(ac, "fixed_command", command)
@@ -102,7 +105,12 @@ def test_inspect_reports_only_status_and_never_certifies_hardware(
     assert report["hardware_certified"] is False
     assert report["verdict"] == "NOT_END_TO_END_QUALIFIED"
     assert all(row["status"] == "NOT_RUN" for row in report["outstanding"])
-    assert "secret" not in json.dumps(report) and "private stdout" not in json.dumps(report)
+    serialized = json.dumps(report)
+    for detail in (PRIVATE_HARDWARE, PRIVATE_HEALTH, PRIVATE_FAILURE):
+        assert detail not in serialized
+    # Status-only structure also rejects arbitrary details even if their text varies.
+    assert all(set(row) == {"id", "status"} for row in report["checks"])
+    assert report["outstanding"] == ac.campaign(ROOT)["outstanding"]
     assert len(calls) == 6
     assert all(call[-2] == "--quiet" for call in calls)
     assert not any("webui" in " ".join(call) for call in calls)
