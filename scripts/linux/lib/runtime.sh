@@ -176,7 +176,7 @@ claw_lock_worker() {
   lock_path="$runtime_root/state/worker.lock"
   [[ -f "$runtime_root/.openclaw-fedora-runtime" ]] || { echo "ERREUR: runtime géré requis" >&2; return 2; }
   [[ ! -L "$runtime_root" && ! -L "$runtime_root/state" && ! -L "$lock_path" ]] || { echo "ERREUR: verrou lié interdit" >&2; return 2; }
-  mkdir -p -m 0700 "$runtime_root/state"
+  (umask 077; mkdir -p "$runtime_root/state")
   [[ ! -e "$lock_path" || -f "$lock_path" ]] || { echo "ERREUR: verrou non régulier" >&2; return 2; }
   expected_identity="$(stat -Lc '%d:%i' "$lock_path" 2>/dev/null || true)"
   inherited_identity="$(stat -Lc '%d:%i' "/proc/$$/fd/9" 2>/dev/null || true)"
@@ -188,7 +188,7 @@ claw_lock_worker() {
     exec 9<>"$lock_path"
     umask "$previous_umask"
   fi
-  flock -n 9 || { echo "ERREUR: tâche ou discussion active; attendre sa fin avant la maintenance" >&2; return 2; }
+  flock -n 9 || { echo "ERREUR: worker actif (tâche ou discussion active); attendre sa fin avant la maintenance" >&2; return 2; }
   chmod 0600 "$lock_path"
 }
 
