@@ -28,6 +28,10 @@ Installer et utiliser:
   acceptance-32k         Réception des modèles locaux près de 32K (--apply explicite)
   context-probe          Mesurer si le contexte tient sur le GPU, et la vitesse
                          (--context 8192|16384|32768 pour comparer une autre taille)
+  gpu-profile-status     Lire le profil GPU configuré (sans inférence)
+  gpu-reference          Cache f16, Flash Attention désactivé
+  gpu-flash              Candidat Flash Attention + f16
+  gpu-q8                 Candidat Flash Attention + q8_0
   atelier-install        Installer l'interface unique native (sans WebUI)
   atelier-start|atelier-stop|atelier-status  Piloter l'interface Atelier
   webui-install          Installer le chat Open WebUI
@@ -138,6 +142,14 @@ case "$ACTION" in
     [[ -z "$CONTEXT" ]] || args+=(--context "$CONTEXT")
     ((APPLY == 1)) && args+=(--apply)
     run_ops "${args[@]}"
+    ;;
+  gpu-profile-status)
+    bash "$LINUX/24_gpu_profiles.sh" status
+    ;;
+  gpu-reference|gpu-flash|gpu-q8)
+    args=("${ACTION#gpu-}")
+    ((APPLY == 0)) || args+=(--apply)
+    bash "$LINUX/24_gpu_profiles.sh" "${args[@]}"
     ;;
   atelier-install|atelier-start|atelier-stop|atelier-status)
     args=("${ACTION#atelier-}")

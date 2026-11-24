@@ -64,6 +64,9 @@ local explicite, sans changer la route stable des autres agents et projets.
 Une page [Performances](docs/PERFORMANCES_QWEN_ORNITH.md) compare les relevés
 réels de Qwen et Ornith (8K, 16K, 32K) sans exécuter de modèle en ouvrant
 l'interface. Le rapport privé exige un benchmark explicitement lancé sur Fedora.
+Les [profils GPU expérimentaux réversibles](docs/PROFILS_GPU_EXPERIMENTAUX.md)
+permettent de préparer et comparer Flash Attention et le cache KV q8_0 sans
+changer le contexte de production ni activer un candidat par défaut.
 
 
 Les projets restent indépendants, avec un seul moteur exécutant une génération

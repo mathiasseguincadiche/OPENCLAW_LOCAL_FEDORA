@@ -76,7 +76,14 @@ L'auditeur reçoit les sources, le plan approuvé, les livrables et les preuves 
 
 Les deux modèles sont toujours chargés alternativement (`OLLAMA_MAX_LOADED_MODELS=1`). Le contexte contractuel de 32 768 tokens est **conservé** jusqu'à la réception Fedora/B580. Ne pas afficher artificiellement des profils 16K/32K au niveau des agents : le `num_ctx` configuré dans le fournisseur OpenClaw fait autorité et doit rester cohérent avec le service Ollama.
 
-Le cache KV `f16` demeure le choix de référence. Un passage à `q8_0` et Flash Attention nécessiterait des mesures sur **Qwen et Ornith** à contexte et prompts identiques, et une preuve via les journaux qu'ils sont réellement utilisés. Ce n'est pas une optimisation activée sans preuve.
+Le cache KV `f16` et Flash Attention désactivé constituent le profil de référence.
+Trois variantes contrôlées sont disponibles : `gpu-reference`, `gpu-flash`
+et `gpu-q8`, via le menu et uniquement avec `--apply` pour modifier le service.
+Ces variantes permettent de préparer les essais avant même la disponibilité
+du PC cible. Les candidats restent **non qualifiés** tant que Qwen et Ornith
+n'ont pas été comparés à contexte et prompts identiques, et que les journaux
+n'ont pas confirmé leur utilisation effective.
+Voir [Profils GPU réversibles](PROFILS_GPU_EXPERIMENTAUX.md).
 
 ## Recette sur la machine cible
 

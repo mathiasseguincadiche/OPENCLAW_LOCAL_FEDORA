@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.context_probe import probe_context
+from clawfedora.gpu_profiles import PROFILES, require_configured
 
 Probe = Callable[..., dict[str, Any]]
 
@@ -105,8 +106,14 @@ def main(argv: list[str] | None = None) -> int:
         "--runtime-root", type=Path,
         help="Runtime Fedora géré nécessaire pour --record (aucune écriture sinon)",
     )
+    parser.add_argument(
+        "--expected-profile", choices=tuple(PROFILES),
+        help="Vérifier le profil systemd avant/après la mesure enregistrée",
+    )
     args = parser.parse_args(argv)
     try:
+        if args.expected_profile and not args.record:
+            raise ValueError("--expected-profile exige --record")
         if args.record and (not args.apply or args.runtime_root is None):
             raise ValueError("--record exige --apply et --runtime-root")
         if args.runtime_root is not None and not args.record:
@@ -132,13 +139,19 @@ def main(argv: list[str] | None = None) -> int:
             # Run the whole measurement under the SAME non-blocking lock as
             # the agents. Do not contend with a live worker or gaming profile.
             with worker_lock(args.runtime_root):
+                if args.expected_profile:
+                    require_configured(args.expected_profile)
                 measured = {
                     alias: benchmark(
                         args.root, context_sizes=contexts, near_limit=args.near_limit,
                         model_alias=alias,
                     ) for alias in aliases
                 }
-                save(args.runtime_root, measured)
+                if args.expected_profile:
+                    require_configured(args.expected_profile)
+                    save(args.runtime_root, measured, configured_profile=args.expected_profile)
+                else:
+                    save(args.runtime_root, measured)
         else:
             measured = {
                 alias: benchmark(
@@ -153,6 +166,9 @@ def main(argv: list[str] | None = None) -> int:
                 "benchmarks": measured,
             } if args.models == "all" else measured[aliases[0]]
         )
+        if args.expected_profile:
+            report["configured_profile"] = args.expected_profile
+            report["backend_profile_verified"] = False
         print(json.dumps(report, ensure_ascii=False, indent=2))
     except (ValueError, OSError, TimeoutError) as exc:
         print(json.dumps({"verdict": "REFUSED", "reason": str(exc)}, ensure_ascii=False))

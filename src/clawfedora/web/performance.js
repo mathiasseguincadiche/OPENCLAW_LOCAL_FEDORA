@@ -88,7 +88,16 @@
       $("perf-date").textContent = data.recorded_at
         ? "Dernier relevé : " + new Date(data.recorded_at).toLocaleString("fr-FR")
         : "Aucune date de mesure validée.";
-      $("perf-note").textContent = data.note || "";
+      const profileLabels = {
+        reference: "f16 / Flash Attention désactivé",
+        flash: "f16 / Flash Attention demandé",
+        q8: "q8_0 / Flash Attention demandé",
+      };
+      const profile = Object.hasOwn(profileLabels, data.configured_profile)
+        ? profileLabels[data.configured_profile] : "non contrôlé";
+      $("perf-note").textContent = (data.note || "") +
+        (data.recorded_at ? " Profil systemd du relevé : " + profile +
+          ". Activation réelle du backend non attestée." : "");
       const models = $("perf-models");
       models.replaceChildren(...data.models.map(showModel));
     } catch (_error) {

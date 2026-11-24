@@ -204,3 +204,40 @@ def test_explicit_locked_cli_record_is_refused_while_worker_is_busy(
     assert [m["status"] for m in performance_reports.view(runtime)["models"]] == [
         "MEASURED", "MEASURED",
     ]
+
+
+def test_recorded_benchmark_checks_profile_before_and_after_measurement(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: Any,
+) -> None:
+    runtime = _runtime(tmp_path)
+    events: list[str] = []
+
+    def check(name: str) -> None:
+        events.append("check:" + name)
+
+    def fake(_repo: Path, *, context_sizes: tuple[int, ...],
+             near_limit: bool, model_alias: str) -> dict[str, Any]:
+        events.append("measure:" + model_alias)
+        return _measure(model_alias)
+
+    monkeypatch.setattr(gpu_acceptance, "require_configured", check)
+    monkeypatch.setattr(gpu_acceptance, "benchmark", fake)
+    args = ["--root", str(ROOT), "--models", "all", "--contexts", "16384",
+            "--apply", "--record", "--runtime-root", str(runtime),
+            "--expected-profile", "q8"]
+    assert gpu_acceptance.main(args) == 0
+    assert events == ["check:q8", "measure:qwen-max", "measure:ornith-code", "check:q8"]
+    out = json.loads(capsys.readouterr().out)
+    assert out["configured_profile"] == "q8"
+    assert out["backend_profile_verified"] is False
+    assert performance_reports.view(runtime)["configured_profile"] == "q8"
+
+    def mismatch(_name: str) -> None:
+        raise ValueError("profil différent")
+
+    before = (runtime / performance_reports.RELATIVE).read_bytes()
+    monkeypatch.setattr(gpu_acceptance, "require_configured", mismatch)
+    events.clear()
+    assert gpu_acceptance.main(args) == 2
+    assert events == []
+    assert (runtime / performance_reports.RELATIVE).read_bytes() == before

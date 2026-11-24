@@ -4,6 +4,19 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Profils GPU expérimentaux réversibles
+
+- Trois candidats contrôlés : référence f16 sans Flash Attention, Flash Attention
+  + f16, Flash Attention + q8_0. Activation manuelle sous verrou de l'Atelier,
+  remplacement atomique du complément systemd géré et restauration tentée en
+  cas d'échec ; dry-run et statut accessibles par le menu.
+- Benchmark enregistré : `--expected-profile` contrôle la propriété Environment
+  de systemd avant et après la mesure, puis inscrit ce profil dans le rapport
+  privé et la page Performances. Le backend réel reste non qualifié.
+- Le contexte 32K, le keep-alive contractuel et le modèle unique sont inchangés.
+  [Recette différée sur Fedora/B580](docs/PROFILS_GPU_EXPERIMENTAUX.md).
+
+
 ### Tableau de performances local Qwen / Ornith
 
 - Nouvelle page `/performance.html` et lecture `GET /api/performance` :
