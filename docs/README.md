@@ -9,10 +9,10 @@ Le mode plan ne déclenche aucune installation, inférence ou opération distant
 
 ## Choisir les modèles selon le travail
 
-[Stratégie cloud-first et qualification de Qwen](CLOUD_FIRST_QUALIFICATION.md)
-explique la séparation des sept rôles, les trois niveaux de tâche,
-la contre-expertise Sol approuvée et le laboratoire Kubernetes hors ligne.
-Ce choix ne modifie ni le cloud désactivé par défaut ni l'accord par projet.
+[Architecture locale Qwen et Ornith](ARCHITECTURE_LOCALE_QWEN_ORNITH.md) :
+six rôles Qwen, DevOps Ornith et inférence exclusivement locale.
+La [boucle Ornith](BOUCLE_ORNITH_EDIT_TEST.md) nécessite une image
+de validation locale approuvée ; aucune publication automatique.
 
 ## Sources de projets : GitHub et Notion
 
@@ -119,7 +119,7 @@ sur Fedora.
 | Comprendre le projet en quelques minutes | [Présentation](../README.md) puis [Guide de découverte](GUIDE.md) |
 | Essayer Fedora sur la machine avant installation (facultatif) | [Live USB : contrôle matériel et limites](LIVE_USB_FEDORA45_PREQUALIFICATION.md) |
 | Installer Fedora et l’atelier | [Installation simple et vérification unique](INSTALLATION_SIMPLE_FEDORA45.md) |
-| Réceptionner l’atelier sur le PC, étape par étape | [Liste de contrôle de réception](RECEPTION_ETAPE3.md) |
+| Réceptionner l’atelier sur le PC, étape par étape | [Recette globale native](RECETTE_GLOBALE.md) |
 | Vérifier que mon installation fonctionne | [Premiers essais](fiches/02-premier-essai.md) : **`./menu.sh --action quick-check`** |
 | Discuter avec Qwen | [Fiche 03 — Discussion](fiches/03-discuter.md) |
 | Créer ou reprendre un projet | [Fiche 04 — Atelier Projets](fiches/04-atelier-projets.md) |
@@ -136,7 +136,7 @@ Les fiches sont un **parcours de référence**, pas douze étapes obligatoires �
 | [03 — Discuter](fiches/03-discuter.md) | [09 — Entretenir et sauvegarder](fiches/09-entretenir.md) |
 | [04 — Atelier Projets](fiches/04-atelier-projets.md) | [10 — Dépanner](fiches/10-depanner.md) |
 | [05 — Apprendre](fiches/05-apprendre.md) | [11 — Architecture expliquée](fiches/11-comment-ca-marche.md) |
-| [06 — Fichiers et schémas](fiches/06-fichiers-et-schemas.md) | [12 — Cloud facultatif](fiches/12-cloud.md) |
+| [06 — Fichiers et schémas](fiches/06-fichiers-et-schemas.md) | [12 — Retrait du cloud (historique)](fiches/12-cloud.md) |
 
 ## Approfondir, sans alourdir le premier démarrage
 
@@ -146,9 +146,8 @@ Les pages ci-dessous sont classées par **ce que tu cherches à faire**.
 
 ### Comprendre pourquoi c’est construit ainsi
 
-- [Architecture hybride Qwen / DeepSeek / Sol](ARCHITECTURE_HYBRIDE.md) : les deux routes, le choix explicite et le schéma [`routes-inference`](diagrams/routes-inference.svg).
-- [Décision de modèle](DECISION_MODELE.md) : pourquoi Qwen en local, DeepSeek en routine cloud et Sol en expertise.
-- [Passerelle cloud](PASSERELLE_CLOUD.md) : filtre, consentement et budget.
+- [Architecture actuelle Qwen / Ornith](ARCHITECTURE_LOCALE_QWEN_ORNITH.md) : deux modèles locaux, sept rôles et un seul modèle résident.
+- Archives de conception : [ancienne architecture hybride](ARCHITECTURE_HYBRIDE.md), [ancienne décision](DECISION_MODELE.md) et [ancienne passerelle](PASSERELLE_CLOUD.md). Ces documents ne décrivent pas les routes actives.
 - [Schémas éditables](diagrams/) : les fichiers `.drawio` sont la source, les `.svg` des aperçus.
 
 ### Faire une opération précise

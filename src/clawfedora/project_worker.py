@@ -553,7 +553,7 @@ def _tool_receipts(workspace: Path) -> set[Path]:
 
 
 def _collect_tool_receipts(
-    workspace: Path, before: set[Path], project: Path, task_id: str
+    workspace: Path, before: set[Path], project: Path, task_id: str, *, scope: str,
 ) -> list[str]:
     paths = _tool_receipts(workspace) - before
     if len(paths) > 20:
@@ -562,8 +562,15 @@ def _collect_tool_receipts(
     for path in sorted(paths):
         if len(path.stem) != 32 or any(c not in "0123456789abcdef" for c in path.stem):
             raise ValueError("identité de preuve outil invalide")
-        if path.stat().st_size > 20000 or read_json(path).get("origin") != "managed-tool-runner":
+        if path.stat().st_size > 20000:
             raise ValueError("preuve outil invalide")
+        proof = read_json(path)
+        if proof.get("origin") != "managed-tool-runner":
+            raise ValueError("preuve outil invalide")
+        if proof.get("tool") in {"clawfedora_sandbox_iterate", "clawfedora_sandbox_validate"}:
+            if proof.get("scope") != scope or proof.get("role") != "ingenieur-devops":
+                raise ValueError("preuve sandbox hors du snapshot courant")
+    for path in sorted(paths):
         target = project / "evidence" / task_id / f"tool-{path.name}"
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(path, target)
@@ -572,7 +579,8 @@ def _collect_tool_receipts(
 
 
 def _resolve_tool_files(
-    workspace: Path, before: set[Path], task: dict[str, Any], response: dict[str, Any]
+    workspace: Path, before: set[Path], task: dict[str, Any], response: dict[str, Any],
+    *, scope: str | None = None,
 ) -> None:
     current = {p.stem: p for p in _tool_receipts(workspace) - before}
     files = response.get("files", {})
@@ -595,6 +603,7 @@ def _resolve_tool_files(
             if (proof.get("origin") != "managed-tool-runner"
                     or proof.get("tool") != "clawfedora_sandbox_iterate"
                     or proof.get("role") != "ingenieur-devops"
+                    or scope is None or proof.get("scope") != scope
                     or proof.get("status") != "PASS"
                     or proof.get("exit_code") != 0):
                 raise ValueError("preuve sandbox sans PASS valide")
@@ -873,9 +882,12 @@ def run_project_tasks(
                 ):
                     raise ValueError("Workspace Guard: entrée ou projet central modifié")
                 validate_response(response, response_schema(prompt))
-                _resolve_tool_files(workspace, receipts_before, task, response)
+                scope = snapshot.relative_to(workspace).as_posix()
+                _resolve_tool_files(workspace, receipts_before, task, response, scope=scope)
                 _collection_targets(repo_root, project, task, response)
-                receipts = _collect_tool_receipts(workspace, receipts_before, project, task_id)
+                receipts = _collect_tool_receipts(
+                    workspace, receipts_before, project, task_id, scope=scope,
+                )
                 central_guard = _guard(project)  # Trusted receipts are control-plane writes.
                 if task_mode(project, task) == "guided":
                     _collection_targets(repo_root, project, task, response)

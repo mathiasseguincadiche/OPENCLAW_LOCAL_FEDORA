@@ -113,3 +113,19 @@ def test_refuses_prohibited_source_or_edit(
         devops_sandbox.validate_proposal(
             runtime, workspace, scope, "bash", {"main.tf": "ok"}
         )
+
+
+
+@pytest.mark.parametrize("name", ["build/main.tf", "node_modules/test.py", "a//main.tf",
+                                  "./main.tf", "dist/test.py", "venv/test.py"])
+def test_ignored_or_noncanonical_correction_is_refused(
+    tmp_path: Path, name: str,
+) -> None:
+    (tmp_path / "main.tf").write_text("terraform {}")
+    with pytest.raises(LabRefusal, match="Chemin"):
+        devops_sandbox._overlay(tmp_path, {name: "not validated"})
+
+
+def test_correction_requires_text_before_encoding(tmp_path: Path) -> None:
+    with pytest.raises(LabRefusal, match="texte"):
+        devops_sandbox._overlay(tmp_path, {"main.tf": 12})  # type: ignore[dict-item]

@@ -80,7 +80,12 @@ def test_ornith_repairs_and_collects_the_exact_tested_code(
                                    second["revision"])["status"] == "PASS"
     artifact_ref = second["references"]["main.tf"]
     response = {"files": {"work/main.tf": artifact_ref}}
-    _resolve_tool_files(workspace, set(), {"role": "ingenieur-devops"}, response)
+    _resolve_tool_files(workspace, set(), {"role": "ingenieur-devops"}, response, scope=scope)
+    with pytest.raises(ValueError, match="preuve sandbox"):
+        _resolve_tool_files(
+            workspace, set(), {"role": "ingenieur-devops"},
+            {"files": {"work/main.tf": artifact_ref}}, scope="projects/other/task/session",
+        )
     assert response["files"]["work/main.tf"] == good
     proof = read_json(workspace / second["receipt"])
     assert proof["status"] == "PASS" and proof["role"] == "ingenieur-devops"
