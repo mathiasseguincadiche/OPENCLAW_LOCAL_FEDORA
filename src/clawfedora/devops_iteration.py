@@ -135,9 +135,9 @@ def iterate(
         if operation != "edit_test":
             raise LabRefusal("Opération inconnue")
         if validators is None:
-            if validator not in TOOLS:
+            if validator is None or validator not in TOOLS:
                 raise LabRefusal("Validateur non autorisé")
-            selected = [validator]
+            selected: list[str] = [validator]
         else:
             if (
                 validator is not None or not isinstance(validators, list)
@@ -175,6 +175,7 @@ def iterate(
             from contextlib import redirect_stdout
             output = io.StringIO()
             validation_results: list[dict[str, Any]] = []
+            exit_code = 0
             candidate_digest = _digest(candidate)
             with redirect_stdout(output):
                 for item in selected:
@@ -184,15 +185,14 @@ def iterate(
                     else:
                         # Three fresh containers, <= 40s per validator + bounded cleanup.
                         code = run_lab(candidate, item, image, apply=True, timeout=40)
+                    if exit_code == 0:
+                        exit_code = code
                     validation_results.append({
                         "validator": item, "exit_code": code,
                         "status": "PASS" if code == 0 else "FAIL",
                     })
                     if _digest(candidate) != candidate_digest:
                         raise LabRefusal("Révision modifiée pendant la validation")
-            exit_code = next(
-                (item["exit_code"] for item in validation_results if item["exit_code"]), 0,
-            )
             name = f"rev-{attempt}"
             destination = root / name
             if destination.exists() or destination.is_symlink():
