@@ -67,7 +67,11 @@ def test_validation_commands_are_fixed(tmp_path: Path) -> None:
     assert lab.command_for("terraform-fmt", tmp_path, manifest) == [
         "terraform", "-chdir=/workspace", "fmt", "-check", "-recursive", "-no-color"
     ]
-    assert lab.command_for("terraform-validate", tmp_path, manifest)[0] == "terraform"
+    validate = lab.command_for("terraform-validate", tmp_path, manifest)
+    assert validate[:3] == ["sh", "-eu", "-c"]
+    assert validate[-1] == "/workspace"
+    assert "-backend=false" in validate[3] and "-lockfile=readonly" in validate[3]
+    assert "-plugin-dir=/opt/clawfedora/terraform-providers" in validate[3]
     assert lab.command_for("ansible-lint", tmp_path, manifest)[1] == "--offline"
     assert lab.command_for("actionlint", tmp_path, manifest) == ["actionlint", "-no-color"]
     assert lab.command_for("shellcheck", tmp_path, manifest) == [
@@ -170,3 +174,21 @@ def test_pytest_runner_is_fixed_and_requires_project_tests(tmp_path: Path) -> No
     )
     assert "--network=none" in argv and "--read-only" in argv
     assert "--cap-drop=ALL" in argv and "bash" not in argv
+
+
+def test_terraform_validate_targets_unique_nested_root(tmp_path: Path) -> None:
+    manifest = (Path("infra/main.tf"), Path("infra/modules/vm/main.tf"))
+    command = lab.command_for("terraform-validate", tmp_path, manifest)
+    assert command[-1] == "/workspace/infra"
+    assert command[3].index("LAB_STAGE=fmt") < command[3].index("LAB_STAGE=init")
+    assert command[3].index("LAB_STAGE=init") < command[3].index("LAB_STAGE=validate")
+    for files in ((Path("notes.md"),), (Path("one/main.tf"), Path("two/main.tf"))):
+        with pytest.raises(lab.LabRefusal, match="Racine Terraform"):
+            lab.command_for("terraform-validate", tmp_path, files)
+
+
+def test_terraform_lockfile_is_included_but_other_hidden_files_are_not(tmp_path: Path) -> None:
+    (tmp_path / "main.tf").write_text("terraform {}")
+    (tmp_path / ".terraform.lock.hcl").write_text("# provider lock")
+    (tmp_path / ".hidden.tf").write_text("not included")
+    assert lab.snapshot_manifest(tmp_path) == (Path(".terraform.lock.hcl"), Path("main.tf"))
