@@ -229,6 +229,7 @@ class BridgeServer(LocalServer):
     privacy: PrivacyFilter
     stream_runner: Callable[[str, str, str], Generator[str, None, None]] | None
     native_thread: tuple[str, str | None] | None
+    artifact_sink: Callable[[list[dict[str, Any]]], None] | None
 
 
 class BridgeHandler(BaseHTTPRequestHandler):
@@ -480,11 +481,20 @@ class BridgeHandler(BaseHTTPRequestHandler):
         with suppress(BrokenPipeError, ConnectionResetError):
             self.wfile.write(raw.encode())
 
+    def _chat_files(self, role: str, before: set[Path]) -> str:
+        from clawfedora.chat_artifacts import links, references
+
+        if self.server.artifact_sink is not None:
+            self.server.artifact_sink(references(self.server.runtime, role, before))
+            return ""
+        return links(
+            self.server.runtime, role, before, self.server.server_port, self.server.token
+        )
+
     def _native_pieces(
         self, role: str, pieces: Generator[str, None, None],
     ) -> Generator[str, None, None]:
         """Collect the same checked tool receipts as the complete-answer path."""
-        from clawfedora.chat_artifacts import links
         from clawfedora.project_worker import _tool_receipts
 
         workspace = self.server.runtime / "workspaces" / role
@@ -498,9 +508,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
             if not visible:
                 raise ValueError("Réponse du modèle vide")
             # Preserve the existing receipt verification and link contract.
-            attachments = links(
-                self.server.runtime, role, before, self.server.server_port, self.server.token
-            )
+            attachments = self._chat_files(role, before)
             if attachments:
                 yield attachments
         finally:
@@ -845,7 +853,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
                         pieces = self.server.stream_runner(
                             role, context + "\n" + prompt, session
                         )
-                        if self.server.native_thread is not None:
+                        if self.server.native_thread is not None or self.server.artifact_sink:
                             pieces = self._native_pieces(role, pieces)
                         progressive_completion(
                             self, str(data["model"]), pieces, truncated_history=omitted
@@ -863,7 +871,6 @@ class BridgeHandler(BaseHTTPRequestHandler):
             with worker_lock(self.server.runtime):
                 session = str(uuid.uuid4())
                 write_progress(self.server.runtime, None, "chat", role=role, session=session)
-                from clawfedora.chat_artifacts import links
                 from clawfedora.project_worker import _tool_receipts
 
                 workspace = self.server.runtime / "workspaces" / role
@@ -877,9 +884,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
                         cloud,
                         chat_projects.sanitize_history(messages),
                     )
-                    attachments = links(
-                        self.server.runtime, role, before, self.server.server_port, self.server.token
-                    )
+                    attachments = self._chat_files(role, before)
                 finally:
                     write_progress(self.server.runtime, None, "idle")
             text = response["text"]
@@ -935,6 +940,7 @@ def make_server(
             raise ValueError("Fil SSE natif étendu non autorisé")
     server = BridgeServer(("127.0.0.1", port), BridgeHandler)
     server.native_thread = native_thread
+    server.artifact_sink = None
     server.runtime, server.token = runtime, token
     server.repo_root = repo_root
     server.limits = daily_limits(repo_root)

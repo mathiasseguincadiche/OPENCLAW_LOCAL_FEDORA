@@ -302,6 +302,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 if set(query) != {"id"} or len(query["id"]) != 1:
                     raise ValueError("Identifiant de conversation requis")
                 self._send(200, atelier_chat.read(self.server.runtime, query["id"][0]))
+            elif url.path == "/api/chat/artifact":
+                query = parse_qs(url.query)
+                if set(query) != {"id", "receipt", "format"} or any(
+                    len(values) != 1 for values in query.values()
+                ):
+                    raise ValueError("Référence de fichier de conversation requise")
+                raw, name = atelier_chat.download(
+                    self.server.runtime, query["id"][0], query["receipt"][0], query["format"][0],
+                )
+                self._send(200, raw, "application/octet-stream", attachment=name)
             elif url.path == "/api/performance":
                 self._send(200, performance_reports.view(self.server.runtime))
             elif url.path == "/api/status":

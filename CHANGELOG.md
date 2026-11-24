@@ -4,6 +4,16 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Téléchargements natifs des discussions
+
+- Les reçus de fichiers et de schémas créés pendant un tour complet sont
+  associés à la réponse, en mode JSON ou SSE. Les liens ne dépendent plus
+  du port et du jeton temporaires du pont.
+- Chaque téléchargement est limité au fil et au rôle enregistrés ; reçu,
+  nom, taille et SHA-256 des octets servis sont revérifiés. Les fichiers
+  modifiés, absents ou provenant d'un autre fil sont refusés.
+
+
 ### Extension contrôlée du streaming natif
 
 - Canary v2 distinct : texte progressif des sept rôles locaux, dans les
