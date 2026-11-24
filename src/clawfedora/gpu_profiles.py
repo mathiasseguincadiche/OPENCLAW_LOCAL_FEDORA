@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import re
 import shlex
+import subprocess
 import sys
 
 PROFILES: dict[str, tuple[str, str]] = {
@@ -109,6 +110,20 @@ def effective_profile(environment: str) -> str:
         if all(values.get(key) == val for key, val in _settings(profile).items()):
             return profile
     return "unverified"
+
+
+def require_configured(profile: str) -> None:
+    """Refuse mislabeled runs before and after explicit benchmark execution."""
+    _settings(profile)
+    try:
+        process = subprocess.run(
+            ["systemctl", "show", "ollama.service", "--property=Environment", "--value"],
+            capture_output=True, text=True, check=True, timeout=10,
+        )
+    except (subprocess.SubprocessError, OSError) as exc:
+        raise ValueError("profil Ollama configuré non vérifiable") from exc
+    if effective_profile(process.stdout) != profile:
+        raise ValueError("profil Ollama configuré différent du profil attendu")
 
 
 def main(argv: list[str] | None = None) -> int:
