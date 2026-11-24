@@ -1,6 +1,6 @@
 """Opt-in incremental replies in the private native Atelier chat.
 
-This is intentionally limited to a project-free local Mentor conversation.
+The extended opt-in admits only the seven local roles in server-bound conversations.
 The existing OpenClaw bridge performs model/permissions preflight and owns the
 operator-level Gateway credential. A partial stream is NEVER a completed turn.
 """
@@ -16,7 +16,7 @@ from http.client import HTTPConnection
 from pathlib import Path
 from typing import Any
 
-from clawfedora import atelier_chat, chat_projects, native_stream
+from clawfedora import atelier_chat, chat_approvals, chat_projects, native_stream
 from clawfedora.chat_context import select_history
 from clawfedora.stream_transport import MAX_SSE_EVENT_BYTES, content_deltas
 from clawfedora.webui_bridge import make_server as make_policy_bridge
@@ -34,13 +34,18 @@ def allowed(runtime: Path, identifier: str, message: str) -> dict[str, Any]:
     document = atelier_chat.read(runtime, identifier)
     if not enabled(runtime):
         raise ValueError("Streaming non activé sur cet atelier")
-    if document["agent"] != "chef-operations" or document["project"] is not None:
+    if not native_stream.extended_opted_in(runtime) and (
+        document["agent"] != "chef-operations" or document["project"] is not None
+    ):
         raise ValueError("Streaming réservé au Mentor local sans projet")
+    if document["project"] and chat_projects.open_project(runtime, document["project"]) is None:
+        raise ValueError("Projet du fil introuvable : aucune génération autorisée")
     if (
         not isinstance(message, str) or not message.strip()
         or len(message.encode("utf-8")) > atelier_chat.MAX_USER_BYTES
         or message.strip().startswith(("!", "/"))
         or chat_projects.parse_command(message) is not None
+        or chat_approvals.parse_phrase(message) is not None
     ):
         raise ValueError("Streaming réservé aux questions texte simples")
     if document.get("pending") is not None:
@@ -57,12 +62,21 @@ def _bridge_deltas(
     history, stats = select_history(document["messages"], message)
     document["context_window"] = stats
     payload = {
-        "model": "openclaw/chef-operations",
+        "model": "openclaw/" + document["agent"],
         "stream": True,
         "messages": [*history, {"role": "user", "content": message}],
     }
     bearer = secrets.token_hex(32)
-    with make_policy_bridge(repo_root, runtime, bearer, 0) as bridge:
+    # Only the server can bind the ephemeral bridge to the stored role/project.
+    # The public WebUI bridge keeps the original Mentor-only streaming scope.
+    if native_stream.extended_opted_in(runtime):
+        bridge_server = make_policy_bridge(
+            repo_root, runtime, bearer, 0,
+            native_thread=(document["agent"], document["project"]),
+        )
+    else:
+        bridge_server = make_policy_bridge(repo_root, runtime, bearer, 0)
+    with bridge_server as bridge:
         worker = threading.Thread(target=bridge.serve_forever, daemon=True)
         worker.start()
         try:
@@ -101,6 +115,13 @@ def stream(
     If the browser disconnects, the bridge fails, or any limit is exceeded,
     the pending marker stays in place to require an explicit human check.
     """
+    with atelier_chat.turn_lock(runtime, identifier):
+        yield from _stream_locked(repo_root, runtime, identifier, message)
+
+
+def _stream_locked(
+    repo_root: Path, runtime: Path, identifier: str, message: str,
+) -> Generator[dict[str, Any], None, None]:
     document = allowed(runtime, identifier, message)
     document["pending"] = {"message": message, "started": int(time.time())}
     atelier_chat._save(runtime, document)
