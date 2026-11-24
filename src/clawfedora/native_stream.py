@@ -1,6 +1,6 @@
 """Opt-in, fail-closed server-side streaming for the native Fedora Gateway.
 
-Only the Mentor's plain local chat is eligible. The Gateway HTTP bearer is
+The v1 canary covers Mentor chat; v2 is confined to a private native thread. The Gateway HTTP bearer is
 operator-privileged and must never be exposed to Open WebUI or model tools.
 """
 
@@ -13,27 +13,43 @@ from collections.abc import Callable, Generator
 from pathlib import Path
 from typing import Any
 
+from clawfedora.core_config import AGENT_IDS
 from clawfedora.project_worker import AgentRunner, openclaw_runner
 from clawfedora.stream_transport import GATEWAY_PORT, gateway_local_deltas
 
 MARKER = Path("state/webui/native-sse.enabled")
 APPROVAL = "local-mentor-sse-v1"
+EXTENDED_APPROVAL = "local-seven-role-project-sse-v2"
+
+
+def _approval(runtime: Path) -> str | None:
+    """Explicit private opt-in; refuse symlinked ancestors and unknown content."""
+    file = runtime / MARKER
+    if any(path.is_symlink() for path in (runtime, runtime / "state", file.parent)):
+        raise ValueError("activation SSE dans un dossier lié")
+    try:
+        fd = os.open(file, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    except FileNotFoundError:
+        return None
+    with os.fdopen(fd, "r", encoding="utf-8") as reader:
+        info = os.fstat(reader.fileno())
+        if not stat.S_ISREG(info.st_mode) or info.st_mode & 0o077 or info.st_size > 128:
+            raise ValueError("activation SSE non privée ou invalide")
+        value = reader.read(129).strip()
+    if value not in (APPROVAL, EXTENDED_APPROVAL):
+        raise ValueError("activation SSE non reconnue")
+    marker = runtime / ".openclaw-fedora-runtime"
+    if marker.is_symlink() or not marker.is_file():
+        raise ValueError("SSE exige un runtime géré")
+    return value
 
 
 def opted_in(runtime: Path) -> bool:
-    """Explicit 0600 opt-in, never enabled by an environment variable or API."""
-    file = runtime / MARKER
-    try:
-        mode = file.lstat().st_mode
-    except FileNotFoundError:
-        return False
-    if not stat.S_ISREG(mode) or mode & 0o077:
-        raise ValueError("activation SSE non privée ou fichier lié")
-    if file.read_text(encoding="utf-8").strip() != APPROVAL:
-        raise ValueError("activation SSE non reconnue")
-    if not (runtime / ".openclaw-fedora-runtime").is_file():
-        raise ValueError("SSE exige un runtime géré")
-    return True
+    return _approval(runtime) is not None
+
+
+def extended_opted_in(runtime: Path) -> bool:
+    return _approval(runtime) == EXTENDED_APPROVAL
 
 
 def _private_config(runtime: Path) -> dict[str, Any]:
@@ -94,7 +110,8 @@ def operator_token(runtime: Path) -> str:
 
 
 def native_source(
-    runtime: Path, repo_root: Path, *, preflight: AgentRunner | None = None
+    runtime: Path, repo_root: Path, *, preflight: AgentRunner | None = None,
+    extended: bool = False,
 ) -> Callable[[str, str, str], Generator[str, None, None]]:
     """Check CLI-equivalent preflight before issuing any Gateway HTTP request.
 
@@ -105,7 +122,10 @@ def native_source(
     checker = preflight or openclaw_runner(runtime, repo_root, preflight_only=True)
 
     def source(role: str, prompt: str, session: str) -> Generator[str, None, None]:
-        if role != "chef-operations":
+        if extended:
+            if role not in AGENT_IDS or not extended_opted_in(runtime):
+                raise ValueError("SSE étendu non autorisé pour ce rôle")
+        elif role != "chef-operations":
             raise ValueError("SSE réservé au Mentor local")
         # The admission preflight is exactly the CLI runner's version, Ollama
         # digest, seven-role roster, read-only tools and no-fallback gate.
