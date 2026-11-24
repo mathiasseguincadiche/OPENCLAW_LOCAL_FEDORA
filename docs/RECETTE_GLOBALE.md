@@ -82,8 +82,8 @@ Après le précontrôle installé :
 ./menu.sh --action quick-check
 ```
 
-Cette commande réalise de courtes inférences locales : elle n'est pas
-exécutée par le mode inspect. Examiner le résultat des deux modèles.
+Cette commande réalise de courtes inférences locales sous le verrou du worker :
+elle n'est pas exécutée par le mode inspect. Examiner le résultat des deux modèles.
 Ouvrir l'Atelier à `http://127.0.0.1:18890` et conserver des preuves
 datées, sans clés ni données privées.
 

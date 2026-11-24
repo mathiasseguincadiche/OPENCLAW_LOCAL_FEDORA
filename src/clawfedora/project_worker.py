@@ -87,7 +87,9 @@ INHERITED_LOCK_FD = 9  # descriptor claw_lock_worker (lib/runtime.sh) passes to 
 
 
 @contextmanager
-def maintenance_lock(runtime: Path, *, inherited_fd: int = INHERITED_LOCK_FD) -> Iterator[None]:
+def maintenance_lock(
+    runtime: Path, *, inherited_fd: int = INHERITED_LOCK_FD, allow_gaming: bool = True,
+) -> Iterator[None]:
     """The worker lock for maintenance (backup...), refused while a generation runs (A04).
 
     A maintenance script that already holds the lock (12_upgrade, 09_repair, 14_cloud...)
@@ -102,9 +104,11 @@ def maintenance_lock(runtime: Path, *, inherited_fd: int = INHERITED_LOCK_FD) ->
     except OSError:
         reuse = False
     if not reuse:
-        with worker_lock(runtime, allow_gaming=True):
+        with worker_lock(runtime, allow_gaming=allow_gaming):
             yield
         return
+    if not allow_gaming and (runtime / "state/gaming-mode").exists():
+        raise ValueError("mode jeux actif: reprendre le profil quotidien avant exécution")
     try:
         fcntl.flock(inherited_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except BlockingIOError as exc:

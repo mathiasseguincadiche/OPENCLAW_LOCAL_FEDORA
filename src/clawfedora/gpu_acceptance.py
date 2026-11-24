@@ -12,6 +12,7 @@ from typing import Any
 
 from clawfedora.context_probe import probe_context
 from clawfedora.gpu_profiles import PROFILES, require_configured
+from clawfedora.storage import load_settings, require_storage
 
 Probe = Callable[..., dict[str, Any]]
 
@@ -104,7 +105,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--runtime-root", type=Path,
-        help="Runtime Fedora géré nécessaire pour --record (aucune écriture sinon)",
+        help="Runtime Fedora géré (défaut : contrat de stockage ; explicite pour --record)",
     )
     parser.add_argument(
         "--expected-profile", choices=tuple(PROFILES),
@@ -116,8 +117,8 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("--expected-profile exige --record")
         if args.record and (not args.apply or args.runtime_root is None):
             raise ValueError("--record exige --apply et --runtime-root")
-        if args.runtime_root is not None and not args.record:
-            raise ValueError("--runtime-root est réservé à --record")
+        if args.runtime_root is not None and not args.apply:
+            raise ValueError("--runtime-root exige --apply")
         contexts = tuple(int(item) for item in args.contexts.split(","))
         if not contexts or len(set(contexts)) != len(contexts) or any(
             item not in (8192, 16384, 32768) for item in contexts
@@ -131,34 +132,31 @@ def main(argv: list[str] | None = None) -> int:
                 "cloud_used": False, "model_calls": 0, "config_modified": False,
             }))
             return 0
-        if args.record:
-            from clawfedora.performance_reports import prepare_record, save
-            from clawfedora.project_worker import worker_lock
+        from clawfedora.performance_reports import prepare_record, save
+        from clawfedora.project_worker import worker_lock
 
-            prepare_record(args.runtime_root)
-            # Run the whole measurement under the SAME non-blocking lock as
-            # the agents. Do not contend with a live worker or gaming profile.
-            with worker_lock(args.runtime_root):
-                if args.expected_profile:
-                    require_configured(args.expected_profile)
-                measured = {
-                    alias: benchmark(
-                        args.root, context_sizes=contexts, near_limit=args.near_limit,
-                        model_alias=alias,
-                    ) for alias in aliases
-                }
-                if args.expected_profile:
-                    require_configured(args.expected_profile)
-                    save(args.runtime_root, measured, configured_profile=args.expected_profile)
-                else:
-                    save(args.runtime_root, measured)
-        else:
+        settings = load_settings(args.root)
+        runtime = args.runtime_root or settings.runtime_root
+        require_storage(runtime, settings)
+        marker = runtime / ".openclaw-fedora-runtime"
+        if marker.is_symlink() or not marker.is_file():
+            raise ValueError("Benchmark réservé au runtime Fedora géré")
+        # The lock applies even to a run without a saved report.
+        with worker_lock(runtime):
+            if args.record:
+                prepare_record(runtime)
+            if args.expected_profile:
+                require_configured(args.expected_profile)
             measured = {
                 alias: benchmark(
                     args.root, context_sizes=contexts, near_limit=args.near_limit,
                     model_alias=alias,
                 ) for alias in aliases
             }
+            if args.expected_profile:
+                require_configured(args.expected_profile)
+            if args.record:
+                save(runtime, measured, configured_profile=args.expected_profile)
         report = (
             {
                 "scope": "local_ollama_two_model_benchmark",

@@ -20,6 +20,7 @@ def _server(size_vram: int, prompt_tokens: int = 19000) -> Any:
             assert payload is not None
             calls.append(payload)
             return {
+                "done": True, "response": "Résumé.",
                 "prompt_eval_count": prompt_tokens,
                 "prompt_eval_duration": 10_000_000_000,
                 "eval_count": 100,
@@ -72,7 +73,7 @@ def test_near_limit_32k_requires_real_answer_allocation_and_fill() -> None:
                 assert payload["options"]["num_ctx"] == 32768
                 assert payload["options"]["num_predict"] == 128
                 return {
-                    "prompt_eval_count": prompt, "response": output,
+                    "done": True, "prompt_eval_count": prompt, "response": output,
                     "eval_count": 10, "eval_duration": 1_000_000_000,
                     "prompt_eval_duration": 8_000_000_000,
                 }
@@ -111,7 +112,7 @@ def test_probe_can_select_ornith_without_changing_default_model() -> None:
         if url.endswith("/api/generate"):
             assert payload is not None
             seen.append(payload["model"])
-            return {"prompt_eval_count": 3000, "response": "OK", "eval_count": 2,
+            return {"done": True, "prompt_eval_count": 3000, "response": "OK", "eval_count": 2,
                     "eval_duration": 1_000_000_000}
         return {"models": [{"name": ornith, "size": 6 * 1024**3,
                             "size_vram": 6 * 1024**3, "context_length": 8192}]}
@@ -123,3 +124,26 @@ def test_probe_can_select_ornith_without_changing_default_model() -> None:
     with pytest.raises(ValueError, match="non autorisé"):
         probe_context(ROOT, 8192, model_alias="unknown-model", request=request)
     assert seen == [ornith]
+
+
+@pytest.mark.parametrize("bad", [
+    {"done": False},
+    {"response": ""},
+    {"response": None},
+    {"response": 123},
+    {"prompt_eval_count": True},
+])
+def test_probe_refuses_incomplete_or_invalid_generation(bad: dict[str, Any]) -> None:
+    base = _server(8 * 1024**3)
+
+    def request(url: str, **kwargs: Any) -> Any:
+        result = base(url, **kwargs)
+        return {**result, **bad} if url.endswith("/api/generate") else result
+
+    with pytest.raises(ValueError):
+        probe_context(ROOT, request=request)
+
+
+def test_probe_rejects_impossible_gpu_residency() -> None:
+    with pytest.raises(ValueError, match="taille résidente"):
+        probe_context(ROOT, request=_server(9 * 1024**3))

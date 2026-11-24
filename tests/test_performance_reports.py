@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import stat
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -183,6 +184,7 @@ def test_explicit_locked_cli_record_is_refused_while_worker_is_busy(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: Any,
 ) -> None:
     runtime = _runtime(tmp_path)
+    monkeypatch.setattr(gpu_acceptance, "require_storage", lambda *_args: None)
     calls: list[str] = []
 
     def fake(_repo: Path, *, context_sizes: tuple[int, ...],
@@ -210,6 +212,7 @@ def test_recorded_benchmark_checks_profile_before_and_after_measurement(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: Any,
 ) -> None:
     runtime = _runtime(tmp_path)
+    monkeypatch.setattr(gpu_acceptance, "require_storage", lambda *_args: None)
     events: list[str] = []
 
     def check(name: str) -> None:
@@ -241,3 +244,41 @@ def test_recorded_benchmark_checks_profile_before_and_after_measurement(
     assert gpu_acceptance.main(args) == 2
     assert events == []
     assert (runtime / performance_reports.RELATIVE).read_bytes() == before
+
+
+def test_non_recording_benchmark_also_refuses_busy_worker_and_gaming(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: Any,
+) -> None:
+    runtime = _runtime(tmp_path)
+    monkeypatch.setattr(gpu_acceptance, "require_storage", lambda *_args: None)
+
+    def forbidden(*_args: Any, **_kwargs: Any) -> Any:
+        pytest.fail("inference attempted while GPU reserved")
+
+    monkeypatch.setattr(gpu_acceptance, "benchmark", forbidden)
+    args = ["--root", str(ROOT), "--apply", "--runtime-root", str(runtime)]
+    with worker_lock(runtime):
+        assert gpu_acceptance.main(args) == 2
+    assert "déjà actif" in capsys.readouterr().out
+    (runtime / "state/gaming-mode").touch()
+    assert gpu_acceptance.main(args) == 2
+    assert "mode jeux actif" in capsys.readouterr().out
+
+
+def test_special_gpu_report_is_rejected_without_blocking(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime = _runtime(tmp_path)
+    path = performance_reports.prepare_record(runtime)
+    os.mkfifo(path, 0o600)
+    real_open = os.open
+
+    def checked_open(target: Any, flags: int, *args: Any, **kwargs: Any) -> int:
+        if target == path:
+            assert flags & os.O_NONBLOCK
+        return real_open(target, flags, *args, **kwargs)
+
+    monkeypatch.setattr(performance_reports.os, "open", checked_open)
+    result = performance_reports.view(runtime)
+    assert result["status"] == "UNVERIFIED"
+    assert all(row["results"] == [] for row in result["models"])

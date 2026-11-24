@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import json
-import urllib.request
+from http.client import HTTPConnection, HTTPException
 from typing import Any
 
 ENDPOINT = "http://127.0.0.1:11434"
+MAX_RESPONSE_BYTES = 16 * 1024 * 1024
+READ_PATHS = {"/api/version", "/api/tags", "/api/ps"}
+WRITE_PATHS = {"/api/generate"}
 
 
 def request_json(
@@ -15,16 +18,27 @@ def request_json(
     payload: dict[str, Any] | None = None,
     timeout: float = 10.0,
 ) -> dict[str, Any]:
+    # No environment proxy, URL credentials, redirect or model-provided destination.
+    allowed = WRITE_PATHS if payload is not None else READ_PATHS
+    if url not in {ENDPOINT + path for path in allowed}:
+        raise ValueError("Destination Ollama locale non autorisée")
+    path = url[len(ENDPOINT):]
     data = json.dumps(payload).encode("utf-8") if payload is not None else None
     method = "POST" if data is not None else "GET"
-    request = urllib.request.Request(
-        url,
-        data=data,
-        headers={"Content-Type": "application/json"},
-        method=method,
-    )
-    with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
-        result = json.loads(response.read().decode("utf-8"))
+    client = HTTPConnection("127.0.0.1", 11434, timeout=timeout)
+    try:
+        client.request(method, path, body=data, headers={"Content-Type": "application/json"})
+        response = client.getresponse()
+        if response.status != 200:
+            raise ValueError("Réponse HTTP Ollama refusée")
+        raw = response.read(MAX_RESPONSE_BYTES + 1)
+        if len(raw) > MAX_RESPONSE_BYTES:
+            raise ValueError("Réponse Ollama trop volumineuse")
+        result = json.loads(raw)
+    except HTTPException as exc:
+        raise ValueError("Réponse HTTP Ollama interrompue") from exc
+    finally:
+        client.close()
     if not isinstance(result, dict):
         raise ValueError(f"réponse JSON non objet: {url}")
     return result

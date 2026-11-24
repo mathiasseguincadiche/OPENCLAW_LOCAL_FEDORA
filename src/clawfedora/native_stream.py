@@ -56,12 +56,19 @@ def _private_config(runtime: Path) -> dict[str, Any]:
     path = runtime / "state/openclaw/openclaw.json"
     # Refuse symlinks, directory targets and a group/world-readable operator
     # credential. Access is confined to the service account's runtime.
-    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+    if any(folder.is_symlink() for folder in (runtime, runtime / "state", path.parent)):
+        raise ValueError("configuration Gateway liée")
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     with os.fdopen(fd, "r", encoding="utf-8") as reader:
-        mode = os.fstat(reader.fileno()).st_mode
-        if not stat.S_ISREG(mode) or mode & 0o077:
+        info = os.fstat(reader.fileno())
+        if not stat.S_ISREG(info.st_mode) or info.st_mode & 0o077:
             raise ValueError("configuration Gateway non privée (0600 requis)")
-        config: Any = json.load(reader)
+        if info.st_size > 1_048_576:
+            raise ValueError("configuration Gateway trop volumineuse")
+        raw = reader.read(1_048_577)
+        if len(raw) > 1_048_576:
+            raise ValueError("configuration Gateway trop volumineuse")
+        config: Any = json.loads(raw)
     if not isinstance(config, dict):
         raise ValueError("configuration Gateway invalide")
     return config

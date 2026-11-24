@@ -35,8 +35,9 @@ le remplissage ciblé de 60 % à 90 % : elle sollicite davantage la VRAM et
 ne doit être lancée qu'après la qualification de base.
 
 L'option `--record` est **refusée** sans `--apply` et `--runtime-root`.
-Elle exige un runtime géré et vérifie les permissions de son stockage
-**avant** les calculs. Le verrou exclusif existant de l'Atelier est conservé
+Toute mesure active exige le runtime géré et son volume de données valide,
+même sans enregistrement. Le chemin par défaut vient du contrat de stockage.
+Le verrou exclusif existant de l'Atelier est conservé
 pendant toute la mesure et empêche l'exécution simultanée d'un worker
 ou d'une session de mesure dans le même runtime. Le mode jeu est refusé.
 Aucun paramètre Ollama, `num_ctx` de production, Flash Attention,
