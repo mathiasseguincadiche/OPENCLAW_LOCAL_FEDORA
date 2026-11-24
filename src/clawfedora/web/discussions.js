@@ -95,17 +95,41 @@
     }
     feed.scrollTop = feed.scrollHeight;
     const blocked = Boolean(chat.pending);
+    $("chat-recovery").hidden = !blocked;
+    $("recover-intent").textContent = blocked ? chat.pending.message : "";
+    $("recover-confirm").checked = false;
+    $("recover-confirm").disabled = busy;
+    $("recover-submit").disabled = true;
+    const recoveryLog = $("recovery-log");
+    recoveryLog.replaceChildren();
+    for (const entry of chat.recoveries || []) {
+      const item = document.createElement("details");
+      const title = document.createElement("summary");
+      title.textContent = "Tour abandonné — effet inconnu · " +
+        new Date(entry.recorded_at * 1000).toLocaleString("fr-FR");
+      const content = document.createElement("p");
+      content.textContent = entry.intent.message;
+      item.append(title, content);
+      recoveryLog.append(item);
+    }
     $("chat-input").disabled = blocked || busy;
     $("chat-send").disabled = blocked || busy;
     messageError(blocked
-      ? "Tour interrompu ou incertain : vérifier l'état du projet. Aucune relance automatique."
+      ? "Tour interrompu ou incertain : vérifier les effets avant de reprendre. Aucune relance automatique."
       : "");
     renderHistory();
   }
   async function openChat(id) {
     if (busy) return;
-    try { renderChat(await api("/api/chat?id=" + encodeURIComponent(id))); }
-    catch (error) { messageError(error.message); }
+    try {
+      const chat = await api("/api/chat?id=" + encodeURIComponent(id));
+      const entry = list.find(item => item.id === chat.id);
+      if (entry) {
+        entry.pending = Boolean(chat.pending);
+        entry.updated = chat.updated;
+      }
+      renderChat(chat);
+    } catch (error) { messageError(error.message); }
   }
   async function streamChat(id, content) {
     // Only the server owns the OpenClaw bearer and the upstream Gateway stream.
@@ -208,6 +232,36 @@
       renderChat(created);
       $("chat-input").focus();
     } catch (error) { messageError(error.message); }
+  });
+  $("recover-confirm").addEventListener("change", () => {
+    $("recover-submit").disabled = busy || !$("recover-confirm").checked;
+  });
+  $("chat-recovery").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (busy || !selectedChat?.pending || !$("recover-confirm").checked) return;
+    busy = true;
+    $("recover-submit").disabled = true;
+    $("recover-confirm").disabled = true;
+    try {
+      const updated = await api("/api/chat/recover", {
+        id: selectedChat.id, pending: selectedChat.pending, human_approved: true,
+      });
+      const entry = list.find(item => item.id === updated.id);
+      if (entry) {
+        entry.pending = false;
+        entry.updated = updated.updated;
+      }
+      // Never restore the uncertain request in the input or send it again.
+      $("chat-input").value = "";
+      busy = false;
+      renderChat(updated);
+      messageError("Tour archivé comme incertain. Vous pouvez poser une nouvelle question.");
+      $("chat-input").focus();
+    } catch (error) {
+      busy = false;
+      await openChat(selected);
+      messageError(error.message + " Vérifiez de nouveau l'état du fil.");
+    }
   });
   $("chat-form").addEventListener("submit", async (event) => {
     event.preventDefault();

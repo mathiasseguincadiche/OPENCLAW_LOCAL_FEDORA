@@ -26,12 +26,14 @@ from clawfedora import chat_artifacts, chat_projects
 from clawfedora.chat_context import select_history
 from clawfedora.core_config import AGENT_IDS
 from clawfedora.project_common import PROJECT_ID_RE
+from clawfedora.project_worker import worker_lock
 from clawfedora.webui_bridge import make_server as make_policy_bridge
 
 CHAT_ID = re.compile(r"^[a-f0-9]{32}$")
 MAX_CHAT_BYTES = 850_000
 MAX_USER_BYTES = 8_000
 MAX_MESSAGES = 900
+MAX_RECOVERIES = 40
 
 
 def _directory(runtime: Path, *, create: bool) -> Path:
@@ -95,6 +97,46 @@ def turn_lock(runtime: Path, identifier: str) -> Iterator[None]:
         yield
 
 
+def pending_intent(message: str) -> dict[str, Any]:
+    """A fresh identifier prevents a stale recovery from clearing a newer turn."""
+    return {"id": uuid.uuid4().hex, "message": message, "started": int(time.time())}
+
+
+def _validate_intent(value: Any) -> None:
+    # Older chats have no unique id. Keep them recoverable without rewriting
+    # historical files; all new intents use a fresh server-generated identifier.
+    if (
+        not isinstance(value, dict)
+        or set(value) not in ({"message", "started"}, {"id", "message", "started"})
+        or not isinstance(value.get("message"), str) or not value["message"].strip()
+        or len(value["message"].encode()) > MAX_USER_BYTES
+        or type(value.get("started")) is not int or value["started"] < 0
+        or (
+            "id" in value and (
+                not isinstance(value["id"], str) or not CHAT_ID.fullmatch(value["id"])
+            )
+        )
+    ):
+        raise ValueError("Intention de discussion invalide")
+
+
+def _validate_recovery_log(document: dict[str, Any]) -> None:
+    records = document.get("recoveries", [])
+    if not isinstance(records, list) or len(records) > MAX_RECOVERIES:
+        raise ValueError("Journal de récupération invalide")
+    for record in records:
+        if (
+            not isinstance(record, dict)
+            or set(record) != {"intent", "recorded_at", "after_messages", "outcome"}
+            or record["outcome"] != "ABANDONED_UNCERTAIN"
+            or type(record["recorded_at"]) is not int or record["recorded_at"] < 0
+            or type(record["after_messages"]) is not int
+            or not 0 <= record["after_messages"] <= len(document["messages"])
+        ):
+            raise ValueError("Journal de récupération invalide")
+        _validate_intent(record["intent"])
+
+
 def read(runtime: Path, identifier: str) -> dict[str, Any]:
     path = _path(runtime, identifier)
     if (not path.is_file() or path.stat().st_size > MAX_CHAT_BYTES
@@ -131,7 +173,42 @@ def read(runtime: Path, identifier: str) -> dict[str, Any]:
             raise ValueError("fichiers de conversation invalides")
         for reference in artifacts:
             chat_artifacts.validate_reference(reference)
+    if document.get("pending") is not None:
+        _validate_intent(document["pending"])
+    _validate_recovery_log(document)
     return document
+
+
+def recover(
+    runtime: Path, identifier: str, expected_pending: Any, *, human_approved: bool,
+) -> dict[str, Any]:
+    """Abandon only an explicitly acknowledged intent; never replay or cancel work.
+
+    The local locks exclude active managed turns, not independent remote effects
+    or a Gateway process whose cancellation has not been physically qualified.
+    """
+    if human_approved is not True:
+        raise ValueError("Vérification et confirmation humaine explicites requises")
+    _validate_intent(expected_pending)
+    with turn_lock(runtime, identifier), worker_lock(runtime, allow_gaming=True):
+        document = read(runtime, identifier)
+        pending = document.get("pending")
+        if pending is None or pending != expected_pending:
+            raise ValueError("Intention obsolète : recharger la conversation")
+        records = document.setdefault("recoveries", [])
+        if len(records) >= MAX_RECOVERIES:
+            raise ValueError("Journal de récupération plein : ouvrir un nouveau fil")
+        records.append({
+            "intent": pending,
+            "recorded_at": int(time.time()),
+            "after_messages": len(document["messages"]),
+            "outcome": "ABANDONED_UNCERTAIN",
+        })
+        document["pending"] = None
+        document["updated"] = int(time.time())
+        # A single atomic write keeps the previous pending intact if saving fails.
+        _save(runtime, document)
+        return document
 
 
 def download(runtime: Path, identifier: str, receipt: str, extension: str) -> tuple[bytes, str]:
@@ -326,7 +403,7 @@ def _send_locked(
     else:
         # Persist the intent BEFORE handing off to the policy/approval engine.
         # An interrupted action must never be retried implicitly.
-        document["pending"] = {"message": message, "started": int(time.time())}
+        document["pending"] = pending_intent(message)
         _save(runtime, document)
         reply = _policy_answer(repo_root, runtime, document, message)
     document["messages"].extend([

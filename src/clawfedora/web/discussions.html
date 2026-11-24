@@ -43,6 +43,18 @@
       </div>
       <div id="chat-messages" role="log" aria-live="polite" aria-label="Messages de discussion"></div>
       <p id="chat-warning" class="chat-warning" role="status"></p>
+      <div id="recovery-log" class="recovery-log" aria-label="Tours interrompus archivés"></div>
+      <form id="chat-recovery" class="chat-recovery" hidden>
+        <h3>Reprendre cette conversation</h3>
+        <p>Ce message n'a pas de réponse confirmée. Une action a pu être exécutée.</p>
+        <p id="recover-intent" class="recover-intent"></p>
+        <p>Vérifiez l'état d'OpenClaw, du projet et des éventuelles actions GitHub ou Notion.
+          Attendez l'arrêt effectif de la génération. La reprise ne les annule pas.</p>
+        <label><input id="recover-confirm" type="checkbox">
+          J'ai vérifié les effets possibles et je souhaite abandonner ce tour incertain,
+          sans le relancer.</label>
+        <button id="recover-submit" type="submit" disabled>Archiver le tour et reprendre</button>
+      </form>
       <form id="chat-form">
         <label for="chat-input">Votre message à OpenClaw</label>
         <textarea id="chat-input" rows="3" maxlength="8000" placeholder="Une question, !etat, !sources ou !fedora etat / !fedora applications…" required disabled></textarea>

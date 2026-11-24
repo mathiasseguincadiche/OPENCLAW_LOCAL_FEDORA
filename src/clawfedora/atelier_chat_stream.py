@@ -132,7 +132,7 @@ def _stream_locked(
     repo_root: Path, runtime: Path, identifier: str, message: str,
 ) -> Generator[dict[str, Any], None, None]:
     document = allowed(runtime, identifier, message)
-    document["pending"] = {"message": message, "started": int(time.time())}
+    document["pending"] = atelier_chat.pending_intent(message)
     atelier_chat._save(runtime, document)
     pieces: list[str] = []
     size = 0

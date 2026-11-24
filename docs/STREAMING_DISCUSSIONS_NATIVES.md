@@ -61,6 +61,24 @@ Le plafond de sortie est 64 000 octets. Le transcript natif conserve les
 limites existantes de 850 Kio et 900 messages. L'interface utilise
 `textContent`, pas du HTML provenant de la génération.
 
+## Reprendre un tour incertain
+
+Un tour interrompu reste bloqué jusqu'à la décision explicite de l'opérateur.
+Le formulaire natif affiche l'intention originale et impose une confirmation
+après vérification des effets possibles sur le projet et les services.
+La récupération archive cette intention dans le fil avec le statut
+`ABANDONED_UNCERTAIN`, sans compléter le transcript, réexécuter la demande
+ni valider ou annuler une opération. Les messages archivés ne sont jamais
+injectés dans le contexte du modèle. Les fichiers des tours complets
+restent disponibles.
+
+Les verrous du fil et du worker doivent être libres ; ce n'est pas une
+preuve d'arrêt effectif du Gateway, d'un processus externe ou d'une action
+distante. Il appartient à l'opérateur de les vérifier avant de confirmer.
+Chaque nouveau tour dispose d'un identifiant unique pour empêcher une
+confirmation obsolète. Les anciens marqueurs sans identifiant restent
+compatibles. La sauvegarde est atomique ; un échec ne lève pas le blocage.
+
 ## Activation et retour arrière
 
 Le raccordement **ne change pas la configuration du Gateway**.

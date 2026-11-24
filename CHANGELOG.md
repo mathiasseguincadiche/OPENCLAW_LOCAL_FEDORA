@@ -4,6 +4,16 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Récupération manuelle des conversations interrompues
+
+- Confirmation humaine explicite et intention exacte sous verrou du fil
+  et du worker ; archivage local du tour comme `ABANDONED_UNCERTAIN`.
+- Le transcript complet et les fichiers associés restent intacts.
+  Aucun replay, annulation d'action, appel au modèle ou effet distant.
+- Identifiants de tour uniques, compatibilité des anciens marqueurs,
+  refus des confirmations périmées ou concurrentes.
+
+
 ### Téléchargements natifs des discussions
 
 - Les reçus de fichiers et de schémas créés pendant un tour complet sont
