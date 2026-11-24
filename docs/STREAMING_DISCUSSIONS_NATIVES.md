@@ -7,13 +7,26 @@ OpenClaw sécurisé que le pont local existant, sans montrer le jeton d'opérate
 au navigateur. Les fragments de texte apparaissent progressivement dans le
 fil **uniquement si le canary local a été activé**.
 
-**Première tranche volontairement restreinte :**
+**Canary v1 (périmètre initial, conservé) :**
 - rôle : `chef-operations` (Mentor) ;
 - projet du fil : **aucun**, pour ne pas contourner l'injection de contexte
   et les autorisations du moteur de projets ;
 - question texte simple uniquement ; commandes, demandes `!continuer`,
   confirmations et autres rôles utilisent la route JSON stable ;
 - moteur : Ollama + OpenClaw local, **sans fallback cloud**.
+
+**Canary v2 (extension expérimentale préparée) :** le contenu exact
+`local-seven-role-project-sse-v2` du même marqueur active les questions texte
+des sept rôles, avec ou sans projet. Le pont éphémère natif reçoit le rôle et
+le projet canonique depuis le fichier privé du fil, jamais depuis une requête
+du navigateur ou un marqueur produit par un modèle. Le contexte projet est
+injecté par la fonction de lecture canonique existante ; un projet supprimé
+ou un autre projet mentionné par un ancien marqueur refuse la génération.
+Les commandes et les phrases d'approbation utilisent toujours le chemin JSON.
+Les reçus d'artefacts sont vérifiés comme sur le chemin classique ; les
+liens du pont éphémère ne constituent pas des téléchargements durables dans
+l'interface native (chantier séparé). La passerelle Open WebUI ordinaire
+reste limitée au Mentor sans projet, même si le v2 est sélectionné.
 
 Sans activation explicite, l'interface conserve `/api/chat/send` et
 la réponse complète historique. Le navigateur demande seulement à
@@ -22,6 +35,10 @@ ni le créer, ni choisir un modèle, ni définir une URL de Gateway, ni obtenir
 l'authentification interne.
 
 ## Protection contre une génération interrompue
+
+Un verrou privé par conversation sérialise les envois JSON et SSE ; une
+requête concurrente est refusée sans écraser le transcript. Le verrou
+global d'inférence existant reste détenu par le pont.
 
 Le service enregistre **avant** l'inférence une intention `pending` dans
 le fichier privé de la discussion. Chaque fragment peut être affiché comme
@@ -58,7 +75,12 @@ L'activation canary privée est exactement celle décrite dans
    du tableau de bord sur Fedora, après sauvegarde et tests.
 4. Tester d'abord un **nouveau fil Mentor sans projet** et une longue réponse,
    puis une interruption volontaire et la relecture du `pending`.
-5. Pour revenir au mode nominal : supprimer le marqueur canary géré,
+5. Pour essayer les sept rôles et les fils liés à un projet, remplacer
+   le contenu du marqueur par `local-seven-role-project-sse-v2`, sans
+   relâcher ses permissions 0600. Tester chaque rôle, l'isolation de deux
+   projets, les commandes/approbations hors SSE et une coupure. Revenir
+   à v1 en restaurant son contenu exact.
+6. Pour revenir au mode nominal : supprimer le marqueur canary géré,
    réappliquer le patch qui désactive l'API HTTP d'opérateur et redémarrer
    les services. La route JSON stable reste inchangée.
 
@@ -76,7 +98,7 @@ opérateur liée à une interface réseau non locale.
 - Ces mesures exigent un essai physique sur le Ryzen 7 7700 / Intel Arc B580
   avec le couple Qwen / Ornith réellement installé.
 
-**Hors périmètre :** streaming des sept agents, des fils OpsDesk/BankFlow
-et de leurs actions, streaming cloud, reprise automatique de flux interrompus,
-réglages GPU et tableau de performances. Ces points demandent des
-qualifications distinctes.
+**Hors périmètre :** streaming des actions d'exécution de projet, des
+approbations, des fichiers binaires et du cloud, reprise automatique de flux
+interrompus, liens de téléchargement natifs durables. La réception réelle du
+canary v2 et de l'arrêt effectif du moteur reste à effectuer sur Fedora/B580.

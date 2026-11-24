@@ -69,6 +69,8 @@ def _bridge_deltas(
     bearer = secrets.token_hex(32)
     # Only the server can bind the ephemeral bridge to the stored role/project.
     # The public WebUI bridge keeps the original Mentor-only streaming scope.
+    if not enabled(runtime):
+        raise ValueError("Activation SSE retirée avant génération")
     if native_stream.extended_opted_in(runtime):
         bridge_server = make_policy_bridge(
             repo_root, runtime, bearer, 0,
@@ -79,6 +81,8 @@ def _bridge_deltas(
             raise ValueError("Activation SSE étendue retirée avant génération")
         bridge_server = make_policy_bridge(repo_root, runtime, bearer, 0)
     with bridge_server as bridge:
+        if bridge.stream_runner is None:
+            raise ValueError("Source SSE indisponible")
         worker = threading.Thread(target=bridge.serve_forever, daemon=True)
         worker.start()
         try:

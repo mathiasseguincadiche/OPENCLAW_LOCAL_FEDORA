@@ -4,6 +4,18 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Extension contrôlée du streaming natif
+
+- Canary v2 distinct : texte progressif des sept rôles locaux, dans les
+  discussions sans projet ou liées à un projet canonique immuable. Le pont
+  WebUI historique conserve son périmètre Mentor.
+- Les commandes, approbations et actions de projet restent sur la route
+  classique. Un verrou par fil protège les envois JSON et SSE concurrents ;
+  l'interruption conserve l'intention incertaine. Aucun fallback automatique.
+- Tests de périmètre, contexte canonique, concurrence et retour v1.
+  [Recette Fedora différée](docs/STREAMING_DISCUSSIONS_NATIVES.md).
+
+
 ### Affinité du modèle résident entre projets
 
 - Au démarrage ou à la reprise d'un worker local, lecture facultative de

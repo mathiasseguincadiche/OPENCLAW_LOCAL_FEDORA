@@ -1,7 +1,7 @@
 """Opt-in, fail-closed server-side streaming for the native Fedora Gateway.
 
-The v1 canary covers Mentor chat; v2 is confined to a private native thread. The Gateway HTTP bearer is
-operator-privileged and must never be exposed to Open WebUI or model tools.
+The v1 canary covers Mentor chat; v2 is confined to a private native thread.
+The Gateway HTTP bearer is operator-privileged and never exposed to model tools.
 """
 
 from __future__ import annotations
@@ -131,6 +131,8 @@ def native_source(
         # digest, seven-role roster, read-only tools and no-fallback gate.
         checker(role, prompt, session)
         token = operator_token(runtime)
+        if extended and not extended_opted_in(runtime):
+            raise ValueError("Activation SSE étendue retirée")
         return gateway_local_deltas(role, prompt, session, operator_token=token)
 
     return source

@@ -11,6 +11,7 @@ import os
 import platform
 import re
 import secrets
+import stat
 import subprocess
 import threading
 import time
@@ -82,8 +83,11 @@ def turn_lock(runtime: Path, identifier: str) -> Iterator[None]:
     if not chat.is_file():
         raise ValueError("Conversation introuvable")
     lock = chat.with_suffix(".lock")
-    fd = os.open(lock, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+    fd = os.open(lock, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)
     with os.fdopen(fd, "w") as handle:
+        mode = os.fstat(handle.fileno()).st_mode
+        if not stat.S_ISREG(mode) or mode & 0o077:
+            raise ValueError("Verrou de conversation non privé")
         try:
             fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as exc:
