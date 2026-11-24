@@ -5,6 +5,8 @@ Cette fonction couvre le rôle `ingenieur-devops` et les tâches **déjà approu
 ## Préparation unique de l'opérateur
 
 La recette requiert Fedora, Podman **rootless** et une image OCI contenant les validateurs autorisés, déjà chargée et identifiée par un digest SHA-256. Le choix/installation de cette image reste une opération humaine.
+Suivre la [construction hors ligne et qualification](IMAGE_VALIDATEURS_OFFLINE.md).
+Une image construite localement peut être approuvée par son ID complet `sha256:...`.
 
 ```bash
 python -m clawfedora.devops_sandbox \

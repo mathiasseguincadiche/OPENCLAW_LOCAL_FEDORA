@@ -104,6 +104,8 @@ avec `clawfedora-evals --plan` et la grille pédagogique avec
 | Rédacteur pédagogique | Guide compréhensible, document modifiable et PDF |
 | Auditeur qualité | Relecture indépendante, refus d'une preuve absente |
 
+Avant les tests Ornith, préparer et qualifier l'[image OCI des validateurs](IMAGE_VALIDATEURS_OFFLINE.md).
+
 Pour chaque rôle, constater le modèle réel, la qualité du résultat,
 les outils autorisés et l'absence de repli cloud. L'ingénieur DevOps
 utilise Ornith ; les six autres rôles utilisent Qwen. Vérifier que
