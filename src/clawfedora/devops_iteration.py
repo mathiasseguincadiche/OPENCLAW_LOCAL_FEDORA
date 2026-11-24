@@ -16,7 +16,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from clawfedora.devops_lab import TOOLS, LabRefusal, run_lab, snapshot_manifest
+from clawfedora.devops_lab import TOOLS, LabRefusal, command_for, run_lab, snapshot_manifest
 from clawfedora.devops_sandbox import (
     _approved_image,
     _overlay,
@@ -97,6 +97,7 @@ def iterate(
     expected_revision: str,
     validator: str | None = None,
     files: dict[str, str] | None = None,
+    *, validators: list[str] | None = None,
 ) -> dict[str, Any]:
     """Inspect state or persist another candidate and run a real validator.
 
@@ -126,13 +127,29 @@ def iterate(
                 "attempts": state.get("attempts", 0),
                 "files_sha256": state.get("files_sha256", {}),
                 "validator": state.get("validator"),
+                "validators": state.get("validators", []),
+                "validation_results": state.get("validation_results", []),
                 "network": "none",
                 "workspace_modified": False,
             }
         if operation != "edit_test":
             raise LabRefusal("Opération inconnue")
-        if validator not in TOOLS:
-            raise LabRefusal("Validateur non autorisé")
+        if validators is None:
+            if validator not in TOOLS:
+                raise LabRefusal("Validateur non autorisé")
+            selected = [validator]
+        else:
+            if (
+                validator is not None or not isinstance(validators, list)
+                or not 2 <= len(validators) <= 3
+                or any(not isinstance(item, str) or item not in TOOLS for item in validators)
+                or len(set(validators)) != len(validators)
+            ):
+                raise LabRefusal("Liste de validateurs invalide : deux à trois distincts")
+            selected = list(validators)
+        previous = state.get("validators", [])
+        if len(previous) > 1 and previous != selected:
+            raise LabRefusal("Suite de validateurs inchangée requise pour la correction")
         if expected_revision != revision:
             raise LabRefusal("Révision périmée : la correction doit partir de la dernière version")
         if not isinstance(files, dict) or not files:
@@ -146,15 +163,36 @@ def iterate(
             candidate.mkdir(mode=0o700)
             _copy_files(parent, candidate)
             changed = _overlay(candidate, files)
+            # Resolve every requested command before spending a bounded attempt.
+            if len(selected) > 1:
+                manifest = snapshot_manifest(candidate)
+                for item in selected:
+                    command_for(item, candidate, manifest)
             attempt = _reserve_attempt(runtime, scope)
-            # run_lab invokes only a known static validator; no agent-generated argv.
+            # run_lab invokes only known static validators; no agent-generated argv.
             # Validation failures remain revisions so Ornith can fix the reported issues.
             import io
             from contextlib import redirect_stdout
             output = io.StringIO()
-            with redirect_stdout(output):
-                exit_code = run_lab(candidate, validator, image, apply=True)
+            validation_results: list[dict[str, Any]] = []
             candidate_digest = _digest(candidate)
+            with redirect_stdout(output):
+                for item in selected:
+                    print(f"VALIDATOR={item}")
+                    if len(selected) == 1:
+                        code = run_lab(candidate, item, image, apply=True)
+                    else:
+                        # Three fresh containers, <= 40s per validator + bounded cleanup.
+                        code = run_lab(candidate, item, image, apply=True, timeout=40)
+                    validation_results.append({
+                        "validator": item, "exit_code": code,
+                        "status": "PASS" if code == 0 else "FAIL",
+                    })
+                    if _digest(candidate) != candidate_digest:
+                        raise LabRefusal("Révision modifiée pendant la validation")
+            exit_code = next(
+                (item["exit_code"] for item in validation_results if item["exit_code"]), 0,
+            )
             name = f"rev-{attempt}"
             destination = root / name
             if destination.exists() or destination.is_symlink():
@@ -170,6 +208,8 @@ def iterate(
             "attempts": attempt,
             "status": verdict,
             "validator": validator,
+            "validators": selected,
+            "validation_results": validation_results,
             "files_sha256": combined,
         }
         temp_state = root / f".state-{attempt}.json"
@@ -182,6 +222,8 @@ def iterate(
             "revision": candidate_digest,
             "attempt": attempt,
             "validator": validator,
+            "validators": selected,
+            "validation_results": validation_results,
             "files_sha256": combined,
             "log": output.getvalue()[-6500:],
             "executed": True,

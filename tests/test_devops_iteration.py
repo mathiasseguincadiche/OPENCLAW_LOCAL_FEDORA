@@ -155,3 +155,61 @@ def test_only_fixed_validators_are_allowed_and_no_internet_is_used(
         )
     with pytest.raises(LabRefusal, match="Opération"):
         devops_iteration.iterate(runtime, workspace, scope, "shell", "initial")
+
+
+def test_multiple_validators_share_revision_and_fail_closed(
+    task_snapshot: tuple[Path, Path, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    runtime, workspace, scope = task_snapshot
+    calls: list[tuple[str, str, int]] = []
+
+    def fake_run(project: Path, tool: str, image: str, apply: bool, *, timeout: int) -> int:
+        assert apply and image.endswith("a" * 64)
+        script = (project / "run.sh").read_text()
+        calls.append((tool, script, timeout))
+        return int(tool == "shellcheck" and "broken" in script)
+
+    monkeypatch.setattr(devops_iteration, "run_lab", fake_run)
+    suite = ["terraform-fmt", "shellcheck"]
+    failed = devops_iteration.iterate(
+        runtime, workspace, scope, "edit_test", "initial",
+        files={"run.sh": "broken"}, validators=suite,
+    )
+    assert failed["status"] == "FAIL" and "references" not in failed
+    assert [result["status"] for result in failed["validation_results"]] == ["PASS", "FAIL"]
+    with pytest.raises(LabRefusal, match="Suite de validateurs"):
+        devops_iteration.iterate(
+            runtime, workspace, scope, "edit_test", failed["revision"],
+            "terraform-fmt", {"run.sh": "fixed"},
+        )
+    fixed = devops_iteration.iterate(
+        runtime, workspace, scope, "edit_test", failed["revision"],
+        files={"run.sh": "fixed"}, validators=suite,
+    )
+    assert fixed["status"] == "PASS" and fixed["attempt"] == 2
+    assert [result["status"] for result in fixed["validation_results"]] == ["PASS", "PASS"]
+    assert calls == [
+        ("terraform-fmt", "broken", 40), ("shellcheck", "broken", 40),
+        ("terraform-fmt", "fixed", 40), ("shellcheck", "fixed", 40),
+    ]
+    proof = read_json(workspace / fixed["receipt"])
+    assert proof["validators"] == suite and proof["revision"] == fixed["revision"]
+    assert proof["validation_results"] == fixed["validation_results"]
+    assert "run.sh" in fixed["references"]
+    current = devops_iteration.iterate(runtime, workspace, scope, "inspect", fixed["revision"])
+    assert current["validation_results"] == fixed["validation_results"]
+
+
+@pytest.mark.parametrize("suite", [
+    [], ["shellcheck"], ["shellcheck", "shellcheck"],
+    ["shellcheck", "bash"], ["shellcheck", "terraform-fmt", "pytest", "hadolint"],
+])
+def test_invalid_validator_suites_refused(
+    task_snapshot: tuple[Path, Path, str], suite: list[str]
+) -> None:
+    runtime, workspace, scope = task_snapshot
+    with pytest.raises(LabRefusal, match="Liste de validateurs"):
+        devops_iteration.iterate(
+            runtime, workspace, scope, "edit_test", "initial",
+            files={"run.sh": "echo hi"}, validators=suite,
+        )

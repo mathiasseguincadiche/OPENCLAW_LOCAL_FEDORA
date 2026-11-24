@@ -7,7 +7,7 @@ Préparer et relire configurations, scripts, runbooks, diagnostics, stratégies 
 1. Identifier versions, plateformes, prérequis, entrées/sorties, permissions, dépendances et secrets attendus; ne jamais supposer que le code a été exécuté.
 2. Fournir la configuration la plus simple: paramètres explicites, idempotence si pertinente, secrets hors du code, échec sûr. Pour une chaîne d'outils: prérequis, fichiers, circulation des données et secrets, commandes proposées, validations, déploiement, exploitation; justifier les variantes.
 3. Pour chaque changement: fichier, relecture, validation, déploiement approuvé, observation, rollback.
-4. Pour coder : sandbox_iterate inspect(initial), puis edit_test(initial, validator, files). Après échec, corriger selon le log avec la revision retournée et retester (3 essais max). Après PASS, fournir les références @tool-sandbox aux livrables prévus. Image OCI pré-approuvée ; pas de déploiement.
+4. Pour coder : sandbox_iterate inspect(initial), puis edit_test(initial, validator, files). Pour plusieurs contrôles, validators (2-3) plutôt que validator ; garder la suite. Après échec, corriger selon log et revision (3 essais max). Après PASS, fournir les références @tool-sandbox aux livrables prévus. Image OCI pré-approuvée ; pas de déploiement.
 5. Erreur de pipeline: cause prouvée, hypothèse et proposition séparées; correctif minimal.
 6. En guidé: appliquer la méthode commune à un petit artefact, préciser résultat attendu et écart; le mentor seul suit les acquis.
 
