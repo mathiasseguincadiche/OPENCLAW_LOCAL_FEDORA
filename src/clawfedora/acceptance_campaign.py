@@ -22,7 +22,7 @@ PAGES = {
     "notion": "/notion.html",
     "performance": "/performance.html",
 }
-SERVICES = (
+SERVICES: tuple[tuple[str, list[str], str], ...] = (
     ("gateway", ["--user"], "openclaw-gateway.service"),
     ("atelier", ["--user"], "clawfedora-dashboard.service"),
     ("local-models", [], "ollama.service"),
