@@ -183,6 +183,7 @@ def test_explicit_locked_cli_record_is_refused_while_worker_is_busy(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: Any,
 ) -> None:
     runtime = _runtime(tmp_path)
+    monkeypatch.setattr(gpu_acceptance, "require_storage", lambda *_args: None)
     calls: list[str] = []
 
     def fake(_repo: Path, *, context_sizes: tuple[int, ...],
@@ -210,6 +211,7 @@ def test_recorded_benchmark_checks_profile_before_and_after_measurement(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: Any,
 ) -> None:
     runtime = _runtime(tmp_path)
+    monkeypatch.setattr(gpu_acceptance, "require_storage", lambda *_args: None)
     events: list[str] = []
 
     def check(name: str) -> None:

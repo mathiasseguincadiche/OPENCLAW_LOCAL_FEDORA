@@ -2,7 +2,18 @@
 
 **Version 0.2.0 du 3 novembre 2026** ([notes de version](CHANGELOG.md)). **Cycle d'optimisation FinOps #196–#201 intégré au dépôt.** Les PR Notion #213, #215, #216, #217 et #218 (blocs simples, lots, panneau local, texte enrichi, cellules et légendes) sont fusionnées dans `main`. La campagne de réception visuelle native est préparée dans une PR dédiée, mais **les captures de compte Notion/GitHub et les tests sur le PC Fedora restent à effectuer**. Vérifier la CI et la réception du SHA effectivement déployé. L’état ci-dessous distingue ce qui est dans le code, ce que GitHub Actions vérifie et ce qui dépend encore du PC et des fournisseurs réels. **Une CI verte n’est pas une preuve d’exploitation sur Fedora.**
 
-**Migration locale Qwen + Ornith en PR #240 (22 novembre 2026).** Qwen 3.5 9B est conservé pour six agents ; Ornith 1.5 9B est ajouté pour l'ingénieur DevOps. Les routes cloud OpenRouter sont retirées de la configuration active et une procédure explicite permet de supprimer les anciennes clés locales. **La réception Fedora et l'autonomie agentique restent à réaliser.** Voir [l'architecture locale](docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md).
+**Migration locale Qwen + Ornith intégrée depuis la PR #240 (22 novembre 2026).** Qwen 3.5 9B est conservé pour six agents ; Ornith 1.5 9B est ajouté pour l'ingénieur DevOps. Les routes cloud OpenRouter sont retirées de la configuration active et une procédure explicite permet de supprimer les anciennes clés locales. **La réception Fedora et l'autonomie agentique restent à réaliser.** Voir [l'architecture locale](docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md).
+
+## Référence de CI du 23 novembre 2026
+
+PR [#260](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/260),
+commit testé `4424d3099a7257b209aceb918cfa54254bc1caf7`, fusion dans
+`main` à `da030c8f8c0375099c74a71f95957e103fba4523` :
+15 contrôles réussis, 1 426 tests réussis, un ignoré, couverture 81 %
+(job quality ; les chiffres ne concernent que cette référence).
+Aucun résultat matériel réel. Les optimisations #250–#260, les discussions
+natives et la recette consolidée sont intégrées. Voir
+[RECETTE_GLOBALE](docs/RECETTE_GLOBALE.md).
 
 ## Résumé vérifiable
 
@@ -20,10 +31,10 @@
 | **Recette graphique Notion/GitHub** | Capture Chromium synthétique automatisée (#221) et protocole privé de réception humaine (#219) fusionnés | [Protocole visuel](docs/validation/VISUAL_RECEPTION_NATIVE.md). Aucun verdict natif Fedora ou compte Notion n'est encore acquis. |
 | **Montage et stockage `/data/IA/Openclaw/`** | Configuration commune Bash/Python/services, à qualifier sur le poste | EXT4 distinct du système, absence du disque refusée, UUID optionnel, liens interdits, stockage Podman dédié ; [procédure](docs/STOCKAGE_DATA.md) |
 | **Fedora 45 / GNOME 51 / B580** | **À faire** | Installation, pilote `xe`, Vulkan, affichage et veille sur le PC réel. Node.js : le paquet `nodejs24` (24.18.0) est installé, car le `nodejs` par défaut de Fedora 45 (Node 22) est refusé par OpenClaw (vérifié en CI dans le conteneur Fedora 45). |
-| **Qwen + Ornith locaux et contexte 8K–32K** | Migration en PR | Débit, VRAM et contexte optimal des deux modèles **À mesurer** sur Fedora |
-| **Open WebUI 0.12.3** | Implémenté et testé en simulation ou intégration partielle | Navigateur, boutons, fichiers et microphone **À faire** en réception réelle |
+| **Qwen + Ornith locaux et contexte 8K–32K** | Intégré | Débit, VRAM et contexte optimal des deux modèles **À mesurer** sur Fedora |
+| **Open WebUI 0.12.3** | Facultatif, compatibilité historique | Ne constitue pas une dépendance de réception native. |
 | **Sept rôles et projets multiples** | Contrats et tests automatisés ; livrables scellés par les audits | Qualité comparative Qwen/Ornith sur OpsDesk **À mesurer**, sans note automatique |
-| **Retrait OpenRouter** | Route cloud retirée du catalogue et du worker ; ancienne clé supprimable explicitement | Migration en PR #240, tests et réception Fedora à vérifier. |
+| **Retrait OpenRouter** | Route cloud retirée du catalogue et du worker ; ancienne clé supprimable explicitement | Réception Fedora à vérifier. |
 | **Maintenance** | Désinstallation, purge, sauvegarde et réparation protégées | Arrêt vérifié avant suppression, purge sans perte partielle, maintenance refusée pendant une génération. Restauration du vrai état de l’installation **À faire**. |
 | **Parcours WebUI simplifié** | Implémenté ; réception Open WebUI Fedora à effectuer | Six raccourcis, choix du projet et activité locale ; voir [la prise en main](docs/fiches/03-discuter.md) |
 | **Documents ODT** | Export éditable et import textuel implémentés | Limites d’import [documentées](docs/fiches/06-fichiers-et-schemas.md) ; réception dans le navigateur Fedora à effectuer |
@@ -69,9 +80,9 @@ La [recette finale FinOps](docs/validation/FINOPS.md) définit les vérification
 ## Parcours de qualification retenu
 
 1. Installer Fedora 45 Workstation stable et monter le deuxième disque sur `/data`.
-2. Installer l’atelier et WebUI selon [la procédure simple](docs/INSTALLATION_SIMPLE_FEDORA45.md).
-3. Exécuter **`./menu.sh --action quick-check`** : une réponse Qwen courte, vérification de la B580, des services, des interfaces et des projets.
-4. Dérouler la [liste de contrôle de réception](docs/RECEPTION_ETAPE3.md) : chat local, premier projet jusqu’à la livraison, sauvegarde, redémarrage et, si souhaité, cloud borné.
+2. Installer l’Atelier natif selon [la procédure simple](docs/INSTALLATION_SIMPLE_FEDORA45.md).
+3. Utiliser **`./menu.sh --action acceptance-inspect`**, puis **`quick-check`** pour les courtes inférences des deux modèles.
+4. Dérouler la [recette globale native](docs/RECETTE_GLOBALE.md), sans fournisseur de modèles cloud.
 
 **Fedora 45 :** d’après la presse spécialisée, la version finale a été déclarée « GO » le 29 octobre (RC 1.4), pour une sortie le 3 novembre ([Phoronix](https://phoronix.com/news/Fedora-45-Ships-Next-Week)). Vérifier l’annonce officielle sur [fedoraproject.org](https://fedoraproject.org/) avant de choisir l’ISO.
 

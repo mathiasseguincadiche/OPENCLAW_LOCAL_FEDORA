@@ -131,8 +131,11 @@ def test_all_models_are_benchmarked_separately_without_remote_calls(
         return {"model_alias": model_alias, "cloud_used": False,
                 "config_modified": False}
 
+    (tmp_path / ".openclaw-fedora-runtime").touch()
+    monkeypatch.setattr(gpu_acceptance, "load_settings", lambda _: None)
+    monkeypatch.setattr(gpu_acceptance, "require_storage", lambda *_args: None)
     monkeypatch.setattr(gpu_acceptance, "benchmark", fake_benchmark)
-    assert main(["--root", str(tmp_path), "--contexts", "8192",
+    assert main(["--root", str(tmp_path), "--contexts", "8192", "--runtime-root", str(tmp_path),
                  "--models", "all", "--apply"]) == 0
     output = json.loads(capsys.readouterr().out)
     assert calls == ["qwen-max", "ornith-code"]

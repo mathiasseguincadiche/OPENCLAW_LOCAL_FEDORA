@@ -135,7 +135,17 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         return 0
     if args.command == "health":
-        report = collect_health(repo_root, runtime_root, probe=bool(args.probe))
+        if args.probe:
+            from clawfedora.project_worker import maintenance_lock
+
+            try:
+                with maintenance_lock(runtime_root, allow_gaming=False):
+                    report = collect_health(repo_root, runtime_root, probe=True)
+            except (OSError, ValueError) as exc:
+                print(f"HEALTH_PROBE=REFUSED: {exc}")
+                return 2
+        else:
+            report = collect_health(repo_root, runtime_root, probe=False)
         print(json.dumps(report.payload(), indent=2, ensure_ascii=False))
         return 0 if report.ok else 2
     if args.command == "models-lock":

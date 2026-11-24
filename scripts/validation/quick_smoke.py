@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora.lifecycle import collect_health
+from clawfedora.project_worker import worker_lock
 from clawfedora.storage import load_settings, require_storage
 
 ENDPOINTS = {
@@ -42,7 +43,8 @@ def report(repo: Path, runtime: Path) -> dict[str, Any]:
     require_storage(runtime, load_settings(repo))
     if not (runtime / ".openclaw-fedora-runtime").is_file():
         raise ValueError("atelier IA non installé")
-    health = collect_health(repo, runtime, probe=True)
+    with worker_lock(runtime):
+        health = collect_health(repo, runtime, probe=True)
     health_checks = {c.id: c.status == "PASS" for c in health.checks}
     endpoints = {key: local_ok(url) for key, url in ENDPOINTS.items()}
     projects = (runtime / "projects").is_dir()

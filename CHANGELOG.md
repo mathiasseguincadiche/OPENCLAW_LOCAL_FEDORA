@@ -4,6 +4,17 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Durcissement avant réception
+
+- Transport Ollama commun à destination fixe, sans redirection ni proxy,
+  méthodes autorisées et réponse bornée.
+- Verrou partagé pour les benchmarks même sans enregistrement, le contrôle
+  rapide et la santé avec inférence, y compris la maintenance avec FD hérité.
+- Lecture non bloquante des rapports GPU et de la configuration SSE,
+  refus des fichiers spéciaux, limite de configuration.
+- Statut de réception aligné sur les deux modèles et l'Atelier natif.
+
+
 ### Recette globale native
 
 - Plan de réception centralisé, validation des contrats sans Fedora,
