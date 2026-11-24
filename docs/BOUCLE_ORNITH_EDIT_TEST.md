@@ -27,7 +27,7 @@ Le `scope` doit être exactement un snapshot scellé de la tâche courante, au f
 3. En cas d'échec, analyser `log`, puis appeler le même outil avec le dernier `revision` comme `expected_revision` et les fichiers corrigés. Les modifications précédentes sont conservées dans un worktree privé du runtime.
 4. En cas de PASS, intégrer les références `@tool-sandbox:<id>:<sha256>` retournées dans le JSON `files` de la réponse de tâche. Les noms des fichiers doivent correspondre aux noms des livrables attendus.
 
-Le worker vérifie le reçu PASS émis pendant **cette session**, la correspondance du nom et l'empreinte du fichier avant de collecter les octets **réellement testés**. Les livrables demeurent soumis aux contrôles, à l'audit et à la validation humaine. Le snapshot initial, le dépôt GitHub et la machine hôte ne sont pas modifiés par l'agent.
+Le worker vérifie le reçu PASS émis pendant **cette session et pour ce snapshot exact**, la correspondance du nom et l'empreinte du fichier avant de collecter les octets inclus dans le snapshot validé. Un PASS concerne le validateur choisi, pas tous les tests possibles. Les dossiers exclus et chemins non canoniques sont refusés. Les outils d'exécution exigent la tâche DevOps active ; une discussion ordinaire ne peut pas relancer un ancien snapshot. Les livrables demeurent soumis aux contrôles, à l'audit et à la validation humaine. Le snapshot initial, le dépôt GitHub et la machine hôte ne sont pas modifiés par l'agent.
 
 ## Limites et sécurité
 

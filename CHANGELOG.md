@@ -4,6 +4,15 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Provenance des validations DevOps
+
+- Outils exécutables réservés au snapshot de la tâche DevOps active.
+- Reçus sandbox liés au snapshot exact ; corrections exclues du snapshot
+  et chemins non canoniques refusés.
+- Référence documentaire actualisée après #262 ; anciens parcours cloud
+  distingués de l'architecture locale.
+
+
 ### Cohérence installation, maintenance et restauration
 
 - État privé 0700 dès le bootstrap et répertoires restaurés privés :

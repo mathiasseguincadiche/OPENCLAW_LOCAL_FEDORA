@@ -298,6 +298,24 @@ def check(data: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _require_active_sandbox_scope(runtime: Path, scope: str) -> None:
+    """Only the current worker task may authorize executable laboratory tools."""
+    from clawfedora.project_control import progress
+
+    state = progress(runtime)
+    expected = "/".join([
+        "projects", str(state.get("project_id", "")),
+        str(state.get("task_id", "")), str(state.get("session_id", "")),
+    ])
+    if (
+        state.get("active") is not True or state.get("phase") != "running"
+        or state.get("role") != "ingenieur-devops"
+        or not all(state.get(key) for key in ("project_id", "task_id", "session_id"))
+        or scope != expected
+    ):
+        raise ValueError("Laboratoire réservé au snapshot de la tâche DevOps active")
+
+
 def invoke(
     runtime: Path, role: str, workspace: Path, tool: str, data: dict[str, Any]
 ) -> dict[str, Any]:
@@ -344,6 +362,7 @@ def invoke(
             or any(not isinstance(k, str) or not isinstance(v, str) for k, v in files.items())
         ):
             raise ValueError("scope, validator et fichiers texte requis")
+        _require_active_sandbox_scope(runtime, scope)
         return validate_proposal(runtime, root, scope, validator, files)
     if tool == "clawfedora_sandbox_iterate":
         from clawfedora.devops_iteration import iterate
@@ -361,6 +380,7 @@ def invoke(
                   any(not isinstance(k, str) or not isinstance(v, str)
                       for k, v in files.items())))):
             raise ValueError("scope, opération, révision et fichiers texte requis")
+        _require_active_sandbox_scope(runtime, scope)
         return iterate(runtime, root, scope, operation, revision, validator, files)
     if tool == "clawfedora_lab_request":
         from clawfedora.project_proofs import lab_request

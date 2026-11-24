@@ -19,6 +19,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from clawfedora.devops_lab import (
+    IGNORED_DIRS,
     SAFE_SUFFIXES,
     SENSITIVE_NAMES,
     SENSITIVE_SUFFIXES,
@@ -93,7 +94,7 @@ def _approved_image(runtime: Path) -> str:
 def _validated_scope(workspace: Path, scope: str) -> Path:
     relative = PurePosixPath(scope)
     if (
-        relative.is_absolute() or ".." in relative.parts
+        relative.is_absolute() or ".." in relative.parts or relative.as_posix() != scope
         or len(relative.parts) != 4 or relative.parts[0] != "projects"
         or any(not part or part.startswith(".") for part in relative.parts)
     ):
@@ -101,6 +102,11 @@ def _validated_scope(workspace: Path, scope: str) -> Path:
     source = workspace.joinpath(*relative.parts)
     if not source.is_dir() or not source.resolve().is_relative_to(workspace.resolve()):
         raise LabRefusal("Snapshot de tâche hors du workspace")
+    for part in (source, *source.parents):
+        if part == workspace.parent:
+            break
+        if part.is_symlink():
+            raise LabRefusal("Ancêtre du snapshot lié interdit")
     assert_no_symlinks(source, label="snapshot DevOps")
     if not (source / ".openclaw-fedora-input-guard.json").is_file():
         raise LabRefusal("Snapshot de tâche non scellé")
@@ -110,15 +116,16 @@ def _validated_scope(workspace: Path, scope: str) -> Path:
 def _overlay(target: Path, changes: dict[str, str]) -> dict[str, str]:
     if not changes or len(changes) > MAX_PATCH_FILES:
         raise LabRefusal("Un à cinq fichiers de correction requis")
-    if sum(len(v.encode("utf-8")) for v in changes.values()) > MAX_PATCH_BYTES:
-        raise LabRefusal("Corrections supérieures au budget")
     if any(not isinstance(k, str) or not isinstance(v, str) for k, v in changes.items()):
         raise LabRefusal("Proposition de fichiers texte obligatoire")
+    if sum(len(v.encode("utf-8")) for v in changes.values()) > MAX_PATCH_BYTES:
+        raise LabRefusal("Corrections supérieures au budget")
     hashes: dict[str, str] = {}
     for name, content in changes.items():
         relative = PurePosixPath(name)
         if (
             relative.is_absolute() or ".." in relative.parts or not relative.parts
+            or relative.as_posix() != name or any(p in IGNORED_DIRS for p in relative.parts)
             or any(p.startswith(".") and p != ".github" for p in relative.parts)
             or relative.name in SENSITIVE_NAMES
             or relative.suffix in SENSITIVE_SUFFIXES
@@ -132,7 +139,9 @@ def _overlay(target: Path, changes: dict[str, str]) -> dict[str, str]:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
         hashes[name] = hashlib.sha256(content.encode()).hexdigest()
-    snapshot_manifest(target)
+    included = {p.as_posix() for p in snapshot_manifest(target)}
+    if not hashes.keys() <= included:
+        raise LabRefusal("Correction exclue du snapshot de validation")
     return hashes
 
 
@@ -188,6 +197,8 @@ def validate_proposal(
         "status": "PASS" if code == 0 else "FAIL",
         "exit_code": code,
         "validator": tool,
+        "scope": scope,
+        "role": "ingenieur-devops",
         "attempt": attempt,
         "files_sha256": hashes,
         "log": log,

@@ -6,13 +6,13 @@
 
 ## Référence de CI du 23 novembre 2026
 
-PR [#260](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/260),
-commit testé `4424d3099a7257b209aceb918cfa54254bc1caf7`, fusion dans
-`main` à `da030c8f8c0375099c74a71f95957e103fba4523` :
-15 contrôles réussis, 1 426 tests réussis, un ignoré, couverture 81 %
+PR [#262](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/262),
+commit testé `f5b9fd4d6f368d95a85fd97b86a3912482e289a3`, fusion dans
+`main` à `8eda2a1001d8e97ba16b5a80273f8db803dcfba5` :
+15 contrôles réussis, 1 453 tests réussis, un ignoré, couverture 81 %
 (job quality ; les chiffres ne concernent que cette référence).
-Aucun résultat matériel réel. Les optimisations #250–#260, les discussions
-natives et la recette consolidée sont intégrées. Voir
+Aucun résultat matériel réel. Les optimisations #250–#262, les discussions
+natives, la maintenance et la recette consolidée sont intégrées. Voir
 [RECETTE_GLOBALE](docs/RECETTE_GLOBALE.md).
 
 ## Résumé vérifiable
