@@ -28,7 +28,7 @@ Installer et utiliser:
   acceptance-32k         Réception des modèles locaux près de 32K (--apply explicite)
   context-probe          Mesurer si le contexte tient sur le GPU, et la vitesse
                          (--context 8192|16384|32768 pour comparer une autre taille)
-  gpu-profile-status     Lire le profil Ollama GPU configuré (sans inférence)
+  gpu-profile-status     Lire le profil GPU configuré (sans inférence)
   gpu-reference          Cache f16, Flash Attention désactivé
   gpu-flash              Candidat Flash Attention + f16
   gpu-q8                 Candidat Flash Attention + q8_0
