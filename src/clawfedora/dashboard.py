@@ -20,6 +20,7 @@ from clawfedora import (
     github_pr,
     github_quality,
     github_remote,
+    native_stream,
     notion_panel,
     performance_reports,
     project_cloud,
@@ -285,7 +286,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             elif url.path == "/api/chat/stream-capability":
                 try:
                     active = atelier_chat_stream.enabled(self.server.runtime)
-                    expanded = active and atelier_chat_stream.native_stream.extended_opted_in(
+                    expanded = active and native_stream.extended_opted_in(
                         self.server.runtime
                     )
                 except (OSError, ValueError):
