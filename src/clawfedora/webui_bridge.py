@@ -810,6 +810,9 @@ class BridgeHandler(BaseHTTPRequestHandler):
         if current:
             project = chat_projects.open_project(self.server.runtime, current)
             if project is None:
+                if self.server.native_thread is not None:
+                    self._send(409, {"error": {"message": "Projet du fil introuvable"}})
+                    return
                 current = None
             else:
                 context += "\n" + chat_projects.project_context(
