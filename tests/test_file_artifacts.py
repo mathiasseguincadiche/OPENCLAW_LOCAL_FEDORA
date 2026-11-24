@@ -137,7 +137,10 @@ def test_code_templates_remain_literal_and_invalid_formats_are_refused(tmp_path:
         from clawfedora.project_worker import _collect_tool_receipts
         destination = tmp_path / "project"
         destination.mkdir(exist_ok=True)
-        _collect_tool_receipts(devops, before, destination, "configuration")
+        _collect_tool_receipts(
+            devops, before, destination, "configuration",
+            scope="projects/example/configuration/session",
+        )
     assert not (devops / "NEVER_EXECUTED").exists()
     for data in (
         {"format": "json", "content": "invalid"},
