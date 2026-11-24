@@ -1,4 +1,4 @@
-"""Minimal installed-Fedora acceptance: one short inference, UI checks, no cloud."""
+"""Minimal installed-Fedora acceptance: short local inferences, UI checks, no cloud."""
 from __future__ import annotations
 
 import runpy
@@ -70,3 +70,21 @@ def test_failing_local_probes_never_give_ready_label(
     )
     monkeypatch.setitem(smoke.report.__globals__, "local_ok", lambda _url: True)
     assert smoke.report(ROOT, runtime)["verdict"] == "REVIEW_REQUIRED"
+
+
+def test_quick_smoke_refuses_a_live_worker_before_inference(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from clawfedora.project_worker import worker_lock
+
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    (runtime / ".openclaw-fedora-runtime").touch()
+    monkeypatch.setitem(smoke.report.__globals__, "require_storage", lambda *_args: None)
+
+    def forbidden(*_args: object, **_kwargs: object) -> None:
+        pytest.fail("inference attempted while worker active")
+
+    monkeypatch.setitem(smoke.report.__globals__, "collect_health", forbidden)
+    with worker_lock(runtime), pytest.raises(ValueError, match="déjà actif"):
+        smoke.report(ROOT, runtime)

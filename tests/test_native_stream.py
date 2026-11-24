@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import threading
 from collections.abc import Generator
 from http.client import HTTPConnection
@@ -249,3 +250,25 @@ def test_extended_opt_in_keeps_public_source_mentor_only(
     marker.write_text(native_stream.APPROVAL + "\n")
     with pytest.raises(ValueError, match="non autorisé"):
         private("ingenieur-devops", "Question", "123e4567-e89b-12d3-a456-426614174000")
+
+
+def test_native_config_special_file_and_oversized_content_are_refused(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime = _runtime(tmp_path)
+    path = runtime / "state/openclaw/openclaw.json"
+    path.write_bytes(b"x" * 1_048_577)
+    with pytest.raises(ValueError, match="volumineuse"):
+        native_stream.operator_token(runtime)
+    path.unlink()
+    os.mkfifo(path, 0o600)
+    real_open = os.open
+
+    def checked_open(target: Any, flags: int, *args: Any, **kwargs: Any) -> int:
+        if target == path:
+            assert flags & os.O_NONBLOCK
+        return real_open(target, flags, *args, **kwargs)
+
+    monkeypatch.setattr(native_stream.os, "open", checked_open)
+    with pytest.raises(ValueError, match="non privée"):
+        native_stream.operator_token(runtime)

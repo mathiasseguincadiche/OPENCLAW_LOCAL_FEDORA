@@ -69,8 +69,13 @@ def probe_context(
         },
         timeout=600,
     )
+    if answer.get("done") is not True:
+        raise ValueError("sonde: génération non terminée")
+    response = answer.get("response")
+    if not verify_near_limit and (not isinstance(response, str) or not response.strip()):
+        raise ValueError("sonde: réponse du modèle vide ou invalide")
     prompt_tokens = answer.get("prompt_eval_count")
-    if not isinstance(prompt_tokens, int) or prompt_tokens <= 0:
+    if type(prompt_tokens) is not int or prompt_tokens <= 0:
         raise ValueError("sonde: le serveur n'a pas rapporté de tokens d'entrée")
     runners = request(ENDPOINT + "/api/ps").get("models", [])
     loaded = next(
@@ -83,8 +88,8 @@ def probe_context(
     )
     if loaded is None:
         raise ValueError("sonde: modèle absent de l'inventaire résident")
-    size, size_vram = int(loaded.get("size", 0)), int(loaded.get("size_vram", 0))
-    if size <= 0:
+    size, size_vram = loaded.get("size"), loaded.get("size_vram")
+    if type(size) is not int or type(size_vram) is not int or not 0 <= size_vram <= size or size <= 0:
         raise ValueError("sonde: taille résidente illisible")
     gpu_share = round(100 * size_vram / size, 1)
     truncated = prompt_tokens >= context - 128
@@ -97,7 +102,7 @@ def probe_context(
         and loaded["context_length"] >= context
     ):
         verdict = "CONTEXT_ALLOCATION_UNVERIFIED"
-    elif verify_near_limit and not str(answer.get("response", "")).strip():
+    elif verify_near_limit and (not isinstance(response, str) or not response.strip()):
         verdict = "EMPTY_MODEL_RESPONSE"
     elif size_vram >= size:
         verdict = "FULL_GPU"
