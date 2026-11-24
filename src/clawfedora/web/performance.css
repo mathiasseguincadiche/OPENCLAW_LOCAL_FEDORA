@@ -1,0 +1,49 @@
+.perf-models {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1fr);
+}
+.perf-model, .perf-help {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 24px;
+}
+.perf-model h3 { font-size: 20px; margin: 0 0 12px; }
+.perf-summary { font-weight: 600; margin-bottom: 4px; }
+.perf-muted, .perf-empty { color: var(--muted); font-size: 14px; }
+.perf-scroll { width: 100%; overflow-x: auto; }
+.perf-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 690px;
+  font-size: 13px;
+}
+.perf-table th {
+  color: var(--muted);
+  font-weight: 600;
+  text-align: left;
+  background: var(--bg);
+}
+.perf-table th, .perf-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 12px 10px;
+  white-space: nowrap;
+}
+.perf-table tbody tr:last-child td { border-bottom: 0; }
+.perf-help { margin-top: 26px; }
+.perf-help h2 { margin-top: 0; }
+.perf-help pre {
+  overflow-x: auto;
+  color: #edf5ef;
+  background: #23342f;
+  padding: 20px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+.perf-help code, footer code { overflow-wrap: anywhere; }
+footer { color: var(--muted); padding-top: 24px; }
+@media (max-width: 700px) {
+  .perf-model, .perf-help { padding: 16px; }
+  .perf-table { min-width: 650px; }
+}
