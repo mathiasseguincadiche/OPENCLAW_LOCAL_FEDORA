@@ -134,6 +134,12 @@ def _overlay(target: Path, changes: dict[str, str]) -> dict[str, str]:
         ):
             raise LabRefusal("Chemin ou contenu interdit dans la proposition")
         path = target.joinpath(*relative.parts)
+        # Reference tests and test configuration cannot be rewritten by the producer.
+        # New tests are allowed; independent acceptance is still required.
+        if relative.name in {"conftest.py", "pytest.ini", "pyproject.toml", "setup.cfg", "tox.ini"} or (
+            path.exists() and ("tests" in relative.parts or relative.name.startswith("test_"))
+        ):
+            raise LabRefusal("Test de référence ou configuration de test protégé")
         if path.exists() and (path.is_symlink() or not path.is_file()):
             raise LabRefusal("Destination irrégulière interdite")
         path.parent.mkdir(parents=True, exist_ok=True)

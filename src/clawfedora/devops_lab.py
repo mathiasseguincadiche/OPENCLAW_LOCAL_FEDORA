@@ -76,9 +76,11 @@ def snapshot_manifest(source: Path) -> tuple[Path, ...]:
             ):
                 raise LabRefusal(f"Fichier sensible détecté, copie refusée: {relative}")
             # Hidden files other than the tracked GitHub workflows are not needed.
-            if any(part.startswith(".") and part != ".github" for part in relative.parts):
+            if any(part.startswith(".") and part != ".github" for part in relative.parts[:-1]):
                 continue
-            if path.suffix not in SAFE_SUFFIXES and name != "Dockerfile":
+            if name.startswith(".") and name != ".terraform.lock.hcl":
+                continue
+            if path.suffix not in SAFE_SUFFIXES and name not in {"Dockerfile", ".terraform.lock.hcl"}:
                 continue
             mode = path.stat(follow_symlinks=False)
             if not stat.S_ISREG(mode.st_mode):
@@ -92,8 +94,23 @@ def snapshot_manifest(source: Path) -> tuple[Path, ...]:
     return tuple(files)
 
 
+def terraform_root(manifest: tuple[Path, ...]) -> str:
+    """Select the unique Terraform root; never silently validate an empty directory."""
+    roots = {
+        path.parent for path in manifest
+        if path.name.endswith((".tf", ".tf.json"))
+    }
+    candidates = [
+        root for root in roots
+        if all(root == other or root in other.parents for other in roots)
+    ]
+    if len(candidates) != 1:
+        raise LabRefusal("Racine Terraform absente ou ambiguë : isoler un seul module racine")
+    return "/workspace/" + candidates[0].as_posix() if candidates[0] != Path(".") else "/workspace"
+
+
 def command_for(tool: str, snapshot: Path, manifest: tuple[Path, ...]) -> list[str]:
-    """Fixed argv only; no shell, project-supplied command, or executable scripts."""
+    """Fixed argv only; no project-supplied shell command or executable script."""
     if tool == "pytest":
         tests = [
             "/workspace/" + p.as_posix() for p in manifest
@@ -109,7 +126,18 @@ def command_for(tool: str, snapshot: Path, manifest: tuple[Path, ...]) -> list[s
     if tool == "terraform-fmt":
         return ["terraform", "-chdir=/workspace", "fmt", "-check", "-recursive", "-no-color"]
     if tool == "terraform-validate":
-        return ["terraform", "-chdir=/workspace", "validate", "-no-color"]
+        root = terraform_root(manifest)
+        # Fixed script, path passed as a positional argument, never interpolated.
+        # Providers are installed exclusively from the approved OCI image.
+        return [
+            "sh", "-eu", "-c",
+            'printf "LAB_STAGE=fmt\\n"; terraform -chdir="$1" fmt -check -recursive -no-color; '
+            'printf "LAB_STAGE=init\\n"; terraform -chdir="$1" init -backend=false '
+            '-input=false -lockfile=readonly -no-color '
+            '-plugin-dir=/opt/clawfedora/terraform-providers; '
+            'printf "LAB_STAGE=validate\\n"; terraform -chdir="$1" validate -no-color',
+            "clawfedora-terraform", root,
+        ]
     if tool == "ansible-lint":
         return ["ansible-lint", "--offline", "/workspace"]
     if tool == "actionlint":

@@ -129,3 +129,18 @@ def test_ignored_or_noncanonical_correction_is_refused(
 def test_correction_requires_text_before_encoding(tmp_path: Path) -> None:
     with pytest.raises(LabRefusal, match="texte"):
         devops_sandbox._overlay(tmp_path, {"main.tf": 12})  # type: ignore[dict-item]
+
+
+def test_overlay_protects_reference_tests_but_accepts_new_tests(tmp_path: Path) -> None:
+    tests = tmp_path / "tests"
+    tests.mkdir()
+    original = tests / "test_acceptance.py"
+    original.write_text("def test_reference(): assert True")
+    with pytest.raises(devops_sandbox.LabRefusal, match="protégé"):
+        devops_sandbox._overlay(tmp_path, {"tests/test_acceptance.py": "pass"})
+    with pytest.raises(devops_sandbox.LabRefusal, match="protégé"):
+        devops_sandbox._overlay(tmp_path, {"tests/conftest.py": "pass"})
+    assert original.read_text() == "def test_reference(): assert True"
+    assert "tests/test_new.py" in devops_sandbox._overlay(
+        tmp_path, {"tests/test_new.py": "def test_new(): assert True"},
+    )
