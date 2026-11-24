@@ -47,7 +47,11 @@ class LabRefusal(ValueError):
 
 
 def image_is_pinned(image: str) -> bool:
-    return bool(IMAGE_RE.fullmatch(image)) and ".." not in image
+    # A complete local image ID is immutable without publishing to a registry.
+    return bool(
+        re.fullmatch(r"sha256:[0-9a-f]{64}", image)
+        or (IMAGE_RE.fullmatch(image) and ".." not in image)
+    )
 
 
 def snapshot_manifest(source: Path) -> tuple[Path, ...]:
@@ -200,7 +204,7 @@ def run_lab(
         print("Aucune image ni commande lancée. --apply + --image avec digest sont requis.")
         return 0
     if not image or not image_is_pinned(image):
-        raise LabRefusal("Image locale épinglée par @sha256:64-hexdigits obligatoire")
+        raise LabRefusal("Image locale épinglée par digest SHA-256 ou ID complet obligatoire")
     if not shutil.which("podman"):
         raise LabRefusal("Podman introuvable")
     present = subprocess.run(

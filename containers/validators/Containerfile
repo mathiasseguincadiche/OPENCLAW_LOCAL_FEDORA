@@ -1,0 +1,24 @@
+# Base and payload are chosen and verified by the operator, never by an agent.
+ARG VALIDATOR_BASE
+FROM ${VALIDATOR_BASE}
+USER 0
+COPY payload/bin/ /usr/local/bin/
+COPY payload/wheels/ /opt/clawfedora/wheels/
+COPY payload/requirements.lock /opt/clawfedora/requirements.lock
+COPY payload/terraform-providers/ /opt/clawfedora/terraform-providers/
+COPY payload/schemas/ /schemas/
+COPY payload/sources.md /opt/clawfedora/sources.md
+COPY payload/manifest.json /opt/clawfedora/manifest.json
+RUN chmod 0755 /usr/local/bin/terraform /usr/local/bin/shellcheck \
+    /usr/local/bin/actionlint /usr/local/bin/hadolint /usr/local/bin/kubeconform \
+    && python3 -m venv /opt/clawfedora/venv \
+    && /opt/clawfedora/venv/bin/pip install --no-index --require-hashes \
+       --only-binary=:all: --find-links=/opt/clawfedora/wheels \
+       -r /opt/clawfedora/requirements.lock \
+    && chmod -R a+rX /opt/clawfedora /schemas
+ENV PATH="/opt/clawfedora/venv/bin:/usr/local/bin:/usr/bin:/bin"
+RUN terraform version && shellcheck --version && actionlint -version \
+    && hadolint --version && kubeconform -v && ansible-lint --version \
+    && python3 -m pytest --version
+ENTRYPOINT []
+CMD ["sh"]
