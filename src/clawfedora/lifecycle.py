@@ -10,6 +10,7 @@ import sqlite3
 import subprocess
 import tarfile
 import tempfile
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -104,7 +105,11 @@ def _require_managed_runtime(runtime_root: Path) -> Path:
     return runtime
 
 
-def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) -> HealthReport:
+def collect_health(
+    repo_root: Path, runtime_root: Path, *, probe: bool = False,
+    ollama_request: Callable[..., dict[str, Any]] | None = None,
+) -> HealthReport:
+    request = ollama_request or ollama_api.request_json
     checks: list[HealthCheck] = []
     contracts = validate_repository(repo_root)
     checks.append(
@@ -174,7 +179,7 @@ def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) 
         checks.append(HealthCheck("openclaw-version", "FAIL", "version non confirmée"))
     endpoint = "http://127.0.0.1:11434"
     try:
-        version = ollama_api.request_json(endpoint + "/api/version")
+        version = request(endpoint + "/api/version")
         expected_version = str(versions["ollama"]["version"])
         version_ok = version.get("version") == expected_version
         checks.append(
@@ -182,7 +187,7 @@ def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) 
                 "ollama-version", "PASS" if version_ok else "FAIL", str(version.get("version"))
             )
         )
-        tags = ollama_api.request_json(endpoint + "/api/tags")
+        tags = request(endpoint + "/api/tags")
         identities = ollama_api.model_inventory(tags, model_plan(repo_root))
         from clawfedora.model_identity import verify_model_lock
 
@@ -193,7 +198,7 @@ def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) 
         if probe:
             for required_model in model_plan(repo_root):
                 model = str(required_model["runtime_id"])
-                answer = ollama_api.request_json(
+                answer = request(
                     endpoint + "/api/generate",
                     payload={
                         "model": model,
@@ -208,7 +213,7 @@ def collect_health(repo_root: Path, runtime_root: Path, *, probe: bool = False) 
                     },
                     timeout=120,
                 )
-                runners = ollama_api.request_json(endpoint + "/api/ps").get("models", [])
+                runners = request(endpoint + "/api/ps").get("models", [])
                 offloaded = any(
                     isinstance(item, dict)
                     and item.get("name") == model

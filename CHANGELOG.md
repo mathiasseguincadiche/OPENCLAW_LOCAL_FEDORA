@@ -4,6 +4,17 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Recette globale native
+
+- Plan de réception centralisé, validation des contrats sans Fedora,
+  précontrôle installé sans inférence ni appel aux intégrations distantes.
+- Contrôles locaux en lecture : stockage, services natifs, matériel,
+  versions et identités, cinq pages de l'Atelier. Aucun détail sensible
+  dans le rapport. Les essais actifs et preuves humaines restent non exécutés.
+- Distinction entre disponibilité technique et réception physique ; la
+  commande ne délivre jamais de certification de bout en bout.
+
+
 ### Récupération manuelle des conversations interrompues
 
 - Confirmation humaine explicite et intention exacte sous verrou du fil

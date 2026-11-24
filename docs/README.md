@@ -1,5 +1,8 @@
 # Documentation de l’Atelier IA
 
+**Réception actuelle :** [recette globale de l’Atelier natif](RECETTE_GLOBALE.md).
+Le mode plan ne déclenche aucune installation, inférence ou opération distante.
+
 **Point d’entrée unique** : cette page oriente vers la procédure adaptée à ton besoin, sans demander de lire toute l’architecture. L’environnement cible est **Fedora 45 Workstation / GNOME 51**, avec les données de l’atelier sur le volume secondaire **`/data/IA/Openclaw/`**.
 
 > **Règle de lecture :** un test de CI réussi n’équivaut pas à une réception du logiciel sur le PC Fedora/Intel Arc B580. Les fonctions facultatives ou expérimentales sont identifiées comme telles. L’état réel est dans [STATUS](../STATUS.md).

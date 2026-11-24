@@ -112,7 +112,7 @@ ni suppression de la base de données historique.
 ./menu.sh --action quick-check
 ```
 
-Ce contrôle ne lance **qu'une petite génération Qwen locale**, vérifie
+Ce contrôle lance une **petite génération locale pour chacun des deux modèles**, vérifie
 que la B580 utilise de la VRAM, la version du modèle, OpenClaw, Ollama,
 le réseau local de l'Atelier et de ses discussions natives, SELinux et le répertoire projets.
 Il affiche les composants en `PASS` ou `FAIL` puis un verdict final.
@@ -129,11 +129,10 @@ cinq veilles/réveils ou les sept scénarios d'évaluation.
 Ces tests complémentaires sont disponibles **si une anomalie apparaît** ou
 si l'on veut mesurer des performances plus finement.
 
-Le cloud DeepSeek/Sol n'est **pas activé automatiquement**. Un appel réel
-nécessite une clé et une activation explicites ; aucun test de cloud
-ne peut être déclaré réussi sans cet accord. Après la réception locale,
-utiliser [la fiche Cloud](fiches/12-cloud.md#activer-le-cloud) pour la saisie
-masquée de la clé OpenRouter, la limite en dollars et l'activation consentie.
+L'inférence est exclusivement locale (Qwen et Ornith). La recherche Web et
+les intégrations GitHub/Notion sont distinctes d'un fournisseur de modèles
+cloud. Pour poursuivre avec les sept agents, les projets et les preuves
+matérielles, suivre la [recette globale native](RECETTE_GLOBALE.md).
 
 ## 4. Facultatif : qualifier le contexte 32K sur la B580
 

@@ -1,5 +1,10 @@
 # Qualification finale Fedora — résultats réels uniquement
 
+> **Référence actuelle :** [recette globale native](RECETTE_GLOBALE.md).
+> Les passages historiques Open WebUI / OpenRouter ci-dessous ne sont pas
+> des exigences de réception de l'Atelier natif local. Ne pas activer de
+> modèle cloud. Le plan et le précontrôle natif sont prioritaires.
+
 > **Parcours retenu :** [préqualification matérielle en Live USB](LIVE_USB_FEDORA45_PREQUALIFICATION.md), puis [installation Fedora 45 + `/data/IA/Openclaw` + contrôle rapide](INSTALLATION_SIMPLE_FEDORA45.md). Les vérifications ci-dessous portent sur l'atelier installé. Le contrôle Live seul ne les remplace pas. Consulter les [défauts ouverts](AUDIT_SOURCE_2026_10_27.md) avant de prononcer la réception.
 
 
