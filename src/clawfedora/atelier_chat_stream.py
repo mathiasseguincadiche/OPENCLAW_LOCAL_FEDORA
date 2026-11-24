@@ -75,6 +75,8 @@ def _bridge_deltas(
             native_thread=(document["agent"], document["project"]),
         )
     else:
+        if document["agent"] != "chef-operations" or document["project"] is not None:
+            raise ValueError("Activation SSE étendue retirée avant génération")
         bridge_server = make_policy_bridge(repo_root, runtime, bearer, 0)
     with bridge_server as bridge:
         worker = threading.Thread(target=bridge.serve_forever, daemon=True)
