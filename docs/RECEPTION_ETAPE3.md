@@ -1,5 +1,10 @@
 # Réception de l'atelier sur le PC — liste de contrôle (étape 3)
 
+> **Référence actuelle :** [recette globale native](RECETTE_GLOBALE.md).
+> Les passages historiques Open WebUI / OpenRouter ci-dessous ne sont pas
+> des exigences de réception de l'Atelier natif local. Ne pas activer de
+> modèle cloud. Le plan et le précontrôle natif sont prioritaires.
+
 [← Documentation](README.md) · [Installation simple](INSTALLATION_SIMPLE_FEDORA45.md) · [Dépannage](fiches/10-depanner.md) · [État du projet](../STATUS.md)
 
 **But :** prouver, sur la vraie machine (Ryzen 7 7700, 48 Go, Arc B580 12 Go), que l'atelier s'installe, répond en local, mène un projet jusqu'à la livraison, survit à une sauvegarde et à un redémarrage, puis, si tu le décides, appelle le cloud dans le budget prévu. Une CI verte ne prouve aucun de ces points ; seule cette campagne le peut.

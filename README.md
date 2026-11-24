@@ -238,6 +238,14 @@ Les versions exactes sont dans [`config/runtime_versions.yaml`](config/runtime_v
 2. Le modèle propose, le moteur encadre, **tu valides et tu exécutes**.
 3. Le code est testé automatiquement, mais **le PC Fedora n'a pas encore réceptionné l'atelier**.
 
+## Recette globale de réception
+
+La [recette actuelle de l’Atelier natif](docs/RECETTE_GLOBALE.md) centralise
+les contrôles logiciels, le précontrôle du poste et les preuves à recueillir.
+Lancer `./menu.sh --action acceptance-plan` pour afficher le parcours sans
+inférence, ou `acceptance-source` pour vérifier les contrats du dépôt.
+Les essais matériels restent distincts et nécessitent Fedora installé.
+
 ## Documentation
 
 | Besoin | Guide |

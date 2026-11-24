@@ -25,6 +25,9 @@ Installer et utiliser:
   install                Pré-check puis installation complète
   health                 Vérifier les services (rapport détaillé)
   quick-check            Vérification courte : Qwen/Ornith, B580, Atelier, projets
+  acceptance-plan        Plan de réception globale, sans essai ni modification
+  acceptance-source      Contrats du dépôt, sans test du poste
+  acceptance-inspect     Précontrôle du poste installé, sans inférence
   acceptance-32k         Réception des modèles locaux près de 32K (--apply explicite)
   context-probe          Mesurer si le contexte tient sur le GPU, et la vitesse
                          (--context 8192|16384|32768 pour comparer une autre taille)
@@ -124,6 +127,16 @@ case "$ACTION" in
     PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON" \
       "$REPO_ROOT/scripts/validation/quick_smoke.py" --root "$REPO_ROOT" \
       --runtime-root "$(claw_runtime_root)"
+    ;;
+  acceptance-plan|acceptance-source)
+    ((APPLY == 0)) || { echo "ERREUR: aucun --apply pour ce contrôle" >&2; exit 2; }
+    args=()
+    [[ "$ACTION" != acceptance-source ]] || args+=(--source)
+    run_module acceptance_campaign "${args[@]}"
+    ;;
+  acceptance-inspect)
+    ((APPLY == 0)) || { echo "ERREUR: aucun --apply pour ce contrôle" >&2; exit 2; }
+    run_module acceptance_campaign --inspect --runtime-root "$(claw_runtime_root)"
     ;;
   acceptance-32k)
     if ((APPLY == 0)); then
