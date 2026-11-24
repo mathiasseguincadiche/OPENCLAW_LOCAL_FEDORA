@@ -726,6 +726,7 @@ def run_project_tasks(
             raise ValueError("worker: projet ASSIGNED ou IN_PROGRESS requis")
         # A project approved for the cloud does not need Ollama to start; a project without
         # approval is verified exactly as before.
+        previous_model: str | None = None
         if runner is None and consent_state(repo_root, runtime, project)["state"] == "none":
             from clawfedora import ollama_api
             from clawfedora.lifecycle import model_plan
@@ -735,10 +736,17 @@ def run_project_tasks(
                 ollama_api.request_json("http://127.0.0.1:11434/api/tags"), model_plan(repo_root)
             )
             verify_model_lock(runtime, identities)
+            # A new or resumed worker may reuse the model left by a discussion
+            # or previous project. No load, eviction or routing change here.
+            if core_contract(repo_root, "orchestration_policy.yaml")["execution"].get(
+                "model_affinity_for_independent_tasks"
+            ) is True:
+                previous_model = ollama_api.resident_model_alias(
+                    identities, daily_limits(repo_root)["context_tokens"],
+                )
         invoke = runner or project_runner(repo_root, runtime, project)
         write_progress(runtime, project, "preparing")
         build_index(repo_root, project)
-        previous_model: str | None = None
         while tasks := ready_tasks(repo_root, project, prefer_model=previous_model):
             if is_paused(runtime, project):
                 break

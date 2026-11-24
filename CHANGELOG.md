@@ -4,6 +4,17 @@ Ce fichier suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0
 
 ## [Non publié]
 
+### Affinité du modèle résident entre projets
+
+- Au démarrage ou à la reprise d'un worker local, lecture facultative de
+  l'inventaire Ollama sous verrou après vérification des identités : seul un
+  modèle résident unique, autorisé, au digest exact et au contexte 32K,
+  peut orienter la sélection des tâches indépendantes déjà prêtes.
+- Inventaire indisponible, ambigu ou divergent : ordre initial inchangé.
+  Aucun préchargement, téléchargement, changement de routage, éviction
+  forcée ou augmentation du parallélisme. Mesures physiques différées.
+
+
 ### Profils GPU expérimentaux réversibles
 
 - Trois candidats contrôlés : référence f16 sans Flash Attention, Flash Attention

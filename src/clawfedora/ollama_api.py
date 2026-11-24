@@ -72,3 +72,45 @@ def model_inventory(
             }
         )
     return inventory
+
+
+def resident_model_alias(
+    identities: list[dict[str, Any]], context_tokens: int,
+) -> str | None:
+    """Best-effort affinity hint from the one actually resident, verified local model.
+
+    Never start or evict a model. A stale/malformed/unavailable inventory or a
+    different context allocation gives no preference. The caller must have
+    verified identities against the local lock and hold the worker lock.
+    """
+    try:
+        loaded = request_json(ENDPOINT + "/api/ps", timeout=2).get("models")
+        if not isinstance(loaded, list) or len(loaded) != 1:
+            return None
+        model = loaded[0]
+        if not isinstance(model, dict):
+            return None
+        name = model.get("name") or model.get("model")
+        if not isinstance(name, str) or not name:
+            return None
+        if any(model.get(key) not in (None, "", name) for key in ("name", "model")):
+            return None
+        digest = model.get("digest")
+        if (
+            not isinstance(digest, str) or not digest
+            or type(model.get("context_length")) is not int
+            or model["context_length"] != context_tokens
+            or type(model.get("size")) is not int or model["size"] <= 0
+        ):
+            return None
+        for identity in identities:
+            if (
+                identity.get("runtime_id") == name
+                and identity.get("digest") == digest
+                and identity.get("alias") in {"qwen-max", "ornith-code"}
+            ):
+                return str(identity["alias"])
+    except (OSError, ValueError, TypeError, AttributeError):
+        # The inventory is only a scheduling hint, not an authorization decision.
+        return None
+    return None
