@@ -24,8 +24,8 @@ injecté par la fonction de lecture canonique existante ; un projet supprimé
 ou un autre projet mentionné par un ancien marqueur refuse la génération.
 Les commandes et les phrases d'approbation utilisent toujours le chemin JSON.
 Les reçus d'artefacts sont vérifiés comme sur le chemin classique ; les
-liens du pont éphémère ne constituent pas des téléchargements durables dans
-l'interface native (chantier séparé). La passerelle Open WebUI ordinaire
+fichiers des tours terminés disposent de liens natifs persistants. Voir
+[Téléchargements des discussions](TELECHARGEMENTS_DISCUSSIONS.md). La passerelle Open WebUI ordinaire
 reste limitée au Mentor sans projet, même si le v2 est sélectionné.
 
 Sans activation explicite, l'interface conserve `/api/chat/send` et
@@ -100,5 +100,5 @@ opérateur liée à une interface réseau non locale.
 
 **Hors périmètre :** streaming des actions d'exécution de projet, des
 approbations, des fichiers binaires et du cloud, reprise automatique de flux
-interrompus, liens de téléchargement natifs durables. La réception réelle du
+interrompus. La réception réelle du
 canary v2 et de l'arrêt effectif du moteur reste à effectuer sur Fedora/B580.

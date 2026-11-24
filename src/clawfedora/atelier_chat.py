@@ -22,7 +22,7 @@ from http.client import HTTPConnection
 from pathlib import Path
 from typing import Any
 
-from clawfedora import chat_projects
+from clawfedora import chat_artifacts, chat_projects
 from clawfedora.chat_context import select_history
 from clawfedora.core_config import AGENT_IDS
 from clawfedora.project_common import PROJECT_ID_RE
@@ -120,7 +120,39 @@ def read(runtime: Path, identifier: str) -> dict[str, Any]:
         for msg in document["messages"]
     ):
         raise ValueError("Messages enregistrés invalides")
+    for message in document["messages"]:
+        if "artifacts" not in message:
+            continue
+        artifacts = message["artifacts"]
+        if (
+            message["role"] != "assistant" or not isinstance(artifacts, list)
+            or len(artifacts) > chat_artifacts.MAX_FILES_PER_TURN
+        ):
+            raise ValueError("fichiers de conversation invalides")
+        for reference in artifacts:
+            chat_artifacts.validate_reference(reference)
     return document
+
+
+def download(runtime: Path, identifier: str, receipt: str, extension: str) -> tuple[bytes, str]:
+    """Resolve only an artifact committed in this conversation, not a workspace listing."""
+    document = read(runtime, identifier)
+    if document["project"] and chat_projects.open_project(runtime, document["project"]) is None:
+        raise ValueError("Projet du fil introuvable")
+    for message in document["messages"]:
+        for reference in message.get("artifacts", []):
+            if reference["receipt"] == receipt and reference["format"] == extension:
+                return chat_artifacts.native_bytes(runtime, document["agent"], reference)
+    raise ValueError("Fichier absent de cette conversation")
+
+
+def assistant_message(document: dict[str, Any], reply: str) -> dict[str, Any]:
+    """Attach ephemeral receipt metadata only when the caller commits a complete turn."""
+    message: dict[str, Any] = {"role": "assistant", "content": reply}
+    references = document.pop("_turn_artifacts", [])
+    if references:
+        message["artifacts"] = [chat_artifacts.validate_reference(item) for item in references]
+    return message
 
 
 def listing(runtime: Path) -> dict[str, Any]:
@@ -222,7 +254,9 @@ def _policy_answer(
         "model": "openclaw/" + document["agent"], "stream": False,
         "messages": history,
     }
+    captured: list[dict[str, Any]] = []
     with make_policy_bridge(repo_root, runtime, bearer, 0) as bridge:
+        bridge.artifact_sink = captured.extend
         worker = threading.Thread(target=bridge.serve_forever, daemon=True)
         worker.start()
         try:
@@ -242,6 +276,7 @@ def _policy_answer(
                 answer = value["choices"][0]["message"]["content"]
                 if not isinstance(answer, str) or len(answer.encode()) > 100_000:
                     raise ValueError("Réponse OpenClaw invalide")
+                document["_turn_artifacts"] = captured
                 return answer
             finally:
                 client.close()
@@ -296,7 +331,7 @@ def _send_locked(
         reply = _policy_answer(repo_root, runtime, document, message)
     document["messages"].extend([
         {"role": "user", "content": message},
-        {"role": "assistant", "content": reply},
+        assistant_message(document, reply),
     ])
     if document["title"] == "Nouvelle discussion":
         document["title"] = message.strip().replace("\n", " ")[:72]

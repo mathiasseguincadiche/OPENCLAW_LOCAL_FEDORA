@@ -57,3 +57,8 @@
   #chat-messages { max-height: 48vh; }
   .chat-controls { align-items: flex-start; flex-direction: column; }
 }
+
+.chat-files { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
+.chat-files a { display: inline-block; padding: .5rem .75rem; border: 1px solid currentColor;
+  border-radius: .4rem; overflow-wrap: anywhere; text-decoration: none; }
+.chat-files a:hover, .chat-files a:focus-visible { text-decoration: underline; }
