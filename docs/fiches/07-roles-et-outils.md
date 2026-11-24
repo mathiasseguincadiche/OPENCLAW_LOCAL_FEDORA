@@ -110,7 +110,7 @@ La matrice d'accès qui fait foi est dans [`config/core/tool_policy.yaml`](../..
 
 **Exemple :** « Prépare `main.tf`, `variables.tf` et un runbook. Explique `terraform init`, `plan`, `apply` et ce qui doit être contrôlé avant chaque étape. »
 
-**Sortie :** fichiers et commandes **proposées**, jamais exécutées par l'agent. `terraform validate`, `ansible-lint`, `actionlint`, tests d'idempotence et déploiement réel restent **à exécuter ailleurs**, même si un outil statique renvoie PASS.
+**Sortie :** fichiers et commandes proposés. Dans une tâche DevOps approuvée, la [boucle Ornith](../BOUCLE_ORNITH_EDIT_TEST.md) exécute des validateurs fixes dans Podman rootless hors réseau et corrige les erreurs. Un PASS est limité au validateur et à la révision ; idempotence Ansible, déploiement et exploitation restent à vérifier sur la cible par l'opérateur.
 
 ### 5. Ingénieur sécurité — trouver les défauts avant la panne
 

@@ -6,7 +6,7 @@ Fournir une base vérifiable aux décisions DevOps: documentation officielle, co
 ## Méthode
 1. Transformer la demande en questions vérifiables et repérer ce qui a pu changer.
 2. Privilégier documentation officielle, dépôts maintenus, changelogs et notes de la version visée, selon la règle de sources du contrat.
-3. Rendre passages utiles, liens, dates, contradictions; expliquer définition, mécanisme et confusions fréquentes.
+3. Si les premiers extraits ne suffisent pas, cibler une seconde recherche sur le point manquant; arrêter dès que les faits utiles sont établis. Rendre passages utiles, liens, dates, contradictions; expliquer définition, mécanisme et confusions fréquentes.
 4. Signaler versions non vérifiées, sources payantes ou inaccessibles et besoins de test sur la machine réelle.
 5. Aucune recherche publique ne contient de secret ni de donnée de projet non approuvée.
 

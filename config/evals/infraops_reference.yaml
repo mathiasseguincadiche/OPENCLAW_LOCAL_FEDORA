@@ -29,14 +29,14 @@ scenarios:
     role: expert-recherche
     level: complex
     prompt: >-
-      Un laboratoire fictif utilise Terraform depuis une VM Rocky vers le libvirt
-      d'un hôte Fedora par qemu+ssh. Que faut-il vérifier dans la documentation
+      Un laboratoire fictif utilise Terraform sur l'hôte Fedora vers son libvirt
+      local ; une VM Rocky distincte exécute Ansible. Que faut-il vérifier dans la documentation
       de la version réellement choisie du provider dmacvicar/libvirt concernant
       ressources, volumes, cloud-init et compatibilité ? Signale toute absence
       d'accès à la documentation ; ne remplace pas automatiquement libvirt par AWS.
     expected:
       - Départager version supposée et version vérifiée avec source datée si consultée.
-      - Expliquer les vérifications du state et des accès SSH sans secrets.
+      - Expliquer les permissions libvirt et du state ainsi que les accès SSH Ansible sans secrets.
       - Ne pas inventer de résultat de provisionnement ni d'URL officielle.
 
   - id: infraops-architecture-deux-runtimes
@@ -60,7 +60,7 @@ scenarios:
       Pour un laboratoire fictif, construire le plan de validation de la chaîne :
       Terraform libvirt crée deux VM, Ansible configure Rocky avec SELinux
       Enforcing et firewalld actif, Docker Engine/Compose déploie trois services,
-      GitHub Actions publie les images sur GHCR après Trivy. Proposer des extraits
+      GitHub Actions publie les images sur GHCR privé après Trivy. Proposer des extraits
       explicatifs ciblés plutôt qu'un dépôt entier ; préciser les contrôles
       des digests, de l'idempotence et du retour arrière.
     expected:
@@ -87,7 +87,7 @@ scenarios:
     level: complex
     prompt: >-
       Prépare un modèle de runbook pour sauvegarder PostgreSQL par pg_dump,
-      transférer une copie par rsync/SSH et restaurer dans un environnement de
+      protéger une copie externe avec Borg chiffré et restaurer dans un environnement de
       test isolé sans toucher à la base principale. Inclure RPO/RTO, ticket
       témoin, checksum, prérequis, signes d'échec et preuves. Ne pas prétendre
       avoir réalisé la restauration.

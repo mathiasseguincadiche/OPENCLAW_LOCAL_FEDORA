@@ -1,13 +1,13 @@
 # Cas de référence InfraOps — enseignements du dépôt OpsDesk
 
-[← Stratégie cloud-first](CLOUD_FIRST_QUALIFICATION.md) · [Sept agents](fiches/07-roles-et-outils.md) · [Laboratoire](LABORATOIRE_DEVOPS.md)
+[← Architecture locale](ARCHITECTURE_LOCALE_QWEN_ORNITH.md) · [Sept agents](fiches/07-roles-et-outils.md) · [Laboratoire](LABORATOIRE_DEVOPS.md)
 
 **Source consultée :** dépôt public [OpsDesk](https://github.com/mathiasseguincadiche/OpsDesk),
-branche `main`, commit de référence `78a8289d8bffe880448d632ce0b16474655fbb2f`.
+branche `main`, commit de référence `623fcd69626e78ec856033e4dc82a9b6aec08ad2`.
 L'atelier ne synchronise **pas automatiquement** GitHub ou Notion. Cette page
 est une étude de cas **datée**, pas une lecture permanente de leur contenu.
 Lors d'un vrai projet, importer volontairement un snapshot vérifié et
-ne transmettre au cloud que les données publiables après consentement.
+conserver les notes privées hors des publications et requêtes Web. L'inférence est exclusivement locale.
 
 ## Ce qu'OpsDesk exige réellement
 
@@ -20,13 +20,16 @@ déjà validées**.
 | Domaine | Cible ou exercice déclaré | Preuve à attendre |
 | --- | --- | --- |
 | Hôte et virtualisation | Fedora 45, KVM/QEMU/libvirt | `virsh`, VM démarrée, réseau et accès réels |
-| Provisionnement | Terraform libvirt depuis `srv-admin` vers `srv-app` et `srv-k3s` | Plan approuvé, apply observé, state protégé, SSH et second plan |
+| Provisionnement | Terraform libvirt depuis l'hôte Fedora ; administration Ansible depuis la VM dédiée | Plan approuvé, apply observé, state protégé, SSH et second plan |
 | Configuration | Ansible sur Rocky Linux 10.2 | Paquets/réseau/SELinux/firewalld contrôlés, seconde passe `changed=0` |
 | Service principal | Docker Engine + Compose sur `srv-app`, API/frontend/PostgreSQL | Conteneurs sains, requête métier, persistance et reboot |
-| CI/CD | GitHub Actions, Trivy, GHCR, approbation Ansible | Tests, scan lu, digest déployé identique au digest qualifié |
+| CI/CD | GitHub Actions, Trivy, GHCR privé, images par digest, approbation Ansible | Tests, scan lu, digest déployé identique au digest qualifié |
 | Orchestration d'essai | K3s sur `srv-k3s`, **copie distincte** de l'application | Sondes, rollout, rollback, trafic de test, pas de production déplacée |
 | Observabilité | Prometheus, Grafana, journaux JSON, k6 sur copie | Scrape, alerte `firing`, diagnostic et mesures réelles |
-| Sauvegarde/PRA | `pg_dump` + systemd timer + rsync/SSH, restauration isolée | Checksum, ticket témoin, RPO/RTO calculés et comparés |
+| Sauvegarde/PRA | `pg_dump` et sauvegarde externe Borg chiffrée, restauration isolée | Checksum, ticket témoin, RPO/RTO calculés et comparés |
+
+La cible V2 impose aussi HTTPS dès la livraison serveur, Ansible Vault pour les secrets,
+et Grafana Alerting par e-mail. L'infrastructure reste prévue et non qualifiée.
 
 Les noms et la topologie ici décrivent **le projet de référence**. Les
 agents ne doivent pas imposer ces choix à tous les projets futurs. Une
@@ -65,9 +68,8 @@ graphique réelle et les tests sur Fedora restent distincts.
 | Auditeur | Validation avant de déclarer un livrable ou un exercice réussi | Confrontation des critères et des preuves, refus du PASS fictif |
 
 **Le modèle est choisi après le besoin et le rôle**, non l'inverse.
-DeepSeek convient à la production de travail autorisé ; Sol aux
-contre-expertises approuvées. Qwen local conserve une utilité à qualifier
-sur des documents privés ou des tâches bornées. Une aide du modèle ne
+Qwen 3.5 9B assure six rôles ; Ornith 1.5 9B produit et corrige le code
+avec les validateurs autorisés. Aucun repli cloud. Une aide du modèle ne
 démontre pas une compétence personnelle.
 
 ## Autonomie et modalités d'aide
@@ -106,18 +108,18 @@ clawfedora-evals --suite infraops --inputs-only
 clawfedora-evals --suite infraops --report ./notes_infraops_local.json
 ```
 
-Pour comparer DeepSeek et Sol, employer **le même SHA de suite**,
-les mêmes preuves, versions et contraintes ; enregistrer tous les
-appels et reprises. Aucun verdict de supériorité n'est encore disponible.
-Ne pas copier de logs privés ni de secrets dans les rapports ou dans
-OpenRouter. La grille technique note exactitude, clarté, preuve et sécurité,
-sans se substituer à un test sur les VM réelles.
+Qualifier Qwen et Ornith sur le même SHA de suite et avec les mêmes
+contraintes, selon les rôles attribués. Noter la qualité des réponses et les
+reprises réellement nécessaires. Aucun verdict de supériorité n'est acquis.
+La grille technique note exactitude, clarté, preuve et sécurité, sans se
+substituer à un test sur les VM réelles.
 
 ## Ce que le système sait faire — et la limite à garder visible
 
 - **Présent dans le code :** spécialités, génération de fichiers,
   contrôles statiques autorisés, preuve opérateur, plans approuvés,
-  passerelle cloud et budget, laboratoire Podman rootless facultatif.
+  boucle Ornith édition/test/correction, laboratoire Podman rootless facultatif,
+  imports GitHub/Notion sur demande et publication sous approbation.
 - **Non démontré sur le PC :** création des VM et liaison libvirt,
   installation/SELinux Docker sur Rocky, K3s, réseau, restauration,
   supervison et performances de la B580.
@@ -128,10 +130,8 @@ sans se substituer à un test sur les VM réelles.
 
 ### Évolutions à envisager après qualification
 
-1. Une **importation GitHub en lecture seule**, explicitement déclenchée
-   pour un dépôt/commit précis, avec manifeste SHA-256 et filtrage des
-   fichiers sensibles avant l'ingestion. Pas de `git push`, `apply`
-   ou de transfert cloud non autorisé.
+1. Réceptionner l'import GitHub déjà implémenté, sur un dépôt et un commit
+   précis, avec manifeste et filtrage des fichiers sensibles.
 2. Une **matrice de preuves opérateur par environnement** : machine,
    version, configuration, commande, attendu, résultat, date et révision,
    avec inventaire de tests réels par cible.
@@ -139,7 +139,7 @@ sans se substituer à un test sur les VM réelles.
    d'essai uniquement. Autorisation humaine avant chaque modification
    sensible, isolation des secrets et contrôle du réseau réel.
 4. Une évaluation pédagogique InfraOps sur plusieurs tours, puis
-   qualification de Qwen en cas d'utilisation du local.
+   qualification des deux modèles locaux.
 
 Ces évolutions sont **des pistes**, pas des fonctionnalités
 déjà livrées par cette adaptation. Ne pas mettre de réponses complètes
@@ -149,7 +149,7 @@ aux exercices dans OpsDesk pour faciliter un benchmark.
 
 - [État et limites](https://github.com/mathiasseguincadiche/OpsDesk/blob/main/STATUS.md)
 - [Architecture et décisions](https://github.com/mathiasseguincadiche/OpsDesk/blob/main/docs/architecture.md)
-- [13 exercices](https://github.com/mathiasseguincadiche/OpsDesk/blob/main/docs/apprentissage/README.md)
+- [Parcours et exercices personnels (Notion)](https://app.notion.com/p/3fc65721fa1881ad8325c8c4619c7223)
 - [Contrat applicatif](https://github.com/mathiasseguincadiche/OpsDesk/blob/main/docs/contrat-applicatif.md)
 - [Feuille de route](https://github.com/mathiasseguincadiche/OpsDesk/blob/main/ROADMAP.md)
 
