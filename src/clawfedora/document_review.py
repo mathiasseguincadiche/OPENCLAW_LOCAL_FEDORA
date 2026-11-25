@@ -5,6 +5,7 @@ declare from Markdown syntax. Never assign a PASS without real reader evidence.
 """
 from __future__ import annotations
 
+import hashlib
 import re
 from typing import Any
 
@@ -31,6 +32,44 @@ KINDS: dict[str, dict[str, tuple[str, ...]]] = {
         "transfer": ("transpos", "réutil", "reutil", "approfond", "variante"),
     },
 }
+# Profiles complement, rather than replace, the original three kinds.
+KINDS.update({
+    "wiki_home": {"purpose": ("objectif", "présentation", "projet"),
+                  "navigation": ("explorer", "navigation", "commencer"),
+                  "progress": ("parcours", "progression", "suivi"),
+                  "references": ("références", "architecture", "état")},
+    "architecture": {"context": ("contexte", "besoin"), "components": ("architecture", "composants"),
+                     "decisions": ("décision", "compromis", "alternative"),
+                     "validation": ("contrôle", "preuve", "validation", "limite")},
+    "proof": {"scope": ("cible", "périmètre", "version"), "method": ("méthode", "contrôle"),
+              "observed": ("observ", "résultat"), "limits": ("limite", "risque")},
+    "journal": {"context": ("séance", "contexte", "cible"), "observed": ("observ", "résultat"),
+                "next": ("suite", "prochaine", "blocage"), "help": ("aide", "assistance")},
+    "portfolio": {"need": ("besoin", "projet"), "contribution": ("rôle", "contribution", "réalisation"),
+                  "evidence": ("preuve", "test"), "limits": ("limite", "état")},
+    "release": {"changes": ("changement", "nouveauté"), "validation": ("test", "validation"),
+                "rollback": ("rollback", "retour", "migration")},
+    "issue": {"problem": ("problème", "symptôme", "contexte"), "reproduce": ("reprodu", "étape"),
+              "expected": ("attendu", "critère"), "observed": ("observ", "preuve")},
+    "pull_request": {"scope": ("périmètre", "changement", "objectif"), "tests": ("test", "contrôle"),
+                     "limits": ("risque", "limite", "rollback")},
+})
+RUBRIC = (
+    ("accuracy", 20, "Exactitude technique : sources, version et cible"),
+    ("writing", 15, "Qualité rédactionnelle : précision, clarté, sobriété"),
+    ("information", 15, "Architecture de l’information : hiérarchie et absence de doublons"),
+    ("learning", 10, "Pédagogie : mécanisme, pratique, signes de réussite"),
+    ("graphics", 10, "Qualité graphique : source, rendu et lisibilité"),
+    ("navigation", 10, "Ergonomie : parcours de lecture, mobile et thèmes"),
+    ("cross_support", 10, "Cohérence des supports : révisions et séparation public/privé"),
+    ("evidence", 5, "Sources et preuves : date, portée, limites"),
+    ("maintenance", 5, "Maintenabilité : propriétaire, révision, impact"),
+)
+BLOCKERS = (
+    "technical_error", "fabricated_evidence", "private_disclosure",
+    "required_content_removed", "unsafe_procedure", "missing_required_review",
+)
+
 READERS = (
     ("discovery", "Découvrir le projet et trouver le point d'entrée sans défilement"),
     ("learning", "Suivre une procédure avec prérequis et signes de réussite"),
@@ -39,7 +78,9 @@ READERS = (
 )
 
 
-def inspect_document(content: str, kind: str) -> dict[str, Any]:
+def inspect_document(content: str, kind: str, support: str = "markdown") -> dict[str, Any]:
+    if support not in ("markdown", "github", "notion", "document"):
+        raise ValueError("support documentaire inconnu")
     if not isinstance(kind, str) or kind not in KINDS:
         raise ValueError("type de document inconnu")
     if not isinstance(content, str) or not 0 < len(content.encode("utf-8")) <= 12_000:
@@ -84,6 +125,20 @@ def inspect_document(content: str, kind: str) -> dict[str, Any]:
     return {
         "assessment": "STRUCTURAL_REVIEW_ONLY_NO_EDITORIAL_PASS",
         "document_kind": kind,
+        "support": support,
+        "content_sha256": hashlib.sha256(content.encode("utf-8")).hexdigest(),
+        "editorial_rubric": [{"id": key, "weight": weight, "criterion": label,
+                              "verdict": "NOT_EVALUATED"} for key, weight, label in RUBRIC],
+        "blocking_criteria": [{"id": key, "verdict": "NOT_EVALUATED"} for key in BLOCKERS],
+        "editorial_score": None,
+        "support_review": {
+            "markdown": ["Hiérarchie, liens, code et sources"],
+            "github": ["README et navigation réelle", "SVG et Draw.io, clair/sombre/mobile",
+                       "Preuves publiques expurgées et liens versionnés"],
+            "notion": ["Blocs, mentions, médias et bases à préserver",
+                       "Rendu natif et empilement mobile", "Installation et suivi personnel intacts"],
+            "document": ["Source éditable, pagination, figures et export natif"],
+        }[support],
         "headings": headings[:80],
         "structure": {
             "main_heading_count": levels.count(1),

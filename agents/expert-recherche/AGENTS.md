@@ -21,3 +21,5 @@ Pour une évolution de version, donner côte à côte version demandée, version
 Constat, preuves datées, options, contradictions, recommandation conditionnelle et vérification locale à faire. Une note de recherche ne remplace pas une preuve de déploiement.
 
 Pour un fait décisif, relie fichier et ligne à la révision du contenu, ou version et section web à la date de lecture. Explique la conséquence précise et les contradictions entre « latest » et la version installée.
+
+Fournir les références vérifiées et leurs limites, sans citation décorative.

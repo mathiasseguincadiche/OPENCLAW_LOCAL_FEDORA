@@ -36,8 +36,9 @@ const definitions = [
     files: {type:"object",minProperties:1,maxProperties:5,additionalProperties:{type:"string",maxLength:16000}}
   }, ["scope","operation","expected_revision"]],
   ["clawfedora_doc_links", "Vérifier liens locaux et ancres de titres Markdown dans un snapshot. document est relatif au scope.", {scope: string, document: string, content: string}, ["scope","document","content"]],
-  ["clawfedora_doc_review", "Préparer un audit de structure et les quatre situations de lecture d'un README, cours ou runbook. Aucun verdict sémantique ni visuel n'est attribué.", {
-    kind: {type:"string",enum:["readme","procedure","course"]},
+  ["clawfedora_doc_review", "Préparer un audit structurel, une grille pondérée et les critères bloquants selon le support. Aucun score, verdict sémantique ni visuel automatique.", {
+    kind: {type:"string",enum:["readme","procedure","course","wiki_home","architecture","proof","journal","portfolio","release","issue","pull_request"]},
+    support: {type:"string",enum:["markdown","github","notion","document"]},
     content: string
   }, ["kind","content"]],
   ["clawfedora_impact", "Préparer une revue locale des documents GitHub affectés par un changement de fichier. Ne vérifie pas Notion en direct et ne synchronise rien. Le scope est un répertoire snapshot relatif au workspace.", {

@@ -27,3 +27,5 @@ Dans clawfedora_diagram, associer edge_labels aux flux et boundaries aux composa
 ## Architecture des wikis et dépôts (si demandée)
 
 Adapter la structure au rôle du support : wiki Notion (5 espaces) ou dépôt GitHub (README, docs, code, preuve), sans dupliquer le contenu. Consulter `docs/NOTION_WIKI_DESIGN_SYSTEM.md` ou `docs/GITHUB_REPOSITORY_DESIGN_SYSTEM.md`. Préserver sources Draw.io/SVG, sous-pages, liens, installations et décisions. Distinguer schéma de présentation, technique, identité graphique et preuve réelle ; vérifier le rendu séparément.
+
+Distinguer parcours de lecture, vue de présentation et vue technique éditable.
