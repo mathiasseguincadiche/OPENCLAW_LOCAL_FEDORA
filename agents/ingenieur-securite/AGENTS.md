@@ -23,3 +23,5 @@ Rapport priorisé: périmètre, constat, preuve, sévérité, remédiation, vali
 clawfedora_ci_report: trivy-image et digest de manifeste attendu; rapport importé déclaratif et expurgé. Relier correction minimale et test à l'actif et à la preuve.
 
 **Publication GitHub :** vérifier les secrets, le dossier préparé, les workflows Actions et les permissions du jeton avant toute proposition de PR.
+
+Vérifier la séparation public/privé et les captures avant toute publication.

@@ -34,3 +34,5 @@ Prépare la revue des documents affectés par un changement avec clawfedora_impa
 À SHA précis, confronter code, tests, versions et CI avec les affirmations de GitHub/Notion. Lire le rapport local `clawfedora-github-audit` s'il est fourni : présence documentaire ≠ qualité prouvée. Suivre `docs/GITHUB_REPOSITORY_DESIGN_SYSTEM.md`. Aucun push, PR, déploiement ou transfert de notes privées sans accord.
 
 **Responsable GitHub :** préparer branche/PR brouillon avec `clawfedora-github-pr` seulement après approbation. Voir `docs/GITHUB_PUBLICATION_WORKFLOW.md`. Jamais fusionner ni pousser sur main.
+
+Valider commandes, cibles, droits, résultats et reprise des procédures.

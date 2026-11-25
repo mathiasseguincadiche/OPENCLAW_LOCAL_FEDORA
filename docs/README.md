@@ -23,11 +23,15 @@ contre un envoi cloud involontaire. L'intégration nécessite un projet
 `INTAKE_READY` et une action explicite en CLI ; le chat n'interroge
 pas encore les API directement.
 
+## Standard éditorial transversal
+
+Le [standard d'excellence éditoriale V1](EXCELLENCE_EDITORIALE.md) réunit la grille pondérée, les critères bloquants, la séparation GitHub/Notion et les [démonstrations](editorial-demo/README.md). Le rendu natif reste une réception distincte.
+
 ## Construire un wiki Notion premium
 
 La [charte universelle des wikis Notion](NOTION_WIKI_DESIGN_SYSTEM.md)
 standardise la page d'accueil, les exercices, la navigation, les
-illustrations et les preuves. Deux [gabarits Notion](../templates/notion/accueil-wiki.md)
+illustrations et les preuves. Les [gabarits Notion](../templates/notion/accueil-wiki.md)
 sont fournis pour préparer une proposition avant validation humaine.
 Les sept agents actuels sont spécialisés sur la conception, la rédaction
 et l'audit. Un [éditeur Notion à portée contrôlée](NOTION_CONTROLLED_WRITES.md)
@@ -41,6 +45,8 @@ segment ciblé](NOTION_RICH_TEXT.md) préserve les annotations, les liens
 voisins et les icônes/couleurs des encadrés existants.
 Le [mode tableaux et images](NOTION_TABLES_IMAGES.md) apporte l'inventaire
 et la modification contrôlée d'une cellule ou d'une légende existante.
+La [création éditoriale de page fille](NOTION_EDITORIAL_CREATION.md) ajoute un
+plan JSON borné et une approbation opérateur ; pas de publication autonome.
 
 ## Méthodes d'amélioration des agents et des outils
 

@@ -141,6 +141,16 @@ OUTLINES = {
             "Diagnostic et retour arrière",
             "Rendu du document et des illustrations si exportés",
         ],
+        "github_readme": [
+            "Pitch et état réel", "Démarrage et installation conditionnelle",
+            "Architecture, source et visuel", "Réalisations, limites et preuves",
+            "Navigation et contribution",
+        ],
+        "notion_wiki": [
+            "Accueil, objectif et état réel", "Comprendre et préparer les outils",
+            "Pratiquer, suivre, ressources", "Navigation native et conservation",
+            "Preuves et réception visuelle",
+        ],
         "explanation": [
             "Idée principale",
             "Lien avec les acquis et vocabulaire utile",
@@ -402,7 +412,7 @@ def invoke(
         content, kind = data.get("content"), data.get("kind")
         if not isinstance(content, str) or not isinstance(kind, str):
             raise ValueError("contenu et type documentaire texte requis")
-        return inspect_document(content, kind)
+        return inspect_document(content, kind, data.get("support", "markdown"))
     if tool == "clawfedora_impact":
         scope = data.get("scope")
         changed = data.get("changed_paths")
