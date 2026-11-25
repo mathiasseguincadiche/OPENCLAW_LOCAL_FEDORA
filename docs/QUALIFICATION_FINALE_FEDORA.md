@@ -1,6 +1,7 @@
 # Qualification finale Fedora — résultats réels uniquement
 
-> **Référence actuelle :** [recette globale native](RECETTE_GLOBALE.md).
+> **Archive de compatibilité :** cette page conserve des étapes historiques.
+> **Référence actuelle et seule procédure prioritaire :** [recette globale native](RECETTE_GLOBALE.md).
 > Les passages historiques Open WebUI / OpenRouter ci-dessous ne sont pas
 > des exigences de réception de l'Atelier natif local. Ne pas activer de
 > modèle cloud. Le plan et le précontrôle natif sont prioritaires.

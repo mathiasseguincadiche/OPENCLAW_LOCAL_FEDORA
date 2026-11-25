@@ -4,7 +4,26 @@
 
 **Migration locale Qwen + Ornith intégrée depuis la PR #240 (22 novembre 2026).** Qwen 3.5 9B est conservé pour six agents ; Ornith 1.5 9B est ajouté pour l'ingénieur DevOps. Les routes cloud OpenRouter sont retirées de la configuration active et une procédure explicite permet de supprimer les anciennes clés locales. **La réception Fedora et l'autonomie agentique restent à réaliser.** Voir [l'architecture locale](docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md).
 
-## Référence de CI du 23 novembre 2026
+## Référence du cycle InfraOps du 24 novembre 2026
+
+Les PR #264 à #269 sont fusionnées. Le commit testé de la
+[PR #269](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/269)
+est `93ee14c927c908662de26eb95148986a074a4bf5`, dont l'arborescence
+est identique au commit de fusion `16a53309298e7da1849c8843cf0592c348d17096`.
+[CI de la PR](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45518354731) :
+11 jobs réussis, 1 481 tests réussis, un ignoré, couverture 81 % ;
+CodeQL et Dependency Review réussis. Aucun run du commit de fusion
+n'était remonté au moment de cette revue. Ces chiffres décrivent cette
+référence datée, pas les futures révisions.
+
+Alignement OpsDesk V2, pédagogie, sandbox multi-validateurs, recette de
+construction OCI, parcours natif et qualité documentaire sont intégrés.
+La préparation des artefacts OCI, la construction réelle, les essais
+matériels, la réception visuelle et le parcours OpsDesk restent à exécuter.
+Suivre la [recette globale native](docs/RECETTE_GLOBALE.md), sans imposer
+Open WebUI ni modèle cloud. Le statut reste `NOT_END_TO_END_QUALIFIED`.
+
+## Référence historique de CI du 23 novembre 2026
 
 PR [#262](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/262),
 commit testé `f5b9fd4d6f368d95a85fd97b86a3912482e289a3`, fusion dans
@@ -36,7 +55,7 @@ natives, la maintenance et la recette consolidée sont intégrées. Voir
 | **Sept rôles et projets multiples** | Contrats et tests automatisés ; livrables scellés par les audits | Qualité comparative Qwen/Ornith sur OpsDesk **À mesurer**, sans note automatique |
 | **Retrait OpenRouter** | Route cloud retirée du catalogue et du worker ; ancienne clé supprimable explicitement | Réception Fedora à vérifier. |
 | **Maintenance** | Désinstallation, purge, sauvegarde et réparation protégées | Arrêt vérifié avant suppression, purge sans perte partielle, maintenance refusée pendant une génération. Restauration du vrai état de l’installation **À faire**. |
-| **Parcours WebUI simplifié** | Implémenté ; réception Open WebUI Fedora à effectuer | Six raccourcis, choix du projet et activité locale ; voir [la prise en main](docs/fiches/03-discuter.md) |
+| **Parcours natif simplifié** | PR #268 fusionnée ; navigateur synthétique réussi | Mentor par défaut et aide par rôle ; voir [la prise en main](docs/fiches/03-discuter.md). Rendu réel Fedora à qualifier. |
 | **Documents ODT** | Export éditable et import textuel implémentés | Limites d’import [documentées](docs/fiches/06-fichiers-et-schemas.md) ; réception dans le navigateur Fedora à effectuer |
 | **GitHub / Notion** | Import en lecture seule ; GitHub sous approbation ; écriture Notion sous approbation (bloc simple et lot multi-blocs) fusionnée ; panneau de revue local fusionné #216 ; édition par segment enrichi fusionnée #217 ; gestion de légendes et cellules fusionnée #218 | [Panneau Notion](docs/NOTION_DASHBOARD.md) ; [édits multi-blocs](docs/NOTION_MULTI_BLOCK.md) ; [mode texte enrichi](docs/NOTION_RICH_TEXT.md) ; [tableaux et images](docs/NOTION_TABLES_IMAGES.md) ; [recette complète](docs/validation/NOTION_GITHUB_ACCEPTANCE.md). Réception sur Fedora, compte Notion et navigateur réel **à faire**. |
 

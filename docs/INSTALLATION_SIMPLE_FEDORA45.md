@@ -5,7 +5,7 @@
 **Avant cette installation, facultatif :** un essai en
 [Live USB Fedora 45 / GNOME 51](LIVE_USB_FEDORA45_PREQUALIFICATION.md)
 préqualifie le matériel ; il ne teste pas l'atelier complet. Pour la réception
-pas à pas sur le PC, suivre la [liste de contrôle](RECEPTION_ETAPE3.md). Lire aussi
+pas à pas sur le PC, suivre la [recette globale native](RECETTE_GLOBALE.md). Lire aussi
 les [corrections ouvertes de l'audit](AUDIT_SOURCE_2026_10_27.md) avant la réception.
 
 Fedora 45 Workstation / GNOME 51 est installé **normalement sur le SSD système**.
@@ -75,7 +75,7 @@ cd "/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA"
 
 Le bootstrap vérifie le second disque avant d'installer des paquets.
 Il crée `/data/IA/Openclaw` et ses répertoires, installe les versions épinglées
-d'Ollama/OpenClaw, le modèle Qwen local, les sept agents et le Gateway.
+d'Ollama/OpenClaw, les deux modèles locaux Qwen et Ornith, les sept agents et le Gateway.
 Le téléchargement du modèle et des logiciels demande Internet.
 La configuration GPU du service Ollama accorde explicitement les groupes
 `render` et `video` à **son compte système dans l'unité systemd** ; les groupes

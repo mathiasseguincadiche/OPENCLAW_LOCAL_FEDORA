@@ -46,6 +46,8 @@ STAGES = (
      "Précheck, installation volontaire, stockage et session graphique"),
     ("short-inference", "EXPLICIT", "INSTALLATION_SIMPLE_FEDORA45.md",
      "quick-check : réponses locales des deux modèles et VRAM observée"),
+    ("validator-image", "EXPLICIT", "IMAGE_VALIDATEURS_OFFLINE.md",
+     "Image locale, seize cas synthétiques, logs revus et dépendances réelles qualifiées"),
     ("seven-roles", "HUMAN", "RECETTE_GLOBALE.md",
      "Sept rôles, routage attendu, outils et qualité des réponses"),
     ("project-lifecycle", "HUMAN", "RECETTE_GLOBALE.md",
@@ -70,6 +72,8 @@ STAGES = (
      "Inspection réelle des pages et documents, captures sans secrets"),
     ("host-stability", "HUMAN", "RECETTE_GLOBALE.md",
      "Redémarrage, veille, AV1, stabilité et revue finale"),
+    ("first-infraops-project", "HUMAN", "CAS_USAGE_INFRAOPS_OPSDESK.md",
+     "Après réception atelier : premier exercice OpsDesk, preuves et aide distinguées"),
 )
 
 

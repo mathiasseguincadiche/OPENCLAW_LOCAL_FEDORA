@@ -1,6 +1,7 @@
 # Réception de l'atelier sur le PC — liste de contrôle (étape 3)
 
-> **Référence actuelle :** [recette globale native](RECETTE_GLOBALE.md).
+> **Archive de compatibilité :** cette liste conserve des étapes historiques.
+> **Référence actuelle et seule procédure prioritaire :** [recette globale native](RECETTE_GLOBALE.md).
 > Les passages historiques Open WebUI / OpenRouter ci-dessous ne sont pas
 > des exigences de réception de l'Atelier natif local. Ne pas activer de
 > modèle cloud. Le plan et le précontrôle natif sont prioritaires.

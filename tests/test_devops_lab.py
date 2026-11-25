@@ -73,7 +73,13 @@ def test_validation_commands_are_fixed(tmp_path: Path) -> None:
     assert "-backend=false" in validate[3] and "-lockfile=readonly" in validate[3]
     assert "-plugin-dir=/opt/clawfedora/terraform-providers" in validate[3]
     assert lab.command_for("ansible-lint", tmp_path, manifest)[1] == "--offline"
-    assert lab.command_for("actionlint", tmp_path, manifest) == ["actionlint", "-no-color"]
+    assert lab.command_for("actionlint", tmp_path, manifest) == [
+        "actionlint", "-no-color", "/workspace/.github/workflows/ci.yml",
+    ]
+    with pytest.raises(lab.LabRefusal, match="Aucun fichier Terraform"):
+        lab.command_for("terraform-fmt", tmp_path, (Path("README.md"),))
+    with pytest.raises(lab.LabRefusal, match="Aucun workflow"):
+        lab.command_for("actionlint", tmp_path, (Path(".github/workflows/notes.md"),))
     assert lab.command_for("shellcheck", tmp_path, manifest) == [
         "shellcheck", "--", "/workspace/run.sh"
     ]
