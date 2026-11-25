@@ -4,7 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from clawfedora import devops_lab, validator_acceptance as acceptance
+from clawfedora import devops_lab
+from clawfedora import validator_acceptance as acceptance
 
 IMAGE = "sha256:" + "a" * 64
 
