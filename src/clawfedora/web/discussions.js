@@ -11,6 +11,26 @@
     "redacteur-pedagogique": "Rédacteur pédagogique",
     "auditeur-qualite": "Auditeur qualité",
   };
+  const roleHelp = {
+    "chef-operations": ["Qwen · Comprendre, pratiquer et débloquer.",
+      "Explique-moi le mécanisme, avec un exemple et une vérification à réaliser."],
+    "expert-recherche": ["Qwen · Versions et sources officielles.",
+      "Vérifie les versions compatibles et cite les sources réellement consultées."],
+    "architecte-solutions": ["Qwen · Architecture, flux et schémas Draw.io.",
+      "Compare les options et explique les compromis, les flux et les limites."],
+    "ingenieur-devops": ["Ornith · Code, IaC, CI/CD et corrections.",
+      "Prépare le code, explique-le et distingue les tests réalisés de ceux à effectuer."],
+    "ingenieur-securite": ["Qwen · Durcissement, secrets et exposition.",
+      "Identifie les risques et les contrôles à effectuer sans affaiblir les protections."],
+    "redacteur-pedagogique": ["Qwen · Documentation, runbooks et supports.",
+      "Rédige une procédure claire avec prérequis, commandes et preuves attendues."],
+    "auditeur-qualite": ["Qwen · Relecture, critères et preuves.",
+      "Relis les exigences et distingue les preuves suffisantes des écarts."],
+  };
+  function showRoleHelp() {
+    const help = roleHelp[$("new-agent").value];
+    $("agent-help").textContent = help ? help[0] : "Choisissez un rôle disponible.";
+  }
   let selected = null;
   let selectedChat = null;
   let streamingEnabled = false;
@@ -66,6 +86,10 @@
     $("chat-title").textContent = chat.title;
     $("chat-context").textContent = (chat.project || "Sans projet") + " · " +
       (labels[chat.agent] || chat.agent) + " · Contexte verrouillé";
+    const example = $("chat-example");
+    const help = roleHelp[chat.agent];
+    example.hidden = !help || chat.messages.length > 0;
+    example.textContent = help ? "Exemple de demande : " + help[1] : "";
     const feed = $("chat-messages");
     feed.replaceChildren();
     for (const entry of chat.messages) {
@@ -212,12 +236,17 @@
       list = threads.chats;
       $("new-agent").replaceChildren(...threads.agents.map(id =>
         option(id, labels[id] || id)));
+      if (threads.agents.includes("chef-operations")) {
+        $("new-agent").value = "chef-operations";
+      }
+      showRoleHelp();
       $("new-project").replaceChildren(option("", "Sans projet"),
         ...status.projects.map(item => option(item.project_id, item.title)));
       renderHistory();
       if (list.length) await openChat(list[0].id);
     } catch (error) { messageError(error.message); }
   }
+  $("new-agent").addEventListener("change", showRoleHelp);
   $("new-chat").addEventListener("submit", async (event) => {
     event.preventDefault();
     if (busy) return;

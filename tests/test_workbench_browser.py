@@ -356,3 +356,26 @@ def test_mobile_icon_navigation_retains_accessible_names_and_skip_link(
         pw.expect(page.locator("#main-content")).to_be_focused()
     finally:
         context.close()
+
+
+def test_discussion_role_guidance_does_not_send_or_create(
+    browser: Any, local_server: DashboardServer,
+) -> None:
+    context = browser.new_context(viewport={"width": 1100, "height": 820})
+    page = context.new_page()
+    writes: list[str] = []
+    page.on(
+        "request",
+        lambda request: writes.append(request.url) if request.method == "POST" else None,
+    )
+    try:
+        page.goto(_url(local_server, "/discussions.html"), wait_until="networkidle")
+        role = page.locator("#new-agent")
+        pw.expect(role).to_have_value("chef-operations")
+        pw.expect(page.locator("#agent-help")).to_contain_text("Qwen")
+        role.select_option("ingenieur-devops")
+        pw.expect(page.locator("#agent-help")).to_contain_text("Ornith")
+        pw.expect(page.locator("#new-project")).to_have_value("")
+        assert writes == [], writes
+    finally:
+        context.close()

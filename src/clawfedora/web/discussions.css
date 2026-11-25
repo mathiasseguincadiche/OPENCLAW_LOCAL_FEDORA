@@ -72,3 +72,6 @@
 .chat-recovery label { display: flex; align-items: flex-start; gap: 8px; margin: 12px 0; }
 .recovery-log details { margin: 8px 0; font-size: 13px; }
 .recovery-log p { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+#agent-help, #chat-example { font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+#agent-help { margin: 0; }

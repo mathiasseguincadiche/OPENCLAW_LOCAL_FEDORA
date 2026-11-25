@@ -21,17 +21,19 @@ Ce que tu peux lui demander dans le chat :
 
 Une bonne façon de l'utiliser : demande un indice plutôt que la solution, partage ton essai, puis demande une correction.
 
-## Deux moteurs pour progresser : Qwen et DeepSeek
+## Deux moteurs locaux pour progresser
 
-Le mentor peut travailler avec **Qwen local** quand tu veux comprendre une notion, travailler sur tes documents privés ou recevoir un exemple rapide. Avec **DeepSeek cloud**, ce **même mentor** dispose d'une route pensée pour expliquer les sujets publics complexes, relier plusieurs concepts et analyser des dossiers plus longs. Cela ne signifie **pas** qu'il enseigne forcément mieux : la précision, la clarté, la latence et le coût doivent être comparés sur tes questions.
+Qwen accompagne la compréhension, la recherche, l'architecture et la
+relecture. Ornith intervient pour la production et la correction du code.
+Le mentor reste Qwen ; aucune route cloud ni bascule automatique.
+Le choix d'un rôle n'est pas une mesure de compétence.
 
-**L'atelier ne bascule pas automatiquement le mentor vers DeepSeek** en cas de question difficile : tu choisis la route dans le chat ou autorises le cloud du projet. Les exercices restent facultatifs sur les deux moteurs.
+En co-construction, demande une explication, essaie une action, observe
+le résultat et diagnostique l'écart. Délègue la mise en forme lorsque
+cela aide à te concentrer sur la technique. Termine par une vérification
+que tu peux refaire seul, sans transformer l'exercice en examen obligatoire.
 
-→ [Comprendre l'intérêt et les limites de l'hybride](../ARCHITECTURE_HYBRIDE.md).
-
-## Apprendre avec le cloud, si tu l'as activé
-
-Pour une notion publique complexe, une longue analyse ou une tâche agentique, le modèle « · cloud (DeepSeek) » peut apporter plus de capacité que Qwen 9B. Ce n'est pas une preuve qu'il enseigne toujours mieux : compare les deux sur tes propres questions. Garde « · local » pour tout ce qui touche ton travail, tes données confidentielles ou ce dont tu n'es pas sûr. Les consignes du mentor sont les mêmes dans les deux modes. Voir [Discuter](03-discuter.md) et [Le cloud, facultatif](12-cloud.md). Un bon réflexe d'apprentissage reste le même quel que soit le modèle : vérifier une version, une commande ou un chiffre dans la documentation officielle.
+→ [Architecture locale](../ARCHITECTURE_LOCALE_QWEN_ORNITH.md).
 
 ## Obtenir des explications fiables
 
@@ -47,7 +49,7 @@ Ce que tu peux faire :
 1. Pour une version, une commande sensible ou un chiffre, demande « avec quelle source ? » : le mentor cherche, ou dit qu'il ne sait pas.
 2. Demande-lui « qu'est-ce qui n'est pas vérifié dans ta réponse ? ».
 3. Vérifie toujours dans la documentation officielle avant d'exécuter.
-4. Pour **une notion publique complexe ou une tâche longue**, essaie le modèle « · cloud (DeepSeek) ». Les benchmarks publics indiquent une forte capacité agentique et de code, mais pas une supériorité pédagogique démontrée face à Qwen 3.5 9B. Garde « · local » pour le travail et le confidentiel. Voir [Quel modèle pour expliquer](../DECISION_MODELE.md) et [Le cloud, facultatif](12-cloud.md). Compare sur tes propres questions : c'est cette mesure qui tranchera pour ton usage.
+4. Pour une notion complexe, fractionne le problème et demande une contre-vérification sourcée ; confie la production de code à Ornith lorsque nécessaire.
 
 La qualité réelle des explications n'a pas encore été mesurée sur ta machine : voir [STATUS](../../STATUS.md).
 

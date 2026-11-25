@@ -1,306 +1,88 @@
-# Discuter
+# Discuter dans ClawFedora
 
-[← Guide](../GUIDE.md) · [Pourquoi Qwen + DeepSeek ?](../ARCHITECTURE_HYBRIDE.md) · [Les sept rôles](07-roles-et-outils.md) · [Exemple DevOps](../EXEMPLE_PARCOURS_DEVOPS.md)
+[← Guide](../GUIDE.md) · [Les sept rôles](07-roles-et-outils.md) · [Atelier natif](../ATELIER_UNIQUE_CHAT_OLLAMA.md)
 
-Open WebUI est l'interface de discussion, à l'adresse `http://127.0.0.1:3000`. Elle sert aux questions de tous les jours, comme tu le ferais avec Claude ou ChatGPT.
-
-> **En bref.** Pour une question : choisis un rôle ([Choisir à qui tu parles](#choisir-à-qui-tu-parles)), pose-la, et reste en local. Pour un fichier court : [analyse-le dans le chat](#analyser-un-petit-fichier-sans-créer-de-projet). Pour un vrai travail en plusieurs étapes : [passe par un projet](#chat-ou-atelier-). Le reste de cette page est une **référence** : tu n'as pas à tout lire avant de commencer.
-
-## Huit raccourcis pour commencer
-
-Après la création du compte administrateur et `webui-seal --apply`, huit entrées
-regroupent les actions sous les réponses :
-
-| Raccourci | Utilité |
-|---|---|
-| **Choisir un projet** | Choisir dans une liste, sans retenir son identifiant |
-| **Afficher les projets dans le menu** | Créer les dossiers natifs de projets dans Open WebUI après confirmation, sans déplacer les chats |
-| **Classer cette conversation** | Ranger un fil WebUI sauvegardé dans le projet choisi et y enregistrer son contexte, après confirmation |
-| **Projet et prochaine étape** | Lire l’état, les tâches et la suite proposée |
-| **Activité de l’atelier** | Consulter le travail en cours et le temps écoulé connu |
-| **Créer un projet** | Préparer le titre et le besoin, puis demander sa confirmation |
-| **Actions du projet** | Ouvrir le menu analyse, plan, validation, lancement, pause, relecture et livraison |
-| **Sources, modèles et aide** | Consulter les sources, la liste des projets, le conseil de modèle, le budget et les commandes |
-
-Les [dossiers de projets natifs](../OPENWEBUI_NATIVE_PROJECT_FOLDERS.md)
-sont créés sur demande depuis **Afficher les projets dans le menu**.
-Pour retrouver un fil dans le bon dossier, utiliser **Classer cette
-conversation** après son premier message. Ouvrir un nouveau fil dans un
-sous-dossier ne sélectionne pas encore son contexte ClawFedora
-automatiquement. Les sessions OpenClaw du terminal restent séparées.
-
-Utilise **Choisir un projet sous la dernière réponse** de la conversation : le
-projet choisi apparaît en tête de cette réponse, dont le texte est conservé.
-Ce choix est enregistré dans ce fil ; il ne modifie ni les fichiers, ni les
-accords cloud du projet. Annuler la liste ne change rien. La commande
-`!projet <id>` reste disponible. Sur une réponse plus ancienne, le choix ne
-remplace pas les sélections figurant dans les réponses suivantes.
-
-Les consultations ne lancent aucun modèle ni appel cloud. L’activité utilise
-le verrou partagé et l’étape signalée par l’atelier ; le temps écoulé s’affiche
-seulement si son horodatage est exploitable. Aucun pourcentage de génération
-n’est inventé. Ce raccourci reste consultable pendant qu’un traitement travaille ;
-il ne transforme pas le bouton Arrêter en annulation effective.
-
-Le conseil **Quel modèle choisir ?**, dans **Sources, modèles et aide**, reste
-une orientation statique locale : il ne consulte pas l’historique, ne choisit
-pas le fournisseur et ne donne pas d’accord cloud. **Consulter le budget cloud**
-lit le journal local, sans récupérer automatiquement la facture OpenRouter.
-
-Sur une installation existante, après la mise à jour du dépôt, relance
-`./menu.sh --action webui-seal --apply` pour réinstaller la Function gérée et
-redémarrer WebUI. Le pont et le tableau de bord doivent aussi utiliser le code
-mis à jour ; la procédure normale de mise à niveau redémarre les services.
-Les menus natifs et leur persistance restent à qualifier dans le vrai Open WebUI
-Fedora : [protocole navigateur](../SMOKE_TEST_WEBUI.md).
-
-## Piloter les projets avec les boutons de confirmation
-
-Le bouton **Créer un projet** ouvre deux champs : titre (maximum
-193 caractères) et description du besoin (maximum 12 000 octets). Il
-demande ensuite une confirmation dans le navigateur. **Même après
-celle-ci, le projet n'est pas créé immédiatement** : le pont local
-génère une phrase `approuver creation CODE` valable 15 minutes, à
-recopier séparément dans le chat. Le formulaire ne sollicite aucun
-modèle IA et ne contacte pas OpenRouter.
-
-Après sélection d’un projet, ouvre **Actions du projet**, puis choisis
-l’opération dans la liste. Le menu rappelle la prochaine étape connue. Les actions
-existantes y sont regroupées, avec **Relire et préparer la validation** pour
-consulter le brouillon et préparer sa confirmation humaine. Le pont vérifie
-l’état du projet au moment de l’action ; le menu ne donne aucune autorisation.
-
-Ces actions ne sont **pas** des instructions données au modèle. Chaque clic
-demande d'abord une **confirmation explicite dans le navigateur**. Un clic
-annulé, une session de navigateur déconnectée, l'absence de dialogue ou
-l'absence de projet sélectionné ne déclenchent **aucune mutation**.
-
-Après confirmation, l'action transmet au **pont local authentifié**
-uniquement l'identifiant du projet actif et une commande fixe, par exemple
-`!lancer`. Le pont réutilise les permissions, les états et les verrous de
-l'Atelier Projets. Il peut refuser l'opération si le plan n'est pas approuvé,
-si une tâche est déjà en cours ou si le cloud n'est pas autorisé. Le navigateur
-**ne reçoit aucun accès direct aux API privilégiées d'OpenClaw**.
-
-**Préparer la livraison** ne livre pas automatiquement : le pont crée encore
-une phrase d’approbation à usage unique, à taper séparément dans le chat.
-L’action **Répondre à une précision**, dans **Actions du projet**, demande le numéro visible avec
-`!questions` (entre 1 et 30), puis votre réponse (jusqu'à 1 500 caractères).
-Elle demande une confirmation explicite avant de transmettre uniquement
-le numéro et le texte au pont local. Le moteur vérifie l'existence de
-la question et l'état du projet ; un numéro inventé n'autorise rien.
-L'annulation d'un champ ou du dialogue ne déclenche aucune commande.
-
-**Demander une révision** figure aussi dans **Actions du projet** ; le formulaire
-demande la tâche et le motif avant la confirmation. Les soumissions de fichiers
-restent accessibles par commande ou par l’Atelier Projets.
-
-La compatibilité des dialogues, l'affichage effectif des boutons et le
-comportement après coupure du navigateur devront être vérifiés sur le véritable
-Open WebUI de Fedora durant la réception finale.
-
-## Choisir Qwen, DeepSeek ou Sol sans divulgation automatique
-
-Tu peux taper `!modele` pour voir une carte des usages, ou `!modele iac`,
-`!modele architecture`, `!modele ci`, `!modele confidentiel`,
-`!modele simple`, `!modele documents` et `!modele audit` pour obtenir les raisons et limites
-de chaque choix.
-
-**Ce ne sont pas des commandes IA :** le pont répond **localement**, sans
-consulter tes conversations, sans envoyer de texte à DeepSeek ni à Sol, sans dépenser
-de tokens et sans changer la route. Un conseil « DeepSeek à envisager » ne
-signifie jamais que des documents sont publics ou sûrs à exporter.
-
-Le choix du modèle reste dans le sélecteur Open WebUI ; l'accord du projet
-et la passerelle de confidentialité/budget restent obligatoires.
-
-## Suivre le budget cloud sans quitter le chat
-
-Tape `!budget`, ou ouvre **Sources, modèles et aide → Consulter le budget DeepSeek**. Le pont lit le journal
-local des réservations et relevés déjà enregistrés : **montant engagé prudent,
-plafond de 35 €, reste estimé et nombre d'appels incertains**. Ce n'est pas la
-facture OpenRouter en temps réel : les crédits prépayés, la limite de clé et
-le rapprochement des factures restent indispensables.
-
-Ni l'historique du chat, ni tes messages ni les clés API ne sont utilisés pour
-cette commande. Si le journal est illisible ou lié vers un autre fichier, le
-pont refuse la consultation sans produire de montant trompeur.
+Ouvre `http://127.0.0.1:18890/discussions.html` après installation.
+ClawFedora est l'interface native unique. Aucun compte Open WebUI,
+abonnement cloud ou choix de fournisseur n'est nécessaire.
 
 ## Choisir à qui tu parles
 
-**Pour commencer**, sélectionne le Mentor infrastructure/OPS, pose ta question normalement et demande une explication adaptée à tes acquis. Si tu sais déjà qu'il te faut un schéma, un pipeline ou une relecture de sécurité, choisis directement le spécialiste : tu n'es pas obligé de créer un projet.
+Choisis un projet existant (ou **Sans projet**), un agent et crée le fil.
+Le mentor est proposé par défaut lorsqu'il est disponible. L'aide sous le
+sélecteur indique le modèle et la mission ; le fil vide montre un exemple
+de demande. Rien n'est envoyé à ta place. Le rôle et le projet sont figés :
+pour en changer, crée un autre fil.
 
-Les outils des rôles et leurs limites exactes sont expliqués dans la [fiche détaillée](07-roles-et-outils.md).
-
-Le sélecteur de modèle en haut de la page liste les sept rôles. Tous utilisent le même Qwen : choisir un rôle change les consignes et les outils, pas le modèle. Si tu as activé le cloud, chaque rôle apparaît aussi en « · cloud » : voir plus bas.
-
-| Tu veux | Choisis |
-|---|---|
-| Une question générale, une explication, un blocage | Mentor infrastructure/OPS (choix par défaut) |
-| Une information récente avec ses sources | Expert recherche |
-| Comparer des options, obtenir un schéma | Architecte solutions |
-| Un script, un playbook, un pipeline | Ingénieur DevOps |
-| Relire des droits, des secrets, une exposition réseau | Ingénieur sécurité |
-| Une fiche ou un document bien rédigé | Rédacteur pédagogique |
-| Une relecture critique | Auditeur qualité |
-
-Le détail de chaque rôle est dans [Rôles et outils](07-roles-et-outils.md).
-
-## Cloud : Apprendre ou Travail
-
-Le cloud est facultatif et désactivé tant que tu ne l'as pas activé ([Le cloud, facultatif](12-cloud.md)). Une fois activé, le sélecteur propose chaque rôle deux fois :
-
-| Modèle | Mode | À utiliser pour |
-|---|---|---|
-| « … · local » | **Travail** : Qwen sur ton PC, aucun contenu de la conversation ne part vers un modèle distant | tout ce qui est interne, professionnel ou incertain |
-| « … · cloud » | **Apprendre** : DeepSeek en routine via OpenRouter ; Sol sur choix manuel expert | des questions publiques autorisées, sans secret |
-
-Le choix par défaut reste local. Une réponse cloud porte un bandeau « ☁️ Réponse du modèle cloud ». Si le filtre détecte un secret dans ton message, l'historique ou un résultat d'outil, rien ne part : la conversation passe en local (« 🔒 Conversation passée en local ») et le reste du fil y reste. Si le plafond de 35 € est atteint ou si le fournisseur est indisponible, la réponse vient du local avec un bandeau « 💻 ».
-
-Le filtre arrête les secrets, pas un contenu confidentiel qui n'en a pas l'allure : en cas de doute, choisis « local ».
-
-## Ce qu'il faut savoir
-
-**La réponse arrive d'un bloc.** Open WebUI attend la fin de la génération avant d'afficher. Une réponse longue peut demander une à plusieurs minutes selon la vitesse mesurée au [premier essai](02-premier-essai.md).
-
-**Une seule génération à la fois.** Si l'atelier Projets travaille, le chat répond qu'il est occupé, et inversement. Le modèle n'est jamais lancé deux fois en parallèle.
-
-**La mémoire dépend de la route.** Qwen reçoit les messages récents jusqu'à 32 000 octets. La route cloud (DeepSeek ou Sol) peut recevoir un historique plus large (jusqu'à environ 3 Mio transmis par le pont, dans un contexte cloud déclaré à 1 048 576 tokens). Le contexte maximal annoncé n'est pas la quantité effectivement envoyée : la passerelle, l'historique et le fournisseur imposent leurs propres limites. Dans les deux cas, le pont retire les messages les plus anciens avant de dépasser sa limite et l'indique.
-
-**Le bouton d'arrêt n'arrête pas tout de suite.** Il coupe l'affichage, mais la génération en cours se termine. Attends sa fin avant de passer en mode jeu.
-
-**Le modèle peut se tromper avec assurance.** Pour une version, une commande sensible ou un chiffre, demande la source ou vérifie.
-
-## Retrouver ton contexte et adapter les explications
-
-Pour aider le mentor à reprendre une notion d'une séance à l'autre, renseigne dans **Atelier Projets → Mon accompagnement et la continuité du chat** les champs « Ma manière préférée d’apprendre » et « Ce que je veux conserver des échanges », puis approuve l'enregistrement. Ces notes restent sous ton contrôle, sont bornées à 500 caractères chacune et ne sont jamais rédigées automatiquement par le modèle. Le mentor les relit dans le contexte local, même si tu choisis ensuite une autre route d'inférence ; ne saisis donc pas de secret dans une note destinée au cloud.
-
-Si tu écris « je n'ai pas compris », les consignes lui demandent de **changer d'angle** (comparaison ou contre-exemple) plutôt que répéter la première réponse. C'est un comportement attendu, à mesurer par de véritables dialogues : [grille pédagogique /20](../EVALUATION_PEDAGOGIE.md).
+| Besoin | Rôle / modèle |
+| --- | --- |
+| Comprendre, pratiquer, débloquer | Mentor / Qwen |
+| Vérifier une version, une source | Recherche / Qwen |
+| Concevoir, justifier, dessiner | Architecte / Qwen |
+| Écrire ou corriger le code | DevOps / Ornith |
+| Vérifier risques et accès | Sécurité / Qwen |
+| Rédiger un guide | Rédacteur / Qwen |
+| Contrôler les preuves | Auditeur / Qwen |
 
 ## Bien demander
 
-Un modèle de cette taille répond mieux à une demande précise et courte.
-
-- Donne le contexte utile en une ou deux phrases : ce que tu fais, ce que tu connais déjà.
-- Pose une question à la fois.
-- Pour un sujet long, demande d'abord un plan, puis chaque partie séparément.
-- Pour une information qui a pu changer, écris « cherche sur le Web et donne tes sources ».
-
-Exemple : « Je connais les services systemd. Explique-moi ce qu'un rôle Ansible apporte par rapport à un simple playbook, avec un petit exemple. »
-
-## Analyser un petit fichier sans créer de projet
-
-Dans une discussion **locale**, tu peux joindre jusqu'à **quatre petites pièces jointes** : fichiers texte/code (Terraform, YAML, Markdown, Python, Bash, etc.) ou aperçus bornés de PDF texte et Office (DOCX, PPTX, XLSX) et OpenDocument (ODT), avec un budget cumulé de **12 000 octets de contenu texte**. Un document PDF/Office/ODT ne doit pas dépasser **2 Mio**. Le pont contrôle le fichier d'origine puis place son contenu dans le contexte de cette question uniquement : rien n'est enregistré dans un projet et aucun document n'est envoyé à DeepSeek. Les fichiers envoyés restent néanmoins dans le stockage normal d'Open WebUI et suivent sa politique de conservation.
-
-**Par défaut**, les PDF scannés sans texte ne sont pas analysés en chat libre et les PNG/JPEG/WebP ne fournissent que leurs dimensions et leur format. **En canary privé activé explicitement**, un PDF scanné d'au plus deux pages ou une image admissible peut passer par le Qwen local épinglé, sans fallback cloud, et sa description est clairement indiquée comme automatique/non vérifiée. [Activation et rollback](../VISION_LOCALE_CANARY.md). Pour les archives, documents volumineux et besoins visuels complexes, utilise l'ingestion canonique d'un projet. Un changement de modèle vers « cloud » avec des pièces jointes hors projet est explicitement refusé. Pour analyser un fichier de projet, sélectionne le projet et importe les pièces jointes **avant** l'analyse.
-
-## Obtenir un fichier
-
-Demande le format explicitement : « Fournis une fiche en Markdown, PDF, DOCX et ODT » ou « Génère un `main.tf` commenté ». Des liens de téléchargement s'ajoutent à la réponse. Ils sont valables 24 heures : télécharge les fichiers pour les garder. Voir [Fichiers et schémas](06-fichiers-et-schemas.md).
-
-## Interroger un projet depuis le chat
-
-Le chat peut interroger un projet **en lecture seule lorsqu'il parle au modèle** ; tes commandes explicites peuvent aussi déclencher une action dans le moteur de projet. Elles sont comprises par le programme, jamais par le modèle :
-
-| Tu écris | Ce qui se passe |
-|---|---|
-| `!projets` | liste tes projets, avec leur état et leur cloud |
-| `!projet daily` | sélectionne le projet (un morceau d'identifiant ou de titre suffit s'il est unique) |
-| `!etat` | tâches, pause, cloud, modèle utilisé, traitement en cours |
-| `!quitter` | n'utilise plus de projet |
-| `!garder [titre]` | garde la dernière réponse du rôle comme **proposition** du projet |
-| `!propositions` | liste les propositions (numéro, titre, état, origine) |
-| `!voir 2` | affiche la proposition 2 |
-| `!accepter 2` | demande l'acceptation : le pont donne une **phrase à taper** pour confirmer |
-| `!refuser 2` | écarte la proposition 2 (elle reste consultable) |
-| `!lancer`, `!pause`, `!reprendre` | exécute ou contrôle le plan approuvé en arrière-plan |
-| `!pratique [tâche]` | affiche l'étape guidée qui attend ton travail |
-| `!soumettre <tâche> <explication>` + fichiers | remet ton travail et lance le retour du spécialiste |
-| `!auditer`, puis `!relire` | lance les deux contrôles indépendants aux états prévus |
-| `!modifier <tâche> <raison>` | prépare une révision cohérente ; une phrase humaine confirme |
-| `!livrer` | prépare la livraison finale ; une phrase humaine confirme |
-| `!importer` | consomme le dossier local de secours du projet avant analyse |
-| `!aide` | rappelle ces commandes |
-
-Une fois un projet sélectionné, pose tes questions normalement : le rôle reçoit un résumé du projet, son plan, la liste de ses livrables et les passages de tes documents qui répondent à la question (la recherche locale doit avoir été actualisée dans l'atelier). Chaque réponse commence par `📁 Projet : <id>` : c'est ce qui rappelle le projet choisi d'un message à l'autre.
-
-- Les commandes répondent tout de suite, **même quand une tâche tourne**. Une question au modèle, elle, attend la fin du traitement en cours.
-- Les réponses du pont (liste, état) ne sont jamais envoyées au modèle.
-- **Cloud** : avec le modèle « · cloud », le contexte d'un projet ne part que si ce projet a un [accord cloud valide](12-cloud.md). Sinon rien n'est envoyé et le pont le dit. Une fois qu'un fil a touché un projet, il garde cette règle même après `!quitter` : ouvre une nouvelle conversation pour une question sans rapport.
-- Le préfixe `/` est aussi accepté pour ces commandes, mais Open WebUI utilise `/` et `@` pour ses propres raccourcis : `!` est le plus sûr.
-- Le chat et l'atelier pilotent désormais le **même moteur jusqu'à la livraison** : exécution, pratique guidée, audits, révisions et paquet final utilisent exactement les mêmes états, verrous et garde-fous.
-
-### Garder un document écrit dans le chat
-
-1. Demande le document au rôle (« écris le runbook de déploiement »).
-2. `!garder Runbook de déploiement` : la réponse devient la **proposition** n° 1 du projet. Elle n'est pas encore acceptée.
-3. `!voir 1` pour la relire, `!accepter 1` pour la valider. Le pont répond avec une phrase du type :
-
-   ```
-   approuver proposition K7Q2
-   ```
-
-4. Tape cette phrase **exactement, comme message à part**. Elle ne marche qu'une fois, pendant 15 minutes, si la proposition n'a pas changé, et seulement comme **dernier message** de la conversation. La proposition est alors ajoutée aux **notes** du projet.
-
-Ce qu'il faut savoir :
-
-- Le code est fabriqué par le pont, pas par le modèle, et la réponse qui le contient n'est **jamais** envoyée au modèle : un document ou une consigne cachée ne peut donc pas approuver à ta place. Après cinq codes faux, les codes en attente sont annulés.
-- Une note acceptée est un **texte écrit par un modèle, non vérifié**. Ce n'est **pas un livrable** : elle n'entre pas dans le paquet final et n'est pas auditée. Les livrables passent toujours par une tâche et l'audit de l'atelier.
-- Les rôles et le chat lisent les notes comme des données du projet, avec leur origine (local ou cloud).
-- Tout cela s'écrit dans le dossier `context/chat/` du projet ; rien d'autre n'est modifié. Si une génération est en cours, le pont répond « occupé » et le code reste valable.
-
-### Créer et cadrer un projet depuis le chat
-
-Les mêmes étapes que dans l'[atelier](04-atelier-projets.md), avec les mêmes garde-fous : le chat appelle le même moteur.
-
-| Tu écris | Ce qui se passe |
-|---|---|
-| (un message avec ta demande), puis `!creer Titre` | le pont montre ce qu'il va créer et une phrase à taper ; **la demande est ton message précédent** |
-| `approuver creation K7Q2` | le projet est créé et sélectionné ; il reste **local** (aucun accord cloud) |
-| `!analyser` | le chef d'opérations rédige une analyse **en arrière-plan** (quelques minutes) ; `!etat` donne l'avancement |
-| `!valider` | montre le brouillon prêt et la phrase qui l'approuve |
-| `approuver analyse K7Q2` | l'analyse est enregistrée ; s'il manque des informations, le projet attend tes réponses |
-| `!questions`, puis `!repondre 1 ta réponse` | tu réponds aux précisions demandées (réponses de 1 500 caractères au plus) |
-| `!planifier`, puis `!valider` | même chose pour le plan : tâches, rôles, sorties attendues, critères de vérification |
-| `approuver plan K7Q2` | le plan est approuvé ; le projet est prêt à travailler |
-
-Ce qu'il faut savoir :
-
-- **Un brouillon n'approuve jamais rien.** Seule la phrase, fabriquée par le pont, le fait, et seulement si le brouillon n'a pas changé depuis la génération du code (empreinte). Même règles que pour les propositions : usage unique, 15 minutes, dernier message de la conversation.
-- Les commandes `!creer`, `!analyser`, `!planifier`, `!questions` et `!repondre` viennent **toujours de ton dernier message**, jamais du modèle. Répondre à une précision est une action de ta part, sans phrase de confirmation.
-- Pendant qu'un brouillon se rédige, le chat répond « occupé » aux questions normales ; `!etat` reste disponible. Si le service redémarre, `!etat` signale le brouillon interrompu : relance-le.
-- Le texte du brouillon est affiché sans liens ni images, et le mot « approuver » y est coupé : copier une phrase écrite par un modèle ne sert à rien.
-- Après approbation du plan, `!lancer` conduit les mêmes tâches que l'atelier. `!etat` reste disponible pendant un traitement ; `!pause` demande une pause coopérative ; les audits et la livraison sont des étapes séparées.
-- Après `!creer`, ce fil a « touché » le nouveau projet : le modèle cloud n'y répond pas tant que ce projet n'a pas d'[accord cloud](12-cloud.md).
-
-## Joindre des fichiers et parler
-
-Avant l'analyse d'un projet sélectionné, joins un PDF, un document Office, une archive, du code ou
-une image : le fichier original est copié depuis le stockage local d'Open WebUI puis passe par la
-**même chaîne d'ingestion que l'atelier**. Le RAG intégré d'Open WebUI est désactivé pour cette
-route afin de ne pas créer une seconde vérité documentaire.
-
-Les sources deviennent immuables dès que l'analyse commence. Un upload tardif est refusé au lieu de
-modifier silencieusement le projet ou son accord cloud. Si le navigateur ne transmet pas correctement
-le fichier original, dépose-le dans
-`/data/IA/Openclaw/state/chat-import/inbox/<projet>/` puis tape `!importer`.
-
-La dictée utilise Whisper **local** sur le CPU en int8 ; la lecture à voix haute utilise également
-un service local. Le texte dicté est relu avant envoi et le mode appel mains libres reste désactivé.
-Voir le [test de fumée](../SMOKE_TEST_WEBUI.md) pour mesurer la qualité et la latence réelles.
+Donne ton besoin, tes acquis et une contrainte. Par exemple : « Je connais
+systemd et SSH. Explique comment Terraform crée une VM libvirt, puis
+propose une vérification que je peux effectuer moi-même. »
+Demande une réponse directe ou des indices ; aucun exercice n'est imposé.
+Pour une information récente, demande les sources officielles et la version.
 
 ## Chat ou atelier ?
 
-Le chat et l'atelier sont maintenant deux vues du même moteur. Le chat est pratique pour piloter
-avec des commandes et converser ; le dashboard reste plus confortable pour visualiser l'état,
-les tâches, les fichiers et les preuves. Aucune des deux interfaces n'a plus d'autorité que l'autre.
+Une question ou un exemple : reste en discussion. Pour des fichiers à
+produire, corriger et valider en plusieurs étapes, crée un projet depuis
+le tableau de bord et approuve le plan. L'[atelier Projets](04-atelier-projets.md)
+centralise les sources, les tâches et les preuves.
+Pour utiliser des documents de référence, passe par les imports du projet ;
+les pièces jointes de l'ancienne interface ne sont pas promises dans le chat natif.
 
-## Démarrer et arrêter
+Dans un fil lié au bon projet, utilise les commandes humaines `!etat`,
+`!sources`, `!planifier` pour les opérations documentées par
+l'[atelier natif](../ATELIER_UNIQUE_CHAT_OLLAMA.md). Toute approbation
+reste séparée et explicite. Un contrôle sandbox exige une tâche DevOps
+active et une image locale approuvée : voir la [boucle Ornith](../BOUCLE_ORNITH_EDIT_TEST.md).
 
-```bash
-./menu.sh --action webui-status
-./menu.sh --action webui-stop --apply
-./menu.sh --action webui-start --apply
-```
+## Obtenir un fichier
 
-Tes conversations sont conservées dans `/data/IA/Openclaw/state/webui` et entrent dans les [sauvegardes](09-entretenir.md).
+Les fichiers gérés produits par les outils sont téléchargeables depuis
+les réponses qui contiennent des références valides. Voir
+[téléchargements natifs](../TELECHARGEMENTS_DISCUSSIONS.md).
+Un fichier, un schéma ou un PASS statique ne prouve pas un déploiement.
+
+## Ce qu'il faut savoir
+
+- Une seule génération à la fois ; aucun repli automatique vers un modèle distant.
+- Le streaming dépend de l'activation du canary ; voir
+  [streaming natif](../STREAMING_DISCUSSIONS_NATIVES.md).
+- Si un tour est incertain, vérifier les effets réels avant de l'archiver
+  explicitement. Aucune relance automatique.
+- L'historique est privé et conservé dans le runtime
+  `state/atelier-chats/` ; suivre les [sauvegardes](09-entretenir.md).
+- Les modèles peuvent se tromper : demander des sources et vérifier sur la cible.
+
+## Limites du contexte natif
+
+Le message est limité à 8 000 octets. Le sélecteur d'historique dispose
+d'un budget de 20 000 caractères, message courant inclus : jusqu'à six
+échanges récents et trois échanges plus anciens pertinents, selon la place
+disponible. Les échanges omis restent enregistrés localement. Ce budget
+n'est pas le nombre de tokens du modèle.
+
+## Anciennes interfaces
+
+Les procédures Open WebUI et les routes cloud des anciennes versions sont
+historiques. Dans l'ancien pont Open WebUI, les limites documentées étaient
+de 32 000 octets d'historique local, quatre pièces jointes texte pour
+12 000 octets cumulés et environ 3 Mio d'historique transmis sur l'ancienne
+route cloud. Ces valeurs ne décrivent pas les fonctions du chat natif.
+La route cloud a été retirée ; aucun historique n'est envoyé à un modèle distant.
+
+Consulter le [retrait du cloud](12-cloud.md) et
+l'[atelier natif](../ATELIER_UNIQUE_CHAT_OLLAMA.md) pour les limites de migration.
+L'ancienne fiche complète reste accessible dans l'[historique Git](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/blob/623a4c4ff58db4ce26a6cc6b62969b350e5285fe/docs/fiches/03-discuter.md).
+Ne pas purger les anciennes conversations sans sauvegarde et test de restauration.

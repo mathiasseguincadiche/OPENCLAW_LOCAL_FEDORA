@@ -171,3 +171,15 @@ def test_shared_frontend_javascript_syntax_when_node_is_available() -> None:
         capture_output=True, text=True, check=False, timeout=10,
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_discussion_guidance_has_no_legacy_cloud_route() -> None:
+    page = (WEB / "discussions.html").read_text(encoding="utf-8")
+    script = (WEB / "discussions.js").read_text(encoding="utf-8")
+    assert 'aria-describedby="agent-help"' in page
+    assert 'id="chat-example"' in page
+    assert '$("new-agent").addEventListener("change", showRoleHelp)' in script
+    assert "Ornith" in script and "Qwen" in script
+    guide = (ROOT / "docs/fiches/03-discuter.md").read_text(encoding="utf-8")
+    assert "127.0.0.1:18890/discussions.html" in guide
+    assert "127.0.0.1:3000" not in guide

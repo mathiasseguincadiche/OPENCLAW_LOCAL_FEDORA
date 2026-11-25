@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+from clawfedora.atelier_chat import MAX_USER_BYTES
+from clawfedora.chat_context import HISTORY_CHAR_BUDGET, RECALLED_TURNS, RECENT_TURNS
 from clawfedora.chat_files import MAX_STANDALONE_TEXT_BYTES, MAX_STANDALONE_TEXT_FILES
 from clawfedora.core_config import root_contract
 
@@ -19,10 +21,16 @@ def test_chat_guide_tracks_local_context_and_standalone_file_caps() -> None:
     architecture = (ROOT / "docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md").read_text()
     assert str(context) in architecture
     assert "Qwen" in architecture and "Ornith" in architecture
-    assert "3 Mio" in guide
+    native, historical = guide.split("## Anciennes interfaces", 1)
+    assert f"{MAX_USER_BYTES:,}".replace(",", " ") in native
+    assert f"{HISTORY_CHAR_BUDGET:,}".replace(",", " ") in native
+    assert "six échanges" in native.replace("\n", " ") and RECENT_TURNS == 6
+    assert "trois échanges" in native and RECALLED_TURNS == 3
+    assert "3 Mio" not in native and "3 Mio" in historical
+    assert "route cloud a été retirée" in historical
     assert int(webui["max_history_bytes"]) == 32_000
-    assert str(MAX_STANDALONE_TEXT_BYTES // 1_000) in guide
-    assert "quatre" in guide and MAX_STANDALONE_TEXT_FILES == 4
+    assert f"{MAX_STANDALONE_TEXT_BYTES:,}".replace(",", " ") in historical
+    assert "quatre" in historical and MAX_STANDALONE_TEXT_FILES == 4
     assert "local" in files and "cloud" in files
     assert "projet" in files and "ingestion" in files
 
