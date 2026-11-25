@@ -83,8 +83,23 @@ d'un registre). Il n'y a ni push, ni tag flottant, ni approbation automatique.
 ## 3. Qualifier avant approbation
 
 Conserver le JSON de construction et le manifest ; contrôler l'image avec
-un scan local disposant de données de vulnérabilités à jour. Préparer des
-fixtures synthétiques, sans secrets. Sur le PC Fedora, utiliser :
+un scan local disposant de données de vulnérabilités à jour.
+La campagne synthétique intégrée prépare seize cas, un positif et un négatif
+par validateur, sans données réelles ni téléchargement :
+
+```bash
+python -m clawfedora.validator_acceptance
+# Sur Fedora, avec l'image locale déjà construite :
+python -m clawfedora.validator_acceptance --image "$VALIDATOR_IMAGE" --apply
+```
+
+Le plan ne lance aucun conteneur. Le rapport réel conserve les codes de retour
+et les logs bornés. Un échec attendu impose la relecture du diagnostic :
+un défaut de dépendance n'est pas une détection correcte du code invalide.
+Même `SMOKE_REVIEW_REQUIRED` ne signifie ni image qualifiée ni approuvée.
+Terraform synthétique est sans provider ; compléter impérativement avec
+le provider libvirt et les collections Ansible de la vraie cible.
+Sur le PC Fedora, utiliser aussi :
 
 ```bash
 clawfedora-lab --project "$FIXTURE" --tool terraform-validate \

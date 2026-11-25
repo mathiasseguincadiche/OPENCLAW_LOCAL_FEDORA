@@ -32,7 +32,10 @@ def test_plan_never_invokes_checks_or_requires_installed_fedora(
     assert result["precheck"] == "NOT_RUN" and result["checks"] == []
     assert result["hardware_certified"] is False
     assert result["verdict"] == "NOT_END_TO_END_QUALIFIED"
-    assert len(result["outstanding"]) >= 15
+    assert len(result["outstanding"]) >= 17
+    stages = [row["id"] for row in result["outstanding"]]
+    assert stages.index("validator-image") < stages.index("ornith-work-loop")
+    assert stages[-1] == "first-infraops-project"
     assert all(row["status"] == "NOT_RUN" for row in result["outstanding"])
     assert all((ROOT / "docs" / row["guide"]).is_file() for row in result["outstanding"])
 

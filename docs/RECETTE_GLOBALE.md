@@ -105,6 +105,9 @@ avec `clawfedora-evals --plan` et la grille pédagogique avec
 | Auditeur qualité | Relecture indépendante, refus d'une preuve absente |
 
 Avant les tests Ornith, préparer et qualifier l'[image OCI des validateurs](IMAGE_VALIDATEURS_OFFLINE.md).
+Le plan `python -m clawfedora.validator_acceptance` présente les seize cas
+synthétiques sans Podman ; l'exécution réelle et la revue de leurs logs
+restent réservées au poste Fedora.
 
 Pour chaque rôle, constater le modèle réel, la qualité du résultat,
 les outils autorisés et l'absence de repli cloud. L'ingénieur DevOps
@@ -187,3 +190,16 @@ résultat observé, référence de preuve privée, limite et écart éventuel.
 Retester une étape après correction. Aucun rapport de ce lanceur,
 aucune CI et aucune sortie de modèle ne remplacent une preuve réelle.
 La décision de réception finale reste humaine, sur la machine cible.
+
+
+## 9. Premier parcours métier après réception
+
+Une fois l'atelier reçu, ouvrir le [cas de référence OpsDesk](CAS_USAGE_INFRAOPS_OPSDESK.md).
+Importer volontairement le commit actuel et les seules pages Notion utiles.
+Commencer par la phase de préparation du poste ou le premier exercice
+non acquis ; ne pas rejouer une étape déjà prouvée. Le mentor explique,
+l'apprenant agit, Ornith contrôle les propositions approuvées et l'auditeur
+compare les preuves aux critères. Conserver la progression personnelle
+dans Notion, le code et ses preuves techniques dans GitHub.
+Aucune qualification OpsDesk ni aucun niveau d'autonomie n'est déduit
+de la réception de l'atelier.

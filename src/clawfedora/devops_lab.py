@@ -128,6 +128,8 @@ def command_for(tool: str, snapshot: Path, manifest: tuple[Path, ...]) -> list[s
             "--maxfail=1", "-p", "no:cacheprovider", *tests,
         ]
     if tool == "terraform-fmt":
+        if not any(p.suffix == ".tf" for p in manifest):
+            raise LabRefusal("Aucun fichier Terraform .tf à formater")
         return ["terraform", "-chdir=/workspace", "fmt", "-check", "-recursive", "-no-color"]
     if tool == "terraform-validate":
         root = terraform_root(manifest)
@@ -145,9 +147,14 @@ def command_for(tool: str, snapshot: Path, manifest: tuple[Path, ...]) -> list[s
     if tool == "ansible-lint":
         return ["ansible-lint", "--offline", "/workspace"]
     if tool == "actionlint":
-        if not any(p.parts[:2] == (".github", "workflows") for p in manifest):
+        workflows = [
+            "/workspace/" + p.as_posix() for p in manifest
+            if p.parts[:2] == (".github", "workflows") and p.suffix in {".yml", ".yaml"}
+        ]
+        if not workflows:
             raise LabRefusal("Aucun workflow GitHub dans le projet")
-        return ["actionlint", "-no-color"]
+        # The sealed copy intentionally excludes .git; do not rely on repo discovery.
+        return ["actionlint", "-no-color", *workflows]
     if tool == "shellcheck":
         scripts = ["/workspace/" + str(p) for p in manifest if p.suffix == ".sh"]
         if not scripts:
