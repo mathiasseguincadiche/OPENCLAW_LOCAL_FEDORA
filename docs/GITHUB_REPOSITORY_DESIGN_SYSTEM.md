@@ -1,5 +1,7 @@
 # Charte GitHub premium — Référentiel universel pour l'atelier InfraOps
 
+[Complément Premium V2 : direction artistique et rédaction](EDITORIAL_PREMIUM_V2.md)
+
 Le [standard transversal d’excellence éditoriale](EXCELLENCE_EDITORIALE.md) fixe la grille et les blocages communs ; les règles ci-dessous restent spécifiques au support.
 
 [← Source GitHub / Notion](INTEGRATION_GITHUB_NOTION.md) · [Wiki Notion](NOTION_WIKI_DESIGN_SYSTEM.md) · [Sept agents](fiches/07-roles-et-outils.md)

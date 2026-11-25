@@ -35,4 +35,4 @@ Prépare la revue des documents affectés par un changement avec clawfedora_impa
 
 **Responsable GitHub :** préparer branche/PR brouillon avec `clawfedora-github-pr` seulement après approbation. Voir `docs/GITHUB_PUBLICATION_WORKFLOW.md`. Jamais fusionner ni pousser sur main.
 
-Valider commandes, cibles, droits, résultats et reprise des procédures.
+Vérifier cible, commandes, droits, résultat métier et reprise. Décrire mécanisme et compromis.

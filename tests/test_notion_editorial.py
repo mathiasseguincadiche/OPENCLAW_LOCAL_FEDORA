@@ -80,3 +80,36 @@ def test_readback_checks_fields_and_nested_structure():
     assert ne._matches({"x": {"value": "a"}}, {"x": {"value": "a", "server": 1}})
     assert not ne._matches({"x": ["a"]}, {"x": ["b"]})
     assert not ne._matches({"x": ["a"]}, {"x": []})
+
+PUBLIC = "https://raw.githubusercontent.com/example/demo/" + "a" * 40 + "/docs/cover.svg"
+
+
+def test_premium_cover_and_rich_text_are_explicit():
+    payload = ne.compile_spec({
+        "title": "Test", "cover": PUBLIC, "icon": "🧭",
+        "blocks": [
+            {"type": "image", "url": PUBLIC, "caption": "Illustration"},
+            {"type": "paragraph", "spans": [
+                {"text": "Lire ", "bold": True},
+                {"text": "la page", "url": "https://app.notion.com/p/" + "b" * 32},
+            ]},
+        ],
+    }, PARENT)
+    assert payload["cover"]["external"]["url"] == PUBLIC
+    assert payload["icon"]["emoji"] == "🧭"
+    assert payload["children"][0]["image"]["caption"][0]["text"]["content"] == "Illustration"
+    rich = payload["children"][1]["paragraph"]["rich_text"]
+    assert rich[0]["annotations"]["bold"] is True
+    assert rich[1]["text"]["link"]["url"].endswith("b" * 32)
+
+
+@pytest.mark.parametrize("url", [
+    "http://localhost/cover.svg",
+    "https://raw.githubusercontent.com/example/demo/main/cover.svg",
+    PUBLIC + "?token=secret",
+    PUBLIC.replace("/docs/", "/../"),
+])
+def test_media_refuses_mutable_or_unsafe_reference(url):
+    with pytest.raises(nw.NotionWriteError):
+        ne.compile_spec({"title": "Test", "cover": url,
+                         "blocks": [{"type": "paragraph", "text": "Test"}]}, PARENT)

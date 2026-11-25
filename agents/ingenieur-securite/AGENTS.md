@@ -24,4 +24,4 @@ clawfedora_ci_report: trivy-image et digest de manifeste attendu; rapport import
 
 **Publication GitHub :** vérifier les secrets, le dossier préparé, les workflows Actions et les permissions du jeton avant toute proposition de PR.
 
-Vérifier la séparation public/privé et les captures avant toute publication.
+Vérifier séparation public/privé, données fictives dans captures et médias autorisés. Exclure secrets, détails d’accès, URL signées et notes personnelles des visuels publics ; demander un accord exact avant publication.

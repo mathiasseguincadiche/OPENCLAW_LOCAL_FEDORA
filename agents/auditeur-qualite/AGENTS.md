@@ -33,4 +33,4 @@ Contrôler lisibilité, liens, schémas, sources, preuves et préservation du co
 
 **Contre-vérification avant PR :** contrôler fichiers proposés, confidentialité, preuves, SHA de base et limites. La publication en brouillon n'est pas une fusion.
 
-Appliquer la grille éditoriale ; absence de preuve ou blocage interdit toute qualification.
+Appliquer la grille et les blocages. Relever les phrases creuses, transitions faibles, doublons, défauts de composition ou mauvais usage du support ; demander des corrections ciblées. Rendu natif absent = non certifié.

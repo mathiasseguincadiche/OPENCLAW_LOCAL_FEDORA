@@ -1,5 +1,7 @@
 # Charte universelle — Wikis techniques Notion
 
+[Complément Premium V2 : direction artistique et rédaction](EDITORIAL_PREMIUM_V2.md)
+
 Le [standard transversal d’excellence éditoriale](EXCELLENCE_EDITORIALE.md) fixe la grille et les blocages communs ; les règles ci-dessous restent spécifiques au support.
 
 [← Sources GitHub et Notion](INTEGRATION_GITHUB_NOTION.md) · [Cas OpsDesk](CAS_USAGE_INFRAOPS_OPSDESK.md) · [Rôles](fiches/07-roles-et-outils.md)
