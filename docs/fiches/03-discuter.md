@@ -65,10 +65,24 @@ Un fichier, un schéma ou un PASS statique ne prouve pas un déploiement.
   `state/atelier-chats/` ; suivre les [sauvegardes](09-entretenir.md).
 - Les modèles peuvent se tromper : demander des sources et vérifier sur la cible.
 
+## Limites du contexte natif
+
+Le message est limité à 8 000 octets. Le sélecteur d'historique dispose
+d'un budget de 20 000 caractères, message courant inclus : jusqu'à six
+échanges récents et trois échanges plus anciens pertinents, selon la place
+disponible. Les échanges omis restent enregistrés localement. Ce budget
+n'est pas le nombre de tokens du modèle.
+
 ## Anciennes interfaces
 
 Les procédures Open WebUI et les routes cloud des anciennes versions sont
-historiques. Consulter le [retrait du cloud](12-cloud.md) et
+historiques. Dans l'ancien pont Open WebUI, les limites documentées étaient
+de 32 000 octets d'historique local, quatre pièces jointes texte pour
+12 000 octets cumulés et environ 3 Mio d'historique transmis sur l'ancienne
+route cloud. Ces valeurs ne décrivent pas les fonctions du chat natif.
+La route cloud a été retirée ; aucun historique n'est envoyé à un modèle distant.
+
+Consulter le [retrait du cloud](12-cloud.md) et
 l'[atelier natif](../ATELIER_UNIQUE_CHAT_OLLAMA.md) pour les limites de migration.
 L'ancienne fiche complète reste accessible dans l'[historique Git](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/blob/623a4c4ff58db4ce26a6cc6b62969b350e5285fe/docs/fiches/03-discuter.md).
 Ne pas purger les anciennes conversations sans sauvegarde et test de restauration.
