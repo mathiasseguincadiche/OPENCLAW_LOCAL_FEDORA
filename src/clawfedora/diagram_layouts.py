@@ -72,6 +72,8 @@ def _route(root: ET.Element, nodes: list[ET.Element], edges: list[ET.Element]) -
         tx, ty, tw, th = boxes[edge.attrib["target"]]
         src_cx, src_cy = sx + sw // 2, sy + sh // 2
         dst_cx, dst_cy = tx + tw // 2, ty + th // 2
+        exit_port: tuple[float, float]
+        entry_port: tuple[float, float]
         if abs(dst_cx - src_cx) > abs(dst_cy - src_cy):
             start_x = sx + sw if dst_cx >= src_cx else sx
             end_x = tx if dst_cx >= src_cx else tx + tw

@@ -354,17 +354,17 @@ def export_page_svg(page: ET.Element) -> str:
             end = (dst_cx, ty if dst_cy >= src_cy else ty + th)
         # The generator writes explicit fractional ports in the editable cells.
         # Respect them rather than cutting diagonally through the component.
-        def anchored(box: tuple[int, int, int, int], prefix: str,
+        def anchored(edge: ET.Element, box: tuple[int, int, int, int], prefix: str,
                      fallback: tuple[int, int]) -> tuple[int, int]:
             x, y, w, h = box
-            px = style(cell, prefix + "X", "")
-            py = style(cell, prefix + "Y", "")
+            px = style(edge, prefix + "X", "")
+            py = style(edge, prefix + "Y", "")
             if px and py:
                 return x + round(w * float(px)), y + round(h * float(py))
             return fallback
 
-        start = anchored((sx, sy, sw, sh), "exit", start)
-        end = anchored((tx, ty, tw, th), "entry", end)
+        start = anchored(cell, (sx, sy, sw, sh), "exit", start)
+        end = anchored(cell, (tx, ty, tw, th), "entry", end)
         points = cell.findall("mxGeometry/Array/mxPoint")
         via = " ".join(f"L {p.attrib['x']} {p.attrib['y']}" for p in points)
         stroke = style(cell, "strokeColor", "#367a93")
