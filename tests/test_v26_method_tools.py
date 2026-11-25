@@ -127,3 +127,19 @@ def test_operational_scenario_is_only_a_separate_proposal() -> None:
                                                 "recovery"}})
     with pytest.raises(ValueError):
         lab_request({**request, "recovery": ""})
+
+
+def test_doc_review_respects_fence_type_and_length_and_reports_navigation() -> None:
+    body = (
+        "# Projet\n\n~~~~bash\n# Fausse installation\n~~~\n## Faux test\n"
+        "~~~~\n\n## Préparer\nTexte\n## Préparer\nTexte\n\n"
+        "````text\n```\n## Faux rollback\n"
+    )
+    report = inspect_document(body, "readme")
+    assert [item["title"] for item in report["headings"]] == [
+        "Projet", "Préparer", "Préparer",
+    ]
+    structure = report["structure"]
+    assert structure["repeated_heading_lines"] == [11]
+    assert structure["unclosed_code_fence_at"] == 14
+    assert all(item["verdict"] == "NOT_EVALUATED" for item in report["reader_situations"])

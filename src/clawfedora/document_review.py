@@ -45,12 +45,18 @@ def inspect_document(content: str, kind: str) -> dict[str, Any]:
     if not isinstance(content, str) or not 0 < len(content.encode("utf-8")) <= 12_000:
         raise ValueError("document texte limité à 12000 octets")
     headings = []
-    inside_fence = False
+    fence: tuple[str, int, int] | None = None
     for line_number, raw in enumerate(content.splitlines(), 1):
-        if re.match(r"^\s*\x60{3,}", raw):
-            inside_fence = not inside_fence
+        marker = re.match(r"^ {0,3}(\x60{3,}|~{3,})(.*)$", raw)
+        if fence is not None:
+            if marker:
+                run, suffix = marker.groups()
+                if run[0] == fence[0] and len(run) >= fence[1] and not suffix.strip():
+                    fence = None
             continue
-        if inside_fence:
+        if marker:
+            run, _suffix = marker.groups()
+            fence = (run[0], len(run), line_number)
             continue
         match = re.match(r"^(#{1,6})[ \t]+(.+?)\s*#*\s*$", raw)
         if match:
@@ -59,6 +65,13 @@ def inspect_document(content: str, kind: str) -> dict[str, Any]:
     levels = [int(item["level"]) for item in headings]
     skipped = [item["line"] for prev, item in zip(levels, headings[1:], strict=False)
                if int(item["level"]) > prev + 1]
+    seen: set[str] = set()
+    repeated: list[int] = []
+    for item in headings:
+        normalized = " ".join(str(item["title"]).casefold().split())
+        if normalized in seen:
+            repeated.append(int(item["line"]))
+        seen.add(normalized)
     indicators: list[dict[str, Any]] = []
     for label, variants in KINDS[kind].items():
         found = [item["line"] for item in headings if any(
@@ -76,6 +89,8 @@ def inspect_document(content: str, kind: str) -> dict[str, Any]:
             "main_heading_count": levels.count(1),
             "skipped_heading_levels_at": skipped,
             "main_heading_signal": levels.count(1) == 1,
+            "repeated_heading_lines": repeated,
+            "unclosed_code_fence_at": fence[2] if fence else None,
         },
         "indicators": indicators,
         "reader_situations": [
@@ -85,6 +100,8 @@ def inspect_document(content: str, kind: str) -> dict[str, Any]:
         "manual_review": [
             "Exactitude du contenu à comparer aux sources et au commit",
             "Parcours réel des lecteurs, pas seulement présence de titres",
+            "Titres répétés : vérifier leur utilité et la navigation, sans les interdire",
+            "Commandes : cible, droits, installation, résultat attendu et retour arrière",
             "Visuel natif GitHub/Notion en clair, sombre et mobile",
             "Préservation des sections existantes et des exercices personnels",
         ],

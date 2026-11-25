@@ -49,6 +49,8 @@ liens de l'existant sont à préserver.
 - Schémas graphiques avec légende : vue de présentation ≠ vue technique ;
   fichier draw.io/SVG source référencé, architecture « cible » ≠ architecture observée.
 - Titres H2/H3 hiérarchisés, paragraphes aérés, tableaux pertinents seulement.
+  Repérer les intitulés répétés et les blocs de code non fermés avant publication ;
+  contrôler manuellement les commandes, la préparation et le résultat attendu.
 - Tester le rendu natif, le texte, les images et l'ordre d'empilement mobile.
   **Un fichier Markdown correct n'est pas une vérification visuelle de Notion.**
 

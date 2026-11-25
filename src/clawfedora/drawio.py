@@ -287,7 +287,7 @@ def export_page_svg(page: ET.Element) -> str:
     ET.SubElement(svg, "desc").text = (
         "Schéma de principe : composants, frontières et flux, sans preuve de déploiement."
     )
-    ET.SubElement(svg, "rect", width="100%", height="100%", fill="#ffffff")
+    background = ET.SubElement(svg, "rect", fill="#ffffff")
     marker = ET.SubElement(ET.SubElement(svg, "defs"), "marker", id="arrow",
                            markerWidth="8", markerHeight="8", refX="8", refY="4",
                            orient="auto")
@@ -352,6 +352,19 @@ def export_page_svg(page: ET.Element) -> str:
         else:
             start = (src_cx, sy + sh if dst_cy >= src_cy else sy)
             end = (dst_cx, ty if dst_cy >= src_cy else ty + th)
+        # The generator writes explicit fractional ports in the editable cells.
+        # Respect them rather than cutting diagonally through the component.
+        def anchored(box: tuple[int, int, int, int], prefix: str,
+                     fallback: tuple[int, int]) -> tuple[int, int]:
+            x, y, w, h = box
+            px = style(cell, prefix + "X", "")
+            py = style(cell, prefix + "Y", "")
+            if px and py:
+                return x + round(w * float(px)), y + round(h * float(py))
+            return fallback
+
+        start = anchored((sx, sy, sw, sh), "exit", start)
+        end = anchored((tx, ty, tw, th), "entry", end)
         points = cell.findall("mxGeometry/Array/mxPoint")
         via = " ".join(f"L {p.attrib['x']} {p.attrib['y']}" for p in points)
         stroke = style(cell, "strokeColor", "#367a93")
@@ -374,5 +387,16 @@ def export_page_svg(page: ET.Element) -> str:
         ET.SubElement(svg, "text", {"x": lane_x, "y": str(int(mid) + 4),
                       "fill": "#ffffff", "text-anchor": "middle",
                       "font-family": "sans-serif", "font-size": "10"}).text = number
-    svg.set("viewBox", f"0 0 {max(720, max_x)} {legend_y + (12 if markers else 0)}")
+    # The visible title is distinct from the accessible SVG title metadata.
+    width = max(720, max_x)
+    height = legend_y + (12 if markers else 0) + 46
+    background.attrib.update({"x": "0", "y": "-46", "width": str(width),
+                              "height": str(height)})
+    ET.SubElement(svg, "text", {
+        "x": "26", "y": "-18", "fill": "#173a56", "font-family": "sans-serif",
+        "font-size": "20", "font-weight": "700",
+    }).text = page.get("name", "Infrastructure")
+    ET.SubElement(svg, "line", x1="26", y1="-6", x2=str(width - 26), y2="-6",
+                  stroke="#dce3eb")
+    svg.set("viewBox", f"0 -46 {width} {height}")
     return ET.tostring(svg, encoding="unicode")
