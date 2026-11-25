@@ -1,8 +1,10 @@
-# Standard universel d’excellence éditoriale — V1
+# Standard universel d’excellence éditoriale — V2
 
 [GitHub](GITHUB_REPOSITORY_DESIGN_SYSTEM.md) · [Notion](NOTION_WIKI_DESIGN_SYSTEM.md) · [Démonstrations](editorial-demo/README.md)
 
 Le standard est transversal : il ne fixe ni stack ni arborescence. Adapter chaque document à sa fonction et à son lecteur. Préserver les contenus utiles, notamment l'installation des outils et les exercices. GitHub = référence technique versionnée ; Notion = apprentissage, données privées et suivi. Les documents complémentaires gardent une source modifiable.
+
+[Direction artistique et rédaction Premium V2](EDITORIAL_PREMIUM_V2.md)
 
 ## Douze principes
 
