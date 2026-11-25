@@ -1,5 +1,7 @@
 # Charte universelle — Wikis techniques Notion
 
+Le [standard transversal d’excellence éditoriale](EXCELLENCE_EDITORIALE.md) fixe la grille et les blocages communs ; les règles ci-dessous restent spécifiques au support.
+
 [← Sources GitHub et Notion](INTEGRATION_GITHUB_NOTION.md) · [Cas OpsDesk](CAS_USAGE_INFRAOPS_OPSDESK.md) · [Rôles](fiches/07-roles-et-outils.md)
 
 Pour la présentation et les contrôles de la source technique,
@@ -59,12 +61,12 @@ liens de l'existant sont à préserver.
 | Modèle | Sections indispensables |
 | --- | --- |
 | Accueil | Bannière, accroche, commencer ici, repères, navigation, architecture, progression, GitHub, état et limites |
-| Architecture | Besoin, schéma présentation, schéma technique, flux/ports, ADR, risques, validation |
-| Installation | Utilité, environnement, inventaire de l'existant, installation conditionnelle, vérification, dépannage, rollback |
+| [Architecture](../templates/notion/architecture.md) | Besoin, schéma présentation, schéma technique, flux/ports, ADR, risques, validation |
+| [Installation](../templates/notion/installation.md) | Utilité, environnement, inventaire de l'existant, installation conditionnelle, vérification, dépannage, rollback |
 | Cours/exercice | Situation, objectifs, concepts, schéma, exemple distinct, installation, énoncé, indices, contrôles, bilan |
-| Runbook | Symptômes, impact, prérequis, hypothèses, tests, intervention, retour arrière, reprise vérifiée |
-| Journal | Date/cible, hypothèses, commandes réellement exécutées, observations, blocages, aide, preuves, suite |
-| Portfolio | Besoin, réalisation propre, code/commits, tests réels, limites, preuves, démonstration, formulation CV |
+| [Runbook](../templates/notion/runbook.md) | Symptômes, impact, prérequis, hypothèses, tests, intervention, retour arrière, reprise vérifiée |
+| [Journal](../templates/notion/journal.md) | Date/cible, hypothèses, commandes réellement exécutées, observations, blocages, aide, preuves, suite |
+| [Portfolio](../templates/notion/portfolio.md) | Besoin, réalisation propre, code/commits, tests réels, limites, preuves, démonstration, formulation CV |
 
 Les exemples natifs dans `templates/notion/` sont des **gabarits vierges**.
 Ils ne prouvent aucune compétence, ne fixent aucun statut et ne sont pas des
