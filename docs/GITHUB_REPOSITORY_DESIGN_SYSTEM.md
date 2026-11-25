@@ -51,9 +51,9 @@ Chaque modèle contient des rubriques obligatoires mais s'adapte à la fonction 
 
 ## 4. Exigences documentaires et techniques
 
-**Procédure :** expliquer le pourquoi, la cible et le niveau de droits, les prérequis, l'inventaire des outils existants, l'installation conditionnelle, les commandes annotées, le contrôle attendu, les erreurs, les tests de refus pertinents et le rollback. Ne jamais supprimer « installation des outils ».
+**Procédure :** vérifier notamment les titres répétés, les clôtures des blocs de code et les étapes réellement utiles ; ce sont des signaux de relecture, pas un verdict. Expliquer le pourquoi, la cible et le niveau de droits, les prérequis, l'inventaire des outils existants, l'installation conditionnelle, les commandes annotées, le contrôle attendu, les erreurs, les tests de refus pertinents et le rollback. Ne jamais supprimer « installation des outils ».
 
-**Architecture :** schéma de présentation et schéma technique distincts ; sources `.drawio` + exports `.svg` pour les diagrammes, légendes, ports, flux, responsabilités et limites. Exporter le SVG depuis la source, contrôler son affichage sur GitHub et mobile ; le simple XML valide ne démontre pas sa lisibilité.
+**Architecture :** schéma de présentation et schéma technique distincts ; sources `.drawio` + exports `.svg` pour les diagrammes, légendes, ports, flux, responsabilités et limites. Exporter le SVG depuis la source, contrôler son affichage sur GitHub et mobile ; le simple XML valide ne démontre pas sa lisibilité. Utiliser des vues distinctes : 3 à 5 blocs pour présenter, détails seulement dans la vue technique. Contrôler ancrages, chevauchements, flux lisibles et légendes, sans déduire la réalité technique du dessin.
 
 **Preuve :** date, cible, commit/digest, méthode, attendu, observé, statut et limites. Différencier existence, analyse statique, test CI, déploiement sur machine, santé métier, récupération après incident et autonomie individuelle.
 

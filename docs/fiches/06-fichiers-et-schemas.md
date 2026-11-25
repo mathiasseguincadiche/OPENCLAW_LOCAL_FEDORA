@@ -19,15 +19,11 @@ Demander un document ou une configuration produit un vrai fichier, téléchargea
 Demande le format : « Explique-moi les artefacts d'une CI, puis fournis une fiche en Markdown, PDF,
 DOCX et ODT. » Les liens de téléchargement s'ajoutent à la réponse. Ils sont valables 24 heures.
 
-Sans projet sélectionné, le chat local accepte jusqu'à quatre pièces jointes, avec un budget de texte extrait de 12 000 octets au total. Les textes et petits fichiers de code sont lus directement ; PDF, DOCX, PPTX, XLSX et **ODT** disposent d'une extraction textuelle bornée (2 Mio par document). Pour ODT, seuls les textes sont lus : la mise en page et les images ne sont pas analysées, aucun objet externe ni macro n'est exécuté. Les archives restent exclues de cette voie courte, et les images sont limitées aux métadonnées hors canary vision. Les pièces jointes de chat libre sont toujours refusées en cloud. Elles restent dans le stockage Open WebUI jusqu'à leur suppression ou selon sa politique de conservation.
+Dans l'ancien Open WebUI (historique), le chat local acceptait jusqu'à quatre pièces jointes, avec un budget de texte extrait de 12 000 octets au total. Les textes et petits fichiers de code sont lus directement ; PDF, DOCX, PPTX, XLSX et **ODT** disposent d'une extraction textuelle bornée (2 Mio par document). Pour ODT, seuls les textes sont lus : la mise en page et les images ne sont pas analysées, aucun objet externe ni macro n'est exécuté. Les archives restent exclues de cette voie courte, et les images sont limitées aux métadonnées hors canary vision. Les pièces jointes de chat libre sont toujours refusées en cloud. Elles restent dans le stockage Open WebUI jusqu'à leur suppression ou selon sa politique de conservation.
 
 Dans un projet, les sources DOCX, PPTX et XLSX sont lues avec le même lecteur XML durci que le chat et l'ODT : un document contenant une DTD, des entités ou des références externes est marqué illisible avec sa raison, et la taille de ses parties XML est contrôlée avant décompression. Une partie XML abîmée est ignorée mais signalée dans l'index des sources.
 
-Pour **apporter des sources** à un projet, sélectionne-le puis joins les fichiers avant
-`!analyser`. Open WebUI n'indexe pas ces fichiers dans sa propre RAG : un filtre géré transmet
-la référence du fichier au pont, qui contrôle son propriétaire, son chemin, sa taille et son nom,
-puis l'ajoute à l'ingestion canonique du projet. Les sources sont figées après le début de
-l'analyse.
+Pour **apporter des sources** à un projet dans l'atelier natif, utilise les imports du tableau de bord avant l'analyse. Les sources sont figées après le début de l'analyse. Les anciennes pièces jointes WebUI ne constituent pas une fonction promise dans le chat natif.
 
 Plan B : copie le fichier dans
 `/data/IA/Openclaw/state/chat-import/inbox/<projet>/` puis tape `!importer`.
@@ -70,7 +66,7 @@ Les documents chiffrés et les répétitions de cellules ne sont pas pris en cha
 - Un appel produit au plus 12 000 octets de contenu et quatre exports. Pour un document long, demande-le section par section.
 - Le rendu gère titres hiérarchisés, paragraphes, citations, listes, tableaux simples et blocs de code ; les DOCX et ODT comprennent un pied de page. Les images ne sont pas intégrées. Le rendu est plus lisible mais ne remplace pas une inspection visuelle avant remise.
 - Un fichier généré n'est pas un fichier testé. Les fichiers JSON, YAML, Python, TOML et XML sont vérifiés sur leur syntaxe. Terraform, Dockerfile, shell et Jinja sont produits comme du texte : vérifie-les avec leurs propres outils.
-- Une image est traitée localement. Elle ne part jamais vers DeepSeek tant que le filtre de confidentialité ne sait pas inspecter son contenu.
+- L'inférence reste locale ; aucun modèle DeepSeek ni route cloud active. La vision réelle reste à qualifier.
 
 ## Contrôles disponibles
 
@@ -84,7 +80,7 @@ Tous les rôles peuvent aussi lire un résumé de résultats de ta CI que tu leu
 
 L'architecte génère un fichier `.drawio` que tu ouvres et modifies dans Draw.io : les blocs, les textes et les flèches sont de vrais objets. Un fichier SVG séparé sert d'aperçu pour la documentation.
 
-Un appel produit désormais **une source Draw.io éditable jusqu'à huit vues** : une vue principale et jusqu'à sept vues nommées (par exemple Ensemble, Réseau et Déploiement). Chaque vue garde une limite de **8 blocs et 12 flèches**, pour éviter un graphe illisible. Chaque vue possède son SVG, exporté à partir des cellules et des points de liaison de la source par le moteur interne `clawfedora-svg/1`. L’architecte peut nommer chaque flux et regrouper ses composants dans une frontière éditable. Les liens de téléchargement du chat et les références du worker donnent accès aux vues individuelles. Vérifier dans Draw.io puis dans le support de destination les libellés, les croisements et la taille du texte.
+Un appel produit désormais **une source Draw.io éditable jusqu'à huit vues** : une vue principale et jusqu'à sept vues nommées (par exemple Ensemble, Réseau et Déploiement). Chaque vue garde une limite de **8 blocs et 12 flèches**, pour éviter un graphe illisible. Chaque vue possède son SVG, exporté à partir des cellules et des points de liaison de la source par le moteur interne `clawfedora-svg/1`. L’architecte peut nommer chaque flux et regrouper ses composants dans une frontière éditable. Les liens de téléchargement du chat et les références du worker donnent accès aux vues individuelles. Les ancrages des flèches sont partagés entre Draw.io et SVG ; les rangées de zones tiennent compte de la hauteur maximale. Le SVG porte un titre visible. Vérifier dans Draw.io puis dans le support de destination les libellés, les croisements et la taille du texte : ce moteur ne garantit pas l'absence de tous les croisements.
 
 ### Modifier un schéma dans un projet
 

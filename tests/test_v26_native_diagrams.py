@@ -82,3 +82,40 @@ def test_different_views_keep_their_independent_compositions() -> None:
     assert result["compositions"] == ["flow", "zones"]
     assert result["views_generated"] == 2
     assert inspect_diagram(result["drawio"])["shapes"] >= 5
+
+
+def test_zone_rows_clear_tall_frames() -> None:
+    result = diagram({
+        "layout": "zones",
+        "nodes": ["Hôte", "Proxy", "API", "DB", "Logs", "CI", "VPN", "Backup"],
+        "boundaries": ["A", "A", "A", "A", "A", "B", "C", "D"],
+    })
+    root = ET.fromstring(result["drawio"]).find("diagram/mxGraphModel/root")
+    assert root is not None
+    first = root.find("mxCell[@id='group0']/mxGeometry")
+    last = root.find("mxCell[@id='group3']/mxGeometry")
+    assert first is not None and last is not None
+    assert int(last.attrib["y"]) > int(first.attrib["y"]) + int(first.attrib["height"])
+
+
+def test_svg_respects_editable_ports_and_has_visible_title() -> None:
+    result = diagram({
+        "title": "Flux d'exploitation",
+        "nodes": ["Git", "CI"], "edges": [[0, 1]],
+        "edge_types": ["administration"],
+    })
+    svg = ET.fromstring(result["svg"])
+    # Column route leaves the left-hand side at the center of each card.
+    route = svg.find("{*}path[@marker-end='url(#arrow)']")
+    assert route is not None
+    assert route.attrib["d"].startswith("M 170 44 L ")
+    assert route.attrib["d"].endswith("L 170 114")
+    assert any(node.text == "Flux d'exploitation" for node in svg.findall("{*}text"))
+    flow = diagram({"layout": "flow", "nodes": ["Git", "CI"], "edges": [[0, 1]]})
+    edge = ET.fromstring(flow["drawio"]).find("diagram/mxGraphModel/root/mxCell[@id='e0']")
+    assert edge is not None
+    assert "exitX=1;" in edge.attrib["style"] and "entryX=0;" in edge.attrib["style"]
+    route = ET.fromstring(flow["svg"]).find("{*}path[@marker-end='url(#arrow)']")
+    assert route is not None
+    assert route.attrib["d"].startswith("M 253 71 L ")
+    assert route.attrib["d"].endswith("L 296 71")

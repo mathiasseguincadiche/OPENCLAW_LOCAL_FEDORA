@@ -72,16 +72,32 @@ def _route(root: ET.Element, nodes: list[ET.Element], edges: list[ET.Element]) -
         tx, ty, tw, th = boxes[edge.attrib["target"]]
         src_cx, src_cy = sx + sw // 2, sy + sh // 2
         dst_cx, dst_cy = tx + tw // 2, ty + th // 2
+        exit_port: tuple[float, float]
+        entry_port: tuple[float, float]
         if abs(dst_cx - src_cx) > abs(dst_cy - src_cy):
             start_x = sx + sw if dst_cx >= src_cx else sx
             end_x = tx if dst_cx >= src_cx else tx + tw
             center = (start_x + end_x) // 2
             points = ((center, src_cy), (center, dst_cy))
+            exit_port = (1, 0.5) if dst_cx >= src_cx else (0, 0.5)
+            entry_port = (0, 0.5) if dst_cx >= src_cx else (1, 0.5)
         else:
             start_y = sy + sh if dst_cy >= src_cy else sy
             end_y = ty if dst_cy >= src_cy else ty + th
             center = (start_y + end_y) // 2
             points = ((src_cx, center), (dst_cx, center))
+            exit_port = (0.5, 1) if dst_cy >= src_cy else (0.5, 0)
+            entry_port = (0.5, 0) if dst_cy >= src_cy else (0.5, 1)
+        # Keep the editable ports and the generated SVG on the same route.
+        fields = [
+            field for field in edge.get("style", "").split(";")
+            if field and field.partition("=")[0] not in {"exitX", "exitY", "entryX", "entryY"}
+        ]
+        fields.extend((
+            f"exitX={exit_port[0]}", f"exitY={exit_port[1]}",
+            f"entryX={entry_port[0]}", f"entryY={entry_port[1]}",
+        ))
+        edge.set("style", ";".join(fields) + ";")
         geometry = _geom(edge)
         old = geometry.find("Array[@as='points']")
         if old is not None:
@@ -118,6 +134,7 @@ def style_and_arrange(page: ET.Element, data: dict[str, Any]) -> str:
             edge.set("style", (
                 "edgeStyle=segmentEdgeStyle;html=0;endArrow=block;endFill=1;"
                 f"strokeColor={EDGE_TYPES[kind]};strokeWidth=2;"
+                "exitX=0;exitY=0.5;entryX=0;entryY=0.5;"
             ))
             edge.set("clawfedoraFlow", kind)
     if layout == "column":
@@ -137,9 +154,11 @@ def style_and_arrange(page: ET.Element, data: dict[str, Any]) -> str:
         if len(groups) < 2 or all(key == "1" for key in groups):
             raise ValueError("Draw.io: la vue zones demande au moins deux groupes réels")
         by_id = {node.get("id", ""): node for node in root.findall("mxCell[@vertex='1']")}
+        # The next row must clear the tallest frame, including a breathing gap.
+        stride = max(410, max(58 + len(members) * 82 for members in groups.values()) + 36)
         for index, (parent, members) in enumerate(groups.items()):
             column, row = index % 3, index // 3
-            x, y = 26 + column * 310, 26 + row * 410
+            x, y = 26 + column * 310, 26 + row * stride
             if parent == "1":
                 for position, node in enumerate(members):
                     _place(node, x + 14, y + position * 82 + 20, 250, 62)
