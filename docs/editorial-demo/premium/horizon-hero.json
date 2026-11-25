@@ -1,0 +1,12 @@
+{
+  "motif": "pipeline",
+  "palette": [
+    "#102D29",
+    "#1D6656",
+    "#72E2AF"
+  ],
+  "project": "Horizon",
+  "section": "Présentation",
+  "tagline": "Livrer et maintenir un service",
+  "variant": "hero"
+}

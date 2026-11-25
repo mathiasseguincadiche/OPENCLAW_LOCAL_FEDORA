@@ -39,6 +39,8 @@ techniques : les schémas restent Draw.io + SVG. Ne jamais présenter une illust
 ou une maquette comme une capture réelle. Les motifs sont un catalogue initial,
 pas une promesse de génération artistique libre.
 
+[Exemples graphiques produits par le moteur](editorial-demo/premium/README.md).
+
 ## Rédaction, du besoin à l'action
 
 - Ouvrir par le besoin métier, l'objectif et l'état réel ; un pitch spécifique.

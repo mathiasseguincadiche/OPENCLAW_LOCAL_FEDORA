@@ -69,6 +69,7 @@ def render(spec: object) -> tuple[dict[str, Any], str]:
         raise ValueError("variante graphique inconnue")
     if not isinstance(motif, str) or motif not in MOTIFS:
         raise ValueError("motif graphique inconnu")
+    colors: tuple[str, ...]
     if isinstance(palette, str) and palette in PALETTES:
         colors = PALETTES[palette]
     elif isinstance(palette, list) and len(palette) == 3 and all(
@@ -106,8 +107,8 @@ def render(spec: object) -> tuple[dict[str, Any], str]:
         subsize = min(22, int(680 / len(line)))
         body = (
             f'<rect x="48" y="52" width="7" height="{height - 104}" rx="3" fill="{accent}"/>'
-            f'<text x="76" y="89" fill="{accent}" font-size="19" font-weight="700">'
-            'INGÉNIERIE · INFRAOPS</text>'
+            f'<text x="76" y="89" fill="#FFFFFF" font-size="19" font-weight="700">'
+            'PROJET · INGÉNIERIE</text>'
             f'<text x="74" y="{height // 2 + 12}" fill="#FFFFFF" font-size="{size}" '
             f'font-weight="700">{escape(headline)}</text>'
             f'<text x="76" y="{height // 2 + 56}" fill="#FFFFFF" font-size="{subsize}">'

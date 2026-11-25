@@ -1,0 +1,12 @@
+{
+  "motif": "storage",
+  "palette": [
+    "#33201F",
+    "#864631",
+    "#FFC07B"
+  ],
+  "project": "Relay",
+  "section": "Présentation",
+  "tagline": "Protéger les données et restaurer",
+  "variant": "hero"
+}

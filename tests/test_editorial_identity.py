@@ -67,3 +67,20 @@ def test_managed_identity_references_and_permissions(tmp_path):
     with pytest.raises(ValueError):
         invoke(tmp_path, "chef-operations", tmp_path / "workspaces/chef-operations",
                "clawfedora_artifact", request)
+
+def test_gallery_matches_the_renderer():
+    for path in sorted((ROOT / "docs/editorial-demo/premium").glob("*.json")):
+        _, svg = render(json.loads(path.read_text(encoding="utf-8")))
+        assert path.with_suffix(".svg").read_text(encoding="utf-8") == svg, path.name
+    assert len(list((ROOT / "docs/editorial-demo/premium").glob("*.svg"))) == 7
+
+
+def test_identity_requires_its_editable_source(tmp_path):
+    deploy_workspaces(ROOT, tmp_path)
+    role = "architecte-solutions"
+    workspace = tmp_path / "workspaces" / role
+    request = {"format": "identity", "content": json.dumps(SPEC)}
+    result = invoke(tmp_path, role, workspace, "clawfedora_artifact", request)
+    response = {"files": {"deliverables/atlas.svg": result["references"]["svg"]}}
+    with pytest.raises(ValueError, match="source JSON"):
+        _resolve_tool_files(workspace, set(), {"role": role}, response)

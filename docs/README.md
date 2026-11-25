@@ -25,7 +25,7 @@ pas encore les API directement.
 
 ## Standard éditorial transversal
 
-Le [standard d'excellence éditoriale V1](EXCELLENCE_EDITORIALE.md) réunit la grille pondérée, les critères bloquants, la séparation GitHub/Notion et les [démonstrations](editorial-demo/README.md). Le rendu natif reste une réception distincte.
+Le [standard d'excellence éditoriale V2](EXCELLENCE_EDITORIALE.md) réunit la grille pondérée, les critères bloquants, la séparation GitHub/Notion et les [démonstrations](editorial-demo/README.md). La [direction artistique Premium V2](EDITORIAL_PREMIUM_V2.md) ajoute un moteur d'identité graphique et de nouveaux blocs Notion. Le rendu natif reste une réception distincte.
 
 ## Construire un wiki Notion premium
 

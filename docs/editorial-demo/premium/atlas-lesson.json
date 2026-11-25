@@ -1,0 +1,12 @@
+{
+  "motif": "observability",
+  "palette": [
+    "#10243A",
+    "#175A78",
+    "#64D8EA"
+  ],
+  "project": "Atlas",
+  "section": "Observer un service",
+  "tagline": "Concevoir, automatiser, exploiter",
+  "variant": "exercise"
+}
