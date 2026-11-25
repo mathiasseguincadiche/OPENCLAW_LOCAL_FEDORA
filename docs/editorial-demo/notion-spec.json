@@ -1,0 +1,111 @@
+{
+  "title": "Atelier Atlas — Démonstration éditoriale",
+  "blocks": [
+    {
+      "type": "callout",
+      "icon": "🧭",
+      "color": "blue_background",
+      "text": "Objectif : comprendre, préparer, pratiquer et vérifier. Projet fictif non déployé."
+    },
+    {
+      "type": "heading_2",
+      "text": "Explorer le wiki"
+    },
+    {
+      "type": "columns",
+      "columns": [
+        [
+          {
+            "type": "callout",
+            "icon": "🔎",
+            "color": "gray_background",
+            "text": "Comprendre — Contexte et architecture"
+          },
+          {
+            "type": "callout",
+            "icon": "🧰",
+            "color": "gray_background",
+            "text": "Préparer — Inventaire et installation conditionnelle"
+          },
+          {
+            "type": "callout",
+            "icon": "🛠️",
+            "color": "gray_background",
+            "text": "Pratiquer — Exercices et indices"
+          }
+        ],
+        [
+          {
+            "type": "callout",
+            "icon": "📈",
+            "color": "gray_background",
+            "text": "Suivre — Preuves personnelles"
+          },
+          {
+            "type": "callout",
+            "icon": "📚",
+            "color": "gray_background",
+            "text": "Ressources — Runbooks et références"
+          }
+        ]
+      ]
+    },
+    {
+      "type": "heading_2",
+      "text": "Parcours d’apprentissage"
+    },
+    {
+      "type": "table",
+      "rows": [
+        [
+          "Étape",
+          "Objectif",
+          "Contrôle"
+        ],
+        [
+          "01",
+          "Comprendre le service",
+          "À réaliser"
+        ],
+        [
+          "02",
+          "Préparer les outils",
+          "À réaliser"
+        ],
+        [
+          "03",
+          "Déployer et superviser",
+          "À réaliser"
+        ],
+        [
+          "04",
+          "Restaurer et expliquer",
+          "À réaliser"
+        ]
+      ]
+    },
+    {
+      "type": "heading_2",
+      "text": "Préparer l’environnement et installer si nécessaire"
+    },
+    {
+      "type": "code",
+      "language": "bash",
+      "text": "# Identifier le système et l’espace libre.\ncat /etc/os-release\ndf -h"
+    },
+    {
+      "type": "toggle",
+      "text": "Indice — à ouvrir après réflexion",
+      "children": [
+        {
+          "type": "paragraph",
+          "text": "Comparer les colonnes de df ; ne pas inventer de sortie."
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "text": "Aucun contrôle personnel exécuté. Aucune preuve de déploiement."
+    }
+  ]
+}

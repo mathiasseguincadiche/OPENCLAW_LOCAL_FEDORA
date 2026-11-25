@@ -8,4 +8,4 @@ Ces exemples utilisent **Atelier Atlas**, un projet fictif, sans adresse privée
 | Notion | [Accueil et fiche — proposition de blocs natifs](notion-demo.md) |
 | Aperçu local | [Maquette HTML autonome](preview.html) (ouvrir le fichier localement) |
 
-Le Markdown GitHub est consultable sur la branche de la PR. L'aperçu HTML illustre l'intention graphique ; il ne s'agit ni d'une capture de GitHub/Notion ni d'une recette visuelle native. La proposition Notion utilise une syntaxe de gabarit, à convertir en blocs API après validation. Ne pas publier automatiquement.
+Le Markdown GitHub est consultable sur la branche de la PR. L'aperçu HTML illustre l'intention graphique ; il ne s'agit ni d'une capture de GitHub/Notion ni d'une recette visuelle native. La proposition Notion utilise une syntaxe de gabarit ; un [exemple JSON natif](notion-spec.json) peut être compilé et créé par le [module opérateur](../NOTION_EDITORIAL_CREATION.md) après validation explicite. Ne pas publier automatiquement.

@@ -45,6 +45,8 @@ segment ciblé](NOTION_RICH_TEXT.md) préserve les annotations, les liens
 voisins et les icônes/couleurs des encadrés existants.
 Le [mode tableaux et images](NOTION_TABLES_IMAGES.md) apporte l'inventaire
 et la modification contrôlée d'une cellule ou d'une légende existante.
+La [création éditoriale de page fille](NOTION_EDITORIAL_CREATION.md) ajoute un
+plan JSON borné et une approbation opérateur ; pas de publication autonome.
 
 ## Méthodes d'amélioration des agents et des outils
 
