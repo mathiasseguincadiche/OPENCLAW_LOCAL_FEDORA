@@ -143,11 +143,13 @@ OUTLINES = {
         ],
         "github_readme": [
             "Pitch et état réel", "Démarrage et installation conditionnelle",
-            "Architecture, source et visuel", "Réalisations, limites et preuves", "Navigation et contribution",
+            "Architecture, source et visuel", "Réalisations, limites et preuves",
+            "Navigation et contribution",
         ],
         "notion_wiki": [
             "Accueil, objectif et état réel", "Comprendre et préparer les outils",
-            "Pratiquer, suivre, ressources", "Navigation native et conservation", "Preuves et réception visuelle",
+            "Pratiquer, suivre, ressources", "Navigation native et conservation",
+            "Preuves et réception visuelle",
         ],
         "explanation": [
             "Idée principale",
