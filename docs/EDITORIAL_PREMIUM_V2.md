@@ -105,3 +105,6 @@ le manque de preuve. La CI ne certifie pas le comportement des modèles locaux.
 Consultées le 25 novembre 2026. Le moteur de page unitaire conserve son contrat
 API historique. Le studio utilise 2026-03-11 pour les uploads et les vues,
 avec tests simulés et réception native encore requise.
+
+Le [contrôle de cohérence GitHub / Notion](EDITORIAL_COHERENCE.md) compare
+les références déclarées sur des sources locales explicitement sélectionnées.
