@@ -35,7 +35,7 @@ def _read(request: Request, page: str) -> list[dict[str, Any]]:
 
 
 def _append(request: Request, page: str, block: dict[str, Any]) -> dict[str, Any]:
-    before = _read(request, page)
+    before_ids = [_id(row.get("id")) for row in _read(request, page)]
     result = request("PATCH", f"/v1/blocks/{page}/children", body={"children": [block]})
     rows = result.get("results")
     if not isinstance(rows, list) or len(rows) != 1 or not isinstance(rows[0], dict):
@@ -43,8 +43,8 @@ def _append(request: Request, page: str, block: dict[str, Any]) -> dict[str, Any
     ident = _id(rows[0].get("id"))
     after = _read(request, page)
     if (
-        len(after) != len(before) + 1
-        or [_id(row.get("id")) for row in after[:-1]] != [_id(row.get("id")) for row in before]
+        len(after) != len(before_ids) + 1
+        or [_id(row.get("id")) for row in after[:-1]] != before_ids
         or _id(after[-1].get("id")) != ident
         or after[-1].get("type") != "synced_block"
         or after[-1].get("in_trash") is True or after[-1].get("archived") is True

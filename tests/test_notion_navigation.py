@@ -18,12 +18,13 @@ class NavigationAPI(FakeAPI):
         super().__init__()
         self.counter = 100
         self.bad_pointer = False
+        self.bad_prefix = False
 
     def __call__(self, method, resource, *, body=None, binary=None, content_type=None):
         if method != "PATCH":
-            return super().__call__(
+            return copy.deepcopy(super().__call__(
                 method, resource, body=body, binary=binary, content_type=content_type,
-            )
+            ))
         page = resource.split("/")[3]
         assert page in {HOME, CHILD}
         self.writes.append(resource)
@@ -43,6 +44,8 @@ class NavigationAPI(FakeAPI):
                 })
         elif self.bad_pointer:
             block["synced_block"]["synced_from"]["block_id"] = "f" * 32
+        if self.bad_prefix:
+            self.children[page][0]["id"] = "e" * 32
         self.children[page].append(block)
         return {"results": [block]}
 
@@ -105,3 +108,13 @@ def test_review_detects_navigation_removal(tmp_path, monkeypatch):
     assert "Conserver la navigation synchronisée initiale." in en.inspect(
         json.dumps(value), preserve_navigation=True,
     )
+
+
+def test_changed_prefix_refuses_navigation(tmp_path, monkeypatch):
+    spec, media, plan, api = prepared(tmp_path, monkeypatch)
+    result = ns.preview(PARENT, spec, media, plan)
+    api.bad_prefix = True
+    with pytest.raises(nw.NotionWriteError, match="ajout non confirmé"):
+        ns.apply(plan, PARENT, result["manifest_sha256"])
+    assert not plan.with_name(plan.name + ".verified.json").exists()
+    assert len([p for p in api.writes if p.endswith("/children")]) == 1
