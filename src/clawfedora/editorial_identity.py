@@ -126,7 +126,7 @@ def render(spec: object) -> tuple[dict[str, Any], str]:
             f'{escape(line)}</text>'
             f'<g transform="translate({width - 445} {height // 2 - 115})">{artwork}</g>'
         )
-    normalized = {
+    normalized: dict[str, Any] = {
         "project": project, "tagline": tagline, "section": section,
         "variant": variant, "motif": motif, "palette": list(colors),
     }
