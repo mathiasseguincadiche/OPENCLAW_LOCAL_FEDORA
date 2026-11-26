@@ -70,6 +70,8 @@ STAGES = (
      "Qwen et Ornith, 8K/16K/32K, profils comparés et retour à la référence"),
     ("native-visual", "HUMAN", "validation/VISUAL_RECEPTION_NATIVE.md",
      "Inspection réelle des pages et documents, captures sans secrets"),
+    ("editorial-premium", "HUMAN", "validation/EDITORIAL_ACCEPTANCE.md",
+     "Projet Atlas, preuves privées, treize cas et réception visuelle six vues"),
     ("host-stability", "HUMAN", "RECETTE_GLOBALE.md",
      "Redémarrage, veille, AV1, stabilité et revue finale"),
     ("first-infraops-project", "HUMAN", "CAS_USAGE_INFRAOPS_OPSDESK.md",

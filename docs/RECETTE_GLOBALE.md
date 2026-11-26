@@ -203,3 +203,5 @@ compare les preuves aux critères. Conserver la progression personnelle
 dans Notion, le code et ses preuves techniques dans GitHub.
 Aucune qualification OpsDesk ni aucun niveau d'autonomie n'est déduit
 de la réception de l'atelier.
+
+Avant le premier projet réel, exécuter également la [campagne éditoriale Premium Atlas](validation/EDITORIAL_ACCEPTANCE.md), distincte de la qualification matérielle.

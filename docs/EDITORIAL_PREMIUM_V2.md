@@ -108,3 +108,5 @@ avec tests simulés et réception native encore requise.
 
 Le [contrôle de cohérence GitHub / Notion](EDITORIAL_COHERENCE.md) compare
 les références déclarées sur des sources locales explicitement sélectionnées.
+
+La [campagne finale Atlas](validation/EDITORIAL_ACCEPTANCE.md) regroupe les scénarios réels et les critères de réception des capacités éditoriales. Statut initial : NOT_RUN.
