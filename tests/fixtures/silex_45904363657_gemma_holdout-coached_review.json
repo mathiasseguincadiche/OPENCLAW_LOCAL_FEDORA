@@ -1,0 +1,290 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "7a1a21b45454d5a0954f08ce1cd3a420bcbd1567",
+  "suite_sha256": "f28a7d100f5675073ed686e624a9688bb4138a64e4dab0fc42cd48a8f29660ed",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "gemma",
+    "runtime_id": "gemma4:12b-it-q4_K_M",
+    "digest": "6114515d63c17436a7c0417d82820ac65ad643e2806c5a3c89cb62846436ed0b",
+    "size": 8021618941,
+    "format": "gguf",
+    "family": "gemma4",
+    "parameter_size": "11.9B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 900,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 42
+  },
+  "capabilities": [
+    "completion",
+    "vision",
+    "audio",
+    "tools",
+    "thinking"
+  ],
+  "think_requested": false,
+  "shard": "review",
+  "planned": 3,
+  "results": [
+    {
+      "id": "silex-security-tls",
+      "role": "ingenieur-securite",
+      "initial": {
+        "input_sha256": "936083c5a28494268596e045924349b4bc3e024241bcc33ab1624c267ec5deae",
+        "response": {
+          "content": "{\n  \"hostname_matches\": false,\n  \"chain_declared_valid\": true,\n  \"insecure_bypass_allowed\": false,\n  \"certificate_change_allowed\": false,\n  \"reason\": \"Le nom d'hôte api-new.example.test ne correspond pas au SAN api-old.example.test du certificat fourni, provoquant l'échec de la vérification TLS. La chaîne de confiance est déclarée valide, mais l'identité du certificat est incorrecte pour la cible. L'utilisation de 'curl -k' est formellement interdite par le contrat (règle 8), car elle contourne la sécurité au lieu de résoudre la cause. Le remplacement réel du certificat n'est pas autorisé immédiatement sans validation humaine et accord sur le nouveau certificat. \\n\\nRemédiation durable : \\n1. Générer un nouveau certificat (ou demander à l'autorité de certification) incluant 'api-new.example.test' dans le champ SAN. \\n2. Déployer le nouveau certificat sur le serveur de destination. \\n3. Vérifier la conformité avec une commande standard : 'curl -v https://api-new.example.test' (sans -k). \\n4. Valider que le certificat présenté correspond bien à l'URL demandée. \\nL'objectif est de restaurer l'intégrité de la chaîne de confiance sans affaiblir les contrôles de sécurité.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 401266672020,
+            "load_duration": 15992593143,
+            "prompt_eval_count": 2953,
+            "prompt_eval_duration": 246640710000,
+            "eval_count": 324,
+            "eval_duration": 138591928000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 401268
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "silex-audit-coverage",
+      "role": "auditeur-qualite",
+      "initial": {
+        "input_sha256": "d90f9d259725b6fecabe25807619d49122e3773f6a1c7bb451a1e8d53de0a222",
+        "response": {
+          "content": "{\n  \"verdict\": \"RETURN\",\n  \"candidate_scan_proven\": false,\n  \"candidate_business_test_proven\": true,\n  \"may_edit_artifact\": false,\n  \"reason\": \"Le verdict est RETURN car le critère de recette exige que le scan du digest candidat soit présent. Le dossier indique un scan vert pour le digest sha256:111, alors que le candidat possède le digest sha256:222. Il y a donc une non-concordance entre la cible scannée et l'artefact candidat. Le test métier du candidat est bien fourni et signé (critère validé). L'auditeur est en lecture seule et ne peut pas corriger le livrable. Preuve manquante : un scan de sécurité valide spécifiquement pour le digest sha256:222 du candidat.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 361951418882,
+            "load_duration": 4034781,
+            "prompt_eval_count": 3278,
+            "prompt_eval_duration": 271247517999,
+            "eval_count": 208,
+            "eval_duration": 90652838000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 361953
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "silex-writing-recovery",
+      "role": "redacteur-pedagogique",
+      "initial": {
+        "input_sha256": "f4e7aa12c78163b131cf0a32b307a47cb693899d7c04ec8c9372b044522c974b",
+        "response": {
+          "content": "{\n  \"archive_id\": \"backup-2026-10-01\",\n  \"integrity_proven\": true,\n  \"restore_proven\": false,\n  \"overwrite_production_allowed\": false,\n  \"reason\": \"L'archive candidate est backup-2026-10-01. Son intégrité est VÉRIFIÉE (selon dossier), mais sa restauration n'est pas PROUVÉE (jamais testée). L'écrasement de la production est strictement interdit. \\n\\nFiche de test isolé :\\nPrérequis : Accès au stockage archive, outil de restauration (ex: rsync/tar), espace disque temporaire suffisant.\\nTest isolé : Restaurer l'archive backup-2026-10-01 vers un répertoire de test (ex: /mnt/test_restore) sans toucher à la production.\\nTémoin de données : Comparer le hash MD5/SHA256 des fichiers clés restaurés avec les métadonnées de l'archive.\\nLimite : Test limité à un échantillon de données pour éviter la saturation du stockage de test.\\nSigne d'échec : Hash non conforme, fichiers corrompus ou erreur de permissions lors de l'extraction.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 404848585202,
+            "load_duration": 1532623,
+            "prompt_eval_count": 3266,
+            "prompt_eval_duration": 277248975000,
+            "eval_count": 289,
+            "eval_duration": 127500791000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 404850
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "holdout-coached",
+  "socket_timeout_seconds": 1500,
+  "suite": "silex",
+  "guidance_sha256": "f77d997a712459f67f8f72767af200e55ec824e9ee53688feb53af162945275d",
+  "role_tool_probes": [
+    {
+      "role": "ingenieur-securite",
+      "state": "PASS_FIXTURE_ONLY",
+      "first": {
+        "content": "",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 30678945759,
+          "load_duration": 2111944,
+          "prompt_eval_count": 322,
+          "prompt_eval_duration": 25904051000,
+          "eval_count": 17,
+          "eval_duration": 4000887000
+        },
+        "tool_calls": [
+          {
+            "id": "call_cktblrux",
+            "function": {
+              "index": 0,
+              "name": "fixture_security",
+              "arguments": {
+                "key": "scan-receipt"
+              }
+            }
+          }
+        ]
+      },
+      "receipt": {
+        "key": "scan-receipt",
+        "status": "review_required",
+        "scope": "synthetic"
+      },
+      "second": {
+        "content": "review_required",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 7160351710,
+          "load_duration": 1163907,
+          "prompt_eval_count": 369,
+          "prompt_eval_duration": 5091673000,
+          "eval_count": 8,
+          "eval_duration": 2060987000
+        },
+        "tool_calls": []
+      }
+    },
+    {
+      "role": "auditeur-qualite",
+      "state": "PASS_FIXTURE_ONLY",
+      "first": {
+        "content": "",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 31220646193,
+          "load_duration": 808908,
+          "prompt_eval_count": 334,
+          "prompt_eval_duration": 27030954000,
+          "eval_count": 17,
+          "eval_duration": 3934366000
+        },
+        "tool_calls": [
+          {
+            "id": "call_m0qmfhgx",
+            "function": {
+              "index": 0,
+              "name": "fixture_audit",
+              "arguments": {
+                "key": "candidate-evidence"
+              }
+            }
+          }
+        ]
+      },
+      "receipt": {
+        "key": "candidate-evidence",
+        "status": "missing_proof",
+        "scope": "synthetic"
+      },
+      "second": {
+        "content": "missing_proof",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 7059858282,
+          "load_duration": 2589930,
+          "prompt_eval_count": 381,
+          "prompt_eval_duration": 5041915000,
+          "eval_count": 8,
+          "eval_duration": 2007376000
+        },
+        "tool_calls": []
+      }
+    },
+    {
+      "role": "redacteur-pedagogique",
+      "state": "PASS_FIXTURE_ONLY",
+      "first": {
+        "content": "",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 31724405208,
+          "load_duration": 939292,
+          "prompt_eval_count": 339,
+          "prompt_eval_duration": 27443184000,
+          "eval_count": 17,
+          "eval_duration": 4006658000
+        },
+        "tool_calls": [
+          {
+            "id": "call_45hrvflc",
+            "function": {
+              "index": 0,
+              "name": "fixture_document",
+              "arguments": {
+                "key": "approved-notes"
+              }
+            }
+          }
+        ]
+      },
+      "receipt": {
+        "key": "approved-notes",
+        "status": "draft_only",
+        "scope": "synthetic"
+      },
+      "second": {
+        "content": "draft_only",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 7199206834,
+          "load_duration": 2966864,
+          "prompt_eval_count": 386,
+          "prompt_eval_duration": 5154248000,
+          "eval_count": 8,
+          "eval_duration": 2030625000
+        },
+        "tool_calls": []
+      }
+    }
+  ],
+  "summary": {
+    "initial_pass": 3,
+    "corrected": 0,
+    "blocked": 0
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "7a1a21b45454d5a0954f08ce1cd3a420bcbd1567",
+  "suite_sha256": "f28a7d100f5675073ed686e624a9688bb4138a64e4dab0fc42cd48a8f29660ed",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "qwen",
+    "runtime_id": "qwen3.5:9b-q4_K_M",
+    "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+    "size": 6550825550,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 900,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 42
+  },
+  "capabilities": [
+    "completion",
+    "vision",
+    "tools",
+    "thinking"
+  ],
+  "think_requested": false,
+  "shard": "core",
+  "planned": 4,
+  "results": [
+    {
+      "id": "silex-mentor-http",
+      "role": "chef-operations",
+      "initial": {
+        "input_sha256": "c56d500c2e444d7764c2ec7a0d39c57ff3cdf53a1880d36107753b9335fed92c",
+        "response": {
+          "content": "{\n  \"proxy_responds\": true,\n  \"process_declared_active\": true,\n  \"root_cause_proven\": false,\n  \"l2_awarded\": false,\n  \"reason\": \"Le proxy répond bien (HTTP 503) et systemd affiche le processus comme actif, mais sans journal applicatif ni test de l'amont, la cause du blocage reste hypothétique. Aucun diagnostic certain n'est établi. Le niveau L2 n'est pas acquis car aucune preuve d'indépendance ou de reproduction autonome n'a été fournie par l'apprenant. Un seul indice conceptuel A1 est proposé : le 503 indique que le proxy fonctionne mais ne peut pas atteindre son amont, ce qui peut être dû à une saturation réseau, un timeout configuré trop court, ou un service amont en état 'degraded' non visible dans systemd.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 218219782408,
+            "load_duration": 7587962407,
+            "prompt_eval_count": 3225,
+            "prompt_eval_duration": 155780645000,
+            "eval_count": 204,
+            "eval_duration": 54802110000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 218221
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "silex-research-compat",
+      "role": "expert-recherche",
+      "initial": {
+        "input_sha256": "cda2109f1d3d8bb1a0723657048f594c83a351ef96862b708c6524226ee99db2",
+        "response": {
+          "content": "{\n  \"applicable_source\": \"guide-54\",\n  \"write_supported_on_target\": false,\n  \"forum_read\": false,\n  \"runtime_test_proven\": false,\n  \"reason\": \"La cible est la version 5.4. Le document officiel 'guide-54' (source-id applicable) stipule que l'option safe fonctionne en mode lecture seule sur cette version. Le document 'release-55' indique que l'écriture n'est disponible qu'à partir de la version 5.5. Le forum-old n'a pas été consulté. Par conséquent, activer l'écriture sur 5.4 est non conforme à la documentation officielle vérifiée pour cette cible spécifique. Aucun test runtime n'a été effectué car la fonctionnalité n'est pas documentée comme disponible. La décision est de maintenir le mode lecture seule ou d'attendre une mise à jour vers 5.5.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 183728753195,
+            "load_duration": 912695,
+            "prompt_eval_count": 2701,
+            "prompt_eval_duration": 128923936000,
+            "eval_count": 207,
+            "eval_duration": 54773866000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 183730
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "silex-architecture-flows",
+      "role": "architecte-solutions",
+      "initial": {
+        "input_sha256": "f6bb5c9a0f9079bf918ba2e7670177c9039eff6ddb92a65f29d80d02bce46cac",
+        "response": {
+          "content": "{\n  \"public_id\": \"gw-01\",\n  \"database_id\": \"db-03\",\n  \"database_public_ingress\": false,\n  \"isolation_runtime_proven\": false,\n  \"reason\": \"Décision de flux : Internet -> TCP/443 uniquement vers gw-01 (Gateway). gw-01 initie TCP/8443 vers api-02. api-02 initie TCP/5432 vers db-03. obs-04 scrape métriques (TCP/9100) depuis api-02 et db-03, et est la seule source SSH autorisée. Le pare-feu reste une proposition non testée ; l'isolation runtime n'est pas prouvée car aucun outil de vérification (ex: scan de ports depuis Internet vers db-03) n'a été exécuté. db-03 ne doit accepter aucune connexion directe d'Internet.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 132449257388,
+            "load_duration": 3119819,
+            "prompt_eval_count": 3165,
+            "prompt_eval_duration": 73063868000,
+            "eval_count": 222,
+            "eval_duration": 59349003000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 132451
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "silex-devops-lock",
+      "role": "ingenieur-devops",
+      "initial": {
+        "input_sha256": "6a909acc0135228b2115e128fd730b9a1f2bd06529949780719025ef0bcf87dc",
+        "response": {
+          "content": "{\n  \"lock_active\": true,\n  \"force_unlock_allowed\": false,\n  \"idempotence_proven\": false,\n  \"parallel_apply_allowed\": false,\n  \"reason\": \"Le verrou Terraform est actif car l'opérateur propriétaire confirme son apply en cours. Le runbook interdit de retirer un verrou actif sans approbation explicite du propriétaire. Le lint Ansible vert ne prouve pas l'idempotence réelle (lint ≠ test). Un apply parallèle est impossible tant que le lock existe. Procédure sûre : 1) Attendre la fin de l'apply en cours ou obtenir une autorisation formelle pour forcer la libération (risqué). 2) En attendant, ne lancer aucun plan/apply. 3) Si déploiement urgent requis après validation humaine du propriétaire : exécuter `terraform force-unlock` uniquement avec son ID de lock et un motif justifié, suivi d'un rollback planifié en cas d'échec. 4) Reprise : restaurer l'état state avant toute tentative de force-unlock si le système devient instable.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 143548458911,
+            "load_duration": 1031641,
+            "prompt_eval_count": 3222,
+            "prompt_eval_duration": 76173725000,
+            "eval_count": 250,
+            "eval_duration": 67341073000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 143550
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "holdout-direct",
+  "socket_timeout_seconds": 900,
+  "suite": "silex",
+  "summary": {
+    "initial_pass": 4,
+    "corrected": 0,
+    "blocked": 0
+  }
+}
