@@ -23,6 +23,7 @@ from PIL import Image
 
 from clawfedora import notion_curriculum as nc
 from clawfedora import notion_editorial as ne
+from clawfedora import notion_navigation as nn
 from clawfedora import notion_studio_preview as sp
 from clawfedora import notion_write as nw
 
@@ -156,7 +157,7 @@ def _page_spec(spec: object, parent: str) -> tuple[dict[str, Any], list[str]]:
 def _spec(spec: object, parent: str) -> list[str]:
     if (
         not isinstance(spec, dict) or not {"home", "pages", "tracker"} <= set(spec)
-        or not set(spec) <= {"home", "pages", "tracker", "curriculum"}
+        or not set(spec) <= {"home", "pages", "tracker", "curriculum", "navigation"}
     ):
         raise nw.NotionWriteError("schéma studio : home, pages, tracker")
     pages = spec["pages"]
@@ -193,6 +194,8 @@ def _spec(spec: object, parent: str) -> list[str]:
         if tracker is not None:
             raise nw.NotionWriteError("un seul suivi : tracker ou parcours relationnel")
         assets.update(nc.validate(spec["curriculum"], titles))
+    if "navigation" in spec:
+        nn.validate(spec["navigation"])
     if len(assets) > 8:
         raise nw.NotionWriteError("huit fichiers privés maximum")
     return sorted(assets)
@@ -444,12 +447,14 @@ def apply(plan_file: Path, parent: str, manifest: str) -> dict[str, Any]:
     nw._private_new(plan_file.with_name(plan_file.name + ".root.json"),
                     {"root_page_id": home, "manifest_sha256": digest})
     pages = [_created_page(page, home, uploads) for page in spec["pages"]]
+    page_map = {spec["home"]["title"]: home}
+    page_map.update({page["title"]: ident for page, ident in zip(
+        spec["pages"], pages, strict=True,
+    )})
+    navigation = (nn.create(_request, home, page_map, spec["navigation"])
+                  if "navigation" in spec else None)
     tracker = _tracker(home, spec["tracker"]) if spec["tracker"] is not None else None
     if "curriculum" in spec:
-        page_map = {spec["home"]["title"]: home}
-        page_map.update({page["title"]: ident for page, ident in zip(
-            spec["pages"], pages, strict=True,
-        )})
         tracker = nc.create(_request, home, spec["curriculum"], page_map, uploads)
     for ident in uploads.values():
         actual = _request("GET", f"/v1/file_uploads/{ident}")
@@ -462,6 +467,8 @@ def apply(plan_file: Path, parent: str, manifest: str) -> dict[str, Any]:
                "root_page_id": home, "page_ids": pages, "tracker": tracker,
                "assets": [{**record, "upload_id": uploads[record["name"]]} for record in records],
                "limitations": "Rendu, octets distants et droits de partage non certifiés"}
+    if navigation is not None:
+        receipt["navigation"] = navigation
     nw._private_new(plan_file.with_name(plan_file.name + ".verified.json"), receipt)
     return receipt
 

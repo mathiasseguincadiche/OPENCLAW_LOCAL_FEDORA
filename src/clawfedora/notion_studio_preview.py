@@ -101,6 +101,10 @@ def render(spec: dict[str, Any], records: list[dict[str, Any]],
     navigation = "".join(
         f'<a href="#page-{i}">{escape(p["title"])}</a>' for i, p in enumerate(pages)
     )
+    synced = ""
+    if "navigation" in spec:
+        synced = (f'<aside><strong>{escape(spec["navigation"]["title"])}</strong>'
+                  f'<nav>{navigation}</nav><small>Navigation synchronisée prévue</small></aside>')
     sections = []
     for index, page in enumerate(pages):
         cover = ""
@@ -116,7 +120,7 @@ def render(spec: dict[str, Any], records: list[dict[str, Any]],
         title = escape(page["title"])
         sections.append(
             f'<article id="page-{index}">{cover}<h2>{title}</h2>'
-            f'{_blocks(page["blocks"])}{media}</article>',
+            f'{_blocks(page["blocks"])}{media}{synced}</article>',
         )
     tracker = spec["tracker"]
     if tracker:
