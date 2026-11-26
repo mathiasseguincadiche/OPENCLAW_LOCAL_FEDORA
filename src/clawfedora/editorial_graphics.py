@@ -44,7 +44,10 @@ def profile(task: dict[str, Any]) -> str | None:
 
 def source_path(task: dict[str, Any], kind: str) -> str:
     suffix = ".drawio" if kind == "diagram" else ".json"
-    return next(path for path in task["expected_outputs"] if Path(path).suffix == suffix)
+    return next(
+        path for path in task["expected_outputs"]
+        if isinstance(path, str) and Path(path).suffix == suffix
+    )
 
 
 def verify_refs(task: dict[str, Any], kind: str, response: dict[str, Any]) -> None:
