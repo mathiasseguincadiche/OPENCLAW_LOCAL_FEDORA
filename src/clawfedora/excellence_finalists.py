@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import time
+from dataclasses import dataclass
 from http.client import HTTPConnection
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,34 @@ SEEDS = (42, 73)
 SHARDS = ("core", "review")
 OPTIONS = {**mc.OPTIONS, "num_predict": 1800}
 REASON_LIMIT = 1200
+
+
+@dataclass(frozen=True)
+class Profile:
+    think: bool
+    num_predict: int
+    timeout: int
+
+
+DIRECT = {
+    "qwen": Profile(False, 900, 900),
+    "ornith": Profile(False, 1200, 1200),
+    "gemma": Profile(False, 900, 1500),
+}
+GEMMA_PROBE = Profile(True, 900, 1500)
+PROFILE_NAMES = ("baseline", "direct", "gemma-think-probe")
+
+
+def select_profile(alias: str, name: str) -> Profile | None:
+    if alias not in MODELS or name not in PROFILE_NAMES:
+        raise ValueError("profil inconnu")
+    if name == "baseline":
+        return None
+    if name == "direct":
+        return DIRECT[alias]
+    if alias != "gemma":
+        raise ValueError("sonde réservée à Gemma")
+    return GEMMA_PROBE
 
 
 def load(root: Path) -> dict[str, Any]:
@@ -125,13 +154,19 @@ def messages(root: Path, case: dict[str, Any]) -> list[dict[str, str]]:
 
 
 def ask(model: str, case: dict[str, Any], prompt: list[dict[str, str]],
-        seed: int, think: bool) -> dict[str, Any]:
+        seed: int, think: bool, *, profile: Profile | None = None) -> dict[str, Any]:
     start = time.monotonic()
-    reply = mc._chat({
+    options = {**OPTIONS, "seed": seed}
+    if profile is not None:
+        options["num_predict"] = profile.num_predict
+    payload = {
         "model": model, "stream": False, "think": think,
-        "options": {**OPTIONS, "seed": seed}, "keep_alive": "5m",
+        "options": options, "keep_alive": "5m",
         "format": tm.schema(case), "messages": prompt,
-    })
+    }
+    reply = mc._chat(payload) if profile is None else mc._chat(
+        payload, timeout=profile.timeout,
+    )
     response = mc._result(reply, model)
     thinking = reply["message"].get("thinking")
     return {
@@ -143,26 +178,44 @@ def ask(model: str, case: dict[str, Any], prompt: list[dict[str, str]],
 
 
 def run(root: Path, alias: str, commit: str, output: Path,
-        seed: int, shard: str) -> dict[str, Any]:
+        seed: int, shard: str, *, profile: str = "baseline") -> dict[str, Any]:
     if (alias not in MODELS or seed not in SEEDS or shard not in SHARDS
             or not mc.SHA.fullmatch(commit) or output.exists()):
         raise ValueError("entrée invalide")
+    selected = select_profile(alias, profile)
+    if profile == "gemma-think-probe" and seed != 42:
+        raise ValueError("sonde Gemma limitée à la seed 42")
     suite = load(root)
     identity = es.identity(root, alias)
     if identity["digest"].removeprefix("sha256:") != DIGESTS[alias]:
         raise ValueError("digest candidat modifié depuis la présélection")
     declared = capabilities(MODELS[alias])
-    think = "thinking" in declared
+    think = "thinking" in declared if selected is None else selected.think
+    if think and "thinking" not in declared:
+        raise ValueError("raisonnement demandé mais non déclaré")
     cases = suite["cases"][:4] if shard == "core" else suite["cases"][4:]
+    if profile == "gemma-think-probe":
+        cases = cases[:1]
+    options = {**OPTIONS, "seed": seed}
+    if selected is not None:
+        options["num_predict"] = selected.num_predict
     report: dict[str, Any] = {
         "schema": 1, "classification": "synthetic_public", "mode": "excellence-finalists",
         "commit": commit, "suite_sha256": mc._digest(suite), "model": identity,
-        "backend": "ollama-cpu", "options": {**OPTIONS, "seed": seed},
+        "backend": "ollama-cpu", "options": options,
         "capabilities": declared, "think_requested": think, "shard": shard,
         "planned": len(cases), "results": [], "assessment": "INCOMPLETE",
         "native_excellence_certified": False, "production_routing_changed": False,
     }
+    if selected is not None:
+        report["profile"] = profile
+        report["socket_timeout_seconds"] = selected.timeout
     output.parent.mkdir(parents=True, exist_ok=True)
+
+    def infer(case: dict[str, Any], prompt: list[dict[str, str]]) -> dict[str, Any]:
+        if selected is None:
+            return ask(MODELS[alias], case, prompt, seed, think)
+        return ask(MODELS[alias], case, prompt, seed, think, profile=selected)
 
     def save() -> None:
         temporary = output.with_suffix(".tmp")
@@ -174,7 +227,7 @@ def run(root: Path, alias: str, commit: str, output: Path,
     for case in cases:
         try:
             prompt = messages(root, case)
-            first = ask(MODELS[alias], case, prompt, seed, think)
+            first = infer(case, prompt)
             row: dict[str, Any] = {"id": case["id"], "role": case["role"],
                                    "initial": first, "selection": "BLOCK_UNRESOLVED",
                                    "review": "NOT_REVIEWED"}
@@ -195,7 +248,7 @@ def run(root: Path, alias: str, commit: str, output: Path,
                 row["correction_status"] = "INPUT_BUDGET_EXCEEDED"
                 save()
                 continue
-            second = ask(MODELS[alias], case, revision, seed, think)
+            second = infer(case, revision)
             row["correction"] = second
             if second["validation"]["state"] == "PASS_FACT_CONTRACT_ONLY":
                 row["selection"] = "CORRECTED_FACT_CONTRACT_ONLY"
@@ -224,13 +277,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--seed", type=int, choices=SEEDS, required=True)
     parser.add_argument("--shard", choices=SHARDS, required=True)
+    parser.add_argument("--profile", choices=PROFILE_NAMES, default="baseline")
     parser.add_argument("--run", action="store_true")
     args = parser.parse_args(argv)
     try:
         if not args.run:
+            select_profile(args.model, args.profile)
             print(json.dumps({"assessment": "NOT_RUN", "suite_sha256": mc._digest(load(args.root))}))
             return 0
-        result = run(args.root, args.model, args.commit, args.output, args.seed, args.shard)
+        result = run(
+            args.root, args.model, args.commit, args.output, args.seed, args.shard,
+            profile=args.profile,
+        )
         return 0 if result["assessment"] == "COLLECTED_SEMANTIC_REVIEW_REQUIRED" else 1
     except (OSError, ValueError, TypeError, KeyError) as exc:
         print(json.dumps({"assessment": "REFUSED", "error_type": type(exc).__name__}))

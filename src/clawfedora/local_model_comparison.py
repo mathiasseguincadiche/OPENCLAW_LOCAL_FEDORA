@@ -71,9 +71,9 @@ def _inputs(root: Path, mode: str) -> list[dict[str, Any]]:
     return rows
 
 
-def _chat(payload: dict[str, Any]) -> dict[str, Any]:
+def _chat(payload: dict[str, Any], *, timeout: float = 900) -> dict[str, Any]:
     # Fixed loopback only; no proxy, redirects, tools executed by the model or secrets.
-    conn = HTTPConnection("127.0.0.1", 11434, timeout=900)
+    conn = HTTPConnection("127.0.0.1", 11434, timeout=timeout)
     try:
         conn.request("POST", "/api/chat", body=json.dumps(payload).encode(),
                      headers={"Content-Type": "application/json"})

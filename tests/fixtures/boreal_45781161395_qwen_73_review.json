@@ -1,0 +1,205 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "eaa704b09fce7915c078e56aea1efa2d14ce56b7",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "qwen",
+    "runtime_id": "qwen3.5:9b-q4_K_M",
+    "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+    "size": 6550825550,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 1800,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 73
+  },
+  "capabilities": [
+    "completion",
+    "vision",
+    "tools",
+    "thinking"
+  ],
+  "think_requested": true,
+  "shard": "review",
+  "planned": 3,
+  "results": [
+    {
+      "id": "security-secret",
+      "role": "ingenieur-securite",
+      "initial": {
+        "input_sha256": "40333cbe938ed8f64cf0f624c440fb57f4654e7d557fbdabe344b2a0da1f242c",
+        "response": {
+          "content": "{\"deletion_neutralizes_token\": false, \"revocation_required\": true, \"history_can_expose\": true, \"remote_revocation_allowed\": false, \"reason\": \"Suppression du fichier ne neutralise PAS le jeton : l'historique Git reste accessible et les clones antérieurs conservent la version contenant le secret. Rotation/révocation immédiate requise par l'émetteur du jeton (hors portée de mon contrôle). Le commit historique expose toujours le secret via git log/show ou outils spécialisés. Remédiation : 1) Révoquer/rotter le jeton immédiatement, 2) Auditer tous les systèmes/clones ayant reçu la version exposée, 3) Implémenter hooks pré-commit (pre-commit, gitleaks), 4) Utiliser un gestionnaire de secrets (Vault, AWS Secrets Manager), 5) Restructurer le dépôt pour séparer code et secrets. Ne jamais publier de secrets dans Git. Vérifier les workflows CI/CD pour éviter l'inclusion accidentelle.\",\"executed\": false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 389911284515,
+            "load_duration": 7858312781,
+            "prompt_eval_count": 2824,
+            "prompt_eval_duration": 218235266000,
+            "eval_count": 741,
+            "eval_duration": 163788740000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 389913
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "audit-alert",
+      "role": "auditeur-qualite",
+      "initial": {
+        "input_sha256": "0e4810f151a5292f29a685ecc20882bd0fa5b0c31c205b82d2ba32b04bdf548e",
+        "response": {
+          "content": "{\"verdict\":\"REVISE\",\"candidate_restore_proven\":false,\"notification_proven\":false,\"may_edit_artifact\":true,\"reason\":\"Preuves manquantes : SHA A (restauration test) et SHA B (candidat) non vérifiés, procédure de restauration modifiée sans preuve d'exécution, règle Prometheus présente mais aucune alerte reçue documentée. Contrat exige réception de notification après restauration du candidat - aucune preuve fournie. Audit lecture seule : ne pas certifier PASS sans preuves runtime consultées. Retests requis : 1) Exécuter restauration avec SHA B sur cible réelle, 2) Capturer logs/notification système, 3) Vérifier alerte Prometheus via /api/v1/rules et /alerts, 4) Comparer hash de commit avant/après. Sans ces preuves, verdict REVISE obligatoire.\",\"executed\":false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 246397227889,
+            "load_duration": 1791277,
+            "prompt_eval_count": 3117,
+            "prompt_eval_duration": 103651901000,
+            "eval_count": 644,
+            "eval_duration": 142497077000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "may_edit_artifact"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 246399
+      },
+      "selection": "CORRECTED_FACT_CONTRACT_ONLY",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "de7b86d5eef2108a5da2c80b4c2ab62e1a89bed5a0e8e6d708d7cf741aec5874",
+        "response": {
+          "content": "{\"verdict\":\"REVISE\",\"candidate_restore_proven\":false,\"notification_proven\":false,\"may_edit_artifact\":false,\"reason\":\"Preuves manquantes : SHA A (restauration test) et SHA B (candidat) non vérifiés, procédure de restauration modifiée sans preuve d'exécution, règle Prometheus présente mais aucune alerte reçue documentée. Contrat exige réception de notification après restauration du candidat - aucune preuve fournie. Audit lecture seule : ne pas certifier PASS sans preuves runtime consultées. Ne pas modifier le travail audité (règle 21). Retests requis : 1) Exécuter restauration avec SHA B sur cible réelle, 2) Capturer logs/notification système, 3) Vérifier alerte Prometheus via /api/v1/rules et /alerts, 4) Comparer hash de commit avant/après. Sans ces preuves, verdict REVISE obligatoire.\",\"executed\":false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 254565203526,
+            "load_duration": 2018943,
+            "prompt_eval_count": 3352,
+            "prompt_eval_duration": 19866709000,
+            "eval_count": 1072,
+            "eval_duration": 234656919000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 254567
+      }
+    },
+    {
+      "id": "writing-rollback",
+      "role": "redacteur-pedagogique",
+      "initial": {
+        "input_sha256": "41d8c36d6f612f8b901e855c29ce27407a9451214ac211457e17823698039a2d",
+        "response": {
+          "content": "{\"rollback_digest\":\"aaa\",\"rollback_tested\":false,\"migration_reversible\":false,\"backup_required\":true,\"reason\":\"FICHE BORÉAL — Prérequis : accès admin, snapshot VM/DB avant action. Action conditionnelle : si migration en cours → sauvegarde obligatoire (digest aaa pour rollback). Vérification : checksum aaa présent dans state, journal migration marque 'rollback_ready'. Limite : migration irréversible sans backup valide. Signe d'échec : erreur 'schema_mismatch' ou digest aaa absent après rollback.\",\"executed\":false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 166247146913,
+            "load_duration": 2089040,
+            "prompt_eval_count": 3101,
+            "prompt_eval_duration": 101725975000,
+            "eval_count": 295,
+            "eval_duration": 64213361000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "rollback_digest"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 166251
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "49851a311c3ae8a95630c724949cd7d6f146f7d27aa226d48adb5c5c2f4ae060",
+        "response": {
+          "content": "{\"rollback_digest\":\"aaa\",\"rollback_tested\":false,\"migration_reversible\":false,\"backup_required\":true,\"reason\":\"FICHE BORÉAL — Prérequis : accès admin, snapshot VM/DB avant action. Action conditionnelle : si migration en cours → sauvegarde obligatoire (digest aaa pour rollback). Vérification : checksum aaa présent dans state, journal migration marque 'rollback_ready'. Limite : migration irréversible sans backup valide. Signe d'échec : erreur 'schema_mismatch' ou digest aaa absent après rollback.\",\"executed\":false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 117590606940,
+            "load_duration": 1491887,
+            "prompt_eval_count": 3271,
+            "prompt_eval_duration": 14946615000,
+            "eval_count": 470,
+            "eval_duration": 102592348000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "rollback_digest"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 117592
+      }
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "summary": {
+    "initial_pass": 1,
+    "corrected": 1,
+    "blocked": 1
+  }
+}

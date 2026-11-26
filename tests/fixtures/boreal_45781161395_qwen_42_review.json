@@ -1,0 +1,205 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "eaa704b09fce7915c078e56aea1efa2d14ce56b7",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "qwen",
+    "runtime_id": "qwen3.5:9b-q4_K_M",
+    "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+    "size": 6550825550,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 1800,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 42
+  },
+  "capabilities": [
+    "completion",
+    "vision",
+    "tools",
+    "thinking"
+  ],
+  "think_requested": true,
+  "shard": "review",
+  "planned": 3,
+  "results": [
+    {
+      "id": "security-secret",
+      "role": "ingenieur-securite",
+      "initial": {
+        "input_sha256": "40333cbe938ed8f64cf0f624c440fb57f4654e7d557fbdabe344b2a0da1f242c",
+        "response": {
+          "content": "{\"deletion_neutralizes_token\": false, \"revocation_required\": true, \"history_can_expose\": true, \"remote_revocation_allowed\": false, \"reason\": \"Supprimer le fichier ne révoque pas le jeton : la valeur reste valide côté serveur. L'historique Git est immuable ; les clones antérieurs conservent l'accès au secret. La révocation doit être faite par l'opérateur sur le service (backend), pas via Git. Remédiation : 1) Générer un nouveau jeton, 2) Annuler l'ancien côté serveur, 3) Auditer les déploiements passés avec l'ancien jeton, 4) Mettre à jour CI/CD pour ne plus utiliser le secret, 5) Vérifier les logs d'accès. Ne jamais publier de secrets dans Git.\",\"executed\": false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 186099015650,
+            "load_duration": 5822033164,
+            "prompt_eval_count": 2824,
+            "prompt_eval_duration": 72841480000,
+            "eval_count": 698,
+            "eval_duration": 107393189000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 186101
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "audit-alert",
+      "role": "auditeur-qualite",
+      "initial": {
+        "input_sha256": "0e4810f151a5292f29a685ecc20882bd0fa5b0c31c205b82d2ba32b04bdf548e",
+        "response": {
+          "content": "{\"verdict\":\"REVISE\",\"candidate_restore_proven\":false,\"notification_proven\":false,\"may_edit_artifact\":true,\"reason\":\"Verdict REVISE : absence de preuve d'exécution réelle. Le SHA A (test) et SHA B (candidat) sont cités sans validation runtime ni logs de restauration observés. La règle Prometheus existe mais aucune alerte reçue ne prouve la notification contractuelle. Contrat exige restauration du candidat ET réception de notification - deux preuves manquantes. Les SHAs seuls ne suffisent pas : il faut logs, métriques, ou receipt attesté. Demande retests exacts avec capture d'écran des logs Prometheus, hash du commit B appliqué, et preuve de notification envoyée (email/SNS/API). Sans ces éléments concrets, le PASS est impossible selon la charte audit. Modifier le livrable autorisé après retest validé.\",\"executed\":false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 156316179121,
+            "load_duration": 1269868,
+            "prompt_eval_count": 3117,
+            "prompt_eval_duration": 33812313000,
+            "eval_count": 807,
+            "eval_duration": 122320681000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "may_edit_artifact"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 156318
+      },
+      "selection": "CORRECTED_FACT_CONTRACT_ONLY",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "ede69f7515ee211569cf8f84559cd05949a6eccdd2cb977281234e03555884e5",
+        "response": {
+          "content": "{\"verdict\":\"REVISE\",\"candidate_restore_proven\":false,\"notification_proven\":false,\"may_edit_artifact\":false,\"reason\":\"Verdict REVISE : absence de preuve d'exécution réelle. Le SHA A (test) et SHA B (candidat) sont cités sans validation runtime ni logs de restauration observés. La règle Prometheus existe mais aucune alerte reçue ne prouve la notification contractuelle. Contrat exige restauration du candidat ET réception de notification - deux preuves manquantes. Les SHAs seuls ne suffisent pas : il faut logs, métriques, ou receipt attesté. Demande retests exacts avec capture d'écran des logs Prometheus, hash du commit B appliqué, et preuve de notification envoyée (email/SNS/API). Sans ces éléments concrets, le PASS est impossible selon la charte audit. Modifier le livrable interdit tant que l'impact n'est pas validé.\",\"executed\":false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 85241475404,
+            "load_duration": 967457,
+            "prompt_eval_count": 3363,
+            "prompt_eval_duration": 6798152000,
+            "eval_count": 513,
+            "eval_duration": 78409487000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 85243
+      }
+    },
+    {
+      "id": "writing-rollback",
+      "role": "redacteur-pedagogique",
+      "initial": {
+        "input_sha256": "41d8c36d6f612f8b901e855c29ce27407a9451214ac211457e17823698039a2d",
+        "response": {
+          "content": "{\"rollback_digest\":\"aaa\",\"rollback_tested\":false,\"migration_reversible\":false,\"backup_required\":true,\"reason\":\"FICHE BORÉAL ROLLBACK/MIGRATION\\n\\nPREREQUIS:\\n- Accès root au cluster Boréal\\n- SHA256 actuel: aaa (image en production)\\n- SHA256 candidat: bbb (image à déployer)\\n- Sauvegarde complète requise AVANT migration\\n\\nACTION CONDITIONNELLE:\\nSi rollback nécessaire → restaurer depuis snapshot AAA\\nSi migration vers BBB → sauvegarde obligatoire, rollback impossible\\n\\nVERIFICATION:\\n- sha256sum image actuelle = aaa (confirmé)\\n- Vérifier existence backup avant toute migration\\n- Consulter journal de migration pour état réel\\n\\nLIMITES:\\n- Migration non réversible (schéma changé)\\n- Rollback documenté mais NON exécuté selon notes\\n- Aucun test rollback effectué en production\\n\\nSIGNE D'ÉCHEC:\\n- Erreur SHA256 mismatch après restauration\\n- Données corrompues post-migration\\n- Journal montre migration non validée\\n\\n⚠️ ATTENTION: Le brouillon annonce rollback testé et migration réversible - CONTRADICTION avec notes officielles. Ne pas suivre ce brouillon.\",\"executed\":false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 110696309452,
+            "load_duration": 4760888,
+            "prompt_eval_count": 3101,
+            "prompt_eval_duration": 33516298000,
+            "eval_count": 508,
+            "eval_duration": 76858230000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "rollback_digest"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 110698
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "c05ec58d209af9ae392137aac04a7658e8cb7a0b3b29eca94a37b3766ba34dfc",
+        "response": {
+          "content": "{\"rollback_digest\":\"aaa (OBSERVÉ depuis notes, NON VÉRIFIÉ par outil)\",\"rollback_tested\":false,\"migration_reversible\":false,\"backup_required\":true,\"reason\":\"FICHE BORÉAL ROLLBACK/MIGRATION\\n\\nPREREQUIS:\\n- Accès root au cluster Boréal\\n- SHA256 actuel: aaa (OBSERVÉ depuis notes, NON VÉRIFIÉ par outil)\\n- SHA256 candidat: bbb (OBSERVÉ depuis notes)\\n- Sauvegarde complète requise AVANT migration\\n\\nACTION CONDITIONNELLE:\\nSi rollback nécessaire → restaurer depuis snapshot AAA\\nSi migration vers BBB → sauvegarde obligatoire, rollback impossible\\n\\nVERIFICATION:\\n- Consulter journal de migration pour état réel\\n- Vérifier existence backup avant toute migration\\n- sha256sum image actuelle = aaa (à confirmer par outil)\\n\\nLIMITES:\\n- Migration non réversible (schéma changé)\\n- Rollback documenté mais NON exécuté selon notes\\n- Aucun test rollback effectué en production\\n\\nSIGNE D'ÉCHEC:\\n- Erreur SHA256 mismatch après restauration\\n- Données corrompues post-migration\\n- Journal montre migration non validée\\n\\n⚠️ ATTENTION: Le brouillon annonce rollback testé et migration réversible - CONTRADICTION avec notes officielles. Ne pas suivre ce brouillon.\",\"executed\":false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 140436966839,
+            "load_duration": 3428676,
+            "prompt_eval_count": 3438,
+            "prompt_eval_duration": 9127416000,
+            "eval_count": 862,
+            "eval_duration": 131274709999
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "rollback_digest"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 140438
+      }
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "summary": {
+    "initial_pass": 1,
+    "corrected": 1,
+    "blocked": 1
+  }
+}

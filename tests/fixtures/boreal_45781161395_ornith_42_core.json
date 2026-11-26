@@ -1,0 +1,271 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "eaa704b09fce7915c078e56aea1efa2d14ce56b7",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "ornith",
+    "runtime_id": "ornith-1.5:9b",
+    "digest": "e5df7dcdd8a263994df62d610317e07be0d6af23f96fcbd8543273058fce575e",
+    "size": 6550813657,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 1800,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 42
+  },
+  "capabilities": [
+    "tools",
+    "thinking",
+    "completion",
+    "vision"
+  ],
+  "think_requested": true,
+  "shard": "core",
+  "planned": 4,
+  "results": [
+    {
+      "id": "mentor-dns",
+      "role": "chef-operations",
+      "initial": {
+        "input_sha256": "9bb21eefed62d06d0b8777fd841c698eb51281a995d53c02c78a13d186878381",
+        "response": {
+          "content": "{\n  \"dns_root_cause_proven\": false,\n  \"executed\": false,\n  \"http_ip_ok\": true,\n  \"l2_awarded\": false,\n  \"name_resolution_ok\": false,\n  \"reason\": \"Indice A1 conceptuel : le service écoute bien (IP = 200), donc le problème se situe AVANT l'IP, dans la conversion nom vers adresse. L'IP contourne la résolution ; le nom en dépend. Hypothèse, pas preuve : sans test DNS indépendant, la cause exacte (serveur DNS, zone, cache, fichier local) reste à confirmer. L2 non acquis : aucune vérification a été réalisée. Décision : distinguer 'le service répond-il' de 'le nom se résout-il', et tester la résolution avant de toucher au service. Fait OBSERVÉ : IP=200, nom=échec 'Could not resolve host'. Fait NON VÉRIFIÉ : cause DNS précise et acquisition L2. Aucune action distante n'a été exécutée ; l'indice est conceptuel, sans commande ni solution.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 492596395883,
+            "load_duration": 7597613727,
+            "prompt_eval_count": 3225,
+            "prompt_eval_duration": 251895767000,
+            "eval_count": 1128,
+            "eval_duration": 233078203000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 492599
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "research-version",
+      "role": "expert-recherche",
+      "initial": {
+        "input_sha256": "62412b6533877bf45b27c1f07a2225e32fa182c8ec85d437f8b4fbd1cb9e4b3f",
+        "response": {
+          "content": "",
+          "done_reason": "length",
+          "metrics": {
+            "total_duration": 578619972349,
+            "load_duration": 1861244,
+            "prompt_eval_count": 2674,
+            "prompt_eval_duration": 207654641000,
+            "eval_count": 1800,
+            "eval_duration": 370752759000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [
+            "invalid_json_object",
+            "completion"
+          ],
+          "failed_fields": [],
+          "correct": 0,
+          "total": 4,
+          "execution_claim": "UNKNOWN",
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 578622
+      },
+      "selection": "CORRECTED_FACT_CONTRACT_ONLY",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "57d00e3f0b4dc5fea8154b4403e1c8278c5e7ed11da386cacb3a5118b8ae0e83",
+        "response": {
+          "content": "{\"executed\": false, \"reason\": \"Source applicable : REF-D (manuel officiel 3.1), car elle correspond à la version cible ; REF-E est la note 3.2, hors cible, REF-F est une page de titre non consultée. Strict non disponible en 3.1 : REF-D indique son introduction à partir de 3.2, confirmée par REF-E. REF-F non consultée (page de titre seule). Aucun test runtime effectué : aucune preuve empirique de compatibilité. Priorité des preuves : la documentation officielle versionnée (REF-D) est l'autorité pour la cible 3.1 ; un test d'exécution aurait été plus fort mais n'a pas été réalisé, donc la réponse repose sur les faits documentés de version, pas sur l'exécution.\", \"ref_f_read\": false, \"runtime_test_proven\": false, \"strict_available\": false, \"target_source\": \"REF-D\"}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 231625009083,
+            "load_duration": 1173395,
+            "prompt_eval_count": 2736,
+            "prompt_eval_duration": 6666093000,
+            "eval_count": 1089,
+            "eval_duration": 224927572000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 231626
+      }
+    },
+    {
+      "id": "architecture-recovery",
+      "role": "architecte-solutions",
+      "initial": {
+        "input_sha256": "eb287bfb37aa4483b94607372b358b63b03260525a1ff2e946dc0e43be6e60ed",
+        "response": {
+          "content": "",
+          "done_reason": "length",
+          "metrics": {
+            "total_duration": 491559680523,
+            "load_duration": 1875468,
+            "prompt_eval_count": 3103,
+            "prompt_eval_duration": 115546318000,
+            "eval_count": 1800,
+            "eval_duration": 375688615000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [
+            "invalid_json_object",
+            "completion"
+          ],
+          "failed_fields": [],
+          "correct": 0,
+          "total": 4,
+          "execution_claim": "UNKNOWN",
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 491562
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "df565630938e6e7ba6555b655e3a6d515cb1a0341e777a1a8f081063d7a94b82",
+        "response": {
+          "content": "",
+          "done_reason": "length",
+          "metrics": {
+            "total_duration": 385911463178,
+            "load_duration": 2056396,
+            "prompt_eval_count": 3165,
+            "prompt_eval_duration": 7362507000,
+            "eval_count": 1800,
+            "eval_duration": 378512036000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [
+            "invalid_json_object",
+            "completion"
+          ],
+          "failed_fields": [],
+          "correct": 0,
+          "total": 4,
+          "execution_claim": "UNKNOWN",
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 385915
+      }
+    },
+    {
+      "id": "devops-plan",
+      "role": "ingenieur-devops",
+      "initial": {
+        "input_sha256": "0b5d6f2522e1aec18acb6598f630fe5d464d99a695e7f7a19477661fd4fc63a0",
+        "response": {
+          "content": "{\n  \"apply_allowed\": false,\n  \"executed\": false,\n  \"plan_error\": false,\n  \"plan_has_changes\": true,\n  \"real_idempotence_proven\": false,\n  \"reason\": \"Plan non échoué : exit code 2 = plan avec changements (1 = erreur), donc le plan a réussi à produire un diff. Changements présents : oui, incluant la destruction d'un volume de données. Idempotence réelle NON prouvée : le check mode d'Ansible est une analyse statique qui n'exécute aucun changement, changed=0 n'est pas une preuve d'idempotence. Apply NON autorisé : destruction de données sans approbation. Contrôles non destructifs proposés : terraform plan (sans flag) puis terraform show pour lire le diff réel ; terraform state list/show pour identifier la ressource à détruire et confirmer qu'il s'agit bien d'un volume de données ; vérifier existence de snapshots/backups avant toute action ; terraform console pour inspecter les valeurs. Aucun apply ni destroy sans approbation explicite de l'opérateur. Fait rapporté par l'utilisateur, non exécuté par un outil : étiquette OBSERVÉ, pas VÉRIFIÉ. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l'opérateur. Aucun apply ni destroy sans approbation explicite de l",
+          "done_reason": "length",
+          "metrics": {
+            "total_duration": 508999569997,
+            "load_duration": 1296144,
+            "prompt_eval_count": 3203,
+            "prompt_eval_duration": 124433114000,
+            "eval_count": 1800,
+            "eval_duration": 384232659000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [
+            "invalid_json_object",
+            "completion"
+          ],
+          "failed_fields": [],
+          "correct": 0,
+          "total": 4,
+          "execution_claim": "UNKNOWN",
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 509001
+      },
+      "selection": "CORRECTED_FACT_CONTRACT_ONLY",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "8990a9c435745b9c67512c404468b3ff95d46dc5ba5d7c2561fe474be3be020b",
+        "response": {
+          "content": "{\n  \"apply_allowed\": false,\n  \"executed\": false,\n  \"plan_error\": false,\n  \"plan_has_changes\": true,\n  \"real_idempotence_proven\": false,\n  \"reason\": \"Plan non échoué : exit code 2 signifie plan avec changements, pas erreur (1 = erreur). Changements présents : oui, dont la destruction d'un volume de données. Idempotence réelle NON prouvée : le check mode d'Ansible est une analyse statique qui n'exécute aucun changement, changed=0 n'est pas une preuve d'idempotence. Apply NON autorisé : destruction de données sans approbation. Contrôles non destructifs proposés : terraform plan puis terraform show pour lire le diff réel ; terraform state list/show pour identifier la ressource à détruire et confirmer qu'il s'agit bien d'un volume ; vérifier l'existence de snapshots/backups avant toute action ; terraform console pour inspecter les valeurs. Aucun apply ni destroy sans approbation explicite de l'opérateur.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 265699650620,
+            "load_duration": 3260478,
+            "prompt_eval_count": 3993,
+            "prompt_eval_duration": 66034315000,
+            "eval_count": 877,
+            "eval_duration": 199618799000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 265701
+      }
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "summary": {
+    "initial_pass": 1,
+    "corrected": 2,
+    "blocked": 1
+  }
+}
