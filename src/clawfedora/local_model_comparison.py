@@ -58,6 +58,12 @@ def _inputs(root: Path, mode: str) -> list[dict[str, Any]]:
                 "ou exécution n'est disponible. Répondre en français, sans inventer de preuve. "
                 "Privilégier une réponse concise et exploitable."
             )
+            if mode != "smoke":
+                prompt += (
+                    " Limite la réponse métier à 500 mots environ, code compris. "
+                    "Priorise les exigences critiques, puis les vérifications et les limites. "
+                    "Ne propose pas de référence technique dont tu ignores la validité."
+                )
             if len(prompt.encode()) > 36_000:
                 raise ValueError("prompt de rôle hors budget")
             rows.append({"id": case["id"], "role": role, "system": prompt,
@@ -67,7 +73,7 @@ def _inputs(root: Path, mode: str) -> list[dict[str, Any]]:
 
 def _chat(payload: dict[str, Any]) -> dict[str, Any]:
     # Fixed loopback only; no proxy, redirects, tools executed by the model or secrets.
-    conn = HTTPConnection("127.0.0.1", 11434, timeout=600)
+    conn = HTTPConnection("127.0.0.1", 11434, timeout=900)
     try:
         conn.request("POST", "/api/chat", body=json.dumps(payload).encode(),
                      headers={"Content-Type": "application/json"})
@@ -196,10 +202,11 @@ def run(root: Path, model: str, mode: str, commit: str, output: Path) -> dict[st
         raise ValueError("modèle, commit ou sortie invalide")
     cases = _inputs(root, mode)
     identity = _identity(root, model)
+    options = {**OPTIONS, "num_predict": 1200 if mode == "smoke" else 1800}
     report: dict[str, Any] = {
         "schema": 1, "classification": "synthetic_public", "commit": commit,
         "mode": mode, "suite_sha256": _digest(cases), "model": identity,
-        "options": OPTIONS, "think": False, "backend": "ollama-cpu",
+        "options": options, "probe_options": OPTIONS, "think": False, "backend": "ollama-cpu",
         "results": [], "tool_probe": {"state": "NOT_RUN"},
         "code_probe": {"state": "NOT_RUN"},
         "assessment": "INFERENCE_STARTED_NOT_REVIEWED",
@@ -218,7 +225,7 @@ def run(root: Path, model: str, mode: str, commit: str, output: Path) -> dict[st
         try:
             reply = _result(_chat({
                 "model": MODELS[model], "stream": False, "think": False,
-                "keep_alive": "5m", "options": OPTIONS,
+                "keep_alive": "5m", "options": options,
                 "messages": [{"role": "system", "content": case["system"]},
                              {"role": "user", "content": case["prompt"]}],
             }), MODELS[model])
@@ -229,7 +236,10 @@ def run(root: Path, model: str, mode: str, commit: str, output: Path) -> dict[st
         report["results"].append({
             "id": case["id"], "role": case["role"], "elapsed_ms": round(
                 (time.monotonic() - start) * 1000),
-            **row, "quality_review": "NOT_REVIEWED",
+            **row, "completion": ("TRUNCATED" if row.get("done_reason") == "length"
+                                  else "STOPPED" if row.get("done_reason") == "stop"
+                                  else "NOT_CONFIRMED"),
+            "quality_review": "NOT_REVIEWED",
         })
         save()
         if row["state"] == "INFERENCE_ERROR":
@@ -249,6 +259,12 @@ def run(root: Path, model: str, mode: str, commit: str, output: Path) -> dict[st
         report["assessment"] = "RESPONSES_COLLECTED_REVIEW_REQUIRED"
     else:
         report["assessment"] = "INCOMPLETE_INFERENCE"
+    report["completion_summary"] = {
+        "planned": len(cases),
+        "collected": sum(row["state"] == "RESPONSE_COLLECTED" for row in report["results"]),
+        "truncated": sum(row["completion"] == "TRUNCATED" for row in report["results"]),
+        "stopped": sum(row["completion"] == "STOPPED" for row in report["results"]),
+    }
     save()
     return report
 

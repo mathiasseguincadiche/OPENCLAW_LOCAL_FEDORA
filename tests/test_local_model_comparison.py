@@ -119,6 +119,29 @@ def test_workflow_uses_runner_context_only_inside_steps():
     assert all("runner." not in value for value in job["env"].values())
     assert "RUNNER_TEMP" in job["steps"][0]["run"]
     assert "GITHUB_ENV" in job["steps"][0]["run"]
-    assert workflow["on"]["push"]["branches"] == ["fix/local-model-comparison-workflow"]
+    assert workflow["on"]["push"]["branches"] == ["feat/local-model-pilot"]
     assert "workflow_dispatch" in workflow["on"]
     assert job["strategy"]["matrix"]["model"] == ["qwen", "ornith"]
+
+
+def test_pilot_budget_and_explicit_truncation(tmp_path, monkeypatch):
+    model = mc.MODELS["qwen"]
+    monkeypatch.setattr(mc, "_identity", lambda *_: {"digest": "a" * 64})
+
+    def truncated(payload):
+        assert payload["options"]["num_predict"] == 1800
+        assert "500 mots" in payload["messages"][0]["content"]
+        return {**reply(model, "Réponse partielle"), "done_reason": "length"}
+
+    monkeypatch.setattr(mc, "_chat", truncated)
+    monkeypatch.setattr(mc, "_tool_probe", lambda _: {"state": "PASS_FIXTURE_ONLY"})
+    monkeypatch.setattr(mc, "_code_probe", lambda _: {"state": "PASS_STATIC_ONLY"})
+    result = mc.run(ROOT, "qwen", "pilot", "a" * 40, tmp_path / "pilot.json")
+    assert result["options"]["num_predict"] == 1800
+    assert result["probe_options"]["num_predict"] == 1200
+    assert result["completion_summary"] == {
+        "planned": 7, "collected": 7, "truncated": 7, "stopped": 0,
+    }
+    assert all(row["completion"] == "TRUNCATED" for row in result["results"])
+    assert result["assessment"] == "RESPONSES_COLLECTED_REVIEW_REQUIRED"
+    assert not result["native_agent_qualification"]
