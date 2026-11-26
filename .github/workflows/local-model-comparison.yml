@@ -6,10 +6,10 @@ on:
       mode:
         description: Synthetic suite size per model
         type: choice
-        options: [smoke, pilot, extended]
+        options: [smoke, pilot, extended, targeted]
         default: smoke
   push:
-    branches: [feat/local-model-pilot]
+    branches: [feat/local-model-targeted]
 
 permissions:
   contents: read
@@ -24,7 +24,7 @@ jobs:
       github.repository == 'mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA' &&
       (github.event_name == 'workflow_dispatch' ||
        (github.event_name == 'push' &&
-        github.ref == 'refs/heads/feat/local-model-pilot'))
+        github.ref == 'refs/heads/feat/local-model-targeted'))
     runs-on: ubuntu-latest
     timeout-minutes: 90
     strategy:
@@ -34,7 +34,7 @@ jobs:
         model: [qwen, ornith]
     env:
       MODEL_ALIAS: ${{ matrix.model }}
-      MODE: ${{ inputs.mode || 'pilot' }}
+      MODE: ${{ inputs.mode || 'targeted' }}
       OLLAMA_HOST: 127.0.0.1:11434
       OLLAMA_NO_CLOUD: "1"
       OLLAMA_NUM_PARALLEL: "1"
@@ -63,7 +63,9 @@ jobs:
           df -Pk "$RUNNER_TEMP" | awk 'NR==2 {exit !($4 >= 10000000)}'
           command -v shellcheck
           python -m pip install --constraint config/python-runtime-constraints.txt -e .
-          python -m clawfedora.local_model_comparison --root . --model "$MODEL_ALIAS" \
+          MODULE=clawfedora.local_model_comparison
+          if [[ "$MODE" == targeted ]]; then MODULE=clawfedora.targeted_model_comparison; fi
+          python -m "$MODULE" --root . --model "$MODEL_ALIAS" \
             --mode "$MODE" --commit "$GITHUB_SHA" --output "$EVIDENCE/report.json"
       - name: Download and verify exact Ollama release
         shell: bash
@@ -99,7 +101,9 @@ jobs:
           done
           curl --fail --silent --max-time 2 http://127.0.0.1:11434/api/version
           timeout 20m ollama pull "$MODEL"
-          python -m clawfedora.local_model_comparison --root . --model "$MODEL_ALIAS" \
+          MODULE=clawfedora.local_model_comparison
+          if [[ "$MODE" == targeted ]]; then MODULE=clawfedora.targeted_model_comparison; fi
+          python -m "$MODULE" --root . --model "$MODEL_ALIAS" \
             --mode "$MODE" --commit "$GITHUB_SHA" --output "$EVIDENCE/report.json" --run
       - name: Preserve public synthetic responses and measurements
         if: always()
