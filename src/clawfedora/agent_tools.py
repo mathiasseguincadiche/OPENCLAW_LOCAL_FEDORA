@@ -16,6 +16,7 @@ import yaml
 from clawfedora.ci_reports import summarize
 from clawfedora.core_config import AGENT_IDS
 from clawfedora.diagram_layouts import style_and_arrange
+from clawfedora.diagram_review import inspect_page
 from clawfedora.document_impact import inspect as inspect_impact
 from clawfedora.document_review import inspect_document
 from clawfedora.drawio import decorate_page, export_page_svg, inspect_diagram, multi_view_diagram
@@ -267,6 +268,7 @@ def diagram(data: dict[str, Any]) -> dict[str, Any]:
     return {
         "drawio": drawio, "views_generated": len(exports), "svg_views": exports,
         "compositions": layouts,
+        "geometry_review": [inspect_page(page) for page in pages],
         "svg_view": "svg: vue principale uniquement; svg_views couvre toutes les vues",
         "svg": exports[0][1], "renderer": "drawio-xml", "svg_renderer": "clawfedora-svg/1",
         "scope": "export des formes du générateur; rendu dans Draw.io et support final à vérifier",

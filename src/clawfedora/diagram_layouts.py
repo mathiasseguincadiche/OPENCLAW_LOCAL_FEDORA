@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Any
 from xml.etree import ElementTree as ET
 
-LAYOUTS = ("column", "flow", "zones")
+LAYOUTS = ("column", "flow", "zones", "timeline", "hub")
 NODE_TYPES = {
     "component": ("#ffffff", "#33445D"),
     "person": ("#E9EEF6", "#33445D"),
@@ -146,6 +146,20 @@ def style_and_arrange(page: ET.Element, data: dict[str, Any]) -> str:
             )
         for index, node in enumerate(nodes):
             _place(node, 28 + (index % 3) * 268, 35 + (index // 3) * 115, 225, 72)
+    elif layout in {"timeline", "hub"}:
+        if any(node.get("parent") != "1" for node in nodes):
+            raise ValueError("Draw.io: composition sans groupes ; utiliser zones")
+        if layout == "timeline":
+            # A horizontal sequence; direction and dependency remain the supplied edges.
+            for index, node in enumerate(nodes):
+                _place(node, 30 + index * 270, 52, 220, 88)
+        else:
+            # Explicit first node is the hub, with satellites in two columns.
+            _place(nodes[0], 360, 260, 240, 88)
+            positions = ((30, 35), (690, 35), (30, 185), (690, 185),
+                         (30, 335), (690, 335), (360, 485))
+            for node, (x, y) in zip(nodes[1:], positions, strict=False):
+                _place(node, x, y, 240, 88)
     else:
         # Actual trust boundaries become independent columns; no artificial cloud zones.
         groups: dict[str, list[ET.Element]] = {}
