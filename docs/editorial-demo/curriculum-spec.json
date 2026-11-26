@@ -1,0 +1,141 @@
+{
+  "home": {
+    "title": "Atelier Atlas — Parcours relationnel",
+    "icon": "🧭",
+    "blocks": [
+      {
+        "type": "callout",
+        "text": "Projet fictif. Apprendre à déployer et exploiter un service.",
+        "icon": "🧭",
+        "color": "blue_background"
+      },
+      {
+        "type": "heading_2",
+        "text": "Explorer le parcours"
+      },
+      {
+        "type": "paragraph",
+        "text": "Les sous-pages sont créées sous cet accueil. Le suivi ne contient aucune preuve personnelle."
+      }
+    ]
+  },
+  "pages": [
+    {
+      "title": "Comprendre",
+      "icon": "🔎",
+      "blocks": [
+        {
+          "type": "heading_2",
+          "text": "Le besoin"
+        },
+        {
+          "type": "paragraph",
+          "text": "Reproduire une infrastructure et expliquer ses choix."
+        }
+      ]
+    },
+    {
+      "title": "Préparer",
+      "icon": "🧰",
+      "blocks": [
+        {
+          "type": "heading_2",
+          "text": "Installation des outils"
+        },
+        {
+          "type": "paragraph",
+          "text": "Vérifier les outils présents et installer uniquement les composants manquants."
+        }
+      ]
+    },
+    {
+      "title": "Pratiquer",
+      "icon": "🛠️",
+      "blocks": [
+        {
+          "type": "heading_2",
+          "text": "Vérification de l’environnement"
+        },
+        {
+          "type": "code",
+          "language": "bash",
+          "text": "# Lire le système, sans le modifier.\ncat /etc/os-release"
+        },
+        {
+          "type": "paragraph",
+          "text": "Expliquer le résultat réellement observé."
+        }
+      ]
+    },
+    {
+      "title": "Suivre",
+      "icon": "📈",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Journal personnel, preuves et difficultés. Aucun niveau attribué automatiquement."
+        }
+      ]
+    },
+    {
+      "title": "Ressources",
+      "icon": "📚",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Références techniques, diagnostics et décisions."
+        }
+      ]
+    }
+  ],
+  "tracker": null,
+  "curriculum": {
+    "modules": [
+      {
+        "title": "Comprendre le service",
+        "objective": "Expliquer le besoin et les composants.",
+        "page": "Comprendre",
+        "activities": [
+          {
+            "title": "Tracer une requête",
+            "objective": "Décrire le trajet entre client et serveur."
+          },
+          {
+            "title": "Justifier les composants",
+            "objective": "Expliquer la responsabilité de chaque composant."
+          }
+        ]
+      },
+      {
+        "title": "Préparer le laboratoire",
+        "objective": "Disposer d'un environnement vérifié.",
+        "page": "Préparer",
+        "activities": [
+          {
+            "title": "Inventorier les outils",
+            "objective": "Identifier les composants déjà disponibles."
+          },
+          {
+            "title": "Contrôler les prérequis",
+            "objective": "Vérifier les versions et les accès nécessaires."
+          }
+        ]
+      },
+      {
+        "title": "Pratiquer et vérifier",
+        "objective": "Collecter une observation réelle.",
+        "page": "Pratiquer",
+        "activities": [
+          {
+            "title": "Exécuter les contrôles",
+            "objective": "Lire le système sans le modifier."
+          },
+          {
+            "title": "Expliquer le résultat",
+            "objective": "Comparer attendu et observé."
+          }
+        ]
+      }
+    ]
+  }
+}
