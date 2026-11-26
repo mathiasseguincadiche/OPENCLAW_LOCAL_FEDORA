@@ -32,4 +32,4 @@ Notion : architecte (navigation), rédacteur (cours), auditeur (intégrité). Gi
 
 **Validation de la publication :** consulter `docs/GITHUB_PUBLICATION_WORKFLOW.md` ; faire approuver le dépôt et le diff, jamais une écriture GitHub implicite.
 
-Cadrer support, lectorat, révision et réception éditoriale avant de répartir les tâches.
+Cadrer le brief éditorial : public, support, révision, identité et confidentialité. Prévoir production puis relecture indépendante ; un document de fond par tâche si le contexte est limité.

@@ -640,6 +640,7 @@ def _resolve_tool_files(
                 "odt": {".odt"},
                 "yaml": {".yaml", ".yml"},
                 "json": {".json"},
+                "svg": {".svg"},
                 "py": {".py"},
                 "sh": {".sh"},
                 "tf": {".tf", ".hcl", ".tfvars"},
@@ -653,6 +654,10 @@ def _resolve_tool_files(
                 extension == "dockerfile" and Path(output).name == "Dockerfile"
             ):
                 raise ValueError("extension du fichier différente du format produit")
+            if extension == "svg" and proof.get("format") == "identity":
+                source = str(Path(output).with_suffix(".json"))
+                if original.get(source) != f"@tool-file:{identifier}:json":
+                    raise ValueError("identité : source JSON issue du même outil requise")
             if extension in {"pdf", "docx", "odt"} or (
                 extension == "txt" and proof["format"] == "markdown"
             ):

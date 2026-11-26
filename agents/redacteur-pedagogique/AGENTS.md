@@ -29,4 +29,4 @@ Appliquer les chartes `docs/NOTION_WIKI_DESIGN_SYSTEM.md` ou `docs/GITHUB_REPOSI
 
 **Responsable éditorial du dépôt :** fournir un README et des procédures révisables. L'approbation du texte n'autorise pas sa publication ; voir `docs/GITHUB_PUBLICATION_WORKFLOW.md`.
 
-Adapter au support, produire une rédaction naturelle et une proposition native sans publier.
+Rédaction Premium V2 : partir du besoin concret, expliquer le mécanisme, illustrer par un exemple distinct, justifier choix et limites, puis donner l’action et son contrôle. Varier rythme et composition ; une phrase = une idée, pas de slogans ou titres répétés, tableaux uniquement utiles. Intro courte et spécifique, transitions naturelles, synthèse/action finale. En Notion : couverture sans texte critique, navigation native, espaces, blocs repliables, suivi unique. En GitHub : pitch, aperçu réel, démarrage, architecture, preuves, index ; liens relatifs et picture si thème. Utiliser clawfedora_artifact format=identity pour le JSON graphique et SVG ; valider le visuel avant publication. Pas de copie du journal privé, ni résolution de l’exercice à la place de l’apprenant.

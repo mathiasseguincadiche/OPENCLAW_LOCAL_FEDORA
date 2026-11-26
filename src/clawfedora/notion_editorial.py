@@ -1,12 +1,13 @@
 """Create a NEW Notion child page from a bounded editorial plan, operator only.
 
-No updates to existing content, media uploads, database operations or agent tool.
+No updates to existing content, local media uploads, database operations or agent tool.
 Plan and receipt are local/private. No retries on ambiguous network writes.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import urllib.error
 import urllib.request
 from datetime import UTC, datetime, timedelta
@@ -32,6 +33,58 @@ def _rich(text: object) -> list[dict[str, Any]]:
     return [{"type": "text", "text": {"content": nw._text(text)}}]
 
 
+# Only immutable, public GitHub media paths; no signed URL, credentials or query.
+PUBLIC_IMAGE = re.compile(
+    r"https://raw\.githubusercontent\.com/[A-Za-z0-9_-]+/[A-Za-z0-9_.-]+/"
+    r"[0-9a-f]{40}/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_.-]+\.(?:svg|png|jpg|jpeg)\Z"
+)
+PAGE_LINK = re.compile(
+    r"https://(?:github\.com/[A-Za-z0-9_-]+/[A-Za-z0-9_.-]+/"
+    r"(?:blob|tree)/[0-9a-f]{40}/[A-Za-z0-9_./-]+"
+    r"|(?:app\.notion\.com/p|www\.notion\.so)/[0-9a-f]{32})\Z"
+)
+
+
+def _public_image(url: object) -> dict[str, Any]:
+    if (
+        not isinstance(url, str) or len(url) > 500 or PUBLIC_IMAGE.fullmatch(url) is None
+        or ".." in url
+    ):
+        raise nw.NotionWriteError("image publique : URL GitHub brute et commit complet requis")
+    return {"type": "external", "external": {"url": url}}
+
+
+def _spans(value: object) -> list[dict[str, Any]]:
+    if not isinstance(value, list) or not 1 <= len(value) <= 12:
+        raise nw.NotionWriteError("texte enrichi limité à 12 segments")
+    result = []
+    for entry in value:
+        if (
+            not isinstance(entry, dict) or "text" not in entry
+            or not set(entry) <= {"text", "bold", "italic", "code", "url"}
+        ):
+            raise nw.NotionWriteError("segment éditorial inconnu")
+        part = _rich(entry["text"])[0]
+        annotations = {}
+        for key in ("bold", "italic", "code"):
+            if key in entry:
+                if type(entry[key]) is not bool:
+                    raise nw.NotionWriteError("annotation booléenne requise")
+                annotations[key] = entry[key]
+        if annotations:
+            part["annotations"] = annotations
+        if "url" in entry:
+            url = entry["url"]
+            if (
+                not isinstance(url, str) or len(url) > 500
+                or PAGE_LINK.fullmatch(url) is None or ".." in url
+            ):
+                raise nw.NotionWriteError("lien stable GitHub ou Notion requis")
+            part["text"]["link"] = {"url": url}
+        result.append(part)
+    return result
+
+
 def _block(kind: str, payload: dict[str, Any]) -> dict[str, Any]:
     return {"object": "block", "type": kind, kind: payload}
 
@@ -42,6 +95,12 @@ def _compile(entry: object, *, nested: bool = False) -> dict[str, Any]:
     kind = entry["type"]
     if kind in TEXT_TYPES and set(entry) == {"type", "text"}:
         return _block(kind, {"rich_text": _rich(entry["text"])})
+    if kind in TEXT_TYPES and set(entry) == {"type", "spans"}:
+        return _block(kind, {"rich_text": _spans(entry["spans"])})
+    if kind == "image" and set(entry) == {"type", "url", "caption"}:
+        image = _public_image(entry["url"])
+        image["caption"] = _rich(entry["caption"])
+        return _block(kind, image)
     if kind == "code" and set(entry) == {"type", "text", "language"}:
         if not isinstance(entry["language"], str) or entry["language"] not in LANGUAGES:
             raise nw.NotionWriteError("langage de code non pris en charge")
@@ -99,8 +158,11 @@ def _children(value: object) -> list[dict[str, Any]]:
 
 
 def compile_spec(spec: object, parent_id: str) -> dict[str, Any]:
-    if not isinstance(spec, dict) or set(spec) != {"title", "blocks"}:
-        raise nw.NotionWriteError("schéma requis : title et blocks")
+    if (
+        not isinstance(spec, dict) or not {"title", "blocks"} <= set(spec)
+        or not set(spec) <= {"title", "blocks", "cover", "icon"}
+    ):
+        raise nw.NotionWriteError("schéma requis : title, blocks ; cover et icon facultatifs")
     if not isinstance(spec["title"], str) or len(spec["title"]) > 160:
         raise nw.NotionWriteError("titre trop long ou invalide")
     blocks = spec["blocks"]
@@ -111,6 +173,13 @@ def compile_spec(spec: object, parent_id: str) -> dict[str, Any]:
         "properties": {"title": {"type": "title", "title": _rich(spec["title"])}},
         "children": [_compile(entry) for entry in blocks],
     }
+    if "cover" in spec:
+        payload["cover"] = _public_image(spec["cover"])
+    if "icon" in spec:
+        icon = spec["icon"]
+        if not isinstance(icon, str) or icon not in ICONS:
+            raise nw.NotionWriteError("icône non prise en charge")
+        payload["icon"] = {"type": "emoji", "emoji": icon}
     if len(json.dumps(payload, ensure_ascii=False).encode("utf-8")) > 50_000:
         raise nw.NotionWriteError("page compilée trop volumineuse")
     return payload
@@ -256,6 +325,9 @@ def apply(plan_file: Path, parent: str, manifest: str) -> dict[str, Any]:
         or verified.get("archived") is True or verified.get("in_trash") is True
     ):
         raise nw.NotionWriteError("page créée non vérifiée : inspecter Notion")
+    for field in ("cover", "icon"):
+        if field in payload and not _matches(payload[field], verified.get(field)):
+            raise nw.NotionWriteError("couverture ou icône non vérifiée")
     _verify_children(created_id, payload["children"])
     receipt = {
         "mode": "EDITORIAL_PAGE_API_VERIFIED", "parent_id": page_id,

@@ -1,8 +1,10 @@
-# Standard universel d’excellence éditoriale — V1
+# Standard universel d’excellence éditoriale — V2
 
 [GitHub](GITHUB_REPOSITORY_DESIGN_SYSTEM.md) · [Notion](NOTION_WIKI_DESIGN_SYSTEM.md) · [Démonstrations](editorial-demo/README.md)
 
 Le standard est transversal : il ne fixe ni stack ni arborescence. Adapter chaque document à sa fonction et à son lecteur. Préserver les contenus utiles, notamment l'installation des outils et les exercices. GitHub = référence technique versionnée ; Notion = apprentissage, données privées et suivi. Les documents complémentaires gardent une source modifiable.
+
+[Direction artistique et rédaction Premium V2](EDITORIAL_PREMIUM_V2.md)
 
 ## Douze principes
 
@@ -62,4 +64,4 @@ L'outil `clawfedora_doc_review` accepte les profils readme, procedure, course, w
 5. Utiliser le circuit GitHub ou Notion existant ; refuser toute opération non supportée.
 6. Relire les résultats et appliquer la [recette visuelle native](validation/VISUAL_RECEPTION_NATIVE.md). Ne pas confondre aperçu local, API, capture native, revue humaine et preuve technique.
 
-**Limite actuelle :** l'atelier ne sait pas encore créer et publier un wiki Notion complet. Les gabarits natifs et la maquette sont des propositions. Une [création de page fille sous approbation](NOTION_EDITORIAL_CREATION.md) prend en charge les blocs natifs bornés, en plus des modifications existantes. Médias, bases de données et réorganisation de wikis restent hors périmètre. Une recette sur page de test reste nécessaire. Aucune exécution Fedora ni qualification des modèles n'est anticipée.
+**Limite actuelle :** l'atelier ne sait pas encore créer et publier un wiki Notion complet. Les gabarits natifs et la maquette sont des propositions. Une [création de page fille sous approbation](NOTION_EDITORIAL_CREATION.md) prend en charge les blocs natifs bornés, en plus des modifications existantes. Couvertures et images externes épinglées sont prises en charge ; les uploads de médias locaux, bases de données et réorganisation de wikis restent hors périmètre. Une recette sur page de test reste nécessaire. Aucune exécution Fedora ni qualification des modèles n'est anticipée.

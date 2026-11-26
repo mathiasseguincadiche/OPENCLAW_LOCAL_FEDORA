@@ -1,4 +1,4 @@
-# Création éditoriale Notion — périmètre contrôlé V1
+# Création éditoriale Notion — périmètre contrôlé V2
 
 [Standard](EXCELLENCE_EDITORIALE.md) · [Démo JSON](editorial-demo/notion-spec.json)
 
@@ -47,14 +47,20 @@ et les reçus. Notion ne fournit pas de transaction conditionnelle atomique.
 Paragraphes, titres, listes, citations, encadrés à palette limitée, code,
 séparateur, sommaire, deux colonnes, toggle, tableaux simples.
 30 blocs directs au plus, sous-groupes bornés. Le format refuse toute URL
-de média, base de données, opération destructive, champ arbitraire ou
-imbrication non supportée.
+de média non approuvée, base de données, opération destructive, champ arbitraire ou
+imbrication non supportée. Les champs facultatifs cover et icon, les blocs image
+avec url/caption et les blocs textuels avec spans sont pris en charge.
+Les URL d'images sont strictement des ressources publiques raw.githubusercontent.com
+épinglées sur un SHA de 40 caractères, sans query ni identifiants. Les liens de
+segments visent une page Notion ou une référence GitHub immuable. Le contenu n'est
+pas téléchargé par l'atelier. Le parent et le manifeste exact restent à approuver.
 
 ## Limites et réception
 
-Les médias, les bases de données/vues, les liens enrichis, les couvertures,
-les sous-pages multiples et la réorganisation d'un wiki existant ne sont
-pas pris en charge par cette voie. Le module vise l'API déjà utilisée
+Les téléversements de fichiers locaux, les bases de données/vues, les mentions
+complexes, les sous-pages multiples et la réorganisation d'un wiki existant ne
+sont pas pris en charge par cette voie. La couverture et les images externes sont
+à tester dans Notion ; la relecture API ne prouve pas que le fichier est visible. Le module vise l'API déjà utilisée
 par l'atelier (2022-06-28). Les tests simulent les appels ; la réception
 réelle sur une page de test et l'inspection visuelle bureau/mobile restent
 requises. L'approbation du modèle ou du texte n'est pas une autorisation

@@ -13,7 +13,7 @@
 
 ## Audit d'expérience et décision de conserver
 
-Pour un document important, examiner quatre situations : première découverte sans défilement, procédure d'apprentissage complète, information retrouvée rapidement, décision technique vérifiable. `clawfedora_doc_review` signale uniquement la structure et rend chaque situation NON ÉVALUÉE jusqu'à une revue réelle. Pour une évolution de code/schéma, `clawfedora_impact` donne une liste de relecture locale, pas une preuve de synchronisation GitHub/Notion. Chaque recommandation précise problème, preuve, gain, risque et test de non-régression. Si aucun défaut utile n'est constaté, conserver la version actuelle.
+Examiner quatre parcours : découverte sans défilement, apprentissage complet, recherche rapide, décision technique vérifiable. `clawfedora_doc_review` contrôle la structure ; parcours NON ÉVALUÉS avant revue réelle. `clawfedora_impact` prépare la revue locale des changements code/schéma, sans prouver la synchronisation GitHub/Notion. Recommandations : problème, preuve, gain, risque, test de non-régression. Sans défaut utile, conserver l'existant.
 
 ## Niveaux de preuve InfraOps
 
@@ -33,4 +33,4 @@ Contrôler lisibilité, liens, schémas, sources, preuves et préservation du co
 
 **Contre-vérification avant PR :** contrôler fichiers proposés, confidentialité, preuves, SHA de base et limites. La publication en brouillon n'est pas une fusion.
 
-Appliquer la grille éditoriale ; absence de preuve ou blocage interdit toute qualification.
+Grille et blocages obligatoires. Signaler phrases creuses, transitions faibles, doublons, composition et usage du support ; demander des corrections ciblées. Sans rendu natif : non certifié.

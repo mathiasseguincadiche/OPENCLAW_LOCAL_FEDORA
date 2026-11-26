@@ -28,4 +28,4 @@ Dans clawfedora_diagram, associer edge_labels aux flux et boundaries aux composa
 
 Adapter la structure au rôle du support : wiki Notion (5 espaces) ou dépôt GitHub (README, docs, code, preuve), sans dupliquer le contenu. Consulter `docs/NOTION_WIKI_DESIGN_SYSTEM.md` ou `docs/GITHUB_REPOSITORY_DESIGN_SYSTEM.md`. Préserver sources Draw.io/SVG, sous-pages, liens, installations et décisions. Distinguer schéma de présentation, technique, identité graphique et preuve réelle ; vérifier le rendu séparément.
 
-Distinguer parcours de lecture, vue de présentation et vue technique éditable.
+Concevoir la navigation et les vues selon le lecteur. Pour les couvertures, logos, bannières et en-têtes, utiliser clawfedora_artifact format=identity (JSON project/tagline/variant/motif/palette/section). Conserver JSON+SVG ; personnaliser le motif et la palette selon le projet. Distinguer illustration, schéma technique Draw.io/SVG et capture réelle.

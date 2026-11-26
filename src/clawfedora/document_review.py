@@ -132,6 +132,15 @@ def inspect_document(content: str, kind: str, support: str = "markdown") -> dict
                               "verdict": "NOT_EVALUATED"} for key, weight, label in RUBRIC],
         "blocking_criteria": [{"id": key, "verdict": "NOT_EVALUATED"} for key in BLOCKERS],
         "editorial_score": None,
+        "premium_review": [
+            {"id": "opening", "question": "Le besoin et le lectorat sont-ils explicites ?"},
+            {"id": "explanation", "question": "Mécanisme, exemple et limites sont-ils reliés ?"},
+            {"id": "voice",
+             "question": "Phrases naturelles, transitions et rythme sans remplissage ?"},
+            {"id": "composition", "question": "Visuels utiles et hiérarchie propres au projet ?"},
+            {"id": "native", "question": "Composants adaptés au support, vérifiés en contexte ?"},
+            {"id": "preservation", "question": "Contenu, liens, exercices et preuves préservés ?"},
+        ],
         "support_review": {
             "markdown": ["Hiérarchie, liens, code et sources"],
             "github": ["README et navigation réelle", "SVG et Draw.io, clair/sombre/mobile",

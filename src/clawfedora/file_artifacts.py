@@ -17,6 +17,7 @@ from defusedxml.ElementTree import fromstring
 
 from clawfedora.core_config import AGENT_IDS
 from clawfedora.document_exports import EXPORT_KINDS, export
+from clawfedora.editorial_identity import IDENTITY_ROLES, from_json
 from clawfedora.project_common import assert_no_symlinks, now, read_json, sha256_file, write_json
 
 DOCUMENT_FORMATS = {"markdown": "md", "text": "txt"}
@@ -36,7 +37,8 @@ TECHNICAL_ROLES = {"architecte-solutions", "ingenieur-devops", "ingenieur-securi
 
 
 def formats(role: str) -> dict[str, str]:
-    return DOCUMENT_FORMATS | (TECHNICAL_FORMATS if role in TECHNICAL_ROLES else {})
+    return (DOCUMENT_FORMATS | (TECHNICAL_FORMATS if role in TECHNICAL_ROLES else {})
+            | ({"identity": "svg"} if role in IDENTITY_ROLES else {}))
 
 
 def produce(workspace: Path, role: str, data: dict[str, Any]) -> dict[str, Any]:
@@ -88,6 +90,9 @@ def produce(workspace: Path, role: str, data: dict[str, Any]) -> dict[str, Any]:
     ):
         raise ValueError("nom de fichier incompatible avec le format")
     generated = {extension: content.encode()}
+    if kind == "identity":
+        source, svg = from_json(content)
+        generated = {"svg": svg.encode(), "json": source.encode()}
     try:
         for output in exports:
             generated[output] = export(content, output)
@@ -138,6 +143,7 @@ def produce(workspace: Path, role: str, data: dict[str, Any]) -> dict[str, Any]:
         "source_format": extension,
         "instruction": "Retourner les références comme contenus JSON des chemins attendus. "
         "Pour PDF/DOCX/ODT/TXT dérivés, prévoir aussi la source .md dans le même dossier. "
+        "Pour identity, prévoir SVG et JSON de même nom dans le même dossier. "
         "Dans le chat, la passerelle ajoute les liens de téléchargement.",
         "scope": "fichiers produits, code non exécuté, déploiement non testé",
     }
@@ -174,6 +180,10 @@ def read_artifact(
     record = records[extension]
     expected = f"{identifier}.artifact.{extension}.data"
     permitted = {*formats(role).values(), *EXPORT_KINDS}
+    if proof["tool"] == "clawfedora_artifact" and proof.get("format") == "identity":
+        if role not in IDENTITY_ROLES:
+            raise ValueError("identité graphique interdite pour ce rôle")
+        permitted = {"svg", "json"}
     if proof["tool"] == "clawfedora_diagram":
         if role != "architecte-solutions":
             raise ValueError("artefact de schéma réservé à l’architecte")
