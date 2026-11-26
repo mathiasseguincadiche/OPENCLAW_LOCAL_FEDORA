@@ -300,14 +300,16 @@ def _validate_plan(tasks: list[dict[str, Any]]) -> None:
             values = task.get(field, [])
             if not values or any(not isinstance(v, str) or not v.strip() for v in values):
                 raise ValueError(f"{task_id}: {field} non vide requis")
+        from clawfedora.editorial_cycle import validate_task
         from clawfedora.project_proofs import requirement
 
         _outputs_are_namespaced(task_id, task["expected_outputs"])
+        validate_task(task)
         for criterion in task["acceptance_criteria"]:
             requirement(criterion, task["expected_outputs"])
         for output in task["expected_outputs"]:
-            if Path(output).parts[0] == "evidence" and Path(output).name.startswith("tool-"):
-                raise ValueError("le préfixe evidence/<tâche>/tool- est réservé au worker")
+            if Path(output).parts[0] == "evidence" and Path(output).name.startswith(("tool-", "editorial-cycle-")):
+                raise ValueError("les préfixes tool- et editorial-cycle- sont réservés au worker")
             if (
                 Path(output).suffix.lower() in {".pdf", ".docx", ".odt"}
                 and str(Path(output).with_suffix(".md")) not in task["expected_outputs"]

@@ -9,6 +9,10 @@ from urllib.request import Request, urlopen
 
 def response_schema(prompt: str) -> dict[str, Any]:
     payload = json.loads(prompt.split("\n", 1)[1])
+    if prompt.startswith("Audit éditorial intermédiaire"):
+        from clawfedora.editorial_cycle import audit_schema
+
+        return audit_schema()
     if prompt.startswith("Retour pédagogique"):
         count = len(payload["task"]["acceptance_criteria"])
         return {
