@@ -68,9 +68,11 @@ def _text(block: dict[str, Any]) -> str:
 def has_installation(spec: dict[str, Any]) -> bool:
     for page in [spec["home"], *spec["pages"]]:
         for block in _blocks(page["blocks"]):
-            if block["type"].startswith("heading_") or block["type"] == "toggle":
-                if " ".join(_text(block).casefold().split()) == "installation des outils":
-                    return True
+            if (
+                (block["type"].startswith("heading_") or block["type"] == "toggle")
+                and " ".join(_text(block).casefold().split()) == "installation des outils"
+            ):
+                return True
     return False
 
 
