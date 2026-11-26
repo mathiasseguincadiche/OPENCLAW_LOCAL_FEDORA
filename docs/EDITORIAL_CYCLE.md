@@ -109,3 +109,6 @@ reste à examiner par les agents puis par l'opérateur. Un JSON incompatible
 avec le studio est refusé, pas automatiquement corrigé. Rapports
 multi-fichiers, schémas multi-vues et mises à jour de wikis existants
 restent des extensions séparées.
+
+La navigation synchronisée facultative est également protégée contre sa
+suppression entre deux versions de la spécification Notion.

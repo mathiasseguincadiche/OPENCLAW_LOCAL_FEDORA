@@ -94,3 +94,21 @@ studio avant cette approbation. Il ne produit ni destination ni plan d'écriture
 
 Pour un wiki existant, le [module d'enrichissement contrôlé](NOTION_ENRICH.md)
 ajoute une section après approbation et vérifie la conservation de l'inventaire direct.
+
+## Navigation synchronisée facultative
+
+Ajouter `"navigation": {"title": "Explorer le wiki"}` au JSON studio.
+Le moteur crée un bloc synchronisé original dans l'accueil, avec les liens
+vers l'accueil et toutes les sous-pages nouvellement créées. Une copie
+référence cet original dans chaque sous-page. La maquette HTML montre
+l'emplacement de cette navigation en fin de page. Aucun ID de page ou de
+bloc externe n'est accepté dans la spécification de navigation.
+
+Le plan et l'approbation existants couvrent cette option. Le moteur relit
+les liens de l'original, les identifiants des blocs directs préexistants
+dans les nouvelles pages et la référence de chaque copie. Un résultat
+ambigu interrompt la création sans relance. Le reçu contient les IDs
+de l'original et des copies. Les tests simulent l'API : le rendu natif
+et la propagation réelle des modifications restent à qualifier. Aucun
+wiki existant n'est modifié. Le contenu des blocs synchronisés n'est pas
+édité par l'API (voir [référence Notion](https://developers.notion.com/reference/block#synced-block)).
