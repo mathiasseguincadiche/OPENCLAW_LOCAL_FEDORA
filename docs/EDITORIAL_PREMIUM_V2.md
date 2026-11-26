@@ -75,10 +75,10 @@ Le [moteur de création Notion](NOTION_EDITORIAL_CREATION.md) accepte désormais
 couverture et des images externes GitHub épinglées sur commit, une icône et des
 segments enrichis bornés. Ce sont des références publiques choisies explicitement ;
 aucun transfert de fichier privé à GitHub. L'approbation du plan reste obligatoire.
-La création de médias privés, bases, vues, relations et sous-pages multiples relève
-de capacités supplémentaires à développer et à qualifier sur page test, avec
-révision d'API dédiée ; ne pas assimiler possibilité de la plateforme à capacité
-locale déjà vérifiée.
+Le [studio de wiki](NOTION_STUDIO.md) ajoute l'upload direct PNG/JPEG, les pages
+filles et une base de suivi avec vues, dans un nouveau wiki et sous approbation.
+Relations, rollups, autres formats et édition complète restent hors périmètre ;
+ne pas assimiler capacité implémentée et qualification réelle.
 
 La revue de contenu dispose de questions Premium V2 complémentaires à la grille
 V1 : ouverture, explication, voix, composition, support, conservation. Aucune
@@ -95,6 +95,6 @@ le manque de preuve. La CI ne certifie pas le comportement des modèles locaux.
 - [Notion : création d'un upload](https://developers.notion.com/reference/create-file)
 - [Notion : envoi d'un upload](https://developers.notion.com/reference/upload-file)
 
-Consultées le 25 novembre 2026. Le nouveau moteur de page conserve le contrat
-API existant ; les nouvelles capacités de vues et d'upload ne sont pas annoncées
-comme implémentées.
+Consultées le 25 novembre 2026. Le moteur de page unitaire conserve son contrat
+API historique. Le studio utilise 2026-03-11 pour les uploads et les vues,
+avec tests simulés et réception native encore requise.

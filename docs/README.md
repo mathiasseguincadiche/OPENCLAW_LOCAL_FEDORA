@@ -29,6 +29,8 @@ Le [standard d'excellence éditoriale V2](EXCELLENCE_EDITORIALE.md) réunit la g
 
 ## Construire un wiki Notion premium
 
+Le [studio Notion](NOTION_STUDIO.md) prépare un wiki neuf, ses médias locaux et sa base de suivi dynamique, avec validation opérateur.
+
 La [charte universelle des wikis Notion](NOTION_WIKI_DESIGN_SYSTEM.md)
 standardise la page d'accueil, les exercices, la navigation, les
 illustrations et les preuves. Les [gabarits Notion](../templates/notion/accueil-wiki.md)
