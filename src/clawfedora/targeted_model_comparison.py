@@ -29,7 +29,8 @@ def load(root: Path) -> dict[str, Any]:
         raise ValueError("suite ciblée trop volumineuse")
     suite = json.loads(path.read_text(encoding="utf-8"))
     if (
-        suite["schema"] != 1 or suite["classification"] != "synthetic_public"
+        not isinstance(suite, dict) or suite["schema"] != 1
+        or suite["classification"] != "synthetic_public"
         or tuple(case["id"] for case in suite["cases"]) != CASE_IDS
     ):
         raise ValueError("suite ciblée inconnue")
@@ -158,7 +159,7 @@ def run(root: Path, model: str, commit: str, output: Path) -> dict[str, Any]:
 
     save()
     for case in suite["cases"]:
-        previous = None
+        previous: dict[str, Any] | None = None
         for stage in STAGES:
             start = time.monotonic()
             try:
