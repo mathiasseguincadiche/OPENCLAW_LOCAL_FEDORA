@@ -91,3 +91,6 @@ Version 2026-03-11, documentation consultée le 25 novembre 2026.
 
 Le [profil de revue Notion](EDITORIAL_CYCLE.md) peut faire réviser une source
 studio avant cette approbation. Il ne produit ni destination ni plan d'écriture.
+
+Pour un wiki existant, le [module d'enrichissement contrôlé](NOTION_ENRICH.md)
+ajoute une section après approbation et vérifie la conservation de l'inventaire direct.
