@@ -37,10 +37,13 @@ MAX_TOTAL = 12_000_000
 MIMES = {".png": ("PNG", "image/png"), ".jpg": ("JPEG", "image/jpeg"),
          ".jpeg": ("JPEG", "image/jpeg")}
 NAME = re.compile(r"[A-Za-z0-9_-][A-Za-z0-9_.-]{0,79}\Z")
-FIELDS = {"Activité": {"title": {}}, "Ordre": {"number": {"format": "number"}},
-          "État": {"select": {"options": [
-              {"name": "À réaliser"}, {"name": "En cours"}, {"name": "À vérifier"},
-          ]}}}
+FIELDS: dict[str, dict[str, Any]] = {
+    "Activité": {"title": {}},
+    "Ordre": {"number": {"format": "number"}},
+    "État": {"select": {"options": [
+        {"name": "À réaliser"}, {"name": "En cours"}, {"name": "À vérifier"},
+    ]}},
+}
 
 
 def _request(method: str, resource: str, *, body: dict[str, Any] | None = None,
