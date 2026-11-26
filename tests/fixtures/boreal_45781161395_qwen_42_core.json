@@ -1,0 +1,211 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "eaa704b09fce7915c078e56aea1efa2d14ce56b7",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "qwen",
+    "runtime_id": "qwen3.5:9b-q4_K_M",
+    "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+    "size": 6550825550,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 1800,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 42
+  },
+  "capabilities": [
+    "completion",
+    "vision",
+    "tools",
+    "thinking"
+  ],
+  "think_requested": true,
+  "shard": "core",
+  "planned": 4,
+  "results": [
+    {
+      "id": "mentor-dns",
+      "role": "chef-operations",
+      "initial": {
+        "input_sha256": "9bb21eefed62d06d0b8777fd841c698eb51281a995d53c02c78a13d186878381",
+        "response": {
+          "content": "{\"http_ip_ok\": true, \"name_resolution_ok\": false, \"dns_root_cause_proven\": false, \"l2_awarded\": false, \"reason\": \"OBSERVÉ : HTTP par IP (192.0.2.10) fonctionne avec réponse 200. NON VÉRIFIÉ : résolution DNS échoue mais aucun test indépendant n'a été exécuté. CAUSE DNS non prouvée sans diagnostic autonome. L2 non acquis car aucune preuve de couche réseau indépendante. INDICE A1 : La connectivité IP directe ne garantit pas la résolution DNS - ces deux mécanismes sont distincts (couche 3 vs service DNS). Pour diagnostiquer, il faut isoler chaque composant séparément.\",\"executed\": false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 330139130512,
+            "load_duration": 7845714730,
+            "prompt_eval_count": 3225,
+            "prompt_eval_duration": 165829148000,
+            "eval_count": 573,
+            "eval_duration": 156413742000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 330140
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "research-version",
+      "role": "expert-recherche",
+      "initial": {
+        "input_sha256": "62412b6533877bf45b27c1f07a2225e32fa182c8ec85d437f8b4fbd1cb9e4b3f",
+        "response": {
+          "content": "{\"target_source\": \"REF-D\", \"strict_available\": false, \"ref_f_read\": false, \"runtime_test_proven\": false, \"reason\": \"Source applicable à la cible 3.1 : REF-D (manuel officiel v3.1). Strict mode non disponible selon REF-D qui indique disponibilité dès 3.2. REF-E concerne 3.2, hors portée de la cible. REF-F titre seul, NON CONSULTÉ comme indiqué. Aucun test runtime effectué. Priorité des preuves : documentation officielle de la version visée > note de version supérieure > page titre non lue. La compatibilité ne peut être affirmée sans lecture intégrale de REF-D et exécution de test sur 3.1.\",\"executed\": false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 303697774662,
+            "load_duration": 1005762,
+            "prompt_eval_count": 2674,
+            "prompt_eval_duration": 137405492999,
+            "eval_count": 618,
+            "eval_duration": 166117098000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 303699
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "architecture-recovery",
+      "role": "architecte-solutions",
+      "initial": {
+        "input_sha256": "eb287bfb37aa4483b94607372b358b63b03260525a1ff2e946dc0e43be6e60ed",
+        "response": {
+          "content": "{\"database_vm\": \"VM data privée (OBSERVÉ dans la description)\", \"public_vm\": \"VM edge (OBSERVÉ dans la description)\", \"local_copy_covers_vm_loss\": false, \"ha_proven\": false, \"reason\": \"Analyse de l'architecture Boréal basée sur la description fournie. La VM PostgreSQL est située sur la VM data privée selon le contrat décrit. La VM edge reçoit le trafic HTTPS public et relaie vers la VM service. Les sauvegardes existent uniquement sur data sans test de restauration ni réplication, ce qui ne couvre pas une perte de données complète. Aucune haute disponibilité n'est démontrée (pas de réplication, pas de test de restauration). ADR proposé : flux autorisés SSH depuis ops uniquement, HTTPS public vers edge, risques critiques (RPO/RTO non vérifiés, point unique de défaillance sur data), décision recommandée : implémenter réplication et tests de restauration avant production.\",\"executed\": false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 278294393556,
+            "load_duration": 3231491,
+            "prompt_eval_count": 3103,
+            "prompt_eval_duration": 76287076000,
+            "eval_count": 737,
+            "eval_duration": 201788155000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "database_vm",
+            "public_vm"
+          ],
+          "correct": 2,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 278296
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "a751765e1d55b813f8e52c2b8de5ca86c19f2688da59ad57608b37d465014cba",
+        "response": {
+          "content": "{\"database_vm\": \"VM data privée\", \"public_vm\": \"VM edge\", \"local_copy_covers_vm_loss\": false, \"ha_proven\": false, \"reason\": \"Architecture Boréal : PostgreSQL sur VM data privée (base de données), VM edge reçoit le trafic HTTPS public et relaie vers service. Copie de sauvegarde uniquement sur data sans test ni réplication → ne couvre pas perte de données complète. HA non démontrée (pas de réplication, pas de restauration validée). ADR : flux SSH ops→data autorisé, HTTPS public→edge, risques RPO/RTO non vérifiés, point unique défaillance VM data. Recommandation : implémenter réplication DB et tests de restauration avant production.\",\"executed\": false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 258619204940,
+            "load_duration": 2078411,
+            "prompt_eval_count": 3365,
+            "prompt_eval_duration": 14976531000,
+            "eval_count": 882,
+            "eval_duration": 243602355000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "database_vm",
+            "public_vm"
+          ],
+          "correct": 2,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 258621
+      }
+    },
+    {
+      "id": "devops-plan",
+      "role": "ingenieur-devops",
+      "initial": {
+        "input_sha256": "0b5d6f2522e1aec18acb6598f630fe5d464d99a695e7f7a19477661fd4fc63a0",
+        "response": {
+          "content": "{\"plan_error\": false, \"plan_has_changes\": true, \"real_idempotence_proven\": false, \"apply_allowed\": false, \"reason\": \"OBSERVÉ: terraform plan exitcode=2 (documentation: 2=changements), destruction volume prévue, aucune approbation. VÉRIFIÉ: Ansible check mode changed=0 (mode vérification, pas exécution réelle). NON VÉRIFIÉ: idempotence réelle, autorisation apply. PROPOSÉ: contrôles non destructifs requis avant décision.\", \"executed\": false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 253463316498,
+            "load_duration": 1382050,
+            "prompt_eval_count": 3203,
+            "prompt_eval_duration": 81910246000,
+            "eval_count": 624,
+            "eval_duration": 171256963000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 253465
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "summary": {
+    "initial_pass": 3,
+    "corrected": 0,
+    "blocked": 1
+  }
+}

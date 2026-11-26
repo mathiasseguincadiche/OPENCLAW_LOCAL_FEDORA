@@ -1,0 +1,240 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "eaa704b09fce7915c078e56aea1efa2d14ce56b7",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "ornith",
+    "runtime_id": "ornith-1.5:9b",
+    "digest": "e5df7dcdd8a263994df62d610317e07be0d6af23f96fcbd8543273058fce575e",
+    "size": 6550813657,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 1800,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 73
+  },
+  "capabilities": [
+    "tools",
+    "thinking",
+    "completion",
+    "vision"
+  ],
+  "think_requested": true,
+  "shard": "core",
+  "planned": 4,
+  "results": [
+    {
+      "id": "mentor-dns",
+      "role": "chef-operations",
+      "initial": {
+        "input_sha256": "9bb21eefed62d06d0b8777fd841c698eb51281a995d53c02c78a13d186878381",
+        "response": {
+          "content": "{\n  \"dns_root_cause_proven\": false,\n  \"executed\": false,\n  \"http_ip_ok\": true,\n  \"l2_awarded\": false,\n  \"name_resolution_ok\": false,\n  \"reason\": \"Décisions (dossier Boréal, faits fournis) : 1) HTTP par IP fonctionne — OBSERVÉ, 200, le service écoute bien à l'adresse IP. 2) Résolution par nom échoue — OBSERVÉ l'échec « Could not resolve host », donc la traduction nom→adresse ne se fait pas. 3) Cause DNS précise — NON VÉRIFIÉE : aucun test DNS indépendant ni reproduction autonome n'a été exécuté, donc aucune cause exacte (serveur DNS absent, zone inexistante, cache, suffixe) n'est prouvée. 4) L2 acquis — NON VÉRIFIÉ : sans reproduction autonome, aucun niveau n'est accordé ; les repères L2 sont des preuves, pas des indices. Indice conceptuel A1 : le service répond déjà à l'IP (200), donc le problème n'est pas au service mais avant l'envoi, au moment où le nom est converti en adresse — c'est l'étape de résolution, pas celle du service. Un indice A1 ne donne ni commande ni solution ; il pointe l'étape défaillante pour orienter la vérification.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 342449185936,
+            "load_duration": 6581822812,
+            "prompt_eval_count": 3225,
+            "prompt_eval_duration": 144289427000,
+            "eval_count": 1036,
+            "eval_duration": 191556502000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 342451
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "research-version",
+      "role": "expert-recherche",
+      "initial": {
+        "input_sha256": "62412b6533877bf45b27c1f07a2225e32fa182c8ec85d437f8b4fbd1cb9e4b3f",
+        "response": {
+          "content": "{\n  \"executed\": false,\n  \"reason\": \"Priorité des preuves : la source applicable à la cible 3.1 est REF-D, manuel officiel de la version visée. Une documentation versionnée correspond à l'objet réel ; une note de version ultérieure (REF-E 3.2) ne s'applique pas à une cible plus ancienne, et une page de titre non consultée (REF-F) ne fournit aucun fait vérifiable. Le manuel 3.1 indique explicitement que le mode strict est disponible à partir de 3.2, donc pour 3.1 il n'est pas disponible. Aucun test runtime n'a été exécuté : la compatibilité n'est donc ni mesurée ni prouvée, seulement documentée. Une annonce de version ne remplace pas une preuve d'exécution. Décision finale : source = REF-D ; strict non disponible en 3.1 ; REF-F non consultée ; pas de test réel.\",\n  \"ref_f_read\": false,\n  \"runtime_test_proven\": false,\n  \"strict_available\": false,\n  \"target_source\": \"REF-D (manuel officiel 3.1)\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 429870905564,
+            "load_duration": 1661773,
+            "prompt_eval_count": 2674,
+            "prompt_eval_duration": 119226902000,
+            "eval_count": 1665,
+            "eval_duration": 310399499000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "target_source"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 429873
+      },
+      "selection": "CORRECTED_FACT_CONTRACT_ONLY",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "799aba1f236633d5436e7b31567a360fa619d1c68b1752d4e2c2f686998cd4de",
+        "response": {
+          "content": "{\n  \"executed\": false,\n  \"reason\": \"Priorité des preuves : la source applicable à la cible 3.1 est REF-D, manuel officiel de la version visée. Une documentation versionnée correspond à l'objet réel ; une note de version ultérieure (REF-E 3.2) ne s'applique pas à une cible plus ancienne, et une page de titre non consultée (REF-F) ne fournit aucun fait vérifiable. Le manuel 3.1 indique explicitement que le mode strict est disponible à partir de 3.2, donc pour 3.1 il n'est pas disponible. Aucun test runtime n'a été exécuté : la compatibilité n'est donc ni mesurée ni prouvée, seulement documentée. Une annonce de version ne remplace pas une preuve d'exécution. Décision finale : source = REF-D ; strict non disponible en 3.1 ; REF-F non consultée ; pas de test réel.\",\n  \"ref_f_read\": false,\n  \"runtime_test_proven\": false,\n  \"strict_available\": false,\n  \"target_source\": \"REF-D\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 122345192751,
+            "load_duration": 1045685,
+            "prompt_eval_count": 2983,
+            "prompt_eval_duration": 15476175000,
+            "eval_count": 576,
+            "eval_duration": 106841877000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 122346
+      }
+    },
+    {
+      "id": "architecture-recovery",
+      "role": "architecte-solutions",
+      "initial": {
+        "input_sha256": "eb287bfb37aa4483b94607372b358b63b03260525a1ff2e946dc0e43be6e60ed",
+        "response": {
+          "content": "{\n  \"database_vm\": \"data\",\n  \"executed\": false,\n  \"ha_proven\": false,\n  \"local_copy_covers_vm_loss\": false,\n  \"public_vm\": \"edge\",\n  \"reason\": \"Boréal — analyse d'architecture (faits tirés du dossier, aucune exécution). Répartition : VM publique = edge (HTTPS public uniquement, relais vers service) ; VM de la base = data (PostgreSQL, réseau privé) ; VM service = cible du relais edge ; VM ops = reçoit métriques service+data, SSH depuis ops uniquement. Réponses : 1) DB → VM data. 2) VM publique → edge. 3) La copie locale NE couvre PAS la perte de data : la sauvegarde réside sur data elle-même ; si la VM data est détruite, la copie disparaît avec elle (même hôte). Une sauvegarde externe (stockage distinct, hors VM data) est requise. 4) HA non démontrée : aucune réplication, aucun test de restauration, copies uniques. ADR — sauvegarde externe : contexte = risque de perte totale si data tombe ; décision = backup externe obligatoire, hors VM data, avec test de restauration périodique ; flux autorisés = HTTPS public→edge→service ; métriques service+data→ops ; SSH ops→ops uniquement ; risques = perte totale data sans backup externe, exposition si SSH élargi, dépendance unique à data ; preuves à recueillir = test de restauration réussi, réplication vers stockage externe, journalisation des flux.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 343260323394,
+            "load_duration": 1310483,
+            "prompt_eval_count": 3103,
+            "prompt_eval_duration": 66785206999,
+            "eval_count": 1505,
+            "eval_duration": 276448280000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 343262
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "devops-plan",
+      "role": "ingenieur-devops",
+      "initial": {
+        "input_sha256": "0b5d6f2522e1aec18acb6598f630fe5d464d99a695e7f7a19477661fd4fc63a0",
+        "response": {
+          "content": "",
+          "done_reason": "length",
+          "metrics": {
+            "total_duration": 407419251102,
+            "load_duration": 2904005,
+            "prompt_eval_count": 3203,
+            "prompt_eval_duration": 71365768000,
+            "eval_count": 1800,
+            "eval_duration": 335798337000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [
+            "invalid_json_object",
+            "completion"
+          ],
+          "failed_fields": [],
+          "correct": 0,
+          "total": 4,
+          "execution_claim": "UNKNOWN",
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 407421
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "9f3cbbfb3d466af72ccab26b38240c82c2300a657cf97b4470dc598c9f2ab5f9",
+        "response": {
+          "content": "{\n  \"apply_allowed\": false,\n  \"executed\": false,\n  \"plan_error\": false,\n  \"plan_has_changes\": true,\n  \"real_idempotence_proven\": false,\n  \"reason\": \"Le plan n'a pas échoué : le code 2 n'est pas une erreur (1 l'est), il signifie 'plan avec changements'. Le plan contient donc des changements, dont la destruction d'un volume de données. L'idempotence réelle n'est PAS prouvée : le mode check d'Ansible est un essai sec qui ne modifie rien, changed=0 n'indique pas qu'une exécution réelle serait stable ; l'idempotence se prouve par deux exécutions réelles consécutives. L'apply n'est PAS autorisé : aucune approbation et la destruction d'un volume de données est une action destructive sous validation humaine. Contrôles non destructifs proposés : lire 'terraform show plan' et 'terraform plan' pour lister précisément ce qui sera détruit ; 'terraform state show <ressource>' pour l'état actuel ; vérifier l'existence de snapshots/sauvegardes du volume ; consulter ADR/STATUS pour le contexte ; confirmer qu'aucune ressource ne dépend de ce volume ; distinguer volume de données de volume éphémère. Aucun apply ni destruction sans approbation explicite et sans sauvegarde isolée avec témoin avant toute décision destructive. Les faits du dossier font foi ; aucun apply, aucune destruction, aucun essai réel n'a été exécuté ici, seule la relecture",
+          "done_reason": "length",
+          "metrics": {
+            "total_duration": 342026267069,
+            "load_duration": 945314,
+            "prompt_eval_count": 3265,
+            "prompt_eval_duration": 4308208000,
+            "eval_count": 1800,
+            "eval_duration": 337608097000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [
+            "invalid_json_object",
+            "completion"
+          ],
+          "failed_fields": [],
+          "correct": 0,
+          "total": 4,
+          "execution_claim": "UNKNOWN",
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 342028
+      }
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "summary": {
+    "initial_pass": 2,
+    "corrected": 1,
+    "blocked": 1
+  }
+}

@@ -42,3 +42,7 @@ examiner manuellement le texte et les contradictions, puis choisir les profils
 à qualifier sur des cas supplémentaires et sur les outils natifs. Le minimum
 de trois répétitions de qualification finale n'est pas atteint par cette
 campagne seule. Aucun changement du catalogue, des agents ni du routage.
+
+## Campagne de profils
+
+[Résultats de Boréal et profils expérimentaux](EXCELLENCE_INFERENCE_PROFILES.md).

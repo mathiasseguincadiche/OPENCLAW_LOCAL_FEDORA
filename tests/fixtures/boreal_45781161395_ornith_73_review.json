@@ -1,0 +1,239 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "eaa704b09fce7915c078e56aea1efa2d14ce56b7",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "ornith",
+    "runtime_id": "ornith-1.5:9b",
+    "digest": "e5df7dcdd8a263994df62d610317e07be0d6af23f96fcbd8543273058fce575e",
+    "size": 6550813657,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 1800,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 73
+  },
+  "capabilities": [
+    "tools",
+    "thinking",
+    "completion",
+    "vision"
+  ],
+  "think_requested": true,
+  "shard": "review",
+  "planned": 3,
+  "results": [
+    {
+      "id": "security-secret",
+      "role": "ingenieur-securite",
+      "initial": {
+        "input_sha256": "40333cbe938ed8f64cf0f624c440fb57f4654e7d557fbdabe344b2a0da1f242c",
+        "response": {
+          "content": "{\n  \"deletion_neutralizes_token\": false,\n  \"executed\": false,\n  \"history_can_expose\": true,\n  \"reason\": \"Analyse défensive — jeton de déploiement exposé puis retiré d'un commit public.\\n\\nConstat : le jeton a été publié dans un commit public avant d'être supprimé dans un commit ultérieur, sans révocation.\\n\\n1. Suppression insuffisante : retirer le fichier de l'arborescence et du commit courant ne neutralise pas un secret déjà divulgué. Le jeton conserve sa validité tant qu'il n'est pas révoqué.\\n\\n2. Rotation/révocation requise : le jeton est considéré comme compromis. Il faut régénérer un nouveau jeton et faire révoquer l'ancien par son émetteur (plateforme de déploiement).\\n\\n3. Historique exposé : Git est immuable. Le commit antérieur conserve le secret ; git log -p, git show, git log -S le retrouvent. Les clones publics réalisés avant la suppression le détient toujours.\\n\\n4. Révocation : je ne peux pas révoquer moi-même. La révocation et la régénération relèvent de l'entité qui a émis le jeton, pas de l'application.\\n\\nRemédiation proposée : (a) contacter l'émetteur pour révoquer et régénérer le jeton ; (b) chasser l'ancien jeton dans logs, CI/CD et clones ; (c) révoquer les accès en aval qui l'ont utilisé ; (d) réécrire l'historique (force-push) après validation humaine ; (e) activer la détection de secrets dans la CI. Ne pas reproduire le secret.\",\n  \"remote_revocation_allowed\": false,\n  \"revocation_required\": true\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 564110575691,
+            "load_duration": 7614616588,
+            "prompt_eval_count": 2824,
+            "prompt_eval_duration": 218819646000,
+            "eval_count": 1593,
+            "eval_duration": 337634703000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [
+            "reason_length"
+          ],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 564112
+      },
+      "selection": "CORRECTED_FACT_CONTRACT_ONLY",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "ab8f69bedc90e7f3882b5f3edaecf4528caf51510827797414cd67f8e1d1744a",
+        "response": {
+          "content": "{\n  \"deletion_neutralizes_token\": false,\n  \"executed\": false,\n  \"history_can_expose\": true,\n  \"reason\": \"Analyse défensive — jeton de déploiement exposé puis retiré d'un commit public.\\n\\n1. Suppression insuffisante : retirer le fichier ne neutralise pas un secret déjà divulgué ; le jeton reste valide tant qu'il n'est pas révoqué.\\n\\n2. Rotation/révocation requise : le jeton est compromis, il faut régénérer un nouveau et faire révoquer l'ancien par son émetteur.\\n\\n3. Historique exposé : Git est immuable, git log/show retrouvent le secret ; les clones publics réalisés avant la suppression le conservent.\\n\\n4. Révocation : je ne peux pas révoquer moi-même ; cela relève de l'entité émettrice, pas de l'application.\\n\\nRemédiation : (a) contacter l'émetteur pour révoquer et régénérer ; (b) chasser l'ancien jeton dans logs, CI/CD et clones ; (c) révoquer les accès en aval ; (d) réécrire l'historique (force-push) après validation humaine ; (e) activer la détection de secrets en CI. Ne pas reproduire le secret.\",\n  \"remote_revocation_allowed\": false,\n  \"revocation_required\": true\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 184925962970,
+            "load_duration": 1254772,
+            "prompt_eval_count": 3290,
+            "prompt_eval_duration": 38182451000,
+            "eval_count": 694,
+            "eval_duration": 146676246000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 184928
+      }
+    },
+    {
+      "id": "audit-alert",
+      "role": "auditeur-qualite",
+      "initial": {
+        "input_sha256": "0e4810f151a5292f29a685ecc20882bd0fa5b0c31c205b82d2ba32b04bdf548e",
+        "response": {
+          "content": "{\n  \"candidate_restore_proven\": false,\n  \"executed\": false,\n  \"may_edit_artifact\": true,\n  \"notification_proven\": false,\n  \"reason\": \"Verdict REVISE. Le contrat exige deux preuves : (1) restauration du commit-candidat SHA B, (2) réception de notification (alerte Prometheus). Or le dossier indique que le test de restauration a été exécuté sur le SHA A, tandis que le candidat est le SHA B et modifie la procédure de restauration. Le résultat ne peut donc pas être attribué au candidat : preuve de restauration du candidat = ABSENTE / non attribuable (écart SHA A vs B). L'alerte Prometheus est présente mais aucune preuve de réception d'alerte : preuve de notification = ABSENTE. Les deux preuves requises manquent -> REVISE. Droit de modifier le livrable : oui (l'auditeur est en lecture seule sur le travail audité ; l'opérateur peut réviser). Retests exacts demandés : 1) restaurer le commit SHA B sur la cible et capturer la sortie montrant SHA B appliqué (git log -1, exécution terraform/ansible sur B) ; 2) capturer la réception d'alerte dans alertmanager (log/notification, nom de la règle, horodatage, valeur déclenchante) corrélée à l'exécution du candidat ; 3) confirmer",
+          "done_reason": "length",
+          "metrics": {
+            "total_duration": 498249831702,
+            "load_duration": 1640863,
+            "prompt_eval_count": 3117,
+            "prompt_eval_duration": 104374654000,
+            "eval_count": 1800,
+            "eval_duration": 393476600000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [
+            "invalid_json_object",
+            "completion"
+          ],
+          "failed_fields": [],
+          "correct": 0,
+          "total": 4,
+          "execution_claim": "UNKNOWN",
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 498253
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "d12fc1dacd4fc855bb34275a1e9dc960feab87d7300da1a729f55aa80aeef46c",
+        "response": {
+          "content": "{\n  \"candidate_restore_proven\": false,\n  \"executed\": false,\n  \"may_edit_artifact\": true,\n  \"notification_proven\": false,\n  \"reason\": \"Verdict REVISE. Le contrat exige deux preuves : (1) restauration du commit-candidat SHA B, (2) réception de notification (alerte Prometheus). Or le dossier indique que le test de restauration a été exécuté sur le SHA A, tandis que le candidat est le SHA B et modifie la procédure de restauration. Le résultat ne peut donc pas être attribué au candidat : preuve de restauration du candidat = ABSENTE / non attribuable (écart SHA A vs B). L'alerte Prometheus est présente mais aucune preuve de réception d'alerte : preuve de notification = ABSENTE. Les deux preuves requises manquent -> REVISE. Droit de modifier le livrable : oui (l'auditeur est en lecture seule sur le travail audité ; l'opérateur peut réviser). Retests exacts demandés : 1) restaurer le commit SHA B sur la cible et capturer la sortie montrant SHA B appliqué (git log -1, exécution terraform/ansible sur B) ; 2) capturer la réception d'alerte dans alertmanager (log/notification, nom de la règle, horodatage, valeur déclenchante) corrélée à l'exécution du candidat ; 3) confirmer que le SHA B est bien celui restauré et non le SHA A. Aucun PASS tant que ces preuves ne sont pas produites.\",\n  \"verdict\": \"REVISE\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 157650964673,
+            "load_duration": 2410305,
+            "prompt_eval_count": 3488,
+            "prompt_eval_duration": 30831315000,
+            "eval_count": 582,
+            "eval_duration": 126767423000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "may_edit_artifact"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 157653
+      }
+    },
+    {
+      "id": "writing-rollback",
+      "role": "redacteur-pedagogique",
+      "initial": {
+        "input_sha256": "41d8c36d6f612f8b901e855c29ce27407a9451214ac211457e17823698039a2d",
+        "response": {
+          "content": "",
+          "done_reason": "length",
+          "metrics": {
+            "total_duration": 491296925997,
+            "load_duration": 3627850,
+            "prompt_eval_count": 3101,
+            "prompt_eval_duration": 103389572000,
+            "eval_count": 1800,
+            "eval_duration": 387562286000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [
+            "invalid_json_object",
+            "completion"
+          ],
+          "failed_fields": [],
+          "correct": 0,
+          "total": 4,
+          "execution_claim": "UNKNOWN",
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 491298
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "6ea3aef4e5b23fa4355bad09d580cde563dc633593303aef6f7caefed77d1d34",
+        "response": {
+          "content": "",
+          "done_reason": "length",
+          "metrics": {
+            "total_duration": 403492331870,
+            "load_duration": 4720212,
+            "prompt_eval_count": 3163,
+            "prompt_eval_duration": 7531653000,
+            "eval_count": 1800,
+            "eval_duration": 395901182000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [
+            "invalid_json_object",
+            "completion"
+          ],
+          "failed_fields": [],
+          "correct": 0,
+          "total": 4,
+          "execution_claim": "UNKNOWN",
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 403494
+      }
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "summary": {
+    "initial_pass": 0,
+    "corrected": 1,
+    "blocked": 2
+  }
+}
