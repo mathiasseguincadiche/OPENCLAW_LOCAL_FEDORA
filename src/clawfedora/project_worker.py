@@ -717,8 +717,11 @@ def _editorial_revision(
 ) -> tuple[dict[str, Any], set[Path], dict[str, Any]]:
     """Use a fresh auditor context per version, under the existing worker lock."""
     from clawfedora import editorial_cycle as ec
+    from clawfedora import editorial_graphics as eg
 
-    output = task["expected_outputs"][0]
+    profile = eg.profile(task) or "markdown"
+    output = (task["expected_outputs"][0] if profile == "markdown"
+              else eg.source_path(task, profile))
     task_id = task["id"]
     auditor = runtime / "workspaces/auditeur-qualite"
     if not (auditor / ".openclaw-fedora-managed").is_file():
@@ -746,11 +749,15 @@ def _editorial_revision(
         # The draft is transmitted only to this session; no producer summary or verdict.
         excluded = audit_snapshot / "context/project_analysis.json"
         excluded.unlink(missing_ok=True)
+        if profile != "markdown":
+            svg = response["files"][str(Path(output).with_suffix(".svg"))]
+            (audit_snapshot / "editorial-candidate.svg").write_text(svg, encoding="utf-8")
         audit_guard = _guard(audit_snapshot)
         for path in audit_snapshot.rglob("*"):
             if path.is_file():
                 path.chmod(0o440)
-        payload = {"criteria": ec.CRITERIA, "task": task, "document": content,
+        payload = {"criteria": ec.criteria_for(profile), "profile": profile,
+                   "task": task, "document": content,
                    "structure_issues": structural}
         audit_prompt = (
             "Audit éditorial intermédiaire, indépendant et local. "
@@ -761,7 +768,9 @@ def _editorial_revision(
             "reason = justification et action = correction concrète ou conservation motivée. "
             "Si un contenu requis manque, cite le passage voisin et demande son ajout. "
             "Si une preuve manque ou une affirmation est douteuse : REVISE. "
-            "Ne certifie pas le rendu natif ni les compétences. Objet JSON checks uniquement.\n"
+            "Pour un visuel, cite la source éditable ; le SVG joint est un aperçu, "
+            "pas une recette native. Ne certifie ni rendu natif ni compétences. "
+            "Objet JSON checks uniquement.\n"
             + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
         )
         write_progress(runtime, project, "reviewing", task=task_id,
@@ -791,17 +800,26 @@ def _editorial_revision(
         response = invoke(task["role"], revision_prompt, revision_session)
         check_guards()
         validate_response(response, response_schema(revision_prompt))
+        if profile != "markdown":
+            eg.verify_refs(task, profile, response)
         _resolve_tool_files(workspace, receipts_before, task, response,
                             scope=snapshot.relative_to(workspace).as_posix())
         _collection_targets(repo_root, project, task, response)
+        if profile != "markdown":
+            eg.verify_pair(task, profile, response["files"])
         return str(response["files"][output])
 
-    content, report = ec.run(response["files"][output], audit, revise)
+    if profile != "markdown":
+        eg.verify_pair(task, profile, response["files"])
+    content, report = ec.run(response["files"][output], audit, revise, profile=profile)
     check_guards()
     if is_paused(runtime, project):
         raise ValueError("revue éditoriale interrompue par la pause opérateur")
     if content != response["files"][output]:
         raise ValueError("revue éditoriale : version finale différente")
+    if profile != "markdown":
+        report["files_sha256"] = eg.verify_pair(task, profile, response["files"])
+    report["profile"] = profile
     report.update({
         "origin": "editorial-cycle", "task_id": task_id, "producer_session": session,
         "output": output, "qualification": "MODEL_REVIEW_ONLY_NOT_NATIVE_CERTIFIED",
@@ -980,11 +998,22 @@ def run_project_tasks(
                 )
             try:
                 from clawfedora import editorial_cycle as ec
+                from clawfedora import editorial_graphics as eg
 
+                graphic_profile = None
                 if ec.requested(task) and task_mode(project, task) == "direct":
                     ec.validate_task(task)
                     if consent_state(repo_root, runtime, project)["state"] != "none":
                         raise ValueError("revue éditoriale intermédiaire réservée à la route locale")
+                    graphic_profile = eg.profile(task)
+                    if graphic_profile:
+                        tool = ("clawfedora_diagram, une seule vue" if graphic_profile == "diagram"
+                                else "clawfedora_artifact format=identity")
+                        first, rest = prompt.split("\n", 1)
+                        prompt = (
+                            first + f" Utilise {tool} ; retourne les deux références "
+                            "issues du même appel, jamais du SVG/XML libre.\n" + rest
+                        )
                 response = invoke(role, prompt, session)
                 observed = _guard(snapshot)
                 observed.pop(".openclaw-fedora-input-guard.json", None)
@@ -996,6 +1025,8 @@ def run_project_tasks(
                     raise ValueError("Workspace Guard: entrée ou projet central modifié")
                 validate_response(response, response_schema(prompt))
                 scope = snapshot.relative_to(workspace).as_posix()
+                if graphic_profile:
+                    eg.verify_refs(task, graphic_profile, response)
                 _resolve_tool_files(workspace, receipts_before, task, response, scope=scope)
                 _collection_targets(repo_root, project, task, response)
                 editorial_receipts: list[str] = []
