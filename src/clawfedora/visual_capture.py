@@ -234,6 +234,8 @@ def capture(
                         if interactive:
                             input(f"{category} : vérifier le thème réel du site ({scheme}), "
                                   "le régler si nécessaire puis Entrée : ")
+                        _validate_final_url(kind, url, page.url)
+                        page.evaluate("() => window.scrollTo(0, 0)")
                     metrics = page.evaluate(METRICS_JS)
                     if not isinstance(metrics, dict):
                         raise CaptureError("mesures DOM non disponibles")

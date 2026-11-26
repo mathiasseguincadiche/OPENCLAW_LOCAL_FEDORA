@@ -249,7 +249,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.review is not None or args.output is not None or args.apply:
                 raise ReviewError("mode modèle exclusif : aucun reçu produit")
             manifest, _ = _verify_capture(args.manifest)
-            template = {
+            template: dict[str, Any] = {
                 "inspected_live_site": False,
                 "checks": dict.fromkeys(REQUIRED[manifest["kind"]], "NOT_EVALUATED"),
             }

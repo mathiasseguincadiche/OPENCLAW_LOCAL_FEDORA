@@ -196,3 +196,31 @@ Conserver les preuves privées dans `$HOME/.local/state/openclaw-visual`.
 **Ne pas les committer, les partager publiquement ni les envoyer à
 un modèle cloud.** La recette native reste ouverte tant que les
 actions ci-dessus n'ont pas réellement été exécutées.
+
+## Réception Premium à six configurations
+
+Ajouter `--premium` à chacune des commandes de capture pour obtenir un
+manifeste de schéma 2, avec six profils : bureau 1440×900, tablette
+820×1180 et mobile 390×844, chacun en clair et sombre. Les anciens
+manifestes de schéma 1 restent lisibles. Les profils simulent des
+viewports, pas des appareils physiques. Le mode interactif permet de
+régler le thème réellement affiché avant chaque capture.
+
+La revue Premium vérifie les dimensions PNG et DOM, les préférences
+de thème, la liste d'échantillons et le défilement observé. Elle refuse
+les réutilisations de noms de captures et lie le formulaire au SHA-256
+du manifeste exact. Un débordement horizontal ou une image chargée
+en échec impose un résultat négatif. Le contrôle d'images est ponctuel
+et ne couvre pas toutes les images à chargement différé.
+
+Le formulaire ajoute la typographie, le contraste, la hiérarchie
+graphique, les illustrations, la tablette et l'examen des six vues.
+Pour chaque vue, renseigner le thème **observé** (light, dark ou
+NOT_EVALUATED). Un thème différent de celui demandé échoue ; un thème
+non évalué laisse la réception incomplète. Le moteur ne déduit pas
+l'esthétique ou le thème réel d'une simple préférence navigateur.
+
+La capture reste échantillonnée et privée. L'opérateur doit parcourir
+le site réel, vérifier la lisibilité et les contrastes, et contrôler les
+diagrammes dans leur contexte. La qualification des agents et la
+recette native sur Fedora sont séparées de la CI synthétique.
