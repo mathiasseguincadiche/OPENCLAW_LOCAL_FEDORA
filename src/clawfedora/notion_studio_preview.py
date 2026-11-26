@@ -85,12 +85,18 @@ def _blocks(blocks: list[dict[str, Any]]) -> str:
 
 
 def render(spec: dict[str, Any], records: list[dict[str, Any]],
-           contents: dict[str, bytes]) -> str:
+           contents: dict[str, bytes], *, media_placeholders: bool = False) -> str:
     images = {
         row["name"]: "data:" + row["mime"] + ";base64,"
         + base64.b64encode(contents[row["name"]]).decode("ascii")
         for row in records
     }
+    def source_image(name: str, alt: str, css: str = "") -> str:
+        if name not in images and media_placeholders:
+            return f"<p>Média privé à vérifier lors du plan : {escape(name)}</p>"
+        src = images[name]
+        return f'<img{css} src="{src}" alt="{escape(alt)}">'
+
     pages = [spec["home"], *spec["pages"]]
     navigation = "".join(
         f'<a href="#page-{i}">{escape(p["title"])}</a>' for i, p in enumerate(pages)
@@ -99,12 +105,11 @@ def render(spec: dict[str, Any], records: list[dict[str, Any]],
     for index, page in enumerate(pages):
         cover = ""
         if "cover_file" in page:
-            src = images[page["cover_file"]]
-            cover = f'<img class="cover" src="{src}" alt="Couverture locale">'
+            cover = source_image(page["cover_file"], "Couverture locale", ' class="cover"')
         elif "cover" in page:
             cover = "<p>Couverture externe : non chargée dans cet aperçu.</p>"
         media = "".join(
-            f'<figure><img src="{images[item["file"]]}" alt="{escape(item["caption"])}">'
+            f'<figure>{source_image(item["file"], item["caption"])}'
             f'<figcaption>{escape(item["caption"])}</figcaption></figure>'
             for item in page.get("images", [])
         )
@@ -131,7 +136,7 @@ def render(spec: dict[str, Any], records: list[dict[str, Any]],
         for module in spec["curriculum"]["modules"]:
             cover = ""
             if "cover_file" in module:
-                cover = f'<img class="cover" src="{images[module["cover_file"]]}" alt="">'
+                cover = source_image(module["cover_file"], "", ' class="cover"')
             items = "".join(
                 f'<li>{escape(activity["title"])} — {escape(activity["objective"])}</li>'
                 for activity in module["activities"]
