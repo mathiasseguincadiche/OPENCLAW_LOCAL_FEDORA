@@ -1,0 +1,209 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "1f186d1d7dab7d1966b628aadadb9d460f2ce373",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "qwen",
+    "runtime_id": "qwen3.5:9b-q4_K_M",
+    "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+    "size": 6550825550,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 900,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 42
+  },
+  "capabilities": [
+    "completion",
+    "vision",
+    "tools",
+    "thinking"
+  ],
+  "think_requested": false,
+  "shard": "review",
+  "planned": 3,
+  "results": [
+    {
+      "id": "security-secret",
+      "role": "ingenieur-securite",
+      "initial": {
+        "input_sha256": "40333cbe938ed8f64cf0f624c440fb57f4654e7d557fbdabe344b2a0da1f242c",
+        "response": {
+          "content": "{\n  \"deletion_neutralizes_token\": false,\n  \"revocation_required\": true,\n  \"history_can_expose\": true,\n  \"remote_revocation_allowed\": false,\n  \"reason\": \"La suppression du fichier dans le dépôt actuel ne neutralise pas le jeton car les clones existants conservent une copie locale valide. De plus, l'historique Git (commits précédents) reste accessible publiquement et expose toujours le secret. La rotation immédiate de la clé côté émetteur est requise pour invalider le jeton sur tous les points d'entrée. En tant qu'IA, je ne peux pas révoquer moi-même le jeton ; cette action doit être effectuée par l'équipe humaine via les processus de sécurité du fournisseur de service (ex: rotation dans AWS IAM, Azure AD ou annulation manuelle chez GitHub). La remédiation consiste à : 1) Générer un nouveau jeton et mettre à jour les configurations de déploiement. 2) Forcer une purge des clones locaux si possible ou surveiller leur usage. 3) Auditer l'historique Git pour identifier la fenêtre d'exposition (bien que le secret soit déjà compromis). 4) Mettre en place un webhook ou une alerte pour détecter toute tentative de réutilisation du jeton ancien.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 287981360840,
+            "load_duration": 7603774294,
+            "prompt_eval_count": 2826,
+            "prompt_eval_duration": 217257359000,
+            "eval_count": 297,
+            "eval_duration": 63085737000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 287983
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "audit-alert",
+      "role": "auditeur-qualite",
+      "initial": {
+        "input_sha256": "0e4810f151a5292f29a685ecc20882bd0fa5b0c31c205b82d2ba32b04bdf548e",
+        "response": {
+          "content": "{\n  \"verdict\": \"REVISE\",\n  \"candidate_restore_proven\": false,\n  \"notification_proven\": false,\n  \"may_edit_artifact\": true,\n  \"reason\": \"Le verdict est REVISE car les preuves requises sont absentes : aucune preuve de restauration du commit SHA B (seul le SHA A est mentionné) et aucune preuve de réception de notification. La règle Prometheus est présente mais non déclenchée ou non prouvée. L'auditeur ne peut valider ni la restauration ni l'alerte sans ces éléments concrets. Le droit de modifier le livrable est accordé pour intégrer les retests nécessaires (restauration du SHA B et vérification de l'alerte) avant une nouvelle évaluation.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 141878683565,
+            "load_duration": 1509688,
+            "prompt_eval_count": 3119,
+            "prompt_eval_duration": 103227757000,
+            "eval_count": 177,
+            "eval_duration": 38607598000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "may_edit_artifact"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 141882
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "25b381125b5affa099e02a18fecec5ac847f90cfdfb643387e2a7e3d7e85f859",
+        "response": {
+          "content": "{\n  \"verdict\": \"REVISE\",\n  \"candidate_restore_proven\": false,\n  \"notification_proven\": false,\n  \"may_edit_artifact\": true,\n  \"reason\": \"Le verdict reste REVISE car les preuves de restauration du candidat (SHA B) et de notification sont absentes. L'erreur précédente portait sur le champ may_edit_artifact qui était incorrectement marqué comme écart alors qu'il doit être 'true' pour permettre la correction des livrables avant re-validation. Aucune exécution n'a été faite ; les faits du dossier indiquent une absence de preuve pour les critères requis.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 49764445409,
+            "load_duration": 1616417,
+            "prompt_eval_count": 3345,
+            "prompt_eval_duration": 18342181000,
+            "eval_count": 142,
+            "eval_duration": 31376160000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "may_edit_artifact"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 49766
+      }
+    },
+    {
+      "id": "writing-rollback",
+      "role": "redacteur-pedagogique",
+      "initial": {
+        "input_sha256": "41d8c36d6f612f8b901e855c29ce27407a9451214ac211457e17823698039a2d",
+        "response": {
+          "content": "{\n  \"rollback_digest\": \"aaa\",\n  \"rollback_tested\": false,\n  \"migration_reversible\": false,\n  \"backup_required\": true,\n  \"reason\": \"Fiche : Prérequis - Sauvegarde obligatoire (digest aaa) avant toute action. Action conditionnelle - Ne lancer la migration que si le rollback vers aaa est documenté et validé ; sinon annuler. Vérification - Comparer digest actuel avec 'aaa' après rollback ou 'bbb' après migration. Limite - La migration de schéma est irréversible ; aucun test de rollback ne garantit sa réussite future. Signe d'échec - Erreur de version incompatible ou perte de données sans possibilité de restauration vers aaa.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 136236536818,
+            "load_duration": 2010722,
+            "prompt_eval_count": 3103,
+            "prompt_eval_duration": 101101365000,
+            "eval_count": 163,
+            "eval_duration": 35091360000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "rollback_digest"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 136238
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "2d15c0561e1899182ea93334ed3b1e93ce6ead74be104a5130c5c391179b164c",
+        "response": {
+          "content": "{\n  \"rollback_digest\": \"aaa\",\n  \"rollback_tested\": false,\n  \"migration_reversible\": false,\n  \"backup_required\": true,\n  \"reason\": \"Fiche : Prérequis - Sauvegarde obligatoire (digest aaa) avant toute action. Action conditionnelle - Ne lancer la migration que si le rollback vers aaa est documenté et validé ; sinon annuler. Vérification - Comparer digest actuel avec 'aaa' après rollback ou 'bbb' après migration. Limite - La migration de schéma est irréversible ; aucun test de rollback ne garantit sa réussite future. Signe d'échec - Erreur de version incompatible ou perte de données sans possibilité de restauration vers aaa.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 51869741978,
+            "load_duration": 1269120,
+            "prompt_eval_count": 3318,
+            "prompt_eval_duration": 17503987000,
+            "eval_count": 162,
+            "eval_duration": 34320212000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "rollback_digest"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 51871
+      }
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "direct",
+  "socket_timeout_seconds": 900,
+  "summary": {
+    "initial_pass": 1,
+    "corrected": 0,
+    "blocked": 2
+  }
+}

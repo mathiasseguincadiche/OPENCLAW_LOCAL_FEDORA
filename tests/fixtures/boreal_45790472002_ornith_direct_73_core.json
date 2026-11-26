@@ -1,0 +1,213 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "1f186d1d7dab7d1966b628aadadb9d460f2ce373",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "ornith",
+    "runtime_id": "ornith-1.5:9b",
+    "digest": "e5df7dcdd8a263994df62d610317e07be0d6af23f96fcbd8543273058fce575e",
+    "size": 6550813657,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 1200,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 73
+  },
+  "capabilities": [
+    "tools",
+    "thinking",
+    "completion",
+    "vision"
+  ],
+  "think_requested": false,
+  "shard": "core",
+  "planned": 4,
+  "results": [
+    {
+      "id": "mentor-dns",
+      "role": "chef-operations",
+      "initial": {
+        "input_sha256": "9bb21eefed62d06d0b8777fd841c698eb51281a995d53c02c78a13d186878381",
+        "response": {
+          "content": "{\n  \"dns_root_cause_proven\": false,\n  \"executed\": false,\n  \"http_ip_ok\": true,\n  \"l2_awarded\": false,\n  \"name_resolution_ok\": false,\n  \"reason\": \"Observé : curl par IP (192.0.2.10) renvoie 200, donc la couche réseau/HTTP fonctionne. curl par nom (api.example.test) échoue avec 'Could not resolve host', ce qui isole le problème à la résolution DNS, pas au réseau. Mais aucune cause DNS précise n'est prouvée : pas de test DNS indépendant (nslookup/dig/getent), pas de reproduction autonome, et aucune action distante autorisée. L2 n'est donc pas acquis : un PASS statique ne vaut pas une preuve indépendante. L'indice A1 conceptuel : la résolution par nom dépend d'un service externe (résolveur DNS) distinct du réseau local ; quand l'IP fonctionne mais le nom échoue, le réseau est sain et le défaut se situe dans la chaîne de résolution (résolveur, fichier /etc/resolv.conf ou cache), à confirmer par un test DNS indépendant.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 124939003203,
+            "load_duration": 5314293369,
+            "prompt_eval_count": 3227,
+            "prompt_eval_duration": 81287696000,
+            "eval_count": 258,
+            "eval_duration": 38303638000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 124940
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "research-version",
+      "role": "expert-recherche",
+      "initial": {
+        "input_sha256": "62412b6533877bf45b27c1f07a2225e32fa182c8ec85d437f8b4fbd1cb9e4b3f",
+        "response": {
+          "content": "{\n  \"executed\": false,\n  \"reason\": \"CIBLE 3.1. REF-D (manuel officiel v3.1) est la source applicable : c'est le manuel officiel de la version visée, donc la preuve primaire pour la cible. REF-E (note v3.2) est hors cible : elle confirme l'introduction de strict à 3.2, donc strict n'est PAS disponible dans 3.1 selon le dossier. REF-F (page de titre seule, non consultée) : NON consultée, aucune donnée exploitable, à ignorer. TEST RUNTIME : aucun test réel exécuté, donc compatibilité NON VÉRIFIÉ, seulement cohérence documentaire. PRIORITÉ : REF-D > REF-E > REF-F. Justification : la version installée (3.1) impose le manuel de cette version comme référence normative ; une note de version supérieure ne peut pas étendre les fonctionnalités d'une version inférieure ; une page non lue ne constitue aucune preuve. Fait OBSÉRVÉ : REF-D v3.1, REF-E v3.2, REF-F non lue. Décision : strict indisponible à 3.1 ; migration vers 3.2 requise pour activer strict.\",\n  \"ref_f_read\": false,\n  \"runtime_test_proven\": false,\n  \"strict_available\": false,\n  \"target_source\": \"REF-D\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 111149718309,
+            "load_duration": 2931002,
+            "prompt_eval_count": 2676,
+            "prompt_eval_duration": 66304306000,
+            "eval_count": 306,
+            "eval_duration": 44818747000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 111151
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "architecture-recovery",
+      "role": "architecte-solutions",
+      "initial": {
+        "input_sha256": "eb287bfb37aa4483b94607372b358b63b03260525a1ff2e946dc0e43be6e60ed",
+        "response": {
+          "content": "{\n  \"database_vm\": \"VM data (PostgreSQL)\",\n  \"executed\": false,\n  \"ha_proven\": false,\n  \"local_copy_covers_vm_loss\": false,\n  \"public_vm\": \"VM edge\",\n  \"reason\": \"Architecture proposée : VM edge (HTTPS public) relaie vers VM service ; PostgreSQL sur VM data (privée) ; VM ops reçoit métriques de service et data ; backup local uniquement sur data. Réponses : la DB est sur la VM data ; la VM publique est la VM edge ; la copie locale ne couvre PAS la perte de data (backup unique, non répliqué, aucun test de restauration) ; la HA n'est PAS démontrée (aucun test de restauration ni réplication). Risques : perte totale de données si la VM data tombe (backup non testé, non répliqué) ; point de défaillance unique sur PostgreSQL ; VM data est le maillon critique. Décision ADR : ajouter une sauvegarde externe (stockage distant ou VM séparée) + test de restauration trimestriel + réplication optionnelle vers un second site. Flux autorisés : edge→service (HTTPS), service→data (réplication/lecture), ops→métriques (lecture seule), ops→data (backup). Validation humaine requise avant déploiement.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 79836767975,
+            "load_duration": 952593,
+            "prompt_eval_count": 3105,
+            "prompt_eval_duration": 37652995000,
+            "eval_count": 288,
+            "eval_duration": 42159568000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "database_vm",
+            "public_vm"
+          ],
+          "correct": 2,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 79839
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "b67e1487b889adbc3e9f9e00d420f088d8e140afe67788617c30acde32dcd232",
+        "response": {
+          "content": "{\n  \"database_vm\": \"VM data\",\n  \"executed\": false,\n  \"ha_proven\": false,\n  \"local_copy_covers_vm_loss\": false,\n  \"public_vm\": \"VM edge\",\n  \"reason\": \"Architecture proposée : VM edge (HTTPS public) relaie vers VM service ; PostgreSQL sur VM data (privée) ; VM ops reçoit métriques de service et data ; backup local uniquement sur data. Réponses : la DB est sur la VM data ; la VM publique est la VM edge ; la copie locale ne couvre PAS la perte de data (backup unique, non répliqué, aucun test de restauration) ; la HA n'est PAS démontrée (aucun test de restauration ni réplication). Risques : perte totale de données si la VM data tombe (backup non testé, non répliqué) ; point de défaillance unique sur PostgreSQL ; VM data est le maillon critique. Décision ADR : ajouter une sauvegarde externe (stockage distant ou VM séparée) + test de restauration trimestriel + réplication optionnelle vers un second site. Flux autorisés : edge→service (HTTPS), service→data (réplication/lecture), ops→métriques (lecture seule), ops→data (backup). Validation humaine requise avant déploiement.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 51364281563,
+            "load_duration": 1516518,
+            "prompt_eval_count": 3449,
+            "prompt_eval_duration": 9772393000,
+            "eval_count": 280,
+            "eval_duration": 41568574000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "database_vm",
+            "public_vm"
+          ],
+          "correct": 2,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 51365
+      }
+    },
+    {
+      "id": "devops-plan",
+      "role": "ingenieur-devops",
+      "initial": {
+        "input_sha256": "0b5d6f2522e1aec18acb6598f630fe5d464d99a695e7f7a19477661fd4fc63a0",
+        "response": {
+          "content": "{\n  \"apply_allowed\": false,\n  \"executed\": false,\n  \"plan_error\": false,\n  \"plan_has_changes\": true,\n  \"real_idempotence_proven\": false,\n  \"reason\": \"Plan retourne 2 = changements, pas erreur : le plan n'a pas échoué, il propose des modifications. Destruction d'un volume de données = changement réel, non idempotence. check mode (Ansible) ne teste pas l'exécution réelle : changed=0 n'est pas une preuve d'idempotence. apply NON autorisé : aucune approbation, et destruction de données exige validation humaine. Contrôles non destructifs proposés : terraform plan -detailed-exitcode (déjà fait, sûr), terraform show -json pour extraire précisément les blocs à détruire, terraform console pour inspecter le type du volume, grep des noms de volumes dans le state, terraform refresh pour resynchroniser sans appliquer, ansible-playbook --check pour confirmer l'état, et lecture du state pour identifier si le volume est lié à des données applicatives. Décision finale réservée à l'opérateur après revue du plan détaillé et confirmation du risque de perte de données.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 79864410418,
+            "load_duration": 1033810,
+            "prompt_eval_count": 3205,
+            "prompt_eval_duration": 40069749000,
+            "eval_count": 267,
+            "eval_duration": 39682267000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 79866
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "direct",
+  "socket_timeout_seconds": 1200,
+  "summary": {
+    "initial_pass": 3,
+    "corrected": 0,
+    "blocked": 1
+  }
+}

@@ -1,0 +1,238 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "1f186d1d7dab7d1966b628aadadb9d460f2ce373",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "qwen",
+    "runtime_id": "qwen3.5:9b-q4_K_M",
+    "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+    "size": 6550825550,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 900,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 73
+  },
+  "capabilities": [
+    "completion",
+    "vision",
+    "tools",
+    "thinking"
+  ],
+  "think_requested": false,
+  "shard": "review",
+  "planned": 3,
+  "results": [
+    {
+      "id": "security-secret",
+      "role": "ingenieur-securite",
+      "initial": {
+        "input_sha256": "40333cbe938ed8f64cf0f624c440fb57f4654e7d557fbdabe344b2a0da1f242c",
+        "response": {
+          "content": "{\n  \"deletion_neutralizes_token\": false,\n  \"revocation_required\": true,\n  \"history_can_expose\": true,\n  \"remote_revocation_allowed\": false,\n  \"reason\": \"La suppression du fichier dans le dépôt public ne neutralise pas le jeton car l'historique Git (commits précédents) reste accessible et contient toujours le secret. Des clones existants peuvent déjà avoir récupéré la clé. La rotation immédiate de la clé côté serveur est requise pour invalider le jeton, mais une révocation distante n'est possible que si un mécanisme de révocabilité (type OAuth2 token revocation endpoint ou blacklist) est configuré sur l'application cible ; sans cela, seule la rotation aide. Le contrat interdit toute action distante non approuvée et l'exposition d'un secret public. Remédiation : 1) Générer une nouvelle clé/jeton de déploiement immédiatement (rotation). 2) Annuler manuellement les accès liés à l'ancien jeton via le tableau de bord de l'application ou la base de données si un mécanisme de révocation existe. 3) Changer tous les mots de passe associés et réinitialiser les certificats si nécessaire. 4) Auditer qui a cloné le dépôt et notifier ces parties pour qu'elles suppriment leurs clones locaux contenant l'ancien secret. 5) Nettoyer l'historique Git (git filter-branch ou BFG) uniquement après avoir sécurisé l'environnement de production, car cela ne rétroactive pas la sécurité mais réduit l'exposition future.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 202085334094,
+            "load_duration": 6579304440,
+            "prompt_eval_count": 2826,
+            "prompt_eval_duration": 126421008000,
+            "eval_count": 354,
+            "eval_duration": 69050753000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [
+            "reason_length"
+          ],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 202087
+      },
+      "selection": "CORRECTED_FACT_CONTRACT_ONLY",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "bddef676841797aef476a95b9ae7cd41f917d770e80e25df3df6da11e16a5354",
+        "response": {
+          "content": "{\n  \"deletion_neutralizes_token\": false,\n  \"revocation_required\": true,\n  \"history_can_expose\": true,\n  \"remote_revocation_allowed\": false,\n  \"reason\": \"La suppression du fichier ne neutralise pas le jeton car l'historique Git reste accessible et contient toujours le secret. Des clones locaux peuvent déjà avoir récupéré la clé. La rotation immédiate de la clé côté serveur est requise pour invalider le jeton ; une révocation distante n'est possible que si un mécanisme spécifique (endpoint OAuth2 ou blacklist) existe sur l'application cible, sinon seule la rotation aide. Le contrat interdit toute action distante non approuvée et l'exposition d'un secret public. Remédiation : 1) Générer une nouvelle clé/jeton immédiatement (rotation). 2) Annuler manuellement les accès liés à l'ancien jeton via le tableau de bord ou la base de données si un mécanisme de révocation existe. 3) Changer tous les mots de passe associés et réinitialiser les certificats si nécessaire. 4) Auditer qui a cloné le dépôt et notifier ces parties pour qu'elles suppriment leurs clones locaux contenant l'ancien secret. 5) Nettoyer l'historique Git (git filter-branch ou BFG) uniquement après avoir sécurisé l'environnement de production, car cela ne rétroactive pas la sécurité mais réduit l'exposition future.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 82550594141,
+            "load_duration": 1027005,
+            "prompt_eval_count": 3229,
+            "prompt_eval_duration": 19182948000,
+            "eval_count": 320,
+            "eval_duration": 63333586000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 82552
+      }
+    },
+    {
+      "id": "audit-alert",
+      "role": "auditeur-qualite",
+      "initial": {
+        "input_sha256": "0e4810f151a5292f29a685ecc20882bd0fa5b0c31c205b82d2ba32b04bdf548e",
+        "response": {
+          "content": "{\n  \"verdict\": \"REVISE\",\n  \"candidate_restore_proven\": false,\n  \"notification_proven\": false,\n  \"may_edit_artifact\": true,\n  \"reason\": \"Le verdict est REVISE car les preuves requises sont absentes : aucune observation ne confirme la restauration du commit SHA B (seul le SHA A est mentionné comme testé) et aucune preuve d'alerte Prometheus n'est fournie. L'auditeur, en lecture seule, ne peut valider ni la réception de la notification ni l'exécution réussie sur la cible réelle. Le droit de modifier le livrable est accordé pour intégrer les retests exacts demandés (restauration du candidat + vérification de l'alerte) avant toute nouvelle validation.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 94047450652,
+            "load_duration": 1148352,
+            "prompt_eval_count": 3119,
+            "prompt_eval_duration": 60121572000,
+            "eval_count": 181,
+            "eval_duration": 33890140000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "may_edit_artifact"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 94049
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "99fd7a683ab38ca88caede16622515a9eb65c05611e3302bf15615e2ac2182e0",
+        "response": {
+          "content": "{\n  \"verdict\": \"REVISE\",\n  \"candidate_restore_proven\": false,\n  \"notification_proven\": false,\n  \"may_edit_artifact\": true,\n  \"reason\": \"Le verdict reste REVISE car les preuves de restauration du candidat (SHA B) et de notification sont absentes ; seul le SHA A a été testé. L'auditeur en lecture seule ne peut valider l'exécution réelle ni la réception d'alerte Prometheus. Le champ may_edit_artifact est maintenu à true pour permettre l'intégration des retests exacts (restauration du candidat + vérification de l'alerte) avant nouvelle validation, conformément aux écarts signalés.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 41557254844,
+            "load_duration": 4919114,
+            "prompt_eval_count": 3349,
+            "prompt_eval_duration": 11193679000,
+            "eval_count": 159,
+            "eval_duration": 30322803000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "may_edit_artifact"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 41559
+      }
+    },
+    {
+      "id": "writing-rollback",
+      "role": "redacteur-pedagogique",
+      "initial": {
+        "input_sha256": "41d8c36d6f612f8b901e855c29ce27407a9451214ac211457e17823698039a2d",
+        "response": {
+          "content": "{\n  \"rollback_digest\": \"aaa\",\n  \"rollback_tested\": false,\n  \"migration_reversible\": false,\n  \"backup_required\": true,\n  \"reason\": \"MINI-FICHE BORÉAL : Prérequis : accès root, snapshot disque (non inclus dans backup logique), outil de versioning DB. Action conditionnelle : si hash courant != 'aaa' ET migration non terminée, exécuter script rollback AAA (documenté mais non testé). Vérification : comparaison SHA256 du binaire et état des tables avant/après migration. Limite : la migration est irréversible ; le rollback n'a jamais été validé en production. Signe d'échec : erreur de versionnage ou corruption des données post-rollback. Note : le brouillon affirmant 'testé' et 'réversible' est factuellement erroné par rapport aux notes validées.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 102973429491,
+            "load_duration": 1226851,
+            "prompt_eval_count": 3103,
+            "prompt_eval_duration": 60734899000,
+            "eval_count": 204,
+            "eval_duration": 42201362000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "rollback_digest"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 102975
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "aab3b1d2070c235d1e8131f01af5ee2b40fe886f6dc17ef59f9df089319c4455",
+        "response": {
+          "content": "{\n  \"rollback_digest\": \"aaa\",\n  \"rollback_tested\": false,\n  \"migration_reversible\": false,\n  \"backup_required\": true,\n  \"reason\": \"MINI-FICHE BORÉAL : Prérequis : accès root, snapshot disque impératif (backup logique insuffisant car migration irréversible). Action conditionnelle : si hash courant != 'aaa' ET migration non terminée, exécuter script rollback AAA (documenté mais jamais testé en prod). Vérification : comparaison SHA256 du binaire et état des tables. Limite : la migration est irréversible ; le rollback n'a jamais été validé en production. Signe d'échec : erreur de versionnage ou corruption des données post-rollback. Note : le brouillon affirmant 'testé' et 'réversible' est factuellement erroné par rapport aux notes validées.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 54854035728,
+            "load_duration": 1399449,
+            "prompt_eval_count": 3360,
+            "prompt_eval_duration": 12897031000,
+            "eval_count": 200,
+            "eval_duration": 41913614000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "rollback_digest"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 54856
+      }
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "direct",
+  "socket_timeout_seconds": 900,
+  "summary": {
+    "initial_pass": 0,
+    "corrected": 1,
+    "blocked": 2
+  }
+}

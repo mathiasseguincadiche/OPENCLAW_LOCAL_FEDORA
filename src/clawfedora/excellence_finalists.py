@@ -9,6 +9,7 @@ from http.client import HTTPConnection
 from pathlib import Path
 from typing import Any
 
+from clawfedora import excellence_role_tools as rt
 from clawfedora import excellence_screening as es
 from clawfedora import local_model_comparison as mc
 from clawfedora import targeted_model_comparison as tm
@@ -37,7 +38,7 @@ DIRECT = {
     "gemma": Profile(False, 900, 1500),
 }
 GEMMA_PROBE = Profile(True, 900, 1500)
-PROFILE_NAMES = ("baseline", "direct", "gemma-think-probe")
+PROFILE_NAMES = ("baseline", "direct", "gemma-think-probe", "coached")
 
 
 def select_profile(alias: str, name: str) -> Profile | None:
@@ -45,7 +46,7 @@ def select_profile(alias: str, name: str) -> Profile | None:
         raise ValueError("profil inconnu")
     if name == "baseline":
         return None
-    if name == "direct":
+    if name in {"direct", "coached"}:
         return DIRECT[alias]
     if alias != "gemma":
         raise ValueError("sonde réservée à Gemma")
@@ -210,6 +211,9 @@ def run(root: Path, alias: str, commit: str, output: Path,
     if selected is not None:
         report["profile"] = profile
         report["socket_timeout_seconds"] = selected.timeout
+    if profile == "coached":
+        report["guidance_sha256"] = mc._digest([rt.COMMON, rt.ROLE_GUIDANCE])
+        report["role_tool_probes"] = []
     output.parent.mkdir(parents=True, exist_ok=True)
 
     def infer(case: dict[str, Any], prompt: list[dict[str, str]]) -> dict[str, Any]:
@@ -227,6 +231,8 @@ def run(root: Path, alias: str, commit: str, output: Path,
     for case in cases:
         try:
             prompt = messages(root, case)
+            if profile == "coached":
+                prompt[0]["content"] += "\n\n" + rt.guidance(case["role"])
             first = infer(case, prompt)
             row: dict[str, Any] = {"id": case["id"], "role": case["role"],
                                    "initial": first, "selection": "BLOCK_UNRESOLVED",
@@ -257,6 +263,17 @@ def run(root: Path, alias: str, commit: str, output: Path,
             report["error"] = {"case": case["id"], "type": type(exc).__name__}
             save()
             return report
+    if profile == "coached" and seed == 42 and selected is not None:
+        for case in cases:
+            try:
+                if "tools" not in declared:
+                    result = {"state": "TOOLS_NOT_DECLARED"}
+                else:
+                    result = rt.probe(MODELS[alias], case["role"], options, selected.timeout)
+            except (OSError, ValueError, TypeError, KeyError) as exc:
+                result = {"state": "PROBE_ERROR", "error_type": type(exc).__name__}
+            report["role_tool_probes"].append({"role": case["role"], **result})
+            save()
     report["assessment"] = "COLLECTED_SEMANTIC_REVIEW_REQUIRED"
     report["summary"] = {
         "initial_pass": sum(r["selection"] == "KEEP_INITIAL" for r in report["results"]),

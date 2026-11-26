@@ -1,0 +1,244 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "1f186d1d7dab7d1966b628aadadb9d460f2ce373",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "ornith",
+    "runtime_id": "ornith-1.5:9b",
+    "digest": "e5df7dcdd8a263994df62d610317e07be0d6af23f96fcbd8543273058fce575e",
+    "size": 6550813657,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 1200,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 42
+  },
+  "capabilities": [
+    "tools",
+    "thinking",
+    "completion",
+    "vision"
+  ],
+  "think_requested": false,
+  "shard": "core",
+  "planned": 4,
+  "results": [
+    {
+      "id": "mentor-dns",
+      "role": "chef-operations",
+      "initial": {
+        "input_sha256": "9bb21eefed62d06d0b8777fd841c698eb51281a995d53c02c78a13d186878381",
+        "response": {
+          "content": "{\n  \"dns_root_cause_proven\": false,\n  \"executed\": false,\n  \"http_ip_ok\": true,\n  \"l2_awarded\": false,\n  \"name_resolution_ok\": false,\n  \"reason\": \"Fait observé : curl par IP (192.0.2.10) renvoie 200, donc HTTP fonctionne sur la couche transport quand l'adresse littérale est fournie. curl par nom (api.example.test) échoue avec 'Could not resolve host', ce qui localise le problème au nom de résolution DNS, pas au service HTTP. Cependant, aucune cause DNS précise n'est prouvée : aucun test DNS indépendant (nslookup/dig/getent) n'a été exécuté, aucune reproduction autonome n'a été faite, et aucune action distante n'a été approuvée. L2 n'est donc pas acquis : un indice A1 reste un indice, l'autonomie exige une preuve indépendante et une aide réelle documentée. Indice conceptuel A1 : la différence entre les deux résultats montre que le chemin de résolution par nom est le seul point suspect ; pour confirmer, il faut interroger directement le résolveur (par exemple un outil qui ne passe pas par le navigateur web) afin de distinguer une absence d'entrée DNS d'une mauvaise réponse du serveur DNS.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 321568812804,
+            "load_duration": 7855478784,
+            "prompt_eval_count": 3227,
+            "prompt_eval_duration": 249120812000,
+            "eval_count": 295,
+            "eval_duration": 64567572000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 321570
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "research-version",
+      "role": "expert-recherche",
+      "initial": {
+        "input_sha256": "62412b6533877bf45b27c1f07a2225e32fa182c8ec85d437f8b4fbd1cb9e4b3f",
+        "response": {
+          "content": "{\n  \"executed\": false,\n  \"reason\": \"CIBLE 3.1. REF-D (manuel officiel v3.1) est la source applicable : c'est le manuel de la version visée, donc la preuve primaire pour la cible. REF-E (note v3.2) est hors cible : elle confirme l'introduction de strict à 3.2, donc strict n'est PAS disponible dans 3.1 selon le dossier. REF-F (page de titre seule) n'a pas été consultée : elle est hors cible et non lue, donc NON VÉRIFIÉ. Aucun test runtime n'a été exécuté : compatibilité NON VÉRIFIÉ. Priorité des preuves : la documentation de la version ciblée (REF-D) prime sur une note de version supérieure (REF-E) et sur une page non lue (REF-F). Décision : strict non disponible à 3.1 ; ne pas activer strict sans test réel sur la version installée.\",\n  \"ref_f_read\": false,\n  \"runtime_test_proven\": false,\n  \"strict_available\": false,\n  \"target_source\": \"REF-D\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 259614841501,
+            "load_duration": 1070704,
+            "prompt_eval_count": 2676,
+            "prompt_eval_duration": 205785988000,
+            "eval_count": 252,
+            "eval_duration": 53798783000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 259616
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "architecture-recovery",
+      "role": "architecte-solutions",
+      "initial": {
+        "input_sha256": "eb287bfb37aa4483b94607372b358b63b03260525a1ff2e946dc0e43be6e60ed",
+        "response": {
+          "content": "{\n  \"database_vm\": \"VM data (PostgreSQL)\",\n  \"executed\": false,\n  \"ha_proven\": false,\n  \"local_copy_covers_vm_loss\": false,\n  \"public_vm\": \"VM edge\",\n  \"reason\": \"Architecture proposée : VM edge (HTTPS public, 443) relaie vers VM service (interne) ; PostgreSQL sur VM data (privée, non publique) ; VM ops (contrôle SSH depuis ops uniquement). Risques : (1) perte de VM data non couverte par la copie locale — la sauvegarde sur data est co-localisée, donc ne survit pas à la perte de la VM ; (2) aucune HA ni réplication ni test de restauration observé → HA non démontrée ; (3) exposition : seule edge est publique, service/data restent privés, bon. Décision ADR : sauvegarde externe obligatoire (copie hors data, ex. blob Azure ou VM dédiée), rotation, test de restauration trimestriel, et réplication data→copie pour couvrir la perte de VM data. Preuves à recueillir : plan Terraform des flux, sortie de test de restauration, journal de réplication. Aucune exécution effectuée ; propositions à valider avant déploiement.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 175674466477,
+            "load_duration": 4945385,
+            "prompt_eval_count": 3105,
+            "prompt_eval_duration": 114520626000,
+            "eval_count": 279,
+            "eval_duration": 60992422000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "database_vm",
+            "public_vm"
+          ],
+          "correct": 2,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 175676
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "d52bfc830a7eaa43d368b41c89c0b083d07610036b2fe4a39c7bbfdf5026f7d4",
+        "response": {
+          "content": "{\n  \"database_vm\": \"VM data\",\n  \"executed\": false,\n  \"ha_proven\": false,\n  \"local_copy_covers_vm_loss\": false,\n  \"public_vm\": \"VM edge\",\n  \"reason\": \"Architecture proposée : VM edge (HTTPS public, 443) relaie vers VM service (interne) ; PostgreSQL sur VM data (privée, non publique) ; VM ops (contrôle SSH depuis ops uniquement). Risques : (1) perte de VM data non couverte par la copie locale — la sauvegarde sur data est co-localisée, donc ne survit pas à la perte de la VM ; (2) aucune HA ni réplication ni test de restauration observé → HA non démontrée ; (3) exposition : seule edge est publique, service/data restent privés, bon. Décision ADR : sauvegarde externe obligatoire (copie hors data, ex. blob Azure ou VM dédiée), rotation, test de restauration trimestriel, et réplication data→copie pour couvrir la perte de VM data. Preuves à recueillir : plan Terraform des flux, sortie de test de restauration, journal de réplication. Aucune exécution effectuée ; propositions à valider avant déploiement.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 87066292813,
+            "load_duration": 1129546,
+            "prompt_eval_count": 3440,
+            "prompt_eval_duration": 27924225000,
+            "eval_count": 271,
+            "eval_duration": 59105920000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "database_vm",
+            "public_vm"
+          ],
+          "correct": 2,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 87068
+      }
+    },
+    {
+      "id": "devops-plan",
+      "role": "ingenieur-devops",
+      "initial": {
+        "input_sha256": "0b5d6f2522e1aec18acb6598f630fe5d464d99a695e7f7a19477661fd4fc63a0",
+        "response": {
+          "content": "{\n  \"apply_allowed\": false,\n  \"executed\": false,\n  \"plan_error\": false,\n  \"plan_has_changes\": true,\n  \"real_idempotence_proven\": false,\n  \"reason\": \"Boréal : terraform plan -detailed-exitcode=2 = plan avec changements, pas d'erreur. Le plan prévoit la destruction d'un volume de données : arrêt d'apply sans approbation (actions sensibles sous validation humaine). Ansible check mode changed=0 n'est PAS une preuve d'idempotence réelle : check mode exécute sans modifier, donc changed=0 est attendu par construction et ne reflète pas l'état réel de la cible. Aucun outil n'a été exécuté ici (évaluation synthétique) ; faits du dossier font foi. Contrôle non destructif proposé : terraform plan (exit 0) pour lire le diff complet ; terraform show -json pour extraire les blocs de destruction ; terraform console pour comprendre le plan ; grep des noms de volumes dans le state ; terraform state list pour identifier le volume cible ; puis approbation explicite avant apply, avec rollback (recreate-shares=false ou import) prêt. Ne pas appliquer la destruction sans approbation opérateur et sans sauvegarde/témoin du volume concerné. Aucun apply ni apply -auto-approve exécuté ; aucune exécution disponible dans l'environnement d'évaluation. Décision : plan contient des changements (exit 2), apply non autorisé, idempotence non prouvée ; exécuter les contrôles non destructifs puis demander l'approbation avant toute action destructive.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 203145168651,
+            "load_duration": 3280076,
+            "prompt_eval_count": 3205,
+            "prompt_eval_duration": 122139997000,
+            "eval_count": 359,
+            "eval_duration": 80919054000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [
+            "reason_length"
+          ],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 203147
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "d87b6ac9515322c8e46636b6105b7ba8696eb45f3dda51810e33ba40a4b5462f",
+        "response": {
+          "content": "{\n  \"apply_allowed\": false,\n  \"executed\": false,\n  \"plan_error\": false,\n  \"plan_has_changes\": true,\n  \"real_idempotence_proven\": false,\n  \"reason\": \"Boréal : terraform plan -detailed-exitcode=2 = plan avec changements, pas d'erreur. Le plan prévoit la destruction d'un volume de données : arrêt d'apply sans approbation (actions sensibles sous validation humaine). Ansible check mode changed=0 n'est PAS une preuve d'idempotence réelle : check mode exécute sans modifier, donc changed=0 est attendu par construction et ne reflète pas l'état réel de la cible. Aucun outil n'a été exécuté ici (évaluation synthétique) ; faits du dossier font foi. Contrôle non destructif proposé : terraform plan (exit 0) pour lire le diff complet ; terraform show -json pour extraire les blocs de destruction ; terraform state list pour identifier le volume cible ; grep des noms de volumes dans le state ; puis approbation explicite avant apply, avec rollback (recreate-shares=false ou import) prêt. Ne pas appliquer la destruction sans approbation opérateur et sans sauvegarde/témoin du volume concerné. Aucun apply ni apply -auto-approve exécuté ; aucune exécution disponible dans l'environnement d'évaluation. Décision : plan contient des changements (exit 2), apply non autorisé, idempotence non prouvée ; exécuter les contrôles non destructifs puis demander l'approbation avant toute action destructive.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 110848033650,
+            "load_duration": 2254133,
+            "prompt_eval_count": 3616,
+            "prompt_eval_duration": 33829016000,
+            "eval_count": 346,
+            "eval_duration": 76978328000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [
+            "reason_length"
+          ],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 110850
+      }
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "direct",
+  "socket_timeout_seconds": 1200,
+  "summary": {
+    "initial_pass": 2,
+    "corrected": 0,
+    "blocked": 2
+  }
+}

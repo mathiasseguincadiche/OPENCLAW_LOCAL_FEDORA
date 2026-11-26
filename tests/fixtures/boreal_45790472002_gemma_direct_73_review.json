@@ -1,0 +1,210 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "1f186d1d7dab7d1966b628aadadb9d460f2ce373",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "gemma",
+    "runtime_id": "gemma4:12b-it-q4_K_M",
+    "digest": "6114515d63c17436a7c0417d82820ac65ad643e2806c5a3c89cb62846436ed0b",
+    "size": 8021618941,
+    "format": "gguf",
+    "family": "gemma4",
+    "parameter_size": "11.9B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 900,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 73
+  },
+  "capabilities": [
+    "completion",
+    "vision",
+    "audio",
+    "tools",
+    "thinking"
+  ],
+  "think_requested": false,
+  "shard": "review",
+  "planned": 3,
+  "results": [
+    {
+      "id": "security-secret",
+      "role": "ingenieur-securite",
+      "initial": {
+        "input_sha256": "40333cbe938ed8f64cf0f624c440fb57f4654e7d557fbdabe344b2a0da1f242c",
+        "response": {
+          "content": "{\n  \"deletion_neutralizes_token\": false,\n  \"revocation_required\": true,\n  \"history_can_expose\": true,\n  \"remote_revocation_allowed\": false,\n  \"reason\": \"La suppression du fichier dans un commit ultérieur ne neutralise pas le jeton car l'historique Git conserve les données des commits précédents. Tout utilisateur ayant cloné le dépôt ou accédant à l'historique peut toujours extraire le secret. La rotation/révocation est impérative car le jeton doit être considéré comme compromis dès sa publication. Je ne peux pas effectuer de révocation à distance car cela constitue une action non approuvée et hors de mon périmètre d'exécution. \\n\\nRemédiation proposée :\\n1. Révoquer immédiatement le jeton via la console de gestion du fournisseur (Cloud/Service). \\n2. Générer un nouveau jeton avec des permissions restreintes au strict nécessaire. \\n3. Purger l'historique Git (ex: via BFG Repo-Cleaner ou git filter-repo) pour supprimer toute trace du secret. \\n4. Mettre à jour le fichier de configuration avec le nouveau jeton. \\n5. Vérifier que le nouveau jeton est correctement injecté via des variables d'environnement ou un gestionnaire de secrets (Vault, Secrets Manager) et non stocké en clair.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 384842335886,
+            "load_duration": 16989296353,
+            "prompt_eval_count": 2813,
+            "prompt_eval_duration": 232120380000,
+            "eval_count": 311,
+            "eval_duration": 135692199000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 384844
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "audit-alert",
+      "role": "auditeur-qualite",
+      "initial": {
+        "input_sha256": "0e4810f151a5292f29a685ecc20882bd0fa5b0c31c205b82d2ba32b04bdf548e",
+        "response": {
+          "content": "{\n  \"verdict\": \"FAIL\",\n  \"candidate_restore_proven\": false,\n  \"notification_proven\": false,\n  \"may_edit_artifact\": false,\n  \"reason\": \"Le test de restauration porte le SHA A, alors que le commit candidat porte le SHA B. Il y a une rupture de continuité : la procédure de restauration modifiée dans le candidat n'a pas été validée sur la cible. Par conséquent, la restauration du candidat n'est pas prouvée. Concernant la notification, bien que la règle Prometheus soit présente, aucune preuve de réception d'alerte n'est fournie dans les données. Le contrat exige explicitement la restauration du candidat et la réception de la notification. En l'absence de preuves de runtime pour le SHA B et de logs d'alerte, le verdict est FAIL. Les retests exacts demandés sont : 1. Exécuter la procédure de restauration du commit SHA B sur l'environnement cible et fournir le log de succès. 2. Déclencher une condition d'alerte sur la règle Prometheus et fournir la capture d'écran ou le log de réception de la notification par le canal défini.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 227195710057,
+            "load_duration": 980221,
+            "prompt_eval_count": 3101,
+            "prompt_eval_duration": 112406936000,
+            "eval_count": 262,
+            "eval_duration": 114742636000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "verdict"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 227199
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "3df82156e659ccd4235882b496d0fbae3c048e5f0803cf2dda9f299c70f2c310",
+        "response": {
+          "content": "{\n  \"verdict\": \"FAIL\",\n  \"candidate_restore_proven\": false,\n  \"notification_proven\": false,\n  \"may_edit_artifact\": false,\n  \"reason\": \"Le test de restauration porte le SHA A, alors que le commit candidat porte le SHA B. Il y a une rupture de continuité : la procédure de restauration modifiée dans le candidat n'a pas été validée sur la cible. Par conséquent, la restauration du candidat n'est pas prouvée. Concernant la notification, bien que la règle Prometheus soit présente, aucune preuve de réception d'alerte n'est fournie dans les données. Le contrat exige explicitement la restauration du candidat et la réception de la notification. En l'absence de preuves de runtime pour le SHA B et de logs d'alerte, le verdict est FAIL. Les retests exacts demandés sont : 1. Exécuter la procédure de restauration du commit SHA B sur l'environnement cible et fournir le log de succès. 2. Déclencher une condition d'alerte sur la règle Prometheus et fournir la capture d'écran ou le log de réception de la notification par le canal défini.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 106769411311,
+            "load_duration": 1551483,
+            "prompt_eval_count": 3412,
+            "prompt_eval_duration": 29098159000,
+            "eval_count": 259,
+            "eval_duration": 77617419000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "verdict"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 106771
+      }
+    },
+    {
+      "id": "writing-rollback",
+      "role": "redacteur-pedagogique",
+      "initial": {
+        "input_sha256": "41d8c36d6f612f8b901e855c29ce27407a9451214ac211457e17823698039a2d",
+        "response": {
+          "content": "{\n  \"rollback_digest\": \"aaa\",\n  \"rollback_tested\": false,\n  \"migration_reversible\": false,\n  \"backup_required\": true,\n  \"reason\": \"Le brouillon contient des erreurs factuelles par rapport aux notes validées : le rollback n'est pas testé, la migration n'est pas réversible et la sauvegarde est obligatoire. \\n\\n**Fiche de procédure : Migration Boréal**\\n\\n**Prérequis** :\\n- Sauvegarde complète de la base de données (obligatoire).\\n- Validation du digest actuel (aaa) et du candidat (bbb).\\n\\n**Action conditionnelle** :\\n- Si succès de la migration : passer au schéma bbb.\\n- Si échec : initier le rollback vers le digest aaa.\\n\\n**Vérification** :\\n- Comparaison du sha256 après opération.\\n\\n**Limite** :\\n- La migration de schéma est non réversible. Le rollback ne peut être effectué que si la sauvegarde est intacte.\\n\\n**Signe d'échec** :\\n- Incohérence du sha256 ou corruption des données sans possibilité de retour automatique.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 221179772737,
+            "load_duration": 2112719,
+            "prompt_eval_count": 3068,
+            "prompt_eval_duration": 110526717000,
+            "eval_count": 268,
+            "eval_duration": 110604282000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "rollback_digest"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 221181
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "7bb9eb8db2ad5a50050abf4c33fbc3e638dd39ff1e4d3b4433a3cf455ac2dfa0",
+        "response": {
+          "content": "{\n  \"rollback_digest\": \"aaa\",\n  \"rollback_tested\": false,\n  \"migration_reversible\": false,\n  \"backup_required\": true,\n  \"reason\": \"Le brouillon contient des erreurs factuelles par rapport aux notes validées : le rollback n'est pas testé, la migration n'est pas réversible et la sauvegarde est obligatoire. \\n\\n**Fiche de procédure : Migration Boréal**\\n\\n**Prérequis** :\\n- Sauvegarde complète de la base de données (obligatoire).\\n- Validation du digest actuel (aaa) et du candidat (bbb).\\n\\n**Action conditionnelle** :\\n- Si succès de la migration : passer au schéma bbb.\\n- Si échec : initier le rollback vers le digest aaa.\\n\\n**Vérification** :\\n- Comparaison du sha256 après opération.\\n\\n**Limite** :\\n- La migration de schéma est non réversible. Le rollback ne peut être effectué que si la sauvegarde est intacte.\\n\\n**Signe d'échec** :\\n- Incohérence du sha256 ou corruption des données sans possibilité de retour automatique.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 109786386496,
+            "load_duration": 1019561,
+            "prompt_eval_count": 3388,
+            "prompt_eval_duration": 29581058000,
+            "eval_count": 267,
+            "eval_duration": 80153028000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "rollback_digest"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 109788
+      }
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "direct",
+  "socket_timeout_seconds": 1500,
+  "summary": {
+    "initial_pass": 1,
+    "corrected": 0,
+    "blocked": 2
+  }
+}
