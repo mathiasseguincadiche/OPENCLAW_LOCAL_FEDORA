@@ -77,13 +77,15 @@ def has_installation(spec: dict[str, Any]) -> bool:
 
 
 def inspect(content: str, *, preserve_installation: bool = False,
-            preserve_curriculum: bool = False) -> list[str]:
+            preserve_curriculum: bool = False, preserve_navigation: bool = False) -> list[str]:
     spec = parse(content)
     issues = []
     if (preserve_installation or "curriculum" in spec) and not has_installation(spec):
         issues.append("Conserver une section Installation des outils dans le wiki.")
     if preserve_curriculum and "curriculum" not in spec:
         issues.append("Conserver le parcours relationnel initial.")
+    if preserve_navigation and "navigation" not in spec:
+        issues.append("Conserver la navigation synchronisée initiale.")
     for index, page in enumerate([spec["home"], *spec["pages"]], 1):
         # Page titles are already rendered by Notion; headings start at level 1 or 2.
         levels = [int(b["type"][-1]) for b in page["blocks"]

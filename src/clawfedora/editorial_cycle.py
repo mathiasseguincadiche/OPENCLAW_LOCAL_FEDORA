@@ -122,7 +122,8 @@ def run(
     for index in range(MAX_REVISIONS + 1):
         structural = (
             en.inspect(content, preserve_installation=en.has_installation(baseline),
-                       preserve_curriculum="curriculum" in baseline)
+                       preserve_curriculum="curriculum" in baseline,
+                       preserve_navigation="navigation" in baseline)
             if baseline is not None else _structure(content, profile)
         )
         digest = _sha(content)

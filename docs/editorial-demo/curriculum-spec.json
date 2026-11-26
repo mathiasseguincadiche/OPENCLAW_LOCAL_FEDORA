@@ -137,5 +137,8 @@
         ]
       }
     ]
+  },
+  "navigation": {
+    "title": "Explorer le parcours"
   }
 }
