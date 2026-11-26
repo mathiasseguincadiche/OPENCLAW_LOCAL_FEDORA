@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import json
 import re
+import subprocess
 import time
 from http.client import HTTPConnection
 from pathlib import Path
@@ -156,6 +157,40 @@ def _tool_probe(model: str) -> dict[str, Any]:
             "first": first, "second": second}
 
 
+def _code_probe(model: str) -> dict[str, Any]:
+    reply = _result(_chat({
+        "model": model, "stream": False, "think": False, "keep_alive": "5m",
+        "options": OPTIONS,
+        "format": {"type": "object", "required": ["script"], "additionalProperties": False,
+                   "properties": {"script": {"type": "string"}}},
+        "messages": [{"role": "user", "content": (
+            "Rédige un script Bash qui reçoit un chemin en argument, refuse un argument "
+            "absent, vérifie que le fichier est lisible et affiche son SHA-256. "
+            "Cite les variables correctement. Retourne uniquement le JSON demandé."
+        )}],
+    }), model)
+    try:
+        value = json.loads(reply["content"])
+    except ValueError:
+        return {"state": "FAIL_JSON", "response": reply}
+    if (
+        not isinstance(value, dict) or set(value) != {"script"}
+        or not isinstance(value["script"], str) or not 0 < len(value["script"]) <= 8000
+        or "\x00" in value["script"]
+    ):
+        return {"state": "FAIL_SCHEMA", "response": reply}
+    # ShellCheck reads stdin; the script is never run, written to PATH or sourced.
+    check = subprocess.run(
+        ["shellcheck", "--shell=bash", "--format=json", "-"],
+        input=value["script"], text=True, capture_output=True, timeout=15, check=False,
+    )
+    if check.returncode not in {0, 1}:
+        return {"state": "VALIDATOR_ERROR", "response": reply}
+    diagnostics = json.loads(check.stdout)
+    return {"state": "PASS_STATIC_ONLY" if check.returncode == 0 else "FAIL_STATIC",
+            "response": reply, "diagnostics": diagnostics}
+
+
 def run(root: Path, model: str, mode: str, commit: str, output: Path) -> dict[str, Any]:
     if model not in MODELS or not SHA.fullmatch(commit) or output.exists():
         raise ValueError("modèle, commit ou sortie invalide")
@@ -166,6 +201,7 @@ def run(root: Path, model: str, mode: str, commit: str, output: Path) -> dict[st
         "mode": mode, "suite_sha256": _digest(cases), "model": identity,
         "options": OPTIONS, "think": False, "backend": "ollama-cpu",
         "results": [], "tool_probe": {"state": "NOT_RUN"},
+        "code_probe": {"state": "NOT_RUN"},
         "assessment": "INFERENCE_STARTED_NOT_REVIEWED",
         "native_agent_qualification": False, "gpu_qualification": False,
     }
@@ -205,6 +241,11 @@ def run(root: Path, model: str, mode: str, commit: str, output: Path) -> dict[st
             report["tool_probe"] = _tool_probe(MODELS[model])
         except (OSError, ValueError, TypeError, KeyError) as exc:
             report["tool_probe"] = {"state": "INFERENCE_ERROR", "error_type": type(exc).__name__}
+        save()
+        try:
+            report["code_probe"] = _code_probe(MODELS[model])
+        except (OSError, ValueError, TypeError, KeyError, subprocess.TimeoutExpired) as exc:
+            report["code_probe"] = {"state": "PROBE_ERROR", "error_type": type(exc).__name__}
         report["assessment"] = "RESPONSES_COLLECTED_REVIEW_REQUIRED"
     else:
         report["assessment"] = "INCOMPLETE_INFERENCE"
