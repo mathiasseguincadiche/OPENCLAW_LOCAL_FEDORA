@@ -9,6 +9,7 @@ import yaml
 
 from clawfedora import excellence_chain as ec
 from clawfedora import excellence_finalists as ef
+from clawfedora import excellence_screening as es
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -62,7 +63,7 @@ def _attempt(case, **updates):
 
 @pytest.mark.parametrize("bad", [False, True])
 def test_chain_handoff_and_hold(tmp_path, monkeypatch, bad):
-    monkeypatch.setattr(ef.es, "identity", lambda *_: {"digest": ef.DIGESTS["gemma"]})
+    monkeypatch.setattr(es, "identity", lambda *_: {"digest": ef.DIGESTS["gemma"]})
     seen = []
 
     def ask(model, case, prompt, seed, think, *, profile):

@@ -8,6 +8,7 @@ from typing import Any
 
 from clawfedora import excellence_finalists as ef
 from clawfedora import excellence_role_tools as rt
+from clawfedora import excellence_screening as es
 from clawfedora import local_model_comparison as mc
 
 # Candidate profiles only; the production catalog is untouched.
@@ -71,7 +72,7 @@ def run(root: Path, alias: str, commit: str, output: Path, seed: int) -> dict[st
             or not mc.SHA.fullmatch(commit) or output.exists()):
         raise ValueError("entrée invalide")
     suite = load(root)
-    model = ef.es.identity(root, alias)
+    model = es.identity(root, alias)
     if model["digest"].removeprefix("sha256:") != ef.DIGESTS[alias]:
         raise ValueError("digest candidat divergent")
     profile = ef.DIRECT[alias]

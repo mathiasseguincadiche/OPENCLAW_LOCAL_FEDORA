@@ -34,3 +34,7 @@ Même dossier de release bloquée pour tous les rôles : preuves sur le mauvais 
 6 jobs CPU, trois modèles, deux seeds, sept étapes successives par job (42 inférences). Un modèle par runner, Qwen/Gemma avec consignes candidates, Ornith direct, sans thinking. Il s'agit de trois chaînes homogènes de rôles et non d'une collaboration native entre plusieurs modèles ; la différence de profil empêche une attribution causale au seul modèle. Les réponses précédentes ne sont pas exécutées. Les tests hors ligne couvrent réponse modifiée, chaîne incomplète, propagation d'un résultat invalide, ordre et non-autorisation. La réussite du job signifie collecte, pas qualification métier.
 
 La campagne ne valide ni la collaboration native OpenClaw ni le changement de modèle sur GPU. Après revue des réponses et des preuves, établir une matrice de candidats par rôle ; les autorisations et le catalogue restent inchangés jusqu'à la qualification native Fedora/B580 (trois répétitions au minimum, tests d'outils réels, performance et revue humaine).
+
+## Correctif de typage
+
+La campagne initiale [45912168133](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45912168133) reste la référence. L'import direct du module excellence_screening remplace l'accès indirect à son alias non exporté ; les cas, les paramètres, les décisions et le contrôle des transmissions ne changent pas. Les prochaines exécutions Quartz sont manuelles pour éviter d'annuler ou de dupliquer une campagne lors d'un correctif CI.
