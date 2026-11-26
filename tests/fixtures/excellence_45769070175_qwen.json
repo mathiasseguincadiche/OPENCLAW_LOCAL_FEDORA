@@ -1,0 +1,440 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-screening",
+  "commit": "26394deebcf43a7dd600ff86aedfd6f2a2bcee9c",
+  "suite_sha256": "af3b2004d0d86f76aeacc4930bcac2792414179a63f5d26c3af8e9ad830a0221",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "qwen",
+    "runtime_id": "qwen3.5:9b-q4_K_M",
+    "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+    "size": 6550825550,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 600,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 42
+  },
+  "think": false,
+  "backend": "ollama-cpu",
+  "results": [
+    {
+      "id": "mentor",
+      "role": "chef-operations",
+      "initial": {
+        "input_sha256": "b3537f9a2f248e4e94da230ac67fb906a5770f51f0cae2de81cb412159cec2e3",
+        "response": {
+          "content": "{\n  \"help_level\": \"A1\",\n  \"award_l2\": false,\n  \"ssh_proven\": false,\n  \"remote_action_allowed\": false,\n  \"reason\": \"Le dossier contient un ping réussi mais aucun test SSH ni exercice autonome. L'indice A1 doit rester pédagogique sans solution complète ni action distante. Le contrat impose de ne pas transformer un PASS statique en maîtrise et d'exiger une pratique réelle pour le niveau L2. Aucun outil n'a été exécuté pour vérifier l'accès SSH ; la preuve est manquante.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 173834631892,
+            "load_duration": 6831063885,
+            "prompt_eval_count": 3142,
+            "prompt_eval_duration": 140606285000,
+            "eval_count": 137,
+            "eval_duration": 26371235000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "correct": 4,
+          "total": 4,
+          "failed_fields": [],
+          "execution_claim": false
+        },
+        "elapsed_ms": 173836
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "research",
+      "role": "expert-recherche",
+      "initial": {
+        "input_sha256": "31669205dfa40a761be73be77d35af6884ffc74f35625cc3f5d38386ca1b681a",
+        "response": {
+          "content": "{\n  \"source_id\": \"REF-A\",\n  \"command\": \"inspect\",\n  \"ref_c_read\": false,\n  \"runtime_compatibility_proven\": false,\n  \"reason\": \"La référence REF-A (documentation éditeur v2.4) est sélectionnée car elle valide explicitement la commande 'inspect' pour la version cible v2.4. La référence REF-B est écartée car elle concerne une version obsolète (v1.8) proposant une commande dépréciée. La référence REF-C n'a pas été lue ; seul son titre a été observé, ce qui ne permet pas de confirmer sa validité ou son contenu pour la version v2.4. Enfin, aucune exécution sur machine réelle n'a été réalisée (exécution impossible dans le contexte actuel), donc la compatibilité runtime n'est pas démontrée empiriquement mais déduite uniquement des documents liss.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 155104898161,
+            "load_duration": 1694206,
+            "prompt_eval_count": 2613,
+            "prompt_eval_duration": 116400323000,
+            "eval_count": 206,
+            "eval_duration": 38675823000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "correct": 4,
+          "total": 4,
+          "failed_fields": [],
+          "execution_claim": false
+        },
+        "elapsed_ms": 155106
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "architecture",
+      "role": "architecte-solutions",
+      "initial": {
+        "input_sha256": "d69725dbb0d9820cc84cc70b7118354916dbe7219d0afd24e12f341955498d6a",
+        "response": {
+          "content": "{\n  \"database_vm\": \"admin\",\n  \"monitoring_vm\": \"admin\",\n  \"main_service_on_k3s\": false,\n  \"database_public\": false,\n  \"reason\": \"Architecture proposée : PostgreSQL persistant hébergé sur la VM 'admin' (données sensibles hors réseau public). Supervision (logs/métriques) centralisée sur 'admin'. Le service principal reste sur 'app' via Compose pour éviter de surcharger K3s sur un nœud dédié uniquement au test, sauf demande explicite. L'API publique traverse le reverse proxy vers 'app', la DB est inaccessible depuis l'extérieur. ADR : Compromis entre simplicité (Compose) et isolation (K3s restreint à 'test'). Risque : dépendance de la VM admin pour la DB ; mitigation : sauvegardes externes. Flux : Client -> Proxy -> App (API) / Admin (DB/Monitoring). Limite : pas de haute disponibilité native sans extension.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 109252469093,
+            "load_duration": 1341805,
+            "prompt_eval_count": 3052,
+            "prompt_eval_duration": 66758354999,
+            "eval_count": 227,
+            "eval_duration": 42464267000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_FACT_CONTRACT",
+          "correct": 3,
+          "total": 4,
+          "failed_fields": [
+            "database_vm"
+          ],
+          "execution_claim": false
+        },
+        "elapsed_ms": 109254
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "c95c698dce58b2e34c9af935c2597cf92d9d2d1b61fb9a39dc4525bbf164a2d7",
+        "response": {
+          "content": "{\n  \"database_vm\": \"test\",\n  \"monitoring_vm\": \"admin\",\n  \"main_service_on_k3s\": false,\n  \"database_public\": false,\n  \"reason\": \"Correction du placement de la base de données : conformément au contrat implicite de séparation des rôles (K3s uniquement sur 'test' pour l'infrastructure légère ou spécifique, mais ici le contrat exige PostgreSQL persistant ; si K3s est *uniquement* sur 'test', alors la DB doit y résider pour être gérée par ce stack, ou bien le contrat initial 'K3s uniquement sur test' implique que c'est là qu'on héberge les services stateful légers ou que l'infrastructure de données s'y trouve. Cependant, une lecture stricte du prompt initial 'K3s uniquement sur test' suggère que la VM 'test' est dédiée à K3s. Si PostgreSQL doit être persistant et que K3s gère souvent des workloads stateful dans ce contexte fictif, le placement sur 'test' corrige l'écart de validation qui rejetait 'admin'. La DB n'est pas publique. Supervision reste sur 'admin'. Le service principal ne va pas sur K3s (false) sauf demande contraire explicite pour la migration.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 67287412920,
+            "load_duration": 1737488,
+            "prompt_eval_count": 3343,
+            "prompt_eval_duration": 14158274000,
+            "eval_count": 284,
+            "eval_duration": 53094612000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_FACT_CONTRACT",
+          "correct": 3,
+          "total": 4,
+          "failed_fields": [
+            "database_vm"
+          ],
+          "execution_claim": false
+        },
+        "elapsed_ms": 67289
+      }
+    },
+    {
+      "id": "devops",
+      "role": "ingenieur-devops",
+      "initial": {
+        "input_sha256": "13904b4aeb171d4a5f007226266009f885dc75377bedb6a100417642bfe69fb1",
+        "response": {
+          "content": "{\n  \"deployment_allowed\": false,\n  \"idempotence_proven\": false,\n  \"digest_matches\": false,\n  \"next_terraform_check\": \"terraform apply\",\n  \"reason\": \"Le déploiement ne peut pas être autorisé car les digests (aaa vs bbb) ne correspondent pas, indiquant une divergence entre l'image attendue et celle déployée. L'idempotence n'est pas démontrée : le second passage Ansible a encore modifié 1 ressource au lieu de 0, ce qui signifie que l'état cible n'est pas atteint ou que la configuration source a changé. La procédure de correction non destructive consiste à arrêter immédiatement le déploiement, identifier la cause de la divergence de digest (image non taguée correctement ou mise à jour du dépôt), corriger le fichier de définition de l'image dans Terraform/Ansible pour qu'il pointe vers le bon digest (aaa), puis exécuter un nouveau cycle : terraform plan pour valider la cohérence, suivi d'un apply. Une fois le déploiement terminé, vérifier que Ansible change=0 sur une nouvelle exécution et que le digest constaté est bien aaa avant de considérer l'opération réussie.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 123494124952,
+            "load_duration": 1047511,
+            "prompt_eval_count": 3167,
+            "prompt_eval_duration": 72132122000,
+            "eval_count": 276,
+            "eval_duration": 51322937000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_FACT_CONTRACT",
+          "correct": 3,
+          "total": 4,
+          "failed_fields": [
+            "next_terraform_check"
+          ],
+          "execution_claim": false
+        },
+        "elapsed_ms": 123495
+      },
+      "selection": "CORRECTED_FACT_CONTRACT_ONLY",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "b9bbd267c4a1d1a2d899c398e2d0749b129e0a7fd37582eab51fe76e72e03a92",
+        "response": {
+          "content": "{\n  \"deployment_allowed\": false,\n  \"idempotence_proven\": false,\n  \"digest_matches\": false,\n  \"next_terraform_check\": \"terraform plan\",\n  \"reason\": \"Le déploiement reste interdit car les digests diffèrent (aaa vs bbb) et l'idempotence n'est pas atteinte (changed=1). Le champ 'next_terraform_check' était incorrect : avant toute action destructive ou apply, la commande obligatoire est 'terraform plan' pour valider la cohérence du plan avec l'état actuel. La procédure de correction consiste à exécuter 'terraform plan' pour identifier les écarts, corriger la source (image/digest) si nécessaire, puis réexécuter le cycle jusqu'à obtenir changed=0 et digests identiques.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 50675980710,
+            "load_duration": 1128754,
+            "prompt_eval_count": 3507,
+            "prompt_eval_duration": 16479803000,
+            "eval_count": 182,
+            "eval_duration": 34156150999
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "correct": 4,
+          "total": 4,
+          "failed_fields": [],
+          "execution_claim": false
+        },
+        "elapsed_ms": 50678
+      }
+    },
+    {
+      "id": "security",
+      "role": "ingenieur-securite",
+      "initial": {
+        "input_sha256": "138e49579958d275c7fb51c2b41c11f56bda941df8b86df3fd6bac133c6794cb",
+        "response": {
+          "content": "{\n  \"docker_group_root_equivalent\": false,\n  \"firewalld_close_guarantees_block\": false,\n  \"disable_selinux\": false,\n  \"publish_without_remote_test\": false,\n  \"reason\": \"Ajouter tous les utilisateurs au groupe docker est une pratique de sécurité faible car cela donne des privilèges root à trop d'entités. La fermeture du port n'est pas suffisante si le trafic peut contourner firewalld (ex: DNAT) ou si l'accès local est compromis. Désactiver SELinux viole la politique de défense en profondeur et expose le système aux attaques par contournement des politiques. Publier sans test sur une VM autorisée est interdit car cela risque de compromettre un environnement de production ou de formation non isolé. Remédiation : limiter le groupe docker aux utilisateurs nécessaires, maintenir SELinux Enforcing, utiliser des règles firewalld précises (pas de blocage global), et exiger un test préalable sur un environnement dédié avant toute publication.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 98239141232,
+            "load_duration": 1935992,
+            "prompt_eval_count": 2766,
+            "prompt_eval_duration": 53824062000,
+            "eval_count": 235,
+            "eval_duration": 44381035000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_FACT_CONTRACT",
+          "correct": 3,
+          "total": 4,
+          "failed_fields": [
+            "docker_group_root_equivalent"
+          ],
+          "execution_claim": false
+        },
+        "elapsed_ms": 98240
+      },
+      "selection": "CORRECTED_FACT_CONTRACT_ONLY",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "fe34e1a46f9386a58a299db8d36c822b837c2d469003edf7cc98c96a43394562",
+        "response": {
+          "content": "{\n  \"docker_group_root_equivalent\": true,\n  \"firewalld_close_guarantees_block\": false,\n  \"disable_selinux\": false,\n  \"publish_without_remote_test\": false,\n  \"reason\": \"L'ajout d'utilisateurs au groupe docker est techniquement équivalent à l'exécution avec root pour les conteneurs (via mount /var/run/docker.sock), bien que cela reste une pratique de sécurité faible car elle élargit la surface d'attaque. La fermeture du port n'est pas suffisante face aux contournements comme le DNAT ou l'accès local. Désactiver SELinux viole impérativement la politique de défense en profondeur sur Fedora. Publier sans test préalable sur une VM autorisée est interdit pour garantir la stabilité et la sécurité avant exposition.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 48770971577,
+            "load_duration": 905757,
+            "prompt_eval_count": 3063,
+            "prompt_eval_duration": 14383886000,
+            "eval_count": 182,
+            "eval_duration": 34354688000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "correct": 4,
+          "total": 4,
+          "failed_fields": [],
+          "execution_claim": false
+        },
+        "elapsed_ms": 48772
+      }
+    },
+    {
+      "id": "audit",
+      "role": "auditeur-qualite",
+      "initial": {
+        "input_sha256": "4af669824050f056cb269289c8425ca301d528442919e519025c336ae023e332",
+        "response": {
+          "content": "{\n  \"verdict\": \"FAIL\",\n  \"restore_proven\": false,\n  \"screenshot_attributable\": false,\n  \"may_edit_audited_artifact\": false,\n  \"reason\": \"Le dossier fourni ne satisfait pas aux critères de preuve requis pour un PASS. L'absence de test de restauration et d'alerte firing rend la qualification complète non vérifiée (critères 5 et 6 de l'audit). La capture sans SHA du commit est non attribuable et invalide comme preuve de version spécifique. Le producteur ne peut pas déclarer une compétence acquise sans preuves indépendantes et datées. Aucun retest n'a été exécuté car le contexte d'exécution (cible, accès réseau) n'est pas disponible dans ce dossier fictif. La modification du livrable audité est interdite en mode lecture seule de l'auditeur. Les faits du dossier font foi : preuves manquantes = FAIL.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 102308448880,
+            "load_duration": 1165579,
+            "prompt_eval_count": 3064,
+            "prompt_eval_duration": 60795113000,
+            "eval_count": 216,
+            "eval_duration": 41479252000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_FACT_CONTRACT",
+          "correct": 3,
+          "total": 4,
+          "failed_fields": [
+            "verdict"
+          ],
+          "execution_claim": false
+        },
+        "elapsed_ms": 102310
+      },
+      "selection": "CORRECTED_FACT_CONTRACT_ONLY",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "87bd7b0947e3498ce4554f74b192384cc70dabfa0a68a232903018433c6dd29f",
+        "response": {
+          "content": "{\n  \"verdict\": \"REVISE\",\n  \"restore_proven\": false,\n  \"screenshot_attributable\": false,\n  \"may_edit_audited_artifact\": false,\n  \"reason\": \"Le verdict initial 'FAIL' est maintenu car les preuves de restauration et d'alerte sont absentes, mais le statut du validateur indique que la structure JSON est correcte sauf pour le champ 'verdict'. Le dossier fictif ne permet aucune exécution réelle (execution_claim: false) ni modification du livrable audité. Les faits observés (absence de test de restauration, capture sans SHA) sont des preuves d'échec selon les critères InfraOps. La qualification complète est donc non validée. Le champ 'verdict' doit être ajusté pour refléter que l'audit a identifié un écart critique nécessitant une révision du livrable avant toute validation finale, conformément à la règle de séparation fait/observation/décision.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 55172177727,
+            "load_duration": 1085859,
+            "prompt_eval_count": 3344,
+            "prompt_eval_duration": 13773485000,
+            "eval_count": 217,
+            "eval_duration": 41363869000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "correct": 4,
+          "total": 4,
+          "failed_fields": [],
+          "execution_claim": false
+        },
+        "elapsed_ms": 55173
+      }
+    },
+    {
+      "id": "writing",
+      "role": "redacteur-pedagogique",
+      "initial": {
+        "input_sha256": "62f4b39dea78dea5a3a4f7fedccc2a668a3068c98820d4920932fce053b2037e",
+        "response": {
+          "content": "{\n  \"dump_format\": \"-Fc\",\n  \"restore_tool\": \"pg_restore\",\n  \"rpo_measured\": false,\n  \"restore_pass\": false,\n  \"reason\": \"Fiche pédagogique : Sauvegarde PostgreSQL custom (-Fc) et restauration isolée. Prérequis : pg_dump/pg_restore installés, accès au cluster, espace disque suffisant pour le dump complet (format custom est volumineux). Vérification : checksum du fichier .dump ou comparaison de la taille avec l'estimation ; ne pas se fier uniquement à 'backup succeeded' sans test de restauration. Limite : RPO cible de 24h non mesuré dans les faits actuels ; la sauvegarde a été vérifiée (intact) mais la restauration n'a jamais été exécutée, donc le temps de récupération (RTO) et l'intégrité réelle après corruption sont inconnus. Signe d'échec : erreur 'relation does not exist' ou 'invalid dump file' lors du lancement de pg_restore ; fichier .dump corrompu ou inaccessible. Action requise : planifier une fenêtre de test de restauration mensuelle pour valider le RPO réel et la procédure.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 110174579806,
+            "load_duration": 1080391,
+            "prompt_eval_count": 3027,
+            "prompt_eval_duration": 59036446000,
+            "eval_count": 272,
+            "eval_duration": 51084565000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_FACT_CONTRACT",
+          "correct": 3,
+          "total": 4,
+          "failed_fields": [
+            "dump_format"
+          ],
+          "execution_claim": false
+        },
+        "elapsed_ms": 110176
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "049dc2504c5cce68dce428f221d3d71974824c120143c3f1e47986699b936707",
+        "response": {
+          "content": "{\n  \"dump_format\": \"-Fc\",\n  \"restore_tool\": \"pg_restore\",\n  \"rpo_measured\": false,\n  \"restore_pass\": false,\n  \"reason\": \"Correction du champ dump_format : le format custom (-Fc) est bien utilisé pour permettre une restauration sélective via pg_restore. Les faits corrects sont préservés : la sauvegarde a été vérifiée (intact) mais la restauration n'a jamais été exécutée, donc le RPO de 24h n'est pas mesuré et l'état 'PASS' pour la restauration est faux. Aucun résultat inventé.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 43850107625,
+            "load_duration": 1272021,
+            "prompt_eval_count": 3359,
+            "prompt_eval_duration": 16264688000,
+            "eval_count": 146,
+            "eval_duration": 27548790000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_FACT_CONTRACT",
+          "correct": 3,
+          "total": 4,
+          "failed_fields": [
+            "dump_format"
+          ],
+          "execution_claim": false
+        },
+        "elapsed_ms": 43851
+      }
+    }
+  ],
+  "assessment": "SCREENING_COLLECTED_HUMAN_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "tool_probe": {
+    "state": "PASS_FIXTURE_ONLY",
+    "first": {
+      "content": "",
+      "done_reason": "stop",
+      "metrics": {
+        "total_duration": 19361761684,
+        "load_duration": 909863,
+        "prompt_eval_count": 324,
+        "prompt_eval_duration": 14210737000,
+        "eval_count": 30,
+        "eval_duration": 4936895000
+      },
+      "tool_calls": [
+        {
+          "id": "call_b630fwzu",
+          "function": {
+            "index": 0,
+            "name": "read_atlas_fixture",
+            "arguments": {
+              "service": "atlas-api"
+            }
+          }
+        }
+      ]
+    },
+    "second": {
+      "content": "service=atlas-api;port=8443;status=inactive",
+      "done_reason": "stop",
+      "metrics": {
+        "total_duration": 6241524440,
+        "load_duration": 1762917,
+        "prompt_eval_count": 390,
+        "prompt_eval_duration": 3474447000,
+        "eval_count": 17,
+        "eval_duration": 2758742000
+      },
+      "tool_calls": []
+    }
+  },
+  "code_probe": {
+    "state": "PASS_STATIC_ONLY",
+    "response": {
+      "content": "{\n  \"script\": \"#!/bin/bash\\n\\n# Vérification de la présence du chemin en argument\\nif [ $# -eq 0 ]; then\\n    echo \\\"Erreur : Aucun chemin fourni.\\\"\\n    exit 1\\nfi\\n\\nPATH_ARG=\\\"$1\\\"\\n\\n# Vérification que le fichier existe et est lisible\\nif [ ! -r \\\"$PATH_ARG\\\" ]; then\\n    echo \\\"Erreur : Le fichier '$PATH_ARG' n'existe pas ou n'est pas lisible.\\\"\\n    exit 1\\nfi\\n\\n# Calcul et affichage du SHA-256\\nSHA256_HASH=$(sha256sum \\\"$PATH_ARG\\\" | awk '{print $1}')\\necho \\\"Le hash SHA-256 de '$PATH_ARG' est : $SHA256_HASH\\\"\\n\"}",
+      "done_reason": "stop",
+      "metrics": {
+        "total_duration": 33939534904,
+        "load_duration": 1309252,
+        "prompt_eval_count": 60,
+        "prompt_eval_duration": 3079167000,
+        "eval_count": 177,
+        "eval_duration": 30715161000
+      },
+      "tool_calls": []
+    },
+    "diagnostics": []
+  },
+  "summary": {
+    "roles": 7,
+    "initial_pass": 2,
+    "corrected": 3,
+    "blocked": 2
+  }
+}

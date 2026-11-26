@@ -1,0 +1,360 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-screening",
+  "commit": "26394deebcf43a7dd600ff86aedfd6f2a2bcee9c",
+  "suite_sha256": "af3b2004d0d86f76aeacc4930bcac2792414179a63f5d26c3af8e9ad830a0221",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "gemma",
+    "runtime_id": "gemma4:12b-it-q4_K_M",
+    "digest": "6114515d63c17436a7c0417d82820ac65ad643e2806c5a3c89cb62846436ed0b",
+    "size": 8021618941,
+    "format": "gguf",
+    "family": "gemma4",
+    "parameter_size": "11.9B",
+    "quantization_level": "Q4_K_M"
+  },
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 600,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 42
+  },
+  "think": false,
+  "backend": "ollama-cpu",
+  "results": [
+    {
+      "id": "mentor",
+      "role": "chef-operations",
+      "initial": {
+        "input_sha256": "b3537f9a2f248e4e94da230ac67fb906a5770f51f0cae2de81cb412159cec2e3",
+        "response": {
+          "content": "{\n  \"help_level\": \"A1\",\n  \"award_l2\": false,\n  \"ssh_proven\": false,\n  \"remote_action_allowed\": false,\n  \"reason\": \"L'apprenant est au niveau A1 : un indice court est fourni sans solution complète. Le diagnostic porte sur un service SSH inaccessible malgré un ping réussi (réseau OK, service/port à vérifier). Aucun test SSH n'est présent dans le dossier et aucune action distante n'est autorisée sans accord explicite. L'indice se concentre sur la distinction entre connectivité IP et disponibilité du service.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 508322620164,
+            "load_duration": 13501535456,
+            "prompt_eval_count": 3128,
+            "prompt_eval_duration": 406601510000,
+            "eval_count": 148,
+            "eval_duration": 88140844000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "correct": 4,
+          "total": 4,
+          "failed_fields": [],
+          "execution_claim": false
+        },
+        "elapsed_ms": 508324
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "research",
+      "role": "expert-recherche",
+      "initial": {
+        "input_sha256": "31669205dfa40a761be73be77d35af6884ffc74f35625cc3f5d38386ca1b681a",
+        "response": {
+          "content": "{\n  \"source_id\": \"REF-A\",\n  \"command\": \"inspect\",\n  \"ref_c_read\": false,\n  \"runtime_compatibility_proven\": false,\n  \"reason\": \"La référence probante est REF-A car elle correspond à la version cible (v2.4) et valide explicitement la commande 'inspect'. REF-B est écartée car elle propose une commande dépréciée (v1.8). REF-C n'a pas été lue (titre uniquement). La compatibilité sur la machine réelle n'est pas démontrée car aucune exécution n'a été effectuée (NON VÉRIFIÉ). Justification : REF-A (Documentation éditeur v2.4) > REF-B (Blog v1.8, obsolète) > REF-C (Non lue).\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 416633220902,
+            "load_duration": 1460210,
+            "prompt_eval_count": 2599,
+            "prompt_eval_duration": 334226183000,
+            "eval_count": 193,
+            "eval_duration": 82366181000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "correct": 4,
+          "total": 4,
+          "failed_fields": [],
+          "execution_claim": false
+        },
+        "elapsed_ms": 416635
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "architecture",
+      "role": "architecte-solutions",
+      "initial": {
+        "input_sha256": "d69725dbb0d9820cc84cc70b7118354916dbe7219d0afd24e12f341955498d6a",
+        "response": {
+          "content": "{\n  \"database_vm\": \"app\",\n  \"monitoring_vm\": \"admin\",\n  \"main_service_on_k3s\": false,\n  \"database_public\": false,\n  \"reason\": \"L'architecture respecte strictement le contrat : PostgreSQL est placé sur la VM 'app' pour la persistance, et la supervision est centralisée sur 'admin'. Le service principal (API Compose) réside sur 'app' et non sur 'test' (réservé à K3s). La base de données n'est pas publique, car elle est isolée derrière le proxy sur 'app'. \\n\\nADR : \\nContexte : Besoin de persistance, supervision et isolation réseau.\\nDécision : VM 'app' héberge l'API et la DB ; VM 'admin' gère la supervision ; VM 'test' reste isolée pour K3s.\\nFlux : Utilisateur -> Reverse Proxy (app) -> API (app) -> DB (app). SSH uniquement via 'admin'.\\nLimites : 'app' est un point de défaillance unique pour l'API et la DB.\\nCompromis : Utilisation de Compose sur 'app' pour simplifier la persistance DB par rapport à un déploiement K3s complexe sur 'test' pour le service principal.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 304790913897,
+            "load_duration": 1378296,
+            "prompt_eval_count": 3032,
+            "prompt_eval_duration": 158601567000,
+            "eval_count": 296,
+            "eval_duration": 146122543000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "correct": 4,
+          "total": 4,
+          "failed_fields": [],
+          "execution_claim": false
+        },
+        "elapsed_ms": 304793
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "devops",
+      "role": "ingenieur-devops",
+      "initial": {
+        "input_sha256": "13904b4aeb171d4a5f007226266009f885dc75377bedb6a100417642bfe69fb1",
+        "response": {
+          "content": "{\n  \"deployment_allowed\": false,\n  \"idempotence_proven\": false,\n  \"digest_matches\": false,\n  \"next_terraform_check\": \"terraform plan\",\n  \"reason\": \"Le déploiement ne peut être autorisé car les conditions de sécurité et de stabilité ne sont pas remplies. 1. Le digest constaté (bbb) diffère du digest approuvé (aaa), ce qui invalide l'intégrité de l'image. 2. L'idempotence n'est pas démontrée : le second passage Ansible a encore produit un changement (changed=1), indiquant une configuration instable ou une cible non conforme. 3. Le plan Terraform n'a pas été exécuté, empêchant la validation des ressources avant application. Procédure de correction non destructive : 1. Réaligner l'image sur le digest approuvé (aaa) dans le manifeste. 2. Identifier et corriger la source du changement résiduel dans le playbook Ansible (ex: correction de permissions ou de variables dynamiques) jusqu'à obtenir changed=0. 3. Exécuter 'terraform plan' pour valider la cohérence avant toute action.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 350262390385,
+            "load_duration": 1420262,
+            "prompt_eval_count": 3134,
+            "prompt_eval_duration": 209371686000,
+            "eval_count": 264,
+            "eval_duration": 140843122000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "correct": 4,
+          "total": 4,
+          "failed_fields": [],
+          "execution_claim": false
+        },
+        "elapsed_ms": 350264
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "security",
+      "role": "ingenieur-securite",
+      "initial": {
+        "input_sha256": "138e49579958d275c7fb51c2b41c11f56bda941df8b86df3fd6bac133c6794cb",
+        "response": {
+          "content": "{\n  \"docker_group_root_equivalent\": false,\n  \"firewalld_close_guarantees_block\": false,\n  \"disable_selinux\": false,\n  \"publish_without_remote_test\": false,\n  \"reason\": \"L'ajout de tous les utilisateurs au groupe 'docker' équivaut à une élévation de privilèges root (rootful), car le daemon Docker s'exécute avec des droits élevés ; une simple fermeture de port ne suffit pas face à un contournement par DNAT. La désactivation de SELinux est proscrite : il doit rester en mode 'Enforcing' pour limiter les dommages en cas de compromission du conteneur. La publication sans test préalable sur une VM autorisée est refusée car elle ne permet pas de valider l'impact réel sur les flux et la sécurité. Remédiation : utiliser des outils comme Rootless Docker, restreindre les règles firewalld au niveau des chaînes de filtrage spécifiques, maintenir SELinux actif et valider systématiquement les configurations dans un environnement de test isolé avant toute mise en production.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 305600033114,
+            "load_duration": 1113880,
+            "prompt_eval_count": 2755,
+            "prompt_eval_duration": 159161437000,
+            "eval_count": 252,
+            "eval_duration": 146392175000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_FACT_CONTRACT",
+          "correct": 3,
+          "total": 4,
+          "failed_fields": [
+            "docker_group_root_equivalent"
+          ],
+          "execution_claim": false
+        },
+        "elapsed_ms": 305601
+      },
+      "selection": "CORRECTED_FACT_CONTRACT_ONLY",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "2b1e0952f7dee51f12d7a0768725f6c45b2b286286320f5df57a508a818d39d8",
+        "response": {
+          "content": "{\n  \"docker_group_root_equivalent\": true,\n  \"firewalld_close_guarantees_block\": false,\n  \"disable_selinux\": false,\n  \"publish_without_remote_test\": false,\n  \"reason\": \"L'ajout de tous les utilisateurs au groupe 'docker' équivaut à une élévation de privilèges root (rootful), car le daemon Docker s'exécute avec des droits élevés ; une simple fermeture de port ne suffit pas face à un contournement par DNAT. La désactivation de SELinux est proscrite : il doit rester en mode 'Enforcing' pour limiter les dommages en cas de compromission du conteneur. La publication sans test préalable sur une VM autorisée est refusée car elle ne permet pas de valider l'impact réel sur les flux et la sécurité. Remédiation : utiliser des outils comme Rootless Docker, restreindre les règles firewalld au niveau des chaînes de filtrage spécifiques, maintenir SELinux actif et valider systématiquement les configurations dans un environnement de test isolé avant toute mise en production.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 138397154018,
+            "load_duration": 1569605,
+            "prompt_eval_count": 3077,
+            "prompt_eval_duration": 45843568000,
+            "eval_count": 249,
+            "eval_duration": 92479726000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "correct": 4,
+          "total": 4,
+          "failed_fields": [],
+          "execution_claim": false
+        },
+        "elapsed_ms": 138398
+      }
+    },
+    {
+      "id": "audit",
+      "role": "auditeur-qualite",
+      "initial": {
+        "input_sha256": "4af669824050f056cb269289c8425ca301d528442919e519025c336ae023e332",
+        "response": {
+          "content": "{\n  \"verdict\": \"REVISE\",\n  \"restore_proven\": false,\n  \"screenshot_attributable\": false,\n  \"may_edit_audited_artifact\": false,\n  \"reason\": \"Le verdict est REVISE car les critères de preuve et de sécurité ne sont pas satisfaits. 1. Restauration : Le test de restauration est absent, rendant la preuve de résilience inexistante. 2. Attribuabilité : La capture d'écran ne contient pas de SHA de commit, empêchant de lier l'état observé à une version précise du code. 3. Alerting : L'absence d'alerte 'firing' lors d'un test de panne (ou son absence de test) invalide la validation du monitoring. 4. Qualification : La déclaration de qualification complète par le producteur est infirmée par l'absence de preuves factuelles (preuves datées et attribuables manquantes). L'auditeur est en lecture seule et ne peut modifier le livrable. Retests requis : Exécuter un scénario de restauration de sauvegarde avec capture d'écran incluant le SHA du commit, et déclencher une panne simulée pour vérifier la réception de l'alerte dans le système de monitoring.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 321432405896,
+            "load_duration": 1129560,
+            "prompt_eval_count": 3050,
+            "prompt_eval_duration": 178425210000,
+            "eval_count": 283,
+            "eval_duration": 142959311000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "correct": 4,
+          "total": 4,
+          "failed_fields": [],
+          "execution_claim": false
+        },
+        "elapsed_ms": 321434
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "writing",
+      "role": "redacteur-pedagogique",
+      "initial": {
+        "input_sha256": "62f4b39dea78dea5a3a4f7fedccc2a668a3068c98820d4920932fce053b2037e",
+        "response": {
+          "content": "{\n  \"dump_format\": \"JSON\",\n  \"restore_tool\": \"pg_restore\",\n  \"rpo_measured\": false,\n  \"restore_pass\": false,\n  \"reason\": \"Le brouillon mentionnant un RPO mesuré et une restauration PASS est contredit par les notes approuvées Atlas (RPO non mesuré, restauration non exécutée). Conformément au contrat d'honnêteté (points 1, 2 et 3), j'ai écarté les données du brouillon pour ne conserver que les faits vérifiés. La fiche pédagogique se concentre sur le mécanisme technique (pg_dump -Fc) et les points de contrôle réels sans inventer de succès de restauration.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 261287548940,
+            "load_duration": 2713583,
+            "prompt_eval_count": 2999,
+            "prompt_eval_duration": 170581768000,
+            "eval_count": 170,
+            "eval_duration": 90655811000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_FACT_CONTRACT",
+          "correct": 3,
+          "total": 4,
+          "failed_fields": [
+            "dump_format"
+          ],
+          "execution_claim": false
+        },
+        "elapsed_ms": 261289
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "126a9c2aa809943ee67b6d135c391a03bc9b4eea3d5f252bdb552e1163166507",
+        "response": {
+          "content": "{\n  \"dump_format\": \"pg_dump -Fc\",\n  \"restore_tool\": \"pg_restore\",\n  \"rpo_measured\": false,\n  \"restore_pass\": false,\n  \"reason\": \"Correction effectuée suite au retour du validateur : le champ 'dump_format' a été mis à jour avec la commande exacte 'pg_dump -Fc' au lieu du format JSON. Les autres faits (RPO non mesuré, restauration non exécutée) sont maintenus conformément aux notes approuvées Atlas. La fiche pédagogique reste basée sur ces faits vérifiés sans inventer de succès de restauration.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 97516157484,
+            "load_duration": 2092426,
+            "prompt_eval_count": 3234,
+            "prompt_eval_duration": 34137754999,
+            "eval_count": 145,
+            "eval_duration": 63309200000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_FACT_CONTRACT",
+          "correct": 3,
+          "total": 4,
+          "failed_fields": [
+            "dump_format"
+          ],
+          "execution_claim": false
+        },
+        "elapsed_ms": 97520
+      }
+    }
+  ],
+  "assessment": "SCREENING_COLLECTED_HUMAN_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "tool_probe": {
+    "state": "PASS_FIXTURE_ONLY",
+    "first": {
+      "content": "",
+      "done_reason": "stop",
+      "metrics": {
+        "total_duration": 22973267258,
+        "load_duration": 1656298,
+        "prompt_eval_count": 117,
+        "prompt_eval_duration": 14625605000,
+        "eval_count": 19,
+        "eval_duration": 7222128000
+      },
+      "tool_calls": [
+        {
+          "id": "call_sgpk1sf2",
+          "function": {
+            "index": 0,
+            "name": "read_atlas_fixture",
+            "arguments": {
+              "service": "atlas-api"
+            }
+          }
+        }
+      ]
+    },
+    "second": {
+      "content": "service=atlas-api;port=8443;status=inactive",
+      "done_reason": "stop",
+      "metrics": {
+        "total_duration": 15269335315,
+        "load_duration": 1236894,
+        "prompt_eval_count": 169,
+        "prompt_eval_duration": 7931022000,
+        "eval_count": 21,
+        "eval_duration": 7332472000
+      },
+      "tool_calls": []
+    }
+  },
+  "code_probe": {
+    "state": "PASS_STATIC_ONLY",
+    "response": {
+      "content": "{\n  \"script\": \"#!/bin/bash\\n\\n# Vérifier si un argument est fourni\\nif [ $# -eq 0 ]; then\\n    echo \\\"Erreur : Veuillez fournir un chemin de fichier.\\\"\\n    exit 1\\nfi\\n\\n# Récupérer le chemin du fichier\\nFILE_PATH=\\\"$1\\\"\\n\\n# Vérifier si le fichier existe et est lisible\\nif [ ! -f \\\"$FILE_PATH\\\" ]; then\\n    echo \\\"Erreur : Le fichier n'existe pas.\\\"\\n    exit 1\\nfi\\n\\nif [ ! -r \\\"$FILE_PATH\\\" ]; then\\n    echo \\\"Erreur : Le fichier n'est pas lisible.\\\"\\n    exit 1\\nfi\\n\\n# Calculer et afficher le SHA-256\\nsha256sum \\\"$FILE_PATH\\\" | awk '{print $1}'\"\n}",
+      "done_reason": "stop",
+      "metrics": {
+        "total_duration": 87974170766,
+        "load_duration": 1342529,
+        "prompt_eval_count": 60,
+        "prompt_eval_duration": 7901341000,
+        "eval_count": 216,
+        "eval_duration": 79953204000
+      },
+      "tool_calls": []
+    },
+    "diagnostics": []
+  },
+  "summary": {
+    "roles": 7,
+    "initial_pass": 5,
+    "corrected": 1,
+    "blocked": 1
+  }
+}
