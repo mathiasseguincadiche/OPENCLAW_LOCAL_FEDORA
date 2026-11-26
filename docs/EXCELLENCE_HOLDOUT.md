@@ -39,3 +39,7 @@ Sept cas inédits : diagnostic HTTP, compatibilité versionnée, sens des flux r
 Matrice : trois modèles, deux variantes (direct/coached), seed 42, deux lots ; 12 jobs et 42 réponses initiales au plus autant de corrections. Sur coached, 21 sondes des outils corrigés, au plus 42 appels. Cette contre-expertise est une première mesure sur un nouveau dossier et non une étude statistique indépendante avec évaluateur tiers : une seule seed par variante, revue qualitative encore nécessaire. Les tests ne prouvent ni outils natifs, ni performances GPU, ni excellence finale.
 
 La décision de promotion exige revue de la sécurité et des contradictions, puis non-régression multi-agents et qualification Fedora sur B580. Aucun changement des modèles actifs, prompts actifs, autorisations, routage ou version d'Ollama.
+
+## Résultats et collaboration
+
+[Résultats Silex et chaîne Quartz](EXCELLENCE_CHAIN.md).

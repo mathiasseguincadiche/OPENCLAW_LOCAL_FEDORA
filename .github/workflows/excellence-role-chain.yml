@@ -1,0 +1,105 @@
+name: Excellence role chain (CPU)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: excellence-role-chain-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compare:
+    if: >-
+      github.repository == 'mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA' &&
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        model: [qwen, ornith, gemma]
+        seed: [42, 73]
+    env:
+      MODEL_ALIAS: ${{ matrix.model }}
+      EVAL_SEED: ${{ matrix.seed }}
+      OLLAMA_HOST: 127.0.0.1:11434
+      OLLAMA_NO_CLOUD: "1"
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_CONTEXT_LENGTH: "8192"
+    steps:
+      - name: Initialize runner-local paths
+        shell: bash
+        run: |
+          printf 'OLLAMA_MODELS=%s/ollama-models\nEVIDENCE=%s/excellence-role-chain\n' \
+            "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: "3.12"
+      - name: Check CPU, memory and disk; install pinned dependencies
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p "$EVIDENCE"
+          test "$(uname -m)" = x86_64
+          test "$(nproc)" -ge 4
+          awk '/MemTotal:/ {exit !($2 >= 13000000)}' /proc/meminfo
+          df -Pk "$RUNNER_TEMP" | awk 'NR==2 {exit !($4 >= 10000000)}'
+          command -v shellcheck
+          python -m pip install --constraint config/python-runtime-constraints.txt -e .
+          python -m clawfedora.excellence_chain --root . --model "$MODEL_ALIAS" \
+            --commit "$GITHUB_SHA" --output "$EVIDENCE/report.json" \
+            --seed "$EVAL_SEED"
+      - name: Download and verify exact Ollama release
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          PIN="$(python -c 'import json; print(json.load(open("config/install_artifact_integrity.json"))["ollama"]["version"])')"
+          VERIFY=scripts/validation/verify_install_artifact.py
+          URL="$(python "$VERIFY" url ollama "$PIN")"
+          ARCHIVE="$RUNNER_TEMP/ollama.tar.zst"
+          curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' \
+            --connect-timeout 15 --max-time 900 --output "$ARCHIVE" "$URL"
+          python "$VERIFY" verify ollama "$PIN" "$ARCHIVE"
+          mkdir -p "$RUNNER_TEMP/ollama"
+          tar --zstd --no-same-owner --no-same-permissions -xf "$ARCHIVE" -C "$RUNNER_TEMP/ollama"
+          rm "$ARCHIVE"
+          test -x "$RUNNER_TEMP/ollama/bin/ollama"
+          echo "$RUNNER_TEMP/ollama/bin" >> "$GITHUB_PATH"
+      - name: Pull exactly one model and run real CPU inference
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          case "$MODEL_ALIAS" in
+            qwen) MODEL=qwen3.5:9b-q4_K_M ;;
+            ornith) MODEL=ornith-1.5:9b ;;
+            gemma) MODEL=gemma4:12b-it-q4_K_M ;;
+            *) exit 2 ;;
+          esac
+          ollama serve > "$RUNNER_TEMP/ollama-server.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..60}; do
+            if curl --fail --silent --max-time 2 http://127.0.0.1:11434/api/version; then break; fi
+            sleep 1
+          done
+          curl --fail --silent --max-time 2 http://127.0.0.1:11434/api/version
+          timeout 20m ollama pull "$MODEL"
+          python -m clawfedora.excellence_chain --root . --model "$MODEL_ALIAS" \
+            --commit "$GITHUB_SHA" --output "$EVIDENCE/report.json" \
+            --seed "$EVAL_SEED" --run
+      - name: Preserve public synthetic responses and measurements
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: chain-${{ matrix.model }}-${{ matrix.seed }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/excellence-role-chain/report.json
+          if-no-files-found: warn
+          retention-days: 7

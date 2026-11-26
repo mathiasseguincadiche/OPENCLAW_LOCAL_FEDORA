@@ -1,0 +1,181 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "7a1a21b45454d5a0954f08ce1cd3a420bcbd1567",
+  "suite_sha256": "f28a7d100f5675073ed686e624a9688bb4138a64e4dab0fc42cd48a8f29660ed",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "ornith",
+    "runtime_id": "ornith-1.5:9b",
+    "digest": "e5df7dcdd8a263994df62d610317e07be0d6af23f96fcbd8543273058fce575e",
+    "size": 6550813657,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 1200,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 42
+  },
+  "capabilities": [
+    "tools",
+    "thinking",
+    "completion",
+    "vision"
+  ],
+  "think_requested": false,
+  "shard": "core",
+  "planned": 4,
+  "results": [
+    {
+      "id": "silex-mentor-http",
+      "role": "chef-operations",
+      "initial": {
+        "input_sha256": "c56d500c2e444d7764c2ec7a0d39c57ff3cdf53a1880d36107753b9335fed92c",
+        "response": {
+          "content": "{\n  \"executed\": false,\n  \"l2_awarded\": false,\n  \"process_declared_active\": true,\n  \"proxy_responds\": true,\n  \"reason\": \"Réponse : le proxy répond (OBSERVÉ, HTTP 503), le processus applicatif est déclaré actif par systemd (OBSERVÉ), la cause du 503 n'est pas établie (NON VÉRIFIÉ : aucun journal applicatif ni test upstream), et le niveau L2 n'est pas acquis (aucune preuve autonome de l'apprenant). Décision : livrer un indice conceptuel A1 unique, sans diagnostic certain. Mécanisme : un 503 du proxy ne prouve pas que l'application est morte ; systemd et le proxy sont deux observateurs distincts qui peuvent être cohérents entre eux (processus vivant) tout en masquant l'absence de service en aval. La cause réelle reste une hypothèse tant qu'aucun test direct de l'upstream n'a été réalisé. Recommandation : orienter l'apprenant vers une reproduction traçable (test direct de l'upstream, journal applicatif) avant toute conclusion ; ne pas transformer l'observation en compétence. Les quatre décisions sont donc : proxy répond = oui ; processus déclaré actif = oui ; cause du 503 établie = non ; L2 acquis = non.\",\n  \"root_cause_proven\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 323886017127,
+            "load_duration": 7601498579,
+            "prompt_eval_count": 3225,
+            "prompt_eval_duration": 250282703000,
+            "eval_count": 320,
+            "eval_duration": 65965611999
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 323887
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "silex-research-compat",
+      "role": "expert-recherche",
+      "initial": {
+        "input_sha256": "cda2109f1d3d8bb1a0723657048f594c83a351ef96862b708c6524226ee99db2",
+        "response": {
+          "content": "{\n  \"applicable_source\": \"guide-54\",\n  \"executed\": false,\n  \"forum_read\": false,\n  \"reason\": \"Cible installée = 5.4. guide-54 (source-id officiel) documente option safe en mode lecture seule pour 5.4 ; release-55 indique que l'écriture n'est disponible qu'à partir de 5.5, donc NON documentée pour la cible 5.4. forum-old non consulté (non lu). Aucun test runtime effectué : l'écriture reste NON VÉRIFIÉ. Décision : refuser l'activation de l'écriture sur 5.4. Justification : la documentation officielle de la version visée (guide-54) est explicite — lecture seule en 5.4, écriture seulement à partir de 5.5. Activer l'écriture contredirait la source fiable et risquerait corruption. Limite : l'application gère version/routage ; on ne contourne pas. Vérification locale à faire : confirmer version installée et lire release-55 pour la date d'activation de l'écriture.\",\n  \"runtime_test_proven\": false,\n  \"write_supported_on_target\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 266056032528,
+            "load_duration": 7167433,
+            "prompt_eval_count": 2701,
+            "prompt_eval_duration": 208817066000,
+            "eval_count": 283,
+            "eval_duration": 57074571000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 266060
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "silex-architecture-flows",
+      "role": "architecte-solutions",
+      "initial": {
+        "input_sha256": "f6bb5c9a0f9079bf918ba2e7670177c9039eff6ddb92a65f29d80d02bce46cac",
+        "response": {
+          "content": "{\n  \"database_id\": \"db-03\",\n  \"database_public_ingress\": false,\n  \"executed\": false,\n  \"isolation_runtime_proven\": false,\n  \"public_id\": \"gw-01\",\n  \"reason\": \"Données du dossier Silex font foi. public_id = gw-01 : seul hôte exposé à Internet (TCP/443), donc identité publique du flux. database_id = db-03 : cible finale des connexions (api-02 initie TCP/5432 vers db-03). public_id ne peut pas être db-03 : le flux est strictement initier par gw-01 vers api-02 puis api-02 vers db-03, donc db-03 n'accepte pas Internet. database_id ne peut pas être public : db-03 n'est jamais initiateur, donc ne peut pas être exposé. Isolation runtime NON prouvée : le pare-feu est une proposition jamais testée ; aucune exécution disponible (évaluation synthétique), aucun outil réseau, fichier projet ni sortie de test. Les règles de sécurité (pare-feu, SSH restreint à obs-04) sont des intentions, pas des faits observés. Décision de flux proposée : gw-01 -> api-02 (TCP/8443, initier), api-02 -> db-03 (TCP/5432, initier), obs-04 -> api-02 et db-03 (TCP/9100, scrape), obs-04 -> {gw-01, api-02, db-03} (SSH, restreint). Limite : isolation à confirmer par test réel du pare-feu, pas par lint ni statut CI vert.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 200001273470,
+            "load_duration": 1116762,
+            "prompt_eval_count": 3165,
+            "prompt_eval_duration": 118023834000,
+            "eval_count": 404,
+            "eval_duration": 81850818000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 200003
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "silex-devops-lock",
+      "role": "ingenieur-devops",
+      "initial": {
+        "input_sha256": "6a909acc0135228b2115e128fd730b9a1f2bd06529949780719025ef0bcf87dc",
+        "response": {
+          "content": "{\n  \"executed\": false,\n  \"force_unlock_allowed\": false,\n  \"idempotence_proven\": false,\n  \"lock_active\": true,\n  \"parallel_apply_allowed\": false,\n  \"reason\": \"Fait OBSERVÉ : Terraform refuse plan (lock détenu par un autre opérateur), le propriétaire confirme son apply actif, le runbook interdit le retrait d'un verrou actif et ne permet que des lectures sans approbation ; lint Ansible vert sans test cible. Décision : le verrou est actif (VÉRIFIÉ par le message d'erreur TF et la confirmation propriétaire) ; force-unlock est INTERDIT (runbook + risque de corrompre un apply en cours) ; apply parallèle est INTERDIT (TF verrouille précisément pour éviter deux apply simultanés) ; le lint vert ne prouve PAS l'idempotence réelle (lint ≠ test, cible jetable ≠ cible réelle). Procédure sûre : (1) ne pas appliquer, (2) attendre la fin de l'apply propriétaire, (3) vérifier la libération du lock via terraform force-unlock -target=... uniquement après confirmation de fin, (4) relire le plan, (5) appliquer après approbation. Reprise : si le lock persiste, ouvrir un ticket et ne pas contourner le contrôle d'accès. Aucun apply ni force-unlock exécuté ici (NON VÉRIFIÉ). Validation humaine requise avant toute action sensible.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 189236282357,
+            "load_duration": 1453383,
+            "prompt_eval_count": 3222,
+            "prompt_eval_duration": 122107863000,
+            "eval_count": 325,
+            "eval_duration": 67096724000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 189239
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "holdout-direct",
+  "socket_timeout_seconds": 1200,
+  "suite": "silex",
+  "summary": {
+    "initial_pass": 4,
+    "corrected": 0,
+    "blocked": 0
+  }
+}

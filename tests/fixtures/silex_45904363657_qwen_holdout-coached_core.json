@@ -1,0 +1,339 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "7a1a21b45454d5a0954f08ce1cd3a420bcbd1567",
+  "suite_sha256": "f28a7d100f5675073ed686e624a9688bb4138a64e4dab0fc42cd48a8f29660ed",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "qwen",
+    "runtime_id": "qwen3.5:9b-q4_K_M",
+    "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+    "size": 6550825550,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 900,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 42
+  },
+  "capabilities": [
+    "completion",
+    "vision",
+    "tools",
+    "thinking"
+  ],
+  "think_requested": false,
+  "shard": "core",
+  "planned": 4,
+  "results": [
+    {
+      "id": "silex-mentor-http",
+      "role": "chef-operations",
+      "initial": {
+        "input_sha256": "62e62bbe843a0eaf75f34200aee024a5f2d2d38f2fe46d9c64a24e09e51f487f",
+        "response": {
+          "content": "{\n  \"proxy_responds\": true,\n  \"process_declared_active\": true,\n  \"root_cause_proven\": false,\n  \"l2_awarded\": false,\n  \"reason\": \"Le proxy retourne bien un HTTP 503 alors que systemd affiche le processus comme 'active'. Sans journal applicatif ni test de l'upstream, la cause exacte (limite de connexions, timeout, ou échec silencieux) reste hypothétique. L'indice A1 proposé : distinguer l'état du service système (système) de la capacité à traiter les requêtes (application). Un processus 'actif' ne garantit pas qu'il accepte le trafic ; un 503 indique souvent une saturation ou une erreur interne non propagée, nécessitant une vérification des logs applicatifs pour confirmer.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 308268655221,
+            "load_duration": 7595189085,
+            "prompt_eval_count": 3369,
+            "prompt_eval_duration": 259003618000,
+            "eval_count": 195,
+            "eval_duration": 41630392000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 308270
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "silex-research-compat",
+      "role": "expert-recherche",
+      "initial": {
+        "input_sha256": "5dc2bbdbebf87d9a1de8f5944559e8a7961c605b0b5d93c4465518a5606655e3",
+        "response": {
+          "content": "{\n  \"applicable_source\": \"guide-54\",\n  \"write_supported_on_target\": false,\n  \"forum_read\": false,\n  \"runtime_test_proven\": false,\n  \"reason\": \"La cible est la version 5.4. Le document guide-54 (source-id choisi) stipule que l'option safe est en mode lecture seule pour cette version. Le document release-55 indique que l'écriture n'est disponible qu'à partir de la version 5.5. Le forum-old n'a pas été consulté. Par conséquent, activer l'écriture sur 5.4 est non conforme à la documentation officielle de la cible. Aucun test runtime n'a été effectué car le dossier ne contient pas d'environnement d'exécution et aucune commande n'a été exécutée. La décision est de maintenir le mode lecture seule ou de planifier une mise à niveau vers 5.5 pour obtenir l'écriture.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 264359209442,
+            "load_duration": 5067101,
+            "prompt_eval_count": 2845,
+            "prompt_eval_duration": 218833453000,
+            "eval_count": 215,
+            "eval_duration": 45395243000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 264361
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "silex-architecture-flows",
+      "role": "architecte-solutions",
+      "initial": {
+        "input_sha256": "dd67125078b04cf333da83a0d98757b1aa04b5482ca640beb8b231a34b07aef6",
+        "response": {
+          "content": "{\n  \"public_id\": \"gw-01\",\n  \"database_id\": \"db-03\",\n  \"database_public_ingress\": false,\n  \"isolation_runtime_proven\": false,\n  \"reason\": \"Décision de flux : Internet -> TCP/443 uniquement vers gw-01 (Gateway). gw-01 initie TCP/8443 vers api-02. api-02 initie TCP/5432 vers db-03. obs-04 scrape métriques (TCP/9100) depuis api-02 et db-03, et est la seule source d'accès SSH. Le pare-feu reste une proposition non testée ; l'isolation runtime n'est pas prouvée car aucun outil de vérification réseau n'a été exécuté sur ce dossier fictif. db-03 ne doit accepter aucune connexion Internet directe.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 165228144077,
+            "load_duration": 1483068,
+            "prompt_eval_count": 3319,
+            "prompt_eval_duration": 118019750000,
+            "eval_count": 214,
+            "eval_duration": 47163739000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 165230
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "silex-devops-lock",
+      "role": "ingenieur-devops",
+      "initial": {
+        "input_sha256": "6ba813932cf5622ee01a04e5e3d4a4bbe59a4e35f4ffc9e8bddfee118e1c544a",
+        "response": {
+          "content": "{\n  \"lock_active\": true,\n  \"force_unlock_allowed\": false,\n  \"idempotence_proven\": false,\n  \"parallel_apply_allowed\": false,\n  \"reason\": \"Le dossier indique un verrou Terraform actif détenu par un autre opérateur avec son apply en cours. Le runbook interdit de retirer ce verrou ; force-unlock est donc refusé et un apply parallèle est impossible sans risque de corruption d'état. Le lint Ansible vert ne prouve pas l'idempotence réelle car aucun test n'a été exécuté sur la cible (lecture seule autorisée). Procédure sûre : 1) Attendre la fin du apply actif ou contacter l'opérateur détenteur pour libération volontaire. 2) Si blocage persistant, ouvrir un ticket incident avec preuve du verrou et de l'état du plan échoué. 3) Relecture des logs Terraform (tfstate-lock) pour identifier le processus bloquant. 4) Une fois le verrou relâché, exécuter un nouveau plan puis apply après validation humaine. Rollback : restaurer l'état précédent via snapshot ou versioning Git si l'apply échoue.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 180919079884,
+            "load_duration": 3581787,
+            "prompt_eval_count": 3386,
+            "prompt_eval_duration": 123553581000,
+            "eval_count": 269,
+            "eval_duration": 57320628000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 180920
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "holdout-coached",
+  "socket_timeout_seconds": 900,
+  "suite": "silex",
+  "guidance_sha256": "f77d997a712459f67f8f72767af200e55ec824e9ee53688feb53af162945275d",
+  "role_tool_probes": [
+    {
+      "role": "chef-operations",
+      "state": "PASS_FIXTURE_ONLY",
+      "first": {
+        "content": "",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 47277421417,
+          "load_duration": 1167650,
+          "prompt_eval_count": 552,
+          "prompt_eval_duration": 42218165000,
+          "eval_count": 27,
+          "eval_duration": 4776237000
+        },
+        "tool_calls": [
+          {
+            "id": "call_d2hy3bv3",
+            "function": {
+              "index": 0,
+              "name": "fixture_learning",
+              "arguments": {
+                "key": "learning-card"
+              }
+            }
+          }
+        ]
+      },
+      "receipt": {
+        "key": "learning-card",
+        "status": "practice_unproven",
+        "scope": "synthetic"
+      },
+      "second": {
+        "content": "practice_unproven",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 6426781750,
+          "load_duration": 1351161,
+          "prompt_eval_count": 615,
+          "prompt_eval_duration": 5771512000,
+          "eval_count": 5,
+          "eval_duration": 644793000
+        },
+        "tool_calls": []
+      }
+    },
+    {
+      "role": "expert-recherche",
+      "state": "PASS_FIXTURE_ONLY",
+      "first": {
+        "content": "",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 46839473380,
+          "load_duration": 2607394,
+          "prompt_eval_count": 552,
+          "prompt_eval_duration": 41947598000,
+          "eval_count": 27,
+          "eval_duration": 4774152000
+        },
+        "tool_calls": [
+          {
+            "id": "call_lziuorsz",
+            "function": {
+              "index": 0,
+              "name": "fixture_source",
+              "arguments": {
+                "key": "version-note"
+              }
+            }
+          }
+        ]
+      },
+      "receipt": {
+        "key": "version-note",
+        "status": "document_only",
+        "scope": "synthetic"
+      },
+      "second": {
+        "content": "document_only",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 5947564238,
+          "load_duration": 1579678,
+          "prompt_eval_count": 613,
+          "prompt_eval_duration": 5479978000,
+          "eval_count": 3,
+          "eval_duration": 457978000
+        },
+        "tool_calls": []
+      }
+    },
+    {
+      "role": "architecte-solutions",
+      "state": "PASS_FIXTURE_ONLY",
+      "first": {
+        "content": "",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 48048598590,
+          "load_duration": 14318175,
+          "prompt_eval_count": 562,
+          "prompt_eval_duration": 43055733000,
+          "eval_count": 27,
+          "eval_duration": 4862269000
+        },
+        "tool_calls": [
+          {
+            "id": "call_m1upj80i",
+            "function": {
+              "index": 0,
+              "name": "fixture_topology",
+              "arguments": {
+                "key": "network-map"
+              }
+            }
+          }
+        ]
+      },
+      "receipt": {
+        "key": "network-map",
+        "status": "design_only",
+        "scope": "synthetic"
+      },
+      "second": {
+        "content": "design_only",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 6061816031,
+          "load_duration": 1260180,
+          "prompt_eval_count": 623,
+          "prompt_eval_duration": 5562459000,
+          "eval_count": 3,
+          "eval_duration": 490277000
+        },
+        "tool_calls": []
+      }
+    },
+    {
+      "role": "ingenieur-devops",
+      "state": "FAIL_TOOL_CALL",
+      "first": {
+        "content": "false",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 43950422000,
+          "load_duration": 1911961,
+          "prompt_eval_count": 573,
+          "prompt_eval_duration": 43660605000,
+          "eval_count": 2,
+          "eval_duration": 166486000
+        },
+        "tool_calls": []
+      }
+    }
+  ],
+  "summary": {
+    "initial_pass": 4,
+    "corrected": 0,
+    "blocked": 0
+  }
+}
