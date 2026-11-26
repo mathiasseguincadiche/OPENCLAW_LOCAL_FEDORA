@@ -7,6 +7,7 @@ evidence types. Only the operator can mark a visual assessment as reviewed.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import stat
@@ -29,6 +30,8 @@ REQUIRED = {
         "child_pages_and_progress_preserved",
     ),
 }
+PREMIUM_CHECKS = ("typography", "contrast", "graphic_hierarchy", "illustrations",
+                  "tablet_layout", "all_six_views_inspected")
 STATES = frozenset({"PASS", "FAIL", "NOT_EVALUATED"})
 
 
@@ -52,9 +55,11 @@ def _load_json(path: Path, *, maximum: int) -> dict[str, Any]:
 
 
 def _verify_capture(manifest_path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
+    if any(path.is_symlink() for path in (manifest_path, *manifest_path.parents)):
+        raise ReviewError("chemin de preuves lié interdit")
     record = _load_json(manifest_path, maximum=64_000)
     if (
-        record.get("schema") != 1
+        record.get("schema") not in {1, 2}
         or record.get("assessment") != "BROWSER_CAPTURED_NOT_VISUALLY_CERTIFIED"
         or record.get("quality_verdict") != "NOT_EVALUATED"
         or record.get("kind") not in REQUIRED
@@ -62,11 +67,14 @@ def _verify_capture(manifest_path: Path) -> tuple[dict[str, Any], dict[str, Any]
         raise ReviewError("manifeste de capture inconnu ou déjà altéré")
     vc.validate_url(record["kind"], record["source_url"])
     variants = record.get("screenshots")
-    if not isinstance(variants, list) or len(variants) != 3:
-        raise ReviewError("trois configurations de navigateur requises")
-    expected = set(vc.SIZES)
+    premium = record["schema"] == 2
+    sizes = vc.PREMIUM_SIZES if premium else vc.SIZES
+    if not isinstance(variants, list) or len(variants) != len(sizes):
+        raise ReviewError("configurations de navigateur incomplètes")
+    expected = set(sizes)
     actual: set[str] = set()
     hashes: list[str] = []
+    filenames: set[str] = set()
     metrics_summary: list[dict[str, Any]] = []
     root = manifest_path.parent
     if stat.S_IMODE(root.stat().st_mode) & 0o077:
@@ -78,6 +86,9 @@ def _verify_capture(manifest_path: Path) -> tuple[dict[str, Any], dict[str, Any]
         if view in actual:
             raise ReviewError("configuration de capture dupliquée")
         actual.add(view)
+        width, height, scheme = sizes[view]
+        if item.get("requested_color_scheme") != scheme:
+            raise ReviewError("préférence de thème incohérente")
         images = item.get("sampled_screenshots")
         if not isinstance(images, list) or not 1 <= len(images) <= vc.MAX_SHOTS:
             raise ReviewError("captures incomplètes")
@@ -87,6 +98,9 @@ def _verify_capture(manifest_path: Path) -> tuple[dict[str, Any], dict[str, Any]
             name = image["filename"]
             if Path(name).name != name or not name.endswith(".png"):
                 raise ReviewError("chemin de capture non autorisé")
+            if name in filenames:
+                raise ReviewError("capture référencée plusieurs fois")
+            filenames.add(name)
             path = root / name
             if path.is_symlink():
                 raise ReviewError("image liée interdite")
@@ -94,6 +108,8 @@ def _verify_capture(manifest_path: Path) -> tuple[dict[str, Any], dict[str, Any]
             for key in ("filename", "width", "height", "bytes", "sha256"):
                 if metadata[key] != image.get(key):
                     raise ReviewError("capture modifiée depuis son manifeste")
+            if (metadata["width"], metadata["height"]) != (width, height):
+                raise ReviewError("dimensions de capture différentes du profil")
             hashes.append(metadata["sha256"])
         metrics = item.get("metrics")
         if (
@@ -101,17 +117,35 @@ def _verify_capture(manifest_path: Path) -> tuple[dict[str, Any], dict[str, Any]
             or type(metrics.get("horizontal_overflow")) is not bool
             or not isinstance(metrics.get("document_width"), int)
             or not isinstance(metrics.get("viewport_width"), int)
-            or metrics["viewport_width"] < 320
+            or metrics["viewport_width"] != width
         ):
             raise ReviewError("mesures DOM invalides")
+        if premium:
+            if (
+                metrics.get("viewport_height") != height
+                or metrics.get("color_scheme_preference") != scheme
+                or type(metrics.get("document_height")) is not int
+                or metrics["document_height"] < height
+                or type(metrics.get("broken_loaded_images")) is not int
+                or metrics["broken_loaded_images"] < 0
+            ):
+                raise ReviewError("mesures Premium incomplètes ou incohérentes")
+            positions = vc.screenshot_positions(metrics["document_height"], height)
+            if [image.get("requested_scroll_y") for image in images] != positions or any(
+                type(image.get("observed_scroll_y")) not in {int, float}
+                or abs(image["observed_scroll_y"] - y) > 5
+                for image, y in zip(images, positions, strict=True)
+            ):
+                raise ReviewError("échantillons de défilement non confirmés")
         metrics_summary.append({
             "view": view,
             "horizontal_overflow": metrics["horizontal_overflow"],
             "document_width": metrics["document_width"],
             "viewport_width": metrics["viewport_width"],
+            "broken_loaded_images": metrics.get("broken_loaded_images"),
         })
     if actual != expected:
-        raise ReviewError("vues de bureau clair, sombre et mobile manquantes")
+        raise ReviewError("vues attendues manquantes")
     return record, {
         "screenshot_count": len(hashes),
         "distinct_screenshot_count": len(set(hashes)),
@@ -122,15 +156,27 @@ def _verify_capture(manifest_path: Path) -> tuple[dict[str, Any], dict[str, Any]
 def evaluate(manifest_path: Path, review_path: Path) -> dict[str, Any]:
     manifest, summary = _verify_capture(manifest_path)
     review = _load_json(review_path, maximum=12_000)
-    expected = REQUIRED[manifest["kind"]]
+    premium = manifest["schema"] == 2
+    expected = REQUIRED[manifest["kind"]] + (PREMIUM_CHECKS if premium else ())
+    keys = {"inspected_live_site", "checks"}
+    if premium:
+        keys.update({"manifest_sha256", "observed_themes"})
     if (
-        set(review) != {"inspected_live_site", "checks"}
+        set(review) != keys
         or review["inspected_live_site"] is not True
         or not isinstance(review["checks"], dict)
         or set(review["checks"]) != set(expected)
         or any(review["checks"][field] not in STATES for field in expected)
     ):
         raise ReviewError("revue humaine live et grille intégrale obligatoires")
+    if premium and (
+        review["manifest_sha256"] != hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+        or not isinstance(review["observed_themes"], dict)
+        or set(review["observed_themes"]) != set(vc.PREMIUM_SIZES)
+        or any(value not in {"light", "dark", "NOT_EVALUATED"}
+               for value in review["observed_themes"].values())
+    ):
+        raise ReviewError("attestation Premium non liée ou thèmes incomplets")
     observations = review["checks"]
     failed = [key for key in expected if observations[key] == "FAIL"]
     missing = [key for key in expected if observations[key] == "NOT_EVALUATED"]
@@ -140,13 +186,23 @@ def evaluate(manifest_path: Path, review_path: Path) -> dict[str, Any]:
     ]
     if overflows:
         failed.append("horizontal_overflow_detected")
+    if premium:
+        for view, (_, _, scheme) in vc.PREMIUM_SIZES.items():
+            observed = review["observed_themes"][view]
+            if observed == "NOT_EVALUATED":
+                missing.append(f"theme:{view}")
+            elif observed != scheme:
+                failed.append(f"theme:{view}")
+        if any(row["broken_loaded_images"] for row in summary["layout_metrics"]):
+            failed.append("broken_loaded_images_detected")
     status = (
         "OPERATOR_REVIEW_FAILED" if failed else
         "OPERATOR_REVIEW_INCOMPLETE" if missing else
         "OPERATOR_REVIEW_REPORTED_PASS"
     )
     return {
-        "schema": 1, "assessment": status,
+        "schema": manifest["schema"], "assessment": status,
+        "capture_manifest_sha256": hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
         "kind": manifest["kind"], "source_url": manifest["source_url"],
         "reviewed_at": datetime.now(UTC).isoformat(),
         "operator_observations": observations,
@@ -193,10 +249,14 @@ def main(argv: list[str] | None = None) -> int:
             if args.review is not None or args.output is not None or args.apply:
                 raise ReviewError("mode modèle exclusif : aucun reçu produit")
             manifest, _ = _verify_capture(args.manifest)
-            template = {
+            template: dict[str, Any] = {
                 "inspected_live_site": False,
                 "checks": dict.fromkeys(REQUIRED[manifest["kind"]], "NOT_EVALUATED"),
             }
+            if manifest["schema"] == 2:
+                template["checks"].update(dict.fromkeys(PREMIUM_CHECKS, "NOT_EVALUATED"))
+                template["manifest_sha256"] = hashlib.sha256(args.manifest.read_bytes()).hexdigest()
+                template["observed_themes"] = dict.fromkeys(vc.PREMIUM_SIZES, "NOT_EVALUATED")
             _write_private(args.template_out, args.manifest, template)
             print(json.dumps({
                 "assessment": "REVIEW_TEMPLATE_CREATED_NOT_COMPLETED",
