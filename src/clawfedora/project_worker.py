@@ -798,6 +798,8 @@ def _editorial_revision(
 
     content, report = ec.run(response["files"][output], audit, revise)
     check_guards()
+    if is_paused(runtime, project):
+        raise ValueError("revue éditoriale interrompue par la pause opérateur")
     if content != response["files"][output]:
         raise ValueError("revue éditoriale : version finale différente")
     report.update({
