@@ -68,6 +68,9 @@ def _matches(key: str, actual: object, expected: object) -> bool:
             return shlex.split(actual) == shlex.split(expected)
         except ValueError:
             return False
+    if key == "redirect_mechanism" and expected.casefold() == "nat":
+        # DNAT is the specific translation applied to published destination ports.
+        return actual.strip().casefold() in {"nat", "dnat"}
     if key == "custom_format_flag":
         return actual.strip() == expected
     return actual.strip().casefold() == expected.casefold()
@@ -144,7 +147,8 @@ def run(root: Path, model: str, commit: str, output: Path) -> dict[str, Any]:
     if identity["digest"].removeprefix("sha256:") != PILOT_DIGESTS[model]:
         raise ValueError("digest différent du pilote, comparaison suspendue")
     report: dict[str, Any] = {
-        "schema": 1, "mode": "targeted", "classification": "synthetic_public",
+        "schema": 1, "validator_revision": 2, "mode": "targeted",
+        "classification": "synthetic_public",
         "commit": commit, "suite_sha256": mc._digest(suite), "model": identity,
         "options": OPTIONS, "think": False, "backend": "ollama-cpu",
         "results": [], "assessment": "INFERENCE_STARTED_NOT_REVIEWED",

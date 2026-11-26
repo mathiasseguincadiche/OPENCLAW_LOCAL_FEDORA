@@ -102,3 +102,38 @@ def test_workflow_routes_targeted_to_new_module():
     assert "options: [smoke, pilot, extended, targeted]" in text
     assert text.count("MODULE=clawfedora.targeted_model_comparison") == 2
     assert "MODE: ${{ inputs.mode || 'targeted' }}" in text
+
+
+@pytest.mark.parametrize("answer", ["NAT", "DNAT", "dnat"])
+def test_docker_destination_translation_is_valid(answer):
+    case = tm.load(ROOT)["cases"][1]
+    assert tm.validate(case, _reply(case, {"redirect_mechanism": answer}))["correct"] == 4
+
+
+@pytest.mark.parametrize("answer", ["SNAT", "iptables", "firewalld"])
+def test_docker_does_not_accept_unrelated_mechanisms(answer):
+    case = tm.load(ROOT)["cases"][1]
+    assert tm.validate(case, _reply(case, {"redirect_mechanism": answer}))["correct"] == 3
+
+
+def test_reassess_original_targeted_campaign_without_inference():
+    path = ROOT / "tests/fixtures/targeted_comparison_45763150523.json"
+    archived = json.loads(path.read_text(encoding="utf-8"))
+    suite = tm.load(ROOT)
+    cases = {case["id"]: case for case in suite["cases"]}
+    expected = {"qwen": [7, 16, 15], "ornith": [10, 14, 15]}
+    expected_passes = {"qwen": [0, 4, 3], "ornith": [1, 3, 3]}
+    for model, report in archived["reports"].items():
+        assert report["suite_sha256"] == tm.mc._digest(suite)
+        assert report["model"]["digest"] == tm.PILOT_DIGESTS[model]
+        assert len(report["results"]) == 12
+        scores = []
+        passes = []
+        for stage in tm.STAGES:
+            rows = [r for r in report["results"] if r["stage"] == stage]
+            assert {r["case"] for r in rows} == set(cases)
+            results = [tm.validate(cases[r["case"]], r["response"]) for r in rows]
+            scores.append(sum(r["correct"] for r in results))
+            passes.append(sum(r["state"] == "PASS_FACT_CONTRACT_ONLY" for r in results))
+        assert scores == expected[model]
+        assert passes == expected_passes[model]
