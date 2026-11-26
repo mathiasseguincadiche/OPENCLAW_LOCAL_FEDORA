@@ -6,6 +6,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from clawfedora import editorial_graphics as eg
 from clawfedora.document_review import inspect_document
 
 MARKER = "[revue éditoriale]"
@@ -30,19 +31,31 @@ def validate_task(task: dict[str, Any]) -> None:
     if not requested(task):
         return
     outputs = task["expected_outputs"]
+    markdown = (
+        task["role"] == "redacteur-pedagogique"
+        and len(outputs) == 1 and Path(outputs[0]).suffix == ".md"
+        and Path(outputs[0]).parts[0] in {"work", "deliverables"}
+    )
     if (
-        task["role"] != "redacteur-pedagogique"
-        or task.get("learning_mode", "direct") != "direct"
-        or len(outputs) != 1 or Path(outputs[0]).suffix != ".md"
-        or Path(outputs[0]).parts[0] not in {"work", "deliverables"}
+        task.get("learning_mode", "direct") != "direct"
+        or not (markdown or eg.profile(task))
         or any(c.startswith("[preuve") for c in task["acceptance_criteria"])
     ):
         raise ValueError(
-            "revue éditoriale : rédacteur direct, une source Markdown, critères de contenu",
+            "revue éditoriale : tâche directe Markdown ou paire graphique, critères de contenu",
         )
 
 
-def audit_schema() -> dict[str, Any]:
+def criteria_for(profile: str) -> dict[str, str]:
+    if profile == "markdown":
+        return CRITERIA
+    if profile in {"diagram", "identity"}:
+        return eg.CRITERIA
+    raise ValueError("profil de revue éditoriale inconnu")
+
+
+def audit_schema(profile: str = "markdown") -> dict[str, Any]:
+    criteria = criteria_for(profile)
     check = {
         "type": "object", "required": ["state", "quote", "reason", "action"],
         "additionalProperties": False,
@@ -57,8 +70,8 @@ def audit_schema() -> dict[str, Any]:
         "type": "object", "required": ["checks"], "additionalProperties": False,
         "properties": {
             "checks": {
-                "type": "object", "required": list(CRITERIA), "additionalProperties": False,
-                "properties": {key: check for key in CRITERIA},
+                "type": "object", "required": list(criteria), "additionalProperties": False,
+                "properties": {key: check for key in criteria},
             },
         },
     }
@@ -68,11 +81,13 @@ def _sha(content: str) -> str:
     return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
 
-def _structure(content: str) -> list[str]:
+def _structure(content: str, profile: str = "markdown") -> list[str]:
     if not isinstance(content, str) or not 0 < len(content.encode("utf-8")) <= MAX_BYTES:
-        raise ValueError("revue éditoriale : section Markdown limitée à 12000 octets")
+        raise ValueError("revue éditoriale : source limitée à 12000 octets")
     if "\x00" in content or content.startswith("@"):
-        raise ValueError("revue éditoriale : contenu Markdown résolu requis")
+        raise ValueError("revue éditoriale : contenu résolu requis")
+    if profile != "markdown":
+        return eg.inspect_source(content, profile)[1]
     report = inspect_document(content, "readme")
     structural = report["structure"]
     problems = []
@@ -89,21 +104,23 @@ Audit = Callable[[str, list[str]], tuple[str, dict[str, Any]]]
 Revise = Callable[[str, list[dict[str, str]], list[str]], str]
 
 
-def run(initial: str, audit: Audit, revise: Revise) -> tuple[str, dict[str, Any]]:
+def run(
+    initial: str, audit: Audit, revise: Revise, *, profile: str = "markdown",
+) -> tuple[str, dict[str, Any]]:
     from clawfedora.structured_response import validate_response
 
     content = initial
     seen: set[str] = set()
     rounds: list[dict[str, Any]] = []
     for index in range(MAX_REVISIONS + 1):
-        structural = _structure(content)
+        structural = _structure(content, profile)
         digest = _sha(content)
         if digest in seen:
             return content, {"state": "NO_PROGRESS", "rounds": rounds,
                              "candidate_sha256": digest}
         seen.add(digest)
         session, answer = audit(content, structural)
-        validate_response(answer, audit_schema())
+        validate_response(answer, audit_schema(profile))
         checks = answer["checks"]
         failures: list[dict[str, str]] = []
         for key, item in checks.items():

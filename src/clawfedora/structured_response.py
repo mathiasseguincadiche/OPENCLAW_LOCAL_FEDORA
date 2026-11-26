@@ -12,7 +12,7 @@ def response_schema(prompt: str) -> dict[str, Any]:
     if prompt.startswith("Audit éditorial intermédiaire"):
         from clawfedora.editorial_cycle import audit_schema
 
-        return audit_schema()
+        return audit_schema(payload.get("profile", "markdown"))
     if prompt.startswith("Retour pédagogique"):
         count = len(payload["task"]["acceptance_criteria"])
         return {
