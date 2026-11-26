@@ -9,7 +9,7 @@ on:
         options: [smoke, pilot, extended]
         default: smoke
   push:
-    branches: [fix/local-model-comparison-workflow]
+    branches: [feat/local-model-pilot]
 
 permissions:
   contents: read
@@ -24,7 +24,7 @@ jobs:
       github.repository == 'mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA' &&
       (github.event_name == 'workflow_dispatch' ||
        (github.event_name == 'push' &&
-        github.ref == 'refs/heads/fix/local-model-comparison-workflow'))
+        github.ref == 'refs/heads/feat/local-model-pilot'))
     runs-on: ubuntu-latest
     timeout-minutes: 90
     strategy:
@@ -34,7 +34,7 @@ jobs:
         model: [qwen, ornith]
     env:
       MODEL_ALIAS: ${{ matrix.model }}
-      MODE: ${{ inputs.mode || 'smoke' }}
+      MODE: ${{ inputs.mode || 'pilot' }}
       OLLAMA_HOST: 127.0.0.1:11434
       OLLAMA_NO_CLOUD: "1"
       OLLAMA_NUM_PARALLEL: "1"
