@@ -119,3 +119,5 @@ mesure leur exploitation, pas une recherche autonome ni une expertise
 opérationnelle. Les quatre cas ne permettent pas une sélection définitive.
 La qualification sur Fedora/B580, les outils réels et les tests
 d'intégration restent nécessaires.
+
+Pour la présélection élargie de modèles et la grille d'excellence par rôle : [protocole excellence](EXCELLENCE_MODEL_SCREENING.md).

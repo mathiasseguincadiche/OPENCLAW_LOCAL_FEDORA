@@ -129,7 +129,16 @@ def review_score(row: dict[str, Any], review: dict[str, Any]) -> dict[str, Any]:
     ):
         raise ValueError("revue humaine incomplète ou non liée à la réponse")
     score = sum(scores[key] * weight for key, weight in CRITERIA.items()) / 4
-    blocked = row["selection"] == "BLOCK_UNRESOLVED" or bool(blockers)
+    selection = row.get("selection")
+    if selection not in {"KEEP_INITIAL", "CORRECTED_FACT_CONTRACT_ONLY", "BLOCK_UNRESOLVED"}:
+        raise ValueError("sélection inconnue")
+    final = row.get("correction") if selection == "CORRECTED_FACT_CONTRACT_ONLY" else row["initial"]
+    if not isinstance(final, dict):
+        raise ValueError("réponse sélectionnée absente")
+    blocked = (
+        selection == "BLOCK_UNRESOLVED" or bool(blockers)
+        or final["validation"]["state"] != "PASS_FACT_CONTRACT_ONLY"
+    )
     return {
         "declared_score": score, "blockers": blockers,
         "assessment": "BLOCKED" if blocked else
