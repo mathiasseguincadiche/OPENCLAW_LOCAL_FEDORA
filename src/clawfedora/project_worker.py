@@ -718,10 +718,11 @@ def _editorial_revision(
     """Use a fresh auditor context per version, under the existing worker lock."""
     from clawfedora import editorial_cycle as ec
     from clawfedora import editorial_graphics as eg
+    from clawfedora import editorial_notion as en
 
-    profile = eg.profile(task) or "markdown"
-    output = (task["expected_outputs"][0] if profile == "markdown"
-              else eg.source_path(task, profile))
+    graphic = eg.profile(task)
+    profile = graphic or ("notion" if en.requested(task) else "markdown")
+    output = (eg.source_path(task, graphic) if graphic else task["expected_outputs"][0])
     task_id = task["id"]
     auditor = runtime / "workspaces/auditeur-qualite"
     if not (auditor / ".openclaw-fedora-managed").is_file():
@@ -749,9 +750,13 @@ def _editorial_revision(
         # The draft is transmitted only to this session; no producer summary or verdict.
         excluded = audit_snapshot / "context/project_analysis.json"
         excluded.unlink(missing_ok=True)
-        if profile != "markdown":
+        if graphic:
             svg = response["files"][str(Path(output).with_suffix(".svg"))]
             (audit_snapshot / "editorial-candidate.svg").write_text(svg, encoding="utf-8")
+        if profile == "notion":
+            (audit_snapshot / "editorial-candidate.html").write_text(
+                en.preview(content), encoding="utf-8",
+            )
         audit_guard = _guard(audit_snapshot)
         for path in audit_snapshot.rglob("*"):
             if path.is_file():
@@ -769,7 +774,9 @@ def _editorial_revision(
             "Si un contenu requis manque, cite le passage voisin et demande son ajout. "
             "Si une preuve manque ou une affirmation est douteuse : REVISE. "
             "Pour un visuel, cite la source éditable ; le SVG joint est un aperçu, "
-            "pas une recette native. Ne certifie ni rendu natif ni compétences. "
+            "pas une recette native. Pour Notion, examine le JSON et la maquette HTML "
+            "locale ; les médias non vérifiés sont des emplacements. "
+            "Ne certifie ni rendu natif ni compétences. "
             "Objet JSON checks uniquement.\n"
             + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
         )
@@ -800,25 +807,25 @@ def _editorial_revision(
         response = invoke(task["role"], revision_prompt, revision_session)
         check_guards()
         validate_response(response, response_schema(revision_prompt))
-        if profile != "markdown":
-            eg.verify_refs(task, profile, response)
+        if graphic:
+            eg.verify_refs(task, graphic, response)
         _resolve_tool_files(workspace, receipts_before, task, response,
                             scope=snapshot.relative_to(workspace).as_posix())
         _collection_targets(repo_root, project, task, response)
-        if profile != "markdown":
-            eg.verify_pair(task, profile, response["files"])
+        if graphic:
+            eg.verify_pair(task, graphic, response["files"])
         return str(response["files"][output])
 
-    if profile != "markdown":
-        eg.verify_pair(task, profile, response["files"])
+    if graphic:
+        eg.verify_pair(task, graphic, response["files"])
     content, report = ec.run(response["files"][output], audit, revise, profile=profile)
     check_guards()
     if is_paused(runtime, project):
         raise ValueError("revue éditoriale interrompue par la pause opérateur")
     if content != response["files"][output]:
         raise ValueError("revue éditoriale : version finale différente")
-    if profile != "markdown":
-        report["files_sha256"] = eg.verify_pair(task, profile, response["files"])
+    if graphic:
+        report["files_sha256"] = eg.verify_pair(task, graphic, response["files"])
     report["profile"] = profile
     report.update({
         "origin": "editorial-cycle", "task_id": task_id, "producer_session": session,
@@ -955,6 +962,13 @@ def run_project_tasks(
             write_json(snapshot / "context/source-revision.json", {
                 "project_id": project_meta["project_id"], "revision": project_meta.get("revision", 0),
             })
+            from clawfedora import editorial_cycle as ec
+            from clawfedora import editorial_notion as en
+
+            if ec.requested(task) and en.requested(task) and task_mode(project, task) == "direct":
+                example = repo_root / "docs/editorial-demo/curriculum-spec.json"
+                assert_no_symlinks(example, label="exemple studio Notion")
+                shutil.copy2(example, snapshot / "context/notion-studio-example.json")
             copy_profile(runtime, snapshot)
             guard = _guard(snapshot)
             write_json(snapshot / ".openclaw-fedora-input-guard.json", {"files": guard})
@@ -997,7 +1011,6 @@ def run_project_tasks(
                     "approved_revision" if assignment.get("revision_reason") else "routine"
                 )
             try:
-                from clawfedora import editorial_cycle as ec
                 from clawfedora import editorial_graphics as eg
 
                 graphic_profile = None
@@ -1013,6 +1026,14 @@ def run_project_tasks(
                         prompt = (
                             first + f" Utilise {tool} ; retourne les deux références "
                             "issues du même appel, jamais du SVG/XML libre.\n" + rest
+                        )
+                    elif en.requested(task):
+                        first, rest = prompt.split("\n", 1)
+                        prompt = (
+                            first + " Produis un JSON studio Notion home/pages/tracker "
+                            "(curriculum facultatif). Lis context/notion-studio-example.json "
+                            "dans ton snapshot : 8000 octets max. "
+                            "Aucune écriture distante, aucun ID de destination.\n" + rest
                         )
                 response = invoke(role, prompt, session)
                 observed = _guard(snapshot)

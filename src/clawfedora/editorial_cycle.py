@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from clawfedora import editorial_graphics as eg
+from clawfedora import editorial_notion as en
 from clawfedora.document_review import inspect_document
 
 MARKER = "[revue éditoriale]"
@@ -38,15 +39,18 @@ def validate_task(task: dict[str, Any]) -> None:
     )
     if (
         task.get("learning_mode", "direct") != "direct"
-        or not (markdown or eg.profile(task))
+        or not (markdown or eg.profile(task) or en.requested(task))
         or any(c.startswith("[preuve") for c in task["acceptance_criteria"])
     ):
         raise ValueError(
-            "revue éditoriale : tâche directe Markdown ou paire graphique, critères de contenu",
+            "revue éditoriale : tâche directe Markdown, Notion ou paire graphique ; "
+            "critères de contenu",
         )
 
 
 def criteria_for(profile: str) -> dict[str, str]:
+    if profile == "notion":
+        return en.CRITERIA
     if profile == "markdown":
         return CRITERIA
     if profile in {"diagram", "identity"}:
@@ -86,6 +90,8 @@ def _structure(content: str, profile: str = "markdown") -> list[str]:
         raise ValueError("revue éditoriale : source limitée à 12000 octets")
     if "\x00" in content or content.startswith("@"):
         raise ValueError("revue éditoriale : contenu résolu requis")
+    if profile == "notion":
+        return en.inspect(content)
     if profile != "markdown":
         return eg.inspect_source(content, profile)[1]
     report = inspect_document(content, "readme")
@@ -110,15 +116,21 @@ def run(
     from clawfedora.structured_response import validate_response
 
     content = initial
+    baseline = en.parse(initial) if profile == "notion" else None
     seen: set[str] = set()
     rounds: list[dict[str, Any]] = []
     for index in range(MAX_REVISIONS + 1):
-        structural = _structure(content, profile)
+        structural = (
+            en.inspect(content, preserve_installation=en.has_installation(baseline),
+                       preserve_curriculum="curriculum" in baseline)
+            if baseline is not None else _structure(content, profile)
+        )
         digest = _sha(content)
-        if digest in seen:
+        identity = _sha(en.canonical(content)) if baseline is not None else digest
+        if identity in seen:
             return content, {"state": "NO_PROGRESS", "rounds": rounds,
                              "candidate_sha256": digest}
-        seen.add(digest)
+        seen.add(identity)
         session, answer = audit(content, structural)
         validate_response(answer, audit_schema(profile))
         checks = answer["checks"]

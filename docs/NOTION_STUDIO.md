@@ -88,3 +88,6 @@ privés natifs et les médias volumineux restent des extensions distinctes.
 - [Création et relecture des vues](https://developers.notion.com/guides/data-apis/working-with-views)
 
 Version 2026-03-11, documentation consultée le 25 novembre 2026.
+
+Le [profil de revue Notion](EDITORIAL_CYCLE.md) peut faire réviser une source
+studio avant cette approbation. Il ne produit ni destination ni plan d'écriture.
