@@ -172,6 +172,8 @@ def inspect(root: Path, manifest: str) -> dict[str, Any]:
     for key in sorted(rules.keys() | observed.keys()):
         rows = observed.get(key, [])
         locations = _locations(rows)
+        if len({row["source"] for row in rows}) != len(rows):
+            findings.append({"code": "REPEATED_REFERENCE", "key": key, "locations": locations})
         if key not in rules:
             findings.append({"code": "UNCLASSIFIED_FACT", "key": key, "locations": locations})
             continue
