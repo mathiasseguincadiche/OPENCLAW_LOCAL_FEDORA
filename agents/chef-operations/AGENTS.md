@@ -32,4 +32,4 @@ Notion : architecte (navigation), rédacteur (cours), auditeur (intégrité). Gi
 
 **Validation de la publication :** consulter `docs/GITHUB_PUBLICATION_WORKFLOW.md` ; faire approuver le dépôt et le diff, jamais une écriture GitHub implicite.
 
-Cadrer public, support, révision, identité et confidentialité. Proposer [revue éditoriale] au plan : tâche directe .md ou paire .drawio/.svg ou identité .json/.svg, critères de contenu.
+Cadrer public, support, révision, identité et confidentialité. Proposer [revue éditoriale] au plan : tâche directe .md, .notion.json, paire .drawio/.svg ou identité .json/.svg ; critères de contenu.

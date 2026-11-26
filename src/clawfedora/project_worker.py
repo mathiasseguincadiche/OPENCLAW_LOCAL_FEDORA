@@ -962,6 +962,13 @@ def run_project_tasks(
             write_json(snapshot / "context/source-revision.json", {
                 "project_id": project_meta["project_id"], "revision": project_meta.get("revision", 0),
             })
+            from clawfedora import editorial_cycle as ec
+            from clawfedora import editorial_notion as en
+
+            if ec.requested(task) and en.requested(task) and task_mode(project, task) == "direct":
+                example = repo_root / "docs/editorial-demo/curriculum-spec.json"
+                assert_no_symlinks(example, label="exemple studio Notion")
+                shutil.copy2(example, snapshot / "context/notion-studio-example.json")
             copy_profile(runtime, snapshot)
             guard = _guard(snapshot)
             write_json(snapshot / ".openclaw-fedora-input-guard.json", {"files": guard})
@@ -1004,9 +1011,7 @@ def run_project_tasks(
                     "approved_revision" if assignment.get("revision_reason") else "routine"
                 )
             try:
-                from clawfedora import editorial_cycle as ec
                 from clawfedora import editorial_graphics as eg
-                from clawfedora import editorial_notion as en
 
                 graphic_profile = None
                 if ec.requested(task) and task_mode(project, task) == "direct":
@@ -1026,8 +1031,8 @@ def run_project_tasks(
                         first, rest = prompt.split("\n", 1)
                         prompt = (
                             first + " Produis un JSON studio Notion home/pages/tracker "
-                            "(curriculum facultatif), selon docs/NOTION_STUDIO.md et "
-                            "docs/editorial-demo/curriculum-spec.json : 8000 octets max. "
+                            "(curriculum facultatif). Lis context/notion-studio-example.json "
+                            "dans ton snapshot : 8000 octets max. "
                             "Aucune écriture distante, aucun ID de destination.\n" + rest
                         )
                 response = invoke(role, prompt, session)

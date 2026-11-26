@@ -25,7 +25,7 @@ commençant par `[revue éditoriale]`. Exemple :
 ~~~
 
 Pour un vrai projet, conserver les dépendances techniques du plan.
-Portée : une source Markdown ou une paire graphique gérée, source de
+Portée : une source Markdown, une spécification Notion ou une paire graphique gérée, source de
 12 000 octets maximum, mode direct, route locale, sans preuve machine.
 Les sorties graphiques doivent partager dossier et nom hors extension.
 L'architecte peut demander .drawio + .svg (une vue), ou .json + .svg pour
@@ -77,5 +77,35 @@ les accepte. L'auditeur reçoit la source et un aperçu SVG dans son snapshot ;
 il cite la source et juge sept critères propres au graphisme. Le reçu contient
 les SHA-256 des deux fichiers. Ce n'est pas une inspection visuelle native.
 
-Les sources JSON Notion, rapports multi-fichiers, schémas multi-vues et mises
-à jour de wiki restent des extensions séparées.
+## Revue des structures Notion
+
+Pour une tâche directe d'architecture ou de rédaction, prévoir une seule
+sortie de type `work/<tâche>/studio.notion.json` ou
+`deliverables/<tâche>/studio.notion.json`, avec le même critère opt-in.
+Le worker fournit dans le snapshot un exemple de spécification du studio.
+La source JSON (8 000 octets maximum) est compilée hors ligne par le
+véritable validateur du studio : accueil, sous-pages, blocs et suivi simple
+ou relationnel. Les chemins de médias privés sont des noms de fichiers
+contrôlés, pas des pièces lues ni transférées. Aucune destination distante.
+
+L'auditeur reçoit le JSON et une maquette HTML locale avec emplacements de
+médias non vérifiés. Il examine rédaction, navigation, pédagogie, composition,
+préservation, exactitude et preuves. Les titres incohérents et les pages sans
+explication doivent être repris. La section « Installation des outils »
+est requise pour un parcours relationnel et ne peut disparaître après un
+premier brouillon qui la contient. Le parcours relationnel initial ne peut
+pas être supprimé pour contourner ce contrôle. Une simple reformattation
+du JSON ne compte pas comme une correction.
+
+Un résultat favorable produit uniquement la spécification à examiner,
+avec son reçu SHA-256. Pour créer réellement le wiki, l'opérateur doit
+reprendre cette source dans la commande plan du [studio](NOTION_STUDIO.md),
+vérifier les octets et les droits de partage, puis approuver le nouveau
+manifeste et la destination. Aucune publication n'est lancée par le worker.
+
+Le contrôle de la présence d'une section ne prouve pas la qualité de son
+contenu. La préservation sémantique des exercices et des autres sections
+reste à examiner par les agents puis par l'opérateur. Un JSON incompatible
+avec le studio est refusé, pas automatiquement corrigé. Rapports
+multi-fichiers, schémas multi-vues et mises à jour de wikis existants
+restent des extensions séparées.

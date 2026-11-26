@@ -36,7 +36,10 @@ def parse(content: str) -> dict[str, Any]:
     if not isinstance(content, str) or not 0 < len(content.encode("utf-8")) <= MAX_BYTES:
         raise ValueError("revue Notion : spécification limitée à 8000 octets")
     spec = parse_response(content, {"type": "object"})
-    names = ns._spec(spec, DUMMY_PARENT)
+    try:
+        names = ns._spec(spec, DUMMY_PARENT)
+    except (KeyError, TypeError) as exc:
+        raise ValueError("revue Notion : spécification invalide") from exc
     # Only names are reviewed here; actual bytes must be approved in studio plan.
     for name in names:
         if not ns.NAME.fullmatch(name) or ".." in name or Path(name).suffix.lower() not in ns.MIMES:
