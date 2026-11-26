@@ -1,0 +1,215 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "c8caccea4769efd699e39c1ee9b2b72ef7530819",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "qwen",
+    "runtime_id": "qwen3.5:9b-q4_K_M",
+    "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+    "size": 6550825550,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 900,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 73
+  },
+  "capabilities": [
+    "completion",
+    "vision",
+    "tools",
+    "thinking"
+  ],
+  "think_requested": false,
+  "shard": "core",
+  "planned": 4,
+  "results": [
+    {
+      "id": "mentor-dns",
+      "role": "chef-operations",
+      "initial": {
+        "input_sha256": "d073655eb4b5e435df94edda4634efb084abb155cd720d7890a13bf2e86ae43f",
+        "response": {
+          "content": "{\n  \"http_ip_ok\": true,\n  \"name_resolution_ok\": false,\n  \"dns_root_cause_proven\": false,\n  \"l2_awarded\": false,\n  \"reason\": \"L'IP 192.0.2.10 répond (HTTP OK), mais le nom 'api.example.test' échoue sans résolution DNS externe autorisée. La cause exacte (serveur DNS inexistant, cache local, ou blocage réseau) reste hypothétique car aucun test indépendant n'a été exécuté. L'autonomie L2 n'est pas acquise : l'apprenant doit identifier la différence entre une erreur de routage IP et une panne de résolution nom.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 302629655552,
+            "load_duration": 7602988950,
+            "prompt_eval_count": 3371,
+            "prompt_eval_duration": 260966202000,
+            "eval_count": 163,
+            "eval_duration": 34030055000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 302632
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "research-version",
+      "role": "expert-recherche",
+      "initial": {
+        "input_sha256": "3d5a68404d531a16fbdd8fe0cbaaa8b0e5cef3693d0c2027fdbbc52d77e06ecd",
+        "response": {
+          "content": "{\n  \"target_source\": \"REF-D\",\n  \"strict_available\": false,\n  \"ref_f_read\": false,\n  \"runtime_test_proven\": false,\n  \"reason\": \"La cible est la version 3.1. Le manuel officiel REF-D (v3.1) stipule que le mode strict n'est disponible qu'à partir de 3.2. La note REF-E confirme l'introduction en 3.2. La page REF-F n'a pas été consultée car elle ne contient que du titre et n'est pas nécessaire pour trancher sur la fonctionnalité dans la version cible. Aucun test runtime n'a été exécuté comme demandé. La preuve repose donc exclusivement sur le texte de REF-D qui exclut la disponibilité du mode strict en 3.1.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 253334076034,
+            "load_duration": 1995522,
+            "prompt_eval_count": 2820,
+            "prompt_eval_duration": 216702574000,
+            "eval_count": 181,
+            "eval_duration": 36590462000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 253335
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "architecture-recovery",
+      "role": "architecte-solutions",
+      "initial": {
+        "input_sha256": "53c3c5aff47d632d5f0906eb17f3fe8e808b9fc2aaf9301a3d6caab3f8f2cb41",
+        "response": {
+          "content": "{\n  \"database_vm\": \"VM data\",\n  \"public_vm\": \"VM edge\",\n  \"local_copy_covers_vm_loss\": false,\n  \"ha_proven\": false,\n  \"reason\": \"Architecture : VM edge (HTTPS public) relaie vers VM service. PostgreSQL réside sur VM data (privée). Sauvegarde uniquement sur VM data (copie locale insuffisante en cas de perte totale de cette VM sans réplication ni test de restauration). HA non démontrée (pas de cluster DB, pas de réplication synchrone/async, pas de failover automatique). ADR : Flux autorisés = Edge(443) -> Service; Ops SSH -> Data. Risques = Perte unique de données si VM data tombe ; RTO/RPO élevés sans stratégie externe. Décision : Implémenter sauvegarde externe (S3/Azure Blob) et réplication asynchrone pour atteindre les SLA requis.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 158541861669,
+            "load_duration": 1147846,
+            "prompt_eval_count": 3259,
+            "prompt_eval_duration": 114816212000,
+            "eval_count": 218,
+            "eval_duration": 43679727000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "database_vm",
+            "public_vm"
+          ],
+          "correct": 2,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 158543
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "c91b0fb42abe8b8afa8100bd54b4901844793b695f6c578ab4840cca7acccc4b",
+        "response": {
+          "content": "{\n  \"database_vm\": \"VM data\",\n  \"public_vm\": \"VM edge\",\n  \"local_copy_covers_vm_loss\": false,\n  \"ha_proven\": false,\n  \"reason\": \"Correction des champs : la base de données PostgreSQL est bien située sur la VM data (privée) et le point d'entrée HTTPS public est la VM edge. La copie locale sur la VM data ne couvre pas une perte totale de cette machine sans réplication externe ni test de restauration validé. L'ha n'est pas prouvée car aucune architecture de cluster ou de failover automatique n'est en place. ADR : Flux autorisés (Edge 443 -> Service, Ops SSH -> Data). Risques majeurs : perte unique des données si la VM data tombe. Décision : migrer vers une sauvegarde externe obligatoire et mettre en place une réplication asynchrone pour garantir la résilience.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 65621031944,
+            "load_duration": 3390000,
+            "prompt_eval_count": 3531,
+            "prompt_eval_duration": 22657687000,
+            "eval_count": 209,
+            "eval_duration": 42912628000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "database_vm",
+            "public_vm"
+          ],
+          "correct": 2,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 65622
+      }
+    },
+    {
+      "id": "devops-plan",
+      "role": "ingenieur-devops",
+      "initial": {
+        "input_sha256": "a1de951ea5be54bbd356772dccbc5776514387920e90e1b6d92c867a7bcc5496",
+        "response": {
+          "content": "{\n  \"plan_error\": false,\n  \"plan_has_changes\": true,\n  \"real_idempotence_proven\": false,\n  \"apply_allowed\": false,\n  \"reason\": \"Le plan Terraform retourne le code 2, indiquant la présence de changements (destruction d'un volume). L'erreur n'est pas un échec du plan mais une notification de modification. L'idempotence réelle n'est pas prouvée car Ansible check mode ne simule pas l'exécution réelle sur des ressources persistantes comme les volumes. L'apply est interdit sans approbation explicite pour la destruction de données. Contrôles proposés : 1) Sauvegarde manuelle ou snapshot du volume avant toute action. 2) Exécution d'un plan détaillé avec -out=plan.tf et revue visuelle des blocs 'resource' à détruire. 3) Test de restauration depuis le snapshot sur un environnement isolé pour valider la récupération des données.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 168323885435,
+            "load_duration": 3037245,
+            "prompt_eval_count": 3369,
+            "prompt_eval_duration": 123846224000,
+            "eval_count": 222,
+            "eval_duration": 44322447000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 168325
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "coached",
+  "socket_timeout_seconds": 900,
+  "guidance_sha256": "f77d997a712459f67f8f72767af200e55ec824e9ee53688feb53af162945275d",
+  "role_tool_probes": [],
+  "summary": {
+    "initial_pass": 3,
+    "corrected": 0,
+    "blocked": 1
+  }
+}

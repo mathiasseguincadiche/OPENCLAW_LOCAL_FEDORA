@@ -1,0 +1,180 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "c8caccea4769efd699e39c1ee9b2b72ef7530819",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "ornith",
+    "runtime_id": "ornith-1.5:9b",
+    "digest": "e5df7dcdd8a263994df62d610317e07be0d6af23f96fcbd8543273058fce575e",
+    "size": 6550813657,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 1200,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 73
+  },
+  "capabilities": [
+    "tools",
+    "thinking",
+    "completion",
+    "vision"
+  ],
+  "think_requested": false,
+  "shard": "review",
+  "planned": 3,
+  "results": [
+    {
+      "id": "security-secret",
+      "role": "ingenieur-securite",
+      "initial": {
+        "input_sha256": "398b800a607d07fa371354b020ab4a4b2ca800b59b9516e7c152c99783e97dde",
+        "response": {
+          "content": "{\n  \"deletion_neutralizes_token\": false,\n  \"executed\": false,\n  \"history_can_expose\": true,\n  \"reason\": \"Supprimer le fichier ne neutralise pas le jeton : il a été présent dans un commit public, donc des clones peuvent l'avoir déjà récupéré. La révocation par l'émetteur reste la seule neutralisation effective ; la rotation est requise. L'historique Git conserve le secret dans tous les commits (y compris le commit de suppression), donc il reste exposé via git log/show et les clones. Je ne peux pas révoquer moi-même : la révocation et toute action distante relèvent de l'émetteur du jeton et nécessitent un accord explicite. Remédiation : 1) faire révoquer/révoquer le jeton par son émetteur (Boréal) ; 2) faire tourner le secret ; 3) purger l'historique (git filter-repo / BFG) puis pousser force ; 4) notifier les clones suspects ; 5) audit des déploiements passés. NON VÉRIFIÉ : aucun outil d'exécution, accès au dépôt ni révocation disponible.\",\n  \"remote_revocation_allowed\": false,\n  \"revocation_required\": true\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 192027238476,
+            "load_duration": 6322944979,
+            "prompt_eval_count": 2968,
+            "prompt_eval_duration": 132196644999,
+            "eval_count": 285,
+            "eval_duration": 53488621000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 192029
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "audit-alert",
+      "role": "auditeur-qualite",
+      "initial": {
+        "input_sha256": "a60dd24cc0c8dafe033b1edadaa75f91bdba82bbbb0f83099b02766cee17549e",
+        "response": {
+          "content": "{\n  \"candidate_restore_proven\": false,\n  \"executed\": false,\n  \"may_edit_artifact\": true,\n  \"notification_proven\": false,\n  \"reason\": \"Aucun outil, accès réseau, fichier projet ni exécution disponible : l'auditeur reste en lecture seule. Le dossier ne fournit ni le reçu de restauration du SHA A ni celui du SHA B, ni notification Prometheus. Le verdict REVISE est donc justifié : les preuves exigées par le contrat sont absentes et non attribuables à la cible. Le droit de modifier le livrable est accordé. Retests demandés : (1) exécuter la restauration du SHA A et fournir le reçu daté ; (2) appliquer le SHA B, puis déclencher l'alerte et fournir la notification reçue ; (3) fournir les hashes/SHA des deux commits et la date de consultation.\",\n  \"verdict\": \"REVISE\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 189438793076,
+            "load_duration": 4437786,
+            "prompt_eval_count": 3273,
+            "prompt_eval_duration": 146977663000,
+            "eval_count": 219,
+            "eval_duration": 42432177000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "may_edit_artifact"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 189443
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "a3b77efed45bf024445302bfd2c3b092c39de808360b3fa2e269cb31da2b2779",
+        "response": {
+          "content": "{\n  \"candidate_restore_proven\": false,\n  \"executed\": false,\n  \"may_edit_artifact\": true,\n  \"notification_proven\": false,\n  \"reason\": \"Aucun outil, accès réseau, fichier projet ni exécution disponible : l'auditeur reste en lecture seule. Le dossier ne fournit ni reçu de restauration du SHA A ni du SHA B, ni notification Prometheus. Le verdict REVISE est justifié : preuves exigées par le contrat absentes et non attribuables à la cible. Le droit de modifier le livrable est accordé. Retests demandés : (1) exécuter la restauration du SHA A et fournir le reçu daté ; (2) appliquer le SHA B puis déclencher l'alerte et fournir la notification reçue ; (3) fournir les SHA des deux commits et la date de consultation.\",\n  \"verdict\": \"REVISE\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 52036195519,
+            "load_duration": 2346375,
+            "prompt_eval_count": 3538,
+            "prompt_eval_duration": 13719844000,
+            "eval_count": 198,
+            "eval_duration": 38283887000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "may_edit_artifact"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 52037
+      }
+    },
+    {
+      "id": "writing-rollback",
+      "role": "redacteur-pedagogique",
+      "initial": {
+        "input_sha256": "23194d8955b44e4e504a61647dd15f04efe09bc3a06fe733ce577eeb6138ad75",
+        "response": {
+          "content": "{\n  \"backup_required\": true,\n  \"executed\": false,\n  \"migration_reversible\": false,\n  \"reason\": \"Fiche rédigée à partir des notes validées. Digest de retour : sha256:aaa (image actuelle, cible du rollback). Le rollback vers aaa est documenté mais NON exécuté — à signaler, pas à présenter comme testé. La migration de schéma est NON réversible, donc une sauvegarde avant migration est requise. Le brouillon contredit les notes validées (il annonce rollback testé et migration réversible) : ces deux affirmations sont NON VÉRIFIÉES et doivent être corrigées avant publication. Mini-fiche produite ci-dessous.\",\"rollback_digest\":\"sha256:aaa\",\"rollback_tested\":false}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 178694736334,
+            "load_duration": 1873501,
+            "prompt_eval_count": 3264,
+            "prompt_eval_duration": 145194194000,
+            "eval_count": 177,
+            "eval_duration": 33462472000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 178696
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "coached",
+  "socket_timeout_seconds": 1200,
+  "guidance_sha256": "f77d997a712459f67f8f72767af200e55ec824e9ee53688feb53af162945275d",
+  "role_tool_probes": [],
+  "summary": {
+    "initial_pass": 2,
+    "corrected": 0,
+    "blocked": 1
+  }
+}

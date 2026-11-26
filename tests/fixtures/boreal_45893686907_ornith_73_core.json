@@ -1,0 +1,215 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "c8caccea4769efd699e39c1ee9b2b72ef7530819",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "ornith",
+    "runtime_id": "ornith-1.5:9b",
+    "digest": "e5df7dcdd8a263994df62d610317e07be0d6af23f96fcbd8543273058fce575e",
+    "size": 6550813657,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 1200,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 73
+  },
+  "capabilities": [
+    "tools",
+    "thinking",
+    "completion",
+    "vision"
+  ],
+  "think_requested": false,
+  "shard": "core",
+  "planned": 4,
+  "results": [
+    {
+      "id": "mentor-dns",
+      "role": "chef-operations",
+      "initial": {
+        "input_sha256": "d073655eb4b5e435df94edda4634efb084abb155cd720d7890a13bf2e86ae43f",
+        "response": {
+          "content": "{\n  \"dns_root_cause_proven\": false,\n  \"executed\": false,\n  \"http_ip_ok\": true,\n  \"l2_awarded\": false,\n  \"name_resolution_ok\": false,\n  \"reason\": \"Fait observé : curl par IP (192.0.2.10) renvoie 200, donc HTTP fonctionne sur la couche transport/réseau. curl par nom (api.example.test) échoue avec 'Could not resolve host', ce qui localise le problème au nom de résolution DNS, pas au service HTTP. Aucune cause DNS précise n'est prouvée : pas de test DNS indépendant (nslookup/dig/getent), pas de reproduction autonome, et aucune action distante n'a été approuvée. L2 n'est donc pas acquis : un PASS statique ne vaut pas preuve d'autonomie. L'indice A1 conceptuel : la couche OSI — HTTP par IP teste les couches 1-7 (réseau jusqu'à application), tandis que la résolution par nom teste la couche 7 via un service externe (DNS, couche 8 de l'architecture logique). Une IP qui fonctionne et un nom qui échoue isolent la résolution DNS comme suspect, sans en prouver la cause exacte (serveur manquant, zone absente, cache, client défectueux).\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 334688817822,
+            "load_duration": 7851264415,
+            "prompt_eval_count": 3371,
+            "prompt_eval_duration": 263375503000,
+            "eval_count": 293,
+            "eval_duration": 63435582000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 334690
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "research-version",
+      "role": "expert-recherche",
+      "initial": {
+        "input_sha256": "3d5a68404d531a16fbdd8fe0cbaaa8b0e5cef3693d0c2027fdbbc52d77e06ecd",
+        "response": {
+          "content": "{\n  \"executed\": false,\n  \"reason\": \"Cible 3.1, aucun test runtime. REF-D est le manuel officiel de la version ciblée (3.1) et est explicitement fourni : c'est la source applicable, car elle correspond à la version en jeu. REF-E (note 3.2) est hors cible : elle confirme strict à partir de 3.2, donc strict n'est PAS disponible sur 3.1. REF-F (page de titre seule, non consultée) est non applicable : non lue, aucune donnée exploitable. Strict non disponible sur 3.1 selon le dossier. Priorité des preuves : la documentation de la version cible prime sur toute annonce de version supérieure ; une note 3.2 ne peut autoriser strict sur 3.1. La preuve runtime reste absente : compatibilité documentaire ≠ test exécuté.\",\n  \"ref_f_read\": false,\n  \"runtime_test_proven\": false,\n  \"strict_available\": false,\n  \"target_source\": \"REF-D\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 268616327316,
+            "load_duration": 1196754,
+            "prompt_eval_count": 2820,
+            "prompt_eval_duration": 218385513000,
+            "eval_count": 232,
+            "eval_duration": 50196162000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 268618
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "architecture-recovery",
+      "role": "architecte-solutions",
+      "initial": {
+        "input_sha256": "53c3c5aff47d632d5f0906eb17f3fe8e808b9fc2aaf9301a3d6caab3f8f2cb41",
+        "response": {
+          "content": "{\n  \"database_vm\": \"VM data (PostgreSQL)\",\n  \"executed\": false,\n  \"ha_proven\": false,\n  \"local_copy_covers_vm_loss\": false,\n  \"public_vm\": \"VM edge\",\n  \"reason\": \"Architecture proposée (non déployée) : VM edge (HTTPS public) → VM service → VM data (PostgreSQL, réseau privé) ; VM ops consomme les métriques et SSH depuis ops uniquement. Risques : perte totale de data sans HA ni réplication ; la copie de sauvegarde sur data ne survit pas à la perte de la VM data elle-même (copie locale ≠ sauvegarde externe) ; aucun test de restauration prouvé. Décision : ajouter une sauvegarde externe hors data (stockage objet/VM séparée) et un test de restauration périodique ; HA non démontrée tant qu'aucune réplication/secondaire n'existe. À confirmer par l'auditeur.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 164648283281,
+            "load_duration": 1451345,
+            "prompt_eval_count": 3259,
+            "prompt_eval_duration": 116616032000,
+            "eval_count": 220,
+            "eval_duration": 47997218000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "database_vm",
+            "public_vm"
+          ],
+          "correct": 2,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 164650
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "5dff0f888d9dc9a24fc31a60bf9f8547ce805c75e195402ab5087bafe7d7337e",
+        "response": {
+          "content": "{\n  \"database_vm\": \"VM data\",\n  \"executed\": false,\n  \"ha_proven\": false,\n  \"local_copy_covers_vm_loss\": false,\n  \"public_vm\": \"VM edge\",\n  \"reason\": \"Architecture proposée (non déployée) : VM edge (HTTPS public) → VM service → VM data (PostgreSQL, réseau privé) ; VM ops consomme les métriques et SSH depuis ops uniquement. Risques : perte totale de data sans HA ni réplication ; la copie de sauvegarde sur data ne survit pas à la perte de la VM data elle-même (copie locale ≠ sauvegarde externe) ; aucun test de restauration prouvé. Décision : ajouter une sauvegarde externe hors data (stockage objet/VM séparée) et un test de restauration périodique ; HA non démontrée tant qu'aucune réplication/secondaire n'existe. À confirmer par l'auditeur.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 69787976084,
+            "load_duration": 1172365,
+            "prompt_eval_count": 3536,
+            "prompt_eval_duration": 23685491000,
+            "eval_count": 213,
+            "eval_duration": 46043176000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "database_vm",
+            "public_vm"
+          ],
+          "correct": 2,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 69794
+      }
+    },
+    {
+      "id": "devops-plan",
+      "role": "ingenieur-devops",
+      "initial": {
+        "input_sha256": "a1de951ea5be54bbd356772dccbc5776514387920e90e1b6d92c867a7bcc5496",
+        "response": {
+          "content": "{\n  \"apply_allowed\": false,\n  \"executed\": false,\n  \"plan_error\": false,\n  \"plan_has_changes\": true,\n  \"real_idempotence_proven\": false,\n  \"reason\": \"plan_exit_code_2 = plan avec changements, pas d'erreur : le plan n'a pas échoué. Le plan prévoit la destruction d'un volume de données, ce qui est un changement réel et non idempotence. Ansible check mode avec changed=0 ne prouve pas l'idempotence réelle : check mode exécute les tests sans appliquer, donc aucun changement réel est observé. Apply n'est pas autorisé : destruction de données sans approbation, et aucun accord opérateur. Contrôles non destructifs proposés : terraform plan -detailed-exitcode (déjà fait, 2 = changements attendus) ; terraform show -json plan pour lister précisément les blocs à détruire ; terraform console 'plan[0].change.attr' pour voir la valeur cible ; ansible-playbook --check pour confirmer changed=0 ; ansible -m ping pour vérifier l'accessibilité avant toute action. Aucun apply sans approbation explicite et sauvegarde du volume.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 185821955323,
+            "load_duration": 2070842,
+            "prompt_eval_count": 3369,
+            "prompt_eval_duration": 125215772000,
+            "eval_count": 269,
+            "eval_duration": 60567486000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 185829
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "coached",
+  "socket_timeout_seconds": 1200,
+  "guidance_sha256": "f77d997a712459f67f8f72767af200e55ec824e9ee53688feb53af162945275d",
+  "role_tool_probes": [],
+  "summary": {
+    "initial_pass": 3,
+    "corrected": 0,
+    "blocked": 1
+  }
+}

@@ -38,7 +38,9 @@ DIRECT = {
     "gemma": Profile(False, 900, 1500),
 }
 GEMMA_PROBE = Profile(True, 900, 1500)
-PROFILE_NAMES = ("baseline", "direct", "gemma-think-probe", "coached")
+PROFILE_NAMES = (
+    "baseline", "direct", "gemma-think-probe", "coached", "holdout-direct", "holdout-coached",
+)
 
 
 def select_profile(alias: str, name: str) -> Profile | None:
@@ -46,15 +48,16 @@ def select_profile(alias: str, name: str) -> Profile | None:
         raise ValueError("profil inconnu")
     if name == "baseline":
         return None
-    if name in {"direct", "coached"}:
+    if name in {"direct", "coached", "holdout-direct", "holdout-coached"}:
         return DIRECT[alias]
     if alias != "gemma":
         raise ValueError("sonde réservée à Gemma")
     return GEMMA_PROBE
 
 
-def load(root: Path) -> dict[str, Any]:
-    path = root / "config/evals/excellence_finalists.json"
+def load(root: Path, *, holdout: bool = False) -> dict[str, Any]:
+    filename = "excellence_holdout.json" if holdout else "excellence_finalists.json"
+    path = root / "config/evals" / filename
     if path.stat().st_size > 32_000:
         raise ValueError("suite hors budget")
     suite = json.loads(path.read_text(encoding="utf-8"))
@@ -186,7 +189,9 @@ def run(root: Path, alias: str, commit: str, output: Path,
     selected = select_profile(alias, profile)
     if profile == "gemma-think-probe" and seed != 42:
         raise ValueError("sonde Gemma limitée à la seed 42")
-    suite = load(root)
+    holdout = profile.startswith("holdout-")
+    coached = profile in {"coached", "holdout-coached"}
+    suite = load(root, holdout=holdout)
     identity = es.identity(root, alias)
     if identity["digest"].removeprefix("sha256:") != DIGESTS[alias]:
         raise ValueError("digest candidat modifié depuis la présélection")
@@ -211,7 +216,9 @@ def run(root: Path, alias: str, commit: str, output: Path,
     if selected is not None:
         report["profile"] = profile
         report["socket_timeout_seconds"] = selected.timeout
-    if profile == "coached":
+    if holdout:
+        report["suite"] = "silex"
+    if coached:
         report["guidance_sha256"] = mc._digest([rt.COMMON, rt.ROLE_GUIDANCE])
         report["role_tool_probes"] = []
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -231,7 +238,7 @@ def run(root: Path, alias: str, commit: str, output: Path,
     for case in cases:
         try:
             prompt = messages(root, case)
-            if profile == "coached":
+            if coached:
                 prompt[0]["content"] += "\n\n" + rt.guidance(case["role"])
             first = infer(case, prompt)
             row: dict[str, Any] = {"id": case["id"], "role": case["role"],
@@ -263,7 +270,7 @@ def run(root: Path, alias: str, commit: str, output: Path,
             report["error"] = {"case": case["id"], "type": type(exc).__name__}
             save()
             return report
-    if profile == "coached" and seed == 42 and selected is not None:
+    if coached and seed == 42 and selected is not None:
         for case in cases:
             try:
                 if "tools" not in declared:
@@ -300,7 +307,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if not args.run:
             select_profile(args.model, args.profile)
-            print(json.dumps({"assessment": "NOT_RUN", "suite_sha256": mc._digest(load(args.root))}))
+            suite = load(args.root, holdout=args.profile.startswith("holdout-"))
+            print(json.dumps({"assessment": "NOT_RUN", "suite_sha256": mc._digest(suite)}))
             return 0
         result = run(
             args.root, args.model, args.commit, args.output, args.seed, args.shard,

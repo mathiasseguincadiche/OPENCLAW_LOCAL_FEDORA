@@ -1,0 +1,209 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "c8caccea4769efd699e39c1ee9b2b72ef7530819",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "qwen",
+    "runtime_id": "qwen3.5:9b-q4_K_M",
+    "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+    "size": 6550825550,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 900,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 73
+  },
+  "capabilities": [
+    "completion",
+    "vision",
+    "tools",
+    "thinking"
+  ],
+  "think_requested": false,
+  "shard": "review",
+  "planned": 3,
+  "results": [
+    {
+      "id": "security-secret",
+      "role": "ingenieur-securite",
+      "initial": {
+        "input_sha256": "398b800a607d07fa371354b020ab4a4b2ca800b59b9516e7c152c99783e97dde",
+        "response": {
+          "content": "{\n  \"deletion_neutralizes_token\": false,\n  \"revocation_required\": true,\n  \"history_can_expose\": true,\n  \"remote_revocation_allowed\": false,\n  \"reason\": \"La suppression du fichier dans le commit actuel ne neutralise pas le jeton car l'historique Git (clone existants) conserve la version contenant le secret. La rotation/révocation par l'émetteur est impérative. Je ne peux pas révoquer moi-même ni agir à distance sans approbation explicite. Remédiation : 1) Contacter immédiatement l'équipe de sécurité pour révoquer le jeton côté serveur (invalidate token). 2) Changer les identifiants associés si nécessaire. 3) Effectuer un 'git filter-branch' ou 'BFG Repo-Cleaner' sur la branche principale pour effacer définitivement le secret de l'historique local et distant, puis pousser la correction. 4) Mettre en place une surveillance (secret scanning) pour détecter d'éventuelles fuites futures.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 287374595611,
+            "load_duration": 7854852211,
+            "prompt_eval_count": 2968,
+            "prompt_eval_duration": 228513086000,
+            "eval_count": 241,
+            "eval_duration": 50929392000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 287377
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "audit-alert",
+      "role": "auditeur-qualite",
+      "initial": {
+        "input_sha256": "a60dd24cc0c8dafe033b1edadaa75f91bdba82bbbb0f83099b02766cee17549e",
+        "response": {
+          "content": "{\n  \"verdict\": \"REVISE\",\n  \"candidate_restore_proven\": false,\n  \"notification_proven\": false,\n  \"may_edit_artifact\": true,\n  \"reason\": \"Le dossier indique que le test de restauration porte sur le SHA A, tandis que le candidat est au SHA B avec une procédure modifiée. L'auditeur (lecture seule) ne possède aucune preuve d'exécution réussie de la restauration du SHA B ni de réception de la notification associée à cette nouvelle procédure. La règle Prometheus est présente mais non déclenchée ou prouvée. Conformément au contrat, l'absence de preuve attribuable pour le candidat SHA B impose un verdict REVISE. Le droit de modifier le livrable est accordé pour intégrer les preuves des retests requis (restauration du SHA B + notification) avant toute nouvelle évaluation.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 293010056661,
+            "load_duration": 1450141,
+            "prompt_eval_count": 3273,
+            "prompt_eval_duration": 252160642000,
+            "eval_count": 199,
+            "eval_duration": 40807785000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "may_edit_artifact"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 293011
+      },
+      "selection": "CORRECTED_FACT_CONTRACT_ONLY",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "4b5d598b4801df1a200b4223f62e9ba52f8e6d5e79420ee271f4f04e1fa7d894",
+        "response": {
+          "content": "{\n  \"verdict\": \"REVISE\",\n  \"candidate_restore_proven\": false,\n  \"notification_proven\": false,\n  \"may_edit_artifact\": false,\n  \"reason\": \"Le dossier montre que la restauration concerne le SHA A, pas le candidat SHA B dont la procédure est modifiée. Aucune preuve d'exécution de cette nouvelle procédure ni de notification reçue n'est disponible pour le SHA B. L'auditeur en lecture seule ne peut valider ces faits. Le verdict reste REVISE car les preuves requises (restauration du candidat et notification) sont absentes. Le droit de modifier le livrable est refusé car l'absence de preuve de réussite invalide la proposition actuelle ; une nouvelle itération avec preuves valides est nécessaire avant toute modification autorisée.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 57334091652,
+            "load_duration": 1896456,
+            "prompt_eval_count": 3519,
+            "prompt_eval_duration": 20432575000,
+            "eval_count": 179,
+            "eval_duration": 36854853000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 57336
+      }
+    },
+    {
+      "id": "writing-rollback",
+      "role": "redacteur-pedagogique",
+      "initial": {
+        "input_sha256": "23194d8955b44e4e504a61647dd15f04efe09bc3a06fe733ce577eeb6138ad75",
+        "response": {
+          "content": "{\n  \"rollback_digest\": \"aaa\",\n  \"rollback_tested\": false,\n  \"migration_reversible\": false,\n  \"backup_required\": true,\n  \"reason\": \"MINI-FICHE BORÉAL : Prérequis : snapshot système avant toute action. Action conditionnelle : exécuter uniquement si le digest actuel est 'aaa'. Vérification : comparaison du hash de l'image de base avec 'aaa' via commande `sha256sum`. Limite : la migration de schéma est irréversible ; aucun rollback vers une version post-migration n'est possible. Signe d'échec : erreur de lecture du fichier de configuration indiquant que le digest actuel diffère de 'aaa' ou absence de snapshot valide. Note critique : le brouillon mentionne un rollback testé et une migration réversible, ce qui est factuellement faux selon les notes validées (rollback non exécuté, migration irréversible). Ne jamais tenter de forcer la restauration après migration.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 296406305774,
+            "load_duration": 2948179,
+            "prompt_eval_count": 3264,
+            "prompt_eval_duration": 250027822000,
+            "eval_count": 221,
+            "eval_duration": 46332394000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "rollback_digest"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 296408
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "3c7185471df551a3c0fd7ac0865dbd93a2418e1b876d3b4b5c7bad8bc5052d9e",
+        "response": {
+          "content": "{\n  \"rollback_digest\": \"aaa\",\n  \"rollback_tested\": false,\n  \"migration_reversible\": false,\n  \"backup_required\": true,\n  \"reason\": \"MINI-FICHE BORÉAL : Prérequis : snapshot système avant toute action. Action conditionnelle : exécuter uniquement si le digest actuel est 'aaa'. Vérification : comparaison du hash de l'image de base avec 'aaa' via commande `sha256sum`. Limite : la migration de schéma est irréversible ; aucun rollback vers une version post-migration n'est possible. Signe d'échec : erreur de lecture du fichier de configuration indiquant que le digest actuel diffère de 'aaa' ou absence de snapshot valide. Note critique : le brouillon mentionne un rollback testé et une migration réversible, ce qui est factuellement faux selon les notes validées (rollback non exécuté, migration irréversible). Ne jamais tenter de forcer la restauration après migration.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 68187114407,
+            "load_duration": 4153069,
+            "prompt_eval_count": 3537,
+            "prompt_eval_duration": 22882831000,
+            "eval_count": 220,
+            "eval_duration": 45248945000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "rollback_digest"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 68189
+      }
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "coached",
+  "socket_timeout_seconds": 900,
+  "guidance_sha256": "f77d997a712459f67f8f72767af200e55ec824e9ee53688feb53af162945275d",
+  "role_tool_probes": [],
+  "summary": {
+    "initial_pass": 1,
+    "corrected": 1,
+    "blocked": 1
+  }
+}
