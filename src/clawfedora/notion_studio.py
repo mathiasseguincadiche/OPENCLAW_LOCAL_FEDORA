@@ -61,6 +61,11 @@ def _request(method: str, resource: str, *, body: dict[str, Any] | None = None,
         method == "PATCH" and re.fullmatch(rf"/v1/data_sources/{ID}", resource)
         and body is not None and binary is None
     )
+    allowed = allowed or (
+        method == "PATCH" and re.fullmatch(rf"/v1/blocks/{ID}/children", resource)
+        and binary is None and isinstance(body, dict) and set(body) == {"children"}
+        and isinstance(body["children"], list) and 1 <= len(body["children"]) <= 8
+    )
     if not allowed:
         raise nw.NotionWriteError("endpoint studio non autorisé")
     payload = binary if binary is not None else (
