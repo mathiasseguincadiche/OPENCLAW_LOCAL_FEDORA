@@ -6,8 +6,8 @@ Ornith 1.5 9B Q4_K_M. Le dépôt public utilise des runners standards gratuits s
 [la documentation GitHub](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
 Aucun GPU payant, compte IA, clé API, service d'inférence cloud ni donnée personnelle.
 
-La PR initiale déclenche le smoke une fois à l'ouverture (ou réouverture) sur la branche
-interne prévue. Après fusion, lancer manuellement depuis Actions → Local model comparison
+Le correctif du workflow déclenche le smoke sur un push vers la branche interne
+fix/local-model-comparison-workflow uniquement. Après fusion, lancer manuellement depuis Actions → Local model comparison
 (CPU) → Run workflow. Ne pas utiliser le workflow sur des dépôts privés ou des runners payants.
 
 | Mode | Cas métier par modèle | Total des deux modèles |
