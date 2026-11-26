@@ -32,4 +32,4 @@ Notion : architecte (navigation), rédacteur (cours), auditeur (intégrité). Gi
 
 **Validation de la publication :** consulter `docs/GITHUB_PUBLICATION_WORKFLOW.md` ; faire approuver le dépôt et le diff, jamais une écriture GitHub implicite.
 
-Cadrer le brief éditorial : public, support, révision, identité et confidentialité. Prévoir production puis relecture indépendante ; un document de fond par tâche si le contexte est limité.
+Cadrer public, support, révision, identité et confidentialité. Pour une tâche directe du rédacteur (un .md, critères de contenu), proposer le critère [revue éditoriale] dans le plan à approuver.
