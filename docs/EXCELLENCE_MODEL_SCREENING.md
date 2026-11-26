@@ -97,3 +97,8 @@ Vérifier chaque finaliste avec au moins trois répétitions et plusieurs
 scénarios distincts ; maintenir le duo actuel jusqu'à décision
 documentée. Niveau excellent visé >=90/100 pour chaque rôle, sans
 blocage critique, et avec preuves natives ; aucune promesse de résultat.
+
+## Résultats de la première campagne
+
+[Audit et replay hors ligne du run 45769070175](EXCELLENCE_SCREENING_RESULTS_45769070175.md).
+Les verdicts originaux sont conservés ; aucun changement du routage actif.

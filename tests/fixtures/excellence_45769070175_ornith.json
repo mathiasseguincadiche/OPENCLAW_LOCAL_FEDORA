@@ -1,0 +1,517 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-screening",
+  "commit": "26394deebcf43a7dd600ff86aedfd6f2a2bcee9c",
+  "suite_sha256": "af3b2004d0d86f76aeacc4930bcac2792414179a63f5d26c3af8e9ad830a0221",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "ornith",
+    "runtime_id": "ornith-1.5:9b",
+    "digest": "e5df7dcdd8a263994df62d610317e07be0d6af23f96fcbd8543273058fce575e",
+    "size": 6550813657,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 600,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 42
+  },
+  "think": false,
+  "backend": "ollama-cpu",
+  "results": [
+    {
+      "id": "mentor",
+      "role": "chef-operations",
+      "initial": {
+        "input_sha256": "b3537f9a2f248e4e94da230ac67fb906a5770f51f0cae2de81cb412159cec2e3",
+        "response": {
+          "content": "{\n  \"award_l2\": false,\n  \"executed\": false,\n  \"help_level\": \"A1\",\n  \"reason\": \"Fait OBSERVÉ : un ping vers l'hôte SSH réussit (réponse ICMP), aucun test SSH (aucun `ssh -T`, `ssh-keyscan`, `nc -zv`, `ss -tlnp` ni journal SSH fourni), aucun exercice réalisé seul, aucun PASS statique ni rapport importé. Décision : l'indice reste A1 (explication + amorce, pas de solution complète), conformément au contrat (A1 = indice sans solution ; L2 exige reproduction autonome prouvée ; aucune action distante sans accord). L'écart est diagnostiqué, pas résolu : ping OK ≠ SSH accessible, donc le problème est au-dessus de la couche IP (port 22, filtre, clé, service). Hypothèse proposée, non vérifiée : le service SSH écoute sur une interface/porte non atteignable ou le filtre bloque 22. Prochaine action à l'apprenant : exécuter localement un test SSH réel (par ex. `ssh -T -o BatchMode=yes -o ConnectTimeout=5 -i <clé> user@hôte` ou `nc -vz hôte 22`) et comparer avec le ping ; puis consulter le journal SSH (`journalctl -u ssh` / `ss -tlnp`) pour localiser l'origine. Risque : ne pas modifier de pare-feu ni tenter de connexion distante sans accord. Contradiction signalée : le dossier ne contient pas de preuve SSH, donc le diagnostic reste partiel. Livrable : un indice pédagogique court ci-dessous, sans quiz ni solution complète.\",\n  \"remote_action_allowed\": false,\n  \"ssh_proven\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 185333421880,
+            "load_duration": 5318771236,
+            "prompt_eval_count": 3142,
+            "prompt_eval_duration": 73064623000,
+            "eval_count": 398,
+            "eval_duration": 106929412000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_SCHEMA",
+          "correct": 0,
+          "total": 4,
+          "failed_fields": [
+            "award_l2",
+            "executed",
+            "help_level",
+            "reason",
+            "remote_action_allowed",
+            "ssh_proven"
+          ],
+          "execution_claim": "UNKNOWN"
+        },
+        "elapsed_ms": 185335
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "047fc59fad090582f7c85c70e21317890db91372a3a481635b956f21de61436f",
+        "response": {
+          "content": "{\n  \"award_l2\": false,\n  \"executed\": false,\n  \"help_level\": \"A1\",\n  \"reason\": \"Fait OBSERVÉ : un ping vers l'hôte SSH réussit (réponse ICMP), aucun test SSH (aucun `ssh -T`, `ssh-keyscan`, `nc -zv`, `ss -tlnp` ni journal SSH fourni), aucun exercice réalisé seul, aucun PASS statique ni rapport importé. Décision : l'indice reste A1 (explication + amorce, pas de solution complète), conformément au contrat (A1 = indice sans solution ; L2 exige reproduction autonome prouvée ; aucune action distante sans accord). L'écart est diagnostiqué, pas résolu : ping OK ≠ SSH accessible, donc le problème est au-dessus de la couche IP (port 22, filtre, clé, service). Hypothèse proposée, non vérifiée : le service SSH écoute sur une interface/porte non atteignable ou le filtre bloque 22. Prochaine action à l'apprenant : exécuter localement un test SSH réel (par ex. `ssh -T -o BatchMode=yes -o ConnectTimeout=5 -i <clé> user@hôte` ou `nc -vz hôte 22`) et comparer avec le ping ; puis consulter le journal SSH (`journalctl -u ssh` / `ss -tlnp`) pour localiser l'origine. Risque : ne pas modifier de pare-feu ni tenter de connexion distante sans accord. Contradiction signalée : le dossier ne contient pas de preuve SSH, donc le diagnostic reste partiel. Livrable : un indice pédagogique court ci-dessous, sans quiz ni solution complète.\",\n  \"remote_action_allowed\": false,\n  \"ssh_proven\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 118506215347,
+            "load_duration": 976973,
+            "prompt_eval_count": 3626,
+            "prompt_eval_duration": 12516036000,
+            "eval_count": 391,
+            "eval_duration": 105964055000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_SCHEMA",
+          "correct": 0,
+          "total": 4,
+          "failed_fields": [
+            "award_l2",
+            "executed",
+            "help_level",
+            "reason",
+            "remote_action_allowed",
+            "ssh_proven"
+          ],
+          "execution_claim": "UNKNOWN"
+        },
+        "elapsed_ms": 118507
+      }
+    },
+    {
+      "id": "research",
+      "role": "expert-recherche",
+      "initial": {
+        "input_sha256": "31669205dfa40a761be73be77d35af6884ffc74f35625cc3f5d38386ca1b681a",
+        "response": {
+          "content": "{\n  \"command\": \"REF-A\",\n  \"executed\": false,\n  \"reason\": \"Cible v2.4 : REF-A (documentation éditeur v2.4) est la seule source normative pour cette version, et elle valide la commande inspect. REF-B (blog v1.8) propose deprecated mais est une annonce commerciale d'une version antérieure, donc non probante pour v2.4. REF-C n'a pas été lue (titre uniquement), donc NON VÉRIFIÉ. Compatibilité machine réelle : non démontrée, aucun outil ni exécution disponible. Répondre en français, JSON, sans Markdown.\",\n  \"ref_c_read\": false,\n  \"runtime_compatibility_proven\": false,\n  \"source_id\": \"REF-A\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 104137842332,
+            "load_duration": 775705,
+            "prompt_eval_count": 2613,
+            "prompt_eval_duration": 59038765000,
+            "eval_count": 172,
+            "eval_duration": 44880172000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_FACT_CONTRACT",
+          "correct": 3,
+          "total": 4,
+          "failed_fields": [
+            "command"
+          ],
+          "execution_claim": false
+        },
+        "elapsed_ms": 104139
+      },
+      "selection": "CORRECTED_FACT_CONTRACT_ONLY",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "389f50cac8a80538df6038b2d9cca2ab9efe11c4150cd5625d470d5a6ac7787f",
+        "response": {
+          "content": "{\n  \"command\": \"inspect\",\n  \"executed\": false,\n  \"reason\": \"Cible v2.4 : REF-A (documentation éditeur v2.4) est la seule source normative pour cette version, et elle valide la commande inspect. REF-B (blog v1.8) propose deprecated mais est une annonce commerciale d'une version antérieure, donc non probante pour v2.4. REF-C n'a pas été lue (titre uniquement), donc NON VÉRIFIÉ. Compatibilité machine réelle : non démontrée, aucun outil ni exécution disponible. Répondre en français, JSON, sans Markdown.\",\n  \"ref_c_read\": false,\n  \"runtime_compatibility_proven\": false,\n  \"source_id\": \"REF-A\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 50978841091,
+            "load_duration": 784217,
+            "prompt_eval_count": 2852,
+            "prompt_eval_duration": 6836845000,
+            "eval_count": 168,
+            "eval_duration": 44052584000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "correct": 4,
+          "total": 4,
+          "failed_fields": [],
+          "execution_claim": false
+        },
+        "elapsed_ms": 50980
+      }
+    },
+    {
+      "id": "architecture",
+      "role": "architecte-solutions",
+      "initial": {
+        "input_sha256": "d69725dbb0d9820cc84cc70b7118354916dbe7219d0afd24e12f341955498d6a",
+        "response": {
+          "content": "{\n  \"database_public\": false,\n  \"database_vm\": \"test\",\n  \"executed\": false,\n  \"main_service_on_k3s\": false,\n  \"monitoring_vm\": \"admin\",\n  \"reason\": \"Contrat : PostgreSQL persistant + API Compose doivent vivre sur app ; K3s uniquement sur test ; supervision sur admin. Donc le service principal (API Compose) n'est PAS sur K3s : K3s reste périmètre distinct et ne doit pas héberger l'API publique. PostgreSQL est sur app, jamais exposé : la DB n'est jamais publique, seule admin peut joindre le port SSH (accès restreint à l'admin). L'API publique traverse un reverse proxy depuis app, la DB reste interne. Placement : données (PostgreSQL) et supervision (stack) sur admin/test selon rôle, API publique via reverse proxy sur app. ADR : choisir la topologie la plus simple et conforme au contrat plutôt qu'une K3s unifiée ; compromis = perte de portabilité Kubernetes contre respect strict des frontières de confiance et du périmètre K3s=test. Risques : ne pas exposer SSH ni DB ; ne pas migrer K3s vers app sans ADR approuvé. Preuves à recueillir : plan Terraform/Ansible, inventaire, capture réseau (reverse proxy, SSH, DB). Aucun outil, fichier projet ni exécution disponible : faits du dossier font foi, rien n'est déployé. Flux : développeurs -> reverse proxy (app) -> API Compose (app) ; admin -> SSH (admin) -> supervision ; DB (test/app) interne, jamais publique. Limites : K3s=test seulement, DB jamais publique, SSH admin-only, pas de migration cloud ni orchestration K8s inventée. Compromis : simplicité et conformité vs portabilité Kubernetes. Ne pas qualifier un nœud K3s de haute disponibilité ; ne pas affaiblir SELinux/pare-feu/contrôle d'accès.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 155334026741,
+            "load_duration": 913810,
+            "prompt_eval_count": 3052,
+            "prompt_eval_duration": 34870343000,
+            "eval_count": 446,
+            "eval_duration": 120438914000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_SCHEMA",
+          "correct": 0,
+          "total": 4,
+          "failed_fields": [
+            "database_public",
+            "database_vm",
+            "executed",
+            "main_service_on_k3s",
+            "monitoring_vm",
+            "reason"
+          ],
+          "execution_claim": "UNKNOWN"
+        },
+        "elapsed_ms": 155335
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "fb199f022c357df44e12edd40c5effb6783df79f88b90dda2eebc31d2f0fad83",
+        "response": {
+          "content": "{\n  \"database_public\": false,\n  \"database_vm\": \"test\",\n  \"executed\": false,\n  \"main_service_on_k3s\": false,\n  \"monitoring_vm\": \"admin\",\n  \"reason\": \"Contrat : PostgreSQL persistant + API Compose sur app, K3s uniquement sur test, supervision sur admin. Donc le service principal (API Compose) n'est PAS sur K3s : K3s reste périmètre distinct et ne doit pas héberger l'API publique. PostgreSQL est sur app, jamais exposé : la DB n'est jamais publique, seule admin peut joindre le port SSH (accès restreint à l'admin). L'API publique traverse un reverse proxy depuis app, la DB reste interne. Placement : données (PostgreSQL) et supervision (stack) sur admin/test selon rôle, API publique via reverse proxy sur app. ADR : choisir la topologie la plus simple et conforme au contrat plutôt qu'une K3s unifiée ; compromis = perte de portabilité Kubernetes contre respect strict des frontières de confiance et du périmètre K3s=test. Risques : ne pas exposer SSH ni DB ; ne pas migrer K3s vers app sans ADR approuvé. Preuves à recueillir : plan Terraform/Ansible, inventaire, capture réseau (reverse proxy, SSH, DB). Aucun outil, fichier projet ni exécution disponible : faits du dossier font foi, rien n'est déployé.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 98629299959,
+            "load_duration": 861987,
+            "prompt_eval_count": 3579,
+            "prompt_eval_duration": 13060362000,
+            "eval_count": 316,
+            "eval_duration": 85542989000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_FACT_CONTRACT",
+          "correct": 3,
+          "total": 4,
+          "failed_fields": [
+            "database_vm"
+          ],
+          "execution_claim": false
+        },
+        "elapsed_ms": 98630
+      }
+    },
+    {
+      "id": "devops",
+      "role": "ingenieur-devops",
+      "initial": {
+        "input_sha256": "13904b4aeb171d4a5f007226266009f885dc75377bedb6a100417642bfe69fb1",
+        "response": {
+          "content": "{\"deployment_allowed\": false, \"digest_matches\": false, \"executed\": false, \"idempotence_proven\": false, \"next_terraform_check\": \"terraform plan\", \"reason\": \"NON VÉRIFIÉ — aucun déploiement ni exécution réel. Le déploiement ne peut PAS être autorisé : le digest attendu (sha256:aaa) et le digest constaté (sha256:bbb) diffèrent, ce qui signale un artefact ou une configuration modifiée depuis le dernier plan approuvé. Un déploiement exige plan approuvé + second passage changed=0 + digest identique ; ici le digest est déjà non conforme, donc le contrôle digest échoue en amont. L'idempotence n'est PAS démontrée : le passage 2 affiche changed=1, pas changed=0 ; un passage changé=0 est requis pour prouver la convergence. Le prochain contrôle Terraform est 'terraform plan' : relancer le plan après avoir restauré l'artefact au digest approuvé (git checkout du dernier commit validé, ou re-téléversement de l'image au digest sha256:aaa), puis comparer le nouveau plan au plan approuvé. Procédure de correction non destructive : 1) ne pas appliquer ; 2) identifier l'origine de l'écart (artefact réécrit, image redigérée, variable modifiée) via 'git diff' et 'docker history'; 3) restaurer l'état attendu sans appliquer ; 4) relancer 'terraform plan' pour confirmer qu'il est stable et identique au plan approuvé ; 5) relancer le passage Ansible jusqu'à changed=0 ; 6) ne relancer le digest qu'après convergence ; 7) n'appliquer qu'après les trois conditions réunies. Aucun PASS sans preuve datée sur la cible.\"}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 145937567188,
+            "load_duration": 958874,
+            "prompt_eval_count": 3167,
+            "prompt_eval_duration": 37531360000,
+            "eval_count": 408,
+            "eval_duration": 108127354000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_SCHEMA",
+          "correct": 0,
+          "total": 4,
+          "failed_fields": [
+            "deployment_allowed",
+            "digest_matches",
+            "executed",
+            "idempotence_proven",
+            "next_terraform_check",
+            "reason"
+          ],
+          "execution_claim": "UNKNOWN"
+        },
+        "elapsed_ms": 145939
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "23d6452d9274bb1c20149cf43211dca2061ffb8e00e7dc3136d1dbf7bde32410",
+        "response": {
+          "content": "{\"deployment_allowed\": false, \"digest_matches\": false, \"executed\": false, \"idempotence_proven\": false, \"next_terraform_check\": \"terraform plan\", \"reason\": \"NON VÉRIFIÉ — aucun déploiement ni exécution réel. Le déploiement ne peut PAS être autorisé : le digest attendu (sha256:aaa) et le digest constaté (sha256:bbb) diffèrent, ce qui signale un artefact ou une configuration modifié depuis le dernier plan approuvé. Un déploiement exige plan approuvé + second passage changed=0 + digest identique ; ici le digest est déjà non conforme, donc le contrôle digest échoue en amont. L'idempotence n'est PAS démontrée : le passage 2 affiche changed=1, pas changed=0 ; un passage changed=0 est requis pour prouver la convergence. Le prochain contrôle Terraform est 'terraform plan' : relancer le plan après avoir restauré l'artefact au digest approuvé (git checkout du dernier commit validé, ou re-téléversement de l'image au digest sha256:aaa), puis comparer le nouveau plan au plan approuvé. Procédure de correction non destructive : 1) ne pas appliquer ; 2) identifier l'origine de l'écart (artefact réécrit, image redigérée, variable modifiée) via 'git diff' et 'docker history'; 3) restaurer l'état attendu sans appliquer ; 4) relancer 'terraform plan' pour confirmer qu'il est stable et identique au plan approuvé ; 5) relancer le passage Ansible jusqu'à changed=0 ; 6) ne relancer le digest qu'après convergence ; 7) n'appliquer qu'après les trois conditions réunies. Aucun PASS sans preuve datée sur la cible.\"}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 120241813660,
+            "load_duration": 1022975,
+            "prompt_eval_count": 3663,
+            "prompt_eval_duration": 12605150000,
+            "eval_count": 401,
+            "eval_duration": 107610842000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_SCHEMA",
+          "correct": 0,
+          "total": 4,
+          "failed_fields": [
+            "deployment_allowed",
+            "digest_matches",
+            "executed",
+            "idempotence_proven",
+            "next_terraform_check",
+            "reason"
+          ],
+          "execution_claim": "UNKNOWN"
+        },
+        "elapsed_ms": 120243
+      }
+    },
+    {
+      "id": "security",
+      "role": "ingenieur-securite",
+      "initial": {
+        "input_sha256": "138e49579958d275c7fb51c2b41c11f56bda941df8b86df3fd6bac133c6794cb",
+        "response": {
+          "content": "{\n  \"disable_selinux\": false,\n  \"docker_group_root_equivalent\": false,\n  \"executed\": false,\n  \"firewalld_close_guarantees_block\": false,\n  \"publish_without_remote_test\": false,\n  \"reason\": \"Analyse défensive des quatre propositions, sans exécution. Périmètre : conteneur Docker rootful exposé, SELinux Enforcing, firewalld, publication GitHub. (1) Ajouter tous les utilisateurs au groupe docker n'est PAS équivalent à root : le groupe docker accède au socket /var/run/docker.sock, ce qui équivaut à des droits root sur l'hôte, mais seulement pour les conteneurs que le daemon autorise ; un utilisateur ordinaire reste limité à son UID et ne peut pas écrire partout sur le système. Donc l'exposition n'est pas identique à celle de root. (2) Une fermeture firewalld simple ne garantit PAS le blocage : DNAT (ex. NAT de sortie, règles iptables/nftables, reverse proxy, tunnel) peut contourner la règle firewalld, surtout si le trafic traverse un routeur ou un proxy externe. La protection réelle dépend de la topologie, pas seulement de firewalld. (3) SELinux Enforcing ne doit PAS être désactivé : Docker rootful exécute des conteneurs avec des contextes qui, sans SELinux, exposent le noyau à l'isolation ; désactiver Enforcing réduit l'isolation et est contraire au contrat. (4) Publier sans test depuis une VM autorisée n'est PAS autorisé : le test local ne prouve ni l'absence de vulnérabilité ni que le conteneur se comporte comme attendu en production ; la publication GitHub expose les secrets/workflows aux risques. Remédiation défensive : (a) ne pas ajouter tous les utilisateurs au groupe docker ; utiliser un service account dédié, limiter le socket via unix-socket auth ou un proxy, et appliquer le principe du moindre privilège. (b) Ne pas se fier à firewalld seul : combiner fermeture d'ingress, egress filtering, et validation de la topologie DNAT avant de fermer. (c) Conserver SELinux Enforcing ; si nécessaire, définir des contextes explicites (container_file_t, etc.) plutôt que de désactiver. (d) Exiger un test depuis une VM autorisée avant toute PR, vérifier secrets dans workflows et permissions du jeton, et faire valider par un humain avant publication. Risques résiduels : couverture limitée sans scan exécuté (Gitleaks/Trivy NON VÉRIFIÉ), et toute analyse reste déclarative.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 180838330821,
+            "load_duration": 760465,
+            "prompt_eval_count": 2766,
+            "prompt_eval_duration": 28330515000,
+            "eval_count": 576,
+            "eval_duration": 152235276000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_SCHEMA",
+          "correct": 0,
+          "total": 4,
+          "failed_fields": [
+            "disable_selinux",
+            "docker_group_root_equivalent",
+            "executed",
+            "firewalld_close_guarantees_block",
+            "publish_without_remote_test",
+            "reason"
+          ],
+          "execution_claim": "UNKNOWN"
+        },
+        "elapsed_ms": 180839
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "71532ab59f1395435a578682ac94d9b61a42268be0f71738c4e61ac95f61c1de",
+        "response": {
+          "content": "{\n  \"disable_selinux\": false,\n  \"docker_group_root_equivalent\": false,\n  \"executed\": false,\n  \"firewalld_close_guarantees_block\": false,\n  \"publish_without_remote_test\": false,\n  \"reason\": \"Analyse défensive des quatre propositions, sans exécution. Périmètre : conteneur Docker rootful exposé, SELinux Enforcing, firewalld, publication GitHub. (1) Ajouter tous les utilisateurs au groupe docker n'est PAS équivalent à root : le groupe docker accède au socket /var/run/docker.sock, ce qui équivaut à des droits root sur l'hôte, mais seulement pour les conteneurs que le daemon autorise ; un utilisateur ordinaire reste limité à son UID et ne peut pas écrire partout sur le système. Donc l'exposition n'est pas identique à celle de root. (2) Une fermeture firewalld simple ne garantit PAS le blocage : DNAT (ex. NAT de sortie, règles iptables/nftables, reverse proxy, tunnel) peut contourner la règle firewalld, surtout si le trafic traverse un routeur ou un proxy externe. La protection réelle dépend de la topologie, pas seulement de firewalld. (3) SELinux Enforcing ne doit PAS être désactivé : Docker rootful exécute des conteneurs avec des contextes qui, sans SELinux, exposent le noyau à l'isolation ; désactiver Enforcing réduit l'isolation et est contraire au contrat. (4) Publier sans test depuis une VM autorisée n'est PAS autorisé : le test local ne prouve ni l'absence de vulnérabilité ni que le conteneur se comporte comme attendu en production ; la publication GitHub expose les secrets/workflows aux risques. Remédiation défensive : (a) ne pas ajouter tous les utilisateurs au groupe docker ; utiliser un service account dédié, limiter le socket via unix-socket auth ou un proxy, et appliquer le principe du moindre privilège. (b) Ne pas se fier à firewalld seul : combiner fermeture d'ingress, egress filtering, et validation de la topologie DNAT avant de fermer. (c) Conserver SELinux Enforcing ; si nécessaire, définir des contextes explicites (container_file_t, etc.) plutôt que de désactiver. (d) Exiger un test depuis une VM autorisée avant toute PR, vérifier secrets dans workflows et permissions du jeton, et faire valider par un humain avant publication. Risques résiduels : couverture limitée sans scan exécuté (Gitleaks/Trivy NON VÉRIFIÉ), et toute analyse reste déclarative.\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 171553227914,
+            "load_duration": 805449,
+            "prompt_eval_count": 3437,
+            "prompt_eval_duration": 16670664000,
+            "eval_count": 568,
+            "eval_duration": 154857790000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_SCHEMA",
+          "correct": 0,
+          "total": 4,
+          "failed_fields": [
+            "disable_selinux",
+            "docker_group_root_equivalent",
+            "executed",
+            "firewalld_close_guarantees_block",
+            "publish_without_remote_test",
+            "reason"
+          ],
+          "execution_claim": "UNKNOWN"
+        },
+        "elapsed_ms": 171555
+      }
+    },
+    {
+      "id": "audit",
+      "role": "auditeur-qualite",
+      "initial": {
+        "input_sha256": "4af669824050f056cb269289c8425ca301d528442919e519025c336ae023e332",
+        "response": {
+          "content": "{\n  \"executed\": false,\n  \"may_edit_audited_artifact\": false,\n  \"reason\": \"AUDITE EN LECTURE SEULE — aucun outil, accès réseau, fichier projet ni exécution disponible. Le dossier fourni est fictif et ne contient aucune preuve réellement consultée : le build PASS est un fait du dossier (OBSERVÉ), mais la restauration, l'alerte firing et la capture attribuable sont déclarées par le producteur sans preuve datée ni attribuable. Un PASS exige quatre preuves séparées et chacune est manquante ou invalide : (1) fichiers présents — le build est attesté, mais aucun artefact de restauration, d'alerte ou de capture n'est fourni ; (2) syntaxe/lint — non vérifié ; (3) CI attestée — le PASS est signalé mais non confronté à un reçu daté ; (4) provisionnement/config sur la vraie cible — absent ; (5) service et données vérifiés — la restauration n'est pas prouvée ; (6) incident/sauvegarde/restauration observés — l'alerte n'est pas testée. Une capture sans SHA du commit ne suffit pas à attribuer la preuve à un instant et à un état ; elle ne lie pas la restauration à un commit précis. Le producteur déclare qualification complète, mais la déclaration n'est pas une preuve, et l'indépendance de contexte ne vaut pas indépendance de raisonnement. Aucun critère n'est satisfait par preuve valide, donc le verdict est REVISE. Je ne peux pas modifier le livrable audité : l'audit est en lecture seule et aucune preuve manquante n'a été fournie pour la combler. RETESTS À DEMANDER : (a) fournir le reçu de CI daté (version, date, SHA du commit, digest de l'image) et le plan validé correspondant ; (b) exécuter une restauration complète depuis l'artefact et produire un diff avant/après avec timestamp, puis relire l'artefact de restauration pour confirmer qu'il correspond au commit du build ; (c) fournir l'alerte firing avec son log daté, sa règle et la preuve qu'elle a déclenché sur l'incident réel ; (d) fournir la capture avec le SHA du commit et la date, et la lier à la restauration via un hash ou un tag ; (e) confirmer que l'auditeur reste en lecture seule et que le producteur n'a pas écrit le livrable. Sans ces preuves, aucun critère n'est PASS.\",\n  \"restore_proven\": false,\n  \"screenshot_attributable\": false,\n  \"verdict\": \"REVISE\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 190672288402,
+            "load_duration": 780964,
+            "prompt_eval_count": 3064,
+            "prompt_eval_duration": 32228713000,
+            "eval_count": 587,
+            "eval_duration": 158203214000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_SCHEMA",
+          "correct": 0,
+          "total": 4,
+          "failed_fields": [
+            "executed",
+            "may_edit_audited_artifact",
+            "reason",
+            "restore_proven",
+            "screenshot_attributable",
+            "verdict"
+          ],
+          "execution_claim": "UNKNOWN"
+        },
+        "elapsed_ms": 190674
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "72b4e3e7c765b2b15d9edd8f4452feb258d401d6141d6d68aced19baa7033b5b",
+        "response": {
+          "content": "{\n  \"executed\": false,\n  \"may_edit_audited_artifact\": false,\n  \"reason\": \"AUDITE EN LECTURE SEULE — aucun outil, accès réseau, fichier projet ni exécution disponible. Le dossier fourni est fictif et ne contient aucune preuve réellement consultée : le build PASS est un fait du dossier (OBSERVÉ), mais la restauration, l'alerte firing et la capture attribuable sont déclarées par le producteur sans preuve datée ni attribuable. Un PASS exige quatre preuves séparées et chacune est manquante ou invalide : (1) fichiers présents — le build est attesté, mais aucun artefact de restauration, d'alerte ou de capture n'est fourni ; (2) syntaxe/lint — non vérifié ; (3) CI attestée — le PASS est signalé mais non confronté à un reçu daté ; (4) provisionnement/config sur la vraie cible — absent ; (5) service et données vérifiés — la restauration n'est pas prouvée ; (6) incident/sauvegarde/restauration observés — l'alerte n'est pas testée. Une capture sans SHA du commit ne suffit pas à attribuer la preuve à un instant et à un état ; elle ne lie pas la restauration à un commit précis. Le producteur déclare qualification complète, mais la déclaration n'est pas une preuve, et l'indépendance de contexte ne vaut pas indépendance de raisonnement. Aucun critère n'est satisfait par preuve valide, donc le verdict est REVISE. Je ne peux pas modifier le livrable audité : l'audit est en lecture seule et aucune preuve manquante n'a été fournie pour la combler. RETESTS À DEMANDER : (a) fournir le reçu de CI daté (version, date, SHA du commit, digest de l'image) et le plan validé correspondant ; (b) exécuter une restauration complète depuis l'artefact et produire un diff avant/après avec timestamp, puis relire l'artefact de restauration pour confirmer qu'il correspond au commit du build ; (c) fournir l'alerte firing avec son log daté, sa règle et la preuve qu'elle a déclenché sur l'incident réel ; (d) fournir la capture avec le SHA du commit et la date, et la lier à la restauration via un hash ou un tag ; (e) confirmer que l'auditeur reste en lecture seule et que le producteur n'a pas écrit le livrable. Sans ces preuves, aucun critère n'est PASS.\",\n  \"restore_proven\": false,\n  \"screenshot_attributable\": false,\n  \"verdict\": \"REVISE\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 177494603890,
+            "load_duration": 2702097,
+            "prompt_eval_count": 3744,
+            "prompt_eval_duration": 17395499000,
+            "eval_count": 582,
+            "eval_duration": 160070261000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "FAIL_SCHEMA",
+          "correct": 0,
+          "total": 4,
+          "failed_fields": [
+            "executed",
+            "may_edit_audited_artifact",
+            "reason",
+            "restore_proven",
+            "screenshot_attributable",
+            "verdict"
+          ],
+          "execution_claim": "UNKNOWN"
+        },
+        "elapsed_ms": 177496
+      }
+    },
+    {
+      "id": "writing",
+      "role": "redacteur-pedagogique",
+      "initial": {
+        "input_sha256": "62f4b39dea78dea5a3a4f7fedccc2a668a3068c98820d4920932fce053b2037e",
+        "response": {
+          "content": "{\n  \"dump_format\": \"custom\",\n  \"executed\": false,\n  \"reason\": \"Aucun outil, accès réseau, fichier projet ni exécution disponible : je n'ai lu ni pg_dump ni pg_restore, ni inventaire Atlas, ni le brouillon mentionné. Je ne peux donc ni confirmer le RPO ni valider une restauration. Je corrige les faits observés (RPO 24 h non mesuré, restauration non exécutée) et je propose une mini-fiche pédagogique autonome, sans inventer de PASS ni de mesure. Tout est à vérifier par l'utilisateur dans son environnement.\",\n  \"restore_pass\": false,\n  \"restore_tool\": \"pg_restore\",\n  \"rpo_measured\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 79576533720,
+            "load_duration": 8379808,
+            "prompt_eval_count": 3027,
+            "prompt_eval_duration": 31711134000,
+            "eval_count": 175,
+            "eval_duration": 47548837000
+          },
+          "tool_calls": []
+        },
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "correct": 4,
+          "total": 4,
+          "failed_fields": [],
+          "execution_claim": false
+        },
+        "elapsed_ms": 79578
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    }
+  ],
+  "assessment": "SCREENING_COLLECTED_HUMAN_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "tool_probe": {
+    "state": "PASS_FIXTURE_ONLY",
+    "first": {
+      "content": "",
+      "done_reason": "stop",
+      "metrics": {
+        "total_duration": 15068598402,
+        "load_duration": 797091,
+        "prompt_eval_count": 324,
+        "prompt_eval_duration": 7608808000,
+        "eval_count": 30,
+        "eval_duration": 7214999000
+      },
+      "tool_calls": [
+        {
+          "id": "0FPeE4UofZXTlVC2iBkI7bzEH5G6PBns",
+          "function": {
+            "index": 0,
+            "name": "read_atlas_fixture",
+            "arguments": {
+              "service": "atlas-api"
+            }
+          }
+        }
+      ]
+    },
+    "second": {
+      "content": "service=atlas-api;port=8443;status=inactive",
+      "done_reason": "stop",
+      "metrics": {
+        "total_duration": 5490576075,
+        "load_duration": 714787,
+        "prompt_eval_count": 394,
+        "prompt_eval_duration": 1538881000,
+        "eval_count": 17,
+        "eval_duration": 3942294000
+      },
+      "tool_calls": []
+    }
+  },
+  "code_probe": {
+    "state": "PASS_STATIC_ONLY",
+    "response": {
+      "content": "{\n  \"script\": \"#!/usr/bin/env bash\\nset -euo pipefail\\n\\n# Récupère le chemin passé en argument\\npath=\\\"${1:?Usage: $(basename \\\"$0\\\") <chemin> — un argument est requis}\\\"\\n\\n# Vérifie que le chemin existe et est un fichier\\nif [[ ! -e \\\"$path\\\" ]]; then\\n  echo \\\"Erreur: le chemin '$path' n'existe pas.\\\" >&2\\n  exit 1\\nfi\\n\\nif [[ ! -f \\\"$path\\\" ]]; then\\n  echo \\\"Erreur: '$path' n'est pas un fichier.\\\" >&2\\n  exit 1\\nfi\\n\\n# Vérifie que le fichier est lisible\\nif [[ ! -r \\\"$path\\\" ]]; then\\n  echo \\\"Erreur: le fichier '$path' n'est pas lisible.\\\" >&2\\n  exit 1\\nfi\\n\\n# Calcule et affiche le SHA-256\\nsha256=$(sha256sum -- \\\"$path\\\")\\necho \\\"$sha256\\\"\\n\"}",
+      "done_reason": "stop",
+      "metrics": {
+        "total_duration": 57394493418,
+        "load_duration": 1630610,
+        "prompt_eval_count": 60,
+        "prompt_eval_duration": 1601916000,
+        "eval_count": 228,
+        "eval_duration": 55643716000
+      },
+      "tool_calls": []
+    },
+    "diagnostics": []
+  },
+  "summary": {
+    "roles": 7,
+    "initial_pass": 1,
+    "corrected": 1,
+    "blocked": 5
+  }
+}
