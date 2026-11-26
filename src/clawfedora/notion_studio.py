@@ -21,6 +21,7 @@ from uuid import uuid4
 
 from PIL import Image
 
+from clawfedora import notion_curriculum as nc
 from clawfedora import notion_editorial as ne
 from clawfedora import notion_studio_preview as sp
 from clawfedora import notion_write as nw
@@ -56,6 +57,10 @@ def _request(method: str, resource: str, *, body: dict[str, Any] | None = None,
         and ((binary is not None) == resource.endswith("/send"))
         and (body is not None) != (binary is not None)
     )
+    allowed = allowed or (
+        method == "PATCH" and re.fullmatch(rf"/v1/data_sources/{ID}", resource)
+        and body is not None and binary is None
+    )
     if not allowed:
         raise nw.NotionWriteError("endpoint studio non autorisé")
     payload = binary if binary is not None else (
@@ -63,7 +68,7 @@ def _request(method: str, resource: str, *, body: dict[str, Any] | None = None,
     )
     request = urllib.request.Request(
         nw.API + resource, data=payload, method=method,
-        headers={"Authorization": "Bearer " + nw._token(write=method == "POST"),
+        headers={"Authorization": "Bearer " + nw._token(write=method != "GET"),
                  "Notion-Version": VERSION, "Content-Type": content_type,
                  "Accept": "application/json"},
     )
@@ -144,7 +149,10 @@ def _page_spec(spec: object, parent: str) -> tuple[dict[str, Any], list[str]]:
 
 
 def _spec(spec: object, parent: str) -> list[str]:
-    if not isinstance(spec, dict) or set(spec) != {"home", "pages", "tracker"}:
+    if (
+        not isinstance(spec, dict) or not {"home", "pages", "tracker"} <= set(spec)
+        or not set(spec) <= {"home", "pages", "tracker", "curriculum"}
+    ):
         raise nw.NotionWriteError("schéma studio : home, pages, tracker")
     pages = spec["pages"]
     if not isinstance(pages, list) or not 1 <= len(pages) <= 6:
@@ -176,6 +184,10 @@ def _spec(spec: object, parent: str) -> list[str]:
             not isinstance(v, str) or v not in {"list", "gallery", "table"} for v in views
         ) or len(set(views)) != len(views):
             raise nw.NotionWriteError("vues autorisées : list, gallery, table")
+    if "curriculum" in spec:
+        if tracker is not None:
+            raise nw.NotionWriteError("un seul suivi : tracker ou parcours relationnel")
+        assets.update(nc.validate(spec["curriculum"], titles))
     if len(assets) > 8:
         raise nw.NotionWriteError("huit fichiers privés maximum")
     return sorted(assets)
@@ -428,6 +440,12 @@ def apply(plan_file: Path, parent: str, manifest: str) -> dict[str, Any]:
                     {"root_page_id": home, "manifest_sha256": digest})
     pages = [_created_page(page, home, uploads) for page in spec["pages"]]
     tracker = _tracker(home, spec["tracker"]) if spec["tracker"] is not None else None
+    if "curriculum" in spec:
+        page_map = {spec["home"]["title"]: home}
+        page_map.update({page["title"]: ident for page, ident in zip(
+            spec["pages"], pages, strict=True,
+        )})
+        tracker = nc.create(_request, home, spec["curriculum"], page_map, uploads)
     for ident in uploads.values():
         actual = _request("GET", f"/v1/file_uploads/{ident}")
         if (
