@@ -125,6 +125,26 @@ def render(spec: dict[str, Any], records: list[dict[str, Any]],
             '<table><tr><th>Ordre</th><th>Activité</th><th>État</th></tr>'
             f'{rows}</table></article>',
         )
+    if "curriculum" in spec:
+        cards = []
+        page_indexes = {page["title"]: i for i, page in enumerate(pages)}
+        for module in spec["curriculum"]["modules"]:
+            cover = ""
+            if "cover_file" in module:
+                cover = f'<img class="cover" src="{images[module["cover_file"]]}" alt="">'
+            items = "".join(
+                f'<li>{escape(activity["title"])} — {escape(activity["objective"])}</li>'
+                for activity in module["activities"]
+            )
+            target = page_indexes[module["page"]]
+            cards.append(
+                f'<aside>{cover}<h3>{escape(module["title"])}</h3>'
+                f'<p>{escape(module["objective"])}</p><p>0 / {len(module["activities"])} '
+                f'activités validées</p><a href="#page-{target}">Ouvrir le module</a>'
+                f'<ul>{items}</ul></aside>',
+            )
+        sections.append('<article><h2>Parcours relationnel — simulation locale</h2>'
+                        '<div class="columns">' + "".join(cards) + '</div></article>')
     return (
         '<!doctype html><html lang="fr"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1">'

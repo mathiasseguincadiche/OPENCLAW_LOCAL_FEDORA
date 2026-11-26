@@ -77,7 +77,9 @@ segments enrichis bornés. Ce sont des références publiques choisies explicite
 aucun transfert de fichier privé à GitHub. L'approbation du plan reste obligatoire.
 Le [studio de wiki](NOTION_STUDIO.md) ajoute l'upload direct PNG/JPEG, les pages
 filles et une base de suivi avec vues, dans un nouveau wiki et sous approbation.
-Relations, rollups, autres formats et édition complète restent hors périmètre ;
+Le [parcours relationnel](NOTION_CURRICULUM.md) ajoute des modules illustrés,
+une relation vers les activités et un rollup de progression manuelle.
+Autres formats et édition complète restent hors périmètre ;
 ne pas assimiler capacité implémentée et qualification réelle.
 
 La revue de contenu dispose de questions Premium V2 complémentaires à la grille

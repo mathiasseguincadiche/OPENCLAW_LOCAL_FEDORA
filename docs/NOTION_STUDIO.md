@@ -8,6 +8,8 @@ et couverture privée, une base de suivi optionnelle avec activités et vues
 liste, galerie et tableau. Il n'édite pas les wikis existants.
 Le contrat 2026-03-11 est isolé ; les autres moteurs Notion restent inchangés.
 
+Le [parcours relationnel avancé](NOTION_CURRICULUM.md) est une alternative au suivi simple.
+
 ## Préparer
 
 - Choisir une page de test dont le partage est **vérifié par l'opérateur**.
@@ -73,8 +75,8 @@ les droits de partage ou le comportement des modèles. Les URL signées
 de Notion ne sont ni téléchargées ni consignées dans les reçus.
 Les tests automatisés simulent l'API. Une vraie page de test reste nécessaire.
 
-Les galeries utilisent des entrées de suivi simples, sans images sur cartes
-ni relation/rollup pour l'instant. Les liens complexes, les bases reliées,
+Le suivi simple conserve ses galeries sans images de cartes. Le parcours
+relationnel avancé ajoute des cartes illustrées, relations et rollups. Les liens complexes, les bases reliées,
 les sous-pages à plusieurs niveaux, l'édition de wikis existants, les SVG
 privés natifs et les médias volumineux restent des extensions distinctes.
 
