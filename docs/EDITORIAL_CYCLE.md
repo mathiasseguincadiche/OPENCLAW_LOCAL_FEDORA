@@ -25,8 +25,11 @@ commençant par `[revue éditoriale]`. Exemple :
 ~~~
 
 Pour un vrai projet, conserver les dépendances techniques du plan.
-Portée initiale : une source Markdown, 12 000 octets maximum, mode direct,
-route locale, sans critère de preuve machine ni export dans cette tâche.
+Portée : une source Markdown ou une paire graphique gérée, source de
+12 000 octets maximum, mode direct, route locale, sans preuve machine.
+Les sorties graphiques doivent partager dossier et nom hors extension.
+L'architecte peut demander .drawio + .svg (une vue), ou .json + .svg pour
+une identité ; le rédacteur peut également demander une identité.
 Le mode guidé ne déclenche pas la boucle : l'exercice de l'apprenant
 reste prioritaire. Les autres tâches et les plans anciens sont inchangés.
 
@@ -62,5 +65,17 @@ compétence. La revue native desktop clair/sombre/mobile et l'approbation
 de publication demeurent distinctes. Les tests CI simulent les agents ;
 la qualification des modèles sur Fedora reste à réaliser.
 
-Les SVG, Draw.io, sources JSON Notion, rapports multi-fichiers et mises
-à jour de wiki ne sont pas inclus dans cette première boucle.
+## Revue graphique
+
+Même critère opt-in dans le plan. Pour Draw.io, demander les deux références
+issues d'un seul appel à clawfedora_diagram. Pour une identité, demander JSON
+et SVG du même appel à clawfedora_artifact format identity. Les références
+brutes ou issues d'appels différents sont refusées. Le worker régénère le SVG
+et compare ses octets à la source. Les chevauchements, flux traversant des
+nœuds et segments non orthogonaux demandent une correction, même si le modèle
+les accepte. L'auditeur reçoit la source et un aperçu SVG dans son snapshot ;
+il cite la source et juge sept critères propres au graphisme. Le reçu contient
+les SHA-256 des deux fichiers. Ce n'est pas une inspection visuelle native.
+
+Les sources JSON Notion, rapports multi-fichiers, schémas multi-vues et mises
+à jour de wiki restent des extensions séparées.

@@ -51,3 +51,6 @@ composition, sans inventer de liens. Réception visuelle native obligatoire.
 Tests de déterminisme, XML, compatibilité et géométrie. Galerie de référence
 avec comparaison des octets en CI. La qualité typographique, le recadrage,
 les thèmes et le rendu natif exigent une recette séparée.
+
+La [boucle éditoriale](EDITORIAL_CYCLE.md) peut reprendre une paire graphique
+issue du même outil, en mode direct approuvé, jusqu'à deux corrections.
