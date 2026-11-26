@@ -108,3 +108,17 @@ def test_incomplete_run_keeps_partial_evidence(tmp_path, monkeypatch):
     assert result["results"][0]["state"] == "INFERENCE_ERROR"
     assert result["tool_probe"]["state"] == "NOT_RUN"
     assert json.loads(target.read_text()) == result
+
+
+def test_workflow_uses_runner_context_only_inside_steps():
+    import yaml
+
+    path = ROOT / ".github/workflows/local-model-comparison.yml"
+    workflow = yaml.load(path.read_text(), Loader=yaml.BaseLoader)
+    job = workflow["jobs"]["compare"]
+    assert all("runner." not in value for value in job["env"].values())
+    assert "RUNNER_TEMP" in job["steps"][0]["run"]
+    assert "GITHUB_ENV" in job["steps"][0]["run"]
+    assert workflow["on"]["push"]["branches"] == ["fix/local-model-comparison-workflow"]
+    assert "workflow_dispatch" in workflow["on"]
+    assert job["strategy"]["matrix"]["model"] == ["qwen", "ornith"]

@@ -8,9 +8,8 @@ on:
         type: choice
         options: [smoke, pilot, extended]
         default: smoke
-  pull_request:
-    types: [opened, reopened]
-    branches: [main]
+  push:
+    branches: [fix/local-model-comparison-workflow]
 
 permissions:
   contents: read
@@ -24,8 +23,8 @@ jobs:
     if: >-
       github.repository == 'mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA' &&
       (github.event_name == 'workflow_dispatch' ||
-       (github.event.pull_request.head.repo.full_name == github.repository &&
-        github.head_ref == 'feat/local-model-comparison'))
+       (github.event_name == 'push' &&
+        github.ref == 'refs/heads/fix/local-model-comparison-workflow'))
     runs-on: ubuntu-latest
     timeout-minutes: 90
     strategy:
@@ -41,9 +40,12 @@ jobs:
       OLLAMA_NUM_PARALLEL: "1"
       OLLAMA_MAX_LOADED_MODELS: "1"
       OLLAMA_CONTEXT_LENGTH: "8192"
-      OLLAMA_MODELS: ${{ runner.temp }}/ollama-models
-      EVIDENCE: ${{ runner.temp }}/model-comparison
     steps:
+      - name: Initialize runner-local paths
+        shell: bash
+        run: |
+          printf 'OLLAMA_MODELS=%s/ollama-models\nEVIDENCE=%s/model-comparison\n' \
+            "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
