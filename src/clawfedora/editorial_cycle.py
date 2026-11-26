@@ -37,7 +37,9 @@ def validate_task(task: dict[str, Any]) -> None:
         or Path(outputs[0]).parts[0] not in {"work", "deliverables"}
         or any(c.startswith("[preuve") for c in task["acceptance_criteria"])
     ):
-        raise ValueError("revue éditoriale : rédacteur direct, une source Markdown, critères de contenu")
+        raise ValueError(
+            "revue éditoriale : rédacteur direct, une source Markdown, critères de contenu",
+        )
 
 
 def audit_schema() -> dict[str, Any]:

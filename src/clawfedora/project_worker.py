@@ -977,6 +977,12 @@ def run_project_tasks(
                     "approved_revision" if assignment.get("revision_reason") else "routine"
                 )
             try:
+                from clawfedora import editorial_cycle as ec
+
+                if ec.requested(task) and task_mode(project, task) == "direct":
+                    ec.validate_task(task)
+                    if consent_state(repo_root, runtime, project)["state"] != "none":
+                        raise ValueError("revue éditoriale intermédiaire réservée à la route locale")
                 response = invoke(role, prompt, session)
                 observed = _guard(snapshot)
                 observed.pop(".openclaw-fedora-input-guard.json", None)
@@ -990,8 +996,6 @@ def run_project_tasks(
                 scope = snapshot.relative_to(workspace).as_posix()
                 _resolve_tool_files(workspace, receipts_before, task, response, scope=scope)
                 _collection_targets(repo_root, project, task, response)
-                from clawfedora import editorial_cycle as ec
-
                 editorial_receipts: list[str] = []
                 if ec.requested(task) and task_mode(project, task) == "direct":
                     ec.validate_task(task)

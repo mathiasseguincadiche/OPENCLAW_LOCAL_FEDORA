@@ -308,7 +308,9 @@ def _validate_plan(tasks: list[dict[str, Any]]) -> None:
         for criterion in task["acceptance_criteria"]:
             requirement(criterion, task["expected_outputs"])
         for output in task["expected_outputs"]:
-            if Path(output).parts[0] == "evidence" and Path(output).name.startswith(("tool-", "editorial-cycle-")):
+            if Path(output).parts[0] == "evidence" and Path(output).name.startswith(
+                ("tool-", "editorial-cycle-"),
+            ):
                 raise ValueError("les préfixes tool- et editorial-cycle- sont réservés au worker")
             if (
                 Path(output).suffix.lower() in {".pdf", ".docx", ".odt"}

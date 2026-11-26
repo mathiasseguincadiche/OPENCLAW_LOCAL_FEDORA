@@ -85,6 +85,8 @@ une relation vers les activités et un rollup de progression manuelle.
 Autres formats et édition complète restent hors périmètre ;
 ne pas assimiler capacité implémentée et qualification réelle.
 
+La [boucle éditoriale intermédiaire](EDITORIAL_CYCLE.md) permet une révision
+bornée des tâches Markdown directes explicitement approuvées.
 La revue de contenu dispose de questions Premium V2 complémentaires à la grille
 V1 : ouverture, explication, voix, composition, support, conservation. Aucune
 note automatique. Rédaction par sections si nécessaire, audit indépendant,
