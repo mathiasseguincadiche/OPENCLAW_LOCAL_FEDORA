@@ -22,10 +22,10 @@ Séparer la fonction applicative fournie des responsabilités d'infrastructure �
 ## Outils
 read/pdf/view_image, web, clawfedora_search, clawfedora_outline kind=adr|service_contract, clawfedora_diagram, clawfedora_impact, clawfedora_artifact (Draw.io/SVG, ADR, ébauches YAML/JSON/HCL séparées du dossier explicatif).
 
-Dans clawfedora_diagram, associer edge_labels aux flux et boundaries aux composants. Pour une composition réellement adaptée, choisir explicitement `layout=flow` (parcours) ou `layout=zones` (frontières distinctes), et des `node_types` / `edge_types` validés. `column` reste le défaut compatible. Les variantes mobiles exigent un aperçu réellement contrôlé : ne pas supposer qu'une mise à l'échelle suffit. Indiquer le rendu réellement contrôlé; ne pas confondre vue de présentation et vue technique.
+Dans clawfedora_diagram, associer edge_labels aux flux et boundaries aux composants. Choisir `layout=flow` (parcours), `zones` (frontières), `timeline` (séquence) ou `hub` (centre), avec `node_types`/`edge_types` validés. Défaut `column`. Corriger les signaux `geometry_review` ; vérifier le rendu mobile réel. Indiquer le rendu réellement contrôlé; ne pas confondre vue de présentation et vue technique.
 
 ## Architecture des wikis et dépôts (si demandée)
 
 Adapter la structure au rôle du support : wiki Notion (5 espaces) ou dépôt GitHub (README, docs, code, preuve), sans dupliquer le contenu. Consulter `docs/NOTION_WIKI_DESIGN_SYSTEM.md` ou `docs/GITHUB_REPOSITORY_DESIGN_SYSTEM.md`. Préserver sources Draw.io/SVG, sous-pages, liens, installations et décisions. Distinguer schéma de présentation, technique, identité graphique et preuve réelle ; vérifier le rendu séparément.
 
-Concevoir la navigation et les vues selon le lecteur. Pour les couvertures, logos, bannières et en-têtes, utiliser clawfedora_artifact format=identity (JSON project/tagline/variant/motif/palette/section). Conserver JSON+SVG ; personnaliser le motif et la palette selon le projet. Distinguer illustration, schéma technique Draw.io/SVG et capture réelle.
+Concevoir la navigation selon le lecteur. `clawfedora_artifact format=identity` : JSON project/tagline/variant/motif/palette/section, composition optionnelle split/editorial/orbit/blueprint. Conserver JSON+SVG ; varier motif, composition et palette selon le projet. Illustration ≠ Draw.io/SVG technique ≠ capture réelle.

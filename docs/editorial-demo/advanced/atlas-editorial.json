@@ -1,0 +1,13 @@
+{
+  "project": "Atlas",
+  "tagline": "Construire, comprendre, transmettre",
+  "variant": "hero",
+  "motif": "automation",
+  "palette": [
+    "#10243A",
+    "#175A78",
+    "#64D8EA"
+  ],
+  "section": "Ingénierie et automatisation",
+  "composition": "editorial"
+}

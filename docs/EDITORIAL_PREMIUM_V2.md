@@ -12,6 +12,9 @@ preuve d'exécution des modèles. Aucun nouveau modèle, agent ou service payant
 
 ## Direction artistique : cinq variantes
 
+Le [studio graphique avancé](GRAPHIC_STUDIO.md) ajoute trois compositions
+optionnelles, deux motifs, deux layouts Draw.io et des signaux géométriques.
+
 Le moteur local `clawfedora_artifact` avec `format=identity` accepte un objet JSON encodé
 dans content et retourne un SVG et sa source JSON normalisée. Deux rôles : architecte
 et rédacteur ; sans réseau, sans SVG fourni par le modèle et sans exécution libre.

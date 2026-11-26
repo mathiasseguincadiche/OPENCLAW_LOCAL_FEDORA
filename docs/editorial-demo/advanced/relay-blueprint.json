@@ -1,0 +1,13 @@
+{
+  "project": "Relay",
+  "tagline": "Protéger les données et restaurer",
+  "variant": "hero",
+  "motif": "security",
+  "palette": [
+    "#33201F",
+    "#864631",
+    "#FFC07B"
+  ],
+  "section": "Continuité des services",
+  "composition": "blueprint"
+}

@@ -6,6 +6,8 @@ import re
 from html import escape
 from typing import Any
 
+from clawfedora.editorial_compositions import COMPOSITIONS, compose
+
 IDENTITY_ROLES = frozenset({"architecte-solutions", "redacteur-pedagogique"})
 VARIANTS = {
     "cover": (1500, 600), "hero": (1440, 420), "section": (1200, 280),
@@ -32,6 +34,10 @@ MOTIFS = {
     '<path d="M55 80H325M55 125H325M55 175H325" opacity=".2"/>',
     "platform": '<path d="M190 30L350 105 190 180 30 105Z M30 145L190 220 350 145"/>'
     '<path d="M120 105L190 72 260 105 190 138Z"/>',
+    "security": '<path d="M190 25L310 70V130Q310 190 190 225Q70 190 70 130V70Z"/>'
+    '<path d="M145 125l30 30 60-65"/>',
+    "automation": '<rect x="35" y="40" width="310" height="160" rx="18"/>'
+    '<path d="M80 90l40 35-40 35M150 160H260"/>',
     "storage": '<ellipse cx="190" cy="60" rx="120" ry="35"/>'
     '<path d="M70 60V175C70 222 310 222 310 175V60 M70 118C70 165 310 165 310 118"/>',
 }
@@ -58,10 +64,15 @@ def _contrast(left: str, right: str) -> float:
 
 
 def render(spec: object) -> tuple[dict[str, Any], str]:
-    if not isinstance(spec, dict) or set(spec) != {
-        "project", "tagline", "variant", "motif", "palette", "section",
-    }:
-        raise ValueError("identité : six champs exacts requis")
+    required = {"project", "tagline", "variant", "motif", "palette", "section"}
+    if (
+        not isinstance(spec, dict) or not required <= set(spec)
+        or not set(spec) <= required | {"composition"}
+    ):
+        raise ValueError("identité : six champs requis, composition facultative")
+    composition = spec.get("composition", "split")
+    if not isinstance(composition, str) or composition not in COMPOSITIONS:
+        raise ValueError("composition graphique inconnue")
     project, tagline = _label(spec["project"], 26), _label(spec["tagline"], 60)
     section = _label(spec["section"], 30)
     variant, motif, palette = spec["variant"], spec["motif"], spec["palette"]
@@ -115,6 +126,13 @@ def render(spec: object) -> tuple[dict[str, Any], str]:
             f'{escape(line)}</text>'
             f'<g transform="translate({width - 445} {height // 2 - 115})">{artwork}</g>'
         )
+    normalized: dict[str, Any] = {
+        "project": project, "tagline": tagline, "section": section,
+        "variant": variant, "motif": motif, "palette": list(colors),
+    }
+    if composition != "split":
+        normalized["composition"] = composition
+        body = compose(normalized, width, height, artwork)
     svg = (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
         f'viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">'
@@ -129,10 +147,7 @@ def render(spec: object) -> tuple[dict[str, Any], str]:
         f'<rect width="{width}" height="{height}" fill="url(#grid)"/>'
         f'<g font-family="DejaVu Sans,Arial,sans-serif">{body}</g></svg>\n'
     )
-    return {
-        "project": project, "tagline": tagline, "section": section,
-        "variant": variant, "motif": motif, "palette": list(colors),
-    }, svg
+    return normalized, svg
 
 
 def from_json(content: str) -> tuple[str, str]:
