@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "1f186d1d7dab7d1966b628aadadb9d460f2ce373",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "gemma",
+    "runtime_id": "gemma4:12b-it-q4_K_M",
+    "digest": "6114515d63c17436a7c0417d82820ac65ad643e2806c5a3c89cb62846436ed0b",
+    "size": 8021618941,
+    "format": "gguf",
+    "family": "gemma4",
+    "parameter_size": "11.9B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 900,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 42
+  },
+  "capabilities": [
+    "completion",
+    "vision",
+    "audio",
+    "tools",
+    "thinking"
+  ],
+  "think_requested": true,
+  "shard": "core",
+  "planned": 1,
+  "results": [
+    {
+      "id": "mentor-dns",
+      "role": "chef-operations",
+      "initial": {
+        "input_sha256": "9bb21eefed62d06d0b8777fd841c698eb51281a995d53c02c78a13d186878381",
+        "response": {
+          "content": "",
+          "done_reason": "length",
+          "metrics": {
+            "total_duration": 831539146054,
+            "load_duration": 13497348934,
+            "prompt_eval_count": 3207,
+            "prompt_eval_duration": 417449392000,
+            "eval_count": 900,
+            "eval_duration": 400551377000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [
+            "invalid_json_object",
+            "completion"
+          ],
+          "failed_fields": [],
+          "correct": 0,
+          "total": 4,
+          "execution_claim": "UNKNOWN",
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 831541
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "ce70991d7c82743f326ec4dce74f166e322f0d8a4e5393af49837270fdc2be8b",
+        "response": {
+          "content": "",
+          "done_reason": "length",
+          "metrics": {
+            "total_duration": 430987589737,
+            "load_duration": 3032705,
+            "prompt_eval_count": 3266,
+            "prompt_eval_duration": 10496853000,
+            "eval_count": 900,
+            "eval_duration": 420437109000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": true,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [
+            "invalid_json_object",
+            "completion"
+          ],
+          "failed_fields": [],
+          "correct": 0,
+          "total": 4,
+          "execution_claim": "UNKNOWN",
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 430989
+      }
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "gemma-think-probe",
+  "socket_timeout_seconds": 1500,
+  "summary": {
+    "initial_pass": 0,
+    "corrected": 0,
+    "blocked": 1
+  }
+}

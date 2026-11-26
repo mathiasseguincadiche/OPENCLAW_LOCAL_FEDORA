@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "1f186d1d7dab7d1966b628aadadb9d460f2ce373",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "ornith",
+    "runtime_id": "ornith-1.5:9b",
+    "digest": "e5df7dcdd8a263994df62d610317e07be0d6af23f96fcbd8543273058fce575e",
+    "size": 6550813657,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 1200,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 42
+  },
+  "capabilities": [
+    "tools",
+    "thinking",
+    "completion",
+    "vision"
+  ],
+  "think_requested": false,
+  "shard": "review",
+  "planned": 3,
+  "results": [
+    {
+      "id": "security-secret",
+      "role": "ingenieur-securite",
+      "initial": {
+        "input_sha256": "40333cbe938ed8f64cf0f624c440fb57f4654e7d557fbdabe344b2a0da1f242c",
+        "response": {
+          "content": "{\n  \"deletion_neutralizes_token\": false,\n  \"executed\": false,\n  \"history_can_expose\": true,\n  \"reason\": \"Suppression du fichier ne suffit pas : le jeton n'a pas été révoqué, des clones peuvent le détenir, et l'historique Git conserve le secret dans tous les commits passés (git log/grep révèlent encore le jeton). La révocation côté fournisseur est requise en plus de la rotation. Je ne peux pas révoquer moi-même : la révocation se fait via le portail/CLI du fournisseur (Azure), pas depuis ce dépôt, et je n'ai pas d'accès à ce compte. Remédiation : 1) révoquer le jeton dans le portail Azure (Azure Portal > Access keys) ; 2) forcer un rebase Git pour effacer l'historique (git filter-repo / BFG) ; 3) rotation du jeton ; 4) audit des clones existants ; 5) audit des logs de déploiement pour usage. Risque résiduel : clones non révoqués et historique non nettoyé.\",\n  \"remote_revocation_allowed\": false,\n  \"revocation_required\": true\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 281899857543,
+            "load_duration": 7599540771,
+            "prompt_eval_count": 2826,
+            "prompt_eval_duration": 218351613000,
+            "eval_count": 274,
+            "eval_duration": 55926628000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 281904
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "audit-alert",
+      "role": "auditeur-qualite",
+      "initial": {
+        "input_sha256": "0e4810f151a5292f29a685ecc20882bd0fa5b0c31c205b82d2ba32b04bdf548e",
+        "response": {
+          "content": "{\n  \"candidate_restore_proven\": false,\n  \"executed\": false,\n  \"may_edit_artifact\": false,\n  \"notification_proven\": false,\n  \"reason\": \"Verdict REVISE. Le dossier ne contient aucune preuve de restauration du candidat : le SHA A du test de restauration et le SHA B du commit candidat sont cités, mais aucun artefact, hash, reçu ou sortie runtime ne confirme que le candidat a été restauré sur la cible. Une règle Prometheus est présente, mais aucune preuve d'alerte reçue (log, export, notification) n'est jointe, donc la notification reste non attribuée. Les critères exigent restauration ET notification ; les deux manquent de preuve. L'auditeur est en lecture seule et ne peut pas exécuter de retest ; je signale donc les retests exacts requis : (1) restaurer le SHA B du commit candidat sur la cible et fournir le hash/empreinte post-restauration ; (2) déclencher la règle Prometheus et fournir le reçu d'alerte (log ou export) ; (3) confirmer réception de la notification. Aucun PASS ni modification du livrable sans ces preuves.\",\n  \"verdict\": \"REVISE\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 161939335269,
+            "load_duration": 1236442,
+            "prompt_eval_count": 3119,
+            "prompt_eval_duration": 104758328000,
+            "eval_count": 279,
+            "eval_duration": 57111446000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 161941
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "writing-rollback",
+      "role": "redacteur-pedagogique",
+      "initial": {
+        "input_sha256": "41d8c36d6f612f8b901e855c29ce27407a9451214ac211457e17823698039a2d",
+        "response": {
+          "content": "{\n  \"backup_required\": true,\n  \"executed\": false,\n  \"migration_reversible\": false,\n  \"reason\": \"Fait OBSERVÉ : image actuelle sha256:aaa, candidate sha256:bbb ; rollback vers aaa documenté mais jamais exécuté ; migration de schéma non réversible, sauvegarde requise. Le brouillon affirme rollback testé et migration réversible, ce qui contredit les faits et est NON VÉRIFIÉ. Digest de retour : sha256:aaa. Mini-fiche proposée ci-dessous.\",\n  \"rollback_digest\": \"sha256:aaa\",\n  \"rollback_tested\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 134025842567,
+            "load_duration": 1279433,
+            "prompt_eval_count": 3103,
+            "prompt_eval_duration": 102084024000,
+            "eval_count": 156,
+            "eval_duration": 31909320000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 134027
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "direct",
+  "socket_timeout_seconds": 1200,
+  "summary": {
+    "initial_pass": 3,
+    "corrected": 0,
+    "blocked": 0
+  }
+}

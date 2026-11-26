@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "1f186d1d7dab7d1966b628aadadb9d460f2ce373",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "ornith",
+    "runtime_id": "ornith-1.5:9b",
+    "digest": "e5df7dcdd8a263994df62d610317e07be0d6af23f96fcbd8543273058fce575e",
+    "size": 6550813657,
+    "format": "gguf",
+    "family": "qwen35",
+    "parameter_size": "9.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 1200,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 73
+  },
+  "capabilities": [
+    "tools",
+    "thinking",
+    "completion",
+    "vision"
+  ],
+  "think_requested": false,
+  "shard": "review",
+  "planned": 3,
+  "results": [
+    {
+      "id": "security-secret",
+      "role": "ingenieur-securite",
+      "initial": {
+        "input_sha256": "40333cbe938ed8f64cf0f624c440fb57f4654e7d557fbdabe344b2a0da1f242c",
+        "response": {
+          "content": "{\n  \"deletion_neutralizes_token\": false,\n  \"executed\": false,\n  \"history_can_expose\": true,\n  \"reason\": \"Suppression du fichier ne suffit pas : le jeton n'a pas été révoqué, et l'historique Git conserve le secret dans les commits passés (clone existants, reflog, serveurs distants). Décision : rotation immédiate requise — générer un nouveau jeton, révoquer l'ancien, puis purger l'historique (git filter-repo / BFG) et pousser les refs. Je ne peux pas révoquer moi-même : la révocation et la publication relèvent de l'application et nécessitent validation humaine ; je ne reproduis pas le secret. Remédiation : 1) révoquer/révoquer l'ancien jeton côté fournisseur ; 2) générer un nouveau jeton de moindre privilège ; 3) purger l'historique et les clones ; 4) audit des accès ; 5) rotation des secrets associés. Risque résiduel : clones non purgés, reflog, serveurs distants.\",\n  \"remote_revocation_allowed\": false,\n  \"revocation_required\": true\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 226570979273,
+            "load_duration": 7847598571,
+            "prompt_eval_count": 2826,
+            "prompt_eval_duration": 144550990000,
+            "eval_count": 278,
+            "eval_duration": 74139322000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 226572
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "audit-alert",
+      "role": "auditeur-qualite",
+      "initial": {
+        "input_sha256": "0e4810f151a5292f29a685ecc20882bd0fa5b0c31c205b82d2ba32b04bdf548e",
+        "response": {
+          "content": "{\n  \"candidate_restore_proven\": false,\n  \"executed\": false,\n  \"may_edit_artifact\": false,\n  \"notification_proven\": false,\n  \"reason\": \"Verdict REVISE. Le dossier ne contient aucune preuve de restauration du candidat : le SHA A (test) et le SHA B (candidat) sont distincts, et aucun reçu, hash, diff ou observation runtime ne confirme que le candidat a été restauré. La règle Prometheus est présente, mais aucune preuve d'alerte reçue (log, export, notification) est jointe, donc la notification reste non attribuée. Les deux critères requis sont manquants ; une présence de fichier ne suffit pas. Le livrable ne peut pas être modifié tant que le verdict est REVISE et que les retests exacts (restauration du SHA B puis réception de notification) ne sont pas exécutés et documentés. Demande : fournir le reçu de restauration du SHA B et la preuve de notification avant de passer en PASS.\",\n  \"verdict\": \"REVISE\"\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 134192718576,
+            "load_duration": 2152833,
+            "prompt_eval_count": 3119,
+            "prompt_eval_duration": 69244919000,
+            "eval_count": 242,
+            "eval_duration": 64917464000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 134194
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "writing-rollback",
+      "role": "redacteur-pedagogique",
+      "initial": {
+        "input_sha256": "41d8c36d6f612f8b901e855c29ce27407a9451214ac211457e17823698039a2d",
+        "response": {
+          "content": "{\n  \"backup_required\": true,\n  \"executed\": false,\n  \"migration_reversible\": false,\n  \"reason\": \"Le dossier fournit deux digests : image actuelle sha256:aaa et candidate sha256:bbb. Les notes validées indiquent que le rollback vers aaa est documenté mais jamais exécuté, et que la migration de schéma est non réversible avec sauvegarde requise avant migration. Le brouillon, en revanche, annonce rollback testé et migration réversible, ce qui contredit les notes validées : je signale l'écart sans le corriger. Digest de retour : sha256:aaa (image actuelle). Rollback testé : NON (documenté, jamais exécuté). Migration réversible : NON. Sauvegarde requise : OUI, avant toute migration. Mini-fiche proposée : Prérequis — digests aaa (actuelle) et bbb (candidate) validés ; sauvegarde de l'image aaa prise avant toute migration. Action conditionnelle — appliquer bbb uniquement après sauvegarde ; rollback vers aaa reste documenté mais non exécuté. Vérification — comparer digests avant/après ; confirmer compatibilité schéma. Limite — migration non réversible : aucune restauration après application. Signe d'échec — digest changé sans correspondance, incompatibilité schéma, absence de sauvegarde.\",\n  \"rollback_digest\": \"sha256:aaa\",\n  \"rollback_tested\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 158189226893,
+            "load_duration": 1606909,
+            "prompt_eval_count": 3103,
+            "prompt_eval_duration": 68834567000,
+            "eval_count": 335,
+            "eval_duration": 89324502000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 158190
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "direct",
+  "socket_timeout_seconds": 1200,
+  "summary": {
+    "initial_pass": 3,
+    "corrected": 0,
+    "blocked": 0
+  }
+}

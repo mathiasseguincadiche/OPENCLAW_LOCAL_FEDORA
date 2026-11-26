@@ -38,3 +38,7 @@ Gemma : quatre TimeoutError avant la première réponse de chaque job. Un timeou
 Même suite, mêmes prompts, digests, contexte 8192 et température 0. Douze jobs direct (trois modèles, deux seeds, deux lots), plus deux sondes Gemma avec thinking sur la seed 42 : mentor-dns et security-secret, comparables à leurs homologues direct avec budget et délai identiques. 42 réponses direct et 2 sondes, au plus autant de corrections. Pas de nouvelle campagne complète avec thinking pour Qwen/Ornith : la référence existante est conservée. Les budgets et délais changent également ; cette comparaison de profils ne permet pas d'attribuer causalement un écart au seul thinking pour Qwen/Ornith. Le timeout socket est un délai d'inactivité, pas une borne absolue de durée ; le job est limité à 240 minutes. Une erreur interrompt son lot, conserve les résultats collectés et n'est jamais comptée comme faute technique du modèle. Aucun fallback automatique.
 
 Le workflow expérimental démarre sur feat/excellence-inference-profiles et peut être déclenché manuellement. Ne pas relancer une campagne entière pour un correctif sans vérifier la provenance. Les rapports distinguent le profil demandé, les tokens observés, le thinking observé et le temps CPU. La qualification GPU, les outils natifs, la grille de revue et le routage de production restent inchangés. Une comparaison honnête du coût/qualité exige les mesures réelles sur B580.
+
+## Résultats et expérimentation des consignes
+
+[Audit de la campagne et consignes candidates](EXCELLENCE_ROLE_COACHING.md).
