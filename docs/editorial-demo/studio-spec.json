@@ -1,0 +1,104 @@
+{
+  "home": {
+    "title": "Atelier Atlas — Studio de test",
+    "icon": "🧭",
+    "blocks": [
+      {
+        "type": "callout",
+        "text": "Projet fictif. Apprendre à déployer et exploiter un service.",
+        "icon": "🧭",
+        "color": "blue_background"
+      },
+      {
+        "type": "heading_2",
+        "text": "Explorer le parcours"
+      },
+      {
+        "type": "paragraph",
+        "text": "Les sous-pages sont créées sous cet accueil. Le suivi ne contient aucune preuve personnelle."
+      }
+    ]
+  },
+  "pages": [
+    {
+      "title": "Comprendre",
+      "icon": "🔎",
+      "blocks": [
+        {
+          "type": "heading_2",
+          "text": "Le besoin"
+        },
+        {
+          "type": "paragraph",
+          "text": "Reproduire une infrastructure et expliquer ses choix."
+        }
+      ]
+    },
+    {
+      "title": "Préparer",
+      "icon": "🧰",
+      "blocks": [
+        {
+          "type": "heading_2",
+          "text": "Installation des outils"
+        },
+        {
+          "type": "paragraph",
+          "text": "Vérifier les outils présents et installer uniquement les composants manquants."
+        }
+      ]
+    },
+    {
+      "title": "Pratiquer",
+      "icon": "🛠️",
+      "blocks": [
+        {
+          "type": "heading_2",
+          "text": "Vérification de l’environnement"
+        },
+        {
+          "type": "code",
+          "language": "bash",
+          "text": "# Lire le système, sans le modifier.\ncat /etc/os-release"
+        },
+        {
+          "type": "paragraph",
+          "text": "Expliquer le résultat réellement observé."
+        }
+      ]
+    },
+    {
+      "title": "Suivre",
+      "icon": "📈",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Journal personnel, preuves et difficultés. Aucun niveau attribué automatiquement."
+        }
+      ]
+    },
+    {
+      "title": "Ressources",
+      "icon": "📚",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Références techniques, diagnostics et décisions."
+        }
+      ]
+    }
+  ],
+  "tracker": {
+    "title": "Parcours de démonstration",
+    "activities": [
+      "Comprendre le besoin",
+      "Préparer les outils",
+      "Pratiquer et vérifier"
+    ],
+    "views": [
+      "list",
+      "gallery",
+      "table"
+    ]
+  }
+}

@@ -295,6 +295,7 @@ def _created_page(spec: dict[str, Any], parent: str, uploads: dict[str, str]) ->
     page = _request("GET", f"/v1/pages/{ident}")
     if (
         ident == parent or nw._id(str(page.get("id", ""))) != ident
+        or page.get("parent", {}).get("type") != "page_id"
         or nw._id(str(page.get("parent", {}).get("page_id", ""))) != parent
         or page.get("in_trash") or not ne._matches(
             payload["properties"]["title"]["title"], page.get("properties", {}).get(
@@ -321,18 +322,29 @@ def _tracker(parent: str, spec: dict[str, Any]) -> dict[str, Any]:
     sources = result.get("data_sources", [])
     if (
         nw._id(str(result.get("id", ""))) != db
+        or result.get("parent", {}).get("type") != "page_id"
         or nw._id(str(result.get("parent", {}).get("page_id", ""))) != parent
+        or result.get("in_trash") is True
         or not ne._matches(payload["title"], result.get("title"))
         or not isinstance(sources, list) or len(sources) != 1
     ):
         raise nw.NotionWriteError("base de suivi non confirmée")
     source = nw._id(str(sources[0].get("id", "")))
-    schema = _request("GET", f"/v1/data_sources/{source}").get("properties", {})
+    source_reply = _request("GET", f"/v1/data_sources/{source}")
+    if nw._id(str(source_reply.get("id", ""))) != source:
+        raise nw.NotionWriteError("source de données non confirmée")
+    schema = source_reply.get("properties", {})
     if not isinstance(schema, dict) or any(
         schema.get(key, {}).get("type") != next(iter(value)) for key, value in FIELDS.items()
     ):
         raise nw.NotionWriteError("propriétés du suivi non confirmées")
-    rows, views = [], []
+    options = schema["État"]["select"].get("options", [])
+    if {item.get("name") for item in options} != {
+        "À réaliser", "En cours", "À vérifier",
+    }:
+        raise nw.NotionWriteError("états initiaux du suivi non confirmés")
+    rows: list[str] = []
+    views: list[dict[str, str]] = []
     for index, name in enumerate(spec["activities"], 1):
         properties = {"Activité": {"title": ne._rich(name)}, "Ordre": {"number": index},
                       "État": {"select": {"name": "À réaliser"}}}
@@ -343,7 +355,9 @@ def _tracker(parent: str, spec: dict[str, Any]) -> dict[str, Any]:
         observed = _request("GET", f"/v1/pages/{row}")
         if (
             nw._id(str(observed.get("id", ""))) != row
+            or observed.get("parent", {}).get("type") != "data_source_id"
             or nw._id(str(observed.get("parent", {}).get("data_source_id", ""))) != source
+            or observed.get("in_trash") is True
             or not ne._matches(properties, observed.get("properties"))
         ):
             raise nw.NotionWriteError("activité non confirmée")
@@ -360,6 +374,12 @@ def _tracker(parent: str, spec: dict[str, Any]) -> dict[str, Any]:
             or nw._id(str(actual.get("parent", {}).get("database_id", ""))) != db
         ):
             raise nw.NotionWriteError("vue non confirmée")
+        sorts = actual.get("sorts")
+        if not isinstance(sorts, list) or len(sorts) != 1 or (
+            sorts[0].get("property") not in ("Ordre", schema["Ordre"].get("id"))
+            or sorts[0].get("direction") != "ascending"
+        ):
+            raise nw.NotionWriteError("tri de la vue non confirmé")
         views.append({"id": view, "type": kind})
     return {"database_id": db, "data_source_id": source, "rows": rows, "views": views}
 
