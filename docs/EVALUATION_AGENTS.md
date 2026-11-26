@@ -99,3 +99,5 @@ Utiliser [la recette FinOps](validation/FINOPS.md) et `clawfedora-evals --finops
 La suite **prépare** une évaluation ; elle ne la réalise pas d'elle-même. Aucune requête n'est envoyée à Qwen/DeepSeek/Sol, aucun secret n'est stocké dans le dépôt, aucun appel à GitHub ou Podman n'est déclenché. L'évaluation complète et l'ajustement final des prompts sont prévus pour la **dernière phase**, après stabilisation du code et de l'interface.
 
 La règle à respecter est : **l'outil peut vérifier la complétude d'un rapport, pas la vérité des jugements humains qu'il contient**.
+
+Pour une comparaison réelle des deux modèles Ollama sur un runner CPU public : [protocole comparatif local](LOCAL_MODEL_COMPARISON.md).
