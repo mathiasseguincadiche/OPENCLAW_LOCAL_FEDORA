@@ -37,7 +37,10 @@ python -m clawfedora.notion_studio plan \
 
 La commande lit le parent, vérifie les fichiers locaux et produit un
 manifeste privé à 0600 avec contenu proposé, SHA-256 et taille des médias.
-Aucun POST. Relire le plan et les fichiers eux-mêmes.
+Aucun POST. Relire le plan et les fichiers eux-mêmes. Le fichier privé
+`plan.json.preview.html` donne un aperçu local adaptatif des pages, médias
+et suivi ; il embarque les images en base64 et doit rester hors Git.
+Les liens et images externes ne sont pas chargés. Ce n'est pas le rendu natif.
 
 ~~~bash
 python -m clawfedora.notion_studio apply \

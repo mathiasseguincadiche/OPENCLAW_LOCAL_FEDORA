@@ -95,6 +95,6 @@ le manque de preuve. La CI ne certifie pas le comportement des modèles locaux.
 - [Notion : création d'un upload](https://developers.notion.com/reference/create-file)
 - [Notion : envoi d'un upload](https://developers.notion.com/reference/upload-file)
 
-Consultées le 25 novembre 2026. Le nouveau moteur de page conserve le contrat
-API existant ; les nouvelles capacités de vues et d'upload ne sont pas annoncées
-comme implémentées.
+Consultées le 25 novembre 2026. Le moteur de page unitaire conserve son contrat
+API historique. Le studio utilise 2026-03-11 pour les uploads et les vues,
+avec tests simulés et réception native encore requise.

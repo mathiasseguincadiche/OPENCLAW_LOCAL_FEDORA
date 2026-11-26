@@ -22,6 +22,7 @@ from uuid import uuid4
 from PIL import Image
 
 from clawfedora import notion_editorial as ne
+from clawfedora import notion_studio_preview as sp
 from clawfedora import notion_write as nw
 
 VERSION = "2026-03-11"
@@ -211,7 +212,7 @@ def preview(parent: str, spec_file: Path, media: Path, output: Path) -> dict[str
         raise nw.NotionWriteError("spécification limitée à 8000 octets")
     spec = json.loads(spec_file.read_text(encoding="utf-8"))
     root = media.absolute()
-    records, _ = _assets(root, _spec(spec, page_id))
+    records, contents = _assets(root, _spec(spec, page_id))
     plan: dict[str, Any] = {
         "schema": 1, "action": "new_wiki", "parent_id": page_id,
         "parent_sha256": _parent(page_id), "media_root": str(root),
@@ -220,9 +221,15 @@ def preview(parent: str, spec_file: Path, media: Path, output: Path) -> dict[str
     plan["manifest_sha256"] = nw._digest(plan)
     if len(json.dumps(plan, ensure_ascii=False, indent=2).encode()) + 1 > 12000:
         raise nw.NotionWriteError("plan trop volumineux")
+    preview_file = output.with_name(output.name + ".preview.html")
+    _safe_path(preview_file)
+    if preview_file.exists():
+        raise nw.NotionWriteError("aperçu déjà présent")
+    html = sp.render(spec, records, contents)
     nw._private_new(output, plan)
+    sp.write(preview_file, html)
     return {"mode": "STUDIO_PREVIEW_ONLY", "remote_writes": False,
-            "plan_file": str(output), **plan}
+            "plan_file": str(output), "preview_file": str(preview_file), **plan}
 
 
 def _upload(record: dict[str, Any], data: bytes) -> str:

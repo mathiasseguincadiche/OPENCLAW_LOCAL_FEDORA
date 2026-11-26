@@ -121,6 +121,11 @@ def test_studio_plan_and_apply(tmp_path, monkeypatch):
     monkeypatch.setattr(ns, "_request", api)
     result = ns.preview(PARENT, spec, media, plan)
     assert not result["remote_writes"] and not api.writes
+    html = Path(result["preview_file"])
+    assert html.stat().st_mode & 0o077 == 0
+    assert "data:image/png;base64," in html.read_text()
+    assert "aucune publication" in html.read_text()
+    assert "<script" not in html.read_text()
     assert result["assets"][0]["sha256"] == hashlib.sha256(
         (media / "cover.png").read_bytes(),
     ).hexdigest()
@@ -197,3 +202,14 @@ def test_request_rejects_other_endpoints():
     ]:
         with pytest.raises(nw.NotionWriteError, match="endpoint"):
             ns._request(method, endpoint)
+
+def test_preview_escapes_untrusted_text(tmp_path, monkeypatch):
+    spec, media, plan = _setup(tmp_path)
+    raw = json.loads(spec.read_text())
+    raw["home"]["title"] = '<script>alert("test")</script>'
+    spec.write_text(json.dumps(raw))
+    monkeypatch.setattr(ns, "_request", FakeAPI())
+    result = ns.preview(PARENT, spec, media, plan)
+    html = Path(result["preview_file"]).read_text()
+    assert "&lt;script&gt;" in html
+    assert "<script>" not in html
