@@ -33,6 +33,14 @@ SIZES = {
     "desktop_dark": (1366, 900, "dark"),
     "mobile_viewport": (390, 844, "light"),
 }
+PREMIUM_SIZES = {
+    "desktop_light": (1440, 900, "light"),
+    "desktop_dark": (1440, 900, "dark"),
+    "tablet_light": (820, 1180, "light"),
+    "tablet_dark": (820, 1180, "dark"),
+    "mobile_light": (390, 844, "light"),
+    "mobile_dark": (390, 844, "dark"),
+}
 MAX_SHOTS = 3
 MAX_PICTURE_BYTES = 15_000_000
 MAX_SHOT_PIXELS = 10_000
@@ -61,7 +69,11 @@ METRICS_JS = """() => {
     images_without_alt: [...body.querySelectorAll("img")].filter(
       img => !img.hasAttribute("alt")
     ).length,
-    visible_text_length: (body.innerText || "").length
+    visible_text_length: (body.innerText || "").length,
+    color_scheme_preference: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+    broken_loaded_images: [...body.querySelectorAll("img")].filter(
+      img => img.complete && img.naturalWidth === 0 && !!img.currentSrc
+    ).length
   };
 }"""
 
@@ -113,6 +125,7 @@ def _validate_final_url(kind: str, start: str, current: str) -> None:
     if kind == "github-readme":
         if (
             final.scheme != "https" or final.hostname != "github.com"
+            or final.path.rstrip("/").casefold() != expected.path.rstrip("/").casefold()
             or final.path.startswith(("/login", "/session", "/signup"))
         ):
             raise CaptureError("page GitHub non ouverte ou accès insuffisant")
@@ -138,7 +151,8 @@ def screenshot_positions(document_height: int, viewport_height: int) -> list[int
 
 
 def _private_destination(root: Path) -> Path:
-    if not root.is_absolute() or root.is_symlink() or not root.is_dir():
+    if (not root.is_absolute() or not root.is_dir()
+            or any(parent.is_symlink() for parent in (root, *root.parents))):
         raise CaptureError("dossier absolu existant, privé et non lié requis")
     if stat.S_IMODE(root.stat().st_mode) & 0o077:
         raise CaptureError("dossier privé requis (chmod 700)")
@@ -171,7 +185,7 @@ def _shot(path: Path) -> dict[str, Any]:
 
 def capture(
     kind: str, url: str, output_root: Path, *,
-    interactive: bool, allow_private: bool,
+    interactive: bool, allow_private: bool, premium: bool = False,
 ) -> dict[str, Any]:
     validate_url(kind, url)
     if kind == "notion-page" and (
@@ -209,11 +223,17 @@ def capture(
                         "Appuyer sur Entrée uniquement quand la page correcte est affichée : ",
                     )
                 _validate_final_url(kind, url, page.url)
-                for category, (width, height, scheme) in SIZES.items():
+                sizes = PREMIUM_SIZES if premium else SIZES
+                for category, (width, height, scheme) in sizes.items():
                     page.set_viewport_size({"width": width, "height": height})
                     page.emulate_media(color_scheme=scheme)
                     page.wait_for_timeout(600)
                     _validate_final_url(kind, url, page.url)
+                    if premium:
+                        page.evaluate("() => window.scrollTo(0, 0)")
+                        if interactive:
+                            input(f"{category} : vérifier le thème réel du site ({scheme}), "
+                                  "le régler si nécessaire puis Entrée : ")
                     metrics = page.evaluate(METRICS_JS)
                     if not isinstance(metrics, dict):
                         raise CaptureError("mesures DOM non disponibles")
@@ -233,7 +253,10 @@ def capture(
                         page.screenshot(
                             path=str(target), full_page=False, animations="disabled",
                         )
-                        pictures.append({**_shot(target), "requested_scroll_y": y})
+                        shot = {**_shot(target), "requested_scroll_y": y}
+                        if premium:
+                            shot["observed_scroll_y"] = page.evaluate("() => window.scrollY")
+                        pictures.append(shot)
                     items.append({
                         "view": category, "requested_color_scheme": scheme,
                         "metrics": metrics, "sampled_screenshots": pictures,
@@ -242,7 +265,8 @@ def capture(
                 context.close()
                 browser.close()
         report = {
-            "schema": 1, "assessment": "BROWSER_CAPTURED_NOT_VISUALLY_CERTIFIED",
+            "schema": 2 if premium else 1,
+            "assessment": "BROWSER_CAPTURED_NOT_VISUALLY_CERTIFIED",
             "kind": kind, "source_url": url,
             "captured_at": datetime.now(UTC).isoformat(),
             "browser_engine": "chromium",
@@ -274,6 +298,7 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--capture", action="store_true")
     p.add_argument("--interactive", action="store_true")
     p.add_argument("--allow-private", action="store_true")
+    p.add_argument("--premium", action="store_true", help="six vues clair/sombre")
     return p
 
 
@@ -286,11 +311,12 @@ def main(argv: list[str] | None = None) -> int:
                 "assessment": "DRY_RUN_NO_BROWSER",
                 "kind": args.kind, "url": args.url,
                 "remote_writes": False, "local_screenshots": False,
+                "views": list(PREMIUM_SIZES if args.premium else SIZES),
             }, ensure_ascii=False))
             return 0
         result = capture(
             args.kind, args.url, args.output_dir,
-            interactive=args.interactive, allow_private=args.allow_private,
+            interactive=args.interactive, allow_private=args.allow_private, premium=args.premium,
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
