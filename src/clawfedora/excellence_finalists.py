@@ -29,7 +29,8 @@ def load(root: Path) -> dict[str, Any]:
         raise ValueError("suite hors budget")
     suite = json.loads(path.read_text(encoding="utf-8"))
     if (
-        suite.get("schema") != 1 or suite.get("classification") != "synthetic_public"
+        not isinstance(suite, dict) or suite.get("schema") != 1
+        or suite.get("classification") != "synthetic_public"
         or tuple(case["role"] for case in suite["cases"]) != mc.ROLES
         or len({case["id"] for case in suite["cases"]}) != len(mc.ROLES)
     ):

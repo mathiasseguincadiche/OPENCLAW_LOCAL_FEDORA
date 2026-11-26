@@ -18,8 +18,11 @@ Aucune donnée personnelle ni source privée.
 | Runners | 12 jobs : 3 modèles × 2 seeds × 2 lots (4 et 3 rôles) |
 | Appels | 42 initiaux, au plus 42 corrections ciblées ; 150 min max par job |
 
-La campagne démarre sur la branche interne feat/excellence-finalists, puis
-reste lançable manuellement. Les rapports intermédiaires sont enregistrés et
+La première campagne a été déclenchée sur la branche interne
+feat/excellence-finalists ([run 45781161395](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45781161395)).
+Les déclenchements suivants sont manuels pour ne pas annuler ni dupliquer
+les inférences lors des correctifs CI. Le contrôle de type à la lecture de la
+suite n'altère aucun scénario, paramètre ni résultat d'inférence. Les rapports intermédiaires sont enregistrés et
 imprimés dans les logs à chaque étape. Un timeout ou refus de capacité reste
 un échec expérimental ; aucune bascule silencieuse vers un autre profil.
 La présence de thinking ne prouve pas sa qualité, et les profils peuvent différer
