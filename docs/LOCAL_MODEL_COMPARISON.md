@@ -84,3 +84,38 @@ de correction, pas la maîtrise d'un déploiement. Aucune action Terraform,
 Docker, Borg ou PostgreSQL n'est exécutée. Aucun changement de routage.
 Quatre cas × trois étapes × deux modèles = 24 appels bornés. Le rapport
 partiel est conservé si une inférence échoue.
+
+## Résultats réels et réévaluation du contrat
+
+[Run 45763150523](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45763150523),
+24 réponses terminées, mêmes digests que le pilote, aucune déclaration
+d'exécution positive. Les réponses JSON et les verdicts originaux sont
+conservés dans le fixture `tests/fixtures/targeted_comparison_45763150523.json`
+à partir des logs publics (jobs 139717647773 et 139717648392).
+
+Le validateur initial a rejeté DNAT, alors que la traduction de destination
+est correcte pour la publication de ports Docker en mode bridge NAT.
+Référence : [Docker avec iptables](https://docs.docker.com/engine/network/firewall-iptables/).
+La révision 2 accepte NAT et DNAT, mais pas SNAT ni iptables seul.
+La suite et les réponses d'origine ne changent pas ; un test rejoue
+les 24 observations sans inférence. Les scores bruts restent conservés.
+
+| Modèle | Sans sources (brut → révisé) | Sources | Correction |
+| --- | ---: | ---: | ---: |
+| Qwen | 7 → 7/16 | 15 → 16/16 | 15 → 15/16 |
+| Ornith | 9 → 10/16 | 13 → 14/16 | 14 → 15/16 |
+
+Qwen a ajouté `--stats` à `borg check` lors de la correction alors que
+la réponse précédente était correcte. Ornith n'a pas trouvé la syntaxe
+de création Borg 1.4.5, même après retour du validateur.
+Voir [borg check](https://borgbackup.readthedocs.io/en/1.4.5/usage/check.html).
+Une révision peut donc dégrader un résultat déjà correct ; ne pas lancer
+une correction inutile en production, et ne promouvoir une version
+révisée qu'après contrôle des exigences et absence de régression.
+
+Conclusion provisoire : conserver les deux modèles et le routage actuel.
+Les notes fournissent directement les faits demandés ; cette campagne
+mesure leur exploitation, pas une recherche autonome ni une expertise
+opérationnelle. Les quatre cas ne permettent pas une sélection définitive.
+La qualification sur Fedora/B580, les outils réels et les tests
+d'intégration restent nécessaires.

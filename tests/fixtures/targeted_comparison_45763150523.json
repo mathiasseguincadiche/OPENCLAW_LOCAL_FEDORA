@@ -1,0 +1,479 @@
+{
+  "classification": "synthetic_public",
+  "run_id": 45763150523,
+  "source": "GitHub Actions job logs; original response content and validator output",
+  "reports": {
+    "ornith": {
+      "job_id": 139717647773,
+      "model": {
+        "ollama_version": "0.40.6",
+        "alias": "ornith",
+        "runtime_id": "ornith-1.5:9b",
+        "digest": "e5df7dcdd8a263994df62d610317e07be0d6af23f96fcbd8543273058fce575e",
+        "size": 6550813657,
+        "format": "gguf",
+        "family": "qwen35",
+        "parameter_size": "9.0B",
+        "quantization_level": "Q4_K_M"
+      },
+      "commit": "a541b2e59821c28877aca6b778fd976337df8a4e",
+      "suite_sha256": "a8a1145be83097a5eac9c571cd5a27c3185d1b4de21097290b6def84a79ed677",
+      "stage_summary": {
+        "closed_book": {
+          "cases": 4,
+          "contract_pass": 1,
+          "correct_fields": 9,
+          "total_fields": 16
+        },
+        "sources": {
+          "cases": 4,
+          "contract_pass": 2,
+          "correct_fields": 13,
+          "total_fields": 16
+        },
+        "correction": {
+          "cases": 4,
+          "contract_pass": 2,
+          "correct_fields": 14,
+          "total_fields": 16
+        }
+      },
+      "results": [
+        {
+          "case": "libvirt",
+          "stage": "closed_book",
+          "response": {
+            "content": "{\n  \"executed\": false,\n  \"provider\": \"hashicorp/libvirt 0.9.0\",\n  \"reason\": \"Je n'exécute aucun outil ni commande ; je n'ai lu aucune documentation officielle ni aucun fichier du projet. Les réponses ci-dessous sont des affirmations générales, NON VÉRIFIÉES pour cette version exacte et ce projet.\",\n  \"resource\": \"libvirt_virtual_machine\",\n  \"state_rm_is_rollback\": false,\n  \"validate_proves_deployment\": false\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "FAIL_FACT_CONTRACT",
+            "correct": 2,
+            "total": 4,
+            "failed_fields": [
+              "provider",
+              "resource"
+            ],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "libvirt",
+          "stage": "sources",
+          "response": {
+            "content": "{\"executed\": false, \"provider\": \"dmacvicar/libvirt\", \"reason\": \"Réponses tirées des notes de référence relues, sans exécution : provider et type de ressource sont conformes aux sources, tandis que state rm et validate ne produisent ni restauration ni preuve de déploiement.\", \"resource\": \"libvirt_domain\", \"state_rm_is_rollback\": false, \"validate_proves_deployment\": false}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "PASS_FACT_CONTRACT_ONLY",
+            "correct": 4,
+            "total": 4,
+            "failed_fields": [],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "libvirt",
+          "stage": "correction",
+          "response": {
+            "content": "{\"executed\": false, \"provider\": \"dmacvicar/libvirt\", \"reason\": \"Notes de référence relues, sans exécution : namespace/provider, type de ressource, état de state rm et portée de validate sont conformes aux sources citées.\", \"resource\": \"libvirt_domain\", \"state_rm_is_rollback\": false, \"validate_proves_deployment\": false}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "PASS_FACT_CONTRACT_ONLY",
+            "correct": 4,
+            "total": 4,
+            "failed_fields": [],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "docker",
+          "stage": "closed_book",
+          "response": {
+            "content": "{\n  \"docker_group_root_equivalent\": false,\n  \"executed\": false,\n  \"firewalld_close_guarantees_block\": true,\n  \"reason\": \"Le groupe docker n'accède qu'aux sockets Docker, pas au noyau, donc ce n'est pas l'équivalent de root. Fermer le port dans firewalld bloque bien l'accès réseau au port publié. Docker redirige via NAT (DNAT) les paquets du hôte vers le conteneur.\",\n  \"redirect_mechanism\": \"DNAT\",\n  \"remote_test_required\": true\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "FAIL_FACT_CONTRACT",
+            "correct": 1,
+            "total": 4,
+            "failed_fields": [
+              "docker_group_root_equivalent",
+              "firewalld_close_guarantees_block",
+              "redirect_mechanism"
+            ],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "docker",
+          "stage": "sources",
+          "response": {
+            "content": "{\n  \"docker_group_root_equivalent\": true,\n  \"executed\": false,\n  \"firewalld_close_guarantees_block\": false,\n  \"reason\": \"Le groupe docker accède au binôme docker et au socket /var/run/docker.sock, ce qui permet d'agir sur le démon comme root sans mot de passe, donc équivalent à root. La fermeture firewalld ne bloque pas forcément le port publié car Docker redirige le trafic via NAT (DNAT) sur le bridge, et il faut confirmer les règles effectives depuis une VM autorisée.\",\n  \"redirect_mechanism\": \"DNAT\",\n  \"remote_test_required\": true\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "FAIL_FACT_CONTRACT",
+            "correct": 3,
+            "total": 4,
+            "failed_fields": [
+              "redirect_mechanism"
+            ],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "docker",
+          "stage": "correction",
+          "response": {
+            "content": "{\n  \"docker_group_root_equivalent\": true,\n  \"executed\": false,\n  \"firewalld_close_guarantees_block\": false,\n  \"reason\": \"Le groupe docker accède au binôme docker et au socket /var/run/docker.sock, ce qui permet d'agir sur le démon comme root sans mot de passe, donc équivalent à root. La fermeture firewalld ne bloque pas forcément le port publié car Docker redirige le trafic via NAT (DNAT) sur le bridge, et il faut confirmer les règles effectives depuis une VM autorisée.\",\n  \"redirect_mechanism\": \"DNAT\",\n  \"remote_test_required\": true\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "FAIL_FACT_CONTRACT",
+            "correct": 3,
+            "total": 4,
+            "failed_fields": [
+              "redirect_mechanism"
+            ],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "borg",
+          "stage": "closed_book",
+          "response": {
+            "content": "{\"check_command\": \"borg init --read-only /backup/atlas\", \"check_proves_restore\": false, \"create_command\": \"borg create --read-only /backup/atlas daily-<date> /chemin\", \"executed\": false, \"reason\": \"Aucun outil ni accès réseau/machine n'a été exécuté; je n'ai rien vérifié. Les commandes sont données à titre de proposition, à exécuter par l'utilisateur dans son environnement.\",\"repair_safe_routine\": false}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "FAIL_FACT_CONTRACT",
+            "correct": 2,
+            "total": 4,
+            "failed_fields": [
+              "create_command",
+              "check_command"
+            ],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "borg",
+          "stage": "sources",
+          "response": {
+            "content": "{\"check_command\": \"borg create /backup/atlas --daily\", \"check_proves_restore\": false, \"create_command\": \"borg create /backup/atlas --daily\", \"executed\": false, \"reason\": \"Borg 1.4.5 : la commande create cible le dépôt puis l'archive daily, sans exécution. La cohérence ne prouve pas la restauration.\", \"repair_safe_routine\": false}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "FAIL_FACT_CONTRACT",
+            "correct": 2,
+            "total": 4,
+            "failed_fields": [
+              "create_command",
+              "check_command"
+            ],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "borg",
+          "stage": "correction",
+          "response": {
+            "content": "{\"check_command\": \"borg check /backup/atlas\", \"check_proves_restore\": false, \"create_command\": \"borg create /backup/atlas --daily\", \"executed\": false, \"reason\": \"La syntaxe borg place le chemin du dépôt avant l'archive et l'archive avant l'argument d'option ; la réponse précédente avait inversé l'ordre des deux premiers éléments. --repair n'est pas une vérification de routine sans risque et une vérification ne prouve pas la restauration métier.\", \"repair_safe_routine\": false}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "FAIL_FACT_CONTRACT",
+            "correct": 3,
+            "total": 4,
+            "failed_fields": [
+              "create_command"
+            ],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "postgresql",
+          "stage": "closed_book",
+          "response": {
+            "content": "{\n  \"archive_restore_tool\": \"pg_restore\",\n  \"custom_format_flag\": \"-Fc\",\n  \"executed\": false,\n  \"list_proves_restore\": false,\n  \"plain_restore_tool\": \"psql\",\n  \"reason\": \"pg_dump -Fc crée une archive custom lisible uniquement par pg_restore ; l'import d'un dump texte se fait avec psql. --list ne montre que le contenu de l'archive, pas l'exécution d'une restauration.\"\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "PASS_FACT_CONTRACT_ONLY",
+            "correct": 4,
+            "total": 4,
+            "failed_fields": [],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "postgresql",
+          "stage": "sources",
+          "response": {
+            "content": "{\n  \"archive_restore_tool\": \"pg_restore\",\n  \"custom_format_flag\": \"-Fc\",\n  \"executed\": false,\n  \"list_proves_restore\": false,\n  \"plain_restore_tool\": \"psql\",\n  \"reason\": \"pg_dump -Fc crée le format custom ; pg_restore le restaure, tandis que psql importe un dump texte. L'option --list ne restaure rien, elle n'affiche que le catalogue de l'archive.\"\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "PASS_FACT_CONTRACT_ONLY",
+            "correct": 4,
+            "total": 4,
+            "failed_fields": [],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "postgresql",
+          "stage": "correction",
+          "response": {
+            "content": "{\n  \"archive_restore_tool\": \"pg_restore\",\n  \"custom_format_flag\": \"-Fc\",\n  \"executed\": false,\n  \"list_proves_restore\": false,\n  \"plain_restore_tool\": \"psql\",\n  \"reason\": \"pg_dump -Fc crée le format custom ; pg_restore le restaure, tandis que psql importe un dump texte. L'option --list ne restaure rien, elle n'affiche que le catalogue de l'archive.\"\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "PASS_FACT_CONTRACT_ONLY",
+            "correct": 4,
+            "total": 4,
+            "failed_fields": [],
+            "execution_claim": false
+          }
+        }
+      ]
+    },
+    "qwen": {
+      "job_id": 139717648392,
+      "model": {
+        "ollama_version": "0.40.6",
+        "alias": "qwen",
+        "runtime_id": "qwen3.5:9b-q4_K_M",
+        "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+        "size": 6550825550,
+        "format": "gguf",
+        "family": "qwen35",
+        "parameter_size": "9.0B",
+        "quantization_level": "Q4_K_M"
+      },
+      "commit": "a541b2e59821c28877aca6b778fd976337df8a4e",
+      "suite_sha256": "a8a1145be83097a5eac9c571cd5a27c3185d1b4de21097290b6def84a79ed677",
+      "stage_summary": {
+        "closed_book": {
+          "cases": 4,
+          "contract_pass": 0,
+          "correct_fields": 7,
+          "total_fields": 16
+        },
+        "sources": {
+          "cases": 4,
+          "contract_pass": 3,
+          "correct_fields": 15,
+          "total_fields": 16
+        },
+        "correction": {
+          "cases": 4,
+          "contract_pass": 3,
+          "correct_fields": 15,
+          "total_fields": 16
+        }
+      },
+      "results": [
+        {
+          "case": "libvirt",
+          "stage": "closed_book",
+          "response": {
+            "content": "{\n  \"provider\": \"hashicorp/libvirt\",\n  \"resource\": \"libvirt_ubuntu_vm\",\n  \"state_rm_is_rollback\": false,\n  \"validate_proves_deployment\": false,\n  \"reason\": \"Le provider libvirt est 'hashicorp/libvirt' et la ressource VM typique est 'libvirt_ubuntu_vm'. La commande 'terraform state rm' supprime l'état local sans restaurer la machine virtuelle réelle, tandis que 'terraform validate' ne vérifie que la cohérence syntaxique du code et ne prouve aucun déploiement.\",\n  \"executed\": false\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "FAIL_FACT_CONTRACT",
+            "correct": 2,
+            "total": 4,
+            "failed_fields": [
+              "provider",
+              "resource"
+            ],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "libvirt",
+          "stage": "sources",
+          "response": {
+            "content": "{\n  \"provider\": \"dmacvicar/libvirt\",\n  \"resource\": \"libvirt_domain\",\n  \"state_rm_is_rollback\": false,\n  \"validate_proves_deployment\": false,\n  \"reason\": \"Le provider libvirt version 0.9.0 utilise le namespace 'dmacvicar' et la ressource 'libvirt_domain'. La commande 'terraform state rm' supprime l'entrée de l'état sans restaurer la VM, tandis que 'terraform validate' ne vérifie que la cohérence du code source et non l'exécution réelle des services.\",\n  \"executed\": false\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "PASS_FACT_CONTRACT_ONLY",
+            "correct": 4,
+            "total": 4,
+            "failed_fields": [],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "libvirt",
+          "stage": "correction",
+          "response": {
+            "content": "{\n  \"provider\": \"dmacvicar/libvirt\",\n  \"resource\": \"libvirt_domain\",\n  \"state_rm_is_rollback\": false,\n  \"validate_proves_deployment\": false,\n  \"reason\": \"Le provider libvirt version 0.9.0 utilise le namespace 'dmacvicar' et la ressource 'libvirt_domain'. La commande 'terraform state rm' supprime l'entrée de l'état sans restaurer la VM, tandis que 'terraform validate' ne vérifie que la cohérence du code source et non l'exécution réelle des services.\",\n  \"executed\": false\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "PASS_FACT_CONTRACT_ONLY",
+            "correct": 4,
+            "total": 4,
+            "failed_fields": [],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "docker",
+          "stage": "closed_book",
+          "response": {
+            "content": "{\n  \"docker_group_root_equivalent\": false,\n  \"firewalld_close_guarantees_block\": true,\n  \"redirect_mechanism\": \"iptables\",\n  \"remote_test_required\": false,\n  \"reason\": \"Le groupe docker accède au socket Docker mais n'a pas les privilèges root ; fermer le port dans firewalld bloque bien l'accès réseau. Le mécanisme de redirection est iptables et la validation depuis une autre VM n'est pas requise pour confirmer la configuration locale.\",\n  \"executed\": false\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "FAIL_FACT_CONTRACT",
+            "correct": 0,
+            "total": 4,
+            "failed_fields": [
+              "docker_group_root_equivalent",
+              "firewalld_close_guarantees_block",
+              "redirect_mechanism",
+              "remote_test_required"
+            ],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "docker",
+          "stage": "sources",
+          "response": {
+            "content": "{\n  \"docker_group_root_equivalent\": true,\n  \"firewalld_close_guarantees_block\": false,\n  \"redirect_mechanism\": \"DNAT\",\n  \"remote_test_required\": true,\n  \"reason\": \"Le groupe docker accède au socket Docker qui permet d'exécuter des conteneurs en tant que root. La fermeture du port dans firewalld ne bloque pas le trafic redirigé par NAT car les règles de filtrage sont gérées par iptables/nftables via le démon Docker.\",\n  \"executed\": false\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "FAIL_FACT_CONTRACT",
+            "correct": 3,
+            "total": 4,
+            "failed_fields": [
+              "redirect_mechanism"
+            ],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "docker",
+          "stage": "correction",
+          "response": {
+            "content": "{\n  \"docker_group_root_equivalent\": true,\n  \"firewalld_close_guarantees_block\": false,\n  \"redirect_mechanism\": \"NAT\",\n  \"remote_test_required\": true,\n  \"reason\": \"Le groupe docker accède au socket Docker qui permet d'exécuter des conteneurs en tant que root. La fermeture du port dans firewalld ne bloque pas le trafic redirigé par NAT car les règles de filtrage sont gérées par iptables/nftables via le démon Docker.\",\n  \"executed\": false\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "PASS_FACT_CONTRACT_ONLY",
+            "correct": 4,
+            "total": 4,
+            "failed_fields": [],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "borg",
+          "stage": "closed_book",
+          "response": {
+            "content": "{\n  \"create_command\": \"borg create --append /backup/atlas::daily /tmp/atlas.dump\",\n  \"check_command\": \"borg check --stats /backup/atlas\",\n  \"repair_safe_routine\": false,\n  \"check_proves_restore\": false,\n  \"reason\": \"La commande `--append` ajoute l'archive sans écraser les données existantes. La vérification ne garantit pas la restauration fonctionnelle car elle ne teste que l'intégrité des métadonnées et de la structure, pas la compatibilité logicielle ou le contexte d'application.\",\n  \"executed\": false\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "FAIL_FACT_CONTRACT",
+            "correct": 2,
+            "total": 4,
+            "failed_fields": [
+              "create_command",
+              "check_command"
+            ],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "borg",
+          "stage": "sources",
+          "response": {
+            "content": "{\n  \"create_command\": \"borg create /backup/atlas::daily /tmp/atlas.dump\",\n  \"check_command\": \"borg check /backup/atlas\",\n  \"repair_safe_routine\": false,\n  \"check_proves_restore\": false,\n  \"reason\": \"La commande --repair effectue des modifications potentiellement destructrices et n'est pas une vérification de routine. Une cohérence du dépôt ne garantit pas que les données sont restaurables ou intactes pour l'application métier.\",\n  \"executed\": false\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "PASS_FACT_CONTRACT_ONLY",
+            "correct": 4,
+            "total": 4,
+            "failed_fields": [],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "borg",
+          "stage": "correction",
+          "response": {
+            "content": "{\n  \"create_command\": \"borg create /backup/atlas::daily /tmp/atlas.dump\",\n  \"check_command\": \"borg check --stats /backup/atlas\",\n  \"repair_safe_routine\": false,\n  \"check_proves_restore\": false,\n  \"reason\": \"L'option --stats est ajoutée à la commande de vérification pour fournir un retour d'état utile sans modifier le dépôt. Le mode --repair reste dangereux et non routinier car il modifie les données. Une cohérence du dépôt ne garantit pas que les données sont restaurables ou intactes pour l'application métier.\",\n  \"executed\": false\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "FAIL_FACT_CONTRACT",
+            "correct": 3,
+            "total": 4,
+            "failed_fields": [
+              "check_command"
+            ],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "postgresql",
+          "stage": "closed_book",
+          "response": {
+            "content": "{\n  \"custom_format_flag\": \"--custom\",\n  \"archive_restore_tool\": \"pg_restore\",\n  \"plain_restore_tool\": \"psql\",\n  \"list_proves_restore\": false,\n  \"reason\": \"L'option --custom est utilisée pour créer une archive personnalisée. L'exécutable pg_restore restaure ce type d'archive, tandis que psql importe un dump SQL texte simple. L'option --list de pg_restore affiche uniquement la liste des objets à restaurer et ne confirme pas le succès de l'opération.\",\n  \"executed\": false\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "FAIL_FACT_CONTRACT",
+            "correct": 3,
+            "total": 4,
+            "failed_fields": [
+              "custom_format_flag"
+            ],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "postgresql",
+          "stage": "sources",
+          "response": {
+            "content": "{\n  \"custom_format_flag\": \"-Fc\",\n  \"archive_restore_tool\": \"pg_restore\",\n  \"plain_restore_tool\": \"psql\",\n  \"list_proves_restore\": false,\n  \"reason\": \"L'option -Fc de pg_dump crée un format custom. L'exécutable pg_restore restaure ce format, tandis que psql importe les dumps texte. L'option --list n'affiche que le catalogue de l'archive sans effectuer la restauration.\",\n  \"executed\": false\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "PASS_FACT_CONTRACT_ONLY",
+            "correct": 4,
+            "total": 4,
+            "failed_fields": [],
+            "execution_claim": false
+          }
+        },
+        {
+          "case": "postgresql",
+          "stage": "correction",
+          "response": {
+            "content": "{\n  \"custom_format_flag\": \"-Fc\",\n  \"archive_restore_tool\": \"pg_restore\",\n  \"plain_restore_tool\": \"psql\",\n  \"list_proves_restore\": false,\n  \"reason\": \"L'option -Fc de pg_dump génère un format custom. L'exécutable pg_restore restaure ce format, tandis que psql importe les dumps texte. L'option --list affiche uniquement le catalogue de l'archive sans effectuer la restauration.\",\n  \"executed\": false\n}",
+            "done_reason": "stop"
+          },
+          "validation": {
+            "state": "PASS_FACT_CONTRACT_ONLY",
+            "correct": 4,
+            "total": 4,
+            "failed_fields": [],
+            "execution_claim": false
+          }
+        }
+      ]
+    }
+  }
+}
