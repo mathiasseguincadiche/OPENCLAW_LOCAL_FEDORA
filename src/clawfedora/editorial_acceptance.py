@@ -117,7 +117,8 @@ def evaluate(form: Path, commit: str) -> dict[str, Any]:
     ):
         raise ValueError("formulaire, campagne ou commit incohérent")
     used = {form.name}
-    results = []
+    seen_hashes: set[str] = set()
+    results: list[dict[str, Any]] = []
     for ident, _ in CASES:
         row = data["cases"][ident]
         if (
@@ -134,6 +135,9 @@ def evaluate(form: Path, commit: str) -> dict[str, Any]:
         if state == "NOT_RUN" and row["evidence"]:
             raise ValueError("cas non exécuté avec preuves")
         hashes = [_proof(form.parent, item, used) for item in row["evidence"]]
+        if len(set(hashes)) != len(hashes) or seen_hashes.intersection(hashes):
+            raise ValueError("contenu de preuve réutilisé")
+        seen_hashes.update(hashes)
         results.append({"id": ident, "state": state, "evidence_sha256": hashes})
     states = {row["state"] for row in results}
     assessment = (
