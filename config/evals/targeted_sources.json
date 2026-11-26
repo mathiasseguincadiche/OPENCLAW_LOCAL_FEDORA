@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "reviewed_on": "2026-11-26",
+  "cases": [
+    {
+      "id": "libvirt",
+      "role": "ingenieur-devops",
+      "question": "Pour Terraform et libvirt 0.9.0, indique le namespace/provider exact, le type de ressource VM, si state rm restaure la VM et si validate prouve un déploiement.",
+      "fields": {
+        "provider": "dmacvicar/libvirt",
+        "resource": "libvirt_domain",
+        "state_rm_is_rollback": false,
+        "validate_proves_deployment": false
+      },
+      "sources": [
+        {
+          "url": "https://registry.terraform.io/providers/dmacvicar/libvirt/0.9.0/docs/resources/domain",
+          "note": "Le provider dmacvicar/libvirt version 0.9.0 expose la ressource libvirt_domain pour les domaines VM."
+        },
+        {
+          "url": "https://developer.hashicorp.com/terraform/cli/commands/state/rm",
+          "note": "state rm détache l'objet de l'état sans le restaurer ni le détruire."
+        },
+        {
+          "url": "https://developer.hashicorp.com/terraform/cli/commands/validate",
+          "note": "validate contrôle la configuration et ne vérifie pas les services distants."
+        }
+      ]
+    },
+    {
+      "id": "docker",
+      "role": "ingenieur-securite",
+      "question": "Docker Engine rootful Linux, réseau bridge, port publié sur 0.0.0.0, firewalld actif. Le groupe docker confère-t-il des privilèges équivalents à root ? Fermer un port dans firewalld garantit-il le blocage du port publié ? Quel mécanisme utilise Docker pour rediriger les paquets (répondre par son acronyme) ? Faut-il confirmer depuis une autre VM autorisée ?",
+      "fields": {
+        "docker_group_root_equivalent": true,
+        "firewalld_close_guarantees_block": false,
+        "redirect_mechanism": "nat",
+        "remote_test_required": true
+      },
+      "sources": [
+        {
+          "url": "https://docs.docker.com/engine/install/linux-postinstall/",
+          "note": "Le groupe docker accorde des privilèges de niveau root."
+        },
+        {
+          "url": "https://docs.docker.com/engine/network/packet-filtering-firewalls/",
+          "note": "Docker programme des règles de filtrage et de NAT pour les réseaux bridge et les ports publiés. Une simple fermeture de port dans firewalld ne suffit pas à établir que le trafic redirigé est bloqué. Il faut contrôler les règles effectives."
+        },
+        {
+          "url": "https://docs.docker.com/engine/security/",
+          "note": "Les droits d'administration du démon rootful sont sensibles. Dans ce laboratoire, un test de connectivité depuis une VM autorisée est nécessaire pour constater l'exposition réelle."
+        }
+      ]
+    },
+    {
+      "id": "borg",
+      "role": "redacteur-pedagogique",
+      "question": "Borg 1.4.5 : dépôt déjà initialisé /backup/atlas et fichier /tmp/atlas.dump. Donner la commande minimale pour créer l'archive daily, la commande minimale de vérification en lecture seule du dépôt, dire si --repair est une vérification de routine sans risque, et si une vérification réussie démontre la restauration métier.",
+      "fields": {
+        "create_command": "borg create /backup/atlas::daily /tmp/atlas.dump",
+        "check_command": "borg check /backup/atlas",
+        "repair_safe_routine": false,
+        "check_proves_restore": false
+      },
+      "sources": [
+        {
+          "url": "https://borgbackup.readthedocs.io/en/1.4.5/usage/create.html",
+          "note": "Dans Borg 1.4.5, créer une archive utilise borg create avec l'identifiant dépôt::archive puis les chemins à sauvegarder."
+        },
+        {
+          "url": "https://borgbackup.readthedocs.io/en/1.4.5/usage/check.html",
+          "note": "borg check suivi du dépôt contrôle sa cohérence sans réparation par défaut. Le mode --repair peut causer des pertes et nécessite une décision distincte. La cohérence ne démontre pas une restauration de l'application."
+        }
+      ]
+    },
+    {
+      "id": "postgresql",
+      "role": "redacteur-pedagogique",
+      "question": "PostgreSQL 17 : donne l'option courte de pg_dump pour créer une archive custom, le nom de l'exécutable qui restaure cette archive, le nom de l'exécutable qui importe un dump SQL texte simple et dis si l'option --list de pg_restore démontre une restauration réussie.",
+      "fields": {
+        "custom_format_flag": "-Fc",
+        "archive_restore_tool": "pg_restore",
+        "plain_restore_tool": "psql",
+        "list_proves_restore": false
+      },
+      "sources": [
+        {
+          "url": "https://www.postgresql.org/docs/17/app-pgdump.html",
+          "note": "pg_dump -Fc sélectionne le format custom. Le format texte par défaut produit un script SQL à importer avec psql."
+        },
+        {
+          "url": "https://www.postgresql.org/docs/17/app-pgrestore.html",
+          "note": "pg_restore restaure les archives non textuelles produites par pg_dump. --list affiche le catalogue de l'archive sans restaurer la base."
+        }
+      ]
+    }
+  ]
+}

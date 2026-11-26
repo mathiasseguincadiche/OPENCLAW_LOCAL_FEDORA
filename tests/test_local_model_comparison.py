@@ -119,7 +119,7 @@ def test_workflow_uses_runner_context_only_inside_steps():
     assert all("runner." not in value for value in job["env"].values())
     assert "RUNNER_TEMP" in job["steps"][0]["run"]
     assert "GITHUB_ENV" in job["steps"][0]["run"]
-    assert workflow["on"]["push"]["branches"] == ["feat/local-model-pilot"]
+    assert workflow["on"]["push"]["branches"] == ["feat/local-model-targeted"]
     assert "workflow_dispatch" in workflow["on"]
     assert job["strategy"]["matrix"]["model"] == ["qwen", "ornith"]
 

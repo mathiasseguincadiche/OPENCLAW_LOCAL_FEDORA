@@ -6,7 +6,7 @@ Ornith 1.5 9B Q4_K_M. Le dépôt public utilise des runners standards gratuits s
 [la documentation GitHub](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
 Aucun GPU payant, compte IA, clé API, service d'inférence cloud ni donnée personnelle.
 
-Le pilote est déclenché par un push sur la branche interne feat/local-model-pilot.
+Le mode ciblé est déclenché par un push sur la branche interne feat/local-model-targeted.
 Le mode smoke reste accessible manuellement. Après fusion, lancer manuellement depuis Actions → Local model comparison
 (CPU) → Run workflow. Ne pas utiliser le workflow sur des dépôts privés ou des runners payants.
 
@@ -53,3 +53,34 @@ les résultats d'un profil différent ne sont pas comparables en vitesse brute.
 Ne pas confondre arrêt normal, qualité du contenu et validation technique.
 Le contrôle statique Bash ne démontre pas le comportement du script.
 Le pilote conserve le plafond de 90 minutes par runner et peut être incomplet.
+
+## Campagne ciblée sur les erreurs du pilote
+
+Le [pilote 45756209993](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45756209993)
+a collecté 14 réponses : Qwen 5/7 arrêts normaux, Ornith 7/7. Les deux
+modèles ont passé la sonde d'outil synthétique et ShellCheck, mais les
+réponses présentent des erreurs de fond sur libvirt, Docker, Borg et PostgreSQL.
+
+Le mode `targeted` utilise les notes documentaires synthétisées et datées
+dans `config/evals/targeted_sources.json`. Les références libvirt 0.9.0,
+Borg 1.4.5 et PostgreSQL 17 sont des versions de test, pas des changements de
+versions du projet. Les pages Docker/HashiCorp non versionnées sont
+référencées à la date de consultation, et les notes sont figées par Git.
+
+Chaque cas comporte quatre faits à contrôler et trois étapes :
+sans sources, avec sources (nouvelle conversation), puis correction de
+cette réponse avec la liste réelle des champs en échec. La troisième
+étape ne révèle pas les réponses attendues dans le retour du validateur.
+Elle conserve les notes fournies à la deuxième étape. Les deux modèles
+utilisent les mêmes paramètres, 600 tokens de sortie et thinking désactivé.
+Le digest doit rester identique à celui du pilote.
+
+La grille vérifie des champs JSON et la forme exacte des commandes
+minimales demandées, pas leur exécution. Elle exclut une déclaration
+d'exécution et un arrêt tronqué du PASS de contrat. Les justifications
+restent à relire : une contradiction en texte libre n'est pas détectée
+automatiquement. Ce test mesure une capacité étroite de restitution et
+de correction, pas la maîtrise d'un déploiement. Aucune action Terraform,
+Docker, Borg ou PostgreSQL n'est exécutée. Aucun changement de routage.
+Quatre cas × trois étapes × deux modèles = 24 appels bornés. Le rapport
+partiel est conservé si une inférence échoue.
