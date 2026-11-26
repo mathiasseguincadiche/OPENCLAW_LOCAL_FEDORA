@@ -1,0 +1,266 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "mode": "excellence-finalists",
+  "commit": "c8caccea4769efd699e39c1ee9b2b72ef7530819",
+  "suite_sha256": "83ab819f92a17e1f66f8d11b8e2a67dc2635a69e61744adc75e748e74b807bfe",
+  "model": {
+    "ollama_version": "0.40.6",
+    "alias": "gemma",
+    "runtime_id": "gemma4:12b-it-q4_K_M",
+    "digest": "6114515d63c17436a7c0417d82820ac65ad643e2806c5a3c89cb62846436ed0b",
+    "size": 8021618941,
+    "format": "gguf",
+    "family": "gemma4",
+    "parameter_size": "11.9B",
+    "quantization_level": "Q4_K_M"
+  },
+  "backend": "ollama-cpu",
+  "options": {
+    "num_ctx": 8192,
+    "num_predict": 900,
+    "num_gpu": 0,
+    "num_thread": 4,
+    "temperature": 0,
+    "seed": 42
+  },
+  "capabilities": [
+    "completion",
+    "vision",
+    "audio",
+    "tools",
+    "thinking"
+  ],
+  "think_requested": false,
+  "shard": "review",
+  "planned": 3,
+  "results": [
+    {
+      "id": "security-secret",
+      "role": "ingenieur-securite",
+      "initial": {
+        "input_sha256": "398b800a607d07fa371354b020ab4a4b2ca800b59b9516e7c152c99783e97dde",
+        "response": {
+          "content": "{\n  \"deletion_neutralizes_token\": false,\n  \"revocation_required\": true,\n  \"history_can_expose\": true,\n  \"remote_revocation_allowed\": false,\n  \"reason\": \"La suppression du fichier dans le commit actuel est insuffisante car le jeton demeure accessible dans l'historique Git (commits précédents). Tant que le jeton n'est pas révoqué par l'émetteur, il reste valide pour quiconque possède un clone du dépôt ou accède à l'historique. La suppression simple ne neutralise pas le risque de compromission. \\n\\nRemédiation proposée :\\n1. Révoquer immédiatement le jeton auprès du fournisseur de service (action prioritaire).\\n2. Générer un nouveau jeton de déploiement avec des permissions restreintes.\\n3. Nettoyer l'historique Git (via `git filter-repo` ou `BFG Repo-Cleaner`) pour supprimer toute trace du secret, bien que la révocation soit la seule garantie de sécurité.\\n4. Configurer des secrets via des variables d'environnement ou un gestionnaire de secrets (ex: Vault, AWS Secrets Manager) et utiliser des outils comme `pre-commit` avec `gitleaks` pour empêcher de futures fuites. \\n\\nNote : En tant qu'IA, je ne peux pas effectuer d'actions distantes sur vos infrastructures ou comptes.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 557054589199,
+            "load_duration": 13006247192,
+            "prompt_eval_count": 2952,
+            "prompt_eval_duration": 383054482000,
+            "eval_count": 319,
+            "eval_duration": 160941914000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 557057
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "audit-alert",
+      "role": "auditeur-qualite",
+      "initial": {
+        "input_sha256": "a60dd24cc0c8dafe033b1edadaa75f91bdba82bbbb0f83099b02766cee17549e",
+        "response": {
+          "content": "{\n  \"verdict\": \"REVISE\",\n  \"candidate_restore_proven\": false,\n  \"notification_proven\": false,\n  \"may_edit_artifact\": false,\n  \"reason\": \"L'audit révèle une non-conformité critique par rapport au contrat : le test de restauration a été effectué sur le SHA A, alors que le contrat exige la restauration du candidat (SHA B). Bien que le SHA B modifie la procédure, aucune preuve de succès sur cette version spécifique n'est fournie. Concernant la notification, la règle Prometheus est bien présente dans la configuration, mais aucune preuve de réception d'alerte (log, webhook ou notification système) n'est jointe au dossier. En tant qu'auditeur en lecture seule, je ne peux valider le PASS sans preuves de runtime directement attribuables au candidat. Le verdict est donc REVISE. Les retests exacts demandés sont : 1. Exécuter la procédure de restauration sur le SHA B et fournir le log de succès ou le hash de vérification post-restauration. 2. Déclencher une alerte de test et fournir la preuve de réception de la notification (capture d'écran, log de réception ou ID de message) pour valider la règle Prometheus.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 579061117997,
+            "load_duration": 2055840,
+            "prompt_eval_count": 3252,
+            "prompt_eval_duration": 420945178000,
+            "eval_count": 282,
+            "eval_duration": 158065681000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "PASS_FACT_CONTRACT_ONLY",
+          "issues": [],
+          "failed_fields": [],
+          "correct": 4,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 579064
+      },
+      "selection": "KEEP_INITIAL",
+      "review": "NOT_REVIEWED"
+    },
+    {
+      "id": "writing-rollback",
+      "role": "redacteur-pedagogique",
+      "initial": {
+        "input_sha256": "23194d8955b44e4e504a61647dd15f04efe09bc3a06fe733ce577eeb6138ad75",
+        "response": {
+          "content": "{\n  \"rollback_digest\": \"aaa\",\n  \"rollback_tested\": false,\n  \"migration_reversible\": false,\n  \"backup_required\": true,\n  \"reason\": \"Le livrable est une fiche technique basée sur les notes validées (source de vérité) et non sur le brouillon erroné. \\n\\n**Fiche de procédure : Migration Boréal**\\n\\n**Prérequis :**\\n- Effectuer une sauvegarde complète des données avant toute intervention.\\n- Vérifier l'état de l'image actuelle (sha256:aaa).\\n\\n**Action conditionnelle :**\\n- Si la migration vers l'image candidate (sha256:bbb) échoue ou présente des instabilités, initier le rollback vers l'image stable (sha256:aaa).\\n\\n**Vérification :**\\n- Comparer le digest de l'image active avec 'aaa' après rollback.\\n- Vérifier l'intégrité des données via les logs de service.\\n\\n**Limites :**\\n- La migration de schéma est non réversible : une fois appliquée, le retour à l'ancien schéma est impossible sans restauration de sauvegarde.\\n- Le rollback vers 'aaa' est documenté mais n'a pas été testé en conditions réelles.\\n\\n**Signe d'échec :**\\n- Absence de correspondance du digest 'aaa' ou corruption des données après tentative de retour.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 581009683815,
+            "load_duration": 1705733,
+            "prompt_eval_count": 3224,
+            "prompt_eval_duration": 417348000000,
+            "eval_count": 331,
+            "eval_duration": 163606669000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "rollback_digest"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 581011
+      },
+      "selection": "BLOCK_UNRESOLVED",
+      "review": "NOT_REVIEWED",
+      "correction": {
+        "input_sha256": "3a164b875af814c0186934cc38b96434f53a4a9329d71ff9f8157366045573df",
+        "response": {
+          "content": "{\n  \"rollback_digest\": \"aaa\",\n  \"rollback_tested\": false,\n  \"migration_reversible\": false,\n  \"backup_required\": true,\n  \"reason\": \"Le livrable est une fiche technique basée sur les notes validées (source de vérité) et non sur le brouillon erroné. \\n\\n**Fiche de procédure : Migration Boréal**\\n\\n**Prérequis :**\\n- Effectuer une sauvegarde complète des données avant toute intervention.\\n- Vérifier l'état de l'image actuelle (sha256:aaa).\\n\\n**Action conditionnelle :**\\n- Si la migration vers l'image candidate (sha256:bbb) échoue ou présente des instabilités, initier le rollback vers l'image stable (sha256:aaa).\\n\\n**Vérification :**\\n- Comparer le digest de l'image active avec 'aaa' après rollback.\\n- Vérifier l'intégrité des données via les logs de service.\\n\\n**Limites :**\\n- La migration de schéma est non réversible : une fois appliquée, le retour à l'ancien schéma est impossible sans restauration de sauvegarde.\\n- Le rollback vers 'aaa' est documenté mais n'a pas été testé en conditions réelles.\\n\\n**Signe d'échec :**\\n- Absence de correspondance du digest 'aaa' ou corruption des données après tentative de retour.\",\n  \"executed\": false\n}",
+          "done_reason": "stop",
+          "metrics": {
+            "total_duration": 168514457552,
+            "load_duration": 1469017,
+            "prompt_eval_count": 3607,
+            "prompt_eval_duration": 53862810000,
+            "eval_count": 330,
+            "eval_duration": 114595346000
+          },
+          "tool_calls": []
+        },
+        "thinking_observed": false,
+        "validation": {
+          "state": "BLOCKED",
+          "issues": [],
+          "failed_fields": [
+            "rollback_digest"
+          ],
+          "correct": 3,
+          "total": 4,
+          "execution_claim": false,
+          "semantic_review": "REQUIRED"
+        },
+        "elapsed_ms": 168516
+      }
+    }
+  ],
+  "assessment": "COLLECTED_SEMANTIC_REVIEW_REQUIRED",
+  "native_excellence_certified": false,
+  "production_routing_changed": false,
+  "profile": "coached",
+  "socket_timeout_seconds": 1500,
+  "guidance_sha256": "f77d997a712459f67f8f72767af200e55ec824e9ee53688feb53af162945275d",
+  "role_tool_probes": [
+    {
+      "role": "ingenieur-securite",
+      "state": "FAIL_TOOL_CALL",
+      "first": {
+        "content": "",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 44781202409,
+          "load_duration": 1690000,
+          "prompt_eval_count": 322,
+          "prompt_eval_duration": 39049636000,
+          "eval_count": 17,
+          "eval_duration": 4884544000
+        },
+        "tool_calls": [
+          {
+            "id": "call_5676uqvd",
+            "function": {
+              "index": 0,
+              "name": "fixture_security",
+              "arguments": {
+                "key": "scan-receipt"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "role": "auditeur-qualite",
+      "state": "FAIL_TOOL_CALL",
+      "first": {
+        "content": "",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 46701469453,
+          "load_duration": 2990750,
+          "prompt_eval_count": 334,
+          "prompt_eval_duration": 41515717000,
+          "eval_count": 17,
+          "eval_duration": 5047002000
+        },
+        "tool_calls": [
+          {
+            "id": "call_7omy3xbd",
+            "function": {
+              "index": 0,
+              "name": "fixture_audit",
+              "arguments": {
+                "key": "candidate-evidence"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "role": "redacteur-pedagogique",
+      "state": "FAIL_TOOL_CALL",
+      "first": {
+        "content": "",
+        "done_reason": "stop",
+        "metrics": {
+          "total_duration": 47548426607,
+          "load_duration": 1016310,
+          "prompt_eval_count": 339,
+          "prompt_eval_duration": 42246646000,
+          "eval_count": 17,
+          "eval_duration": 5156834000
+        },
+        "tool_calls": [
+          {
+            "id": "call_dv98uxf6",
+            "function": {
+              "index": 0,
+              "name": "fixture_document",
+              "arguments": {
+                "key": "approved-notes"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "initial_pass": 2,
+    "corrected": 0,
+    "blocked": 1
+  }
+}

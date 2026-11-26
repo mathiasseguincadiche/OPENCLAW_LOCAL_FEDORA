@@ -73,6 +73,22 @@ def _tool(name: str, description: str) -> dict[str, Any]:
     }}
 
 
+def valid_call(calls: object, name: str, key: str) -> bool:
+    """Accept Ollama's optional single-call index, never loosen the arguments."""
+    if not isinstance(calls, list) or len(calls) != 1 or not isinstance(calls[0], dict):
+        return False
+    function = calls[0].get("function")
+    if not isinstance(function, dict):
+        return False
+    if set(function) - {"name", "arguments", "index"}:
+        return False
+    if "index" in function and (
+        type(function["index"]) is not int or function["index"] != 0
+    ):
+        return False
+    return function.get("name") == name and function.get("arguments") == {"key": key}
+
+
 def probe(model: str, role: str, options: dict[str, Any], timeout: int) -> dict[str, Any]:
     name, key, status = FIXTURES[role]
     receipt = {"key": key, "status": status, "scope": "synthetic"}
@@ -94,13 +110,7 @@ def probe(model: str, role: str, options: dict[str, Any], timeout: int) -> dict[
                ]}
     first = mc._result(mc._chat(payload, timeout=timeout), model)
     calls = first["tool_calls"]
-    expected = {"name": name, "arguments": {"key": key}}
-    valid = (
-        isinstance(calls, list) and len(calls) == 1 and isinstance(calls[0], dict)
-        and isinstance(calls[0].get("function"), dict)
-        and calls[0]["function"] == expected
-    )
-    if not valid:
+    if not valid_call(calls, name, key):
         return {"state": "FAIL_TOOL_CALL", "first": first}
     followup = [*messages, {"role": "assistant", "content": first["content"],
                             "tool_calls": calls},

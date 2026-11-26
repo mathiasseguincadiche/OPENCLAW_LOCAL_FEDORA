@@ -39,3 +39,7 @@ Comparer direct et coached sur les mêmes dossiers, seeds et budgets, mêmes mod
 En seed 42, sept sondes d'outils simulés par modèle vérifient appel structuré, choix de l'outil autorisé, paramètre exact, absence de mutation et fidélité à un reçu synthétique. 21 sondes, au plus 42 appels supplémentaires. Elles ne font intervenir aucun outil natif, aucun fichier privé, aucun accès distant ni exécution de commande. La mutation leurre est toujours refusée par le harnais ; elle ne correspond à aucune action réelle. Un PASS ne qualifie pas l'intégration OpenClaw, la sécurité des permissions ni la capacité de diagnostiquer un véritable service.
 
 La campagne démarre sur feat/excellence-role-coaching. Après collecte, comparer par rôle les preuves direct/coached, effectuer une revue indépendante sur cas inédits puis tester les outils natifs, notamment sandbox_iterate pour DevOps, sur Fedora. Aucun routage, catalogue ni politique de production modifié.
+
+## Résultats et contre-expertise
+
+[Audit des rapports et nouvelle suite Silex](EXCELLENCE_HOLDOUT.md).
