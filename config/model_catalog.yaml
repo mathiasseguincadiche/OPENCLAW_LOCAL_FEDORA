@@ -4,6 +4,7 @@ models:
   qwen-max:
     provider: ollama
     runtime_id: qwen3.5:9b-q4_K_M
+    reference_digest: "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90"
     family: qwen
     quantization: Q4_K_M
     input:
@@ -20,6 +21,7 @@ models:
   ornith-code:
     provider: ollama
     runtime_id: ornith-1.5:9b
+    reference_digest: "e5df7dcdd8a263994df62d610317e07be0d6af23f96fcbd8543273058fce575e"
     family: ornith
     quantization: Q4_K_M
     input:
@@ -31,12 +33,26 @@ models:
     - orchestration
     approximate_weight_gib: 6.2
     required: true
+  gemma-expert:
+    provider: ollama
+    runtime_id: gemma4:12b-it-q4_K_M
+    reference_digest: "6114515d63c17436a7c0417d82820ac65ad643e2806c5a3c89cb62846436ed0b"
+    family: gemma
+    quantization: Q4_K_M
+    input:
+    - text
+    capabilities:
+    - tools
+    - research
+    - orchestration
+    approximate_weight_gib: 7.5
+    required: true
 fleet_policy:
   local_only: true
   cloud_models_supported: false
   cloud_enabled_by_default: false
   cloud_model_as_local_fallback: false
-  exact_required_model_count: 2
+  exact_required_model_count: 3
   openclaw_agent_context_tokens: 32768
   target_gpu_vram_gib: 12
   identity_digest_required: true

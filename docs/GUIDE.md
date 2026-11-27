@@ -2,7 +2,7 @@
 
 [← Accueil du dépôt](../README.md)
 
-**Objectif de ce guide :** comprendre la répartition **Qwen 3.5 9B + Ornith 1.5 9B**, savoir quel agent solliciter et distinguer ce qui est **proposé** de ce qui est **réellement vérifié**. Pas besoin de connaître OpenClaw pour commencer.
+**Objectif de ce guide :** comprendre la répartition **Qwen 3.5 9B + Ornith 1.5 9B + Gemma 4 12B**, savoir quel agent solliciter et distinguer ce qui est **proposé** de ce qui est **réellement vérifié**. Pas besoin de connaître OpenClaw pour commencer.
 
 **Pour mesurer ta progression dans la qualité des réponses** : [scénarios multi-tours et notation clarté/profondeur/interactivité/exactitude sur 20](EVALUATION_PEDAGOGIE.md). C'est une grille humaine, pas une note calculée par l'IA ni une garantie de supériorité face à Gemini.
 
@@ -17,7 +17,7 @@ L'atelier est conçu pour apprendre **en comprenant**. Tu peux demander une rép
 
 ### Les trois choses à retenir
 
-1. **Deux modèles locaux.** Qwen assure le mentorat, la recherche, l'architecture, la sécurité, la documentation et l'audit ; Ornith est affecté à l'ingénieur DevOps.
+1. **Trois modèles locaux.** Qwen assure le mentorat, Gemma la recherche, l'architecture, la sécurité, la documentation et l'audit ; Ornith est affecté à l'ingénieur DevOps.
 2. **Sept agents sont sept métiers, pas sept modèles.** Le worker applique les règles de coordination ; les outils effectuent les vérifications, l'humain approuve les opérations sensibles.
 3. **OpenRouter est retiré.** Aucune route de modèles cloud n'est disponible. La recherche Web de *sources* reste un outil distinct, désactivable depuis le mode privé.
 
@@ -29,13 +29,14 @@ L'atelier est conçu pour apprendre **en comprenant**. Tu peux demander une rép
 
 ![Atelier natif, worker et moteurs locaux](diagrams/atelier-architecture.svg)
 
-La demande arrive dans **l'atelier natif unique** (`127.0.0.1:18890`) : Discussions, Projets, GitHub et Notion. Le worker sélectionne le rôle autorisé, qui utilise Qwen ou Ornith via Ollama. Les fichiers générés ne constituent pas des preuves d'exécution.
+La demande arrive dans **l'atelier natif unique** (`127.0.0.1:18890`) : Discussions, Projets, GitHub et Notion. Le worker sélectionne le rôle autorisé, qui utilise Qwen, Ornith ou Gemma via Ollama. Les fichiers générés ne constituent pas des preuves d'exécution.
 
 | Partie | Rôle dans le système |
 |---|---|
 | **Atelier natif** | Interface unique Discussions · Projets · GitHub · Notion |
 | **OpenClaw + worker** | Missions, permissions, orchestration et confirmations |
-| **Ollama / Qwen** | Compréhension, pédagogie, synthèse et audits documentaires |
+| **Ollama / Qwen** | Compréhension, mentorat et vision | 
+| **Ollama / Gemma** | Recherche, architecture, sécurité, rédaction et audit |
 | **Ollama / Ornith** | Code, IaC, CI et diagnostics techniques |
 | **Vérifications** | Lint, rapports, reçus, preuves humaines ; aucun shell général ouvert par défaut |
 
@@ -123,9 +124,9 @@ Les benchmarks et canaries restent facultatifs.
 | Situation | Agent / modèle | Pourquoi |
 |---|---|---|
 | Apprendre Linux, Ansible, expliquer le fonctionnement des VM | Mentor / **Qwen** | Compréhension, guidage et pédagogie |
-| Définir les frontières, ADR et schémas | Architecte / **Qwen** | Synthèse des contraintes et compromis |
+| Définir les frontières, ADR et schémas | Architecte / **Gemma** | Synthèse des contraintes et compromis |
 | Préparer ou corriger Terraform, CI, Bash, K3s | DevOps / **Ornith** | Programmation agentique et diagnostics |
-| Vérifier sécurité et qualité d'une réalisation | Sécurité ou auditeur / **Qwen** | Contrôle sur résultats externes vérifiables |
+| Vérifier sécurité et qualité d'une réalisation | Sécurité ou auditeur / **Gemma** | Contrôle sur résultats externes vérifiables |
 
 Les modèles sont exécutés localement, l'un après l'autre. Un autre spécialiste peut être sollicité après un plan approuvé ; aucun changement de modèle n'augmente les permissions d'outils.
 
@@ -133,7 +134,7 @@ Les modèles sont exécutés localement, l'un après l'autre. Un autre spéciali
 
 ## 9. Quel est le vrai niveau de maturité ?
 
-Le code et les tests automatiques existent. Les performances GPU, la vraie compatibilité du chat natif, la voix, les uploads, la restauration et les deux modèles locaux doivent encore être **essayés sur le PC Fedora**. Le streaming SSE est préparé mais désactivé par défaut ; aucune installation ou migration Open WebUI n'est requise pour une installation neuve de l'atelier natif.
+Le code et les tests automatiques existent. Les performances GPU, la vraie compatibilité du chat natif, la voix, les uploads, la restauration et les trois modèles locaux doivent encore être **essayés sur le PC Fedora**. Le streaming SSE est préparé mais désactivé par défaut ; aucune installation ou migration Open WebUI n'est requise pour une installation neuve de l'atelier natif.
 
 → [État actuel](../STATUS.md) · [Validation facultative](validation/README.md) · [Historique des plans](archives/2026/README.md).
 

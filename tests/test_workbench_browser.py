@@ -375,6 +375,8 @@ def test_discussion_role_guidance_does_not_send_or_create(
         pw.expect(page.locator("#agent-help")).to_contain_text("Qwen")
         role.select_option("ingenieur-devops")
         pw.expect(page.locator("#agent-help")).to_contain_text("Ornith")
+        role.select_option("expert-recherche")
+        pw.expect(page.locator("#agent-help")).to_contain_text("Gemma")
         pw.expect(page.locator("#new-project")).to_have_value("")
         assert writes == [], writes
     finally:

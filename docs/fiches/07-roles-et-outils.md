@@ -2,23 +2,23 @@
 
 [← Guide](../GUIDE.md) · [Architecture expliquée](11-comment-ca-marche.md) · [Exemple concret](../EXEMPLE_PARCOURS_DEVOPS.md)
 
-## Deux modèles locaux pour sept métiers
+## Trois modèles locaux pour sept métiers
 
-L'atelier OpenClaw utilise **deux modèles Ollama**, pas sept modèles indépendants : **Qwen 3.5 9B Q4_K_M** pour six agents, **Ornith 1.5 9B** pour l'ingénieur DevOps. Les modèles sont chargés alternativement sur la B580 de 12 Go, sous le contrôle du worker.
+L'atelier OpenClaw utilise **trois modèles Ollama**, pas sept modèles indépendants : **Qwen 3.5 9B Q4_K_M** pour le mentor, **Ornith 1.5 9B** pour le DevOps et **Gemma 4 12B Q4_K_M** pour les cinq autres rôles. Les modèles sont chargés alternativement sur la B580 de 12 Go, sous le contrôle du worker.
 
 **OpenRouter a été retiré de la configuration active** : aucune route cloud, aucune bascule automatique, aucune facturation API d'inférence. La recherche Web de *sources* est distincte du service de modèles.
 
 | Agent | Moteur principal | Missions pertinentes |
 |---|---|---|
 | Mentor / Chef des opérations | **Qwen** | Expliquer, cadrer et planifier la progression InfraOps |
-| Expert recherche | **Qwen** | Documentation officielle, versions, compatibilités sourcées |
-| Architecte solutions | **Qwen** | ADR, flux, topologies KVM/Rocky/Compose/K3s, Draw.io |
+| Expert recherche | **Gemma** | Documentation officielle, versions, compatibilités sourcées |
+| Architecte solutions | **Gemma** | ADR, flux, topologies KVM/Rocky/Compose/K3s, Draw.io |
 | Ingénieur DevOps | **Ornith** | Terraform, Ansible, Bash/Python, Docker, K3s, GitHub Actions |
-| Ingénieur sécurité | **Qwen** | Menaces, durcissement, revue des scans ; code corrigé par le DevOps |
-| Rédacteur pédagogique | **Qwen** | Wiki Notion, README, runbooks, supports et commandes expliquées |
-| Auditeur qualité | **Qwen** | Critères, diff, preuves, résultat de tests ; lecture seule |
+| Ingénieur sécurité | **Gemma** | Menaces, durcissement, revue des scans ; code corrigé par le DevOps |
+| Rédacteur pédagogique | **Gemma** | Wiki Notion, README, runbooks, supports et commandes expliquées |
+| Auditeur qualité | **Gemma** | Critères, diff, preuves, résultat de tests ; lecture seule |
 
-**Le rôle ne change pas les permissions.** Les sept agents ne possèdent pas d'accès libre à `exec`, `edit`, `write` ou `apply_patch`. Leur production de fichiers et leurs contrôles statiques ne prouvent pas le déploiement d'OpsDesk. Le worker affecte uniquement les rôles utiles à un plan approuvé. Quand le DevOps produit une modification, le modèle Qwen de l'auditeur constitue un second regard, mais les preuves des outils restent l'autorité.
+**Le rôle ne change pas les permissions.** Les sept agents ne possèdent pas d'accès libre à `exec`, `edit`, `write` ou `apply_patch`. Leur production de fichiers et leurs contrôles statiques ne prouvent pas le déploiement d'OpsDesk. Le worker affecte uniquement les rôles utiles à un plan approuvé. Quand le DevOps produit une modification, le modèle Gemma de l'auditeur constitue un second regard, mais les preuves des outils restent l'autorité.
 
 [Décision, limites et scénarios OpsDesk](../ARCHITECTURE_LOCALE_QWEN_ORNITH.md).
 

@@ -75,7 +75,7 @@ cd "/data/IA/Openclaw/sources/OPENCLAW_LOCAL_FEDORA"
 
 Le bootstrap vérifie le second disque avant d'installer des paquets.
 Il crée `/data/IA/Openclaw` et ses répertoires, installe les versions épinglées
-d'Ollama/OpenClaw, les deux modèles locaux Qwen et Ornith, les sept agents et le Gateway.
+d'Ollama/OpenClaw, les trois modèles locaux Qwen, Ornith et Gemma, les sept agents et le Gateway.
 Le téléchargement du modèle et des logiciels demande Internet.
 La configuration GPU du service Ollama accorde explicitement les groupes
 `render` et `video` à **son compte système dans l'unité systemd** ; les groupes
@@ -112,7 +112,7 @@ ni suppression de la base de données historique.
 ./menu.sh --action quick-check
 ```
 
-Ce contrôle lance une **petite génération locale pour chacun des deux modèles**, vérifie
+Ce contrôle lance une **petite génération locale pour chacun des trois modèles**, vérifie
 que la B580 utilise de la VRAM, la version du modèle, OpenClaw, Ollama,
 le réseau local de l'Atelier et de ses discussions natives, SELinux et le répertoire projets.
 Il affiche les composants en `PASS` ou `FAIL` puis un verdict final.
@@ -129,7 +129,7 @@ cinq veilles/réveils ou les sept scénarios d'évaluation.
 Ces tests complémentaires sont disponibles **si une anomalie apparaît** ou
 si l'on veut mesurer des performances plus finement.
 
-L'inférence est exclusivement locale (Qwen et Ornith). La recherche Web et
+L'inférence est exclusivement locale (Qwen, Ornith et Gemma). La recherche Web et
 les intégrations GitHub/Notion sont distinctes d'un fournisseur de modèles
 cloud. Pour poursuivre avec les sept agents, les projets et les preuves
 matérielles, suivre la [recette globale native](RECETTE_GLOBALE.md).

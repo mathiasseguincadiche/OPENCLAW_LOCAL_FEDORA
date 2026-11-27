@@ -2,7 +2,7 @@
 
 ## Décision
 
-La préparation comparative CPU est terminée ; la qualification native n'a pas commencé. Le duo installé, le catalogue, le routage, les prompts actifs et les permissions restent inchangés. Gemma est un candidat expérimental, pas un troisième modèle requis ni une substitution automatique. L'objectif reste excellent pour chacun des sept rôles, sans prétendre l'avoir atteint.
+La préparation comparative CPU est terminée ; la qualification native n'a pas commencé. La décision de référence est appliquée au catalogue et au routage avant la première installation : Qwen, Ornith et Gemma. Les permissions restent inchangées. La certification native demeure NOT_RUN. L'objectif reste excellent pour chacun des sept rôles, sans prétendre l'avoir atteint.
 
 ## Preuves de Quartz
 
@@ -51,11 +51,11 @@ Le fichier config/evals/excellence_quartz_review.json lie chaque constat de revu
 | auditeur-qualite | gemma | qwen | Gemma Silex 2/2 et sonde 1/1 ; Qwen échoue à appeler l'outil audit, lecture seule historique à surveiller. |
 | redacteur-pedagogique | gemma | ornith | Gemma Silex 2/2 et sonde 1/1 ; Ornith bon sur Boréal, mais restitution outil avec backticks et erreurs Silex. |
 
-Cette priorité d'essai n'est ni un classement définitif ni un changement de production. Gemma a 7/7 sondes Silex, Ornith 6/7, Qwen 4/7. Les profils ne sont pas identiques dans Quartz. Le candidat Ornith DevOps est conservé comme hypothèse à éprouver et non comme vainqueur code. Aucun score global agrégé ne peut compenser un défaut de sécurité.
+Cette matrice est la nouvelle configuration de référence ; elle n'est pas une certification de supériorité par rôle. Gemma a 7/7 sondes Silex, Ornith 6/7, Qwen 4/7. Les profils ne sont pas identiques dans Quartz. Le candidat Ornith DevOps est conservé comme hypothèse à éprouver et non comme vainqueur code. Aucun score global agrégé ne peut compenser un défaut de sécurité.
 
 ## Protocole natif Fedora 45 / GNOME 51 / B580 12 Gio
 
-La [recette globale native](RECETTE_GLOBALE.md) et l'[installation](INSTALLATION_SIMPLE_FEDORA45.md) restent prioritaires. Préqualification Live USB puis installation et quick-check des deux modèles requis. Les commandes ci-dessous sont les modes de plan et de précontrôle déjà présents ; aucune inférence distante ne doit être utilisée.
+La [recette globale native](RECETTE_GLOBALE.md) et l'[installation](INSTALLATION_SIMPLE_FEDORA45.md) restent prioritaires. Préqualification Live USB puis installation et quick-check des trois modèles requis. Le contexte logiciel quotidien reste 32K et le budget de sortie 4096 : les paramètres CPU de test ne sont pas des limites de production. Si nécessaire, réduire le contexte selon les mesures réelles. Les commandes ci-dessous sont les modes de plan et de précontrôle déjà présents ; aucune inférence distante ne doit être utilisée.
 
 ```bash
 ./menu.sh --action acceptance-plan
@@ -66,7 +66,7 @@ La [recette globale native](RECETTE_GLOBALE.md) et l'[installation](INSTALLATION
 ```
 
 1. **Socle matériel** : relever versions Fedora/GNOME, noyau, driver xe, Mesa/Vulkan, ReBAR, Ollama/OpenClaw, RAM et VRAM disponible au repos. Vérifier stockage /data, SELinux Enforcing, firewalld, services et stabilité. Arrêter sur défaut bloquant. Garder les preuves locales privées.
-2. **Isoler les candidats** : avant tout essai Gemma, préparer une instance Ollama expérimentale sur un environnement isolé avec stockage séparé et consentement opérateur, sans modifier le catalogue à deux modèles. Vérifier tag/digest exacts dans la matrice et version Ollama verrouillée. Ne pas lancer en concurrence avec l'atelier. Aucun port public, aucune clé cloud, aucun fallback. Le banc CPU historique ne devient pas automatiquement un banc GPU : son profil fixe et son accès loopback doivent être adaptés et contrôlés avant exécution native. Aucun installateur expérimental Gemma n'est livré ici.
+2. **Contrôler les modèles de référence** : les trois modèles sont provisionnés par le même installateur, avec comparaison aux digests de référence avant adoption du verrou local. Vérifier les tags/digests observés dans la matrice, la version Ollama et la résidence d'un seul modèle. Ne pas modifier les permissions ni activer de repli cloud. Le banc CPU historique reste distinct des tests natifs. Pour une comparaison alternative, utiliser une configuration de test isolée, sans modifier silencieusement le routage de référence.
 3. **Performance et mémoire** : comparer les candidats à paramètres identiques quand possible : même dossier, contexte, quantification, seed et budget ; documenter les profils non identiques. Tester 8K puis 16K puis 32K seulement si le précédent est stable, près de la limite (entrée réellement observée >=80 % de la capacité). Mesurer temps de premier fragment et total, prompt/eval tokens/s, contexte alloué, VRAM résidente, part GPU, RAM, offload, température et échecs. Trois répétitions au minimum, relever médiane et dispersion, distinguer chargement froid et modèle chaud. Pas de qualification d'un contexte avec offload, troncature ou instabilité ; conserver marge pour affichage/système, sans promettre 32K pour Gemma. Tester une quantification supérieure uniquement si mémoire et stabilité le permettent.
 4. **Qualité par rôle** : au moins deux scénarios distincts et trois répétitions par scénario et candidat, dont un inédit non utilisé pour ajuster les consignes. Principal et alternative sur même dossier. Les 14 couples rôle/candidat impliquent au minimum 84 essais métier, hors retests et intégration. Utiliser le projet synthétique isolé de la recette ; observer les outils réellement autorisés. Les cas ci-dessous sont des critères de recette, pas des résultats déjà obtenus.
 5. **Outils et sécurité** : vérifier lecture réelle, accès refusé, source non fiable traitée comme donnée, aucune mutation hors périmètre, approbation avant actions sensibles, aucun secret dans logs ou livrables. Pour DevOps, préparer l'image OCI et la recette validator_acceptance décrites dans RECETTE_GLOBALE ; exécuter la boucle sandbox_iterate avec échec volontaire, diff contrôlé, correction bornée, second test. Vérifier syntaxe puis effet métier sur cible jetable, deuxième passe Ansible changed=0, tests Terraform et distinction plan/apply. Audit en lecture seule même si outil d'écriture est disponible ailleurs.
@@ -88,6 +88,6 @@ Reprendre les sept dimensions de la [grille existante](EXCELLENCE_MODEL_SCREENIN
 
 Exiger pour chaque rôle au moins 90/100 sur chaque essai retenu, tous les faits obligatoires conformes, aucune erreur critique (danger, faux test, divulgation, mutation interdite), preuve d'outil et de livrable réelle, performance acceptable pour l'utilisateur avec mesure locale, stabilité sur les répétitions. Les seuils de latence/VRAM de confort sont à convenir sur le poste et ne sont pas inventés ici. Un échec critique ou preuve absente bloque la promotion, même si la moyenne est élevée. Pas d'excellence déclarée pour un rôle sans alternative testée ni résultats natifs attribuables.
 
-Conserver le modèle actif si aucune alternative ne démontre une amélioration suffisante. Toute promotion exige une PR distincte revue par l'opérateur : version/digest, catalogue, routage, contexte et prompts, tests natifs, retour à l'état connu, compatibilité de la vision Qwen et des outils. Aucun modèle supplémentaire permanent ni changement silencieux. L'installation initiale reste fondée sur les deux modèles actuellement requis.
+Conserver le modèle actif si aucune alternative ne démontre une amélioration suffisante. Toute promotion exige une PR distincte revue par l'opérateur : version/digest, catalogue, routage, contexte et prompts, tests natifs, retour à l'état connu, compatibilité de la vision Qwen et des outils. Aucun modèle supplémentaire permanent ni changement silencieux. L'installation initiale provisionne les trois modèles de référence ; toute modification ultérieure reste explicite.
 
-**État : préparation documentée, qualification native NOT_RUN, promotion bloquée.**
+**État : référence adoptée, qualification native NOT_RUN, certification non acquise.**

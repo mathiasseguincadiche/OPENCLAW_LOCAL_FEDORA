@@ -138,10 +138,10 @@ def test_all_models_are_benchmarked_separately_without_remote_calls(
     assert main(["--root", str(tmp_path), "--contexts", "8192", "--runtime-root", str(tmp_path),
                  "--models", "all", "--apply"]) == 0
     output = json.loads(capsys.readouterr().out)
-    assert calls == ["qwen-max", "ornith-code"]
+    assert calls == ["qwen-max", "ornith-code", "gemma-expert"]
     assert output["cloud_used"] is False
     assert output["config_modified"] is False
-    assert set(output["benchmarks"]) == {"qwen-max", "ornith-code"}
+    assert set(output["benchmarks"]) == {"qwen-max", "ornith-code", "gemma-expert"}
 
 
 def test_all_models_dry_run_is_inert(tmp_path: Path, capsys: Any) -> None:
@@ -150,5 +150,5 @@ def test_all_models_dry_run_is_inert(tmp_path: Path, capsys: Any) -> None:
     assert main(["--root", str(tmp_path), "--models", "all"]) == 0
     output = json.loads(capsys.readouterr().out)
     assert output["model_calls"] == 0
-    assert output["models"] == ["qwen-max", "ornith-code"]
+    assert output["models"] == ["qwen-max", "ornith-code", "gemma-expert"]
     assert output["config_modified"] is False

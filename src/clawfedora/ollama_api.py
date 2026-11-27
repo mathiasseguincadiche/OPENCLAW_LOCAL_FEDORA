@@ -121,7 +121,7 @@ def resident_model_alias(
             if (
                 identity.get("runtime_id") == name
                 and identity.get("digest") == digest
-                and identity.get("alias") in {"qwen-max", "ornith-code"}
+                and identity.get("alias") in {"qwen-max", "ornith-code", "gemma-expert"}
             ):
                 return str(identity["alias"])
     except (OSError, ValueError, TypeError, AttributeError):

@@ -114,7 +114,7 @@ def test_identity_refuses_changed_baseline(tmp_path, monkeypatch):
     assert not list(tmp_path.iterdir())
 
 
-def test_workflow_keeps_candidates_outside_production_catalog():
+def test_workflow_keeps_unselected_candidate_outside_production_catalog():
     import yaml
 
     workflow = yaml.load(
@@ -126,4 +126,4 @@ def test_workflow_keeps_candidates_outside_production_catalog():
     assert job["runs-on"] == "ubuntu-latest"
     assert all("runner." not in value for value in job["env"].values())
     catalog = yaml.safe_load((ROOT / "config/model_catalog.yaml").read_text())
-    assert set(catalog["models"]) == {"qwen-max", "ornith-code"}
+    assert set(catalog["models"]) == {"qwen-max", "ornith-code", "gemma-expert"}

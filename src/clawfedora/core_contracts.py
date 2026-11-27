@@ -420,8 +420,8 @@ def validate_core_contracts(
         or routing_policy.get("no_hidden_small_model_fallback") is not True
     ):
         failures.append("core/local: mode entièrement local requis")
-    if routing_policy.get("supported_local_aliases") != ["qwen-max", "ornith-code"]:
-        failures.append("core/local: flotte Ollama Qwen + Ornith requise")
+    if routing_policy.get("supported_local_aliases") != ["qwen-max", "ornith-code", "gemma-expert"]:
+        failures.append("core/local: flotte Ollama Qwen + Ornith + Gemma requise")
     if any(
         _mapping(raw).get("provider") != "ollama"
         for raw in _mapping(catalog.get("models")).values()

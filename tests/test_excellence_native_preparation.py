@@ -58,12 +58,12 @@ def test_quartz_archive_and_review():
     assert counts == {"qwen": 14, "ornith": 11, "gemma": 12}
 
 
-def test_native_candidates_not_production():
+def test_native_candidates_and_reference_fleet():
     data = json.loads(
         (ROOT / "config/evals/excellence_native_candidates.json").read_text(encoding="utf-8")
     )
-    assert data["status"] == "CANDIDATES_ONLY_NOT_NATIVE_QUALIFIED"
-    assert data["production_routing_changed"] is False
+    assert data["status"] == "REFERENCE_SELECTED_NOT_NATIVE_QUALIFIED"
+    assert data["production_routing_changed"] is True
     assert data["native_excellence_certified"] is False
     assert data["source_run"] == 45912168133
     assert data["min_repetitions_per_case"] >= 3
@@ -82,6 +82,11 @@ def test_native_candidates_not_production():
         assert role["status"] == "NOT_RUN"
         assert len(role["rationale"]) >= 20 and len(role["native_test"]) >= 20
     catalog = yaml.safe_load((ROOT / "config/model_catalog.yaml").read_text(encoding="utf-8"))
-    assert set(catalog["models"]) == {"qwen-max", "ornith-code"}
-    assert catalog["fleet_policy"]["exact_required_model_count"] == 2
+    assert set(catalog["models"]) == {"qwen-max", "ornith-code", "gemma-expert"}
+    assert catalog["fleet_policy"]["exact_required_model_count"] == 3
+    for spec in catalog["models"].values():
+        assert spec["reference_digest"] == next(
+            model["digest"] for model in data["models"].values()
+            if model["runtime_id"] == spec["runtime_id"]
+        )
     assert catalog["fleet_policy"]["local_only"] is True

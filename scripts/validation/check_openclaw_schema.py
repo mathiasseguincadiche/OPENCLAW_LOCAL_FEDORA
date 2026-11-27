@@ -122,7 +122,7 @@ with tempfile.TemporaryDirectory(prefix="clawfedora-native-schema-") as temporar
     # Local-only: native schema accepts only the two declared Ollama models.
     if set(config["models"]["providers"]) != {"ollama"}:
         raise SystemExit("Local-only must expose exactly one Ollama provider")
-    required = {"qwen3.5:9b-q4_K_M", "ornith-1.5:9b"}
+    required = {"qwen3.5:9b-q4_K_M", "ornith-1.5:9b", "gemma4:12b-it-q4_K_M"}
     actual = {entry["id"] for entry in config["models"]["providers"]["ollama"]["models"]}
     if actual != required:
         raise SystemExit(f"Wrong local model fleet: {actual}")

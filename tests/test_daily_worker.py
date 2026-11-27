@@ -244,16 +244,17 @@ def test_daily_patch_really_bounds_memory_and_disables_unsafe_tools(tmp_path: Pa
         assert role["model"]["fallbacks"] == []
         assert {"exec", "process", "write", "edit", "apply_patch"}.issubset(role["tools"]["deny"])
     models = patch["models"]["providers"]["ollama"]["models"]
-    assert len(models) == 2
+    assert len(models) == 3
     assert {model["id"] for model in models} == {
-        "qwen3.5:9b-q4_K_M", "ornith-1.5:9b",
+        "qwen3.5:9b-q4_K_M", "ornith-1.5:9b", "gemma4:12b-it-q4_K_M",
     }
     assert all(model["params"] == {
         "num_ctx": 32768,
         "num_predict": 4096,
         "keep_alive": "3m",
     } for model in models)
-    assert all(model["reasoning"] is True for model in models)
+    assert all(model["reasoning"] is (model["id"] != "gemma4:12b-it-q4_K_M")
+               for model in models)
     # The model must never be able to update OpenClaw or chain a three-step tool search.
     assert {"gateway", "presence"} <= set(patch["tools"]["deny"])
     assert patch["tools"]["toolSearch"] is False
@@ -356,10 +357,10 @@ def test_model_affinity_preserves_approved_dependencies(
     assert ready_tasks(ROOT, project, prefer_model="ornith-code")[0]["role"] == (
         "ingenieur-devops"
     )
-    assert ready_tasks(ROOT, project, prefer_model="qwen-max")[0]["role"] == (
+    assert ready_tasks(ROOT, project, prefer_model="gemma-expert")[0]["role"] == (
         "architecte-solutions"
     )
-    assert len(ready_tasks(ROOT, project, prefer_model="qwen-max")) == 1
+    assert len(ready_tasks(ROOT, project, prefer_model="gemma-expert")) == 1
 
 
 def test_exhausted_local_attempts_require_operator_intervention(

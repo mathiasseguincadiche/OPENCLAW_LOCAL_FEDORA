@@ -348,11 +348,9 @@ def openclaw_runner(
         model_args = (
             ["--model", f"{CLOUD_PROVIDER_ID}/{decision.model_id}"] if decision else []
         )
-        # The task tier belongs to the approved project plan, never a model guess.
-        # Enable bounded native Ollama thinking on demanding local missions only.
-        thinking = {"simple": "off", "complex": "low", "critical": "medium"}.get(
-            task_tier or ""
-        ) if not cloud else None
+        # The selected local reference profiles were qualified without thinking.
+        # Do not silently enable it on a critical task or switch to another model.
+        thinking = "off" if not cloud else None
         thinking_args = ["--thinking", thinking] if thinking is not None else []
         completed = subprocess.run(
             [

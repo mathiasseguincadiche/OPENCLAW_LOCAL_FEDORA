@@ -24,7 +24,7 @@ Installer et utiliser:
   precheck              Pré-check matériel, OS, disque et dépendances (lecture seule)
   install                Pré-check puis installation complète
   health                 Vérifier les services (rapport détaillé)
-  quick-check            Vérification courte : Qwen/Ornith, B580, Atelier, projets
+  quick-check            Vérification courte : Qwen/Ornith/Gemma, B580, Atelier, projets
   acceptance-plan        Plan de réception globale, sans essai ni modification
   acceptance-source      Contrats du dépôt, sans test du poste
   acceptance-inspect     Précontrôle du poste installé, sans inférence
@@ -64,7 +64,7 @@ Diagnostiquer:
 
 Étapes d'installation, utiles séparément pour dépanner:
   bootstrap              Paquets Fedora, dossiers et environnement Python
-  models                 Télécharger Qwen et Ornith
+  models                 Télécharger Qwen, Ornith et Gemma
   agents                 Déployer les consignes des sept rôles
   configure-openclaw     Appliquer la configuration OpenClaw
 EOF_USAGE

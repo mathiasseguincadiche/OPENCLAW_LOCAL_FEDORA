@@ -22,7 +22,7 @@ def _mark_runtime(runtime: Path) -> None:
 def test_model_plan_is_exact_rightsized_fleet() -> None:
     plan = lifecycle.model_plan(ROOT)
     assert [item["runtime_id"] for item in plan] == [
-        "qwen3.5:9b-q4_K_M", "ornith-1.5:9b",
+        "qwen3.5:9b-q4_K_M", "ornith-1.5:9b", "gemma4:12b-it-q4_K_M",
     ]
 
 

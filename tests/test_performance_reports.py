@@ -51,7 +51,7 @@ def test_dashboard_empty_does_not_create_files_or_run_any_model(tmp_path: Path) 
     runtime = _runtime(tmp_path)
     result = performance_reports.view(runtime)
     assert result["status"] == "NOT_MEASURED"
-    assert [m["status"] for m in result["models"]] == ["NOT_MEASURED"] * 2
+    assert [m["status"] for m in result["models"]] == ["NOT_MEASURED"] * 3
     assert result["hardware_certified"] is False
     assert not (runtime / performance_reports.RELATIVE).exists()
     assert not (runtime / "state/performance").exists()
@@ -75,8 +75,10 @@ def test_operator_record_preserves_both_models_and_private_permissions(
     assert report["status"] == "MEASURED"
     assert report["source"] == "clawfedora-gpu-benchmark"
     assert report["hardware_certified"] is False
-    qwen, ornith = report["models"]
-    assert (qwen["status"], ornith["status"]) == ("MEASURED", "MEASURED")
+    qwen, ornith, gemma = report["models"]
+    assert (qwen["status"], ornith["status"], gemma["status"]) == (
+        "MEASURED", "MEASURED", "NOT_MEASURED",
+    )
     assert qwen["qualified_near_limit_context"] == 16384
     assert ornith["qualified_near_limit_context"] is None
     assert ornith["largest_full_gpu_context"] == 16384
@@ -92,9 +94,10 @@ def test_second_operator_run_replaces_not_mixes_old_model_measurements(
         "ornith-code": _measure("ornith-code"),
     })
     performance_reports.save(runtime, {"ornith-code": _measure("ornith-code")})
-    qwen, ornith = performance_reports.view(runtime)["models"]
+    qwen, ornith, gemma = performance_reports.view(runtime)["models"]
     assert qwen["status"] == "NOT_MEASURED" and qwen["results"] == []
     assert ornith["status"] == "MEASURED"
+    assert gemma["status"] == "NOT_MEASURED"
 
 
 @pytest.mark.parametrize("invalid", [
@@ -201,10 +204,10 @@ def test_explicit_locked_cli_record_is_refused_while_worker_is_busy(
     assert calls == []
     assert gpu_acceptance.main(args) == 0
     measured = json.loads(capsys.readouterr().out)
-    assert set(measured["benchmarks"]) == {"qwen-max", "ornith-code"}
-    assert calls == ["qwen-max", "ornith-code"]
+    assert set(measured["benchmarks"]) == {"qwen-max", "ornith-code", "gemma-expert"}
+    assert calls == ["qwen-max", "ornith-code", "gemma-expert"]
     assert [m["status"] for m in performance_reports.view(runtime)["models"]] == [
-        "MEASURED", "MEASURED",
+        "MEASURED", "MEASURED", "MEASURED",
     ]
 
 
@@ -229,7 +232,9 @@ def test_recorded_benchmark_checks_profile_before_and_after_measurement(
             "--apply", "--record", "--runtime-root", str(runtime),
             "--expected-profile", "q8"]
     assert gpu_acceptance.main(args) == 0
-    assert events == ["check:q8", "measure:qwen-max", "measure:ornith-code", "check:q8"]
+    assert events == [
+        "check:q8", "measure:qwen-max", "measure:ornith-code", "measure:gemma-expert", "check:q8",
+    ]
     out = json.loads(capsys.readouterr().out)
     assert out["configured_profile"] == "q8"
     assert out["backend_profile_verified"] is False

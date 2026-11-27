@@ -255,7 +255,7 @@ def test_performance_page_is_read_only_and_never_starts_ollama(
     assert status == 200
     assert value["hardware_certified"] is False
     assert value["status"] in {"NOT_MEASURED", "UNVERIFIED"}
-    assert {row["alias"] for row in value["models"]} == {"qwen-max", "ornith-code"}
+    assert {row["alias"] for row in value["models"]} == {"qwen-max", "ornith-code", "gemma-expert"}
     for path in ("/performance.html", "/performance.js", "/performance.css"):
         result, source = request(server, path)
         assert result == 200 and len(source) > 100

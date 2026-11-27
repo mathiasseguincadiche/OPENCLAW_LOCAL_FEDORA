@@ -20,12 +20,12 @@ SUGGESTIONS: dict[str, Advice] = {
         "Ne pas confondre une commande proposée et sa réussite sur Fedora.",
     ),
     "confidentiel": Advice(
-        "Spécialiste selon la mission", "Qwen ou Ornith, local uniquement",
+        "Spécialiste selon la mission", "Qwen, Ornith ou Gemma, local uniquement",
         "Les fichiers et journaux de projet ne doivent pas être envoyés vers une API de modèle.",
         "Les outils Web sont indépendants : désactiver la recherche Web si nécessaire.",
     ),
     "architecture": Advice(
-        "Architecte solutions", "Qwen 3.5 9B",
+        "Architecte solutions", "Gemma 4 12B",
         "Cadrer les flux, le réseau, les risques et les compromis avant le code.",
         "Si Terraform ou Kubernetes doit être corrigé, ouvrir une tâche DevOps Ornith.",
     ),
@@ -41,12 +41,12 @@ SUGGESTIONS: dict[str, Advice] = {
         "Seule la CI associée au bon SHA confirme le résultat ; ne pas exposer les secrets.",
     ),
     "documents": Advice(
-        "Rédacteur pédagogique", "Qwen 3.5 9B",
+        "Rédacteur pédagogique", "Gemma 4 12B",
         "Construire des cours, procédures et runbooks cohérents avec les contributions validées.",
         "Vérifier liens, version des commandes, preuves et rendu réel.",
     ),
     "audit": Advice(
-        "Auditeur qualité", "Qwen 3.5 9B",
+        "Auditeur qualité", "Gemma 4 12B",
         "Confronter critères, diff, rapports de tests et références, sans "
         "modifier le travail audité.",
         "Le modèle ne peut pas certifier une infrastructure sans résultats d'exécution.",
@@ -79,10 +79,10 @@ def advise(category: str = "") -> str:
             "|---|---|---|",
             "| Linux quotidien / mentorat | Mentor | Qwen 3.5 9B |",
             "| Données privées | Spécialiste autorisé | Local uniquement |",
-            "| Architecture | Architecte | Qwen 3.5 9B |",
+            "| Architecture | Architecte | Gemma 4 12B |",
             "| Terraform / Ansible / CI/CD | Ingénieur DevOps | Ornith 1.5 9B |",
-            "| Documentation | Rédacteur pédagogique | Qwen 3.5 9B |",
-            "| Audit et preuves | Auditeur qualité | Qwen 3.5 9B |",
+            "| Documentation | Rédacteur pédagogique | Gemma 4 12B |",
+            "| Audit et preuves | Auditeur qualité | Gemma 4 12B |",
             "",
             "Détails : `!modele simple`, `!modele architecture`, `!modele iac`, "
             "`!modele ci`, `!modele documents`, `!modele audit`.",
