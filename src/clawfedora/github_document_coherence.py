@@ -5,6 +5,7 @@ import argparse
 import json
 import re
 import tomllib
+from collections import Counter
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any

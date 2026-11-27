@@ -67,7 +67,7 @@ Le [premier lot](GITHUB_DOCUMENTARY_INVENTORY.md) est intégré à
 Le [lot 2](GITHUB_DOCUMENTARY_LINKS.md) est intégré à
 [`main@3dae57a`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/3dae57a1d87a74badaefe16b45b1339e7b97c2ba).
 Le [lot 3](GITHUB_DOCUMENTARY_COHERENCE.md) rattache les déclarations
-documentaires à leurs sources techniques et versions. Après sa fusion
+documentaires à leurs sources techniques et versions. [PR #310](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/310). Après sa fusion
 et sa CI sur `main`, reprendre le contrôle des preuves et des
 workflows CI à la révision inventoriée.
 
