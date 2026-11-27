@@ -15,6 +15,7 @@ from clawfedora.notion_inventory_diff import _load_snapshot, _private_path, _wri
 from clawfedora.notion_write import NotionWriteError, _digest
 
 INVENTORY = "GIT_DOCUMENTARY_METADATA_REVIEW_REQUIRED"
+ASSESSMENT = "GITHUB_DOCUMENTARY_CORRECTIONS_REVIEW_REQUIRED"
 REPORTS = {
     "links": ("GIT_DOCUMENTARY_LINKS_REVIEW_REQUIRED", "findings"),
     "coherence": ("GIT_DOCUMENTARY_COHERENCE_REVIEW_REQUIRED", "checks"),
@@ -98,16 +99,11 @@ def _paths(family: str, row: dict[str, Any]) -> list[object]:
     return []
 
 
-def _findings(
-    inventory: dict[str, Any], reports: Sequence[object], selections: list[str],
-    edited: set[str],
-) -> list[dict[str, Any]]:
-    if (
-        not 1 <= len(selections) <= MAX_SELECTIONS
-        or len(set(selections)) != len(selections)
-        or not 1 <= len(reports) <= len(REPORTS)
-    ):
-        raise inv.InventoryError("sélection de constats ou nombre de rapports invalide")
+def _reports(
+    inventory: dict[str, Any], reports: Sequence[object],
+) -> dict[str, dict[str, Any]]:
+    if len(reports) > len(REPORTS):
+        raise inv.InventoryError("trop de rapports fournis")
     indexed: dict[str, dict[str, Any]] = {}
     for value in reports:
         assessment = value.get("assessment") if isinstance(value, dict) else None
@@ -118,6 +114,14 @@ def _findings(
         if any(key not in verified or verified[key] != inventory[key] for key in BINDING):
             raise inv.InventoryError("rapport rattaché à une autre révision ou à un autre inventaire")
         indexed[family] = verified
+    return indexed
+
+
+def _findings(
+    indexed: dict[str, dict[str, Any]], selections: list[str], edited: set[str],
+) -> list[dict[str, Any]]:
+    if not 1 <= len(selections) <= MAX_SELECTIONS or len(set(selections)) != len(selections):
+        raise inv.InventoryError("sélection de constats invalide")
     used: set[str] = set()
     linked: set[str] = set()
     findings: list[dict[str, Any]] = []
@@ -176,10 +180,10 @@ def prepare(
         if proposed == originals[path]:
             raise inv.InventoryError("un document proposé a déjà ce contenu au SHA de base")
         edits.append({"path": path, "base_git_blob": originals[path], "proposed_git_blob": proposed})
-    findings = _findings(manifest, reports, selections, {edit["path"] for edit in edits})
+    findings = _findings(_reports(manifest, reports), selections, {edit["path"] for edit in edits})
     body = {
         "schema": 1, "classification": inv.CLASSIFICATION,
-        "assessment": "GITHUB_DOCUMENTARY_CORRECTIONS_REVIEW_REQUIRED",
+        "assessment": ASSESSMENT,
         "inventory_sha256": manifest["inventory_sha256"],
         "base_git_tree": manifest["git_tree"],
         "publication_preview": plan,

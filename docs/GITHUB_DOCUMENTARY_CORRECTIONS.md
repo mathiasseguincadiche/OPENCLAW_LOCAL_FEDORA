@@ -66,7 +66,6 @@ le rapport. Suivre ensuite la procédure d'approbation du publieur
 pour créer le brouillon. Si les octets ou le SHA de base changent,
 préparer une nouvelle revue.
 
-La validation de l'effet de la correction passe par une nouvelle
-exécution de l'audit concerné sur le SHA à vérifier. Le rapport de
-préparation consigne les fichiers soumis à la revue et les
-constats sélectionnés.
+Après fusion, utiliser la [vérification des corrections](GITHUB_DOCUMENTARY_VERIFICATION.md)
+pour contrôler les blobs approuvés et relancer les audits concernés
+sur le SHA à vérifier.
