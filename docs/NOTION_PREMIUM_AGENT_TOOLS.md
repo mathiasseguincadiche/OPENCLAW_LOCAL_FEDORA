@@ -47,17 +47,25 @@ l'opérateur.
 | 7. Plans de rationalisation | [Plan de revue hors ligne](NOTION_RATIONALIZATION.md) avec preuves, impacts, approbations et contrôles de retour arrière. [PR #304](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/304). |
 | 8. Intégration au worker | [Audits locaux du worker](NOTION_WORKER_AUDIT.md), autorisations par tâche et preuves vérifiées. [PR #305](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/305). |
 | 9. Non-régression | [Audit avant/après](NOTION_NON_REGRESSION.md) sur une édition de texte autorisée, avec détection des écarts et protection des contenus. [PR #306](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/306). |
-| 10. Recette | [Recette synthétique Atlas](validation/NOTION_ATLAS_ACCEPTANCE.md) et rapport JSON lié au SHA testé. |
+| 10. Recette | [Recette synthétique Atlas](validation/NOTION_ATLAS_ACCEPTANCE.md) et rapport JSON lié au SHA testé. [PR #307](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/307). |
 
 **Référence avant le lot 10** — `main` à
 [`9284a9a`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/9284a9acf379dc2c38339fa4c526c561fe756851), après fusion de la PR #306.
 [CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45954034017) et
 [CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45954033762) sur ce SHA.
 
-**Reprise après le lot 10** — Vérifier la fusion, la CI du SHA de `main`
-et le rapport Atlas. Ouvrir C02 avec l'inventaire documentaire d'un dépôt
-GitHub à une révision exacte. La réception réelle Notion et la
-qualification Fedora restent à planifier avec l'opérateur.
+**Reprise** — C01 couvre la recette logicielle synthétique Atlas, livrée
+sur [`a0136ca`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/a0136ca49d0a0986dc6b698a02c67e14db168329). Les
+[preuves du SHA de `main`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45955352078)
+sont rattachées à la CI. La réception Notion et la qualification Fedora
+restent à planifier.
+
+### C02 — Excellence documentaire GitHub
+
+Le [premier lot](GITHUB_DOCUMENTARY_INVENTORY.md) inventorie le dépôt à un
+commit exact. Le lot suivant vérifiera les liens et chemins de la
+documentation à partir de cette révision, avec une couverture explicite
+des fichiers examinés.
 
 
 ### Programme restant

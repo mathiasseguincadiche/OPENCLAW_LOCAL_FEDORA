@@ -166,21 +166,28 @@ def _write_text(dest: Path, relative: PurePosixPath, content: bytes) -> None:
     target.write_bytes(content)
 
 
-def _github_snapshot(dest: Path, repo: str, commit: str) -> dict[str, Any]:
+def _github_tree(repo: str, commit: str) -> tuple[str, dict[str, Any]]:
     repo, commit = _safe_repo(repo), _safe_sha(commit)
     quoted = "/".join(urllib.parse.quote(part, safe="") for part in repo.split("/"))
     record = _github(f"/repos/{quoted}/commits/{commit}")
     if record.get("sha") != commit:
         raise SourceImportError("GitHub n'a pas retourné le commit exact demandé")
-    tree = record.get("commit", {}).get("tree", {}).get("sha")
+    metadata = record.get("commit")
+    root_tree = metadata.get("tree") if isinstance(metadata, dict) else None
+    tree = root_tree.get("sha") if isinstance(root_tree, dict) else None
     if not isinstance(tree, str) or not SHA40.fullmatch(tree):
         raise SourceImportError("arbre Git introuvable")
     data = _github(f"/repos/{quoted}/git/trees/{tree}?recursive=1")
     if data.get("truncated") is not False:
         raise SourceImportError("arbre incomplet : importation refusée")
-    entries = data.get("tree")
-    if not isinstance(entries, list):
+    if not isinstance(data.get("tree"), list):
         raise SourceImportError("inventaire GitHub invalide")
+    return tree, data
+
+
+def _github_snapshot(dest: Path, repo: str, commit: str) -> dict[str, Any]:
+    tree, data = _github_tree(repo, commit)
+    entries = data["tree"]
     selected: list[tuple[PurePosixPath, str, int]] = []
     skipped = 0
     total = 0
