@@ -540,7 +540,10 @@ def _finish_task_promotion(
     task_id = validate_task_id(result["task_id"])
     attempt = result.get("attempt")
     status = result.get("status")
-    if type(attempt) is not int or attempt < 1 or status not in ("PASS", "FAIL"):
+    if (
+        type(attempt) is not int or attempt < 1
+        or not isinstance(status, str) or status not in {"PASS", "FAIL"}
+    ):
         raise ValueError("publication à reprendre : résultat invalide")
     assignments_path = _artifact(repo_root, project, "assignments")
     assignments = read_json(assignments_path)
