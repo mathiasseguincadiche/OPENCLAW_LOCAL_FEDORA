@@ -114,4 +114,4 @@ wiki existant n'est modifié. Le contenu des blocs synchronisés n'est pas
 édité par l'API (voir [référence Notion](https://developers.notion.com/reference/block#synced-block)).
 
 
-[Inventaire natif récursif en lecture seule — lot 2](NOTION_NATIVE_INVENTORY.md).
+[Inventaire natif et comparaison hors ligne — lots 2 et 3](NOTION_NATIVE_INVENTORY.md).
