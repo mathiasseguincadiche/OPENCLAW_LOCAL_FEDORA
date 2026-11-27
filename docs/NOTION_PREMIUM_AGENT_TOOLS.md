@@ -72,10 +72,11 @@ Le [lot 4](GITHUB_DOCUMENTARY_CI.md) est intégré à
 [`main@a8b3a54`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/a8b3a54400e31efd47040fc01a0eb0632037cc3c).
 Le [lot 5](GITHUB_DOCUMENTARY_BOUNDARIES.md) est intégré à
 [`main@8d54ff6`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/8d54ff6dcde9fa88315bebd4bdedf6840f1f65d8).
-Le [lot 6](GITHUB_DOCUMENTARY_CORRECTIONS.md) rattache les corrections
-proposées aux constats d'audit et prépare leur revue avant publication.
-Après sa fusion et la vérification de `main`, reprendre la vérification
-de l'application des corrections et la recette C02.
+Le [lot 6](GITHUB_DOCUMENTARY_CORRECTIONS.md) est intégré à
+[`main@898b0b5`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/898b0b5a0259aa30d6c31647a660d345c399021c).
+Le [lot 7](GITHUB_DOCUMENTARY_VERIFICATION.md) vérifie l'application
+et les constats d'audit sur le SHA contrôlé. Après sa fusion et la
+vérification de `main`, exécuter la recette de clôture C02.
 
 
 ### Programme restant
