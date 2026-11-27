@@ -195,7 +195,7 @@ def _object_references(category: str, obj: dict[str, Any]) -> Iterator[tuple[str
                     yield "property", _url(data["url"])
 
 
-def capture_references(root_page: str) -> dict[str, Any]:
+def capture_references(root_page: str, *, observer: ni.Observer | None = None) -> dict[str, Any]:
     """Keep safe reference descriptors from the normal Notion inventory traversal."""
     references: list[dict[str, Any]] = []
 
@@ -206,6 +206,8 @@ def capture_references(root_page: str) -> dict[str, Any]:
             row = {"source_category": category, "source_id": ident, "slot": slot,
                    "index": index, **asdict(target)}
             references.append({**row, "reference_id": nw._digest(row)})
+        if observer is not None:
+            observer(category, ident, obj)
 
     bundle = {"schema": 1, "classification": "private_local_only",
               "inventory": ni.capture(root_page, observer=observe), "references": references}

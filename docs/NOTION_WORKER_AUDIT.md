@@ -62,3 +62,5 @@ d'une éventuelle édition passent par le
 de ce workflow s'appliquent à toute écriture. Les tests du worker utilisent
 des captures synthétiques. La recette Atlas et les essais natifs sur Fedora
 restent à effectuer.
+
+[Contrôler l’état relu après une édition autorisée](NOTION_NON_REGRESSION.md).

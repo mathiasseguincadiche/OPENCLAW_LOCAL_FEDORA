@@ -129,6 +129,10 @@ def _block(page_id: str, block_id: str) -> tuple[dict[str, Any], str, str]:
     kind = block.get("type")
     if kind not in EDIT_TYPES:
         raise NotionWriteError("seuls les textes simples de blocs non imbriqués sont éditables")
+    return block, str(kind), _plain_text(block, kind)
+
+
+def _plain_text(block: dict[str, Any], kind: str) -> str:
     data = block.get(kind)
     if not isinstance(data, dict):
         raise NotionWriteError("contenu du bloc introuvable")
@@ -151,7 +155,7 @@ def _block(page_id: str, block_id: str) -> tuple[dict[str, Any], str, str]:
     original = text_obj.get("content")
     if not isinstance(original, str) or original != part.get("plain_text"):
         raise NotionWriteError("texte du bloc non vérifiable")
-    return block, str(kind), original
+    return original
 
 
 def _fingerprint(block: dict[str, Any], kind: str) -> str:
