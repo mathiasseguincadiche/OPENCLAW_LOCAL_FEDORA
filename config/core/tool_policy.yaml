@@ -29,6 +29,7 @@ agents:
     - pdf
     - view_image
     - clawfedora_search
+    - clawfedora_notion_inventory
     - clawfedora_outline
     - clawfedora_ci_report
     - clawfedora_tool_status
@@ -55,6 +56,7 @@ agents:
     - pdf
     - view_image
     - clawfedora_search
+    - clawfedora_notion_inventory
     - clawfedora_outline
     - clawfedora_ci_report
     - clawfedora_tool_status
@@ -80,6 +82,8 @@ agents:
     - pdf
     - view_image
     - clawfedora_search
+    - clawfedora_notion_inventory
+    - clawfedora_notion_studio_check
     - clawfedora_outline
     - clawfedora_diagram
     - clawfedora_ci_report
@@ -107,6 +111,7 @@ agents:
     - pdf
     - view_image
     - clawfedora_search
+    - clawfedora_notion_inventory
     - clawfedora_outline
     - clawfedora_check
     - clawfedora_ci_report
@@ -138,6 +143,7 @@ agents:
     - pdf
     - view_image
     - clawfedora_search
+    - clawfedora_notion_inventory
     - clawfedora_outline
     - clawfedora_check
     - clawfedora_ci_report
@@ -165,6 +171,8 @@ agents:
     - pdf
     - view_image
     - clawfedora_search
+    - clawfedora_notion_inventory
+    - clawfedora_notion_studio_check
     - clawfedora_outline
     - clawfedora_check
     - clawfedora_ci_report
@@ -195,6 +203,8 @@ agents:
     - pdf
     - view_image
     - clawfedora_search
+    - clawfedora_notion_inventory
+    - clawfedora_notion_studio_check
     - clawfedora_outline
     - clawfedora_lint
     - clawfedora_ci_report

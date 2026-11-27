@@ -45,7 +45,7 @@ with tempfile.TemporaryDirectory(prefix="clawfedora-native-tools-") as temporary
         + """
 const registry=await loadOpenClawPlugins({config,onlyPluginIds:['clawfedora-toolkit'],
  activate:false,cache:false,throwOnLoadError:true});
-if(registry.tools.length!==14) throw new Error('Native tool registration incomplete');
+if(registry.tools.length!==16) throw new Error('Native tool registration incomplete');
 for (const [name,role,params] of [
  ['clawfedora_artifact','redacteur-pedagogique',{format:'markdown',
   content:'# Guide\\n\\nUne étape.\\n',
@@ -81,6 +81,17 @@ for (const [name,role,params] of [
  }
  console.log('NATIVE_TOOL=PASS name='+name);
 }
+const studio=registry.tools.find(x=>x.names.includes('clawfedora_notion_studio_check'));
+if(!studio?.factory({agentId:'redacteur-pedagogique',
+ workspaceDir:runtime+'/workspaces/redacteur-pedagogique'}))
+ throw new Error('Notion studio check unavailable');
+if(studio.factory({agentId:'ingenieur-devops',
+ workspaceDir:runtime+'/workspaces/ingenieur-devops'})!==null)
+ throw new Error('Notion studio check exposed outside editorial roles');
+const inventory=registry.tools.find(x=>x.names.includes('clawfedora_notion_inventory'));
+if(!inventory?.factory({agentId:'expert-recherche',
+ workspaceDir:runtime+'/workspaces/expert-recherche'}))
+ throw new Error('Notion inventory unavailable');
 const iterator=registry.tools.find(x=>x.names.includes('clawfedora_sandbox_iterate'));
 if(!iterator || !iterator.factory({agentId:'ingenieur-devops',
  workspaceDir:runtime+'/workspaces/ingenieur-devops'}))

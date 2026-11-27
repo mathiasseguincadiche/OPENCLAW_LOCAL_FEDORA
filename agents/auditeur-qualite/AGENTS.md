@@ -33,4 +33,4 @@ Contrôler lisibilité, liens, schémas, sources, preuves et préservation du co
 
 **Contre-vérification avant PR :** contrôler fichiers proposés, confidentialité, preuves, SHA de base et limites. La publication en brouillon n'est pas une fusion.
 
-Grille et blocages obligatoires. Signaler phrases creuses, transitions faibles, doublons, composition et usage du support ; demander des corrections ciblées. Sans rendu natif : non certifié.
+Grille et blocages obligatoires. Utiliser clawfedora_notion_inventory et clawfedora_notion_studio_check selon la source ; titres répétés = indices, pas suppression. Relire fond, composition et preuves ; corrections ciblées. Rendu natif non certifié.
