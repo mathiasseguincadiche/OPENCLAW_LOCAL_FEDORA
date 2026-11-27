@@ -26,6 +26,10 @@ from clawfedora.specialist_tools import FORMATS, available, lint, receipt
 
 TOOL_ROLES = {
     "clawfedora_artifact": set(AGENT_IDS),
+    "clawfedora_notion_inventory": set(AGENT_IDS),
+    "clawfedora_notion_studio_check": {
+        "architecte-solutions", "redacteur-pedagogique", "auditeur-qualite",
+    },
     "clawfedora_search": set(AGENT_IDS),
     "clawfedora_outline": set(AGENT_IDS),
     "clawfedora_diagram": {"architecte-solutions"},
@@ -336,6 +340,14 @@ def invoke(
         raise ValueError("outil interdit pour ce rôle")
     if len(json.dumps(data).encode()) > 24000:
         raise ValueError("paramètres trop volumineux")
+    if tool == "clawfedora_notion_inventory":
+        from clawfedora.notion_premium_tools import inventory
+
+        return inventory(root, data.get("scope"))
+    if tool == "clawfedora_notion_studio_check":
+        from clawfedora.notion_premium_tools import studio_check
+
+        return studio_check(data.get("content"))
     if tool == "clawfedora_artifact":
         return produce(root, role, data)
     if tool == "clawfedora_search":
@@ -429,6 +441,7 @@ def invoke(
     if tool == "clawfedora_tool_status":
         return {
             "available": available(),
+            "role_tools": sorted(name for name, roles in TOOL_ROLES.items() if role in roles),
             "lint_formats": sorted(FORMATS.get(role, set())),
             "file_formats": formats(role),
             "document_exports": ["pdf", "docx", "odt", "txt"],

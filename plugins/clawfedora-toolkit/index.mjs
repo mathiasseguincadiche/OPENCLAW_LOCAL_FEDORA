@@ -17,6 +17,8 @@ const graph = {
     items: {type: "string", enum: ["application", "administration", "monitoring", "backup"]}},
 };
 const definitions = [
+  ["clawfedora_notion_inventory", "Inventorier un snapshot Notion privé déjà importé : titres répétés, espaces, installation, SHA. Scope relatif vers le dossier Notion. Aucun accès distant, aucune suppression.", {scope: {type:"string",minLength:1,maxLength:280}}, ["scope"]],
+  ["clawfedora_notion_studio_check", "Prévalider hors ligne une spécification JSON du studio Notion : compilateur réel, cinq espaces, installation et suivi. Ni création ni publication.", {content:string}, ["content"]],
   ["clawfedora_artifact", "Produire un fichier téléchargeable UTF-8 ou une source Markdown et ses exports PDF/DOCX/ODT/TXT. Retourner les références dans files; pour un export, inclure la source .md dans le même dossier. Identité graphique: format identity, JSON project/tagline/variant/motif/palette/section et composition facultative split/editorial/orbit/blueprint, retourne SVG et source JSON, réservé architecte/rédacteur. Aucun code exécuté.", {format:{type:"string",enum:["identity","markdown","text","yaml","json","python","shell","hcl","ini","toml","xml","dockerfile","template"]},content:string,filename:{type:"string",maxLength:100,pattern:"^[A-Za-z0-9_.-]+$"},exports:{type:"array",maxItems:4,uniqueItems:true,items:{type:"string",enum:["pdf","docx","odt","txt"]}}}, ["format","content"]],
   ["clawfedora_search", "Chercher au maximum quatre passages texte dans le snapshot de ton rôle. Aucun embedding.", { query: string, scope: string }, ["query"]],
   ["clawfedora_outline", "Préparer une trame de document OPS; ne crée pas de fichier ni de preuve.", { kind: string, title: string }, ["kind"]],
@@ -54,6 +56,7 @@ definitions.push(
   ["clawfedora_tool_status", "Vérifier les outils métier disponibles pour ton rôle; ne lance aucun modèle.", {}, []],
 );
 const specialists = {
+  clawfedora_notion_studio_check: ["architecte-solutions", "redacteur-pedagogique", "auditeur-qualite"],
   clawfedora_diagram: ["architecte-solutions"],
   clawfedora_check: ["ingenieur-devops", "ingenieur-securite", "auditeur-qualite"],
   clawfedora_lint: ["ingenieur-devops", "ingenieur-securite", "redacteur-pedagogique", "auditeur-qualite"],
