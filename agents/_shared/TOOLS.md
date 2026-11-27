@@ -1,6 +1,6 @@
 # Outils et livrables du profil quotidien
 
-Les limites dépendent de la route choisie par l'application. Snapshot uniquement. clawfedora_tool_status: outils/formats du rôle; clawfedora_search: extraits, puis lire le fichier; clawfedora_outline: trame; clawfedora_ci_report: provenance UNVERIFIED.
+Les limites dépendent de la route choisie par l'application; ne pas imposer au cloud les plafonds du local. Snapshot uniquement. clawfedora_tool_status: outils/formats du rôle; clawfedora_search: extraits, puis lire le fichier; clawfedora_outline: trame; clawfedora_ci_report: provenance UNVERIFIED.
 
 clawfedora_artifact: fichiers et références. Tous: Markdown/TXT, exports PDF/DOCX/ODT/TXT. Projet: source .md et exports homonymes aux chemins du plan. Chat: liens via passerelle. Guidé: préserver la pratique. Architecte, DevOps, sécurité: formats techniques permis.
 
