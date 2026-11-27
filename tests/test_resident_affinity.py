@@ -10,6 +10,7 @@ from clawfedora import ollama_api
 IDENTITIES = [
     {"alias": "qwen-max", "runtime_id": "qwen3.5:9b-q4_K_M", "digest": "a" * 64},
     {"alias": "ornith-code", "runtime_id": "ornith-1.5:9b", "digest": "b" * 64},
+    {"alias": "gemma-expert", "runtime_id": "gemma4:12b-it-q4_K_M", "digest": "c" * 64},
 ]
 
 

@@ -24,18 +24,19 @@ from clawfedora.project_worker import openclaw_runner
 ROOT = Path(__file__).resolve().parents[1]
 QWEN = "qwen3.5:9b-q4_K_M"
 ORNITH = "ornith-1.5:9b"
+GEMMA = "gemma4:12b-it-q4_K_M"
 
 
-def test_local_only_contracts_have_exactly_two_ollama_models() -> None:
+def test_local_only_contracts_have_exactly_three_ollama_models() -> None:
     catalog = root_contract(ROOT, "model_catalog.yaml")
-    assert set(catalog["models"]) == {"qwen-max", "ornith-code"}
+    assert set(catalog["models"]) == {"qwen-max", "ornith-code", "gemma-expert"}
     assert {model["provider"] for model in catalog["models"].values()} == {"ollama"}
-    assert {model["runtime_id"] for model in catalog["models"].values()} == {QWEN, ORNITH}
-    assert catalog["fleet_policy"]["exact_required_model_count"] == 2
+    assert {model["runtime_id"] for model in catalog["models"].values()} == {QWEN, ORNITH, GEMMA}
+    assert catalog["fleet_policy"]["exact_required_model_count"] == 3
     assert catalog["fleet_policy"]["local_only"] is True
     assert core_contract(ROOT, "cloud_policy.yaml")["policy"]["retired"] is True
     assert core_contract(ROOT, "model_routing.yaml")["policy"]["local_only"] is True
-    assert [model["runtime_id"] for model in model_plan(ROOT)] == [QWEN, ORNITH]
+    assert [model["runtime_id"] for model in model_plan(ROOT)] == [QWEN, ORNITH, GEMMA]
     failures, _warnings = validate_core_contracts(ROOT)
     assert not failures
 
@@ -44,7 +45,8 @@ def test_exactly_one_specialist_uses_ornith() -> None:
     agents = load_agent_specs(ROOT)
     assert len(agents) == 7
     assert {a.agent_id for a in agents if a.model == "ornith-code"} == {"ingenieur-devops"}
-    assert len([a for a in agents if a.model == "qwen-max"]) == 6
+    assert {a.agent_id for a in agents if a.model == "qwen-max"} == {"chef-operations"}
+    assert len([a for a in agents if a.model == "gemma-expert"]) == 5
     routes = core_contract(ROOT, "model_routing.yaml")["agents"]
     assert set(routes) == {agent.agent_id for agent in agents}
     for agent in agents:
@@ -56,9 +58,9 @@ def test_generated_openclaw_patch_cannot_register_a_remote_provider(tmp_path: Pa
     config = build_openclaw_patch(ROOT, tmp_path)
     assert set(config["models"]["providers"]) == {"ollama"}
     ids = {m["id"] for m in config["models"]["providers"]["ollama"]["models"]}
-    assert ids == {QWEN, ORNITH}
+    assert ids == {QWEN, ORNITH, GEMMA}
     for agent_id, spec in config["agents"]["entries"].items():
-        expected = ORNITH if agent_id == "ingenieur-devops" else QWEN
+        expected = {"ingenieur-devops": ORNITH, "chef-operations": QWEN}.get(agent_id, GEMMA)
         assert spec["model"]["primary"] == f"ollama/{expected}"
         assert spec["model"]["fallbacks"] == []
     with pytest.raises(ValueError, match="OpenRouter retiré"):

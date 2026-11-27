@@ -14,7 +14,7 @@
     <div>
       <p class="eyebrow">OPENCLAW · OLLAMA · FEDORA</p>
       <h1>Performances des modèles</h1>
-      <p class="intro">Mesures locales de Qwen et Ornith, sans démarrage automatique du GPU.</p>
+      <p class="intro">Mesures locales de Qwen, Ornith et Gemma, sans démarrage automatique du GPU.</p>
     </div>
     <span class="badge">Lecture seule</span>
   </header>
@@ -35,7 +35,7 @@
   </section>
 
   <section aria-labelledby="compare-heading">
-    <h2 id="compare-heading">Qwen et Ornith, comparés</h2>
+    <h2 id="compare-heading">Qwen, Ornith et Gemma, comparés</h2>
     <p class="intro">Chaque ligne correspond à un contexte réellement testé.
       Le taux GPU décrit la part résidente du modèle, pas l'utilisation totale
       de la carte. Un résultat FULL_GPU n'est pas une certification matérielle.
@@ -50,7 +50,7 @@
       Remplace le chemin du runtime par celui de ton installation.</p>
     <pre><code>clawfedora-gpu-benchmark --root "$PWD" --models all \
   --apply --record --runtime-root "$RUNTIME_ROOT"</code></pre>
-    <p>Le benchmark examine 8K, 16K et 32K séparément pour les deux modèles
+    <p>Le benchmark examine 8K, 16K et 32K séparément pour les trois modèles
       et remplace le dernier rapport privé. Pour un essai de remplissage plus
       exigeant, ajoute <code>--near-limit</code>. Il ne modifie jamais les réglages
       d'Ollama ou du GPU. Le rapport est conservé sous

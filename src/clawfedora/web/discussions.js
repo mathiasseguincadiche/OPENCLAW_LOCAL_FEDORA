@@ -14,17 +14,17 @@
   const roleHelp = {
     "chef-operations": ["Qwen · Comprendre, pratiquer et débloquer.",
       "Explique-moi le mécanisme, avec un exemple et une vérification à réaliser."],
-    "expert-recherche": ["Qwen · Versions et sources officielles.",
+    "expert-recherche": ["Gemma · Versions et sources officielles.",
       "Vérifie les versions compatibles et cite les sources réellement consultées."],
-    "architecte-solutions": ["Qwen · Architecture, flux et schémas Draw.io.",
+    "architecte-solutions": ["Gemma · Architecture, flux et schémas Draw.io.",
       "Compare les options et explique les compromis, les flux et les limites."],
     "ingenieur-devops": ["Ornith · Code, IaC, CI/CD et corrections.",
       "Prépare le code, explique-le et distingue les tests réalisés de ceux à effectuer."],
-    "ingenieur-securite": ["Qwen · Durcissement, secrets et exposition.",
+    "ingenieur-securite": ["Gemma · Durcissement, secrets et exposition.",
       "Identifie les risques et les contrôles à effectuer sans affaiblir les protections."],
-    "redacteur-pedagogique": ["Qwen · Documentation, runbooks et supports.",
+    "redacteur-pedagogique": ["Gemma · Documentation, runbooks et supports.",
       "Rédige une procédure claire avec prérequis, commandes et preuves attendues."],
-    "auditeur-qualite": ["Qwen · Relecture, critères et preuves.",
+    "auditeur-qualite": ["Gemma · Relecture, critères et preuves.",
       "Relis les exigences et distingue les preuves suffisantes des écarts."],
   };
   function showRoleHelp() {

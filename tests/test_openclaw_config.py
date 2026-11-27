@@ -56,6 +56,7 @@ def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
     assert set(by_id) == {
         "qwen3.5:9b-q4_K_M",
         "ornith-1.5:9b",
+        "gemma4:12b-it-q4_K_M",
     }
     assert all(entry["contextTokens"] == 32768 for entry in by_id.values())
     assert all(entry["maxTokens"] == 4096 for entry in by_id.values())
@@ -63,6 +64,7 @@ def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
     assert by_id["ornith-1.5:9b"]["input"] == ["text"]
     assert patch["agents"]["defaults"]["modelPolicy"]["allow"] == [
         "ollama/qwen3.5:9b-q4_K_M", "ollama/ornith-1.5:9b",
+        "ollama/gemma4:12b-it-q4_K_M",
     ]
 
     agents = _agents_by_id(patch)
@@ -76,6 +78,7 @@ def test_ollama_patch_has_seven_agents_and_strict_tools(tmp_path: Path) -> None:
         "primary": "ollama/ornith-1.5:9b",
         "fallbacks": [],
     }
+    assert agents["expert-recherche"]["model"]["primary"] == "ollama/gemma4:12b-it-q4_K_M"
     research_tools = agents["expert-recherche"]["tools"]
     assert isinstance(research_tools, dict)
     assert research_tools["profile"] == "minimal"

@@ -69,7 +69,7 @@ def test_seven_agents_explained_match_canonical_policy() -> None:
         "clawfedora_ci_report",
     ):
         assert tool in roles
-    assert "deux modèles" in roles.lower() and "Ornith" in roles
+    assert "trois modèles" in roles.lower() and "Ornith" in roles
     assert "pas" in roles.lower() and "exécut" in roles.lower()
 
 
@@ -100,20 +100,21 @@ def test_readme_architecture_mentions_really_pinned_webui() -> None:
     assert "approbation" in architecture.lower()
 
 
-def test_local_documentation_matches_seven_agents_and_two_models() -> None:
+def test_local_documentation_matches_seven_agents_and_three_models() -> None:
     models = yaml.safe_load((ROOT / "config/model_catalog.yaml").read_text())["models"]
     routing = yaml.safe_load((ROOT / "config/core/model_routing.yaml").read_text())
     agents = yaml.safe_load((ROOT / "config/core/agents.yaml").read_text())["agents"]
     cloud = yaml.safe_load((ROOT / "config/core/cloud_policy.yaml").read_text())
-    assert set(models) == {"qwen-max", "ornith-code"}
+    assert set(models) == {"qwen-max", "ornith-code", "gemma-expert"}
     assert all(spec["provider"] == "ollama" for spec in models.values())
     assert cloud["policy"]["retired"] is True
     assert routing["policy"]["local_only"] is True
     assert routing["policy"]["local_to_cloud_fallback"] == "forbidden"
     assert set(routing["agents"]) == set(agents)
     assert routing["agents"]["ingenieur-devops"]["local_primary"] == "ornith-code"
-    assert all(spec["local_primary"] == "qwen-max" for role, spec in routing["agents"].items()
-               if role != "ingenieur-devops")
+    assert routing["agents"]["chef-operations"]["local_primary"] == "qwen-max"
+    assert all(spec["local_primary"] == "gemma-expert" for role, spec in routing["agents"].items()
+               if role not in {"ingenieur-devops", "chef-operations"})
     for name in ("README.md", "docs/GUIDE.md",
                  "docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md",
                  "docs/fiches/07-roles-et-outils.md"):
