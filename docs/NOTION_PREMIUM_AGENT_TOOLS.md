@@ -40,7 +40,7 @@ l'opérateur.
 | --- | --- |
 | 1. Outillage Premium | Inventaire Markdown et contrôle du studio par rôle livrés. [PR #298](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/298). |
 | 2. Inventaire natif | Capture opérateur en lecture seule avec pagination, portée, empreintes et limites. [PR #299](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/299). |
-| 3. Comparaison | [Comparateur hors ligne et rapport privé](NOTION_NATIVE_INVENTORY.md). Revue et CI de la PR de ce lot avant fusion. |
+| 3. Comparaison | [Comparateur hors ligne et rapport privé](NOTION_NATIVE_INVENTORY.md). Revue et CI avant fusion. [PR #300](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/300). |
 | 4. Doublons | Qualifier les doublons exacts, sémantiques, fonctionnels, de navigation et d'organisation. Conserver les répétitions utiles, archives et blocs synchronisés. |
 | 5. Liens et références | Contrôler les destinations et distinguer référence cassée, accès restreint, lien temporaire et destination non vérifiable. |
 | 6. Sources de vérité | Localiser les références et relever les copies divergentes selon le projet. |

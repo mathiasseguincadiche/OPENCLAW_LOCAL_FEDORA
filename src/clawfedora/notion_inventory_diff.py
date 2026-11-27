@@ -126,9 +126,11 @@ def _validate_tree(rows: Rows, root: Key) -> None:
             block = rows.get(("block", ident))
             if block is None or block["type"] != f"child_{category}" or block["parent_id"] != parent:
                 raise nw.NotionWriteError("bloc représentant la page ou base absent ou divergent")
-        if category == "block" and row["type"] in {"child_page", "child_database"}:
-            if (row["type"].removeprefix("child_"), ident) not in rows:
-                raise nw.NotionWriteError("page ou base enfant absente de l'inventaire")
+        if (
+            category == "block" and row["type"] in {"child_page", "child_database"}
+            and (row["type"].removeprefix("child_"), ident) not in rows
+        ):
+            raise nw.NotionWriteError("page ou base enfant absente de l'inventaire")
     if any(sorted(group) != list(range(len(group))) for group in positions.values()):
         raise nw.NotionWriteError("ordre incomplet ou positions dupliquées")
     queue = deque([root])
