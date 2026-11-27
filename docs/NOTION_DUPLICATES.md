@@ -68,3 +68,5 @@ destination reflètent la revue opérateur. Les faux positifs et les ruptures
 de couverture doivent être examinés avant toute décision. Le rapport demande
 une revue et ne déclenche aucune suppression. Les tests utilisent des
 réponses API synthétiques, avec recette Atlas et validation Fedora à réaliser.
+
+[Examiner les sources de vérité déclarées pour ces groupes](NOTION_SOURCE_TRUTH.md).

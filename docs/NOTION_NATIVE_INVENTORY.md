@@ -100,3 +100,5 @@ Références officielles : [blocs enfants](https://developers.notion.com/referen
 [Relever les doublons et les répétitions protégées](NOTION_DUPLICATES.md).
 
 [Capturer et contrôler les liens et références](NOTION_REFERENCES.md).
+
+[Comparer les sources de vérité et leurs copies](NOTION_SOURCE_TRUTH.md).
