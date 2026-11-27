@@ -95,6 +95,9 @@ pas de validation des ancres, pas de scan réel des vulnérabilités, pas
 d'exécution de tests sur VM, pas de PR automatique. Le périmètre est
 strictement documentaire et structurel.
 
+Pour lier la liste des fichiers à une révision exacte, utiliser
+l'[inventaire documentaire par commit](GITHUB_DOCUMENTARY_INVENTORY.md).
+
 ## 6. Répartir la responsabilité sans augmenter artificiellement les agents
 
 - **Chef :** définit l'objectif et les validations humaines ; décide s'il faut un audit simple ou plusieurs spécialités.
