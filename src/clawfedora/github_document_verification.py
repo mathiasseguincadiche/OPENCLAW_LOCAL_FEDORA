@@ -142,9 +142,12 @@ def verify(
     if not observed.keys() <= baseline.keys() or "boundaries" in observed:
         raise inv.InventoryError("rapport après correction inattendu pour les constats retenus")
     approval_findings = _objects(plan.get("findings"))
-    references = [item.get("reference") for item in approval_findings]
-    if not all(isinstance(item, str) for item in references):
-        raise inv.InventoryError("référence de constat approuvé invalide")
+    references: list[str] = []
+    for item in approval_findings:
+        reference = item.get("reference")
+        if not isinstance(reference, str):
+            raise inv.InventoryError("référence de constat approuvé invalide")
+        references.append(reference)
     findings = corrections._findings(baseline, references, set(application))
     if findings != approval_findings:
         raise inv.InventoryError("constats de la revue différents des rapports d'origine")
