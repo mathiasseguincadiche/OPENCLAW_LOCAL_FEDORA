@@ -453,3 +453,54 @@ def test_operator_can_trim_a_plan_and_resolve_its_dependencies(
         assert reduced[0]["role_reason"] == rationale
     finally:
         context.close()
+
+
+def test_audit_correction_preview_and_approval_keep_the_report_binding(
+    browser: Any, local_server: DashboardServer, planned: tuple[Path, Path],
+) -> None:
+    _runtime, project = planned
+    context = browser.new_context()
+    page = context.new_page()
+    digest = "a" * 64
+    submissions: list[dict[str, Any]] = []
+
+    def expose_audit(route: Any) -> None:
+        response = route.fetch()
+        data = response.json()
+        data["manifest"]["status"] = "VALIDATING"
+        data["audit_corrections"] = {
+            "kind": "validation", "sha256": digest,
+            "tasks": [{"task_id": "design-choice", "role": "architecte-solutions",
+                       "findings": [{"number": 1, "criterion": "Justifier le choix",
+                                     "evidence": "Le compromis retenu reste à expliquer."}]}],
+        }
+        route.fulfill(response=response, json=data)
+
+    def capture_revision(route: Any) -> None:
+        submissions.append(route.request.post_data_json)
+        route.fulfill(status=200, json={"affected_tasks": ["design-choice", "research-check"]})
+
+    page.route(f"**/api/project?project={project.name}", expose_audit)
+    page.route("**/api/revise", capture_revision)
+    try:
+        page.goto(_url(local_server, "/"), wait_until="networkidle")
+        page.locator("#selected").select_option(project.name)
+        revision = page.locator("#revision")
+        revision.get_by_text("Demander une modification cohérente du projet").click()
+        pw.expect(revision.get_by_text("Le compromis retenu reste à expliquer.",
+                                      exact=False)).to_be_visible()
+        revision.get_by_role("button", name="Préparer la reprise de design-choice").click()
+        pw.expect(revision.get_by_role("status")).to_contain_text("Constats joints")
+        approve = revision.get_by_role("button", name="Approuver la modification")
+        pw.expect(approve).to_be_disabled()
+        assert not submissions
+        revision.get_by_role("button", name="Voir les tâches concernées").click()
+        pw.expect(revision.get_by_text("design-choice → research-check", exact=False)).to_be_visible()
+        revision.get_by_role("checkbox").check()
+        with page.expect_response("**/api/revise"):
+            approve.click()
+        assert len(submissions) == 1
+        assert submissions[0]["audit_sha256"] == digest
+        assert submissions[0]["task_id"] == "design-choice" and submissions[0]["human_approved"]
+    finally:
+        context.close()

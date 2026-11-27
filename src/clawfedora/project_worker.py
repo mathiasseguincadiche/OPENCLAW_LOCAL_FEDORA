@@ -54,6 +54,7 @@ from clawfedora.project_engine import (
     transition_project,
 )
 from clawfedora.project_intake import validate_input_integrity
+from clawfedora.project_revision import stage_audit_correction
 from clawfedora.structured_response import (
     parse_response,
     repair_response,
@@ -946,6 +947,13 @@ def run_project_tasks(
             # Never expose a writable central project to an agent.
             snapshot.mkdir(parents=True, exist_ok=False)
             stage_task_inputs(project, snapshot, handoff)
+            correction_hint = ""
+            if stage_audit_correction(project, snapshot, task, assignment):
+                correction_hint = (
+                    " Lis context/audit-correction.json et les versions scellées dans "
+                    "context/previous-outputs. Corrige les critères refusés et préserve le reste "
+                    "du livrable. Ces anciennes versions ne prouvent pas la correction. "
+                )
             paths = [
                 "intake",
                 "sources",
@@ -1015,6 +1023,7 @@ def run_project_tasks(
                 "les exports sont dérivés localement. "
                 + instructions(project, task)
                 + notion_hint
+                + correction_hint
                 + f" Lis les sources utiles dans le snapshot {snapshot}. "
                 f"Pour clawfedora_search ou doc_links, scope={snapshot.relative_to(workspace)}. "
                 f"Consulte context/retrieval/{task_id}.json pour les passages pertinents. "

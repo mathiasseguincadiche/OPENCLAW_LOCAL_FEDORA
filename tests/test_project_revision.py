@@ -17,8 +17,8 @@ from clawfedora.project_engine import (
     store_verdict,
     transition_project,
 )
-from clawfedora.project_revision import impact, revise
-from clawfedora.project_worker import run_project_tasks
+from clawfedora.project_revision import audit_corrections, impact, revise
+from clawfedora.project_worker import review_project, run_project_tasks
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -99,6 +99,128 @@ def test_revision_reopens_complete_project_and_invalidates_transitive_outputs_an
     assert read_json(project / "project.json")["status"] == "VALIDATING"
     assert validate_exchange_completeness(ROOT, project) == []
     assert not (project / "evidence/validation_report.json").exists()
+
+
+def _audit_output(
+    planned: tuple[Path, Path], *, failed: str | None, sessions: list[str],
+) -> Path:
+    runtime, project = planned
+
+    def auditor(role: str, _prompt: str, session: str) -> dict[str, Any]:
+        assert role == "auditeur-qualite" and session not in sessions
+        sessions.append(session)
+        root = runtime / "workspaces/auditeur-qualite/projects/reviews" / session
+        assert not (root / "history").exists()
+        assert not (root / "context/audit-correction.json").exists()
+        return {
+            "verdict": "FAIL" if failed else "PASS",
+            "findings": [],
+            "criteria": {
+                task_id: [
+                    {"passed": task_id != failed, "evidence": "Le choix manque de justification.",
+                     "reference": f"deliverables/{task_id}/report.md"}
+                ]
+                for task_id in ("design-choice", "research-check")
+            },
+        }
+
+    return review_project(ROOT, runtime, project, "validation", runner=auditor)
+
+
+def test_audit_correction_targets_producer_then_requires_fresh_audit(
+    planned: tuple[Path, Path],
+) -> None:
+    runtime, project = planned
+    sessions: list[str] = []
+    run_project_tasks(ROOT, runtime, project, runner=result)
+    report = _audit_output(planned, failed="design-choice", sessions=sessions)
+    candidate = audit_corrections(project)
+    assert candidate is not None and candidate["sha256"] == sha256_file(report)
+    assert [task["task_id"] for task in candidate["tasks"]] == ["design-choice"]
+    assert candidate["tasks"][0]["findings"][0]["number"] == 1
+    assert not (project / "history/revisions").exists()
+
+    with pytest.raises(PermissionError):
+        revise(project, "design-choice", "Justifier le choix", audit_sha256=candidate["sha256"])
+    with pytest.raises(ValueError, match="aucun critère refusé"):
+        revise(project, "research-check", "Relire", human_approved=True,
+               audit_sha256=candidate["sha256"])
+    baseline = project / "deliverables/design-choice/report.md"
+    original = baseline.read_text(encoding="utf-8")
+    revision = revise(
+        project, "design-choice", "Justifier le choix", human_approved=True,
+        audit_sha256=candidate["sha256"],
+    )
+    assert revision["audit"]["sha256"] == candidate["sha256"]
+    assert revision["affected_tasks"] == ["design-choice", "research-check"]
+
+    def producer(role: str, prompt: str, session: str) -> dict[str, Any]:
+        task = json.loads(prompt.split("\n", 1)[1])
+        task_root = runtime / "workspaces" / role / "projects" / project.name / task["id"]
+        context = task_root / session / "context"
+        if task["id"] == "design-choice":
+            staged = read_json(context / "audit-correction.json")
+            assert staged["audit"]["session_id"] == sessions[0]
+            assert staged["findings"][0]["evidence"] == "Le choix manque de justification."
+            old = context / "previous-outputs/deliverables/design-choice/report.md"
+            assert old.read_text(encoding="utf-8") == original
+            assert old.stat().st_mode & 0o222 == 0
+            assert "context/audit-correction.json" in prompt
+        else:
+            assert not (context / "audit-correction.json").exists()
+            assert not (context / "previous-outputs").exists()
+            receipt = read_json(context / "dependency-inputs.json")
+            assert receipt["inputs"][0]["attempt"] == 2
+        return {"files": {task["expected_outputs"][0]: original + "\nJustification du choix."},
+                "summary": "Correction collectée"}
+
+    run_project_tasks(ROOT, runtime, project, runner=producer)
+    assert read_json(project / "project.json")["status"] == "VALIDATING"
+    assert not report.exists()
+    passed = _audit_output(planned, failed=None, sessions=sessions)
+    assert read_json(passed)["verdict"] == "PASS" and len(sessions) == 2
+    assert audit_corrections(project) is None
+
+
+@pytest.mark.parametrize("changed", ["report", "output"])
+def test_linked_correction_refuses_stale_evidence(
+    planned: tuple[Path, Path], changed: str,
+) -> None:
+    runtime, project = planned
+    run_project_tasks(ROOT, runtime, project, runner=result)
+    report = _audit_output(planned, failed="design-choice", sessions=[])
+    digest = sha256_file(report)
+    if changed == "report":
+        report.write_bytes(report.read_bytes() + b"\n")
+    else:
+        output = project / "deliverables/design-choice/report.md"
+        output.chmod(0o640)
+        output.write_text("# Bytes modifiés", encoding="utf-8")
+    with pytest.raises(ValueError, match="audit de correction"):
+        revise(project, "design-choice", "Justifier le choix", human_approved=True,
+               audit_sha256=digest)
+    assert not (project / "history/revisions").exists()
+    assert read_json(project / "project.json")["status"] == "VALIDATING"
+
+
+def test_changed_archived_output_is_refused_before_model_call(planned: tuple[Path, Path]) -> None:
+    runtime, project = planned
+    run_project_tasks(ROOT, runtime, project, runner=result)
+    report = _audit_output(planned, failed="design-choice", sessions=[])
+    revise(project, "design-choice", "Justifier le choix", human_approved=True,
+           audit_sha256=sha256_file(report))
+    archive = project / "history/revisions/revision-001"
+    prior = archive / "deliverables/design-choice/report.md"
+    prior.chmod(0o640)
+    prior.write_text("Contenu modifié", encoding="utf-8")
+    attempts = read_json(project / "context/task_assignments.json")["tasks"][0]["attempts"]
+
+    def never_called(*_args: Any) -> dict[str, Any]:
+        pytest.fail("le producteur ne doit pas recevoir la sortie modifiée")
+
+    with pytest.raises(ValueError, match="sortie historique modifiée"):
+        run_project_tasks(ROOT, runtime, project, runner=never_called)
+    assert read_json(project / "context/task_assignments.json")["tasks"][0]["attempts"] == attempts
 
 
 def test_partial_revision_keeps_current_unaffected_dependency_bundles(
