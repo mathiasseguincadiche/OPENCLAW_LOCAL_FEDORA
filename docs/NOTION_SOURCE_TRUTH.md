@@ -70,3 +70,5 @@ les empreintes et leurs limites. Un écart demande une revue du sens et
 de l'usage avant toute modification. Deux copies peuvent volontairement
 présenter des textes différents selon leur public. La recette utilise
 des captures synthétiques. La vérification sur Atlas et Fedora reste à faire.
+
+[Préparer le plan de rationalisation à partir des constats](NOTION_RATIONALIZATION.md).
