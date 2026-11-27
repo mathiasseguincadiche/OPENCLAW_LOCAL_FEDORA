@@ -51,7 +51,7 @@ def _write(folder: Path, files: dict[str, str]) -> None:
 def _readme(version: str, anchor: str) -> str:
     return (
         f"# Atelier Atlas\n\n## Versions\n\n| Composant | Version |\n| --- | --- |\n"
-        f"| Service | {version} |\n\n[Guide](docs/guide.md#{anchor})\n"
+        f"| Service | `{version}` |\n\n[Guide](docs/guide.md#{anchor})\n"
     )
 
 
@@ -232,7 +232,7 @@ def test_github_documentary_acceptance_campaign(
 
     original = _audits(forge.base, before["inventory_sha256"])
     assert original["links"]["broken_count"] == 1
-    assert original["coherence"]["counts_by_status"] == {"version_drift": 1}
+    assert original["coherence"]["counts_by_status"] == {"version_drift": 1}, original["coherence"]
     assert original["ci"]["reference_counts"] == {"different_revision": 1}
     assert original["ci"]["run_counts"] == {"observed_success": 1}
     assert original["boundaries"]["counts_by_code"] == {
