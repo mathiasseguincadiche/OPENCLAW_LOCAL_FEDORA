@@ -19,6 +19,11 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
+from clawfedora.artifact_exchange import (
+    prepare_task_inputs,
+    stage_task_inputs,
+    validate_exchange_completeness,
+)
 from clawfedora.cloud_routing import Route, agent_route, automatic_routes
 from clawfedora.core_config import (
     AGENT_IDS,
@@ -915,6 +920,8 @@ def run_project_tasks(
             assignment = tasks[0]
             task_id = validate_task_id(str(assignment["task_id"]))
             task = read_json(project / "context/tasks" / f"{task_id}.json")["task"]
+            session = str(uuid.uuid4())
+            handoff = prepare_task_inputs(repo_root, project, task, session=session)
             if assignment.get("revision_reason"):
                 task = {**task, "approved_revision": assignment["revision_reason"]}
             retrieval = search(repo_root, project, f"{task['title']} {task['objective']}")
@@ -926,7 +933,6 @@ def run_project_tasks(
                 },
             )
             role = str(task["role"])
-            session = str(uuid.uuid4())
             workspace = runtime / "workspaces" / role
             if not (workspace / ".openclaw-fedora-managed").is_file():
                 raise ValueError(f"workspace non déployé: {role}")
@@ -939,6 +945,7 @@ def run_project_tasks(
             )
             # Never expose a writable central project to an agent.
             snapshot.mkdir(parents=True, exist_ok=False)
+            stage_task_inputs(project, snapshot, handoff)
             paths = [
                 "intake",
                 "sources",
@@ -949,7 +956,6 @@ def run_project_tasks(
                 "context/revisions.json",
                 f"context/tasks/{task_id}.json",
                 f"context/retrieval/{task_id}.json",
-                f"context/exchange/{task_id}",
             ]
             paths.extend(f"context/operator-proofs/{dep}" for dep in task.get("depends_on", []))
             paths.extend(hit["path"] for hit in retrieval if hit["kind"] in {"decision", "research"})
@@ -1011,7 +1017,9 @@ def run_project_tasks(
                 + notion_hint
                 + f" Lis les sources utiles dans le snapshot {snapshot}. "
                 f"Pour clawfedora_search ou doc_links, scope={snapshot.relative_to(workspace)}. "
-                f"Consulte d'abord context/retrieval/{task_id}.json pour les passages pertinents. "
+                f"Consulte context/retrieval/{task_id}.json pour les passages pertinents. "
+                "Les contributions amont validées figurent dans context/dependency-inputs.json. "
+                "Leurs critères restent à vérifier. "
                 "Vérifie la provenance et le fichier original si un extrait ne suffit pas. "
                 "Schéma de sortie: "
                 + json.dumps(
@@ -1189,7 +1197,6 @@ def review_project(
         session = str(uuid.uuid4())
         snapshot = workspace / "projects" / "reviews" / session
         assert_no_symlinks(project, label="projet à auditer")
-        from clawfedora.artifact_exchange import validate_exchange_completeness
         from clawfedora.project_proofs import preflight_proofs, proof_catalog
 
         if not all_tasks_pass(repo_root, project):

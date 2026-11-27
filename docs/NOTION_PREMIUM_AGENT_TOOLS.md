@@ -83,12 +83,13 @@ identifie le commit testé dans le rapport. La recette est intégrée à
 
 ### C03 — Orchestration des agents
 
-Le [lot 1](fiches/04-atelier-projets.md) rend le choix de chaque rôle
-visible et modifiable avant l'approbation. Le chef propose les rôles
-utiles à la mission et justifie leur contribution. L'opérateur peut
-retirer une tâche et corriger les dépendances avant l'assignation.
-Après intégration, reprendre la transmission des livrables et de leur
-provenance entre les tâches approuvées.
+Le [lot 1](fiches/04-atelier-projets.md) est intégré à
+[`main@cdb036f`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/cdb036f8b74a26f37312f00b38115fc7a28c7b6e).
+Le [lot 2](fiches/04-atelier-projets.md#transmission-entre-les-tâches)
+vérifie les dernières contributions approuvées avant l'appel à
+l'agent et conserve leur provenance par session. Après intégration,
+reprendre la vérification indépendante des livrables et leur
+correction ciblée.
 
 
 ### Programme restant

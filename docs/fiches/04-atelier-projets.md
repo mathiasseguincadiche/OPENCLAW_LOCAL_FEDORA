@@ -44,6 +44,27 @@ INTAKE_READY → ANALYZED → PLANNED → ASSIGNED → IN_PROGRESS
              → VALIDATING → REVIEW → PACKAGING → COMPLETE
 ```
 
+## Transmission entre les tâches
+
+Avant d'appeler un agent, le worker vérifie les contributions prévues
+par les dépendances du plan approuvé. Pour chaque producteur, il retient
+la dernière tentative passée, compare l'identité du producteur et du
+destinataire, les chemins et les empreintes des fichiers aux sorties
+du projet, puis vérifie la copie transmise à l'agent.
+
+Le fichier `context/dependency-inputs.json` du snapshot indique
+l'origine de chaque contribution, la tentative et son empreinte.
+Un reçu de préparation est conservé dans
+`context/exchange/<tâche>/handoffs/<session>.json`. Il atteste les
+entrées préparées pour la session. L'auditeur valide ensuite les critères
+et les preuves du projet.
+
+Un dossier manquant ou des octets divergents bloquent l'appel à
+l'agent. Une fois la contribution rétablie, la tâche peut reprendre
+avec le même compteur de tentatives. Les bundles anciens restent
+lisibles après contrôle de leurs métadonnées et de leurs octets.
+Les nouveaux enregistrent aussi l'identifiant du projet.
+
 ## Projets évolutifs et exercices multiples
 
 Pour un parcours long comme OpsDesk, le projet peut conserver une **feuille de
