@@ -44,3 +44,5 @@ n'a pas pu être lu dans les limites de taille ou de format. Si un budget
 global est dépassé, relancer avec un périmètre plus petit.
 
 [Syntaxe des liens et ancres GitHub](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax)
+
+[Comparer les déclarations documentaires aux sources techniques](GITHUB_DOCUMENTARY_COHERENCE.md).

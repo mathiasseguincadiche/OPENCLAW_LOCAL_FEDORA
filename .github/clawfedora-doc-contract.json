@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "checks": [
+    {
+      "id": "platform-version",
+      "kind": "version",
+      "authority": {
+        "path": "VERSION",
+        "format": "text",
+        "select": []
+      },
+      "declarations": [
+        {
+          "path": "pyproject.toml",
+          "format": "toml",
+          "select": [
+            "project",
+            "version"
+          ]
+        },
+        {
+          "path": "config/runtime_versions.yaml",
+          "format": "yaml",
+          "select": [
+            "platform_version"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "openclaw-version",
+      "kind": "version",
+      "authority": {
+        "path": "config/runtime_versions.yaml",
+        "format": "yaml",
+        "select": [
+          "openclaw",
+          "version"
+        ]
+      },
+      "declarations": [
+        {
+          "path": "config/npm-runtime/package.json",
+          "format": "json",
+          "select": [
+            "dependencies",
+            "openclaw"
+          ]
+        },
+        {
+          "path": "config/npm-runtime/package-lock.json",
+          "format": "json",
+          "select": [
+            "packages",
+            "node_modules/openclaw",
+            "version"
+          ]
+        },
+        {
+          "path": "STATUS.md",
+          "format": "markdown_table",
+          "select": [
+            "Versions déclarées pour la première installation",
+            "OpenClaw + plugin Parallel"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "parallel-plugin-version",
+      "kind": "version",
+      "authority": {
+        "path": "config/runtime_versions.yaml",
+        "format": "yaml",
+        "select": [
+          "openclaw",
+          "plugins",
+          "parallel",
+          "version"
+        ]
+      },
+      "declarations": [
+        {
+          "path": "config/npm-runtime/package.json",
+          "format": "json",
+          "select": [
+            "dependencies",
+            "@openclaw/parallel-plugin"
+          ]
+        },
+        {
+          "path": "config/npm-runtime/package-lock.json",
+          "format": "json",
+          "select": [
+            "packages",
+            "node_modules/@openclaw/parallel-plugin",
+            "version"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ollama-version",
+      "kind": "version",
+      "authority": {
+        "path": "config/runtime_versions.yaml",
+        "format": "yaml",
+        "select": [
+          "ollama",
+          "version"
+        ]
+      },
+      "declarations": [
+        {
+          "path": "STATUS.md",
+          "format": "markdown_table",
+          "select": [
+            "Versions déclarées pour la première installation",
+            "Ollama"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "readme-launcher",
+      "kind": "path",
+      "document": "README.md",
+      "target": "menu.sh"
+    },
+    {
+      "id": "installation-launcher",
+      "kind": "path",
+      "document": "docs/INSTALLATION_SIMPLE_FEDORA45.md",
+      "target": "menu.sh"
+    },
+    {
+      "id": "acceptance-launcher",
+      "kind": "path",
+      "document": "docs/RECETTE_GLOBALE.md",
+      "target": "menu.sh"
+    }
+  ]
+}
