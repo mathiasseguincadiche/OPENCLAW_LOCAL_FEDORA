@@ -45,3 +45,5 @@ Une déclaration absente ou ambiguë reste à vérifier. La commande
 renvoie `0` si tous les contrôles concordent, `1` si le rapport
 contient des écarts ou des contrôles à revoir et `2` pour un refus.
 Les valeurs déclarées ne prouvent pas les versions installées.
+
+[Rattacher les preuves CI et les workflows au commit](GITHUB_DOCUMENTARY_CI.md).
