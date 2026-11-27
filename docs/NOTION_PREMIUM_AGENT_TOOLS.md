@@ -46,17 +46,18 @@ l'opérateur.
 | 6. Sources de vérité | [Contrôle des références canoniques](NOTION_SOURCE_TRUTH.md) et comparaison des preuves des copies. [PR #303](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/303). |
 | 7. Plans de rationalisation | [Plan de revue hors ligne](NOTION_RATIONALIZATION.md) avec preuves, impacts, approbations et contrôles de retour arrière. [PR #304](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/304). |
 | 8. Intégration au worker | [Audits locaux du worker](NOTION_WORKER_AUDIT.md), autorisations par tâche et preuves vérifiées. [PR #305](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/305). |
-| 9. Non-régression | [Audit avant/après](NOTION_NON_REGRESSION.md) sur une édition de texte autorisée, avec détection des écarts et protection des contenus. |
-| 10. Recette | Vérifier la couverture et les limites sur Atlas ou un wiki synthétique équivalent. Documenter les anomalies, preuves et verdicts. |
+| 9. Non-régression | [Audit avant/après](NOTION_NON_REGRESSION.md) sur une édition de texte autorisée, avec détection des écarts et protection des contenus. [PR #306](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/306). |
+| 10. Recette | [Recette synthétique Atlas](validation/NOTION_ATLAS_ACCEPTANCE.md) et rapport JSON lié au SHA testé. |
 
-**Référence avant le lot 9** — `main` à
-[`da90bb9`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/da90bb9878fca47cb26e18a258cc89554ab74126), après fusion de la PR #305.
-[CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45952923938) et
-[CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45952923983) réussis sur ce SHA.
+**Référence avant le lot 10** — `main` à
+[`9284a9a`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/9284a9acf379dc2c38339fa4c526c561fe756851), après fusion de la PR #306.
+[CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45954034017) et
+[CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45954033762) sur ce SHA.
 
-**Reprise après le lot 9** — Vérifier la fusion et la CI de `main`.
-Ouvrir le lot 10 avec un wiki synthétique Atlas et produire une recette
-structurée qui présente la couverture, les constats et les limites.
+**Reprise après le lot 10** — Vérifier la fusion, la CI du SHA de `main`
+et le rapport Atlas. Ouvrir C02 avec l'inventaire documentaire d'un dépôt
+GitHub à une révision exacte. La réception réelle Notion et la
+qualification Fedora restent à planifier avec l'opérateur.
 
 
 ### Programme restant
