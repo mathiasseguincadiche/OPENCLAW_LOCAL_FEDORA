@@ -78,8 +78,17 @@ Le [lot 7](GITHUB_DOCUMENTARY_VERIFICATION.md) est intégré à
 [`main@1de3c86`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/1de3c86636bcf405ae585da55541da7d6eff9e80).
 La [recette synthétique Atlas](validation/GITHUB_DOCUMENTARY_ACCEPTANCE.md)
 clôt le périmètre logiciel C02. La CI vérifie les sept lots et
-identifie le commit testé dans le rapport. Le chantier suivant est
-C03, consacré à l'orchestration des rôles et à la reprise des missions.
+identifie le commit testé dans le rapport. La recette est intégrée à
+[`main@ceef459`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/ceef459b9d504ed5fc540efe3c33620d24844dd2).
+
+### C03 — Orchestration des agents
+
+Le [lot 1](fiches/04-atelier-projets.md) rend le choix de chaque rôle
+visible et modifiable avant l'approbation. Le chef propose les rôles
+utiles à la mission et justifie leur contribution. L'opérateur peut
+retirer une tâche et corriger les dépendances avant l'assignation.
+Après intégration, reprendre la transmission des livrables et de leur
+provenance entre les tâches approuvées.
 
 
 ### Programme restant

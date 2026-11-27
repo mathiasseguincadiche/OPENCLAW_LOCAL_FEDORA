@@ -12,7 +12,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from clawfedora.core_config import AGENT_IDS, daily_limits
+from clawfedora.core_config import AGENT_IDS, core_contract, daily_limits
 from clawfedora.github_refresh import inspect as github_updates
 from clawfedora.learning import checkpoints, contract
 from clawfedora.mentor import copy_profile
@@ -22,6 +22,7 @@ from clawfedora.project_common import assert_no_symlinks, read_json, write_json
 from clawfedora.project_control import write_progress
 from clawfedora.project_engine import (
     ANALYSIS_FIELDS,
+    _validate_plan,
     create_assignments,
     create_clarifications,
     current_status,
@@ -143,6 +144,36 @@ def details(project: Path) -> dict[str, Any]:
     }
 
 
+def _validate_web_plan(
+    repo: Path, proposal: dict[str, Any], *,
+    from_model: bool = False, require_role_reason: bool = False,
+) -> None:
+    tasks = proposal.get("tasks")
+    if (
+        not isinstance(tasks, list) or not 1 <= len(tasks) <= 4
+        or any(not isinstance(task, dict) for task in tasks)
+    ):
+        raise ValueError("plan web : une à quatre tâches courtes requises")
+    if from_model:
+        for task in tasks:
+            # A model cannot opt into practice on behalf of the operator.
+            task.pop("practice_opt_in", None)
+    _validate_plan(tasks, require_role_reason=from_model or require_role_reason)
+    policies = core_contract(repo, "tool_policy.yaml")["agents"]
+    for task in tasks:
+        role = task["role"]
+        if role not in policies:
+            raise ValueError("rôle absent de la politique d’outillage")
+        scopes = policies[role]["collect_scopes"]
+        outputs = task["expected_outputs"]
+        if len(outputs) > 3:
+            raise ValueError("une à trois sorties attendues par tâche")
+        for output in outputs:
+            path = Path(output)
+            if path.parts[0] not in scopes:
+                raise ValueError("sortie hors namespace du rôle et de la tâche")
+
+
 def propose(
     repo: Path, runtime: Path, project: Path, kind: str, *, runner: AgentRunner | None = None
 ) -> dict[str, Any]:
@@ -186,6 +217,7 @@ def propose(
                     {
                         "id": "decision",
                         "role": "architecte-solutions",
+                        "role_reason": "Arbitrer les options d'architecture.",
                         "task_tier": "complex",
                         "title": "Choix",
                         "objective": "Justifier le choix",
@@ -198,7 +230,10 @@ def propose(
             instructions = (
                 "Lire l’analyse et les réponses de clarification dans le snapshot. "
                 "Proposer 1 à 4 tâches "
-                "courtes, spécialistes uniquement si utiles, dépendances explicites. "
+                "courtes. Une tâche isolée peut suffire. Pour chacune, justifier le rôle "
+                "dans role_reason en une phrase (240 caractères maximum), en précisant "
+                "la contribution nécessaire au résultat. Regrouper les travaux cohérents. "
+                "Dépendances uniquement si une sortie amont sert la tâche. "
                 "Pour chaque tâche, renseigner task_tier: simple (isolée), complex "
                 "(multi-fichiers), critical (fort impact). Ce niveau sera présenté dans "
                 "le plan soumis à approbation humaine; il ne modifie ni confidentialité "
@@ -246,22 +281,16 @@ def propose(
             raise ValueError("proposition JSON objet requise")
         if kind == "analysis" and set(value) != ANALYSIS_FIELDS:
             raise ValueError("analyse proposée incomplète")
-        if kind == "plan" and (
-            not isinstance(value.get("tasks"), list) or not 1 <= len(value["tasks"]) <= 4
-        ):
-            raise ValueError("plan proposé: 1 à 4 tâches requises")
         if kind == "plan":
-            for task in value["tasks"]:
-                if not isinstance(task, dict):
-                    raise ValueError("plan proposé: tâche objet requise")
-                # The model may suggest practice, but cannot consent for the human.
-                task.pop("practice_opt_in", None)
+            _validate_web_plan(repo, value, from_model=True)
         draft = {
             "kind": kind,
             "proposal": value,
             "approved": False,
             "note": "Proposition IA à vérifier; les déclarations de lecture doivent être contrôlées.",
         }
+        if kind == "plan":
+            draft["role_reasons_required"] = True
         write_json(project / "context/ui_draft.json", draft)
         write_progress(runtime, project, "proposed")
         return draft
@@ -288,33 +317,13 @@ def approve(
                     repo, project, "CLARIFICATION_REQUIRED", actor="human", reason="web_questions"
                 )
         elif kind == "plan":
-            from clawfedora.core_config import core_contract
-            from clawfedora.project_common import validate_task_id
-
-            tasks = proposal.get("tasks")
-            if not isinstance(tasks, list) or not 1 <= len(tasks) <= 4:
-                raise ValueError("plan web limité à quatre tâches courtes")
-            policies = core_contract(repo, "tool_policy.yaml")["agents"]
-            for task in tasks:
-                identifier = validate_task_id(str(task["id"]))
-                role = task["role"]
-                if role not in policies:
-                    raise ValueError("rôle inconnu")
-                outputs = task.get("expected_outputs")
-                if not isinstance(outputs, list) or not 1 <= len(outputs) <= 3:
-                    raise ValueError("une à trois sorties attendues par tâche")
-                for output in outputs:
-                    path = Path(output)
-                    if (
-                        path.is_absolute()
-                        or ".." in path.parts
-                        or len(path.parts) < 3
-                        or path.parts[0] not in policies[role]["collect_scopes"]
-                        or path.parts[1] != identifier
-                    ):
-                        raise ValueError("sortie hors namespace du rôle et de la tâche")
-                if not task.get("acceptance_criteria"):
-                    raise ValueError("critères de vérification requis")
+            path = project / "context/ui_draft.json"
+            draft = read_json(path) if path.is_file() else {}
+            require_role_reason = (
+                draft.get("kind") == "plan" and draft.get("approved") is False
+                and draft.get("role_reasons_required") is True
+            )
+            _validate_web_plan(repo, proposal, require_role_reason=require_role_reason)
             store_plan(repo, project, proposal)
             transition_project(repo, project, "PLANNED", actor="human", reason="web_plan_approved")
             create_assignments(repo, project)

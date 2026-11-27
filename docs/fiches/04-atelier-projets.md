@@ -31,7 +31,7 @@ La différence fondamentale avec une simple discussion est la **traçabilité** 
 
 1. **Créer le projet.** Donne un titre, un objectif précis et jusqu'à trois documents (8 Mo au total).
 2. **Demander le cadrage.** Le mentor lit les documents et propose son analyse : contraintes, informations manquantes, questions. Relis, corrige, puis approuve. Rien n'avance tant que tu n'as pas approuvé.
-3. **Approuver un plan court.** Le mentor propose une à quatre tâches, chacune confiée à un rôle, avec ses fichiers attendus et ses critères. Retire les rôles inutiles.
+3. **Approuver un plan court.** Le mentor propose une à quatre tâches. Vérifie la justification du rôle, les fichiers attendus et les critères pour chacune. Tu peux changer de rôle ou retirer une tâche avant l'approbation. Mets à jour les dépendances des tâches qui restent.
 4. **Préparer une étape.** Le rôle concerné travaille. En mode guidé, il t'explique et te laisse une amorce à compléter ; en mode direct, il propose le résultat complet. Voir [Apprendre](05-apprendre.md).
 5. **Soumettre et demander le retour.** En mode guidé, tu complètes les fichiers, tu expliques tes choix, puis le rôle relit ton travail.
 6. **Valider et relire.** L'auditeur vérifie les critères, puis relit l'ensemble.

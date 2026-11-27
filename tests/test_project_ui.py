@@ -97,6 +97,7 @@ def test_browser_workflow_uses_real_gates_and_collector_with_simulated_models(
             {
                 "id": "choix",
                 "role": "architecte-solutions",
+                "role_reason": "Comparer les options avant la décision d'architecture.",
                 "title": "Choisir",
                 "objective": "Comparer et expliquer",
                 "depends_on": [],
@@ -107,6 +108,9 @@ def test_browser_workflow_uses_real_gates_and_collector_with_simulated_models(
     }
     handler = object.__new__(DashboardHandler)
     handler.server = server
+    incomplete_task = {key: value for key, value in plan["tasks"][0].items()
+                       if key != "role_reason"}
+    incomplete_plan = {**plan, "tasks": [incomplete_task]}
     values = [analysis(project), plan]
     values[0]["missing_information"] = ["Quelle fréquence de sauvegarde ?"]
     monkeypatch.setattr(
@@ -138,7 +142,20 @@ def test_browser_workflow_uses_real_gates_and_collector_with_simulated_models(
         == 202
     )
     assert current_status(project) == "ANALYZED"
+    with pytest.raises(ValueError, match="role_reason"):
+        project_ui.propose(
+            ROOT, server.runtime, project, "plan",
+            runner=lambda *_args: {"text": json.dumps(incomplete_plan)},
+        )
+    assert current_status(project) == "ANALYZED"
     handler._prepare(project, "plan")
+    draft = request(server, "/api/project?project=" + identifier)[1]["draft"]
+    assert draft["role_reasons_required"] is True
+    assert [task["role"] for task in draft["proposal"]["tasks"]] == ["architecte-solutions"]
+    assert request(server, "/api/approve", {
+        **base, "kind": "plan", "proposal": incomplete_plan, "human_approved": True,
+    })[0] == 400
+    assert current_status(project) == "ANALYZED"
     assert (
         request(
             server, "/api/approve", {**base, "kind": "plan", "proposal": plan, "human_approved": True}
@@ -146,6 +163,8 @@ def test_browser_workflow_uses_real_gates_and_collector_with_simulated_models(
         == 202
     )
     assert current_status(project) == "ASSIGNED"
+    packet = read_json(project / "context/tasks/choix.json")
+    assert packet["task"]["role_reason"] == plan["tasks"][0]["role_reason"]
     worker_done = threading.Event()
 
     def work(*_args: Any, **_kwargs: Any) -> list[dict[str, Any]]:

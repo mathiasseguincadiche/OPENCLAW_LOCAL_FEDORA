@@ -511,6 +511,22 @@ function renderProposal(id, draft, learning) {
   const form = node("form"), proposal = structuredClone(draft.proposal), inputs = {};
   form.append(node("h3", draft.kind === "analysis" ? "Cadrage proposé" : "Plan proposé"));
   const tasks = [];
+  const lines = value => value.split("\n").map(s => s.trim()).filter(Boolean);
+  const dependencyStatus = node("p");
+  dependencyStatus.setAttribute("role", "status");
+  function refreshTaskControls() {
+    const ids = new Set(tasks.map(({ values }) => values.id.value.trim().toLowerCase()));
+    const missingIds = new Set();
+    for (const { values, remove } of tasks) {
+      remove.disabled = tasks.length === 1;
+      const missing = lines(values.depends_on.value).filter(id => !ids.has(id));
+      missing.forEach(id => missingIds.add(id));
+      values.depends_on.setCustomValidity(missing.length ? "Dépendances à corriger" : "");
+    }
+    dependencyStatus.textContent = missingIds.size
+      ? "Retirez ou remplacez les dépendances manquantes (" + [...missingIds].join(", ") + ")."
+      : "";
+  }
   if (draft.kind === "analysis") {
     const labels = { summary: "Résumé", objectives: "Objectifs", constraints: "Contraintes", deliverables: "Livrables", ambiguities: "Ambiguïtés", missing_information: "Informations manquantes", risks: "Risques", decisions_required: "Décisions à prendre" };
     for (const [key, label] of Object.entries(labels)) {
@@ -535,6 +551,9 @@ function renderProposal(id, draft, learning) {
       const label = node("label", "Spécialité"), role = node("select");
       for (const name of ["chef-operations", "expert-recherche", "architecte-solutions", "ingenieur-devops", "ingenieur-securite", "redacteur-pedagogique", "auditeur-qualite"]) { const option = node("option", name); option.value = name; role.append(option); }
       role.value = task.role; label.append(role); group.append(label); form.append(group);
+      const reason = field(group, "Pourquoi ce rôle ?", task.role_reason);
+      reason.maxLength = 240;
+      reason.required = draft.role_reasons_required === true || Object.hasOwn(task, "role_reason");
       const support = node("select"), supportLabel = node("label", "Aide pour cette étape");
       for (const [value, text] of [["direct", "Explication et livrable complet"], ["guided", "Je choisis de pratiquer avec des indices"]]) { const option = node("option", text); option.value = value; support.append(option); }
       // AI suggestions never opt the human into mandatory practice.
@@ -546,16 +565,34 @@ function renderProposal(id, draft, learning) {
         task.practice_opt_in = support.value === "guided";
       });
       supportLabel.append(support); group.append(supportLabel);
-      if (task.role === "redacteur-pedagogique") {
-        const scope = node("select"), scopeLabel = node("label", "Portée de la rédaction");
-        for (const [value, text] of [["final", "Synthèse finale : toutes les tâches techniques"], ["intermediate", "Document intermédiaire : ses seules sources"]]) { const option = node("option", text); option.value = value; scope.append(option); }
-        scope.value = task.writing_scope || "final";
-        task.writing_scope = scope.value;
-        scope.addEventListener("change", () => { task.writing_scope = scope.value; });
-        scopeLabel.append(scope); group.append(scopeLabel);
-      }
-      tasks.push({ task, values, role });
+      const scope = node("select"), scopeLabel = node("label", "Portée de la rédaction");
+      for (const [value, text] of [["final", "Synthèse finale : toutes les tâches techniques"], ["intermediate", "Document intermédiaire : ses seules sources"]]) { const option = node("option", text); option.value = value; scope.append(option); }
+      scope.value = task.writing_scope || "final";
+      scopeLabel.append(scope); group.append(scopeLabel);
+      scopeLabel.hidden = role.value !== "redacteur-pedagogique";
+      role.addEventListener("change", () => {
+        reason.value = "";
+        reason.required = true;
+        scopeLabel.hidden = role.value !== "redacteur-pedagogique";
+      });
+
+      const remove = node("button", "Retirer cette tâche");
+      remove.type = "button";
+      group.append(remove);
+      const entry = { task, values, role, reason, scope, remove };
+      tasks.push(entry);
+      remove.addEventListener("click", () => {
+        const index = tasks.indexOf(entry);
+        tasks.splice(index, 1);
+        group.remove();
+        refreshTaskControls();
+        tasks[Math.min(index, tasks.length - 1)].values.title.focus();
+      });
+      values.id.addEventListener("input", refreshTaskControls);
+      values.depends_on.addEventListener("input", refreshTaskControls);
     }
+    form.append(dependencyStatus);
+    refreshTaskControls();
   }
   const confirm = node("label"), checkbox = node("input"); checkbox.type = "checkbox"; checkbox.required = true;
   confirm.append(checkbox, document.createTextNode(" J’ai vérifié la proposition et les limites; j’approuve ce cadrage ou ce plan."));
@@ -564,11 +601,15 @@ function renderProposal(id, draft, learning) {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!checkbox.checked) return;
-    const lines = value => value.split("\n").map(s => s.trim()).filter(Boolean);
     for (const [key, input] of Object.entries(inputs)) proposal[key] = key === "summary" ? input.value : lines(input.value);
-    for (const { task, values, role } of tasks) {
-      for (const [key, input] of Object.entries(values)) task[key] = ["depends_on", "expected_outputs", "acceptance_criteria"].includes(key) ? lines(input.value) : input.value;
-      task.role = role.value;
+    if (draft.kind === "plan") {
+      proposal.tasks = tasks.map(({ task, values, role, reason, scope }) => {
+        for (const [key, input] of Object.entries(values)) task[key] = ["depends_on", "expected_outputs", "acceptance_criteria"].includes(key) ? lines(input.value) : input.value;
+        task.role = role.value;
+        if (reason.required || reason.value.trim()) task.role_reason = reason.value.trim();
+        if (role.value === "redacteur-pedagogique") task.writing_scope = scope.value;
+        return task;
+      });
     }
     const result = await action("/api/approve", { project_id: id, kind: draft.kind, proposal, human_approved: true });
     if (result) await loadProject(id);

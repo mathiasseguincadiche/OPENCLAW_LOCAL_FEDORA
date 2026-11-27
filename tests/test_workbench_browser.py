@@ -381,3 +381,75 @@ def test_discussion_role_guidance_does_not_send_or_create(
         assert writes == [], writes
     finally:
         context.close()
+
+
+
+def test_operator_can_trim_a_plan_and_resolve_its_dependencies(
+    browser: Any, local_server: DashboardServer, planned: tuple[Path, Path],
+) -> None:
+    _runtime, project = planned
+    tasks = [
+        {
+            "id": "research", "title": "Rechercher", "role": "expert-recherche",
+            "role_reason": "Recouper les sources documentaires.", "objective": "Cadrer le besoin",
+            "depends_on": [], "expected_outputs": ["deliverables/research/notes.md"],
+            "acceptance_criteria": ["Sources datées"],
+        },
+        {
+            "id": "design", "title": "Concevoir", "role": "architecte-solutions",
+            "role_reason": "Comparer les architectures disponibles.",
+            "objective": "Proposer un choix",
+            "depends_on": ["research"], "expected_outputs": ["deliverables/design/adr.md"],
+            "acceptance_criteria": ["Choix justifié"],
+        },
+    ]
+    context = browser.new_context()
+    page = context.new_page()
+    submissions: list[dict[str, Any]] = []
+
+    def show_draft(route: Any) -> None:
+        response = route.fetch()
+        data = response.json()
+        data["draft"] = {"approved": False, "kind": "plan", "role_reasons_required": True,
+                         "proposal": {"workstreams": [], "tasks": tasks}}
+        route.fulfill(response=response, json=data)
+
+    def capture_approval(route: Any) -> None:
+        submissions.append(route.request.post_data_json)
+        route.fulfill(status=202, json={"ok": True})
+
+    page.route(f"**/api/project?project={project.name}", show_draft)
+    page.route("**/api/approve", capture_approval)
+    try:
+        page.goto(_url(local_server, "/"), wait_until="networkidle")
+        page.locator("#selected").select_option(project.name)
+        proposal = page.locator("#proposal")
+        group = proposal.get_by_role("group", name="Concevoir")
+        reason = group.get_by_label("Pourquoi ce rôle ?")
+        pw.expect(reason).to_have_value(tasks[1]["role_reason"])
+        proposal.get_by_role("group", name="Rechercher").get_by_role(
+            "button", name="Retirer cette tâche",
+        ).click()
+        pw.expect(group.get_by_role("button", name="Retirer cette tâche")).to_be_disabled()
+        pw.expect(proposal.get_by_role("status")).to_contain_text("research")
+        proposal.locator('input[type="checkbox"]').check()
+        submit = proposal.get_by_role("button", name="Approuver et enregistrer")
+        submit.click()
+        assert not submissions
+        group.get_by_label("Dépendances (une par ligne)").fill("")
+        pw.expect(proposal.get_by_role("status")).to_have_text("")
+        group.get_by_label("Spécialité").select_option("ingenieur-devops")
+        pw.expect(reason).to_have_value("")
+        submit.click()
+        assert not submissions
+        rationale = "Décrire l'implémentation et le contrôle local du service."
+        reason.fill(rationale)
+        with page.expect_response("**/api/approve"):
+            submit.click()
+        assert len(submissions) == 1
+        reduced = submissions[0]["proposal"]["tasks"]
+        assert len(reduced) == 1 and reduced[0]["id"] == "design"
+        assert reduced[0]["depends_on"] == [] and reduced[0]["role"] == "ingenieur-devops"
+        assert reduced[0]["role_reason"] == rationale
+    finally:
+        context.close()
