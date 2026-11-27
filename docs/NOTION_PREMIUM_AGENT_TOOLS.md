@@ -41,23 +41,22 @@ l'opérateur.
 | 1. Outillage Premium | Inventaire Markdown et contrôle du studio par rôle livrés. [PR #298](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/298). |
 | 2. Inventaire natif | Capture opérateur en lecture seule avec pagination, portée, empreintes et limites. [PR #299](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/299). |
 | 3. Comparaison | [Comparateur hors ligne et rapport privé](NOTION_NATIVE_INVENTORY.md). Livré dans `main`. [PR #300](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/300). |
-| 4. Doublons | [Rapport opérateur hors ligne](NOTION_DUPLICATES.md), signaux distincts et contextes protégés. [PR #301](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/301). |
-| 5. Liens et références | Contrôler les destinations et distinguer référence cassée, accès restreint, lien temporaire et destination non vérifiable. |
+| 4. Doublons | [Rapport opérateur hors ligne](NOTION_DUPLICATES.md), signaux distincts et contextes protégés. Livré dans `main`. [PR #301](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/301). |
+| 5. Liens et références | [Capture et audit des références](NOTION_REFERENCES.md). État structurel, expiration et observations opérateur. |
 | 6. Sources de vérité | Localiser les références et relever les copies divergentes selon le projet. |
 | 7. Plans de rationalisation | Relier chaque action proposée à une preuve, un emplacement, un impact, une approbation et un contrôle de retour arrière. |
 | 8. Intégration au worker | Réutiliser les rôles, les écritures contrôlées, les approbations et l'audit indépendant. |
 | 9. Non-régression | Comparer l'état relu après modification et vérifier les changements attendus, les contenus protégés et la navigation. |
 | 10. Recette | Vérifier la couverture et les limites sur Atlas ou un wiki synthétique équivalent. Documenter les anomalies, preuves et verdicts. |
 
-**Référence avant le lot 4** — `main` à
-[`76334c5`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/76334c5c46df3d8e10cc2a508336bc4043cfbb67), après la fusion de la PR #300.
-[CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45944184337) et
-[CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45944184374) sur ce SHA.
+**Référence avant le lot 5** — `main` à
+[`a5120a1`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/a5120a1bad0ce812c03a7a2e3436c522df5f18c2), après la fusion de la PR #301.
+[CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45946443457) et
+[CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45946443545) réussis sur ce SHA.
 
-**Reprise après le lot 4** — Vérifier la fusion et la CI du SHA de `main`.
-Ouvrir le lot 5 avec une recette synthétique des liens de pages et de blocs.
-Distinguer une destination cassée d'un refus d'accès, d'une URL temporaire
-expirée ou d'une destination dont l'état demeure non vérifiable.
+**Reprise après le lot 5** — Vérifier la fusion et la CI de `main`. Ouvrir
+le lot 6 sur des références canoniques propres au projet. Relier chaque
+copie potentielle à sa source puis vérifier les exemples de divergence.
 
 
 ### Programme restant
