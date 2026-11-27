@@ -13,8 +13,12 @@ from clawfedora.project_common import (
     read_json,
     safe_output,
     sha256_file,
+    validate_task_id,
     write_json,
 )
+
+BUNDLE_SCHEMA = "1.1.0"
+LEGACY_BUNDLE_SCHEMA = "1.0.0"
 
 
 def _orchestration_artifact(repo_root: Path, project: Path, artifact_id: str) -> Path:
@@ -35,17 +39,17 @@ def _plan_tasks(repo_root: Path, project: Path) -> dict[str, dict[str, Any]]:
     for raw in tasks:
         if not isinstance(raw, dict):
             raise ValueError("project_plan.json: task invalide")
-        task_id = str(raw.get("id", ""))
-        if not task_id:
-            raise ValueError("project_plan.json: task sans id")
+        task_id = validate_task_id(str(raw.get("id", "")))
+        if task_id in result:
+            raise ValueError("project_plan.json: task dupliquée")
         result[task_id] = raw
     return result
 
 
-def _dependencies(repo_root: Path, project: Path) -> dict[str, list[str]]:
+def _dependencies(tasks: dict[str, dict[str, Any]]) -> dict[str, list[str]]:
     return {
         task_id: [str(value) for value in raw.get("depends_on", [])]
-        for task_id, raw in _plan_tasks(repo_root, project).items()
+        for task_id, raw in tasks.items()
     }
 
 
@@ -81,6 +85,7 @@ def _bundle_path(project: Path, producer: str, consumer: str | None, attempt: in
 def _make_bundle(
     project: Path,
     *,
+    project_id: str,
     producer: str,
     consumer: str | None,
     agent: str,
@@ -108,7 +113,8 @@ def _make_bundle(
             }
         )
     manifest = {
-        "schema_version": "1.0.0",
+        "schema_version": BUNDLE_SCHEMA,
+        "project_id": project_id,
         "generated_at": now(),
         "producer_task_id": producer,
         "consumer_task_id": consumer,
@@ -143,10 +149,12 @@ def publish_task_outputs(
     if normalized not in {"PASS", "FAIL"}:
         raise ValueError(f"statut tâche invalide: {status}")
     policy = core_contract(repo_root, "artifact_exchange_policy.yaml")
-    dependencies = _dependencies(repo_root, project)
+    project_id = read_json(project / "project.json")["project_id"]
+    dependencies = _dependencies(_plan_tasks(repo_root, project))
     published = [
         _make_bundle(
             project,
+            project_id=project_id,
             producer=producer_task_id,
             consumer=None,
             agent=agent,
@@ -166,6 +174,7 @@ def publish_task_outputs(
             published.append(
                 _make_bundle(
                     project,
+                    project_id=project_id,
                     producer=producer_task_id,
                     consumer=consumer,
                     agent=agent,
@@ -213,6 +222,10 @@ def validate_bundle(project: Path, bundle: Path) -> list[str]:
     manifest_path = bundle / "manifest.json"
     if not manifest_path.is_file():
         return [f"manifest absent: {bundle.relative_to(project)}"]
+    if not (bundle / "artifacts").is_dir() or {path.name for path in bundle.iterdir()} != {
+        "manifest.json", "artifacts",
+    }:
+        return ["contenu hors du périmètre du bundle"]
     try:
         bundle_manifest = read_json(manifest_path)
     except (ValueError, OSError):
@@ -262,13 +275,23 @@ def validate_bundle(project: Path, bundle: Path) -> list[str]:
 def _current_bundle(
     project: Path, bundle: Path, assignment: dict[str, Any], expected: list[str],
     consumer: str | None,
+    *,
+    direct_dependency: bool | None,
 ) -> list[str]:
     failures = validate_bundle(project, bundle)
     if failures:
         return failures
     payload = read_json(bundle / "manifest.json")
+    schema = payload.get("schema_version")
+    project_id = read_json(project / "project.json")["project_id"]
+    same_project = payload.get("project_id") == project_id or (
+        schema == LEGACY_BUNDLE_SCHEMA and "project_id" not in payload
+    )
     if (
-        payload.get("producer_task_id") != assignment["task_id"]
+        schema not in (BUNDLE_SCHEMA, LEGACY_BUNDLE_SCHEMA)
+        or not same_project
+        or "direct_dependency" not in payload or payload["direct_dependency"] is not direct_dependency
+        or payload.get("producer_task_id") != assignment["task_id"]
         or payload.get("producer_agent") != assignment["role"]
         or payload.get("consumer_task_id") != consumer
         or payload.get("attempt") != assignment["attempts"]
@@ -280,6 +303,9 @@ def _current_bundle(
         if not set(expected) <= records.keys():
             failures.append("sorties approuvées absentes du bundle")
         for relative, row in records.items():
+            if Path(relative).parts[1:2] != (assignment["task_id"],):
+                failures.append(f"sortie hors namespace du producteur: {relative}")
+                continue
             try:
                 target = safe_output(project, relative)
                 if sha256_file(target) != row["sha256"] or target.stat().st_size != row["size"]:
@@ -297,8 +323,9 @@ def validate_exchange_completeness(repo_root: Path, project: Path) -> list[str]:
     if not isinstance(raw_tasks, list):
         raise ValueError("task_assignments.json: tasks invalide")
     tasks = _plan_tasks(repo_root, project)
-    dependencies = _dependencies(repo_root, project)
-    transitive = bool(dict(policy["propagation"])["transitive_dependents"])
+    dependencies = _dependencies(tasks)
+    propagation = policy["propagation"]
+    transitive = bool(propagation["transitive_dependents"])
     failures: list[str] = []
     for raw in raw_tasks:
         if not isinstance(raw, dict):
@@ -319,10 +346,12 @@ def validate_exchange_completeness(repo_root: Path, project: Path) -> list[str]:
         if not self_bundle.is_dir():
             failures.append(f"self-history absent: {task_id} run-{attempts:03d}")
         else:
-            failures.extend(_current_bundle(project, self_bundle, raw, expected, None))
-        if status != "PASS":
+            failures.extend(_current_bundle(
+                project, self_bundle, raw, expected, None, direct_dependency=None,
+            ))
+        if status != "PASS" or not propagation["direct_dependents"]:
             continue
-        for consumer, _ in _dependents(
+        for consumer, direct in _dependents(
             dependencies,
             task_id,
             transitive=transitive,
@@ -333,5 +362,102 @@ def validate_exchange_completeness(repo_root: Path, project: Path) -> list[str]:
                     f"propagation absente: {task_id} -> {consumer} run-{attempts:03d}"
                 )
             else:
-                failures.extend(_current_bundle(project, bundle, raw, expected, consumer))
+                failures.extend(_current_bundle(
+                    project, bundle, raw, expected, consumer, direct_dependency=direct,
+                ))
     return failures
+
+def prepare_task_inputs(
+    repo_root: Path, project: Path, task: dict[str, Any], *, session: str,
+) -> dict[str, Any]:
+    """Resolve just the latest approved contribution of each upstream producer."""
+    consumer = validate_task_id(str(task.get("id", "")))
+    tasks = _plan_tasks(repo_root, project)
+    approved = tasks.get(consumer)
+    if (
+        approved is None or task.get("role") != approved.get("role")
+        or task.get("depends_on", []) != approved.get("depends_on", [])
+    ):
+        raise ValueError("transmission: rôle ou dépendances de la fiche hors du plan approuvé")
+    dependencies = _dependencies(tasks)
+    raw = read_json(_orchestration_artifact(repo_root, project, "assignments")).get("tasks")
+    if not isinstance(raw, list) or any(
+        not isinstance(row, dict) or not isinstance(row.get("task_id"), str) for row in raw
+    ):
+        raise ValueError("transmission: assignations invalides")
+    assignments = {row["task_id"]: row for row in raw}
+    if assignments.keys() != tasks.keys() or len(assignments) != len(raw) or any(
+        row.get("role") != tasks[identifier]["role"]
+        or row.get("depends_on") != tasks[identifier].get("depends_on", [])
+        for identifier, row in assignments.items()
+    ):
+        raise ValueError("transmission: assignations différentes du plan approuvé")
+
+    direct = set(dependencies[consumer])
+    propagation = core_contract(repo_root, "artifact_exchange_policy.yaml")["propagation"]
+    upstream = set(direct) if propagation["direct_dependents"] else set()
+    if propagation["transitive_dependents"]:
+        pending = list(upstream)
+        while pending:
+            parent = pending.pop()
+            preceding = set(dependencies[parent]) - upstream
+            pending.extend(preceding)
+            upstream.update(preceding)
+
+    inputs: list[dict[str, Any]] = []
+    for producer in sorted(upstream):
+        assignment = assignments.get(producer, {})
+        attempt = assignment.get("attempts")
+        if assignment.get("status") != "PASS" or type(attempt) is not int or attempt < 1:
+            raise ValueError(f"transmission {producer} → {consumer}: tentative PASS requise")
+        source = _bundle_path(project, producer, consumer, attempt)
+        failures = _current_bundle(
+            project, source, assignment, tasks[producer]["expected_outputs"], consumer,
+            direct_dependency=producer in direct,
+        )
+        if failures:
+            raise ValueError(f"transmission {producer} → {consumer}: {'; '.join(failures)}")
+        manifest = source / "manifest.json"
+        payload = read_json(manifest)
+        inputs.append({
+            "producer_task_id": producer,
+            "producer_agent": assignment["role"],
+            "attempt": attempt,
+            "relationship": "direct" if producer in direct else "transitive",
+            "manifest": manifest.relative_to(project).as_posix(),
+            "manifest_sha256": sha256_file(manifest),
+            "bundle_schema_version": payload["schema_version"],
+            "files": payload["files"],
+            "aggregate_sha256": payload["aggregate_sha256"],
+        })
+    return {
+        "schema_version": "1.0.0",
+        "project_id": read_json(project / "project.json")["project_id"],
+        "consumer_task_id": consumer,
+        "session_id": session,
+        "inputs": inputs,
+    }
+
+
+def stage_task_inputs(project: Path, snapshot: Path, receipt: dict[str, Any]) -> None:
+    """Copy validated bundles and verify the copies before exposing the snapshot."""
+    for item in receipt["inputs"]:
+        relative = Path(item["manifest"])
+        source = project / relative.parent
+        target = snapshot / relative.parent
+        if source.resolve(strict=True) != source.absolute():
+            raise ValueError("transmission: dossier source lié")
+        assert_no_symlinks(source, label="transmission")
+        shutil.copytree(source, target)
+        errors = validate_bundle(snapshot, target)
+        if errors or sha256_file(snapshot / relative) != item["manifest_sha256"]:
+            raise ValueError("transmission: copie du bundle divergente")
+    write_json(snapshot / "context/dependency-inputs.json", receipt)
+    if receipt["inputs"]:
+        path = (
+            project / "context" / "exchange" / receipt["consumer_task_id"]
+            / "handoffs" / f"{receipt['session_id']}.json"
+        )
+        if path.resolve() != path.absolute() or path.exists():
+            raise ValueError("transmission: destination du reçu liée ou déjà utilisée")
+        write_json(path, receipt)

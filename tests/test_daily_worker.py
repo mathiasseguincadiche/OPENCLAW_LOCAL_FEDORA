@@ -13,7 +13,8 @@ from clawfedora import notion_write as nw
 from clawfedora.agent_tools import invoke
 from clawfedora.agents import deploy_workspaces
 from clawfedora.openclaw_config import build_openclaw_patch
-from clawfedora.project_common import read_json, write_json
+from clawfedora.project_common import read_json, sha256_file, write_json
+from clawfedora.project_control import request_pause
 from clawfedora.project_engine import (
     create_assignments,
     create_clarifications,
@@ -102,7 +103,25 @@ def test_worker_executes_dependency_order_then_requires_real_review(
         task = json.loads(prompt.split("\n", 1)[1])
         if task["depends_on"]:
             assert (project / "deliverables/design-choice/report.md").is_file()
-            assert list((runtime / "workspaces" / role).rglob("manifest.json"))
+            task_root = runtime / "workspaces" / role / "projects" / project.name / task["id"]
+            snapshot = task_root / session
+            receipt = read_json(snapshot / "context/dependency-inputs.json")
+            assert receipt["project_id"] == project.name
+            assert receipt["consumer_task_id"] == task["id"] and receipt["session_id"] == session
+            assert len(receipt["inputs"]) == 1
+            contribution = receipt["inputs"][0]
+            assert contribution["producer_agent"] == "architecte-solutions"
+            assert contribution["producer_task_id"] == "design-choice"
+            assert contribution["relationship"] == "direct" and contribution["attempt"] == 1
+            manifest = snapshot / contribution["manifest"]
+            assert contribution["manifest_sha256"] == sha256_file(manifest)
+            assert contribution["files"] == read_json(manifest)["files"]
+            copy = manifest.parent / "artifacts/deliverables/design-choice/report.md"
+            original = project / "deliverables/design-choice/report.md"
+            assert copy.read_bytes() == original.read_bytes()
+            saved = project / "context/exchange/research-check/handoffs" / f"{session}.json"
+            assert read_json(saved) == receipt
+            assert "context/dependency-inputs.json" in prompt
         return {
             "files": {task["expected_outputs"][0]: "Option A, option B; choix motivé."},
             "summary": "proposition collectée",
@@ -134,6 +153,119 @@ def test_worker_executes_dependency_order_then_requires_real_review(
     assert read_json(verdict)["verdict"] == "FAIL"
     with pytest.raises(ValueError, match="validation PASS"):
         transition_project(ROOT, project, "REVIEW", actor="auditeur-qualite", reason="review")
+
+
+@pytest.mark.parametrize("defect", [
+    "missing", "changed-bytes", "wrong-project", "extra-file", "wrong-role", "wrong-dependency",
+])
+def test_worker_blocks_unverifiable_handoff_before_inference(
+    planned: tuple[Path, Path], defect: str,
+) -> None:
+    runtime, project = planned
+    consumer = "research-check"
+    bundle = project / "context/exchange/research-check/dependencies/design-choice/run-001"
+
+    def first(_role: str, prompt: str, _session: str) -> dict[str, Any]:
+        task = json.loads(prompt.split("\n", 1)[1])
+        request_pause(runtime, project)
+        return {"files": {task["expected_outputs"][0]: "# Choix initial"}, "summary": "collecté"}
+
+    assert [row["task_id"] for row in run_project_tasks(ROOT, runtime, project, runner=first)] == [
+        "design-choice",
+    ]
+    if defect == "missing":
+        bundle.rename(bundle.with_name("run-000"))
+    elif defect == "changed-bytes":
+        artifact = bundle / "artifacts/deliverables/design-choice/report.md"
+        artifact.chmod(0o640)
+        artifact.write_text("# Copie modifiée", encoding="utf-8")
+    elif defect == "wrong-project":
+        manifest = bundle / "manifest.json"
+        write_json(manifest, read_json(manifest) | {"project_id": "foreign-project"})
+    elif defect == "extra-file":
+        (bundle / "note.md").write_text("Hors manifeste", encoding="utf-8")
+    else:
+        packet = project / f"context/tasks/{consumer}.json"
+        contents = read_json(packet)
+        replacement = {"role": "chef-operations"} if defect == "wrong-role" else {"depends_on": []}
+        contents["task"].update(replacement)
+        write_json(packet, contents)
+
+    def never_called(*_args: Any) -> dict[str, Any]:
+        pytest.fail("le modèle a été appelé avant de valider la transmission")
+
+    with pytest.raises(ValueError, match="transmission"):
+        run_project_tasks(ROOT, runtime, project, runner=never_called, resume=True)
+    assert read_json(project / "project.json")["status"] == "IN_PROGRESS"
+    assignments = read_json(project / "context/task_assignments.json")["tasks"]
+    target = next(row for row in assignments if row["task_id"] == consumer)
+    assert target["status"] == "PENDING" and target["attempts"] == 0
+    assert not (project / "context/exchange/research-check/handoffs").exists()
+
+
+@pytest.mark.parametrize("planned", [[
+    {
+        "id": task, "role": "architecte-solutions", "title": task, "objective": "Documenter",
+        "depends_on": dependencies, "expected_outputs": [f"deliverables/{task}/report.md"],
+        "acceptance_criteria": ["Choix justifié"],
+    }
+    for task, dependencies in [
+        ("alpha-design", []), ("middle-check", ["alpha-design"]),
+        ("independent", []), ("final-report", ["middle-check"]),
+    ]
+]], indirect=True)
+def test_handoff_keeps_only_current_direct_and_transitive_bundles(
+    planned: tuple[Path, Path],
+) -> None:
+    runtime, project = planned
+    inputs_dir = project / "context/exchange/final-report/dependencies"
+    stale = inputs_dir / "alpha-design/run-000"
+    stale.mkdir(parents=True)
+    (stale / "manifest.json").write_text("{}", encoding="utf-8")
+
+    def runner(role: str, prompt: str, session: str) -> dict[str, Any]:
+        task = json.loads(prompt.split("\n", 1)[1])
+        if task["id"] == "final-report":
+            task_root = runtime / "workspaces" / role / "projects" / project.name / task["id"]
+            snapshot = task_root / session
+            receipt = read_json(snapshot / "context/dependency-inputs.json")
+            assert {
+                item["producer_task_id"]: item["relationship"] for item in receipt["inputs"]
+            } == {"alpha-design": "transitive", "middle-check": "direct"}
+            copied = snapshot / "context/exchange/final-report/dependencies"
+            assert not (copied / "alpha-design/run-000").exists()
+            assert not (copied / "independent").exists()
+        return {"files": {task["expected_outputs"][0]: "# Choix"}, "summary": "collecté"}
+
+    results = run_project_tasks(ROOT, runtime, project, runner=runner)
+    assert {row["task_id"] for row in results} == {
+        "alpha-design", "middle-check", "independent", "final-report",
+    }
+    assert all(row["status"] == "PASS" for row in results)
+
+
+def test_legacy_handoff_without_project_id_is_revalidated(planned: tuple[Path, Path]) -> None:
+    runtime, project = planned
+    bundle = project / "context/exchange/research-check/dependencies/design-choice/run-001"
+    manifest = bundle / "manifest.json"
+
+    def runner(role: str, prompt: str, session: str) -> dict[str, Any]:
+        task = json.loads(prompt.split("\n", 1)[1])
+        if task["id"] == "design-choice":
+            request_pause(runtime, project)
+        else:
+            task_root = runtime / "workspaces" / role / "projects" / project.name / task["id"]
+            snapshot = task_root / session
+            receipt = read_json(snapshot / "context/dependency-inputs.json")
+            assert receipt["inputs"][0]["bundle_schema_version"] == "1.0.0"
+        return {"files": {task["expected_outputs"][0]: "# Choix"}, "summary": "collecté"}
+
+    run_project_tasks(ROOT, runtime, project, runner=runner)
+    payload = read_json(manifest)
+    payload.pop("project_id")
+    write_json(manifest, payload | {"schema_version": "1.0.0"})
+    results = run_project_tasks(ROOT, runtime, project, runner=runner, resume=True)
+    assert [row["status"] for row in results] == ["PASS"]
 
 
 def test_worker_collects_actual_tool_receipts_into_project_evidence(
