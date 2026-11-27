@@ -74,16 +74,18 @@ Le [lot 5](GITHUB_DOCUMENTARY_BOUNDARIES.md) est intégré à
 [`main@8d54ff6`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/8d54ff6dcde9fa88315bebd4bdedf6840f1f65d8).
 Le [lot 6](GITHUB_DOCUMENTARY_CORRECTIONS.md) est intégré à
 [`main@898b0b5`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/898b0b5a0259aa30d6c31647a660d345c399021c).
-Le [lot 7](GITHUB_DOCUMENTARY_VERIFICATION.md) vérifie l'application
-et les constats d'audit sur le SHA contrôlé. Après sa fusion et la
-vérification de `main`, exécuter la recette de clôture C02.
+Le [lot 7](GITHUB_DOCUMENTARY_VERIFICATION.md) est intégré à
+[`main@1de3c86`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/1de3c86636bcf405ae585da55541da7d6eff9e80).
+La [recette synthétique Atlas](validation/GITHUB_DOCUMENTARY_ACCEPTANCE.md)
+clôt le périmètre logiciel C02. La CI vérifie les sept lots et
+identifie le commit testé dans le rapport. Le chantier suivant est
+C03, consacré à l'orchestration des rôles et à la reprise des missions.
 
 
 ### Programme restant
 
 | Chantier | Critère de clôture |
 | --- | --- |
-| C02 — Audit GitHub | Vérifier la documentation et les preuves d'un dépôt à une révision identifiée. Préparer les corrections sous revue. |
 | C03 — Orchestration | Sélectionner les rôles utiles, transmettre les preuves et tester la reprise et les corrections bornées avec audit indépendant. |
 | C04 — Continuité | Reprendre une mission à partir d'objectifs, décisions et preuves datés et cloisonnés par projet. |
 | C05 — Navigateur | Tester l'observation dans une session isolée, puis des interactions bornées et approuvées. |
