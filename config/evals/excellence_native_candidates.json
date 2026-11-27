@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "classification": "synthetic_public",
-  "status": "CANDIDATES_ONLY_NOT_NATIVE_QUALIFIED",
-  "production_routing_changed": false,
+  "status": "REFERENCE_SELECTED_NOT_NATIVE_QUALIFIED",
+  "production_routing_changed": true,
   "native_excellence_certified": false,
   "source_run": 45912168133,
   "min_repetitions_per_case": 3,

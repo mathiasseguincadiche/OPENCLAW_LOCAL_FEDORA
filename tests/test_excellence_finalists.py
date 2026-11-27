@@ -87,4 +87,4 @@ def test_matrix_and_catalog_unchanged():
     assert all("runner." not in value for value in job["env"].values())
     assert job["runs-on"] == "ubuntu-latest"
     catalog = yaml.safe_load((ROOT / "config/model_catalog.yaml").read_text())
-    assert set(catalog["models"]) == {"qwen-max", "ornith-code"}
+    assert set(catalog["models"]) == {"qwen-max", "ornith-code", "gemma-expert"}

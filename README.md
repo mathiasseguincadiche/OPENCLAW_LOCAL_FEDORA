@@ -1,13 +1,13 @@
 # Atelier IA local — Infrastructure & OPS
 
-<p align="center"><img src=".github/social-preview.svg" alt="Atelier IA Fedora : Qwen et Ornith locaux, sept rôles OpenClaw" width="100%"></p>
+<p align="center"><img src=".github/social-preview.svg" alt="Atelier IA Fedora : Qwen, Ornith et Gemma locaux, sept rôles OpenClaw" width="100%"></p>
 
 [![CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/workflows/codeql.yml)
 [![Fedora 45](https://img.shields.io/badge/Fedora-45-51A2DA?logo=fedora&logoColor=white)](https://fedoraproject.org/)
 [![Licence MIT](https://img.shields.io/badge/Licence-MIT-green.svg)](LICENSE)
 
-**Un atelier IA personnel pour comprendre, préparer, auditer et documenter des projets DevOps sur Fedora.** Les sept agents OpenClaw utilisent **uniquement Ollama en local** : **Qwen 3.5 9B** pour six rôles d'analyse/pédagogie et **Ornith 1.5 9B** pour l'ingénieur DevOps. **OpenRouter est retiré de la configuration active** : aucune facturation API ni bascule automatique vers un modèle distant. Les actions sensibles restent soumises aux règles de validation ; les agents ne disposent pas encore d'un shell autonome général.
+**Un atelier IA personnel pour comprendre, préparer, auditer et documenter des projets DevOps sur Fedora.** Les sept agents OpenClaw utilisent **uniquement Ollama en local** : **Qwen 3.5 9B** pour le mentor, **Ornith 1.5 9B** pour le DevOps et **Gemma 4 12B** pour les cinq autres rôles. **OpenRouter est retiré de la configuration active** : aucune facturation API ni bascule automatique vers un modèle distant. Les actions sensibles restent soumises aux règles de validation ; les agents ne disposent pas encore d'un shell autonome général.
 
 [Découvrir](docs/GUIDE.md) · [Tester en Live USB](docs/LIVE_USB_FEDORA45_PREQUALIFICATION.md) · [Installer](docs/INSTALLATION_SIMPLE_FEDORA45.md) · [Documentation](docs/README.md) · [État du projet](STATUS.md)
 
@@ -21,7 +21,7 @@
 | --- | --- | --- | --- |
 | Code, règles et tests automatisés | Implémenté | Vérifié en CI (instantané du 3 novembre) et en local (9 novembre) | [STATUS](STATUS.md) ; un test réussi n'est pas un essai sur Fedora |
 | Installation et réception sur le PC (Fedora 45, Intel Arc B580) | À faire | Non vérifié | [Liste de contrôle de réception](docs/RECEPTION_ETAPE3.md) |
-| Qwen et Ornith locaux : débit, VRAM, contexte 32K | Migration en PR | À mesurer sur la B580 | [Architecture locale](docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md) |
+| Qwen, Ornith et Gemma locaux : débit, VRAM, contexte 32K | Migration en PR | À mesurer sur la B580 | [Architecture locale](docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md) |
 | OpenRouter / passerelle cloud | Retiré des routes actives | Contrats et CI de migration en vérification | [Retrait et reprise](docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md) |
 
 ## Ce que tu peux faire
@@ -38,7 +38,7 @@ Les sept rôles n'ont pas de shell libre sur l'hôte. Le seul outil d'exécution
 **Atelier IA Fedora** — `http://127.0.0.1:18890` : quatre espaces
 dans une même application locale : **Discussions**, **Projets**, **GitHub**
 et **Notion**. Les conversations utilisent les sept rôles OpenClaw et
-les deux modèles locaux fournis par Ollama. `./menu.sh` reste l'outil de maintenance
+les trois modèles locaux fournis par Ollama. `./menu.sh` reste l'outil de maintenance
 en terminal, et non une seconde interface graphique.
 
 Le conteneur **Open WebUI** n'est conservé que pour la transition et
@@ -62,7 +62,7 @@ local explicite, sans changer la route stable des autres agents et projets.
 [Streaming des discussions natives](docs/STREAMING_DISCUSSIONS_NATIVES.md).
 
 Une page [Performances](docs/PERFORMANCES_QWEN_ORNITH.md) compare les relevés
-réels de Qwen et Ornith (8K, 16K, 32K) sans exécuter de modèle en ouvrant
+réels de Qwen, Ornith et Gemma (8K, 16K, 32K) sans exécuter de modèle en ouvrant
 l'interface. Le rapport privé exige un benchmark explicitement lancé sur Fedora.
 Les [profils GPU expérimentaux réversibles](docs/PROFILS_GPU_EXPERIMENTAUX.md)
 permettent de préparer et comparer Flash Attention et le cache KV q8_0 sans
@@ -198,9 +198,9 @@ liens et diagrammes d'un projet ou d'un snapshot importé, en lecture seule.
 Il n'exécute **ni tests applicatifs ni commandes de déploiement** et ne
 crée aucune PR.
 
-## Priorité métier : deux modèles locaux, sept rôles
+## Priorité métier : trois modèles locaux, sept rôles
 
-L'atelier conserve **Qwen 3.5 9B Q4_K_M** pour le mentor, la recherche, l'architecture, la sécurité, la rédaction et l'audit. **Ornith 1.5 9B Q4** est affecté à l'ingénieur DevOps pour Terraform, Ansible, Docker, Kubernetes, scripts et CI/CD. Les modèles sont chargés alternativement par Ollama (`OLLAMA_MAX_LOADED_MODELS=1`). Les projets et la mémoire restent sous contrôle du worker.
+L'atelier conserve **Qwen 3.5 9B Q4_K_M** pour le mentor et la vision, **Gemma 4 12B Q4_K_M** pour la recherche, l'architecture, la sécurité, la rédaction et l'audit. **Ornith 1.5 9B Q4** est affecté à l'ingénieur DevOps pour Terraform, Ansible, Docker, Kubernetes, scripts et CI/CD. Les modèles sont chargés alternativement par Ollama (`OLLAMA_MAX_LOADED_MODELS=1`). Les projets et la mémoire restent sous contrôle du worker.
 
 **OpenRouter, DeepSeek et Sol ne font plus partie du routage actif.** Le mode cloud, y compris les anciens appels de l'interface CLI, est refusé. Le retrait des clés du poste est une opération distincte et explicite (`./menu.sh --action local-retire-cloud --apply`) ; les journaux historiques ne sont pas effacés.
 
@@ -220,7 +220,7 @@ L'atelier assemble des composants tiers et y ajoute son propre code. La distinct
 
 | Origine | Éléments | Rôle dans l'atelier |
 | --- | --- | --- |
-| **Composants tiers**, versions épinglées | OpenClaw 2026.10.5, Ollama 0.40.6, Open WebUI 0.12.3 facultatif, modèles Qwen 3.5 9B et Ornith 1.5 9B | Agents, inférence locale, interface de chat, modèles |
+| **Composants tiers**, versions épinglées | OpenClaw 2026.10.5, Ollama 0.40.6, Open WebUI 0.12.3 facultatif, modèles Qwen 3.5 9B, Ornith 1.5 9B et Gemma 4 12B | Agents, inférence locale, interface de chat, modèles |
 | **Ce dépôt** | Paquet Python `clawfedora` (`src/`), scripts d'installation et de maintenance (`scripts/`), consignes des sept rôles (`agents/`), politiques (`config/`), plugins (`plugins/`), tests (`tests/`), documentation (`docs/`) | Moteur de projets, contrôles locaux, installation, pédagogie et retrait de l'ancienne passerelle |
 
 Les versions exactes sont dans [`config/runtime_versions.yaml`](config/runtime_versions.yaml) et expliquées dans [les références techniques](docs/reference/README.md).
@@ -230,11 +230,11 @@ Les versions exactes sont dans [`config/runtime_versions.yaml`](config/runtime_v
 - **Pas encore essayé sur le PC cible** : toutes les mesures réelles (GPU, WebUI dans le navigateur, voix, restauration) restent à faire.
 - **Pas de déploiement autonome** : les fichiers proposés par les agents ne prouvent pas qu'un Terraform ou un Ansible a réussi.
 - **Usage prévu : une personne, sur son propre PC.** L'atelier n'est pas conçu pour être exposé sur un réseau ; les sauvegardes locales ne sont pas chiffrées ([Sécurité](SECURITY.md)).
-- **Qualité des réponses non mesurée** : la qualité de Qwen et Ornith sur OpsDesk reste à qualifier avec des preuves réelles ([Évaluation pédagogique](docs/EVALUATION_PEDAGOGIE.md)), sans note automatique.
+- **Qualité des réponses non mesurée** : la qualité de Qwen, Ornith et Gemma sur OpsDesk reste à qualifier avec des preuves réelles ([Évaluation pédagogique](docs/EVALUATION_PEDAGOGIE.md)), sans note automatique.
 
 ## Trois points à retenir
 
-1. Les **deux modèles sont locaux uniquement**, sans inférence payante ni route de secours OpenRouter.
+1. Les **trois modèles sont locaux uniquement**, sans inférence payante ni route de secours OpenRouter.
 2. Le modèle propose, le moteur encadre, **tu valides et tu exécutes**.
 3. Le code est testé automatiquement, mais **le PC Fedora n'a pas encore réceptionné l'atelier**.
 

@@ -62,8 +62,8 @@ def test_native_candidates_and_reference_fleet():
     data = json.loads(
         (ROOT / "config/evals/excellence_native_candidates.json").read_text(encoding="utf-8")
     )
-    assert data["status"] == "CANDIDATES_ONLY_NOT_NATIVE_QUALIFIED"
-    assert data["production_routing_changed"] is False
+    assert data["status"] == "REFERENCE_SELECTED_NOT_NATIVE_QUALIFIED"
+    assert data["production_routing_changed"] is True
     assert data["native_excellence_certified"] is False
     assert data["source_run"] == 45912168133
     assert data["min_repetitions_per_case"] >= 3

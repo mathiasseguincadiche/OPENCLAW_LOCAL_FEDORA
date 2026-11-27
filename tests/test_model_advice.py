@@ -19,12 +19,12 @@ def test_every_category_is_grounded_in_local_role_and_capabilities(category: str
     ("category", "model"),
     [
         ("linux", "Qwen"),
-        ("PRIVE", "Qwen ou Ornith"),
+        ("PRIVE", "Qwen, Ornith ou Gemma"),
         ("terraform", "Ornith"),
         ("pipeline", "Ornith"),
-        ("documents", "Qwen"),
-        ("audit", "Qwen"),
-        ("securite", "Qwen"),
+        ("documents", "Gemma"),
+        ("audit", "Gemma"),
+        ("securite", "Gemma"),
     ],
 )
 def test_aliases_resolve_to_the_right_specialist(category: str, model: str) -> None:

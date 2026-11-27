@@ -103,7 +103,7 @@ def main() -> None:
             toolkit.chmod(0o750)
             for asset in toolkit.iterdir():
                 asset.chmod(0o640)
-            # The seven agents must run through Ollama only (two model IDs, no cloud token).
+            # The seven agents must run through Ollama only (three model IDs, no cloud token).
             config = build_openclaw_patch(repo, runtime)
             config["models"]["providers"]["ollama"]["baseUrl"] = (
                 f"http://127.0.0.1:{server.server_port}"

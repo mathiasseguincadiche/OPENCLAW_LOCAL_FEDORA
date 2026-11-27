@@ -3,8 +3,8 @@
 ## Objectif et périmètre
 
 La réception couvre Fedora 45 Workstation / GNOME 51 sous Wayland, le
-stockage secondaire, la B580, OpenClaw et Ollama, Qwen 3.5 9B et Ornith
-1.5 9B, les sept rôles, les projets et les cinq pages de l'Atelier.
+stockage secondaire, la B580, OpenClaw et Ollama, Qwen 3.5 9B, Ornith
+1.5 9B et Gemma 4 12B, les sept rôles, les projets et les cinq pages de l'Atelier.
 L'inférence reste locale. GitHub, Notion et la recherche Web restent
 des intégrations distantes distinctes ; aucune clé de fournisseur de
 modèles cloud n'est nécessaire. Open WebUI n'est pas une dépendance
@@ -83,7 +83,7 @@ Après le précontrôle installé :
 ```
 
 Cette commande réalise de courtes inférences locales sous le verrou du worker :
-elle n'est pas exécutée par le mode inspect. Examiner le résultat des deux modèles.
+elle n'est pas exécutée par le mode inspect. Examiner le résultat des trois modèles.
 Ouvrir l'Atelier à `http://127.0.0.1:18890` et conserver des preuves
 datées, sans clés ni données privées.
 
@@ -111,7 +111,7 @@ restent réservées au poste Fedora.
 
 Pour chaque rôle, constater le modèle réel, la qualité du résultat,
 les outils autorisés et l'absence de repli cloud. L'ingénieur DevOps
-utilise Ornith ; les six autres rôles utilisent Qwen. Vérifier que
+utilise Ornith ; le mentor utilise Qwen et les cinq autres rôles utilisent Gemma. Vérifier que
 deux tâches concurrentes ne déclenchent pas deux inférences.
 
 Faire progresser un projet fictif de l'analyse à la livraison,
@@ -169,9 +169,9 @@ des projets, discussions et reçus de fichiers restaurés ; vérifier
 ## 7. Performances et stabilité
 
 Utiliser les [profils GPU réversibles](PROFILS_GPU_EXPERIMENTAUX.md)
-pour comparer les deux modèles à 8K, 16K et 32K. Chaque profil
+pour comparer les trois modèles à 8K, 16K et 32K. Chaque profil
 est une expérience explicite : vérifier la configuration, mesurer
-les deux modèles près de la limite, conserver les résultats privés,
+les trois modèles près de la limite, conserver les résultats privés,
 puis revenir au profil de référence. Examiner la part VRAM, le
 remplissage réel, les temps de chargement et les débits ; ne pas
 conclure 32K intégralement sur GPU sans mesures probantes. Le
@@ -208,4 +208,4 @@ Avant le premier projet réel, exécuter également la [campagne éditoriale Pre
 
 ## Qualification d'excellence des modèles après réception initiale
 
-Suivre le [protocole de qualification expérimentale Fedora/B580](EXCELLENCE_NATIVE_QUALIFICATION.md) après le quick-check. La matrice candidate ne modifie ni l'installation à deux modèles ni le routage actuel.
+Suivre le [protocole de qualification expérimentale Fedora/B580](EXCELLENCE_NATIVE_QUALIFICATION.md) après le quick-check. La matrice de référence est intégrée dès l'installation ; la qualification matérielle reste à réaliser.
