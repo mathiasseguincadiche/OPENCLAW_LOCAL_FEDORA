@@ -98,3 +98,5 @@ Références officielles : [blocs enfants](https://developers.notion.com/referen
 [version des API](https://developers.notion.com/reference/versioning).
 
 [Relever les doublons et les répétitions protégées](NOTION_DUPLICATES.md).
+
+[Capturer et contrôler les liens et références](NOTION_REFERENCES.md).

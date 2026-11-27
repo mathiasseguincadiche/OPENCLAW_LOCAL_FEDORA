@@ -8,6 +8,7 @@ import time
 import urllib.error
 import urllib.request
 from collections import Counter
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
@@ -39,6 +40,7 @@ OPTIONAL_LIMITS = frozenset({
     "synced_copies_not_traversed",
     "links_or_unsupported_blocks_not_traversed",
 })
+Observer = Callable[[str, str, dict[str, Any]], None]
 TRANSPORT_METADATA = {"parent", "created_time", "created_by", "last_edited_time", "last_edited_by"}
 
 
@@ -127,7 +129,8 @@ def _text_hash(payload: dict[str, Any]) -> str | None:
 
 
 class Inventory:
-    def __init__(self) -> None:
+    def __init__(self, observer: Observer | None = None) -> None:
+        self.observer = observer
         self.requests = 0
         self.rows: list[dict[str, Any]] = []
         self.seen: set[tuple[str, str]] = set()
@@ -189,6 +192,8 @@ class Inventory:
             "category": category, "id": ident, "parent_id": parent, "position": position,
             "sha256": nw._digest(stable), "observable_sha256": nw._digest(observable), **metadata,
         })
+        if self.observer is not None:
+            self.observer(category, ident, obj)
 
     def object(self, category: str, ident: str) -> dict[str, Any]:
         plural = {"page": "pages", "database": "databases",
@@ -271,9 +276,9 @@ class Inventory:
                         sort_count=len(view.get("sorts") or []))
 
 
-def capture(root: str) -> dict[str, Any]:
+def capture(root: str, *, observer: Observer | None = None) -> dict[str, Any]:
     root = nw._id(root)
-    inventory = Inventory()
+    inventory = Inventory(observer)
     inventory.page(root, None, 0)
     body: dict[str, Any] = {
         "schema": SCHEMA, "classification": "private_local_only",
