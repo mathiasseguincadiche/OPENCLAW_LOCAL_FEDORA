@@ -298,6 +298,11 @@ class LinkAudit:
         return {**body, "report_sha256": _digest(body)}
 
 
+def _local_blob(root: Path, sha: str) -> bytes | None:
+    size = int(inv._local_git(root, "cat-file", "-s", sha))
+    return None if size > MAX_DOCUMENT_BYTES else inv._local_git(root, "cat-file", "blob", sha)
+
+
 def audit_local(
     root: Path, commit: str, scopes: list[str], *, repository: str | None = None,
     expected_inventory: str | None = None,
@@ -307,11 +312,8 @@ def audit_local(
     tree, entries = inv._local_tree(root, commit)
     manifest = inv._inventory(commit, tree, entries)
     _require_inventory(manifest, expected_inventory)
-    def read_blob(sha: str) -> bytes | None:
-        size = int(inv._local_git(root, "cat-file", "-s", sha))
-        return None if size > MAX_DOCUMENT_BYTES else inv._local_git(root, "cat-file", "blob", sha)
-
-    return LinkAudit(manifest, entries, read_blob, repository).report(scopes)
+    return LinkAudit(manifest, entries, lambda sha: _local_blob(root, sha),
+                     repository).report(scopes)
 
 
 def audit_github(
