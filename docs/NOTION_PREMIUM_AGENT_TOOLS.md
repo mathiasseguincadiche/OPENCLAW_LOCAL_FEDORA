@@ -35,3 +35,6 @@ Importer la source Notion par le mécanisme existant, puis inventorier la versio
 6. Recette synthétique Atlas puis essais natifs Fedora. Aucun changement sur OpsDesk par ce chantier.
 
 **État : premier lot local de préparation, intégration distante et contrôle PC non livrés.**
+
+
+[Inventaire natif récursif en lecture seule — lot 2](NOTION_NATIVE_INVENTORY.md).
