@@ -30,14 +30,15 @@ def test_explicit_root_wins_over_environment(
     assert ops_cli._root(str(ROOT)) == ROOT.resolve()
 
 
-def test_models_dry_run_lists_the_single_daily_model(capsys: pytest.CaptureFixture[str]) -> None:
+def test_models_dry_run_lists_the_three_daily_models(capsys: pytest.CaptureFixture[str]) -> None:
     code = ops_cli.main(["--root", str(ROOT), "models"])
     assert code == 0
     output = capsys.readouterr().out
     assert '"verdict": "PLAN"' in output
     assert "qwen3.5:9b-q4_K_M" in output
     assert "ornith-1.5:9b" in output
-    assert output.count("runtime_id") == 2
+    assert "gemma4:12b-it-q4_K_M" in output
+    assert output.count("runtime_id") == 3
 
 
 def test_cleanup_dry_run_never_deletes(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:

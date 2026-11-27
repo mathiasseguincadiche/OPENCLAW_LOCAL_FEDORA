@@ -6,7 +6,8 @@ import os
 import subprocess
 from pathlib import Path
 
-from clawfedora.core_config import resolve_runtime_root
+from clawfedora import ollama_api
+from clawfedora.core_config import resolve_runtime_root, root_contract
 from clawfedora.lifecycle import (
     PURGE_KEEPS,
     cleanup_managed,
@@ -29,6 +30,17 @@ def _root(value: str | None) -> Path:
     return Path(__file__).resolve().parents[2]
 
 
+def _verify_reference_models(repo_root: Path) -> None:
+    catalog = root_contract(repo_root, "model_catalog.yaml")["models"]
+    identities = ollama_api.model_inventory(
+        ollama_api.request_json(ollama_api.ENDPOINT + "/api/tags"), model_plan(repo_root)
+    )
+    for item in identities:
+        expected = catalog[item["alias"]]["reference_digest"]
+        if item["digest"].removeprefix("sha256:") != expected:
+            raise ValueError(f"digest de référence divergent: {item['runtime_id']}")
+
+
 def _models(repo_root: Path, apply: bool) -> int:
     plan = model_plan(repo_root)
     if not apply:
@@ -42,6 +54,7 @@ def _models(repo_root: Path, apply: bool) -> int:
         if completed.returncode != 0:
             print(f"MODEL_PROVISION_RESULT=FAIL model={item['runtime_id']}")
             return 2
+    _verify_reference_models(repo_root)
     print(f"MODEL_PROVISION_RESULT=PASS count={len(plan)}")
     return 0
 
@@ -158,6 +171,7 @@ def main(argv: list[str] | None = None) -> int:
 
         try:
             with maintenance_lock(runtime_root, allow_gaming=False):
+                _verify_reference_models(repo_root)
                 path = adopt_model_lock(runtime_root, model_plan(repo_root))
         except (OSError, ValueError) as exc:
             print(f"MODEL_LOCK_RESULT=REFUSED: {exc}")

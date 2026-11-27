@@ -84,4 +84,9 @@ def test_native_candidates_and_reference_fleet():
     catalog = yaml.safe_load((ROOT / "config/model_catalog.yaml").read_text(encoding="utf-8"))
     assert set(catalog["models"]) == {"qwen-max", "ornith-code", "gemma-expert"}
     assert catalog["fleet_policy"]["exact_required_model_count"] == 3
+    for spec in catalog["models"].values():
+        assert spec["reference_digest"] == next(
+            model["digest"] for model in data["models"].values()
+            if model["runtime_id"] == spec["runtime_id"]
+        )
     assert catalog["fleet_policy"]["local_only"] is True

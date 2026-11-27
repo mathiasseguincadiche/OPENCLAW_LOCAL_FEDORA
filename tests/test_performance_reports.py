@@ -51,7 +51,7 @@ def test_dashboard_empty_does_not_create_files_or_run_any_model(tmp_path: Path) 
     runtime = _runtime(tmp_path)
     result = performance_reports.view(runtime)
     assert result["status"] == "NOT_MEASURED"
-    assert [m["status"] for m in result["models"]] == ["NOT_MEASURED"] * 2
+    assert [m["status"] for m in result["models"]] == ["NOT_MEASURED"] * 3
     assert result["hardware_certified"] is False
     assert not (runtime / performance_reports.RELATIVE).exists()
     assert not (runtime / "state/performance").exists()
