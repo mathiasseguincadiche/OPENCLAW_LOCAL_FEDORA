@@ -214,8 +214,11 @@ def render_plan(proposal: dict[str, Any]) -> str:
             continue
         outputs = ", ".join(_cell(o, 60) for o in task.get("expected_outputs") or [])
         after = ", ".join(_cell(d, 30) for d in task.get("depends_on") or []) or "—"
+        role = _cell(task.get("role", ""), 30)
+        reason = _cell(task.get("role_reason", ""), 240)
+        role_summary = f"{role} — {reason}" if reason else role
         rows.append(
-            f"| `{_cell(task.get('id', ''), 40)}` | {_cell(task.get('role', ''), 30)} | "
+            f"| `{_cell(task.get('id', ''), 40)}` | {role_summary} | "
             f"{_cell(task.get('title', ''), 60)} | {outputs} | {after} |"
         )
     criteria = []

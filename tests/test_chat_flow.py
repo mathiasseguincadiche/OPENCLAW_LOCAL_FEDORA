@@ -71,6 +71,7 @@ class Drafter:
                 {
                     "id": "decision",
                     "role": "architecte-solutions",
+                    "role_reason": "Comparer les options avant la décision d'architecture.",
                     "title": "Choix",
                     "objective": "Justifier le choix",
                     "depends_on": [],
@@ -231,6 +232,7 @@ def test_the_whole_flow_from_the_request_to_an_approved_plan(
     chat_flow.wait_idle()
     reply = talk.say("!valider")
     assert "Plan proposé" in reply and "architecte-solutions" in reply and "adr.md" in reply
+    assert "Comparer les options avant la décision d'architecture." in reply
     assert status() == "ANALYZED"
     reply = talk.say(f"approuver plan {code_in(reply, 'plan')}")
     assert "Plan approuvé" in reply and "Rien n'est encore exécuté" in reply
