@@ -97,7 +97,7 @@ def test_local_inventory_uses_tracked_tree_even_with_a_dirty_working_directory(
         return subprocess.run(
             ["git", "-C", str(repo), "-c", "user.email=atlas@example.invalid",
              "-c", "user.name=Atlas", "-c", "commit.gpgsign=false", *args],
-            check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+            check=True, capture_output=True, text=True,
         ).stdout.strip()
 
     git("init", "-q")

@@ -187,6 +187,7 @@ def _github_tree(repo: str, commit: str) -> tuple[str, dict[str, Any]]:
 
 def _github_snapshot(dest: Path, repo: str, commit: str) -> dict[str, Any]:
     tree, data = _github_tree(repo, commit)
+    quoted = "/".join(urllib.parse.quote(part, safe="") for part in repo.split("/"))
     entries = data["tree"]
     selected: list[tuple[PurePosixPath, str, int]] = []
     skipped = 0
