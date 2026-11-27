@@ -41,3 +41,5 @@ entrées, l'intégrité ou la pagination des runs ne permettent pas de
 l'établir. Examiner les statuts du rapport pour décider de la suite.
 
 [API GitHub Actions pour les workflow runs](https://docs.github.com/en/rest/actions/workflow-runs)
+
+[Examiner les doublons et la frontière de diffusion](GITHUB_DOCUMENTARY_BOUNDARIES.md).
