@@ -16,8 +16,10 @@ from typing import Any
 
 from clawfedora.gpu_profiles import PROFILES
 
-ALIASES = ("qwen-max", "ornith-code")
-LABELS = {"qwen-max": "Qwen 3.5 9B", "ornith-code": "Ornith 1.5 9B"}
+ALIASES = ("qwen-max", "ornith-code", "gemma-expert")
+LABELS = {
+    "qwen-max": "Qwen 3.5 9B", "ornith-code": "Ornith 1.5 9B", "gemma-expert": "Gemma 4 12B",
+}
 CONTEXTS = (8192, 16384, 32768)
 VERDICTS = {"FULL_GPU", "PARTIAL_CPU_OFFLOAD", "CPU_ONLY", "PROMPT_TRUNCATED"}
 RELATIVE = Path("state/performance/gpu-benchmark.json")

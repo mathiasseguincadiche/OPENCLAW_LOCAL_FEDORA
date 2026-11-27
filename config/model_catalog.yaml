@@ -31,12 +31,25 @@ models:
     - orchestration
     approximate_weight_gib: 6.2
     required: true
+  gemma-expert:
+    provider: ollama
+    runtime_id: gemma4:12b-it-q4_K_M
+    family: gemma
+    quantization: Q4_K_M
+    input:
+    - text
+    capabilities:
+    - tools
+    - research
+    - orchestration
+    approximate_weight_gib: 7.5
+    required: true
 fleet_policy:
   local_only: true
   cloud_models_supported: false
   cloud_enabled_by_default: false
   cloud_model_as_local_fallback: false
-  exact_required_model_count: 2
+  exact_required_model_count: 3
   openclaw_agent_context_tokens: 32768
   target_gpu_vram_gib: 12
   identity_digest_required: true

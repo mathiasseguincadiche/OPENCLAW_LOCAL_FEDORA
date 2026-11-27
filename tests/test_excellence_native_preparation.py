@@ -58,7 +58,7 @@ def test_quartz_archive_and_review():
     assert counts == {"qwen": 14, "ornith": 11, "gemma": 12}
 
 
-def test_native_candidates_not_production():
+def test_native_candidates_and_reference_fleet():
     data = json.loads(
         (ROOT / "config/evals/excellence_native_candidates.json").read_text(encoding="utf-8")
     )
@@ -82,6 +82,6 @@ def test_native_candidates_not_production():
         assert role["status"] == "NOT_RUN"
         assert len(role["rationale"]) >= 20 and len(role["native_test"]) >= 20
     catalog = yaml.safe_load((ROOT / "config/model_catalog.yaml").read_text(encoding="utf-8"))
-    assert set(catalog["models"]) == {"qwen-max", "ornith-code"}
-    assert catalog["fleet_policy"]["exact_required_model_count"] == 2
+    assert set(catalog["models"]) == {"qwen-max", "ornith-code", "gemma-expert"}
+    assert catalog["fleet_policy"]["exact_required_model_count"] == 3
     assert catalog["fleet_policy"]["local_only"] is True

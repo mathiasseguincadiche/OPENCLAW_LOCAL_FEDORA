@@ -85,12 +85,12 @@ def benchmark(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Mesurer Qwen et Ornith sur la B580 sans mutation")
+    parser = argparse.ArgumentParser(description="Mesurer Qwen, Ornith et Gemma sur la B580 sans mutation")
     parser.add_argument("--root", required=True, type=Path)
     parser.add_argument("--contexts", default="8192,16384,32768")
     parser.add_argument(
-        "--models", choices=("qwen-max", "ornith-code", "all"), default="qwen-max",
-        help="Modèle à mesurer, ou les deux modèles locaux (all)",
+        "--models", choices=("qwen-max", "ornith-code", "gemma-expert", "all"), default="qwen-max",
+        help="Modèle à mesurer, ou les trois modèles locaux (all)",
     )
     parser.add_argument(
         "--near-limit", action="store_true",
@@ -124,7 +124,7 @@ def main(argv: list[str] | None = None) -> int:
             item not in (8192, 16384, 32768) for item in contexts
         ):
             raise ValueError("liste de contextes invalide")
-        aliases = ("qwen-max", "ornith-code") if args.models == "all" else (args.models,)
+        aliases = ("qwen-max", "ornith-code", "gemma-expert") if args.models == "all" else (args.models,)
         if not args.apply:
             print(json.dumps({
                 "verdict": "DRY_RUN", "contexts": contexts, "models": aliases,

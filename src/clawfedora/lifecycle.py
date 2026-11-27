@@ -66,8 +66,8 @@ def model_plan(repo_root: Path) -> list[dict[str, Any]]:
             }
         )
     if (
-        len(result) != 2
-        or {item["alias"] for item in result} != {"qwen-max", "ornith-code"}
+        len(result) != 3
+        or {item["alias"] for item in result} != {"qwen-max", "ornith-code", "gemma-expert"}
         or any(not item["runtime_id"] for item in result)
     ):
         raise ValueError("lifecycle: flotte nominale invalide")

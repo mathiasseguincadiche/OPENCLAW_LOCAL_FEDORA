@@ -15,13 +15,13 @@ agents:
     mission: accompagner la progression, cadrer et proposer seulement les spécialistes utiles
   expert-recherche:
     name: Expert recherche
-    model: qwen-max
-    fallback: qwen-max
+    model: gemma-expert
+    fallback: gemma-expert
     mission: établir des faits sourcés et actuels
   architecte-solutions:
     name: Architecte solutions
-    model: qwen-max
-    fallback: qwen-max
+    model: gemma-expert
+    fallback: gemma-expert
     mission: concevoir l’infrastructure, les flux, les schémas et les décisions d’architecture
   ingenieur-devops:
     name: Ingénieur DevOps
@@ -30,17 +30,17 @@ agents:
     mission: implémenter, vérifier et préparer les livraisons avec leurs preuves
   ingenieur-securite:
     name: Ingénieur sécurité
-    model: qwen-max
-    fallback: qwen-max
+    model: gemma-expert
+    fallback: gemma-expert
     mission: identifier les risques et produire des contrôles vérifiables
   auditeur-qualite:
     name: Auditeur qualité
-    model: qwen-max
-    fallback: qwen-max
+    model: gemma-expert
+    fallback: gemma-expert
     mission: évaluer sans corriger silencieusement le livrable audité
   redacteur-pedagogique:
     name: Rédacteur pédagogique
-    model: qwen-max
-    fallback: qwen-max
+    model: gemma-expert
+    fallback: gemma-expert
     mission: rendre les contributions validées compréhensibles et cohérentes; en
       guidé consenti, ne pas faire l’exercice à la place de l’apprenant
