@@ -121,6 +121,25 @@ Le formulaire **Conserver une décision** enregistre un titre et ses raisons dan
 
 Utilise **Demander une modification cohérente du projet** : choisis la tâche à reprendre et regarde son impact. Après ton accord, l'atelier archive les anciennes versions et reprend les tâches qui en dépendaient, documentation et relectures comprises. Modifier un fichier à la main sur ton disque ne déclenche pas cette reprise.
 
+### Reprendre un écart d'audit
+
+Après un audit indépendant en échec, la rubrique de modification
+affiche les critères refusés par tâche. Choisis **Préparer la reprise**
+sur la contribution concernée. Relis les constats et le périmètre
+indiqué, puis approuve la reprise.
+
+L'atelier vérifie l'empreinte de l'audit et le scellé des fichiers avant
+d'archiver le résultat. Le producteur sélectionné reçoit les critères
+refusés et les versions auditées de ses livrables en lecture seule.
+Les tâches qui en dépendent reçoivent ensuite les nouvelles
+contributions par le circuit habituel. L'audit suivant utilise une
+session indépendante et les nouvelles versions.
+
+En ligne de commande, l'aperçu de `clawfedora project revise` affiche
+l'empreinte de l'audit disponible. Joins-la à la demande approuvée avec
+`--audit-sha256`. Une reprise libre reste possible depuis la même
+rubrique.
+
 ## Mettre en pause
 
 Clique **Mettre en pause**. La tâche en cours se termine, puis le travail s'arrête. Tu peux alors passer en mode jeu, et cliquer **Reprendre** plus tard. Les tâches déjà terminées ne sont pas refaites.

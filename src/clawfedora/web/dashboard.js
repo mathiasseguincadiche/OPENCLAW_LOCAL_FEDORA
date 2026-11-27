@@ -743,19 +743,53 @@ function renderRevision(id, data) {
   for (const task of data.tasks) { const option = node("option", task.task_id); option.value = task.task_id; select.append(option); }
   label.append(select); form.append(label);
   const reason = field(form, "Modification demandée et raison", "", true); reason.required = true; reason.maxLength = 2000;
+  let auditSha = null;
+  const linkedAudit = node("p"); linkedAudit.setAttribute("role", "status");
+  form.append(linkedAudit);
   const preview = node("button", "Voir les tâches concernées", "secondary"); preview.type = "button";
   const affected = node("p"), confirmation = node("label"), approved = node("input"); approved.type = "checkbox"; approved.required = true;
   confirmation.append(approved, document.createTextNode(" J’approuve cette reprise. Les anciens livrables et audits seront archivés, puis les étapes concernées devront être reprises."));
   const submit = node("button", "Approuver la modification"); submit.type = "submit"; submit.disabled = true;
   const clear = () => { submit.disabled = true; approved.checked = false; affected.textContent = ""; };
-  select.addEventListener("change", clear);
+  select.addEventListener("change", () => {
+    auditSha = null; linkedAudit.textContent = ""; clear();
+  });
+  const audit = data.audit_corrections;
+  if (audit) {
+    const suggestions = node("div"); suggestions.append(node("h3", "Critères refusés par l’auditeur"));
+    for (const task of audit.tasks) {
+      const entry = node("div");
+      const criteria = node("ul");
+      for (const item of task.findings) {
+        criteria.append(node("li", item.criterion + " — " + item.evidence));
+      }
+      const choose = node("button", "Préparer la reprise de " + task.task_id);
+      choose.type = "button";
+      choose.addEventListener("click", () => {
+        clear(); select.value = task.task_id; auditSha = audit.sha256;
+        reason.value = "Corriger les critères refusés et préserver les parties validées.";
+        linkedAudit.textContent = "Constats joints pour " + task.task_id;
+        reason.focus();
+      });
+      entry.append(node("h4", task.task_id + " · " + task.role), criteria, choose);
+      suggestions.append(entry);
+    }
+    details.append(suggestions);
+  }
   preview.addEventListener("click", async () => {
-    const result = await action("/api/revision-impact", { project_id: id, task_id: select.value });
-    if (result) { affected.textContent = "À reprendre : " + result.affected_tasks.join(" → "); submit.disabled = false; }
+    const taskId = select.value;
+    const sourceAudit = auditSha;
+    const result = await action("/api/revision-impact", { project_id: id, task_id: taskId });
+    if (result && taskId === select.value && sourceAudit === auditSha) {
+      affected.textContent = "À reprendre : " + result.affected_tasks.join(" → "); submit.disabled = false;
+    }
   });
   form.addEventListener("submit", async event => {
     event.preventDefault(); if (!approved.checked || submit.disabled) return;
-    const result = await action("/api/revise", { project_id: id, task_id: select.value, reason: reason.value, human_approved: true });
+    const result = await action("/api/revise", {
+      project_id: id, task_id: select.value, reason: reason.value, human_approved: true,
+      ...(auditSha ? { audit_sha256: auditSha } : {}),
+    });
     if (result) { await loadProject(id); tell("Reprise approuvée. Les contributions dépendantes et leurs audits doivent être renouvelés."); }
   });
   form.append(preview, affected, confirmation, submit); details.append(form); area.append(details);

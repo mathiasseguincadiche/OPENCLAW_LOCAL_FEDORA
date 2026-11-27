@@ -469,6 +469,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 self._send(200, {"affected_tasks": impact(project, str(data["task_id"]))})
                 return
             elif self.path == "/api/revise":
+                audit_sha256 = data.get("audit_sha256")
+                if audit_sha256 is not None and not isinstance(audit_sha256, str):
+                    raise ValueError("empreinte d’audit invalide")
                 with worker_lock(self.server.runtime, allow_gaming=True):
                     self._send(
                         200,
@@ -477,6 +480,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                             str(data["task_id"]),
                             str(data["reason"]),
                             human_approved=data.get("human_approved") is True,
+                            audit_sha256=audit_sha256,
                         ),
                     )
                 return

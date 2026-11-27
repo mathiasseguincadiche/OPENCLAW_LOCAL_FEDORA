@@ -86,10 +86,13 @@ identifie le commit testé dans le rapport. La recette est intégrée à
 Le [lot 1](fiches/04-atelier-projets.md) est intégré à
 [`main@cdb036f`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/cdb036f8b74a26f37312f00b38115fc7a28c7b6e).
 Le [lot 2](fiches/04-atelier-projets.md#transmission-entre-les-tâches)
-vérifie les dernières contributions approuvées avant l'appel à
-l'agent et conserve leur provenance par session. Après intégration,
-reprendre la vérification indépendante des livrables et leur
-correction ciblée.
+est intégré à
+[`main@f93000f`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/f93000fccda923a96023873548b7f38588582b4a).
+Le [lot 3](fiches/04-atelier-projets.md#reprendre-un-écart-daudit)
+relie une reprise approuvée aux critères refusés d'un audit
+indépendant et remet au producteur la version scellée du livrable.
+Après intégration, vérifier la reprise après interruption et la
+limitation des boucles de correction.
 
 
 ### Programme restant

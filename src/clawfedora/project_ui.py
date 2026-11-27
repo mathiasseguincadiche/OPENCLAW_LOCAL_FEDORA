@@ -34,6 +34,7 @@ from clawfedora.project_engine import (
     transition_project,
 )
 from clawfedora.project_intake import create_project, validate_input_integrity
+from clawfedora.project_revision import audit_corrections
 from clawfedora.project_roadmap import load as load_roadmap
 from clawfedora.project_work_pr import history as github_work_pr_history
 from clawfedora.project_worker import AgentRunner, _guard, openclaw_runner, worker_lock
@@ -129,6 +130,7 @@ def details(project: Path) -> dict[str, Any]:
         "documents": read_json(project / "context/ingestion/index.json")["documents"],
         "learning": contract(project),
         "checkpoints": checkpoints(project),
+        "audit_corrections": audit_corrections(project),
         "github_updates": github_updates(project),
         "github_work_pr": github_work_pr_history(project),
         "milestone_evidence": milestone_evidence_report(project)

@@ -26,7 +26,7 @@ from clawfedora.project_engine import (
     transition_project,
 )
 from clawfedora.project_intake import create_project
-from clawfedora.project_revision import impact, revise
+from clawfedora.project_revision import audit_corrections, impact, revise
 from clawfedora.project_roadmap import change as roadmap_change
 from clawfedora.project_roadmap import initialize as roadmap_initialize
 from clawfedora.project_roadmap import load as roadmap_load
@@ -71,6 +71,7 @@ def add_project_parser(
     revision.add_argument("--project-id", required=True)
     revision.add_argument("--task-id", required=True)
     revision.add_argument("--reason", required=True)
+    revision.add_argument("--audit-sha256", help="lier la reprise à l’audit indépendant refusé")
     revision.add_argument("--human-approved", action="store_true")
 
     proof = commands.add_parser("proof", help="préparer ou exécuter le contrôle d’un critère")
@@ -403,11 +404,14 @@ def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
             )
         elif command == "revise":
             with worker_lock(_runtime(args), allow_gaming=True):
-                value = (
-                    revise(_project(args), args.task_id, args.reason, human_approved=True)
-                    if args.human_approved
-                    else {"affected_tasks": impact(_project(args), args.task_id), "applied": False}
-                )
+                project = _project(args)
+                if args.human_approved:
+                    value = revise(project, args.task_id, args.reason, human_approved=True,
+                                   audit_sha256=args.audit_sha256)
+                else:
+                    value = {"affected_tasks": impact(project, args.task_id), "applied": False}
+                    if suggestions := audit_corrections(project):
+                        value["audit_corrections"] = suggestions
                 print(json.dumps(value, ensure_ascii=False))
         elif command == "proof":
             from clawfedora.project_proofs import collect_operator_proof
