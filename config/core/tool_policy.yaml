@@ -30,6 +30,7 @@ agents:
     - view_image
     - clawfedora_search
     - clawfedora_notion_inventory
+    - clawfedora_notion_audit
     - clawfedora_outline
     - clawfedora_ci_report
     - clawfedora_tool_status
@@ -83,6 +84,7 @@ agents:
     - view_image
     - clawfedora_search
     - clawfedora_notion_inventory
+    - clawfedora_notion_audit
     - clawfedora_notion_studio_check
     - clawfedora_outline
     - clawfedora_diagram
@@ -172,6 +174,7 @@ agents:
     - view_image
     - clawfedora_search
     - clawfedora_notion_inventory
+    - clawfedora_notion_audit
     - clawfedora_notion_studio_check
     - clawfedora_outline
     - clawfedora_check
@@ -204,6 +207,7 @@ agents:
     - view_image
     - clawfedora_search
     - clawfedora_notion_inventory
+    - clawfedora_notion_audit
     - clawfedora_notion_studio_check
     - clawfedora_outline
     - clawfedora_lint

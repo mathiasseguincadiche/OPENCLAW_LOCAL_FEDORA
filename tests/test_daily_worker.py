@@ -1,15 +1,19 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import pytest
 
+from clawfedora import notion_native_inventory as ni
+from clawfedora import notion_worker_audit as notion
+from clawfedora import notion_write as nw
 from clawfedora.agent_tools import invoke
 from clawfedora.agents import deploy_workspaces
 from clawfedora.openclaw_config import build_openclaw_patch
-from clawfedora.project_common import read_json
+from clawfedora.project_common import read_json, write_json
 from clawfedora.project_engine import (
     create_assignments,
     create_clarifications,
@@ -445,3 +449,139 @@ def test_worker_reuses_resident_model_on_entry_without_skipping_dependencies(
         "http://127.0.0.1:11434/api/tags", "http://127.0.0.1:11434/api/ps",
     ]
     assert read_json(project / "project.json")["status"] == "VALIDATING"
+
+
+def _notion_inventory() -> tuple[str, dict[str, Any]]:
+    root = "a" * 32
+    row = {
+        "category": "page", "id": root, "parent_id": None, "position": None,
+        "sha256": "b" * 64, "observable_sha256": "c" * 64,
+        "cover_present": False, "icon_present": False,
+    }
+    report = {
+        "schema": 2, "classification": "private_local_only", "root_page": root,
+        "assessment": ni.ASSESSMENT, "api_version": ni.VERSION,
+        "captured_at": datetime.now(UTC).isoformat(), "requests": 2, "counts": {"page": 1},
+        "objects": [row], "structure_sha256": nw._digest([row]),
+        "limitations": sorted(ni.BASE_LIMITS), "native_render_verified": False,
+        "remote_write": False,
+    }
+    report["inventory_sha256"] = nw._digest(report)
+    return root, report
+
+
+def test_worker_runs_approved_notion_tool_and_collects_only_summary(
+    planned: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime, project = planned
+    root, inventory = _notion_inventory()
+    approval = notion.approve(
+        runtime, project.name, "design-choice", root, ["plan", "inventory"],
+        {"inventory": inventory},
+    )
+    assert notion.approve(
+        runtime, project.name, "design-choice", root, ["inventory", "plan"],
+        {"inventory": inventory}, replace_sha256=approval,
+    ) == approval
+    receipts = []
+
+    def runner(role: str, prompt: str, session: str) -> dict[str, Any]:
+        task = json.loads(prompt.split("\n", 1)[1])
+        scope = f"projects/{project.name}/{task['id']}/{session}"
+        workspace = runtime / "workspaces" / role
+        if task["id"] == "design-choice":
+            assert notion.TOOL in prompt and (workspace / scope / notion.MARKER).is_file()
+            assert root not in (workspace / scope / notion.MARKER).read_text()
+            args = {"scope": scope, "operation": "plan"}
+            with pytest.raises(ValueError, match="hors du snapshot"):
+                invoke(runtime, role, workspace, notion.TOOL,
+                       {**args, "scope": scope.replace(project.name, "other-project")})
+            with pytest.raises(ValueError, match="non approuvée"):
+                invoke(runtime, role, workspace, notion.TOOL, {**args, "operation": "duplicates"})
+            value = invoke(runtime, role, workspace, notion.TOOL, args)
+            assert value["status"] == "REVIEW_REQUIRED" and value["counts"] == {"issues": 0}
+            assert root not in json.dumps(value)
+            report = notion.verify(
+                runtime, project.name, task["id"], session, "plan", value["artifact_sha256"],
+            )
+            assert report.stat().st_mode & 0o777 == 0o600
+            assert read_json(report)["report"]["executable"] is False
+            receipts.append(Path(value["receipt"]).name)
+        else:
+            assert notion.TOOL not in prompt
+            with pytest.raises(ValueError, match="interdit pour ce rôle"):
+                invoke(runtime, role, workspace, notion.TOOL,
+                       {"scope": scope, "operation": "inventory"})
+        return {"files": {task["expected_outputs"][0]: "# Résultat\n"}, "summary": "Vérification"}
+
+    def no_network(*args: Any) -> None:
+        raise AssertionError("worker audit contacted Notion")
+
+    monkeypatch.setattr(ni, "_get", no_network)
+    results = run_project_tasks(ROOT, runtime, project, runner=runner)
+    assert results[0]["status"] == "PASS"
+    collected = project / "evidence/design-choice" / f"tool-{receipts[0]}"
+    proof = read_json(collected)
+    assert proof["approval_sha256"] == approval
+    assert "report" not in proof and root not in json.dumps(proof)
+    with pytest.raises(ValueError, match="tâche locale active"):
+        invoke(runtime, "architecte-solutions", runtime / "workspaces/architecte-solutions",
+               notion.TOOL, {"scope": proof["scope"], "operation": "inventory"})
+
+
+def test_worker_rejects_a_changed_notion_artifact_before_collecting(
+    planned: tuple[Path, Path],
+) -> None:
+    runtime, project = planned
+    root, inventory = _notion_inventory()
+    notion.approve(runtime, project.name, "design-choice", root, ["inventory"],
+                   {"inventory": inventory})
+
+    def runner(role: str, prompt: str, session: str) -> dict[str, Any]:
+        task = json.loads(prompt.split("\n", 1)[1])
+        scope = f"projects/{project.name}/{task['id']}/{session}"
+        value = invoke(runtime, role, runtime / "workspaces" / role, notion.TOOL,
+                       {"scope": scope, "operation": "inventory"})
+        path = notion.verify(
+            runtime, project.name, task["id"], session, "inventory", value["artifact_sha256"],
+        )
+        modified = read_json(path)
+        modified["counts"]["page"] = 42
+        write_json(path, modified)
+        path.chmod(0o600)
+        return {"files": {task["expected_outputs"][0]: "# Résultat\n"}, "summary": "Vérification"}
+
+    results = run_project_tasks(ROOT, runtime, project, runner=runner)
+    assert results[0]["status"] == "FAIL"
+    assert "empreinte de preuve Notion divergente" in results[0]["summary"]
+    assert not list((project / "evidence/design-choice").glob("tool-*.json"))
+
+
+def test_notion_approval_is_bound_to_worker_task_and_role(planned: tuple[Path, Path]) -> None:
+    runtime, project = planned
+    root, inventory = _notion_inventory()
+    with pytest.raises(ValueError, match="non autorisée pour le rôle"):
+        notion.approve(runtime, project.name, "research-check", root, ["inventory"],
+                       {"inventory": inventory})
+    task_path = project / "context/tasks/design-choice.json"
+    contract = read_json(task_path)
+    contract["task"]["role"] = "auditeur-qualite"
+    write_json(task_path, contract)
+    with pytest.raises(ValueError, match="non autorisée pour le rôle"):
+        notion.approve(runtime, project.name, "design-choice", root, ["plan"],
+                       {"inventory": inventory})
+
+    digest = notion.approve(runtime, project.name, "design-choice", root, ["inventory"],
+                            {"inventory": inventory})
+    with pytest.raises(ValueError, match="remplacée entre-temps"):
+        notion.approve(runtime, project.name, "design-choice", root, ["inventory"],
+                       {"inventory": inventory}, replace_sha256="f" * 64)
+    snapshot = runtime / "workspaces/auditeur-qualite/projects/temporary"
+    original = contract["task"]
+    assert notion.bind_snapshot(runtime, project.name, original, snapshot, local=False) is None
+    marker = notion.bind_snapshot(runtime, project.name, original, snapshot, local=True)
+    assert marker is not None and marker["approval_sha256"] == digest
+    with pytest.raises(ValueError, match="périmée"):
+        notion.bind_snapshot(
+            runtime, project.name, {**original, "objective": "Autre"}, snapshot, local=True,
+        )

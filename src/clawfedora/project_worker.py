@@ -552,7 +552,10 @@ def _tool_receipts(workspace: Path) -> set[Path]:
 
 def _collect_tool_receipts(
     workspace: Path, before: set[Path], project: Path, task_id: str, *, scope: str,
+    runtime: Path | None = None, notion_binding: dict[str, Any] | None = None,
 ) -> list[str]:
+    from clawfedora import notion_worker_audit
+
     paths = _tool_receipts(workspace) - before
     if len(paths) > 20:
         raise ValueError("vingt contrôles métier maximum par tâche")
@@ -570,6 +573,10 @@ def _collect_tool_receipts(
             and (proof.get("scope") != scope or proof.get("role") != "ingenieur-devops")
         ):
             raise ValueError("preuve sandbox hors du snapshot courant")
+        if proof.get("tool") == notion_worker_audit.TOOL:
+            if runtime is None:
+                raise ValueError("contexte du worker requis pour la preuve Notion")
+            notion_worker_audit.validate_receipt(runtime, proof, scope, notion_binding)
     for path in sorted(paths):
         target = project / "evidence" / task_id / f"tool-{path.name}"
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -962,6 +969,21 @@ def run_project_tasks(
             })
             from clawfedora import editorial_cycle as ec
             from clawfedora import editorial_notion as en
+            from clawfedora import notion_worker_audit
+
+            notion_binding = notion_worker_audit.bind_snapshot(
+                runtime, str(project_meta["project_id"]), task, snapshot,
+                local=consent_state(repo_root, runtime, project)["state"] == "none",
+            )
+            notion_hint = ""
+            if notion_binding is not None:
+                notion_scope = snapshot.relative_to(workspace).as_posix()
+                operations = ", ".join(notion_binding["operations"])
+                notion_hint = (
+                    f" Audit Notion local approuvé. Appelle {notion_worker_audit.TOOL} "
+                    f"avec scope={notion_scope} et une opération parmi {operations}. "
+                    "Le rapport privé demande une revue opérateur. Cite seulement la preuve. "
+                )
 
             if ec.requested(task) and en.requested(task) and task_mode(project, task) == "direct":
                 example = repo_root / "docs/editorial-demo/curriculum-spec.json"
@@ -986,6 +1008,7 @@ def run_project_tasks(
                 "PDF/DOCX/ODT: inclure la source .md de même nom; "
                 "les exports sont dérivés localement. "
                 + instructions(project, task)
+                + notion_hint
                 + f" Lis les sources utiles dans le snapshot {snapshot}. "
                 f"Pour clawfedora_search ou doc_links, scope={snapshot.relative_to(workspace)}. "
                 f"Consulte d'abord context/retrieval/{task_id}.json pour les passages pertinents. "
@@ -1063,6 +1086,7 @@ def run_project_tasks(
                     editorial_receipts.append(evidence.relative_to(project).as_posix())
                 receipts = _collect_tool_receipts(
                     workspace, receipts_before, project, task_id, scope=scope,
+                    runtime=runtime, notion_binding=notion_binding,
                 )
                 central_guard = _guard(project)  # Trusted receipts are control-plane writes.
                 if task_mode(project, task) == "guided":

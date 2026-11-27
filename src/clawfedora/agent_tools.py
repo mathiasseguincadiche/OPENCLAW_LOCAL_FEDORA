@@ -13,6 +13,7 @@ from xml.etree import ElementTree as ET
 
 import yaml
 
+from clawfedora import notion_worker_audit
 from clawfedora.ci_reports import summarize
 from clawfedora.core_config import AGENT_IDS
 from clawfedora.diagram_layouts import style_and_arrange
@@ -27,6 +28,7 @@ from clawfedora.specialist_tools import FORMATS, available, lint, receipt
 TOOL_ROLES = {
     "clawfedora_artifact": set(AGENT_IDS),
     "clawfedora_notion_inventory": set(AGENT_IDS),
+    notion_worker_audit.TOOL: set(notion_worker_audit.ROLES),
     "clawfedora_notion_studio_check": {
         "architecte-solutions", "redacteur-pedagogique", "auditeur-qualite",
     },
@@ -344,6 +346,8 @@ def invoke(
         from clawfedora.notion_premium_tools import inventory
 
         return inventory(root, data.get("scope"))
+    if tool == notion_worker_audit.TOOL:
+        return notion_worker_audit.run(runtime, root, role, data)
     if tool == "clawfedora_notion_studio_check":
         from clawfedora.notion_premium_tools import studio_check
 

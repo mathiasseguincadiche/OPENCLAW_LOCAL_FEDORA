@@ -17,6 +17,10 @@ const graph = {
     items: {type: "string", enum: ["application", "administration", "monitoring", "backup"]}},
 };
 const definitions = [
+  ["clawfedora_notion_audit", "Contrôler une capture Notion privée autorisée pour la tâche locale active du worker. Scope du snapshot courant et opération approuvée. Retourne un résumé et une preuve de revue humaine.", {
+    scope: {type:"string",minLength:1,maxLength:280},
+    operation: {type:"string",enum:["inventory","compare","duplicates","references","sources","plan"]},
+  }, ["scope","operation"]],
   ["clawfedora_notion_inventory", "Inventorier un snapshot Notion privé déjà importé : titres répétés, espaces, installation, SHA. Scope relatif vers le dossier Notion. Aucun accès distant, aucune suppression.", {scope: {type:"string",minLength:1,maxLength:280}}, ["scope"]],
   ["clawfedora_notion_studio_check", "Prévalider hors ligne une spécification JSON du studio Notion : compilateur réel, cinq espaces, installation et suivi. Ni création ni publication.", {content:string}, ["content"]],
   ["clawfedora_artifact", "Produire un fichier téléchargeable UTF-8 ou une source Markdown et ses exports PDF/DOCX/ODT/TXT. Retourner les références dans files; pour un export, inclure la source .md dans le même dossier. Identité graphique: format identity, JSON project/tagline/variant/motif/palette/section et composition facultative split/editorial/orbit/blueprint, retourne SVG et source JSON, réservé architecte/rédacteur. Aucun code exécuté.", {format:{type:"string",enum:["identity","markdown","text","yaml","json","python","shell","hcl","ini","toml","xml","dockerfile","template"]},content:string,filename:{type:"string",maxLength:100,pattern:"^[A-Za-z0-9_.-]+$"},exports:{type:"array",maxItems:4,uniqueItems:true,items:{type:"string",enum:["pdf","docx","odt","txt"]}}}, ["format","content"]],
@@ -56,6 +60,8 @@ definitions.push(
   ["clawfedora_tool_status", "Vérifier les outils métier disponibles pour ton rôle; ne lance aucun modèle.", {}, []],
 );
 const specialists = {
+  clawfedora_notion_audit: ["chef-operations", "architecte-solutions",
+    "redacteur-pedagogique", "auditeur-qualite"],
   clawfedora_notion_studio_check: ["architecte-solutions", "redacteur-pedagogique", "auditeur-qualite"],
   clawfedora_diagram: ["architecte-solutions"],
   clawfedora_check: ["ingenieur-devops", "ingenieur-securite", "auditeur-qualite"],
@@ -82,6 +88,8 @@ export default {
           name, label: name, description,
           parameters: { type: "object", additionalProperties: false, properties, required },
           async execute(_id, params, signal) {
+            if (name === "clawfedora_notion_audit" && role === "auditeur-qualite" &&
+                params.operation === "plan") throw new Error("Plan réservé aux rôles de préparation");
             const input = JSON.stringify(params);
             if (Buffer.byteLength(input) > 24000) throw new Error("Paramètres trop volumineux");
             // Fixed interpreter/module/arguments, never a shell or agent-selected executable.

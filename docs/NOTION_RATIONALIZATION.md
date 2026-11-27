@@ -62,3 +62,5 @@ restaurer une page. Toute éventuelle écriture utilise un mécanisme
 La commande de plan ne réalise aucune mutation. Les tests sont
 synthétiques. La recette sur Atlas et la qualification Fedora restent
 à réaliser.
+
+[Soumettre les preuves du plan au worker local](NOTION_WORKER_AUDIT.md).
