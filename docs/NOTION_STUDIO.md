@@ -112,3 +112,6 @@ de l'original et des copies. Les tests simulent l'API : le rendu natif
 et la propagation réelle des modifications restent à qualifier. Aucun
 wiki existant n'est modifié. Le contenu des blocs synchronisés n'est pas
 édité par l'API (voir [référence Notion](https://developers.notion.com/reference/block#synced-block)).
+
+
+[Inventaire natif récursif en lecture seule — lot 2](NOTION_NATIVE_INVENTORY.md).
