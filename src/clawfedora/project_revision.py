@@ -20,9 +20,10 @@ from clawfedora.project_common import (
 from clawfedora.project_engine import audited_inventory, current_status
 from clawfedora.project_intake import validate_input_integrity
 
-
-_AUDIT_REPORTS = {"validation": "evidence/validation_report.json",
-                  "review": "evidence/review_report.json"}
+_AUDIT_REPORTS = {
+    "validation": "evidence/validation_report.json",
+    "review": "evidence/review_report.json",
+}
 _AUDIT_STATE = {"VALIDATING": "validation", "REVIEW": "review"}
 
 
