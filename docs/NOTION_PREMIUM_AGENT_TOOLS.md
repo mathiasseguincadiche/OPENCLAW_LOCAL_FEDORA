@@ -70,10 +70,12 @@ Le [lot 3](GITHUB_DOCUMENTARY_COHERENCE.md) est intégré à
 [`main@e9023f8`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/e9023f84a96107e1aa60c181800d2938b6c48cd2).
 Le [lot 4](GITHUB_DOCUMENTARY_CI.md) est intégré à
 [`main@a8b3a54`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/a8b3a54400e31efd47040fc01a0eb0632037cc3c).
-Le [lot 5](GITHUB_DOCUMENTARY_BOUNDARIES.md) contrôle les doublons et
-la frontière de diffusion. Après sa fusion et la vérification de
-`main`, reprendre la préparation des corrections documentaires sous
-revue.
+Le [lot 5](GITHUB_DOCUMENTARY_BOUNDARIES.md) est intégré à
+[`main@8d54ff6`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/8d54ff6dcde9fa88315bebd4bdedf6840f1f65d8).
+Le [lot 6](GITHUB_DOCUMENTARY_CORRECTIONS.md) rattache les corrections
+proposées aux constats d'audit et prépare leur revue avant publication.
+Après sa fusion et la vérification de `main`, reprendre la vérification
+de l'application des corrections et la recette C02.
 
 
 ### Programme restant
