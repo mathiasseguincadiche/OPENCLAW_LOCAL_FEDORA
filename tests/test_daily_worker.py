@@ -155,7 +155,9 @@ def test_worker_executes_dependency_order_then_requires_real_review(
         transition_project(ROOT, project, "REVIEW", actor="auditeur-qualite", reason="review")
 
 
-@pytest.mark.parametrize("defect", ["missing", "changed-bytes", "wrong-project", "extra-file"])
+@pytest.mark.parametrize("defect", [
+    "missing", "changed-bytes", "wrong-project", "extra-file", "wrong-role", "wrong-dependency",
+])
 def test_worker_blocks_unverifiable_handoff_before_inference(
     planned: tuple[Path, Path], defect: str,
 ) -> None:
@@ -180,13 +182,19 @@ def test_worker_blocks_unverifiable_handoff_before_inference(
     elif defect == "wrong-project":
         manifest = bundle / "manifest.json"
         write_json(manifest, read_json(manifest) | {"project_id": "foreign-project"})
-    else:
+    elif defect == "extra-file":
         (bundle / "note.md").write_text("Hors manifeste", encoding="utf-8")
+    else:
+        packet = project / f"context/tasks/{consumer}.json"
+        contents = read_json(packet)
+        replacement = {"role": "chef-operations"} if defect == "wrong-role" else {"depends_on": []}
+        contents["task"].update(replacement)
+        write_json(packet, contents)
 
     def never_called(*_args: Any) -> dict[str, Any]:
         pytest.fail("le modèle a été appelé avant de valider la transmission")
 
-    with pytest.raises(ValueError, match=f"transmission design-choice → {consumer}"):
+    with pytest.raises(ValueError, match="transmission"):
         run_project_tasks(ROOT, runtime, project, runner=never_called, resume=True)
     assert read_json(project / "project.json")["status"] == "IN_PROGRESS"
     assignments = read_json(project / "context/task_assignments.json")["tasks"]

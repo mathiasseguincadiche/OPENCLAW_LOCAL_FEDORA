@@ -373,8 +373,12 @@ def prepare_task_inputs(
     """Resolve just the latest approved contribution of each upstream producer."""
     consumer = validate_task_id(str(task.get("id", "")))
     tasks = _plan_tasks(repo_root, project)
-    if tasks.get(consumer) != task:
-        raise ValueError("transmission: fiche de tâche différente du plan approuvé")
+    approved = tasks.get(consumer)
+    if (
+        approved is None or task.get("role") != approved.get("role")
+        or task.get("depends_on", []) != approved.get("depends_on", [])
+    ):
+        raise ValueError("transmission: rôle ou dépendances de la fiche hors du plan approuvé")
     dependencies = _dependencies(tasks)
     raw = read_json(_orchestration_artifact(repo_root, project, "assignments")).get("tasks")
     if not isinstance(raw, list) or any(
@@ -384,7 +388,7 @@ def prepare_task_inputs(
     assignments = {row["task_id"]: row for row in raw}
     if assignments.keys() != tasks.keys() or len(assignments) != len(raw) or any(
         row.get("role") != tasks[identifier]["role"]
-        or row.get("depends_on") != dependencies[identifier]
+        or row.get("depends_on") != tasks[identifier].get("depends_on", [])
         for identifier, row in assignments.items()
     ):
         raise ValueError("transmission: assignations différentes du plan approuvé")
