@@ -149,7 +149,8 @@ def _documentation(
     selected = requested or list(DEFAULT_DOCUMENTS)
     if len(selected) > MAX_DOCUMENTS:
         raise inv.InventoryError("trop de documents de preuve demandés")
-    valid, missing = set(), set()
+    valid: set[str] = set()
+    missing: set[str] = set()
     for name in selected:
         path, _ = inv._path(name)
         if path is None or not links._markdown(name):
@@ -225,7 +226,7 @@ class Audit:
     def _references(
         self, documents: list[str], runs: dict[int, dict[str, Any]],
     ) -> tuple[list[dict[str, Any]], list[str], list[str]]:
-        rows = []
+        rows: list[dict[str, Any]] = []
         read_documents = []
         omitted = []
         additional: dict[int, dict[str, Any] | None] = {}
