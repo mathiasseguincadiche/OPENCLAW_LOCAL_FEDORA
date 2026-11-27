@@ -49,3 +49,5 @@ dossier ou d'un instantané importé. Cette commande d'inventaire couvre
 jusqu'à 12 000 entrées, avec des limites de transport et de taille du JSON.
 
 [Documentation de git ls-tree](https://git-scm.com/docs/git-ls-tree)
+
+[Contrôler les liens et ancres de la même révision](GITHUB_DOCUMENTARY_LINKS.md).
