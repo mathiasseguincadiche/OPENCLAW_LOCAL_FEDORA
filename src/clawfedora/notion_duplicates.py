@@ -36,7 +36,10 @@ Buckets = dict[tuple[str, str, str], list[nd.Key]]
 def _evidence_key(raw: dict[str, Any], rows: nd.Rows) -> nd.Key:
     category = raw.get("category")
     ident = raw.get("id")
-    if not isinstance(category, str) or not nd._matches(ident, nd.IDENTIFIER):
+    if (
+        not isinstance(category, str) or not isinstance(ident, str)
+        or nd.IDENTIFIER.fullmatch(ident) is None
+    ):
         raise nw.NotionWriteError("identité d'annotation invalide")
     key: nd.Key = (category, ident)
     if key not in rows:
