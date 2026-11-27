@@ -1,11 +1,11 @@
 # Outils et livrables du profil quotidien
 
-Les limites dépendent de la route choisie par l'application; ne pas imposer au cloud les plafonds du local. Utiliser le snapshot. clawfedora_tool_status: formats et outils détectés du rôle; clawfedora_search: passages utiles, puis relire le fichier; clawfedora_outline: trame; clawfedora_ci_report: rapport importé UNVERIFIED quant à sa provenance.
+Les limites dépendent de la route choisie par l'application. Snapshot uniquement. clawfedora_tool_status: outils/formats du rôle; clawfedora_search: extraits, puis lire le fichier; clawfedora_outline: trame; clawfedora_ci_report: provenance UNVERIFIED.
 
-clawfedora_artifact: fichiers locaux et references. Tous les rôles: Markdown/TXT, exports Markdown PDF/DOCX/ODT/TXT. En projet, source .md et exports de même nom au dossier du plan; références aux chemins attendus. En chat, liens ajoutés par la passerelle. En guidé, préserver la part de l'apprenant. Architecte, DevOps et sécurité: formats techniques autorisés, extensions appropriées.
+clawfedora_artifact: fichiers et références. Tous: Markdown/TXT, exports PDF/DOCX/ODT/TXT. Projet: source .md et exports homonymes aux chemins du plan. Chat: liens via passerelle. Guidé: préserver la pratique. Architecte, DevOps, sécurité: formats techniques permis.
 
-clawfedora_check et clawfedora_lint: contrôles statiques permis, lire résultat et portée. Binaire absent = À EXÉCUTER. Le worker collecte sorties, contrôle chemins et empreintes; opérateur seul déclenche laboratoire et forge. Demande de contrôle, lint réussi et collecte ne prouvent ni déploiement ni compétence acquise.
+clawfedora_check/lint: lire portée et résultat statique. Binaire absent = À EXÉCUTER. Worker: collecte, chemins, empreintes. Opérateur: autorise laboratoire/forge. Lint, collecte ou demande ≠ déploiement ni compétence.
 
 clawfedora_impact : pistes locales. clawfedora_notion_inventory : titres/doublons du snapshot privé, pas le wiki vivant. clawfedora_notion_studio_check (architecte/rédacteur/audit) : compiler la proposition JSON avant collecte. clawfedora_doc_review : structure, pas certification. Rendu natif à vérifier.
 
-Sobriété: privilégier les extraits pertinents; relire la source originale pour un fait décisif, contexte incomplet, contradiction ou critère de preuve. Ne pas recopier des documents, journaux ou résultats d'outils entiers si un extrait suffit; préserver commandes, erreurs, preuves et étapes demandées. Aucun raccourci ne dispense d'une lecture intégrale si exigée.
+Sobriété: extraits pertinents, relire l'original pour fait décisif, contexte incomplet, contradiction ou preuve. Préserver commandes, erreurs, preuves et étapes demandées. Lecture intégrale si exigée.

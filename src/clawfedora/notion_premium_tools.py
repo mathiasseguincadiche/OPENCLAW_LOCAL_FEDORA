@@ -5,13 +5,13 @@ No credential, API call, remote change, semantic verdict or progression update.
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
 from clawfedora import editorial_notion as en
-from clawfedora.project_common import read_json
 
 SPACES = ("comprendre", "préparer", "pratiquer", "suivre", "ressources")
 ID = re.compile(r"[0-9a-f]{32}\Z")
@@ -26,7 +26,7 @@ def _normalized(value: str) -> str:
 
 
 def _headings(text: str) -> list[tuple[int, int, str]]:
-    headings = []
+    headings: list[tuple[int, int, str]] = []
     fence: str | None = None
     for number, line in enumerate(text.splitlines(), 1):
         stripped = line.lstrip()
@@ -69,7 +69,9 @@ def inventory(workspace: Path, scope: object) -> dict[str, Any]:
         raise ValueError("scope hors workspace")
     manifest = current / ".source-provenance.json"
     manifest_bytes = _file(manifest, 64_000)
-    provenance = read_json(manifest)
+    provenance = json.loads(manifest_bytes)
+    if not isinstance(provenance, dict):
+        raise ValueError("provenance invalide")
     if (
         provenance.get("provider") != "notion"
         or provenance.get("classification") != "private_local_only"
