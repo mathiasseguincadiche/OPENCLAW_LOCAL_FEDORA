@@ -96,3 +96,5 @@ sur Fedora sont à réaliser.
 Références officielles : [blocs enfants](https://developers.notion.com/reference/get-block-children),
 [liste de vues](https://developers.notion.com/reference/list-views),
 [version des API](https://developers.notion.com/reference/versioning).
+
+[Relever les doublons et les répétitions protégées](NOTION_DUPLICATES.md).

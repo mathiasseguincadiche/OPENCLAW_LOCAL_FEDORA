@@ -315,6 +315,13 @@ def _load_snapshot(path: Path) -> object:
     return json.loads(raw.decode("utf-8"), object_pairs_hook=_json_object)
 
 
+def _write_private_report(output: Path, report: dict[str, Any]) -> None:
+    with tempfile.TemporaryDirectory(dir=output.parent) as directory:
+        staged = Path(directory) / "report.json"
+        nw._private_new(staged, report)
+        os.link(staged, output)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Comparer deux inventaires Notion hors ligne")
     parser.add_argument("--page", required=True)
@@ -327,10 +334,7 @@ def main(argv: list[str] | None = None) -> int:
         if output.exists():
             raise nw.NotionWriteError("le rapport doit être un nouveau fichier")
         report = compare(_load_snapshot(args.before), _load_snapshot(args.after), root_page=args.page)
-        with tempfile.TemporaryDirectory(dir=output.parent) as directory:
-            staged = Path(directory) / "report.json"
-            nw._private_new(staged, report)
-            os.link(staged, output)
+        _write_private_report(output, report)
     except nw.NotionWriteError as exc:
         print(f"NOTION_INVENTORY_DIFF=REFUSED {exc}")
         return 2
