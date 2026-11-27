@@ -114,10 +114,10 @@ def _findings(
         family = next((name for name, spec in REPORTS.items() if spec[0] == assessment), "")
         if not family or family in indexed:
             raise inv.InventoryError("famille de rapport inconnue ou répétée")
-        report = _checked(value, REPORTS[family][0], "report_sha256")
-        if any(key not in report or report[key] != inventory[key] for key in BINDING):
+        verified = _checked(value, REPORTS[family][0], "report_sha256")
+        if any(key not in verified or verified[key] != inventory[key] for key in BINDING):
             raise inv.InventoryError("rapport rattaché à une autre révision ou à un autre inventaire")
-        indexed[family] = report
+        indexed[family] = verified
     used: set[str] = set()
     linked: set[str] = set()
     findings: list[dict[str, Any]] = []
