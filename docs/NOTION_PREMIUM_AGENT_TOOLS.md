@@ -69,7 +69,8 @@ Le [lot 2](GITHUB_DOCUMENTARY_LINKS.md) est intégré à
 Le [lot 3](GITHUB_DOCUMENTARY_COHERENCE.md) est intégré à
 [`main@e9023f8`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/e9023f84a96107e1aa60c181800d2938b6c48cd2).
 Le [lot 4](GITHUB_DOCUMENTARY_CI.md) rapproche workflows, exécutions
-observées et références documentaires du SHA inventorié. Après fusion
+observées et références documentaires du SHA inventorié. [PR #311](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/311).
+Après fusion
 et vérification de `main`, reprendre avec la détection des doublons
 documentaires et la frontière entre contenus publics et privés.
 

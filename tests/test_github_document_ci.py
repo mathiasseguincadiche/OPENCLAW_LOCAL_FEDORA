@@ -35,11 +35,11 @@ def _files(monkeypatch: pytest.MonkeyPatch) -> None:
         ".github/workflows/manual.yaml": b"on: workflow_dispatch\njobs:\n  manual: {}\n",
         ".github/workflows/broken.yml": b"on: workflow_dispatch\njobs: [wrong]\n",
         "README.md": (
-            "[Current](https://github.com/example/atlas/actions/runs/1)\n\n"
-            "[Past](https://github.com/example/atlas/actions/runs/9/job/55?redact=token-test)\n\n"
-            "[Foreign](https://github.com/foreign/atlas/actions/runs/1)\n\n"
-            "[Missing](https://github.com/example/atlas/actions/runs/8)\n"
-        ).encode(),
+            b"[Current](https://github.com/example/atlas/actions/runs/1)\n\n"
+            b"[Past](https://github.com/example/atlas/actions/runs/9/job/55?redact=token-test)\n\n"
+            b"[Foreign](https://github.com/foreign/atlas/actions/runs/1)\n\n"
+            b"[Missing](https://github.com/example/atlas/actions/runs/8)\n"
+        ),
     }
     blobs = {
         hashlib.sha1(f"blob {len(raw)}\0".encode() + raw, usedforsecurity=False).hexdigest(): raw
