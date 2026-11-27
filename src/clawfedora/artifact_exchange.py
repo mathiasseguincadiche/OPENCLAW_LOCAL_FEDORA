@@ -17,7 +17,6 @@ from clawfedora.project_common import (
     write_json,
 )
 
-
 BUNDLE_SCHEMA = "1.1.0"
 LEGACY_BUNDLE_SCHEMA = "1.0.0"
 
