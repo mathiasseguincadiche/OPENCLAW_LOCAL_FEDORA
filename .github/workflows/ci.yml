@@ -45,7 +45,16 @@ jobs:
       - name: Tests with coverage
         env:
           CLAWFEDORA_REQUIRE_NODE: "1"
+          NOTION_ATLAS_EVIDENCE: ${{ runner.temp }}/notion-atlas-c01.json
         run: pytest -q --cov=clawfedora --cov-report=term-missing --cov-fail-under=80
+      - name: Save synthetic Notion Atlas acceptance
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: notion-atlas-c01-synthetic
+          path: ${{ runner.temp }}/notion-atlas-c01.json
+          if-no-files-found: warn
+          retention-days: 7
 
   workbench-browser:
     name: workbench-browser

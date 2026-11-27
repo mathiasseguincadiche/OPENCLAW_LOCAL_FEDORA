@@ -58,3 +58,5 @@ Les capacités de l'inventaire bornent le résultat. La recette doit encore
 vérifier Atlas et le poste Fedora. Les droits réels, les lignes de bases,
 le rendu et le contenu des pièces jointes demandent des contrôles séparés.
 La preuve établit l'état observé et demande une revue humaine.
+
+[Rejouer le parcours complet sur Atlas](validation/NOTION_ATLAS_ACCEPTANCE.md).

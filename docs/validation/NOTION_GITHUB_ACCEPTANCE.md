@@ -74,3 +74,5 @@ Les quatre verdicts sont indépendants. Une CI peut confirmer des contrôles
 de code mais ne peut pas attribuer tous ces verdicts. Après les essais,
 mettre à jour le journal de réception avec **PASS / FAIL / NOT_EVALUATED**
 et les preuves exactes, sans anticiper les résultats.
+
+[Recette C01 sur le wiki Atlas synthétique](NOTION_ATLAS_ACCEPTANCE.md).
