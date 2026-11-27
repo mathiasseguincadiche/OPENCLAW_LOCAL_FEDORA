@@ -157,7 +157,7 @@ def _inventory(
     return {**body, "inventory_sha256": _digest(body)}
 
 
-def inventory_local(root: Path, commit: str) -> dict[str, Any]:
+def _local_tree(root: Path, commit: str) -> tuple[str, list[dict[str, str]]]:
     commit = sources._safe_sha(commit)
     if root.is_symlink() or not root.is_dir():
         raise InventoryError("dépôt local non lié requis")
@@ -169,7 +169,12 @@ def inventory_local(root: Path, commit: str) -> dict[str, Any]:
     if not sources.SHA40.fullmatch(tree):
         raise InventoryError("identité d'arbre Git invalide")
     data = _local_git(root, "ls-tree", "-r", "-t", "-z", "--full-tree", tree)
-    return _inventory(commit, tree, _local_entries(data))
+    return tree, _local_entries(data)
+
+
+def inventory_local(root: Path, commit: str) -> dict[str, Any]:
+    tree, entries = _local_tree(root, commit)
+    return _inventory(commit, tree, entries)
 
 
 def inventory_github(repository: str, commit: str) -> dict[str, Any]:

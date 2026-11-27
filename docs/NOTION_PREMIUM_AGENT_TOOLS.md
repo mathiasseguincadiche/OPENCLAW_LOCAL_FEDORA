@@ -62,10 +62,12 @@ restent à planifier.
 
 ### C02 — Excellence documentaire GitHub
 
-Le [premier lot](GITHUB_DOCUMENTARY_INVENTORY.md) inventorie le dépôt à un
-commit exact. [PR #308](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/308). Le lot suivant vérifiera les liens et chemins de la
-documentation à partir de cette révision, avec une couverture explicite
-des fichiers examinés.
+Le [premier lot](GITHUB_DOCUMENTARY_INVENTORY.md) est intégré à
+[`main@9babca6`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/9babca6aa9f0cc79a7fb0eedefa52b90c4c16740).
+Le [lot 2](GITHUB_DOCUMENTARY_LINKS.md) vérifie les liens, chemins et
+ancres du Markdown à cette révision. Après sa fusion et sa CI sur `main`,
+reprendre avec les écarts entre documentation, fichiers techniques et
+versions déclarées.
 
 
 ### Programme restant
