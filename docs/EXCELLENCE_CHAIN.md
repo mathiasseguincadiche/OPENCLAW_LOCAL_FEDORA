@@ -38,3 +38,7 @@ La campagne ne valide ni la collaboration native OpenClaw ni le changement de mo
 ## Correctif de typage
 
 La campagne initiale [45912168133](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45912168133) reste la référence. L'import direct du module excellence_screening remplace l'accès indirect à son alias non exporté ; les cas, les paramètres, les décisions et le contrôle des transmissions ne changent pas. Les prochaines exécutions Quartz sont manuelles pour éviter d'annuler ou de dupliquer une campagne lors d'un correctif CI.
+
+## Consolidation finale
+
+[Rapports Quartz, matrice candidate et protocole Fedora/B580](EXCELLENCE_NATIVE_QUALIFICATION.md).
