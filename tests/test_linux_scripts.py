@@ -203,7 +203,9 @@ def test_openclaw_toolkit_inventory_matches_the_plugin() -> None:
     assert expected is not None
     declared = set(re.findall(r'"(clawfedora_[a-z_]+)"', expected.group(1)))
     assert len(plugin) == 16
-    assert {"clawfedora_notion_inventory", "clawfedora_notion_studio_check"} <= plugin
+    assert {
+        "clawfedora_notion_audit", "clawfedora_notion_inventory", "clawfedora_notion_studio_check",
+    } <= plugin
     assert declared == plugin
 
 

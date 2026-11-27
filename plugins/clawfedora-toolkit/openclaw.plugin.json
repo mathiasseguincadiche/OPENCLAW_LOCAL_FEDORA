@@ -53,6 +53,9 @@
     },
     "clawfedora_notion_studio_check": {
       "optional": true
+    },
+    "clawfedora_notion_audit": {
+      "optional": true
     }
   },
   "configSchema": {
@@ -77,7 +80,8 @@
       "clawfedora_impact",
       "clawfedora_doc_review",
       "clawfedora_notion_inventory",
-      "clawfedora_notion_studio_check"
+      "clawfedora_notion_studio_check",
+      "clawfedora_notion_audit"
     ]
   }
 }

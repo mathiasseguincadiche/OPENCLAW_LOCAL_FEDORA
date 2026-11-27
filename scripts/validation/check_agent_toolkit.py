@@ -45,7 +45,7 @@ with tempfile.TemporaryDirectory(prefix="clawfedora-native-tools-") as temporary
         + """
 const registry=await loadOpenClawPlugins({config,onlyPluginIds:['clawfedora-toolkit'],
  activate:false,cache:false,throwOnLoadError:true});
-if(registry.tools.length!==16) throw new Error('Native tool registration incomplete');
+if(registry.tools.length!==17) throw new Error('Native tool registration incomplete');
 for (const [name,role,params] of [
  ['clawfedora_artifact','redacteur-pedagogique',{format:'markdown',
   content:'# Guide\\n\\nUne étape.\\n',
@@ -92,6 +92,21 @@ const inventory=registry.tools.find(x=>x.names.includes('clawfedora_notion_inven
 if(!inventory?.factory({agentId:'expert-recherche',
  workspaceDir:runtime+'/workspaces/expert-recherche'}))
  throw new Error('Notion inventory unavailable');
+const notionAudit=registry.tools.find(x=>x.names.includes('clawfedora_notion_audit'));
+const auditRole='auditeur-qualite';
+const auditTool=notionAudit?.factory({agentId:auditRole,
+ workspaceDir:runtime+'/workspaces/'+auditRole});
+if(!auditTool || notionAudit.factory({agentId:'expert-recherche',
+ workspaceDir:runtime+'/workspaces/expert-recherche'})!==null)
+ throw new Error('Notion audit role isolation failed');
+for (const [operation,expected] of [['plan','Plan réservé'],['inventory','locale active']]) {
+ try {
+  await auditTool.execute('verification',{scope:'projects/example/task/session',operation});
+  throw new Error('Notion audit accepted an unauthorized call');
+ } catch(error) {
+  if(!String(error).includes(expected)) throw error;
+ }
+}
 const iterator=registry.tools.find(x=>x.names.includes('clawfedora_sandbox_iterate'));
 if(!iterator || !iterator.factory({agentId:'ingenieur-devops',
  workspaceDir:runtime+'/workspaces/ingenieur-devops'}))
