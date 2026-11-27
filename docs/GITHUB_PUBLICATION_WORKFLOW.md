@@ -81,6 +81,10 @@ souhaitée et vérifier ses réglages. Ne pas supposer qu'un dépôt doit être 
 
 ## 3. Dépôt existant : réviser puis préparer une PR
 
+Pour une correction issue d'un audit C02, suivre d'abord la
+[préparation de la revue documentaire](GITHUB_DOCUMENTARY_CORRECTIONS.md)
+pour rattacher les fichiers aux constats et obtenir l'empreinte à approuver.
+
 1. Obtenir **un clone local de confiance** et identifier le SHA actuel de la
    branche par défaut ; ne pas confondre SHA Git et hash SHA-256 des fichiers.
 2. Auditer le dépôt : `clawfedora-github-audit --path /chemin/du/clone`.
