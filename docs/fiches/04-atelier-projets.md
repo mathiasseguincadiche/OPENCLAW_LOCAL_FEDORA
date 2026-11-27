@@ -144,6 +144,21 @@ rubrique.
 
 Clique **Mettre en pause**. La tâche en cours se termine, puis le travail s'arrête. Tu peux alors passer en mode jeu, et cliquer **Reprendre** plus tard. Les tâches déjà terminées ne sont pas refaites.
 
+### Reprendre après une interruption
+
+**Reprendre** termine l'enregistrement d'une tentative déjà collectée
+si le worker s'est arrêté pendant la publication. Le worker vérifie les
+empreintes, complète les bundles et garde une seule entrée dans
+l'historique. Il conserve le numéro de tentative et les contributions
+déjà terminées. Si l'arrêt a eu lieu avant l'enregistrement de la
+tentative, une nouvelle session peut reprendre la tâche.
+
+Une correction d'audit qui rend les mêmes sources que la version
+auditée est arrêtée avant publication. Les exports dérivés sont
+comparés à travers leur source. Le worker arrête également une revue
+éditoriale qui a détecté un brouillon déjà audité. Une nouvelle
+correction de la tâche arrêtée demande l'approbation d'une reprise.
+
 ## En ligne de commande
 
 Tout ce que fait l'interface existe aussi dans le terminal. La commande `clawfedora` est installée dans `/data/IA/Openclaw/runtime/venv/bin` ; ajoute ce dossier à ton `PATH` ou donne le chemin complet.

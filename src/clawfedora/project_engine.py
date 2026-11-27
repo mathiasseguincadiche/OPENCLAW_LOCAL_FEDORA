@@ -35,6 +35,7 @@ ANALYSIS_FIELDS = {
     "source_coverage",
 }
 _EARLY_ANALYSIS_STATES = {"INTAKE_READY", "ANALYZED", "CLARIFICATION_REQUIRED"}
+TASK_PROMOTION_PATH = "context/task-promotion.json"
 
 
 def manifest(project: Path) -> dict[str, Any]:
@@ -456,6 +457,7 @@ def ready_tasks(
             raise ValueError("assignments: depends_on invalide")
         if (
             item.get("status") != "PASS"
+            and item.get("failure_code") != "no_progress"
             and item.get("status") != "AWAITING_PRACTICE"
             and item.get("status") != "AWAITING_FEEDBACK"
             and int(item.get("attempts", 0)) - int(item.get("revision_attempt_base", 0)) < maximum
@@ -497,6 +499,110 @@ def _load_result_history(project: Path) -> tuple[Path, dict[str, Any], list[Any]
     return history_path, history, results
 
 
+
+def _reviewed_checkpoint(
+    project: Path, task_id: str, digest: str,
+) -> tuple[Path, dict[str, Any]]:
+    from clawfedora.learning import checkpoint_path
+
+    receipt = safe_output(project, f"evidence/{task_id}/learning-feedback.json")
+    if sha256_file(receipt) != digest:
+        raise ValueError("preuve du retour pédagogique modifiée avant reprise")
+    feedback = read_json(receipt)
+    path = checkpoint_path(project, task_id)
+    checkpoint = read_json(path)
+    if (
+        checkpoint.get("status") not in {"AWAITING_FEEDBACK", "REVIEWED"}
+        or feedback.get("submission_id") != checkpoint.get("submission_id")
+    ):
+        raise ValueError("soumission pédagogique différente de la tentative à reprendre")
+    history = checkpoint.setdefault("feedback_history", [])
+    if not isinstance(history, list):
+        raise ValueError("historique pédagogique invalide")
+    if feedback not in history:
+        history.append(feedback)
+    checkpoint.update(status="REVIEWED", feedback=feedback)
+    return path, checkpoint
+
+
+def _finish_task_promotion(
+    repo_root: Path, project: Path, pending: dict[str, Any], *, recovering: bool,
+) -> dict[str, Any]:
+    if (
+        pending.get("schema_version") != "1.0.0"
+        or pending.get("project_id") != manifest(project)["project_id"]
+        or current_status(project) != "IN_PROGRESS"
+    ):
+        raise ValueError("publication à reprendre hors projet ou hors état")
+    result = pending["result"]
+    task_id = validate_task_id(result["task_id"])
+    attempt = result["attempt"]
+    status = result["status"]
+    if type(attempt) is not int or attempt < 1 or status not in {"PASS", "FAIL"}:
+        raise ValueError("publication à reprendre : résultat invalide")
+    assignments_path = _artifact(repo_root, project, "assignments")
+    assignments = read_json(assignments_path)
+    tasks = assignments["tasks"]
+    task = next((item for item in tasks if item["task_id"] == task_id), None)
+    if (
+        task is None or task.get("role") != result["agent"]
+        or task.get("revision", 0) != pending["revision"]
+        or (task["attempts"], task["status"]) not in (
+            (attempt - 1, pending["previous_status"]), (attempt, status),
+        )
+    ):
+        raise ValueError("publication à reprendre : assignation divergente")
+    outputs = result["outputs"]
+    _outputs_are_namespaced(task_id, outputs)
+    current_hashes = {path: sha256_file(safe_output(project, path)) for path in outputs}
+    if pending["output_hashes"] != current_hashes:
+        raise ValueError("publication à reprendre : sorties modifiées")
+    history_path, history, results = _load_result_history(project)
+    existing = [
+        row for row in results if isinstance(row, dict)
+        and row.get("task_id") == task_id and row.get("attempt") == attempt
+    ]
+    if len(existing) > 1:
+        raise ValueError("publication à reprendre : tentative dupliquée dans l’historique")
+    feedback_hash = pending.get("feedback_sha256")
+    reviewed = _reviewed_checkpoint(project, task_id, feedback_hash) if feedback_hash else None
+
+    bundles = publish_task_outputs(
+        repo_root, project, producer_task_id=task_id, agent=result["agent"], attempt=attempt,
+        status=status, outputs=outputs, recovering=recovering,
+    )
+    result["bundles"] = bundles
+    if existing and existing != [result]:
+        raise ValueError("publication à reprendre : tentative différente dans l’historique")
+    task.update(status=status, attempts=attempt, updated_at=result["at"])
+    task.pop("failure_code", None)
+    if result.get("failure_code") == "no_progress":
+        task["failure_code"] = "no_progress"
+    write_json(assignments_path, assignments)
+    if not existing:
+        results.append(result)
+        write_json(history_path, history)
+    if reviewed is not None:
+        write_json(*reviewed)
+    (project / TASK_PROMOTION_PATH).unlink()
+    return result
+
+
+def recover_task_promotion(
+    repo_root: Path, project: Path,
+) -> tuple[dict[str, Any], bool] | None:
+    """Finish an interrupted result without re-invoking the producer."""
+    path = project / TASK_PROMOTION_PATH
+    if path.resolve() != path.absolute():
+        raise ValueError("journal de publication lié")
+    if not path.is_file():
+        return None
+    _assert_input_integrity(project)
+    pending = read_json(path)
+    result = _finish_task_promotion(repo_root, project, pending, recovering=True)
+    return result, bool(pending.get("feedback_sha256"))
+
+
 def record_task_result(
     repo_root: Path,
     project: Path,
@@ -506,14 +612,18 @@ def record_task_result(
     status: str,
     outputs: list[str],
     summary: str,
+    no_progress: bool = False,
 ) -> dict[str, Any]:
     if current_status(project) != "IN_PROGRESS":
         raise ValueError("résultat tâche autorisé uniquement en IN_PROGRESS")
     _assert_input_integrity(project)
     normalized_task_id = validate_task_id(task_id)
     normalized = status.strip().upper()
-    if normalized not in {"PASS", "FAIL"}:
+    if normalized not in {"PASS", "FAIL"} or no_progress and normalized != "FAIL":
         raise ValueError("résultat tâche: PASS ou FAIL requis")
+    journal = project / TASK_PROMOTION_PATH
+    if journal.resolve() != journal.absolute() or journal.exists():
+        raise ValueError("publication précédente à reprendre avant un nouveau résultat")
     assignments_path = _artifact(repo_root, project, "assignments")
     assignments = read_json(assignments_path)
     tasks = assignments.get("tasks", [])
@@ -525,11 +635,14 @@ def record_task_result(
         raise KeyError(f"tâche inconnue: {normalized_task_id}")
     if str(task.get("role")) != agent:
         raise PermissionError(f"{normalized_task_id}: agent attendu={task.get('role')} reçu={agent}")
+    if task.get("failure_code") == "no_progress":
+        raise ValueError("absence de progrès : une nouvelle reprise doit être approuvée")
     dependencies = task.get("depends_on", [])
     if not isinstance(dependencies, list):
         raise ValueError(f"{normalized_task_id}: depends_on invalide")
     if any(by_id.get(str(dependency), {}).get("status") != "PASS" for dependency in dependencies):
         raise ValueError(f"{normalized_task_id}: dépendances non PASS")
+    feedback_sha256 = None
     if normalized == "PASS" and task.get("status") in {"AWAITING_PRACTICE", "AWAITING_FEEDBACK"}:
         receipt_path = project / "evidence" / normalized_task_id / "learning-feedback.json"
         if task["status"] != "AWAITING_FEEDBACK" or not receipt_path.is_file():
@@ -560,17 +673,14 @@ def record_task_result(
             )
         ):
             raise ValueError("retour pédagogique invalide ou livrables modifiés")
+        feedback_sha256 = sha256_file(receipt_path)
     maximum = int(dict(_policy(repo_root)["execution"])["max_task_attempts"])
     attempt = int(task.get("attempts", 0)) + 1
     if attempt - int(task.get("revision_attempt_base", 0)) > maximum:
         raise ValueError(f"{normalized_task_id}: limite de tentatives atteinte")
     _outputs_are_namespaced(normalized_task_id, outputs)
-    for output in outputs:
-        safe_output(project, output)
-
-    # Prévalider l'historique avant toute création de bundle afin qu'un JSON
-    # corrompu ne puisse pas laisser la tâche partiellement promue.
-    history_path, history, results = _load_result_history(project)
+    output_hashes = {path: sha256_file(safe_output(project, path)) for path in outputs}
+    _load_result_history(project)
     result = {
         "at": now(),
         "task_id": normalized_task_id,
@@ -581,21 +691,15 @@ def record_task_result(
         "outputs": outputs,
         "bundles": [],
     }
-    bundles = publish_task_outputs(
-        repo_root,
-        project,
-        producer_task_id=normalized_task_id,
-        agent=agent,
-        attempt=attempt,
-        status=normalized,
-        outputs=outputs,
-    )
-    result["bundles"] = bundles
-    task.update({"status": normalized, "attempts": attempt, "updated_at": now()})
-    results.append(result)
-    write_json(assignments_path, assignments)
-    write_json(history_path, history)
-    return result
+    if no_progress:
+        result["failure_code"] = "no_progress"
+    pending = {
+        "schema_version": "1.0.0", "project_id": manifest(project)["project_id"],
+        "revision": task.get("revision", 0), "previous_status": task["status"],
+        "output_hashes": output_hashes, "feedback_sha256": feedback_sha256, "result": result,
+    }
+    write_json(journal, pending)
+    return _finish_task_promotion(repo_root, project, pending, recovering=False)
 
 
 def all_tasks_pass(repo_root: Path, project: Path) -> bool:

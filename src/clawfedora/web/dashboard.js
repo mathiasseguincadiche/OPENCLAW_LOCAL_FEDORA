@@ -322,6 +322,12 @@ async function loadProject(id) {
     $("editor-heading").textContent = data.manifest.title;
     $("editor-state").textContent = states[data.manifest.status] || data.manifest.status;
     $("editor-next").textContent = "Prochaine étape : " + (data.next_step || "Consultez les actions disponibles.").replaceAll("`", "");
+    const stopped = data.tasks.filter(task => task.failure_code === "no_progress");
+    if (stopped.length) {
+      const names = stopped.map(task => task.task_id).join(", ");
+      $("editor-next").append(node("strong", " Correction inchangée (" + names
+        + "). Une nouvelle reprise approuvée est nécessaire pour ces tâches."));
+    }
     $("editor-actions").replaceChildren();
     const addAction = (label, path, extra = {}) => {
       const button = node("button", label);

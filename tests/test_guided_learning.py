@@ -7,6 +7,7 @@ from typing import Any
 import pytest
 from test_daily_worker import planned as planned
 
+from clawfedora import project_engine
 from clawfedora.agents import deploy_workspaces
 from clawfedora.core_config import AGENT_IDS
 from clawfedora.learning import awaiting, checkpoints, contract, initialize, submit, task_mode
@@ -216,3 +217,36 @@ def test_guided_plan_cannot_be_audited_before_practice(planned: tuple[Path, Path
 def test_invalid_learning_goals_are_rejected(tmp_path: Path, goals: Any) -> None:
     with pytest.raises(ValueError):
         initialize(tmp_path, goals=goals)
+
+
+def test_resume_recovers_published_guided_feedback_without_extra_model_calls(
+    planned: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime, project = planned
+    initialize(project, mode="guided")
+    run_project_tasks(ROOT, runtime, project, runner=starter)
+    item = awaiting(project)[0]
+    submit(ROOT, runtime, project, item["task_id"], payload(item))
+    original_write = project_engine.write_json
+
+    def interrupt(path: Path, value: dict[str, Any]) -> None:
+        if path == project / "context/learning/tasks/design-choice.json":
+            raise KeyboardInterrupt
+        original_write(path, value)
+
+    with monkeypatch.context() as intercept:
+        intercept.setattr(project_engine, "write_json", interrupt)
+        with pytest.raises(KeyboardInterrupt):
+            run_project_tasks(ROOT, runtime, project, runner=reviewer)
+    assert checkpoints(project)[0]["status"] == "AWAITING_FEEDBACK"
+
+    def never(*_args: Any) -> dict[str, Any]:
+        pytest.fail("la reprise ne doit demander ni nouveau retour ni nouvelle contribution")
+
+    restored = run_project_tasks(ROOT, runtime, project, runner=never, resume=True)
+    assert [item["task_id"] for item in restored] == ["design-choice"]
+    checkpoint = checkpoints(project)[0]
+    assert checkpoint["status"] == "REVIEWED"
+    assert len(checkpoint["feedback_history"]) == 1
+    assert not (project / project_engine.TASK_PROMOTION_PATH).exists()
+    assert [item["task_id"] for item in ready_tasks(ROOT, project)] == ["research-check"]

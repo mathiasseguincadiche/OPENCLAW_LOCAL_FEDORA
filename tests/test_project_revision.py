@@ -277,3 +277,20 @@ def test_revision_refuses_unknown_task_or_symlink_before_mutating(
     with pytest.raises(ValueError, match="symbolique"):
         revise(project, "design-choice", "Correction", human_approved=True)
     assert read_json(project / "project.json")["status"] == "VALIDATING"
+
+
+def test_identical_audit_correction_stops_until_new_approval(planned: tuple[Path, Path]) -> None:
+    runtime, project = planned
+    producer = "design-choice"
+    run_project_tasks(ROOT, runtime, project, runner=result)
+    report = _audit_output(planned, failed=producer, sessions=[])
+    revise(project, producer, "Préciser la justification", human_approved=True,
+           audit_sha256=sha256_file(report))
+    blocked = run_project_tasks(ROOT, runtime, project, runner=result)
+    assert blocked[0]["status"] == "FAIL" and blocked[0]["failure_code"] == "no_progress"
+    assert not (project / "deliverables/design-choice/report.md").exists()
+    assert not (project / "deliverables/research-check/report.md").exists()
+    assert ready_tasks(ROOT, project) == []
+    assert run_project_tasks(ROOT, runtime, project, runner=result, resume=True) == []
+    revise(project, producer, "Reconsidérer le choix", human_approved=True)
+    assert [row["task_id"] for row in ready_tasks(ROOT, project)] == [producer]

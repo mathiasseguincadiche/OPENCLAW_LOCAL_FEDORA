@@ -93,43 +93,68 @@ def _make_bundle(
     status: str,
     outputs: list[str],
     direct_dependency: bool | None,
+    recovering: bool,
 ) -> Path:
     destination = _bundle_path(project, producer, consumer, attempt)
-    if destination.exists():
-        raise FileExistsError(f"bundle existe déjà: {destination.relative_to(project)}")
-    artifact_root = destination / "artifacts"
-    artifact_root.mkdir(parents=True, exist_ok=False)
-    records: list[dict[str, Any]] = []
-    for relative in sorted(set(outputs)):
-        source = safe_output(project, relative)
-        target = artifact_root / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source, target)
-        records.append(
-            {
-                "path": relative,
-                "sha256": sha256_file(target),
-                "size": target.stat().st_size,
-            }
-        )
     manifest = {
         "schema_version": BUNDLE_SCHEMA,
         "project_id": project_id,
-        "generated_at": now(),
         "producer_task_id": producer,
         "consumer_task_id": consumer,
         "producer_agent": agent,
         "attempt": attempt,
         "producer_status": status,
         "direct_dependency": direct_dependency,
-        "files": records,
-        "aggregate_sha256": aggregate_records(records),
         "immutable_provenance": True,
         "consumer_must_not_modify_in_place": True,
     }
-    write_json(destination / "manifest.json", manifest)
-    assert_no_symlinks(destination, label="bundle d'échange")
-    chmod_read_only_files(destination)
+    if destination.resolve() != destination.absolute():
+        raise ValueError("destination du bundle liée")
+    if destination.exists():
+        if not recovering:
+            raise FileExistsError(f"bundle existe déjà: {destination.relative_to(project)}")
+        errors = validate_bundle(project, destination)
+        if errors:
+            raise ValueError(f"bundle irrécupérable: {'; '.join(errors)}")
+        existing = read_json(destination / "manifest.json")
+        if (
+            any(existing.get(key) != value for key, value in manifest.items())
+            or {item["path"] for item in existing["files"]} != set(outputs)
+            or any(sha256_file(safe_output(project, item["path"])) != item["sha256"]
+                   for item in existing["files"])
+        ):
+            raise ValueError(f"bundle existant différent de la tentative: {destination.name}")
+        return destination
+
+    staging = destination.with_name(f".{destination.name}.staging")
+    if staging.is_symlink():
+        raise ValueError("préparation du bundle liée")
+    if staging.exists():
+        if not recovering:
+            raise FileExistsError(f"préparation de bundle présente: {staging.name}")
+        assert_no_symlinks(staging, label="préparation interrompue")
+        shutil.rmtree(staging)
+    artifact_root = staging / "artifacts"
+    artifact_root.mkdir(parents=True, exist_ok=False)
+    try:
+        records: list[dict[str, Any]] = []
+        for relative in sorted(set(outputs)):
+            source = safe_output(project, relative)
+            target = artifact_root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+            records.append({"path": relative, "sha256": sha256_file(target),
+                            "size": target.stat().st_size})
+        write_json(staging / "manifest.json", {
+            **manifest, "generated_at": now(), "files": records,
+            "aggregate_sha256": aggregate_records(records),
+        })
+        assert_no_symlinks(staging, label="bundle d'échange")
+        chmod_read_only_files(staging)
+        staging.rename(destination)
+    finally:
+        if staging.exists():
+            shutil.rmtree(staging)
     return destination
 
 
@@ -142,6 +167,7 @@ def publish_task_outputs(
     attempt: int,
     status: str,
     outputs: list[str],
+    recovering: bool = False,
 ) -> list[str]:
     if attempt < 1:
         raise ValueError("attempt doit être >= 1")
@@ -151,6 +177,23 @@ def publish_task_outputs(
     policy = core_contract(repo_root, "artifact_exchange_policy.yaml")
     project_id = read_json(project / "project.json")["project_id"]
     dependencies = _dependencies(_plan_tasks(repo_root, project))
+    index_path = project / str(policy.get("root", "context/exchange")) / "index.json"
+    index = (
+        read_json(index_path)
+        if index_path.is_file()
+        else {"schema_version": "1.0.0", "records": []}
+    )
+    records = index.setdefault("records", [])
+    if not isinstance(records, list):
+        raise ValueError("index artifact exchange invalide")
+    by_bundle: dict[str, dict[str, Any]] = {}
+    for row in records:
+        if (
+            not isinstance(row, dict) or not isinstance(row.get("bundle"), str)
+            or row["bundle"] in by_bundle
+        ):
+            raise ValueError("index artifact exchange invalide")
+        by_bundle[row["bundle"]] = row
     published = [
         _make_bundle(
             project,
@@ -162,6 +205,7 @@ def publish_task_outputs(
             status=normalized,
             outputs=outputs,
             direct_dependency=None,
+            recovering=recovering,
         )
     ]
     propagation = dict(policy["propagation"])
@@ -182,29 +226,24 @@ def publish_task_outputs(
                     status=normalized,
                     outputs=outputs,
                     direct_dependency=direct,
+                    recovering=recovering,
                 )
             )
-    index_path = project / str(policy.get("root", "context/exchange")) / "index.json"
-    index = (
-        read_json(index_path)
-        if index_path.is_file()
-        else {"schema_version": "1.0.0", "records": []}
-    )
-    records = index.setdefault("records", [])
-    if not isinstance(records, list):
-        raise ValueError("index artifact exchange invalide")
     for bundle in published:
         bundle_manifest = read_json(bundle / "manifest.json")
-        records.append(
-            {
-                "at": now(),
-                "producer_task_id": producer_task_id,
-                "consumer_task_id": bundle_manifest["consumer_task_id"],
-                "attempt": attempt,
-                "status": normalized,
-                "bundle": bundle.relative_to(project).as_posix(),
-            }
-        )
+        relative = bundle.relative_to(project).as_posix()
+        entry = {
+            "producer_task_id": producer_task_id,
+            "consumer_task_id": bundle_manifest["consumer_task_id"],
+            "attempt": attempt,
+            "status": normalized,
+            "bundle": relative,
+        }
+        previous = by_bundle.get(relative)
+        if previous is None:
+            records.append({"at": now(), **entry})
+        elif not recovering or any(previous.get(key) != value for key, value in entry.items()):
+            raise ValueError("index différent du bundle de la tentative")
     index["updated_at"] = now()
     write_json(index_path, index)
     return [bundle.relative_to(project).as_posix() for bundle in published]
