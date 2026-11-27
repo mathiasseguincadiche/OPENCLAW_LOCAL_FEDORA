@@ -102,3 +102,7 @@ blocage critique, et avec preuves natives ; aucune promesse de résultat.
 
 [Audit et replay hors ligne du run 45769070175](EXCELLENCE_SCREENING_RESULTS_45769070175.md).
 Les verdicts originaux sont conservés ; aucun changement du routage actif.
+
+## Consolidation après Quartz
+
+[Préparation finale et protocole natif](EXCELLENCE_NATIVE_QUALIFICATION.md). Les résultats CPU ne constituent pas une certification.

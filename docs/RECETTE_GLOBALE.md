@@ -205,3 +205,7 @@ Aucune qualification OpsDesk ni aucun niveau d'autonomie n'est déduit
 de la réception de l'atelier.
 
 Avant le premier projet réel, exécuter également la [campagne éditoriale Premium Atlas](validation/EDITORIAL_ACCEPTANCE.md), distincte de la qualification matérielle.
+
+## Qualification d'excellence des modèles après réception initiale
+
+Suivre le [protocole de qualification expérimentale Fedora/B580](EXCELLENCE_NATIVE_QUALIFICATION.md) après le quick-check. La matrice candidate ne modifie ni l'installation à deux modèles ni le routage actuel.

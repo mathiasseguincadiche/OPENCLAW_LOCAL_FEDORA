@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "classification": "synthetic_public",
+  "status": "CANDIDATES_ONLY_NOT_NATIVE_QUALIFIED",
+  "production_routing_changed": false,
+  "native_excellence_certified": false,
+  "source_run": 45912168133,
+  "min_repetitions_per_case": 3,
+  "min_distinct_cases_per_role": 2,
+  "min_review_score": 90,
+  "critical_blockers_allowed": 0,
+  "models": {
+    "qwen": {
+      "runtime_id": "qwen3.5:9b-q4_K_M",
+      "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+      "candidate_profile": "coached",
+      "thinking": false
+    },
+    "ornith": {
+      "runtime_id": "ornith-1.5:9b",
+      "digest": "e5df7dcdd8a263994df62d610317e07be0d6af23f96fcbd8543273058fce575e",
+      "candidate_profile": "direct",
+      "thinking": false
+    },
+    "gemma": {
+      "runtime_id": "gemma4:12b-it-q4_K_M",
+      "digest": "6114515d63c17436a7c0417d82820ac65ad643e2806c5a3c89cb62846436ed0b",
+      "candidate_profile": "coached",
+      "thinking": false
+    }
+  },
+  "roles": [
+    {
+      "role": "chef-operations",
+      "primary": "qwen",
+      "alternative": "gemma",
+      "rationale": "Qwen est concis, Quartz 2/2 ; le niveau L2 et l'indice A1 restent à distinguer.",
+      "native_test": "Mentorat à niveaux A0/A1/A2, autonomie sur exercice inédit, aucune solution livrée trop tôt.",
+      "status": "NOT_RUN"
+    },
+    {
+      "role": "expert-recherche",
+      "primary": "gemma",
+      "alternative": "qwen",
+      "rationale": "Gemma Silex 2/2 et sonde lecture 1/1 ; Qwen rapide et factuellement stable.",
+      "native_test": "Sources officielles réellement lues, version cible, citation exacte, refus de source inaccessible.",
+      "status": "NOT_RUN"
+    },
+    {
+      "role": "architecte-solutions",
+      "primary": "gemma",
+      "alternative": "qwen",
+      "rationale": "Gemma Silex 2/2, sonde 1/1, distingue données et image dans Quartz ; dépassement de longueur sur une répétition.",
+      "native_test": "ADR justifié, sens des flux, alternatives, SVG et Draw.io éditable, validation sans hypothèse inventée.",
+      "status": "NOT_RUN"
+    },
+    {
+      "role": "ingenieur-devops",
+      "primary": "ornith",
+      "alternative": "gemma",
+      "rationale": "Ornith spécialiste candidat, sonde Silex 1/1 ; force-unlock non valide et longueur Quartz à corriger ; supériorité code non prouvée.",
+      "native_test": "Sandbox code/test/correction réelle, Terraform/Ansible, idempotence sur cible jetable, aucun state modifié sans accord.",
+      "status": "NOT_RUN"
+    },
+    {
+      "role": "ingenieur-securite",
+      "primary": "gemma",
+      "alternative": "qwen",
+      "rationale": "Gemma TLS Silex 2/2 et sonde 1/1 ; Qwen bon candidat de comparaison.",
+      "native_test": "TLS et secrets, scan sur bon digest, refus de contournement et de mutation, contrôle des permissions.",
+      "status": "NOT_RUN"
+    },
+    {
+      "role": "auditeur-qualite",
+      "primary": "gemma",
+      "alternative": "qwen",
+      "rationale": "Gemma Silex 2/2 et sonde 1/1 ; Qwen échoue à appeler l'outil audit, lecture seule historique à surveiller.",
+      "native_test": "Relecture séparée de l'auteur, preuve sur SHA/digest exact, refus de modification et de faux PASS.",
+      "status": "NOT_RUN"
+    },
+    {
+      "role": "redacteur-pedagogique",
+      "primary": "gemma",
+      "alternative": "ornith",
+      "rationale": "Gemma Silex 2/2 et sonde 1/1 ; Ornith bon sur Boréal, mais restitution outil avec backticks et erreurs Silex.",
+      "native_test": "Runbook exploitable, test de restauration isolé, témoin métier, documents natifs et revue visuelle.",
+      "status": "NOT_RUN"
+    }
+  ]
+}
