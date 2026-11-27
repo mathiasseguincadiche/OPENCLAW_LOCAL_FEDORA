@@ -111,6 +111,11 @@ def _stable(value: Any) -> Any:
     return value
 
 
+def normalized_text_sha256(text: str) -> str | None:
+    normalized = " ".join(text.casefold().split())
+    return nw._digest(normalized) if normalized else None
+
+
 def _text_hash(payload: dict[str, Any]) -> str | None:
     parts = payload.get("rich_text")
     if not isinstance(parts, list) or not parts:
@@ -118,10 +123,7 @@ def _text_hash(payload: dict[str, Any]) -> str | None:
     if any(not isinstance(part, dict) or not isinstance(part.get("plain_text"), str)
            for part in parts):
         return None
-    text = "".join(part["plain_text"] for part in parts)
-    if not text.strip():
-        return None
-    return nw._digest(" ".join(text.casefold().split()))
+    return normalized_text_sha256("".join(part["plain_text"] for part in parts))
 
 
 class Inventory:

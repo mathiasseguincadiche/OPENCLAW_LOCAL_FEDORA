@@ -10,6 +10,7 @@ from typing import Any
 
 import pytest
 
+from clawfedora import notion_duplicates as duplicates
 from clawfedora import notion_inventory_diff as nd
 from clawfedora import notion_native_inventory as ni
 from clawfedora import notion_write as nw
@@ -329,3 +330,160 @@ def test_diff_cli_privacy_and_fail_closed(
     source.write_text('{"schema": 2, "schema": 2}', encoding="utf-8")
     assert nd.main(args) == 2 and not output.exists()
     assert len(calls) == count
+
+
+def _duplicate_snapshot(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
+    old_get = _fake(monkeypatch)
+    get = ni._get
+    copy_id, original_id, nested_id, lexical_id = ("1" * 32, "2" * 32, "3" * 32, "4" * 32)
+    text = "Préparer le serveur et vérifier les sauvegardes avant le déploiement"
+    similar = "Préparer le serveur et vérifier les sauvegardes après le déploiement"
+    def label(value: str) -> list[dict[str, str]]:
+        return [{"plain_text": value}]
+
+    def revised(path: str, params: dict[str, str]) -> dict[str, Any]:
+        if path == f"/v1/blocks/{ROOT}/children" and "start_cursor" in params:
+            return _list(
+                _block(DB, "child_database", ROOT),
+                _block(copy_id, "synced_block", ROOT, synced_from={"block_id": original_id}),
+                {**_block(original_id, "synced_block", ROOT, synced_from=None),
+                 "has_children": True},
+                _block(lexical_id, "paragraph", ROOT, rich_text=label(similar)),
+                _block("5" * 32, "paragraph", ROOT, rich_text=label(text.upper())),
+                _block("6" * 32, "image", ROOT),
+                _block("7" * 32, "image", ROOT),
+                _block("8" * 32, "child_database", ROOT),
+            )
+        if path == f"/v1/blocks/{PAGE}/children":
+            return _list(_block(BLOCK, "paragraph", PAGE, rich_text=label(text)))
+        if path == f"/v1/blocks/{original_id}/children":
+            return _list(_block(nested_id, "paragraph", original_id, rich_text=label(text)))
+        if path == f"/v1/databases/{'8' * 32}":
+            return {**get(f"/v1/databases/{DB}", params), "id": "8" * 32,
+                    "data_sources": [{"id": "9" * 32}]}
+        if path == f"/v1/data_sources/{'9' * 32}":
+            return {**get(f"/v1/data_sources/{SOURCE}", params), "id": "9" * 32,
+                    "parent": _parent("database_id", "8" * 32)}
+        if path == "/v1/views" and params["database_id"] == "8" * 32:
+            return _list()
+        return get(path, params)
+
+    monkeypatch.setattr(ni, "_get", revised)
+    report = ni.capture(ROOT)
+    assert not any(path == f"/v1/blocks/{copy_id}/children" for path, _ in old_get)
+    return report
+
+
+def _annotations(snapshot: dict[str, Any], *entries: dict[str, Any]) -> dict[str, Any]:
+    return {"schema": 1, "root_page": ROOT, "structure_sha256": snapshot["structure_sha256"],
+            "entries": list(entries)}
+
+
+def test_duplicates_from_native_inventory(monkeypatch: pytest.MonkeyPatch) -> None:
+    snapshot = _duplicate_snapshot(monkeypatch)
+    report = duplicates.analyze(snapshot, root_page=ROOT)
+    groups = {group["family"]: group for group in report["findings"]}
+    assert set(groups) == {"exact", "database"}
+    assert [row["id"] for row in groups["exact"]["objects"]] == ["3" * 32, "5" * 32, BLOCK]
+    assert [row["id"] for row in groups["database"]["objects"]] == ["8" * 32, DB]
+    assert groups["exact"]["status"] == "protected_context"
+    assert groups["database"]["status"] == "review_required"
+    assert {row["id"] for row in report["protected_objects"]} == {"1" * 32, "2" * 32, "3" * 32}
+    assert set(report["coverage"]["annotation_based_families"].values()) == {"not_examined"}
+
+
+def test_duplicate_annotations_and_lexical_candidates(monkeypatch: pytest.MonkeyPatch) -> None:
+    snapshot = _duplicate_snapshot(monkeypatch)
+    evidence = _annotations(
+        snapshot, {"category": "page", "id": PAGE, "context": ["archive", "installation"]},
+        {"category": "block", "id": BLOCK,
+         "text": "Préparer le serveur et vérifier les sauvegardes avant le déploiement",
+         "truth_key": "source-privee", "semantic_key": "equivalence-privee",
+         "function_key": "fonction-privee", "organization_key": "niveau-prive",
+         "navigation_target": {"category": "page", "id": PAGE}},
+        {"category": "block", "id": "4" * 32,
+         "text": "Préparer le serveur et vérifier les sauvegardes après le déploiement",
+         "truth_key": "source-privee", "semantic_key": "equivalence-privee",
+         "function_key": "fonction-privee", "organization_key": "niveau-prive",
+         "context": ["security_reminder", "teaching_repetition"],
+         "navigation_target": {"category": "page", "id": PAGE}},
+        *({"category": "block", "id": digit * 32, "diagram_sha256": "f" * 64}
+          for digit in ("6", "7")),
+    )
+    report = duplicates.analyze(snapshot, root_page=ROOT, evidence=evidence)
+    assert {group["family"] for group in report["findings"]} == {
+        "exact", "semantic", "functional", "navigation", "organizational",
+        "source_of_truth", "diagram", "database",
+    }
+    semantic = {group["signal"]: group for group in report["findings"]
+                if group["family"] == "semantic"}
+    lexical = semantic["lexical_similarity"]
+    assert lexical["similarity_percent"] >= duplicates.MIN_SIMILARITY
+    assert lexical["status"] == "protected_context"
+    assert {flag for item in lexical["objects"] for flag in item["context"]} == {
+        "archive", "installation", "security_reminder", "teaching_repetition",
+    }
+    assert semantic["operator_annotated_equivalence"]["status"] == "protected_context"
+    result = json.dumps(report, ensure_ascii=False)
+    for private in ("Préparer", "source-privee", "fonction-privee", "niveau-prive", "f" * 64):
+        assert private not in result
+    assert report == duplicates.analyze(snapshot, root_page=ROOT, evidence=evidence)
+    assert report["report_sha256"] == nw._digest(
+        {key: value for key, value in report.items() if key != "report_sha256"}
+    )
+
+
+@pytest.mark.parametrize("annotation", [
+    {"id": "0" * 32, "context": ["archive"]},
+    {"text": "ne correspond pas au texte capturé"},
+    {"context": ["nom privé"]},
+    {"diagram_sha256": "f" * 64},
+    {"navigation_target": {"category": "page", "id": "0" * 32}},
+    {"navigation_target": "https://example.invalid"},
+    {"function_key": ["privé"]},
+])
+def test_duplicate_annotations_refuse_invalid_evidence(
+    monkeypatch: pytest.MonkeyPatch, annotation: dict[str, Any],
+) -> None:
+    snapshot = _duplicate_snapshot(monkeypatch)
+    record = {"category": "block", "id": BLOCK, **annotation}
+    with pytest.raises(ValueError):
+        duplicates.analyze(snapshot, root_page=ROOT, evidence=_annotations(snapshot, record))
+
+
+def test_duplicate_analysis_refuses_tampered_inputs(monkeypatch: pytest.MonkeyPatch) -> None:
+    snapshot = _duplicate_snapshot(monkeypatch)
+    evidence = _annotations(snapshot, {"category": "page", "id": PAGE, "context": ["archive"]})
+    with pytest.raises(ValueError, match="incompatibles"):
+        duplicates.analyze(snapshot, root_page=ROOT,
+                           evidence={**evidence, "structure_sha256": "0" * 64})
+    snapshot["structure_sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="structure divergente"):
+        duplicates.analyze(snapshot, root_page=ROOT)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="private POSIX files")
+def test_duplicate_cli_private_report(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
+) -> None:
+    snapshot = _duplicate_snapshot(monkeypatch)
+    tmp_path.chmod(0o700)
+    inventory, evidence, output = (tmp_path / name for name in ("capture", "annotations", "report"))
+    inventory.write_text(json.dumps(snapshot), encoding="utf-8")
+    inventory.chmod(0o600)
+    evidence.write_text("null", encoding="utf-8")
+    evidence.chmod(0o600)
+
+    def refuse_get(*args: Any) -> None:
+        raise AssertionError("network used by the offline audit")
+
+    monkeypatch.setattr(ni, "_get", refuse_get)
+    args = ["--page", ROOT, "--inventory", str(inventory), "--output", str(output)]
+    assert duplicates.main([*args, "--evidence", str(evidence)]) == 2
+    assert not output.exists()
+    assert duplicates.main(args) == 0
+    assert output.stat().st_mode & 0o777 == 0o600
+    original = output.read_bytes()
+    assert duplicates.main(args) == 2
+    assert output.read_bytes() == original
+    assert ROOT not in capsys.readouterr().out
