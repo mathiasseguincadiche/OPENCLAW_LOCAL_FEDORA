@@ -264,7 +264,7 @@ def resolve_clarification(
     raise KeyError(f"clarification inconnue: {clarification_id}")
 
 
-def _validate_plan(tasks: list[dict[str, Any]]) -> None:
+def _validate_plan(tasks: list[dict[str, Any]], *, require_role_reason: bool = False) -> None:
     if not tasks:
         raise ValueError("plan: au moins une tâche requise")
     ids: set[str] = set()
@@ -277,7 +277,13 @@ def _validate_plan(tasks: list[dict[str, Any]]) -> None:
         role = str(task.get("role", ""))
         if role not in AGENT_IDS:
             raise ValueError(f"{task_id}: rôle inconnu: {role}")
-        if task.get("learning_mode", "direct") not in {"guided", "direct"}:
+        reason = task.get("role_reason")
+        if (require_role_reason or "role_reason" in task) and (
+            not isinstance(reason, str) or not reason.strip()
+            or len(reason) > 240 or reason.splitlines() != [reason]
+        ):
+            raise ValueError(f"{task_id}: role_reason doit justifier le rôle en une ligne (240 max)")
+        if task.get("learning_mode", "direct") not in ("guided", "direct"):
             raise ValueError(f"{task_id}: learning_mode guided ou direct requis")
         if "task_tier" in task and (
             type(task["task_tier"]) is not str
@@ -288,7 +294,7 @@ def _validate_plan(tasks: list[dict[str, Any]]) -> None:
             raise ValueError(f"{task_id}: practice_opt_in doit être booléen")
         if task.get("practice_opt_in") is True and task.get("learning_mode") != "guided":
             raise ValueError(f"{task_id}: practice_opt_in requiert learning_mode guided")
-        if task.get("writing_scope", "final") not in {"final", "intermediate"}:
+        if task.get("writing_scope", "final") not in ("final", "intermediate"):
             raise ValueError(f"{task_id}: writing_scope final ou intermediate requis")
         for field in ("title", "objective"):
             if not str(task.get(field, "")).strip():
