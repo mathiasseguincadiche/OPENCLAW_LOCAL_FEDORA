@@ -552,7 +552,7 @@ def _tool_receipts(workspace: Path) -> set[Path]:
 
 def _collect_tool_receipts(
     workspace: Path, before: set[Path], project: Path, task_id: str, *, scope: str,
-    runtime: Path, notion_binding: dict[str, Any] | None,
+    runtime: Path | None = None, notion_binding: dict[str, Any] | None = None,
 ) -> list[str]:
     from clawfedora import notion_worker_audit
 
@@ -574,6 +574,8 @@ def _collect_tool_receipts(
         ):
             raise ValueError("preuve sandbox hors du snapshot courant")
         if proof.get("tool") == notion_worker_audit.TOOL:
+            if runtime is None:
+                raise ValueError("contexte du worker requis pour la preuve Notion")
             notion_worker_audit.validate_receipt(runtime, proof, scope, notion_binding)
     for path in sorted(paths):
         target = project / "evidence" / task_id / f"tool-{path.name}"
