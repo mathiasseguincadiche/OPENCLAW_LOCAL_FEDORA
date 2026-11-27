@@ -890,20 +890,22 @@ def run_project_tasks(
     with worker_lock(runtime):
         if current_status(project) not in {"ASSIGNED", "IN_PROGRESS"}:
             raise ValueError("worker: projet ASSIGNED ou IN_PROGRESS requis")
-        if current_status(project) == "IN_PROGRESS" and (resume or not is_paused(runtime, project)):
-            if recovered := recover_task_promotion(repo_root, project):
-                result, guided = recovered
-                results.append(result)
-                if resume:
-                    clear_pause(runtime, project)
-                if result["status"] == "FAIL":
-                    _write_task_failure(repo_root, runtime, project, result)
-                    return results
-                if _await_validation(repo_root, runtime, project):
-                    return results
-                if guided:
-                    write_progress(runtime, project, "feedback_ready", task=result["task_id"])
-                    return results
+        if (
+            current_status(project) == "IN_PROGRESS" and (resume or not is_paused(runtime, project))
+            and (recovered := recover_task_promotion(repo_root, project))
+        ):
+            result, guided = recovered
+            results.append(result)
+            if resume:
+                clear_pause(runtime, project)
+            if result["status"] == "FAIL":
+                _write_task_failure(repo_root, runtime, project, result)
+                return results
+            if _await_validation(repo_root, runtime, project):
+                return results
+            if guided:
+                write_progress(runtime, project, "feedback_ready", task=result["task_id"])
+                return results
         if feedback := pending_feedback(project):
             from clawfedora.learning_feedback import review_submission
 
@@ -1158,9 +1160,9 @@ def run_project_tasks(
                     baseline = {item["path"]: item["sha256"] for item in archived["previous_outputs"]}
                     authored = {
                         target.relative_to(project).as_posix(): hashlib.sha256(content).hexdigest()
-                        for target, content in validated if target.suffix.lower() not in {
-                            ".pdf", ".docx", ".odt",
-                        }
+                        for target, content in validated
+                        if target.relative_to(project).parts[0] != "evidence"
+                        and target.suffix.lower() not in {".pdf", ".docx", ".odt"}
                     }
                     if authored and all(
                         baseline.get(path) == digest for path, digest in authored.items()
