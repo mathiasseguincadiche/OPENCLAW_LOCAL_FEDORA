@@ -89,10 +89,11 @@ Le [lot 2](fiches/04-atelier-projets.md#transmission-entre-les-tâches)
 est intégré à
 [`main@f93000f`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/f93000fccda923a96023873548b7f38588582b4a).
 Le [lot 3](fiches/04-atelier-projets.md#reprendre-un-écart-daudit)
-relie une reprise approuvée aux critères refusés d'un audit
-indépendant et remet au producteur la version scellée du livrable.
-Après intégration, vérifier la reprise après interruption et la
-limitation des boucles de correction.
+est intégré à
+[`main@fdc7a8f`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/fdc7a8f3d7b270b2475300d140f264212b467b0a).
+Le [lot 4](fiches/04-atelier-projets.md#reprendre-après-une-interruption)
+termine les publications interrompues et arrête les corrections
+inchangées. Après intégration, reprendre la recette C03 de bout en bout.
 
 
 ### Programme restant

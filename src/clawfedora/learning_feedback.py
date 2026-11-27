@@ -163,7 +163,7 @@ def review_submission(
             outputs=outputs,
             summary="Travail reçu et relu; audits globaux requis.",
         )
-        checkpoint["status"] = "REVIEWED"
+        checkpoint = read_json(checkpoint_path(project, task_id))
     else:
         checkpoint["status"] = "AWAITING_PRACTICE"
         assignments = read_json(assignments_path)
@@ -171,7 +171,7 @@ def review_submission(
             if item["task_id"] == task_id:
                 item["status"] = "AWAITING_PRACTICE"
         write_json(assignments_path, assignments)
-    write_json(checkpoint_path(project, task_id), checkpoint)
+        write_json(checkpoint_path(project, task_id), checkpoint)
     if all_tasks_pass(repo, project):
         transition_project(
             repo, project, "VALIDATING", actor="auditeur-qualite", reason="practice_feedback_complete"

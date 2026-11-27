@@ -51,6 +51,7 @@ from clawfedora.project_engine import (
     current_status,
     ready_tasks,
     record_task_result,
+    recover_task_promotion,
     transition_project,
 )
 from clawfedora.project_intake import validate_input_integrity
@@ -845,6 +846,37 @@ def _editorial_revision(
     return response, receipts_before, report
 
 
+class _NoProgress(ValueError):
+    """A checked correction returned to the approved baseline."""
+
+
+def _await_validation(repo_root: Path, runtime: Path, project: Path) -> bool:
+    if not all_tasks_pass(repo_root, project):
+        return False
+    clear_pause(runtime, project)
+    transition_project(
+        repo_root, project, "VALIDATING", actor="auditeur-qualite",
+        reason="worker_artifacts_collected_semantic_review_pending",
+    )
+    write_progress(runtime, project, "awaiting_validation")
+    return True
+
+
+def _write_task_failure(
+    repo_root: Path, runtime: Path, project: Path, result: dict[str, Any], *, session: str = "",
+) -> None:
+    task_id = result["task_id"]
+    assignments = read_json(project / "context/task_assignments.json")["tasks"]
+    current = next(item for item in assignments if item["task_id"] == task_id)
+    limits = core_contract(repo_root, "orchestration_policy.yaml")["execution"]
+    attempts = int(current["attempts"]) - int(current.get("revision_attempt_base", 0))
+    blocked = result.get("failure_code") == "no_progress" or (
+        attempts >= int(limits["max_task_attempts"])
+    )
+    write_progress(runtime, project, "blocked_local" if blocked else "failed",
+                   task=task_id, role=result["agent"], session=session)
+
+
 def run_project_tasks(
     repo_root: Path,
     runtime: Path,
@@ -858,6 +890,22 @@ def run_project_tasks(
     with worker_lock(runtime):
         if current_status(project) not in {"ASSIGNED", "IN_PROGRESS"}:
             raise ValueError("worker: projet ASSIGNED ou IN_PROGRESS requis")
+        if (
+            current_status(project) == "IN_PROGRESS" and (resume or not is_paused(runtime, project))
+            and (recovered := recover_task_promotion(repo_root, project))
+        ):
+            result, guided = recovered
+            results.append(result)
+            if resume:
+                clear_pause(runtime, project)
+            if result["status"] == "FAIL":
+                _write_task_failure(repo_root, runtime, project, result)
+                return results
+            if _await_validation(repo_root, runtime, project):
+                return results
+            if guided:
+                write_progress(runtime, project, "feedback_ready", task=result["task_id"])
+                return results
         if feedback := pending_feedback(project):
             from clawfedora.learning_feedback import review_submission
 
@@ -890,6 +938,8 @@ def run_project_tasks(
             )
         if current_status(project) != "IN_PROGRESS":
             raise ValueError("worker: projet ASSIGNED ou IN_PROGRESS requis")
+        if _await_validation(repo_root, runtime, project) or not ready_tasks(repo_root, project):
+            return results
         # A project approved for the cloud does not need Ollama to start; a project without
         # approval is verified exactly as before.
         previous_model: str | None = None
@@ -1048,6 +1098,7 @@ def run_project_tasks(
                 invoke.escalation_reason = (
                     "approved_revision" if assignment.get("revision_reason") else "routine"
                 )
+            no_progress = False
             try:
                 from clawfedora import editorial_graphics as eg
 
@@ -1087,7 +1138,7 @@ def run_project_tasks(
                 if graphic_profile:
                     eg.verify_refs(task, graphic_profile, response)
                 _resolve_tool_files(workspace, receipts_before, task, response, scope=scope)
-                _collection_targets(repo_root, project, task, response)
+                validated = _collection_targets(repo_root, project, task, response)
                 editorial_receipts: list[str] = []
                 if ec.requested(task) and task_mode(project, task) == "direct":
                     ec.validate_task(task)
@@ -1098,9 +1149,25 @@ def run_project_tasks(
                     evidence = project / "evidence" / task_id / f"editorial-cycle-{session}.json"
                     write_json(evidence, report)
                     central_guard = _guard(project)
+                    if report["state"] == "NO_PROGRESS":
+                        raise _NoProgress("revue éditoriale : NO_PROGRESS")
                     if report["state"] != "MODEL_REVIEW_PASSED":
                         raise ValueError(f"revue éditoriale : {report['state']}")
                     editorial_receipts.append(evidence.relative_to(project).as_posix())
+                    validated = _collection_targets(repo_root, project, task, response)
+                if correction_hint and task_mode(project, task) == "direct":
+                    archived = read_json(snapshot / "context/audit-correction.json")
+                    baseline = {item["path"]: item["sha256"] for item in archived["previous_outputs"]}
+                    authored = {
+                        target.relative_to(project).as_posix(): hashlib.sha256(content).hexdigest()
+                        for target, content in validated
+                        if target.relative_to(project).parts[0] != "evidence"
+                        and target.suffix.lower() not in {".pdf", ".docx", ".odt"}
+                    }
+                    if authored and all(
+                        baseline.get(path) == digest for path, digest in authored.items()
+                    ):
+                        raise _NoProgress("correction inchangée par rapport aux sorties auditées")
                 receipts = _collect_tool_receipts(
                     workspace, receipts_before, project, task_id, scope=scope,
                     runtime=runtime, notion_binding=notion_binding,
@@ -1143,6 +1210,7 @@ def run_project_tasks(
                         "Workspace Guard: projet central modifié; intervention requise"
                     ) from exc
                 outputs, status, summary = [], "FAIL", str(exc)
+                no_progress = isinstance(exc, _NoProgress)
             results.append(
                 record_task_result(
                     repo_root,
@@ -1152,6 +1220,7 @@ def run_project_tasks(
                     status=status,
                     outputs=outputs,
                     summary=summary,
+                    no_progress=no_progress,
                 )
             )
             if status == "PASS":
@@ -1160,27 +1229,9 @@ def run_project_tasks(
                     "local_primary"
                 ]
             if status == "FAIL":
-                assignments = read_json(project / "context/task_assignments.json")["tasks"]
-                current = next(item for item in assignments if item["task_id"] == task_id)
-                limits = core_contract(repo_root, "orchestration_policy.yaml")["execution"]
-                attempts = int(current["attempts"]) - int(
-                    current.get("revision_attempt_base", 0)
-                )
-                phase = "blocked_local" if attempts >= int(limits["max_task_attempts"]) else "failed"
-                write_progress(runtime, project, phase, task=task_id, role=role, session=session)
+                _write_task_failure(repo_root, runtime, project, results[-1], session=session)
                 break
-        if all_tasks_pass(repo_root, project):
-            # No task remains; validation is a separate, explicit operator action.
-            clear_pause(runtime, project)
-            transition_project(
-                repo_root,
-                project,
-                "VALIDATING",
-                actor="auditeur-qualite",
-                reason="worker_artifacts_collected_semantic_review_pending",
-            )
-            write_progress(runtime, project, "awaiting_validation")
-        elif is_paused(runtime, project):
+        if not _await_validation(repo_root, runtime, project) and is_paused(runtime, project):
             write_progress(runtime, project, "paused")
     return results
 

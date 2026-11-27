@@ -17,7 +17,7 @@ from clawfedora.project_common import (
     validate_task_id,
     write_json,
 )
-from clawfedora.project_engine import audited_inventory, current_status
+from clawfedora.project_engine import TASK_PROMOTION_PATH, audited_inventory, current_status
 from clawfedora.project_intake import validate_input_integrity
 
 _AUDIT_REPORTS = {
@@ -179,6 +179,8 @@ def revise(
     }:
         raise ValueError("un projet exécuté est requis pour une modification")
     assert_no_symlinks(project, label="révision")
+    if (project / TASK_PROMOTION_PATH).exists():
+        raise ValueError("terminer la publication interrompue avant d’approuver une nouvelle reprise")
     if validate_input_integrity(project):
         raise ValueError("intégrité des sources invalide")
     task_id = validate_task_id(task_id)
@@ -284,6 +286,7 @@ def revise(
         for item in assignments["tasks"]:
             if item["task_id"] in affected:
                 item.pop("audit_correction_sha256", None)
+                item.pop("failure_code", None)
                 if correction is not None and item["task_id"] == task_id:
                     item["audit_correction_sha256"] = entry["audit_correction_sha256"]
                 item.update(
