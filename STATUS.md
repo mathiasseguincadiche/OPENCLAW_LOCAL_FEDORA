@@ -4,6 +4,14 @@
 
 **Migration locale Qwen + Ornith intégrée depuis la PR #240 (22 novembre 2026).** Qwen 3.5 9B est conservé pour six agents ; Ornith 1.5 9B est ajouté pour l'ingénieur DevOps. Les routes cloud OpenRouter sont retirées de la configuration active et une procédure explicite permet de supprimer les anciennes clés locales. **La réception Fedora et l'autonomie agentique restent à réaliser.** Voir [l'architecture locale](docs/ARCHITECTURE_LOCALE_QWEN_ORNITH.md).
 
+## Programme de consolidation
+
+La [feuille de route de l'Atelier Premium](docs/NOTION_PREMIUM_AGENT_TOOLS.md#feuille-de-route-et-reprise)
+relie les lots aux preuves et indique le point de reprise.
+La [recette globale](docs/RECETTE_GLOBALE.md) décrit les trois modèles actifs
+pour la première installation. Les sections du cycle Qwen–Ornith ci-dessous
+documentent les étapes précédentes.
+
 ## Référence du cycle InfraOps du 24 novembre 2026
 
 Les PR #264 à #269 sont fusionnées. Le commit testé de la

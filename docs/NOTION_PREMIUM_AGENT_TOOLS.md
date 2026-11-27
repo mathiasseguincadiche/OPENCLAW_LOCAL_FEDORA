@@ -1,4 +1,4 @@
-# Atelier Premium — outillage des sept agents, lot 1
+# Atelier Premium — outillage des agents et feuille de route
 
 ## Décision
 
@@ -25,16 +25,59 @@ Les outils sont enregistrés dans le manifeste natif, filtrés par rôle dans Ja
 
 Importer la source Notion par le mécanisme existant, puis inventorier la version autorisée, lire les passages et proposer un plan de rationalisation. Le rédacteur prépare une spécification, l'architecte vérifie les espaces et l'auditeur la relit indépendamment. Utiliser le cycle éditorial borné déjà disponible et le studio opérateur avec approbation exacte. Aucune écriture, suppression ou validation d'autonomie par ces outils.
 
-## Suite du programme
+## Feuille de route et reprise
 
-1. Inventaire natif récursif complet du wiki autorisé (blocs, bases, relations, vues, médias, permissions accessibles), conservation et limites explicites.
-2. Plans d'évolution ciblés et relecture après application : dédoublonnage sémantique, archives, modification structurelle et cohérence GitHub/Notion ; validation par opérateur.
-3. Intégration du studio et des plans dans le worker et l'interface, contrôle de portée et preuves, revue multi-rôles.
-4. Browser Use via session Playwright isolée : observation d'abord, actions bornées et consentement.
-5. Computer Use Fedora Wayland : étude de compatibilité, session XDG Desktop Portal/PipeWire/libei à consentement révocable, observation Qwen Vision, actions contrôlées sans accès root. Pas de saisie de secret, pas de contrôle du bureau personnel permanent.
-6. Recette synthétique Atlas puis essais natifs Fedora. Aucun changement sur OpsDesk par ce chantier.
+**Programme de consolidation v1.** ClawFedora accompagne l'apprentissage
+InfraOps avec une interface native, OpenClaw et les trois modèles locaux
+Qwen, Ornith et Gemma. Les choix actifs sont dans
+[`model_routing.yaml`](../config/core/model_routing.yaml). Les preuves CI
+s'attachent à un SHA. La recette matérielle reste soumise à la décision de
+l'opérateur.
 
-**État : premier lot local de préparation, intégration distante et contrôle PC non livrés.**
+### C01 — Audit documentaire avancé dans Notion
 
+| Lot | Livraison ou critère de clôture |
+| --- | --- |
+| 1. Outillage Premium | Inventaire Markdown et contrôle du studio par rôle livrés. [PR #298](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/298). |
+| 2. Inventaire natif | Capture opérateur en lecture seule avec pagination, portée, empreintes et limites. [PR #299](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/299). |
+| 3. Comparaison | [Comparateur hors ligne et rapport privé](NOTION_NATIVE_INVENTORY.md). Revue et CI de la PR de ce lot avant fusion. |
+| 4. Doublons | Qualifier les doublons exacts, sémantiques, fonctionnels, de navigation et d'organisation. Conserver les répétitions utiles, archives et blocs synchronisés. |
+| 5. Liens et références | Contrôler les destinations et distinguer référence cassée, accès restreint, lien temporaire et destination non vérifiable. |
+| 6. Sources de vérité | Localiser les références et relever les copies divergentes selon le projet. |
+| 7. Plans de rationalisation | Relier chaque action proposée à une preuve, un emplacement, un impact, une approbation et un contrôle de retour arrière. |
+| 8. Intégration au worker | Réutiliser les rôles, les écritures contrôlées, les approbations et l'audit indépendant. |
+| 9. Non-régression | Comparer l'état relu après modification et vérifier les changements attendus, les contenus protégés et la navigation. |
+| 10. Recette | Vérifier la couverture et les limites sur Atlas ou un wiki synthétique équivalent. Documenter les anomalies, preuves et verdicts. |
 
-[Inventaire natif récursif en lecture seule — lot 2](NOTION_NATIVE_INVENTORY.md).
+**Référence avant le lot 3** — `main` à
+[`0c37f30`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/0c37f30d6134245883aff3607c338a67d788b3c2).
+[CI](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45936205872) et
+[CodeQL](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/actions/runs/45936205985) réussis sur ce SHA.
+
+**Reprise après le lot 3** — Vérifier la fusion et la CI du SHA de `main`.
+Ouvrir ensuite le lot 4 avec les empreintes du comparateur et les signaux
+existants de l'inventaire Markdown. Commencer par des fixtures Atlas qui
+contiennent des doublons exacts, des rappels pédagogiques et des copies
+synchronisées. Un signal de duplication demande une revue humaine avant
+toute proposition de modification.
+
+### Programme restant
+
+| Chantier | Critère de clôture |
+| --- | --- |
+| C02 — Audit GitHub | Vérifier la documentation et les preuves d'un dépôt à une révision identifiée. Préparer les corrections sous revue. |
+| C03 — Orchestration | Sélectionner les rôles utiles, transmettre les preuves et tester la reprise et les corrections bornées avec audit indépendant. |
+| C04 — Continuité | Reprendre une mission à partir d'objectifs, décisions et preuves datés et cloisonnés par projet. |
+| C05 — Navigateur | Tester l'observation dans une session isolée, puis des interactions bornées et approuvées. |
+| C06 — Bureau Fedora | Préparer et simuler les contrats de consentement et de contrôle Wayland. Qualification sur la session cible en C12. |
+| C07 — Interface | Consolider le pilotage des missions, livrables et validations dans les espaces existants. |
+| C08 — Résilience et sécurité | Couvrir les erreurs, interruptions, rejouements, données non fiables et conflits dans chaque lot. |
+| C09 — Documentation | Réconcilier l'état actif, le code, les preuves et les guides historiques. |
+| C10 — Recette logicielle | Exécuter la [recette globale](RECETTE_GLOBALE.md) avec des données synthétiques avant installation. |
+| C11 — Installation | Préparer et installer Fedora et ClawFedora après décision explicite de l'opérateur. |
+| C12 — Qualification réelle | Mesurer le matériel et vérifier les sept agents, les outils, les intégrations et la restauration sur le poste cible. |
+
+**Blocages et limites** — C11 et C12 sont reportés. Les limites de lecture du
+wiki figurent dans le [guide d'inventaire](NOTION_NATIVE_INVENTORY.md).
+Les tests du lot 3 utilisent des données synthétiques. Les opérations
+sensibles et les fusions passent par l'opérateur.

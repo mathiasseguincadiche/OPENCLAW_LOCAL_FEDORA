@@ -16,6 +16,8 @@ from urllib.parse import urlencode
 from clawfedora import notion_write as nw
 
 VERSION = "2026-03-11"
+ASSESSMENT = "NATIVE_STRUCTURE_CAPTURED_REVIEW_REQUIRED"
+SCHEMA = 2
 MAX_REQUESTS = 400
 MAX_OBJECTS = 2000
 MAX_DEPTH = 16
@@ -25,6 +27,19 @@ OBJECT_PATH = re.compile(rf"/v1/(pages|databases|data_sources|views)/{ID}")
 CHILD_PATH = re.compile(rf"/v1/blocks/{ID}/children")
 CURSOR = re.compile(r"[A-Za-z0-9_-]{1,200}")
 MEDIA = {"image", "file", "pdf", "audio", "video", "embed", "bookmark"}
+BASE_LIMITS = frozenset({
+    "permissions_and_sharing_not_verified",
+    "database_rows_and_progress_not_read",
+    "media_bytes_and_native_render_not_verified",
+    "non_atomic_snapshot_no_concurrent_edit",
+    "hosted_file_urls_excluded_from_fingerprints",
+    "dashboard_widgets_and_external_links_not_traversed",
+})
+OPTIONAL_LIMITS = frozenset({
+    "synced_copies_not_traversed",
+    "links_or_unsupported_blocks_not_traversed",
+})
+TRANSPORT_METADATA = {"parent", "created_time", "created_by", "last_edited_time", "last_edited_by"}
 
 
 def _get(path: str, params: dict[str, str]) -> dict[str, Any]:
@@ -115,14 +130,7 @@ class Inventory:
         self.rows: list[dict[str, Any]] = []
         self.seen: set[tuple[str, str]] = set()
         self.last_request: float | None = None
-        self.limits: set[str] = {
-            "permissions_and_sharing_not_verified",
-            "database_rows_and_progress_not_read",
-            "media_bytes_and_native_render_not_verified",
-            "non_atomic_snapshot_no_concurrent_edit",
-            "hosted_file_urls_excluded_from_fingerprints",
-            "dashboard_widgets_and_external_links_not_traversed",
-        }
+        self.limits = set(BASE_LIMITS)
 
     def get(self, path: str, params: dict[str, str] | None = None) -> dict[str, Any]:
         if self.requests >= MAX_REQUESTS:
@@ -173,9 +181,11 @@ class Inventory:
         if obj.get("archived") is True or obj.get("in_trash") is True:
             raise nw.NotionWriteError("objet archivé rencontré : vérifier le périmètre")
         self.seen.add((category, ident))
+        stable = _stable(obj)
+        observable = {key: value for key, value in stable.items() if key not in TRANSPORT_METADATA}
         self.rows.append({
             "category": category, "id": ident, "parent_id": parent, "position": position,
-            "sha256": nw._digest(_stable(obj)), **metadata,
+            "sha256": nw._digest(stable), "observable_sha256": nw._digest(observable), **metadata,
         })
 
     def object(self, category: str, ident: str) -> dict[str, Any]:
@@ -246,7 +256,7 @@ class Inventory:
                     raise nw.NotionWriteError("propriété non vérifiable")
                 kinds[prop["type"]] += 1
             self.record("data_source", source_id, source, ident, None,
-                        property_types=dict(kinds))
+                        property_types=dict(kinds), properties_sha256=nw._digest(_stable(properties)))
         for position, ref in enumerate(self.list_items("/v1/views", {"database_id": ident})):
             view_id = _identifier(ref.get("id"))
             view = self.object("view", view_id)
@@ -264,8 +274,8 @@ def capture(root: str) -> dict[str, Any]:
     inventory = Inventory()
     inventory.page(root, None, 0)
     body: dict[str, Any] = {
-        "schema": 1, "classification": "private_local_only",
-        "assessment": "NATIVE_STRUCTURE_CAPTURED_REVIEW_REQUIRED",
+        "schema": SCHEMA, "classification": "private_local_only",
+        "assessment": ASSESSMENT,
         "root_page": root, "api_version": VERSION,
         "captured_at": datetime.now(UTC).isoformat(),
         "objects": inventory.rows,
@@ -275,6 +285,7 @@ def capture(root: str) -> dict[str, Any]:
         "remote_write": False, "native_render_verified": False,
     }
     body["structure_sha256"] = nw._digest(body["objects"])
+    body["inventory_sha256"] = nw._digest(body)
     return body
 
 

@@ -1,4 +1,4 @@
-# Inventaire natif du wiki Notion — lot 2
+# Inventaire et comparaison du wiki Notion — lots 2 et 3
 
 [Outillage Premium des agents](NOTION_PREMIUM_AGENT_TOOLS.md) · [Studio Notion](NOTION_STUDIO.md)
 
@@ -43,10 +43,55 @@ Le module n'est pas une capacité distante autonome du modèle.
   éditer simultanément. Les droits de partage réels, progression, lignes de
   bases, widgets, médias et rendu ne sont pas certifiés.
 
-Les tests utilisent une API simulée, incluant pagination, refus hors périmètre,
-structure relationnelle et conservation privée. Qualification sur Atlas à faire.
-Le prochain lot devra comparer deux états, relier les passages Markdown et
-proposer une rationalisation non destructive, puis intégrer le plan au worker.
+## Comparer deux captures hors ligne
+
+Après avoir réalisé deux captures de la même page racine à des moments différents :
+
+```bash
+python -m clawfedora.notion_inventory_diff --page ID_WIKI \
+  --before "$HOME/.local/state/clawfedora-notion/avant.json" \
+  --after "$HOME/.local/state/clawfedora-notion/apres.json" \
+  --output "$HOME/.local/state/clawfedora-notion/diff.json"
+```
+
+Renseigner les captures dans l'ordre chronologique. La commande utilise des
+fichiers privés en environnement POSIX et écrit un fichier neuf en mode
+`0600`, hors Git. Elle n'appelle ni Notion ni le worker. Le terminal affiche
+uniquement le statut. Conserver le JSON en local car ses identifiants de pages
+et de blocs restent privés.
+
+| Champ | Interprétation |
+| --- | --- |
+| `added` / `absent` | Objets présents dans une seule capture du périmètre autorisé. Une absence peut provenir d'un déplacement hors périmètre ou d'un changement d'accès. |
+| `modified.structure` | Parent ou position absolue modifiés. Une insertion peut décaler les positions sans réordonner les autres objets. |
+| `reordered` | Ordre relatif modifié entre objets présents dans les deux captures sous le même parent. |
+| `modified.fingerprints` | Variation du hash d'objet, du contenu observable, du texte normalisé ou du schéma de propriétés. |
+| `modified.metadata_changed` | Indicateurs modifiés, dont types de propriétés, type de vue ou nombre de tris. |
+
+Une page ou base enfant apparaît à la fois comme objet et comme bloc dans son
+parent. Les deux entrées permettent de suivre ses métadonnées et sa place dans
+la navigation. Une modification de parent ou de métadonnées d'édition peut
+faire varier le hash d'objet `sha256`. Le schéma 2 ajoute
+`observable_sha256`, qui en exclut le parent et les métadonnées d'édition,
+ainsi que `properties_sha256` pour le schéma observable d'une source de données.
+L'empreinte d'une vue varie si sa configuration observable change, même
+quand le nombre de tris et la présence d'un filtre restent identiques.
+
+Deux captures historiques du schéma 1 restent comparables avec leurs
+empreintes d'origine et leurs indicateurs. Une paire de schémas 1 et 2 est
+refusée. Pour les contrôles futurs, établir une nouvelle référence au schéma 2.
+Le comparateur contrôle la structure, les totaux, les positions et les parents.
+Le schéma 2 ajoute une empreinte de l'inventaire entier. Ces empreintes
+recalculées contrôlent la cohérence des fichiers, sans authentifier leur
+origine ni garantir les données que l'API ne montre pas.
+
+Le rapport exige une revue humaine. Il conserve les limites de chaque capture.
+Le lecteur doit vérifier les disparitions dans Notion avant d'en déduire une
+suppression. Les empreintes ne contiennent pas de copie du texte, des lignes
+de bases ni des fichiers, et ne permettent aucune restauration. Les tests
+utilisent des réponses API synthétiques. La recette Atlas et la qualification
+sur Fedora sont à réaliser.
+
 
 Références officielles : [blocs enfants](https://developers.notion.com/reference/get-block-children),
 [liste de vues](https://developers.notion.com/reference/list-views),
