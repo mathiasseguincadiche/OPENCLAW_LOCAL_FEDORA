@@ -127,11 +127,15 @@ porte sur l'observation dans un navigateur isolé. [PR #324](https://github.com/
 Le [lot 1](NAVIGATEUR_ISOLE.md) réutilise Playwright pour examiner le HTML
 public de documentations officielles. Chromium restitue le document dans
 un contexte temporaire hors réseau. Le rapport associe les observations
-du DOM et les captures à l'empreinte du HTML reçu.
+du DOM et les captures à l'empreinte du HTML reçu. [PR #325](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/325)
 
-Le lot suivant abordera l'observation des panneaux dynamiques dans une
-session confinée. Les interactions et l'intégration aux agents suivront
-leur propre validation.
+Le [lot 2](NAVIGATEUR_ISOLE.md#observer-un-panneau-de-clawfedora) capture
+les rendus dynamiques des panneaux locaux en lecture seule. Le chargement
+des interfaces et le périmètre réseau sont testés en CI avec des données
+synthétiques.
+
+Le lot suivant couvrira la préparation et l'approbation d'interactions
+bornées dans un environnement de recette.
 
 ### Programme restant
 
