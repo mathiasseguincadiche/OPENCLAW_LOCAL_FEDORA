@@ -137,10 +137,15 @@ synthétiques. [PR #326](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_
 Le [lot 3](NAVIGATEUR_ISOLE.md#répéter-un-clic-approuvé-dans-chromium)
 introduit une préparation privée et une approbation à usage unique
 pour une interaction de recette. Chromium vérifie les états du DOM
-avant et après le clic et enregistre les captures associées.
+avant et après le clic et enregistre les captures associées. [PR #327](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/327)
 
-Le lot suivant étendra la recette aux contrôles de navigation et aux
-refus d'interaction avant l'intégration aux rôles.
+Le [lot 4](NAVIGATEUR_ISOLE.md#vérifier-une-navigation-autorisée) ajoute
+la navigation entre deux pages de recette approuvées. Elle est admise
+une fois par adresse dans l'onglet choisi. La CI exerce les refus de
+destination, d'onglet et de rejeu de navigation.
+
+Le lot suivant préparera l'accès à la recette pour les rôles autorisés
+et la remise de la décision d'exécution à l'opérateur.
 
 ### Programme restant
 

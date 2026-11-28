@@ -95,8 +95,8 @@ Fedora reste à faire.
 ## Répéter un clic approuvé dans Chromium
 
 Le mode de recette utilise une page synthétique incluse dans ClawFedora.
-L'action prévue ouvre le volet **Afficher les détails**. La commande de
-préparation crée un plan privé pour cette action et affiche une empreinte
+Le scénario par défaut ouvre le volet **Afficher les détails**. La commande
+de préparation crée un plan privé pour cette action et affiche une empreinte
 valable 15 minutes.
 
 ~~~bash
@@ -126,3 +126,26 @@ présence d'`attempt.json` sans reçu final signale une tentative interrompue.
 
 La CI exerce l'action et ses refus avec Chromium et des données
 synthétiques. Cette étape qualifie la recette locale du navigateur.
+
+
+### Vérifier une navigation autorisée
+
+Préparez le scénario `navigation` pour suivre le lien **Lire le rapport**.
+
+~~~bash
+clawfedora browser-rehearsal preview \
+  --scenario navigation \
+  --output-dir "$HOME/clawfedora-observations"
+~~~
+
+La commande `apply` utilise le nouveau dossier et sa propre empreinte.
+Le plan cite l'adresse et le titre attendus au départ et à l'arrivée,
+ainsi que l'empreinte des deux pages synthétiques. Chromium ouvre l'accueil,
+vérifie le lien, puis charge le rapport dans le même onglet. Chaque document
+est fourni une fois depuis la mémoire du processus.
+
+Le reçu conserve l'adresse et le titre observés dans chaque état, les deux
+captures et le compteur des requêtes refusées. Le périmètre accepte les
+deux navigations prévues avec la méthode GET, dans l'onglet choisi et dans
+l'ordre indiqué. La recette contrôle aussi les refus d'un autre chemin,
+d'un onglet différent, d'un lien modifié et d'un rechargement après usage.
