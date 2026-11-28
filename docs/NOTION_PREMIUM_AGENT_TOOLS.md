@@ -92,15 +92,18 @@ Le [lot 3](fiches/04-atelier-projets.md#reprendre-un-écart-daudit)
 est intégré à
 [`main@fdc7a8f`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/fdc7a8f3d7b270b2475300d140f264212b467b0a).
 Le [lot 4](fiches/04-atelier-projets.md#reprendre-après-une-interruption)
-termine les publications interrompues et arrête les corrections
-inchangées. Après intégration, reprendre la recette C03 de bout en bout.
+est intégré à
+[`main@6f2338f`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/6f2338f1a69fbd4b9992e4ee3921a69421f0c815).
+La [recette synthétique Atlas](validation/ORCHESTRATION_ACCEPTANCE.md)
+clôt le périmètre logiciel C03. La CI vérifie l'enchaînement des quatre
+lots et publie le rapport lié au commit testé. Le chantier C04 reprend
+la continuité des projets et des missions.
 
 
 ### Programme restant
 
 | Chantier | Critère de clôture |
 | --- | --- |
-| C03 — Orchestration | Sélectionner les rôles utiles, transmettre les preuves et tester la reprise et les corrections bornées avec audit indépendant. |
 | C04 — Continuité | Reprendre une mission à partir d'objectifs, décisions et preuves datés et cloisonnés par projet. |
 | C05 — Navigateur | Tester l'observation dans une session isolée, puis des interactions bornées et approuvées. |
 | C06 — Bureau Fedora | Préparer et simuler les contrats de consentement et de contrôle Wayland. Qualification sur la session cible en C12. |

@@ -47,6 +47,7 @@ jobs:
           CLAWFEDORA_REQUIRE_NODE: "1"
           NOTION_ATLAS_EVIDENCE: ${{ runner.temp }}/notion-atlas-c01.json
           GITHUB_DOCUMENTARY_ACCEPTANCE_EVIDENCE: ${{ runner.temp }}/github-documentary-c02.json
+          CLAWFEDORA_ORCHESTRATION_ACCEPTANCE_EVIDENCE: ${{ runner.temp }}/orchestration-c03.json
         run: pytest -q --cov=clawfedora --cov-report=term-missing --cov-fail-under=80
       - name: Save synthetic Notion Atlas acceptance
         if: always()
@@ -57,27 +58,41 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
-      - name: Check synthetic GitHub documentary acceptance
+      - name: Check synthetic Atlas acceptance evidence
         env:
           GITHUB_DOCUMENTARY_ACCEPTANCE_EVIDENCE: ${{ runner.temp }}/github-documentary-c02.json
+          CLAWFEDORA_ORCHESTRATION_ACCEPTANCE_EVIDENCE: ${{ runner.temp }}/orchestration-c03.json
         run: |
           python - <<'PY'
           import json
           import os
           from pathlib import Path
           from clawfedora.notion_write import _digest
-          path = Path(os.environ["GITHUB_DOCUMENTARY_ACCEPTANCE_EVIDENCE"])
-          report = json.loads(path.read_text(encoding="utf-8"))
-          digest = report.pop("report_sha256")
-          assert _digest(report) == digest and report["tested_commit"] == os.environ["GITHUB_SHA"]
-          assert report["campaign_verdict"] == "CONFORME" and len(report["cases"]) == 7
-          print(f'ATLAS_C02=PASS commit={report["tested_commit"]} cases=7 sha256={digest}')
+          cases = (
+              ("GITHUB_DOCUMENTARY_ACCEPTANCE_EVIDENCE", "ATLAS_C02", 7),
+              ("CLAWFEDORA_ORCHESTRATION_ACCEPTANCE_EVIDENCE", "ATLAS_C03", 6),
+          )
+          for variable, label, count in cases:
+              path = Path(os.environ[variable])
+              report = json.loads(path.read_text(encoding="utf-8"))
+              digest = report.pop("report_sha256")
+              assert _digest(report) == digest and report["tested_commit"] == os.environ["GITHUB_SHA"]
+              assert report["campaign_verdict"] == "CONFORME" and len(report["cases"]) == count
+              print(f'{label}=PASS commit={report["tested_commit"]} cases={count} sha256={digest}')
           PY
       - name: Save synthetic GitHub documentary acceptance
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: github-documentary-c02-synthetic
           path: ${{ runner.temp }}/github-documentary-c02.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Save synthetic orchestration acceptance
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: orchestration-c03-synthetic
+          path: ${{ runner.temp }}/orchestration-c03.json
           if-no-files-found: error
           retention-days: 7
 
