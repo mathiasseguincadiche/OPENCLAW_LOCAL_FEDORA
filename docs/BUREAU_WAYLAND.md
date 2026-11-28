@@ -52,3 +52,21 @@ l'autorisation interactive sur ses appels de lecture.
 comprend l'API EIS. Le résultat conserve `qualification: PENDING`.
 La recette CI utilise des réponses D-Bus simulées. La fenêtre réelle, le
 dialogue de consentement et le flux PipeWire feront partie de C12.
+
+
+## Vérifier la simulation à partir du portail
+
+~~~bash
+clawfedora desktop-rehearsal --mode pointer --require-portal
+~~~
+
+Le mode observation demande la capacité de capture de fenêtre. Le mode
+pointeur demande aussi le périphérique pointeur et une version qui annonce
+l'API EIS. Le contrôle porte sur les capacités publiées par le portail.
+Une fois ce contrôle passé, les actions de la recette utilisent la fenêtre
+fictive et le résultat conserve la portée `SYNTHETIC_NO_COMPOSITOR`.
+
+Le job qualité publie `desktop-c06-synthetic`, un rapport associé au SHA
+Git testé. Il couvre l'observation, le refus du pointeur ou d'une version
+sans API EIS, l'action approuvée et la fermeture de la session par un
+événement simulé du portail. La qualification GNOME reste en C12.

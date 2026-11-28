@@ -49,6 +49,7 @@ jobs:
           GITHUB_DOCUMENTARY_ACCEPTANCE_EVIDENCE: ${{ runner.temp }}/github-documentary-c02.json
           CLAWFEDORA_ORCHESTRATION_ACCEPTANCE_EVIDENCE: ${{ runner.temp }}/orchestration-c03.json
           CLAWFEDORA_CONTINUITY_ACCEPTANCE_EVIDENCE: ${{ runner.temp }}/continuity-c04.json
+          CLAWFEDORA_DESKTOP_ACCEPTANCE_EVIDENCE: ${{ runner.temp }}/desktop-c06.json
         run: pytest -q --cov=clawfedora --cov-report=term-missing --cov-fail-under=80
       - name: Save synthetic Notion Atlas acceptance
         if: always()
@@ -64,6 +65,7 @@ jobs:
           GITHUB_DOCUMENTARY_ACCEPTANCE_EVIDENCE: ${{ runner.temp }}/github-documentary-c02.json
           CLAWFEDORA_ORCHESTRATION_ACCEPTANCE_EVIDENCE: ${{ runner.temp }}/orchestration-c03.json
           CLAWFEDORA_CONTINUITY_ACCEPTANCE_EVIDENCE: ${{ runner.temp }}/continuity-c04.json
+          CLAWFEDORA_DESKTOP_ACCEPTANCE_EVIDENCE: ${{ runner.temp }}/desktop-c06.json
         run: |
           python - <<'PY'
           import json
@@ -74,6 +76,7 @@ jobs:
               ("GITHUB_DOCUMENTARY_ACCEPTANCE_EVIDENCE", "ATLAS_C02", 7),
               ("CLAWFEDORA_ORCHESTRATION_ACCEPTANCE_EVIDENCE", "ATLAS_C03", 6),
               ("CLAWFEDORA_CONTINUITY_ACCEPTANCE_EVIDENCE", "ATLAS_C04", 6),
+              ("CLAWFEDORA_DESKTOP_ACCEPTANCE_EVIDENCE", "ATLAS_C06", 5),
           )
           for variable, label, count in cases:
               path = Path(os.environ[variable])
@@ -104,6 +107,14 @@ jobs:
         with:
           name: continuity-c04-synthetic
           path: ${{ runner.temp }}/continuity-c04.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Save synthetic desktop acceptance
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: desktop-c06-synthetic
+          path: ${{ runner.temp }}/desktop-c06.json
           if-no-files-found: error
           retention-days: 7
 
