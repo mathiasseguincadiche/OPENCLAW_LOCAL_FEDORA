@@ -45,7 +45,7 @@ with tempfile.TemporaryDirectory(prefix="clawfedora-native-tools-") as temporary
         + """
 const registry=await loadOpenClawPlugins({config,onlyPluginIds:['clawfedora-toolkit'],
  activate:false,cache:false,throwOnLoadError:true});
-if(registry.tools.length!==17) throw new Error('Native tool registration incomplete');
+if(registry.tools.length!==18) throw new Error('Native tool registration incomplete');
 for (const [name,role,params] of [
  ['clawfedora_artifact','redacteur-pedagogique',{format:'markdown',
   content:'# Guide\\n\\nUne étape.\\n',
@@ -81,6 +81,28 @@ for (const [name,role,params] of [
  }
  console.log('NATIVE_TOOL=PASS name='+name);
 }
+const browserProposal=registry.tools.find(x=>x.names.includes('clawfedora_browser_proposal'));
+if(!browserProposal) throw new Error('Browser proposal unavailable');
+for (const role of ['ingenieur-devops','auditeur-qualite']) {
+ const tool=browserProposal.factory({agentId:role,workspaceDir:runtime+'/workspaces/'+role});
+ if(!tool) throw new Error('Browser proposal missing for '+role);
+ const result=await tool.execute('verification',{scenario:'navigation'});
+ const value=JSON.parse(result.content[0].text);
+ if(value.status!=='PROPOSED' || value.operator_approval_required!==true ||
+    !/^[a-f0-9]{64}$/.test(value.proposal_sha256) ||
+    'session' in value || 'approval_sha256' in value)
+  throw new Error('Browser proposal escaped its read-only handoff');
+ try {
+  await tool.execute('verification',{scenario:'navigation',url:'https://outside.invalid/'});
+  throw new Error('Browser proposal accepted an unauthorized URL');
+ } catch(error) {
+  if(!String(error).includes('seul le nom')) throw error;
+ }
+ console.log('NATIVE_BROWSER_PROPOSAL=PASS role='+role);
+}
+if(browserProposal.factory({agentId:'chef-operations',
+ workspaceDir:runtime+'/workspaces/chef-operations'})!==null)
+ throw new Error('Browser proposal exposed to an unauthorized role');
 const studio=registry.tools.find(x=>x.names.includes('clawfedora_notion_studio_check'));
 if(!studio?.factory({agentId:'redacteur-pedagogique',
  workspaceDir:runtime+'/workspaces/redacteur-pedagogique'}))

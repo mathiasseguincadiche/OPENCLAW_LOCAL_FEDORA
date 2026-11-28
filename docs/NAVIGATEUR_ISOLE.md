@@ -149,3 +149,30 @@ captures et le compteur des requêtes refusées. Le périmètre accepte les
 deux navigations prévues avec la méthode GET, dans l'onglet choisi et dans
 l'ordre indiqué. La recette contrôle aussi les refus d'un autre chemin,
 d'un onglet différent, d'un lien modifié et d'un rechargement après usage.
+
+
+### Reprendre la proposition d’un rôle
+
+L'ingénieur DevOps et l'auditeur qualité peuvent appeler
+`clawfedora_browser_proposal` avec le scénario `details` ou `navigation`.
+Le résultat `PROPOSED` décrit l'action, les états attendus et l'empreinte
+`proposal_sha256`. Il correspond à une proposition en lecture seule.
+
+Pour vérifier cette proposition et créer votre plan de recette, reportez
+son scénario et son empreinte dans la commande suivante.
+
+~~~bash
+clawfedora browser-rehearsal preview \
+  --scenario navigation \
+  --proposal-sha256 "EMPREINTE_DE_PROPOSITION" \
+  --output-dir "$HOME/clawfedora-observations"
+~~~
+
+La commande compare l'empreinte à la recette installée avant de créer
+le dossier. Après avoir relu le plan, utilisez `apply` avec sa valeur
+`approval_sha256` et son dossier `session`. Cette seconde empreinte
+autorise une exécution unique dans la session et expire après 15 minutes.
+
+Les tests du registre natif OpenClaw vérifient l'accès par rôle. Le job
+Chromium exerce la préparation vérifiée et l'exécution opérateur sur
+les deux scénarios synthétiques.
