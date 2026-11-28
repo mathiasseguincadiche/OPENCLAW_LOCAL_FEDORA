@@ -432,10 +432,10 @@ def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
             project_manifest = read_json(_project(args) / "project.json")
             print(json.dumps(project_manifest, indent=2, ensure_ascii=False))
         elif command == "continuity":
-            report = project_resume.overview(
+            continuity_report = project_resume.overview(
                 _runtime(args), _project(args), check_evidence=True, repo_root=repo_root,
             )
-            print(json.dumps(report, ensure_ascii=False, indent=2))
+            print(json.dumps(continuity_report, ensure_ascii=False, indent=2))
         elif command == "roadmap":
             print(json.dumps(roadmap_load(_project(args)), ensure_ascii=False, indent=2))
         elif command == "roadmap-init":
