@@ -13,7 +13,7 @@ d'abord la cible. Cette commande valide l'adresse et décrit les vues prévues.
 install -d -m 700 "$HOME/clawfedora-observations"
 clawfedora-visual-capture \
   --kind official-docs \
-  --url https://docs.fedoraproject.org/en-US/quick-docs/ \
+  --url https://playwright.dev/python/docs/browser-contexts \
   --output-dir "$HOME/clawfedora-observations"
 ~~~
 
@@ -36,7 +36,8 @@ suivants.
 | Playwright | `playwright.dev` |
 
 Une requête HTTPS récupère au plus 2 Mo de HTML UTF-8. Fournissez directement
-l'adresse finale si le serveur répond par une redirection. Chromium reçoit
+l'adresse finale si le serveur répond par une redirection. Un refus d'accès
+arrête l'observation. Chromium reçoit
 l'HTML en mémoire dans un nouveau contexte hors réseau, avec JavaScript et
 workers de service désactivés. Les ressources distantes et formulaires sont
 bloqués. Le rendu dépend du HTML et des styles intégrés. Les interfaces
