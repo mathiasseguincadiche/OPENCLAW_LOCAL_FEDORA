@@ -109,6 +109,8 @@ def test_cli_exposes_a_simulation_result(mode: str, capsys: pytest.CaptureFixtur
 def test_wayland_acceptance_binds_modes_and_invalidates_an_active_session(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
 ) -> None:
+    probe = desktop_portal.probe
+
     def advertised(pointer: bool, version: int = 2) -> dict[str, object]:
         def call(args: tuple[str, ...]) -> str:
             if args[3] == "GetNameOwner":
@@ -119,7 +121,7 @@ def test_wayland_acceptance_binds_modes_and_invalidates_an_active_session(
                 return f"v u {version}"
             return "v u 2" if pointer else "v u 1"
 
-        return desktop_portal.probe("wayland", call=call)
+        return probe("wayland", call=call)
 
     def command(mode: str, pointer: bool) -> tuple[int, dict[str, object]]:
         def read(_session: str | None) -> dict[str, object]:
