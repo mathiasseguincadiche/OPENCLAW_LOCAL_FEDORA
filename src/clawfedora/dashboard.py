@@ -24,6 +24,7 @@ from clawfedora import (
     notion_panel,
     performance_reports,
     project_cloud,
+    project_resume,
     project_ui,
 )
 from clawfedora.core_config import root_contract
@@ -325,6 +326,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 if url.path == "/api/project":
                     details = project_ui.details(project)
                     details["next_step"] = project_hint(self.server.runtime, project)
+                    details["execution"] = project_resume.execution_view(
+                        self.server.runtime, project, self.server.repo_root, details["manifest"],
+                    )
                     self._send(200, details)
                 else:
                     self._artifact(project, query.get("path", [""])[0])

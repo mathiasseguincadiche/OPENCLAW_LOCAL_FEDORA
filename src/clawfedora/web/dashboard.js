@@ -308,8 +308,8 @@ function field(form, label, value, multiline = false) {
   return input;
 }
 async function loadProject(id) {
+  const sequence = ++editorSequence;
   try {
-    const sequence = ++editorSequence;
     $("selected").value = openedProject || "";
     $("project-editor").hidden = true;
     tell("Ouverture du projet…");
@@ -354,6 +354,7 @@ async function loadProject(id) {
     if (data.manifest.status === "REVIEW") addAction("Lancer la relecture", "/api/audit", { kind: "review" });
     if (data.manifest.status === "PACKAGING") addAction("J’approuve la livraison finale", "/api/complete", { human_approved: true });
     updateEditorActions();
+    renderExecution(id, data.execution);
     $("artifacts").replaceChildren();
     for (const file of data.files) {
       const link = node("a", file.path + " · " + file.size + " octets");
@@ -386,7 +387,50 @@ async function loadProject(id) {
     renderMilestoneEvidence(data);
     renderGithubUpdates(data);
     renderGithubWorkPr(data);
-  } catch (error) { tell(error.message, true); }
+  } catch (error) {
+    if (sequence === editorSequence) tell(error.message, true);
+  }
+}
+function renderExecution(id, execution) {
+  const area = $("project-execution");
+  area.replaceChildren();
+  if (!execution) return;
+
+  const {mission, action_label: actionLabel, activity_labels: activityLabels, audits} = execution;
+  if (mission.status === "NOT_ASSIGNED" && !audits.length) return;
+  area.append(node("h3", "Mission et contrôles"));
+  if (mission.status === "AVAILABLE") {
+    const collected = mission.counts.COLLECTED || 0;
+    area.append(node("p", `Révision ${mission.project_revision} · ${collected}/${mission.task_count} tâches collectées`));
+    const tasks = node("ul");
+    for (const task of mission.tasks) {
+      tasks.append(node("li", `${task.title} · ${task.role} · ${activityLabels[task.activity]}`));
+    }
+    area.append(tasks);
+    if (mission.truncated) area.append(node("p", "Le plan contient les autres tâches."));
+    if (mission.pending_publication) {
+      const {task_id: task, attempt} = mission.pending_publication;
+      area.append(node("p", `Publication à terminer pour ${task} (tentative ${attempt}).`));
+    }
+  } else if (mission.status === "UNVERIFIED") {
+    area.append(node("p", actionLabel));
+  }
+
+  for (const audit of audits) {
+    const name = audit.kind === "validation" ? "Validation" : "Relecture";
+    const state = audit.status === "CURRENT"
+      ? (audit.verdict === "PASS" ? "réussie" : "en échec")
+      : (audit.status === "STALE" ? "à renouveler" : "à vérifier");
+    const date = audit.recorded_at ? " · " + audit.recorded_at.slice(0, 10) : "";
+    const row = node("p", `${name} ${state}${date}`);
+    if (audit.source) {
+      const report = node("a", "Télécharger le rapport de " + name.toLowerCase());
+      report.href = "/api/artifact?" + new URLSearchParams({project: id, path: audit.source});
+      report.download = audit.source.split("/").pop();
+      row.append(document.createTextNode(" · "), report);
+    }
+    area.append(row);
+  }
 }
 function renderGithubWorkPr(data) {
   const area = $("github-work-pr");
