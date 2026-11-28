@@ -120,8 +120,18 @@ Le [lot 4](validation/CONTINUITY_ACCEPTANCE.md) exerce la reprise d'une
 même mission dans des fils de plusieurs rôles. La CI publie un rapport
 synthétique associé au commit testé. Le chantier logiciel C04 couvre
 désormais la reprise, la provenance et la sélection du contexte. C05
-porte sur l'observation dans un navigateur isolé.
+porte sur l'observation dans un navigateur isolé. [PR #324](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/324)
 
+### C05 — Navigateur isolé
+
+Le [lot 1](NAVIGATEUR_ISOLE.md) réutilise Playwright pour examiner le HTML
+public de documentations officielles. Chromium restitue le document dans
+un contexte temporaire hors réseau. Le rapport associe les observations
+du DOM et les captures à l'empreinte du HTML reçu.
+
+Le lot suivant abordera l'observation des panneaux dynamiques dans une
+session confinée. Les interactions et l'intégration aux agents suivront
+leur propre validation.
 
 ### Programme restant
 
