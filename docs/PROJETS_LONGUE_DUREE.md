@@ -67,9 +67,11 @@ de modèle ni déclencher de tâche** :
   tentative du projet ;
 - les jalons déclarés en cours ou bloqués ;
 - les jalons planifiés dont toutes les dépendances sont déclarées réalisées ;
-- les références des dernières propositions acceptées, sans recopier leurs textes ;
-- un bilan des reçus de jalons et de ceux à requalifier, après contrôle des
-  empreintes/sources existantes ;
+- jusqu'à cinq objectifs enregistrés dans le cadrage, avec sa date ;
+- jusqu'à cinq références de décisions récemment acceptées, avec titre et date ;
+- jusqu'à cinq références de reçus de jalons, avec date, révision Git et état,
+  ainsi que le total des reçus à requalifier ;
+- la date et l'état de la validation et de la relecture enregistrées ;
 - l'état d'intégrité des sources du projet.
 
 Le rapport JSON est également disponible avec la commande suivante.
@@ -81,6 +83,13 @@ clawfedora project continuity --project-id mon-projet
 Le rapport identifie la révision et les empreintes du plan et des
 assignations. Une divergence entre ces fichiers laisse l'état de la
 mission à vérifier. Le statut du projet indique si l’audit ou la livraison reste à faire.
+
+Le JSON indique le chemin relatif et l'empreinte du cadrage, des propositions,
+des notes, des reçus de jalons et des rapports d'audit. L'affichage écarte
+les paires proposition-note divergentes et compte les références à vérifier.
+Une décision acceptée atteste l'accord de l'opérateur pour conserver la note.
+Une validation ou une relecture est à renouveler (`STALE`) si un livrable
+ou une preuve de son inventaire a changé depuis le verdict.
 
 Le récapitulatif n'invente pas de décision issue de l'ancien fil. Un échange
 non conservé dans les ADR, les notes acceptées ou les autres fichiers du

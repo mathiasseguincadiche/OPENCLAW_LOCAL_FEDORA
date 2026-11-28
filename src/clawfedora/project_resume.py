@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import re
 from collections import Counter
+from datetime import datetime
 from hashlib import sha256
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,8 @@ from clawfedora.project_intake import validate_input_integrity
 MAX_ACTIVE = 4
 MAX_READY = 4
 MAX_DECISIONS = 5
+MAX_OBJECTIVES = 5
+MAX_EVIDENCE = 5
 MAX_MISSION_TASKS = 6
 
 
@@ -78,20 +81,32 @@ def _roadmap(project: Path) -> dict[str, Any]:
         return {"status": "UNVERIFIED", "source": project_roadmap.ROADMAP_FILE}
 
 
-def _decisions(runtime: Path, project: Path) -> dict[str, Any]:
+def _timestamp(value: object) -> str | None:
+    if not isinstance(value, str) or len(value) > 40:
+        return None
     try:
-        notes = chat_proposals.accepted_notes(runtime, project, limit=MAX_DECISIONS)
-        return {
-            "status": "AVAILABLE",
-            "source": "accepted_chat_proposals",
-            "items": [
-                {"number": int(item["number"]), "title": _display(item["title"])}
-                for item in notes if type(item.get("number")) is int
-                and isinstance(item.get("title"), str)
-            ],
-        }
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        return None
+    return parsed.isoformat() if parsed.tzinfo is not None else None
+
+
+def _decisions(runtime: Path, project: Path) -> dict[str, Any]:
+    source = "accepted_chat_proposals"
+    try:
+        notes, unverified = chat_proposals.accepted_references(
+            runtime, project, limit=MAX_DECISIONS,
+        )
+        items: list[dict[str, Any]] = []
+        for item in notes:
+            date = _timestamp(item["accepted_at"])
+            if date is None:
+                unverified += 1
+                continue
+            items.append({**item, "title": _display(item["title"]), "accepted_at": date})
+        return {"status": "AVAILABLE", "source": source, "items": items, "unverified": unverified}
     except (OSError, ValueError, KeyError, TypeError):
-        return {"status": "UNVERIFIED", "source": "accepted_chat_proposals", "items": []}
+        return {"status": "UNVERIFIED", "source": source, "items": []}
 
 
 def _evidence(project: Path, roadmap_status: str) -> dict[str, Any]:
@@ -99,10 +114,33 @@ def _evidence(project: Path, roadmap_status: str) -> dict[str, Any]:
         return {"status": "NOT_VERIFIED"}
     try:
         report = milestone_evidence.report(project)
+        rows = [record for row in report["milestones"] for record in row.get("recorded", [])]
+        rows.sort(key=lambda row: (row["captured_at"], row["id"]), reverse=True)
+        references: list[dict[str, Any]] = []
+        for row in rows[:MAX_EVIDENCE]:
+            date = _timestamp(row["captured_at"])
+            milestone = validate_task_id(row["milestone_id"])
+            identifier, commit = row["id"], row["commit"]
+            kind, digest, verification = row["kind"], row["record_sha256"], row["verification"]
+            if (
+                date is None or not re.fullmatch(r"[0-9a-f]{32}", identifier)
+                or not re.fullmatch(r"[0-9a-f]{40}", commit)
+                or not milestone_evidence.HEX64.fullmatch(digest)
+                or kind not in milestone_evidence.KINDS
+                or verification not in ("NOT_VERIFIED", "CI_RUN_SUCCESS_ONLY", "REQUALIFY")
+            ):
+                raise ValueError("référence de preuve invalide")
+            references.append({
+                "id": identifier, "milestone_id": milestone, "kind": kind,
+                "captured_at": date, "commit": commit, "record_sha256": digest,
+                "source": f"{milestone_evidence.FOLDER}/{milestone}/{identifier}/record.json",
+                "verification": verification,
+            })
         return {
             "status": "CHECKED",
             "total": report["total"],
             "to_requalify": sum(row["to_requalify"] for row in report["milestones"]),
+            "references": references,
             "scope": "RECEIPTS_ONLY_NOT_SKILL_CERTIFICATION",
         }
     except (OSError, ValueError, KeyError, TypeError):
@@ -155,6 +193,65 @@ def _mission_source(path: Path) -> tuple[dict[str, Any], str]:
     if not isinstance(value, dict):
         raise ValueError("fichier de suivi invalide")
     return value, sha256(raw).hexdigest()
+
+
+def _objectives(repo_root: Path, project: Path, manifest: dict[str, Any]) -> dict[str, Any]:
+    if manifest.get("status") == "INTAKE_READY":
+        return {"status": "NOT_RECORDED"}
+    try:
+        source = project_engine._artifact(repo_root, project, "analysis")
+        if not source.is_file():
+            return {"status": "NOT_RECORDED"}
+        analysis, digest = _mission_source(source)
+        date = _timestamp(analysis.get("generated_at"))
+        rows = analysis.get("objectives")
+        if date is None or not isinstance(rows, list):
+            raise ValueError("cadrage sans date ou objectifs exploitables")
+        items = []
+        for position, row in enumerate(rows, 1):
+            value = (row.get("text") or row.get("description")) if isinstance(row, dict) else row
+            if isinstance(value, str) and (label := _display(value, 180)):
+                items.append({"position": position, "objective": label})
+        return {
+            "status": "RECORDED", "source": source.relative_to(project).as_posix(),
+            "source_sha256": digest, "recorded_at": date, "items": items[:MAX_OBJECTIVES],
+            "truncated": len(items) > MAX_OBJECTIVES,
+        }
+    except (OSError, ValueError, KeyError, TypeError):
+        return {"status": "UNVERIFIED"}
+
+
+def _audits(repo_root: Path, project: Path) -> list[dict[str, Any]]:
+    audits: list[dict[str, Any]] = []
+    for kind in ("validation", "review"):
+        try:
+            source = project_engine._artifact(repo_root, project, kind)
+            if not source.is_file():
+                continue
+            report, digest = _mission_source(source)
+            date = _timestamp(report.get("generated_at"))
+            verdict = report.get("verdict")
+            if (
+                date is None or verdict not in ("PASS", "FAIL")
+                or report.get("reviewer") != "auditeur-qualite"
+                or not isinstance(report.get("sealed_inventory"), dict)
+                or not isinstance(report.get("proof_hashes", {}), dict)
+            ):
+                raise ValueError("verdict sans provenance exploitable")
+            stale = project_engine.stale_audits(repo_root, project, (kind,))
+            if sha256_file(source) != digest:
+                raise ValueError("audit modifié pendant le contrôle")
+            session = report.get("session_id")
+            origin = "AUDITOR_SESSION" if isinstance(session, str) and session else "RECORDED_VERDICT"
+            audits.append({
+                "kind": kind, "status": "STALE" if stale else "CURRENT",
+                "source": source.relative_to(project).as_posix(), "source_sha256": digest,
+                "recorded_at": date, "verdict": verdict,
+                "origin": origin,
+            })
+        except (OSError, ValueError, KeyError, TypeError):
+            audits.append({"kind": kind, "status": "UNVERIFIED"})
+    return audits
 
 
 def _pending_publication(
@@ -315,6 +412,8 @@ def overview(
         result["milestone_evidence"] = _evidence(project, roadmap["status"])
         if repo_root is not None:
             result["mission"] = _mission(runtime, project, repo_root, manifest)
+            result["objectives"] = _objectives(repo_root, project, manifest)
+            result["audit_references"] = _audits(repo_root, project)
     else:
         result["milestone_evidence"] = {"status": "NOT_CHECKED_IN_CHAT"}
     return result
@@ -366,15 +465,24 @@ def render(report: dict[str, Any]) -> str:
                 lines.append("- Liste partielle : consulter la feuille de route complète.")
     else:
         lines.append("Feuille de route : " + roadmap["status"] + " (aucun état présumé).")
+    objectives = report.get("objectives", {})
+    if objectives.get("items"):
+        lines += ["", "**Objectifs enregistrés dans le cadrage**"]
+        lines.extend(f"- {row['objective']}" for row in objectives["items"])
+        lines.append(f"Cadrage du {objectives['recorded_at'][:10]}.")
+    elif objectives.get("status") == "UNVERIFIED":
+        lines.append("Les objectifs du cadrage restent à vérifier.")
     decisions = report["accepted_decisions"]
     if decisions["status"] == "AVAILABLE" and decisions["items"]:
         lines.append("Références de décisions acceptées (titres uniquement) :")
         lines.extend(
-            f"- Proposition acceptée #{item['number']} : {item['title']}"
+            f"- Proposition acceptée #{item['number']} · {item['accepted_at'][:10]} · {item['title']}"
             for item in decisions["items"]
         )
     elif decisions["status"] != "AVAILABLE":
         lines.append("Décisions acceptées : registre non vérifiable.")
+    if decisions.get("unverified"):
+        lines.append(f"{decisions['unverified']} référence(s) de décision restent à vérifier.")
     evidence = report.get("milestone_evidence", {})
     if evidence.get("status") == "CHECKED":
         lines.append(
@@ -383,6 +491,19 @@ def render(report: dict[str, Any]) -> str:
         )
     elif evidence.get("status") == "UNVERIFIED":
         lines.append("Reçus de jalons : contrôle indisponible, aucune preuve validée.")
+    for ref in evidence.get("references", []):
+        lines.append(
+            f"- Jalon `{ref['milestone_id']}` · {ref['captured_at'][:10]} · "
+            f"`{ref['commit'][:12]}` · {ref['verification']}"
+        )
+    for audit in report.get("audit_references", []):
+        label = "Validation" if audit["kind"] == "validation" else "Relecture"
+        if audit["status"] == "CURRENT":
+            lines.append(f"{label} du {audit['recorded_at'][:10]} · {audit['verdict']}.")
+        elif audit["status"] == "STALE":
+            lines.append(f"{label} du {audit['recorded_at'][:10]} à renouveler.")
+        else:
+            lines.append(f"{label} à vérifier.")
     lines.append(
         "Cette vue ne reprend pas l'historique d'un autre fil. Aucun agent, test, "
         "déploiement, validation ni jalon n'a été lancé ou modifié. "
