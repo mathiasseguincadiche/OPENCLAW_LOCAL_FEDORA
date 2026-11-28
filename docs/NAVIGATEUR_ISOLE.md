@@ -90,3 +90,39 @@ clair dans les trois vues.
 En CI, Chromium exerce les quatre panneaux avec le véritable serveur
 ClawFedora et des données synthétiques. La qualification sur le poste
 Fedora reste à faire.
+
+
+## Répéter un clic approuvé dans Chromium
+
+Le mode de recette utilise une page synthétique incluse dans ClawFedora.
+L'action prévue ouvre le volet **Afficher les détails**. La commande de
+préparation crée un plan privé pour cette action et affiche une empreinte
+valable 15 minutes.
+
+~~~bash
+clawfedora browser-rehearsal preview \
+  --output-dir "$HOME/clawfedora-observations"
+~~~
+
+Relisez l'action affichée. Reportez les valeurs `session` et `approval_sha256`
+du résultat dans la commande d'exécution.
+
+~~~bash
+clawfedora browser-rehearsal apply \
+  --session "/chemin/vers/le/dossier/rehearsal-IDENTIFIANT" \
+  --approve-sha256 "EMPREINTE_A_APPROUVER"
+~~~
+
+L'empreinte lie le dossier, le contenu de la page, l'action et les états
+attendus du DOM. Chromium vérifie l'état initial, effectue un clic sur
+le volet, puis vérifie l'état obtenu. La session est hors réseau et les
+téléchargements sont désactivés.
+
+Le dossier contient `plan.json`, `attempt.json`, les captures `before.png`
+et `after.png`, puis `receipt.json` avec les états et les empreintes des
+captures. L'approbation est consommée avant le démarrage de Chromium.
+Après un arrêt ou une erreur, utilisez une nouvelle préparation. La
+présence d'`attempt.json` sans reçu final signale une tentative interrompue.
+
+La CI exerce l'action et ses refus avec Chromium et des données
+synthétiques. Cette étape qualifie la recette locale du navigateur.

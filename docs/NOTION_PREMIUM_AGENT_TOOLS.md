@@ -132,10 +132,15 @@ du DOM et les captures à l'empreinte du HTML reçu. [PR #325](https://github.co
 Le [lot 2](NAVIGATEUR_ISOLE.md#observer-un-panneau-de-clawfedora) capture
 les rendus dynamiques des panneaux locaux en lecture seule. Le chargement
 des interfaces et le périmètre réseau sont testés en CI avec des données
-synthétiques.
+synthétiques. [PR #326](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/326)
 
-Le lot suivant couvrira la préparation et l'approbation d'interactions
-bornées dans un environnement de recette.
+Le [lot 3](NAVIGATEUR_ISOLE.md#répéter-un-clic-approuvé-dans-chromium)
+introduit une préparation privée et une approbation à usage unique
+pour une interaction de recette. Chromium vérifie les états du DOM
+avant et après le clic et enregistre les captures associées.
+
+Le lot suivant étendra la recette aux contrôles de navigation et aux
+refus d'interaction avant l'intégration aux rôles.
 
 ### Programme restant
 
