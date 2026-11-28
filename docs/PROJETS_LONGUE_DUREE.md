@@ -53,10 +53,16 @@ initialisation.
 ## Reprendre dans une nouvelle discussion
 
 Dans **Discussions**, sélectionnez le projet ClawFedora déjà créé et
-le rôle souhaité. Une nouvelle conversation n'importe ni ne copie les
-anciens échanges : le pont OpenClaw injecte un **aperçu en lecture seule**
-des jalons, de leurs états déclarés et des titres de propositions acceptées,
-extraits directement des fichiers canoniques du projet.
+le rôle souhaité. Le pont OpenClaw fournit un **aperçu en lecture seule**
+à partir des fichiers du projet. Il sélectionne les tâches, objectifs,
+notes acceptées, chemins de livrables et extraits de sources utiles à la
+question. Lorsque la question est générale, quelques tâches et objectifs
+gardent la mission visible. Le contexte JSON est plafonné à 7 000 octets.
+
+Une note acceptée reflète une décision de conservation. Les questions du
+registre des clarifications encore ouvertes apparaissent sous `TO_CONFIRM`.
+Le pont ne transforme pas le résumé généré du cadrage ou les échanges du
+chat en faits persistants.
 
 Saisissez `!continuer` (ou `/continuer`) pour afficher, **sans lancer
 de modèle ni déclencher de tâche** :
@@ -68,6 +74,7 @@ de modèle ni déclencher de tâche** :
 - les jalons déclarés en cours ou bloqués ;
 - les jalons planifiés dont toutes les dépendances sont déclarées réalisées ;
 - jusqu'à cinq objectifs enregistrés dans le cadrage, avec sa date ;
+- jusqu'à cinq points à confirmer, en commençant par les questions bloquantes ;
 - jusqu'à cinq références de décisions récemment acceptées, avec titre et date ;
 - jusqu'à cinq références de reçus de jalons, avec date, révision Git et état,
   ainsi que le total des reçus à requalifier ;
@@ -84,8 +91,9 @@ Le rapport identifie la révision et les empreintes du plan et des
 assignations. Une divergence entre ces fichiers laisse l'état de la
 mission à vérifier. Le statut du projet indique si l’audit ou la livraison reste à faire.
 
-Le JSON indique le chemin relatif et l'empreinte du cadrage, des propositions,
-des notes, des reçus de jalons et des rapports d'audit. L'affichage écarte
+Le JSON indique le chemin relatif et l'empreinte du cadrage, du registre des
+clarifications, des propositions, des notes, des reçus de jalons et des rapports
+d'audit. L'affichage écarte
 les paires proposition-note divergentes et compte les références à vérifier.
 Une décision acceptée atteste l'accord de l'opérateur pour conserver la note.
 Une validation ou une relecture est à renouveler (`STALE`) si un livrable

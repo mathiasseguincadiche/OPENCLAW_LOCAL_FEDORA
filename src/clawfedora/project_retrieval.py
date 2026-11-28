@@ -32,7 +32,7 @@ STOP = frozenset({
 })
 
 
-def _terms(query: str) -> list[str]:
+def search_terms(query: str) -> list[str]:
     if not isinstance(query, str) or len(query) > MAX_QUERY:
         raise ValueError("requête de recherche absente ou supérieure à 1000 caractères")
     return list(dict.fromkeys(
@@ -112,7 +112,7 @@ def retrieve(
     include_revisions: bool = True,
 ) -> list[dict[str, Any]]:
     """Four diverse, cited passages maximum, preserving the legacy 4k cap."""
-    terms = _terms(query)
+    terms = search_terms(query)
     if not terms:
         return []
     if validate_input_integrity(project):

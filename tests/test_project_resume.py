@@ -385,3 +385,37 @@ def test_continuity_distinguishes_current_audit_and_stale_deliverable(
     assert later["audit_references"] == [{**audit, "status": "STALE"}]
     assert "à renouveler" in project_resume.render(later)
     assert sha256_file(source) == audit["source_sha256"]
+
+
+def test_continuity_cites_pending_clarifications_without_reusing_resolved_answers(
+    planned: tuple[Path, Path],
+) -> None:
+    runtime, project = planned
+    source = project_engine._artifact(ROOT, project, "clarifications")
+    register = read_json(source)
+    register["items"] = [
+        {"id": "clarification-001", "status": "OPEN", "question": "Quel calendrier ?",
+         "blocking": False},
+        {"id": "clarification-002", "status": "OPEN", "question": "Quel périmètre ?",
+         "blocking": True},
+        {"id": "clarification-003", "status": "RESOLVED", "question": "Ancienne question",
+         "blocking": True, "answer": "Réponse archivée"},
+    ]
+    write_json(source, register)
+    before = sha256_file(source)
+    report = project_resume.overview(runtime, project, check_evidence=True, repo_root=ROOT)
+    pending = report["clarifications_pending"]
+    assert pending["status"] == "RECORDED" and pending["count"] == 2
+    assert pending["source_sha256"] == before
+    assert pending["source"] == source.relative_to(project).as_posix()
+    assert [row["id"] for row in pending["items"]] == ["clarification-002", "clarification-001"]
+    assert all(row["status"] == "TO_CONFIRM" for row in pending["items"])
+    brief = project_resume.render(report)
+    assert "Points à confirmer" in brief and "Quel périmètre ? (bloquant)" in brief
+    assert "Ancienne question" not in brief and "Réponse archivée" not in brief
+    assert sha256_file(source) == before
+
+    register["items"][0]["status"] = "INVENTED"
+    write_json(source, register)
+    result = project_resume.overview(runtime, project, check_evidence=True, repo_root=ROOT)
+    assert result["clarifications_pending"] == {"status": "UNVERIFIED", "items": []}

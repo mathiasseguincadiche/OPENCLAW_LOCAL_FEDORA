@@ -109,10 +109,16 @@ fichiers canoniques. [PR #321](https://github.com/mathiasseguincadiche/OPENCLAW_
 Le [lot 2](PROJETS_LONGUE_DUREE.md#reprendre-dans-une-nouvelle-discussion)
 rattache objectifs, décisions acceptées, reçus de jalons et audits à leurs
 enregistrements datés. Les références incohérentes et les audits à renouveler
-sont signalés dans la reprise explicite.
+sont signalés dans la reprise explicite. [PR #322](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/322)
 
-Le lot suivant porte sur la sélection du contexte pertinent pour la
-mission et la distinction entre les informations confirmées et les hypothèses.
+Le [lot 3](PROJETS_LONGUE_DUREE.md#reprendre-dans-une-nouvelle-discussion)
+sélectionne le contexte selon la question de l'opérateur et affiche les
+clarifications ouvertes comme points à confirmer. Il réutilise les fichiers
+locaux du projet et la recherche existante.
+
+Le lot suivant qualifiera la reprise d'une mission longue entre plusieurs
+rôles, dont la consultation des sources et la lecture des corrections
+après révision.
 
 
 ### Programme restant

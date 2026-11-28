@@ -16,6 +16,7 @@ import json
 import os
 import re
 import unicodedata
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -26,7 +27,7 @@ from clawfedora.knowledge import search
 from clawfedora.milestone_evidence import report as milestone_evidence_report
 from clawfedora.project_common import assert_no_symlinks, project_path, read_json, validate_task_id
 from clawfedora.project_intake import validate_input_integrity
-from clawfedora.project_retrieval import retrieve
+from clawfedora.project_retrieval import MAX_QUERY, retrieve, search_terms
 from clawfedora.project_worker import worker_lock
 
 PROJECT_MARKER = "📁 Projet : "
@@ -366,15 +367,18 @@ def status_text(repo_root: Path, runtime: Path, project: Path) -> str:
     return "\n".join(lines)
 
 
-def _notes(runtime: Path, project: Path) -> list[dict[str, Any]]:
-    try:
-        return chat_proposals.accepted_notes(runtime, project)
-    except (OSError, ValueError):
-        return []
+def _ranked[T](rows: list[T], query: set[str], describe: Callable[[T], str]) -> list[T]:
+    matches = []
+    for row in rows:
+        words = set(re.findall(r"[^\W_]+", _fold(describe(row))))
+        score = len(words & query)
+        if score:
+            matches.append((score, row))
+    return [row for _, row in sorted(matches, key=lambda item: item[0], reverse=True)]
 
 
 def _deliverables(runtime: Path, project: Path) -> list[str]:
-    """Up to 20 deliverable paths, listed only inside the projects root (resolved, no escape)."""
+    """List deliverable paths within the selected project, without reading their contents."""
     projects_root = os.path.realpath(runtime / "projects")
     real = os.path.realpath(project)
     if not real.startswith(projects_root + os.sep):
@@ -387,22 +391,38 @@ def _deliverables(runtime: Path, project: Path) -> list[str]:
         for folder, _dirs, names in os.walk(top)
         for name in names
     )
-    return found[:20]
+    return found
 
 
 def project_context(
     repo_root: Path, runtime: Path, project: Path, question: str, *,
     include_revisions: bool = False,
 ) -> str:
-    """Read-only context for the role: summary, plan, deliverables and passages for the question."""
+    """Read-only project state and grounded context selected for the current question."""
     from clawfedora.usage_view import project_hint
 
+    if project.resolve() != project_path(runtime, project.name):
+        raise ValueError("contexte de discussion hors projet")
+    continuity = project_resume.overview(runtime, project)
     manifest = _manifest(project)
-    try:
-        summary = str(read_json(project / "context/project_analysis.json").get("summary", ""))
-    except (OSError, ValueError):
-        summary = ""
-    deliverables = _deliverables(runtime, project)
+    query = set(search_terms(_fold(question)[:MAX_QUERY]))
+    tasks = _task_view(runtime, project)
+    matching_tasks = _ranked(tasks, query, lambda row: f"{row['id']} {row['title']}")
+    notes = project_resume.decision_references(runtime, project, limit=10, include_excerpt=True)
+    note_items: list[dict[str, Any]] = notes["items"]
+    matching_notes = _ranked(note_items, query, lambda row: f"{row['title']} {row['excerpt']}")
+    objectives = project_resume.recorded_objectives(repo_root, project, manifest)
+    objective_items: list[dict[str, Any]] = objectives.get("items", [])
+    matching_objectives = _ranked(objective_items, query, lambda row: str(row["objective"]))
+    objectives["items"] = (matching_objectives or objective_items[:2])[:3]
+    if len(objectives["items"]) < len(objective_items):
+        objectives["truncated"] = True
+    clarifications = project_resume.pending_clarifications(repo_root, project, manifest, limit=20)
+    pending: list[dict[str, Any]] = clarifications["items"]
+    matching_questions = _ranked(pending, query, lambda row: str(row["question"]))
+    blocking = [row for row in pending if row["blocking"]]
+    clarifications["items"] = (matching_questions or blocking[:1])[:3]
+    deliverables = _ranked(_deliverables(runtime, project), query, str)
     # A changed source invalidates snippets from the old FTS index.
     try:
         integrity_failures = validate_input_integrity(project)
@@ -420,24 +440,26 @@ def project_context(
         except (OSError, ValueError, KeyError):
             hits = []
             retrieval_failed = True
+    revision = manifest.get("revision")
     value: dict[str, Any] = {
         "project": {
             "id": project.name,
             "title": str(manifest.get("title", ""))[:150],
-            "status": manifest.get("status"),
-            "revision": manifest.get("revision", 0),
-            "summary": summary[:600],
+            "status": continuity["project_status"],
+            "revision": revision if type(revision) is int else 0,
         },
-        "tasks": _task_view(runtime, project),
-        "continuity": project_resume.overview(runtime, project),
+        "tasks": (matching_tasks or tasks[:2])[:4],
+        "continuity": continuity,
+        "objectives": objectives,
+        "clarifications_pending": clarifications,
         "decision": (project_hint(runtime, project) if manifest.get("project_id") == project.name
                      else "Projet à identifier"),
         "source_integrity": (
             "UNVERIFIED_CHANGED" if integrity_failures else
             "RETRIEVAL_UNVERIFIED" if retrieval_failed else "PASS"
         ),
-        "notes_acceptees": _notes(runtime, project),
-        "deliverables": deliverables,
+        "notes_acceptees": matching_notes[:3],
+        "deliverables": deliverables[:4],
         "retrieval_scope": (
             "LOCAL_APPROVED_GITHUB_REVISIONS_AND_INITIAL_PROJECT_SOURCES"
             if include_revisions else "INITIAL_PROJECT_SOURCES_ONLY"
@@ -453,15 +475,12 @@ def project_context(
             for h in hits
         ],
     }
-    # Drop passages, then tasks, until it fits: the context is bounded, never cut mid-JSON.
-    for key in ("passages", "notes_acceptees", "tasks", "deliverables"):
-        while len(json.dumps(value, ensure_ascii=False).encode()) > MAX_CONTEXT_BYTES and value[key]:
-            value[key] = value[key][:-1]
-    # Keep the continuity state but drop optional rows if a project has many notes.
-    continuity = value["continuity"]
-    for rows in (continuity["accepted_decisions"]["items"],
-                 continuity["roadmap"].get("ready", []),
-                 continuity["roadmap"].get("active", [])):
+    # Under pressure keep the project identity and the best cited passages as long as possible.
+    for rows in (
+        value["deliverables"], value["notes_acceptees"], value["tasks"],
+        continuity["roadmap"].get("ready", []), continuity["roadmap"].get("active", []),
+        clarifications["items"], objectives["items"], value["passages"],
+    ):
         while len(json.dumps(value, ensure_ascii=False).encode()) > MAX_CONTEXT_BYTES and rows:
             rows.pop()
     return (
@@ -472,9 +491,9 @@ def project_context(
         "le contexte ne suffit pas, dis-le. Les passages périmés ne sont pas des preuves. "
         "La page et la ligne décrivent la représentation indexée; vérifie la source originale "
         "avant de conclure. Un index ancien ou modifié peut nécessiter une réindexation. "
-        "La rubrique continuity est un aperçu déclaratif des jalons et décisions acceptées, "
-        "sans reprise de l’ancien fil ni certification. Les preuves sont NOT_CHECKED_IN_CHAT; "
-        "demander !continuer pour leur contrôle explicite. "
+        "Les objectifs du cadrage sont enregistrés. Les points TO_CONFIRM sont des questions "
+        "ouvertes. Les notes acceptées par l'opérateur et les états déclarés ne sont pas des "
+        "preuves techniques. !continuer contrôle les reçus et les rapports d'audit. "
         "Si source_integrity n’est pas PASS, refuser de citer des extraits comme validés "
         "et recommander de vérifier l’intégrité et de réindexer les sources.\n"
         + json.dumps(value, ensure_ascii=False)
