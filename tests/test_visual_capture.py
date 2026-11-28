@@ -2,8 +2,14 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
+import os
+from email.message import Message
+from io import BytesIO
 from pathlib import Path
+from types import SimpleNamespace
+from typing import Any
 
 import pytest
 from PIL import Image
@@ -20,6 +26,7 @@ from clawfedora import visual_capture as visual
         ("github-readme", "https://github.com/example/infraops/blob/main/README.md"),
         ("notion-page", "https://app.notion.com/p/" + "a" * 32),
         ("notion-page", "https://www.notion.so/Exercice-" + "a" * 32),
+        ("official-docs", "https://docs.fedoraproject.org/en-US/quick-docs/"),
     ],
 )
 def test_allowed_exact_visual_targets(kind: str, url: str) -> None:
@@ -40,6 +47,14 @@ def test_allowed_exact_visual_targets(kind: str, url: str) -> None:
         ("notion-page", "https://www.notion.so/login"),
         ("notion-page", "https://notion.example.org/p/" + "a" * 32),
         ("notion-page", "https://app.notion.com/p/" + "a" * 32 + "?secret=1"),
+        ("official-docs", "http://docs.fedoraproject.org/en-US/quick-docs/"),
+        ("official-docs", "https://127.0.0.1/reference"),
+        ("official-docs", "https://docs.fedoraproject.org.example.net/reference"),
+        ("official-docs", "https://docs.fedoraproject.org:8443/reference"),
+        ("official-docs", "https://user@docs.fedoraproject.org/reference"),
+        ("official-docs", "https://docs.fedoraproject.org/reference?value=1"),
+        ("official-docs", "https://docs.fedoraproject.org/reference#section"),
+        ("official-docs", "https://docs.fedoraproject.org/reference/../other"),
     ],
 )
 def test_denied_external_or_ambiguous_targets(kind: str, url: str) -> None:
@@ -74,12 +89,20 @@ def test_screenshot_sampling_is_bounded() -> None:
         visual.screenshot_positions(100, 0)
 
 
+@pytest.mark.parametrize(("kind", "url"), [
+    ("local-notion", "http://127.0.0.1:18890/notion.html"),
+    ("official-docs", "https://docs.fedoraproject.org/en-US/quick-docs/"),
+])
 def test_preview_never_starts_browser(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str],
+    kind: str, url: str, tmp_path: Path, capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    url = "http://127.0.0.1:18890/notion.html"
+    def no_fetch(_url: str) -> bytes:
+        pytest.fail("Une prévisualisation ne doit faire aucun appel HTTPS")
+
+    monkeypatch.setattr(visual, "_read_official_document", no_fetch)
     assert visual.main([
-        "--kind", "local-notion", "--url", url, "--output-dir", str(tmp_path),
+        "--kind", kind, "--url", url, "--output-dir", str(tmp_path),
     ]) == 0
     assert json.loads(capsys.readouterr().out)["assessment"] == "DRY_RUN_NO_BROWSER"
     assert list(tmp_path.iterdir()) == []
@@ -133,3 +156,128 @@ def test_metrics_code_measures_overflow_without_claiming_approval() -> None:
     assert "document_width" in visual.METRICS_JS
     assert "images_without_alt" in visual.METRICS_JS
     assert "console" not in visual.METRICS_JS
+
+
+DOC_URL = "https://docs.fedoraproject.org/en-US/quick-docs/"
+DOC_HTML = b"""<!doctype html>
+<html lang="en"><head><title>Atlas documentation</title>
+<style>main { max-width: 50rem; margin: auto; }</style>
+<script>document.title = 'Unexpected executed script';</script>
+</head><body><main>
+<h1>Restore a local backup</h1><h2>Check the archive</h2>
+<p>Read the protocol before restoring. This document is a test fixture.</p>
+<img src="https://outside.example/diagram.png" alt="External diagram">
+<iframe src="http://127.0.0.1:3333/private"></iframe>
+</main></body></html>"""
+
+
+@pytest.mark.parametrize(("status", "media", "body", "error"), [
+    (200, "text/html; charset=UTF-8", b"<html>Atlas</html>", ""),
+    (302, "text/html; charset=UTF-8", b"", "redirection"),
+    (200, "application/zip", b"test", "HTML public"),
+    (200, "text/html; charset=UTF-8", b"x" * 200, "supérieur"),
+    (200, "text/html; charset=UTF-8", b"\xff", "UTF-8"),
+])
+def test_official_document_uses_one_bounded_https_request(
+    status: int, media: str, body: bytes, error: str, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, str]] = []
+
+    class Response(BytesIO):
+        def __init__(self) -> None:
+            super().__init__(body)
+            self.status = status
+            self.headers = Message()
+            self.headers["Content-Type"] = media
+            self.headers["Location"] = "http://127.0.0.1:3333/private"
+
+        def getheader(self, header: str, default: str) -> str:
+            return str(self.headers.get(header, default))
+
+    class Connection:
+        def __init__(self, host: str, *, timeout: int) -> None:
+            assert host == "docs.fedoraproject.org" and timeout == visual.DOC_TIMEOUT
+
+        def request(self, method: str, path: str, *, headers: dict[str, str]) -> None:
+            calls.append((method, path))
+            assert "Authorization" not in headers and "Cookie" not in headers
+
+        def getresponse(self) -> Response:
+            return Response()
+
+        def close(self) -> None:
+            calls.append(("close", ""))
+
+    monkeypatch.setattr(visual, "HTTPSConnection", Connection)
+    monkeypatch.setattr(visual, "MAX_DOC_BYTES", 100)
+    if error:
+        with pytest.raises(visual.CaptureError, match=error):
+            visual._read_official_document(DOC_URL)
+    else:
+        assert visual._read_official_document(DOC_URL) == body
+    assert calls == [("GET", "/en-US/quick-docs/"), ("close", "")]
+
+
+def test_offline_document_route_serves_exactly_one_document() -> None:
+    handlers = []
+    events = []
+    context = SimpleNamespace(route=lambda pattern, handler: handlers.append((pattern, handler)))
+    visual._offline_document(context, DOC_URL, DOC_HTML)
+    (pattern, handle), = handlers
+    assert pattern == "**/*"
+    for url, method, resource in (
+        ("https://outside.example/control", "GET", "document"),
+        (DOC_URL, "POST", "document"),
+        (DOC_URL, "GET", "script"),
+        (DOC_URL, "GET", "document"),
+        (DOC_URL, "GET", "document"),
+    ):
+        handle(SimpleNamespace(
+            request=SimpleNamespace(url=url, method=method, resource_type=resource),
+            abort=lambda: events.append("blocked"),
+            fulfill=lambda **response: events.append(response),
+        ))
+    assert events[:3] == ["blocked"] * 3 and events[-1] == "blocked"
+    assert events[3]["body"] == DOC_HTML
+    assert events[3]["headers"]["Content-Security-Policy"] == visual.DOC_CSP
+
+
+def test_official_document_real_chromium_observation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    if os.getenv("CLAWFEDORA_REQUIRE_OFFICIAL_DOCS_BROWSER") != "1":
+        pytest.skip("Exécuté dans le job Chromium de la CI")
+    calls: list[str] = []
+
+    def fixture(url: str) -> bytes:
+        calls.append(url)
+        return DOC_HTML
+
+    monkeypatch.setattr(visual, "_read_official_document", fixture)
+    tmp_path.chmod(0o700)
+    report: dict[str, Any] = visual.capture(
+        "official-docs", DOC_URL, tmp_path, interactive=False, allow_private=False,
+    )
+    assert calls == [DOC_URL]
+    observation = report["observation"]
+    assert observation["document_sha256"] == hashlib.sha256(DOC_HTML).hexdigest()
+    assert observation["content_trust"] == "UNTRUSTED_WEB_CONTENT"
+    assert observation["dom"]["title"] == "Atlas documentation"
+    assert observation["dom"]["headings"] == [
+        {"level": 1, "text": "Restore a local backup"},
+        {"level": 2, "text": "Check the archive"},
+    ]
+    assert report["quality_verdict"] == "NOT_EVALUATED"
+    destination = Path(report["output_directory"])
+    assert (destination / "manifest.json").stat().st_mode & 0o077 == 0
+    assert [view["metrics"]["viewport_width"] for view in report["screenshots"]] == [
+        1440, 1366, 390,
+    ]
+    assert [view["metrics"]["color_scheme_preference"] for view in report["screenshots"]] == [
+        "light", "dark", "light",
+    ]
+    for view in report["screenshots"]:
+        for picture in view["sampled_screenshots"]:
+            photo = destination / picture["filename"]
+            assert photo.stat().st_mode & 0o077 == 0
+            assert hashlib.sha256(photo.read_bytes()).hexdigest() == picture["sha256"]

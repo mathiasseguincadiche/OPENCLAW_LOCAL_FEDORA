@@ -1,4 +1,4 @@
-"""Opt-in real browser screenshots for local workshop, GitHub and Notion.
+"""Opt-in browser observation for the workshop, GitHub, Notion and official docs.
 
 Requires optional pinned Playwright and a browser installed by the operator.
 No browser is launched without --capture. No credential/cookie/session export.
@@ -16,14 +16,44 @@ import stat
 import sys
 import uuid
 from datetime import UTC, datetime
+from http.client import HTTPException, HTTPSConnection
 from importlib import import_module
 from pathlib import Path
+from time import monotonic
 from typing import Any
 from urllib.parse import urlsplit
 
 from PIL import Image
 
-KINDS = ("local-notion", "local-github", "github-readme", "notion-page")
+KINDS = ("local-notion", "local-github", "github-readme", "notion-page", "official-docs")
+OFFICIAL_DOCS_HOSTS = frozenset({
+    "developer.hashicorp.com",
+    "docs.ansible.com",
+    "docs.fedoraproject.org",
+    "docs.github.com",
+    "docs.openclaw.ai",
+    "kubernetes.io",
+    "playwright.dev",
+})
+DOCS_PATH = re.compile(r"/[A-Za-z0-9._~/-]*\Z")
+MAX_DOC_BYTES = 2_000_000
+DOC_TIMEOUT = 10
+DOC_CSP = (
+    "default-src 'none'; style-src 'unsafe-inline'; img-src data:; "
+    "font-src data:; base-uri 'none'; form-action 'none'"
+)
+DOC_OBSERVATION_JS = """() => {
+  const text = (value, limit) => (value || "").replace(/\\s+/g, " ").trim().slice(0, limit);
+  const main = document.querySelector("main, article, [role=main]") || document.body;
+  const headings = [...main.querySelectorAll("h1, h2, h3")].slice(0, 12);
+  return {
+    title: text(document.title, 160),
+    headings: headings.map(node => ({
+      level: Number(node.tagName.slice(1)), text: text(node.innerText, 120)
+    })).filter(node => node.text),
+    excerpt: text(main.innerText, 1600)
+  };
+}"""
 GITHUB_PATH = re.compile(
     r"/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/(?:blob|tree)/[A-Za-z0-9_./-]+)?/?\Z",
 )
@@ -91,6 +121,15 @@ def validate_url(kind: str, url: str) -> str:
         or parts.query or parts.fragment or not parts.hostname
     ):
         raise CaptureError("URL avec identifiants, paramètres ou fragment interdite")
+    if kind == "official-docs":
+        if (
+            parts.scheme != "https" or parts.netloc not in OFFICIAL_DOCS_HOSTS
+            or DOCS_PATH.fullmatch(parts.path or "/") is None
+            or any(item in (".", "..") for item in parts.path.split("/"))
+            or url != parts.geturl() or any(ord(char) < 33 for char in url)
+        ):
+            raise CaptureError("URL HTTPS canonique d'une documentation autorisée requise")
+        return url if parts.path else url + "/"
     if kind.startswith("local-"):
         desired = "/notion.html" if kind == "local-notion" else "/github.html"
         if (
@@ -118,6 +157,10 @@ def _validate_final_url(kind: str, start: str, current: str) -> None:
     """Reject login/consent screens and unexpected final browser origins."""
     final = urlsplit(current)
     expected = urlsplit(start)
+    if kind == "official-docs":
+        if current != start:
+            raise CaptureError("navigation hors du document autorisé")
+        return
     if kind.startswith("local-"):
         if current != start:
             raise CaptureError("redirection hors du panneau local refusée")
@@ -183,11 +226,76 @@ def _shot(path: Path) -> dict[str, Any]:
     }
 
 
+def _read_official_document(url: str) -> bytes:
+    """Read a bounded UTF-8 HTML response over one direct, authenticated HTTPS request."""
+    target = urlsplit(validate_url("official-docs", url))
+    connection = HTTPSConnection(target.netloc, timeout=DOC_TIMEOUT)
+    deadline = monotonic() + DOC_TIMEOUT
+    payload = bytearray()
+    try:
+        connection.request("GET", target.path, headers={
+            "Accept": "text/html", "Accept-Encoding": "identity",
+            "User-Agent": "ClawFedora-Documentation-Observer",
+        })
+        with connection.getresponse() as response:
+            if 300 <= response.status < 400:
+                raise CaptureError("redirection refusée, fournir l'adresse finale")
+            if response.status != 200 or response.headers.get_content_type() != "text/html":
+                raise CaptureError("document HTML public indisponible")
+            if response.getheader("Content-Encoding", "identity") != "identity":
+                raise CaptureError("encodage de transport non pris en charge")
+            charset = response.headers.get_content_charset() or "utf-8"
+            if charset not in {"utf-8", "utf8"}:
+                raise CaptureError("document HTML UTF-8 requis")
+            while len(payload) <= MAX_DOC_BYTES:
+                if monotonic() >= deadline:
+                    raise CaptureError("délai de lecture du document dépassé")
+                chunk = response.read1(min(65536, MAX_DOC_BYTES + 1 - len(payload)))
+                if not chunk:
+                    break
+                payload.extend(chunk)
+    except (OSError, HTTPException) as exc:
+        raise CaptureError("lecture HTTPS de la documentation interrompue") from exc
+    finally:
+        connection.close()
+    if not payload or len(payload) > MAX_DOC_BYTES:
+        raise CaptureError("document vide ou supérieur à 2 Mo")
+    try:
+        payload.decode("utf-8-sig")
+    except UnicodeError as exc:
+        raise CaptureError("document HTML UTF-8 requis") from exc
+    return bytes(payload)
+
+
+def _offline_document(context: Any, url: str, document: bytes) -> None:
+    """Fulfill only the first top-level GET from memory; all other requests are aborted."""
+    served = False
+
+    def handle(route: Any) -> None:
+        nonlocal served
+        request = route.request
+        if request.url != url or request.method != "GET" or (
+            served or request.resource_type != "document"
+        ):
+            route.abort()
+            return
+        served = True
+        route.fulfill(status=200, body=document, headers={
+            "Content-Type": "text/html; charset=utf-8",
+            "Content-Security-Policy": DOC_CSP,
+            "Referrer-Policy": "no-referrer",
+        })
+
+    context.route("**/*", handle)
+
+
 def capture(
     kind: str, url: str, output_root: Path, *,
     interactive: bool, allow_private: bool, premium: bool = False,
 ) -> dict[str, Any]:
-    validate_url(kind, url)
+    url = validate_url(kind, url)
+    if kind == "official-docs" and (interactive or allow_private):
+        raise CaptureError("observation de documentation publique en session isolée")
     if kind == "notion-page" and (
         not interactive or not allow_private or not sys.stdin.isatty()
     ):
@@ -197,14 +305,18 @@ def capture(
     if interactive and not sys.stdin.isatty():
         raise CaptureError("capture interactive exige un terminal")
     try:
-        sync_playwright = import_module("playwright.sync_api").__dict__["sync_playwright"]
+        playwright_api = import_module("playwright.sync_api")
+        sync_playwright = playwright_api.__dict__["sync_playwright"]
+        playwright_error = playwright_api.__dict__["Error"]
     except (ImportError, KeyError) as exc:
         raise CaptureError(
             "installer l'option visuelle épinglée puis Chromium Playwright",
         ) from exc
+    document = _read_official_document(url) if kind == "official-docs" else None
     output = _private_destination(output_root)
     previous_umask = os.umask(0o077)
     items: list[dict[str, Any]] = []
+    observation: dict[str, Any] = {}
     try:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=not interactive)
@@ -212,8 +324,12 @@ def capture(
                 viewport={"width": 1440, "height": 900},
                 color_scheme="light",
                 device_scale_factor=1, accept_downloads=False,
+                **({"offline": True, "java_script_enabled": False, "service_workers": "block"}
+                   if document is not None else {}),
             )
             try:
+                if document is not None:
+                    _offline_document(context, url, document)
                 page = context.new_page()
                 page.goto(url, wait_until="domcontentloaded", timeout=30000)
                 if interactive:
@@ -223,6 +339,17 @@ def capture(
                         "Appuyer sur Entrée uniquement quand la page correcte est affichée : ",
                     )
                 _validate_final_url(kind, url, page.url)
+                if document is not None:
+                    data = page.evaluate(DOC_OBSERVATION_JS)
+                    if not isinstance(data, dict) or not data.get("excerpt"):
+                        raise CaptureError("observation structurée non disponible")
+                    observation = {
+                        "document_sha256": hashlib.sha256(document).hexdigest(),
+                        "document_bytes": len(document),
+                        "rendering": "ISOLATED_STATIC_HTML",
+                        "content_trust": "UNTRUSTED_WEB_CONTENT",
+                        "dom": data,
+                    }
                 sizes = PREMIUM_SIZES if premium else SIZES
                 for category, (width, height, scheme) in sizes.items():
                     page.set_viewport_size({"width": width, "height": height})
@@ -275,6 +402,7 @@ def capture(
             "screenshots": items,
             "quality_verdict": "NOT_EVALUATED",
             "operator_review": "REQUIRED",
+            **({"observation": observation} if observation else {}),
             "limitations": [
                 "Les captures ne prouvent pas une lecture humaine complète",
                 "Le thème demandé n'est pas forcément le thème appliqué par le site",
@@ -288,6 +416,8 @@ def capture(
             stream.write("\n")
         os.chmod(report_path, 0o600)
         return {**report, "output_directory": str(output)}
+    except playwright_error as exc:
+        raise CaptureError("observation Chromium interrompue ou indisponible") from exc
     finally:
         os.umask(previous_umask)
 
@@ -307,17 +437,17 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
-        validate_url(args.kind, args.url)
+        url = validate_url(args.kind, args.url)
         if not args.capture:
             print(json.dumps({
                 "assessment": "DRY_RUN_NO_BROWSER",
-                "kind": args.kind, "url": args.url,
+                "kind": args.kind, "url": url,
                 "remote_writes": False, "local_screenshots": False,
                 "views": list(PREMIUM_SIZES if args.premium else SIZES),
             }, ensure_ascii=False))
             return 0
         result = capture(
-            args.kind, args.url, args.output_dir,
+            args.kind, url, args.output_dir,
             interactive=args.interactive, allow_private=args.allow_private, premium=args.premium,
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
