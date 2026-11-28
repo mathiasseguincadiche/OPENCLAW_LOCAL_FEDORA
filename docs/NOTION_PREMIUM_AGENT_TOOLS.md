@@ -156,8 +156,11 @@ contrats de contrôle du bureau Fedora.
 
 Le [lot 1](BUREAU_WAYLAND.md) simule le consentement par fenêtre et par
 mode, la révocation et la vérification d'une action locale. La recette
-en CI utilise une fenêtre fictive. Le prochain lot préparera le contrôle
-des capacités du portail.
+en CI utilise une fenêtre fictive. [PR #331](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/331)
+
+Le [lot 2](BUREAU_WAYLAND.md#lire-les-capacités-du-portail) ajoute une
+lecture des capacités annoncées par le portail Wayland. La qualification
+sur le poste cible reste prévue en C12.
 
 ### Programme restant
 
