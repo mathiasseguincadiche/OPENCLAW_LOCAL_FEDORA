@@ -114,18 +114,19 @@ sont signalés dans la reprise explicite. [PR #322](https://github.com/mathiasse
 Le [lot 3](PROJETS_LONGUE_DUREE.md#reprendre-dans-une-nouvelle-discussion)
 sélectionne le contexte selon la question de l'opérateur et affiche les
 clarifications ouvertes comme points à confirmer. Il réutilise les fichiers
-locaux du projet et la recherche existante.
+locaux du projet et la recherche existante. [PR #323](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/323)
 
-Le lot suivant qualifiera la reprise d'une mission longue entre plusieurs
-rôles, dont la consultation des sources et la lecture des corrections
-après révision.
+Le [lot 4](validation/CONTINUITY_ACCEPTANCE.md) exerce la reprise d'une
+même mission dans des fils de plusieurs rôles. La CI publie un rapport
+synthétique associé au commit testé. Le chantier logiciel C04 couvre
+désormais la reprise, la provenance et la sélection du contexte. C05
+porte sur l'observation dans un navigateur isolé.
 
 
 ### Programme restant
 
 | Chantier | Critère de clôture |
 | --- | --- |
-| C04 — Continuité | Reprendre une mission à partir d'objectifs, décisions et preuves datés et cloisonnés par projet. |
 | C05 — Navigateur | Tester l'observation dans une session isolée, puis des interactions bornées et approuvées. |
 | C06 — Bureau Fedora | Préparer et simuler les contrats de consentement et de contrôle Wayland. Qualification sur la session cible en C12. |
 | C07 — Interface | Consolider le pilotage des missions, livrables et validations dans les espaces existants. |

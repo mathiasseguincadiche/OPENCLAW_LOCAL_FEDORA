@@ -112,6 +112,10 @@ jamais des certifications. Le contrôle complet des preuves n'est réalisé
 que lors de la commande explicite `!continuer` pour limiter le travail
 disque lors des échanges ordinaires.
 
+La [recette de continuité Atlas](validation/CONTINUITY_ACCEPTANCE.md)
+vérifie cette reprise depuis plusieurs fils, pendant une interruption,
+après un changement de source et jusqu'à l'audit final.
+
 ## Ce que ces états prouvent (et ne prouvent pas)
 
 **IMPLEMENTED signifie uniquement « déclaré réalisé par l'opérateur »**.
