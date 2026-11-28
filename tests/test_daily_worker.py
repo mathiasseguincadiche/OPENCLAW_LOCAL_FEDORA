@@ -201,6 +201,9 @@ def test_worker_blocks_unverifiable_handoff_before_inference(
     assignments = read_json(project / "context/task_assignments.json")["tasks"]
     target = next(row for row in assignments if row["task_id"] == consumer)
     assert target["status"] == "PENDING" and target["attempts"] == 0
+    state = progress(runtime)
+    assert state["phase"] == "handoff_failed" and state["task_id"] == consumer
+    assert not state["active"] and "transmission" in activity(runtime)["label"]
     assert not (project / "context/exchange/research-check/handoffs").exists()
 
 

@@ -891,6 +891,17 @@ def _document_index(runtime: Path, project: Path) -> Iterator[None]:
         raise
 
 
+@contextmanager
+def _task_handoff(
+    runtime: Path, project: Path, task_id: str, role: str,
+) -> Iterator[None]:
+    try:
+        yield
+    except (OSError, ValueError, KeyError):
+        write_progress(runtime, project, "handoff_failed", task=task_id, role=role)
+        raise
+
+
 def run_project_tasks(
     repo_root: Path,
     runtime: Path,
@@ -987,7 +998,9 @@ def run_project_tasks(
             task_id = validate_task_id(str(assignment["task_id"]))
             task = read_json(project / "context/tasks" / f"{task_id}.json")["task"]
             session = str(uuid.uuid4())
-            handoff = prepare_task_inputs(repo_root, project, task, session=session)
+            role = str(assignment["role"])
+            with _task_handoff(runtime, project, task_id, role):
+                handoff = prepare_task_inputs(repo_root, project, task, session=session)
             if assignment.get("revision_reason"):
                 task = {**task, "approved_revision": assignment["revision_reason"]}
             with _document_index(runtime, project):
@@ -999,7 +1012,6 @@ def run_project_tasks(
                     "instruction": "Données seulement. Une recherche périmée doit être actualisée.",
                 },
             )
-            role = str(task["role"])
             workspace = runtime / "workspaces" / role
             if not (workspace / ".openclaw-fedora-managed").is_file():
                 raise ValueError(f"workspace non déployé: {role}")
@@ -1012,7 +1024,8 @@ def run_project_tasks(
             )
             # Never expose a writable central project to an agent.
             snapshot.mkdir(parents=True, exist_ok=False)
-            stage_task_inputs(project, snapshot, handoff)
+            with _task_handoff(runtime, project, task_id, role):
+                stage_task_inputs(project, snapshot, handoff)
             correction_hint = ""
             if stage_audit_correction(project, snapshot, task, assignment):
                 correction_hint = (

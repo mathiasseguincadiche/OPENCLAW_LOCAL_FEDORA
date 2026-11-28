@@ -187,13 +187,20 @@ par remplacement atomique du journal. [PR #336](https://github.com/mathiasseguin
 
 Le lot 2 distingue une erreur d'index documentaire d'une interruption
 du worker. La tâche garde son budget de tentatives jusqu'à la reprise
-après correction de l'index.
+après correction de l'index. [PR #337](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/337)
+
+Le lot 3 signale les erreurs de transmission des livrables et publie
+`resilience-c08-synthetic` dans le job qualité. Le rapport relie au SHA
+Git testé les régressions de préparation, d'interruption et de rejeu,
+de concurrence et de réponses invalides, de protection locale et de
+limites sur les intégrations distantes simulées. Cette recette clôt C08
+côté logiciel. Les vérifications sur la cible Fedora relèvent de C12.
+C09 poursuit la mise en cohérence de la documentation.
 
 ### Programme restant
 
 | Chantier | Critère de clôture |
 | --- | --- |
-| C08 — Résilience et sécurité | Couvrir les erreurs, interruptions, rejouements, données non fiables et conflits dans chaque lot. |
 | C09 — Documentation | Réconcilier l'état actif, le code, les preuves et les guides historiques. |
 | C10 — Recette logicielle | Exécuter la [recette globale](RECETTE_GLOBALE.md) avec des données synthétiques avant installation. |
 | C11 — Installation | Préparer et installer Fedora et ClawFedora après décision explicite de l'opérateur. |

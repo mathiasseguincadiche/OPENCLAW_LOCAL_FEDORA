@@ -20,22 +20,29 @@ PHASES = {
 }
 
 
+IDLE_MESSAGES = {
+    "interrupted": ("Le dernier traitement a été interrompu",
+                    "Consultez l’état du projet avant de reprendre."),
+    "unverified": ("Le dernier état du worker est à vérifier",
+                   "Consultez l’état du projet avant de reprendre."),
+    "index_failed": ("L’index documentaire est indisponible",
+                     "Vérifiez les sources et l’index local avant de reprendre le projet."),
+    "handoff_failed": ("La transmission des livrables est à vérifier",
+                       "Contrôlez la contribution amont avant de reprendre la tâche."),
+}
+
+
 def activity(runtime: Path) -> dict[str, Any]:
     """Report the shared lock and the last recorded phase; never infer a percentage."""
     working = progress(runtime)
     active = bool(working["active"])
     phase = str(working.get("phase", ""))
-    label = (
-        PHASES.get(phase, "Une opération utilise l’atelier")
-        if active
-        else "Le dernier traitement a été interrompu"
-        if phase == "interrupted"
-        else "Le dernier état du worker est à vérifier"
-        if phase == "unverified"
-        else "L’index documentaire est indisponible"
-        if phase == "index_failed"
-        else "L’atelier est disponible"
+    label, hint = IDLE_MESSAGES.get(
+        phase, ("L’atelier est disponible", "Vous pouvez poser une question ou ouvrir un projet."),
     )
+    if active:
+        label = PHASES.get(phase, "Une opération utilise l’atelier")
+        hint = "Attendez la fin avant de lancer une autre génération."
     elapsed: int | None = None
     if active and phase in PHASES:
         try:
@@ -61,13 +68,7 @@ def activity(runtime: Path) -> dict[str, Any]:
         "elapsed_label": elapsed_label,
         "project_id": project_id if active else "",
         "role": working.get("role") if active and working.get("role") in AGENT_IDS else "",
-        "hint": "Attendez la fin avant de lancer une autre génération."
-        if active
-        else "Consultez l’état du projet avant de reprendre."
-        if phase in {"interrupted", "unverified"}
-        else "Vérifiez les sources et l’index local avant de reprendre le projet."
-        if phase == "index_failed"
-        else "Vous pouvez poser une question ou ouvrir un projet.",
+        "hint": hint,
     }
 
 
