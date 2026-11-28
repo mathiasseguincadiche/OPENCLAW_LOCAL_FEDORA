@@ -104,8 +104,15 @@ lots et publie le rapport lié au commit testé. La recette est intégrée à
 Le [lot 1](PROJETS_LONGUE_DUREE.md#reprendre-dans-une-nouvelle-discussion)
 présente l'état de la mission approuvée dans `!continuer` et en CLI.
 Il rattache les tâches et la publication à reprendre au projet et aux
-fichiers canoniques. Après intégration, reprendre la traçabilité des
-objectifs, des décisions et des preuves.
+fichiers canoniques. [PR #321](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/321)
+
+Le [lot 2](PROJETS_LONGUE_DUREE.md#reprendre-dans-une-nouvelle-discussion)
+rattache objectifs, décisions acceptées, reçus de jalons et audits à leurs
+enregistrements datés. Les références incohérentes et les audits à renouveler
+sont signalés dans la reprise explicite.
+
+Le lot suivant porte sur la sélection du contexte pertinent pour la
+mission et la distinction entre les informations confirmées et les hypothèses.
 
 
 ### Programme restant

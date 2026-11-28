@@ -10,6 +10,7 @@ deliverable goes through a task and its audit (a later step of the plan).
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import re
 from pathlib import Path
@@ -146,6 +147,14 @@ def refuse(runtime: Path, project: Path, number: int) -> dict[str, Any]:
     return record
 
 
+def _note_text(record: dict[str, Any]) -> str:
+    return (
+        f"<!-- Note acceptée par l'utilisateur depuis le chat. Texte écrit par un modèle "
+        f"({record['route']}, {record['model']}), non vérifié. proposition {record['number']}, "
+        f"sha256 {record['sha256']} -->\n\n{record['text']}\n"
+    )
+
+
 def accept(runtime: Path, project: Path, number: int, expected_sha256: str) -> dict[str, Any]:
     """Add the proposal to the project notes. Only called after a valid approval phrase."""
     record = get(runtime, project, number)
@@ -155,13 +164,8 @@ def accept(runtime: Path, project: Path, number: int, expected_sha256: str) -> d
         raise ValueError("la proposition a changé depuis le code: rien n'est accepté")
     notes = _folder(runtime, project, NOTES)
     notes.mkdir(parents=True, exist_ok=True)
-    header = (
-        f"<!-- Note acceptée par l'utilisateur depuis le chat. Texte écrit par un modèle "
-        f"({record['route']}, {record['model']}), non vérifié. proposition {number}, "
-        f"sha256 {expected_sha256} -->\n\n"
-    )
     target = notes / f"note-{number:03d}.md"
-    target.write_text(header + record["text"] + "\n", encoding="utf-8")
+    target.write_text(_note_text(record), encoding="utf-8")
     note = target.relative_to(confined(runtime, project)).as_posix()
     record.update(status="accepted", decided_at=now(), note=note)
     write_json(_path(runtime, project, number), record)
@@ -179,3 +183,48 @@ def accepted_notes(runtime: Path, project: Path, limit: int = 10) -> list[dict[s
         }
         for r in rows[-limit:]
     ]
+
+
+def accepted_references(
+    runtime: Path, project: Path, *, limit: int,
+) -> tuple[list[dict[str, Any]], int]:
+    """Read traceable recent acceptances and count divergent note/proposal pairs."""
+    if limit <= 0:
+        return [], 0
+    base = confined(runtime, project)
+    notes = _folder(runtime, project, NOTES)
+    selected = [row for row in load_all(runtime, project) if row["status"] == "accepted"][-limit:]
+    references: list[dict[str, Any]] = []
+    unverified = 0
+    for record in selected:
+        try:
+            number = record["number"]
+            if type(number) is not int:
+                raise ValueError("numéro de proposition invalide")
+            source = _path(runtime, project, number)
+            note = notes / f"note-{number:03d}.md"
+            relative = note.relative_to(base).as_posix()
+            if (
+                record.get("note") != relative or source.is_symlink() or note.is_symlink()
+                or not note.is_file() or not source.is_file()
+                or digest(record["text"]) != record.get("sha256")
+                or not isinstance(record.get("title"), str)
+            ):
+                raise ValueError("note acceptée différente de la proposition")
+            expected = _note_text(record).encode("utf-8")
+            windows = expected.replace(b"\n", b"\r\n")
+            if note.stat().st_size not in (len(expected), len(windows)):
+                raise ValueError("taille de la note acceptée différente de la proposition")
+            source_bytes = source.read_bytes()
+            note_bytes = note.read_bytes()
+            if json.loads(source_bytes) != record or note_bytes not in (expected, windows):
+                raise ValueError("proposition ou note acceptée modifiée")
+            references.append({
+                "number": number, "title": record["title"], "accepted_at": record.get("decided_at"),
+                "proposal_path": source.relative_to(base).as_posix(),
+                "proposal_sha256": hashlib.sha256(source_bytes).hexdigest(),
+                "note_path": relative, "note_sha256": hashlib.sha256(note_bytes).hexdigest(),
+            })
+        except (OSError, ValueError, KeyError, TypeError):
+            unverified += 1
+    return references, unverified
