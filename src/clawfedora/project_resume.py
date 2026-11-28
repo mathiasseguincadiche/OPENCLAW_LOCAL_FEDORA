@@ -424,6 +424,21 @@ def _mission(
         return {"status": "UNVERIFIED", "next_action": "UNVERIFIED"}
 
 
+def execution_view(
+    runtime: Path, project: Path, repo_root: Path, manifest: dict[str, Any],
+) -> dict[str, Any]:
+    """Show the current mission and audit freshness using the resume checks."""
+    if manifest.get("project_id") != project.name:
+        raise ValueError("Reprise refusée : identité du projet divergente")
+    mission = _mission(runtime, project, repo_root, manifest)
+    return {
+        "mission": mission,
+        "action_label": _MISSION_NEXT[mission["next_action"]],
+        "activity_labels": _TASK_STATES,
+        "audits": _audits(repo_root, project),
+    }
+
+
 def overview(
     runtime: Path, project: Path, *, check_evidence: bool = False, repo_root: Path | None = None,
 ) -> dict[str, Any]:

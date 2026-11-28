@@ -164,7 +164,15 @@ lecture des capacités annoncées par le portail Wayland. [PR #332](https://gith
 Le [lot 3](BUREAU_WAYLAND.md#vérifier-la-simulation-à-partir-du-portail)
 relie les capacités au scénario de consentement simulé et publie la
 recette C06 dans la CI existante. C07 poursuit la consolidation de
-l'interface. La qualification sur le poste cible relève de C12.
+l'interface. La qualification sur le poste cible relève de C12. [PR #333](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/333)
+
+### C07 — Interface de l'atelier
+
+Le lot 1 rassemble la mission et les contrôles dans le dossier d'un projet.
+La vue reprend l'état des tâches de la commande `!continuer`, renvoie aux
+rapports et indique quand un verdict doit être renouvelé après une modification.
+Le lot suivant portera sur les indicateurs de périmètre et d'autorisation
+du navigateur et du bureau.
 
 ### Programme restant
 

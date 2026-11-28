@@ -19,8 +19,9 @@ from typing import Any
 import pytest
 from test_daily_worker import planned as planned
 
-from clawfedora import dashboard, visual_capture
+from clawfedora import dashboard, project_engine, visual_capture
 from clawfedora.dashboard import DashboardServer, make_server
+from clawfedora.project_common import now, write_json
 
 pw = pytest.importorskip("playwright.sync_api")
 
@@ -545,5 +546,39 @@ def test_audit_correction_preview_and_approval_keep_the_report_binding(
         assert len(submissions) == 1
         assert submissions[0]["audit_sha256"] == digest
         assert submissions[0]["task_id"] == "design-choice" and submissions[0]["human_approved"]
+    finally:
+        context.close()
+
+
+def test_project_overview_shows_mission_and_requalifies_a_stale_audit(
+    browser: Any, local_server: DashboardServer, planned: tuple[Path, Path],
+) -> None:
+    _runtime, project = planned
+    deliverable = project / "deliverables/design-choice/report.md"
+    deliverable.parent.mkdir(parents=True, exist_ok=True)
+    deliverable.write_text("Première version", encoding="utf-8")
+    write_json(project / "evidence/validation_report.json", {
+        "generated_at": now(), "reviewer": "auditeur-qualite", "verdict": "PASS",
+        "sealed_inventory": project_engine.audited_inventory(project), "proof_hashes": {},
+    })
+    context = browser.new_context(viewport={"width": 390, "height": 844})
+    page = context.new_page()
+    writes: list[str] = []
+    page.on("request", lambda req: writes.append(req.url) if req.method != "GET" else None)
+    try:
+        page.goto(_url(local_server, "/"), wait_until="domcontentloaded")
+        page.locator("#selected").select_option(project.name)
+        execution = page.locator("#project-execution")
+        pw.expect(execution).to_contain_text("0/2 tâches collectées")
+        pw.expect(execution).to_contain_text("dépendances en attente")
+        pw.expect(execution).to_contain_text("Validation réussie")
+        link = execution.get_by_role("link", name="Télécharger le rapport de validation")
+        pw.expect(link).to_have_attribute("download", "validation_report.json")
+
+        deliverable.write_text("Version modifiée", encoding="utf-8")
+        page.get_by_role("button", name="Actualiser le dossier").click()
+        pw.expect(execution).to_contain_text("Validation à renouveler")
+        pw.expect(execution).not_to_contain_text("Validation réussie")
+        assert writes == []
     finally:
         context.close()
