@@ -159,14 +159,17 @@ mode, la révocation et la vérification d'une action locale. La recette
 en CI utilise une fenêtre fictive. [PR #331](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/331)
 
 Le [lot 2](BUREAU_WAYLAND.md#lire-les-capacités-du-portail) ajoute une
-lecture des capacités annoncées par le portail Wayland. La qualification
-sur le poste cible reste prévue en C12.
+lecture des capacités annoncées par le portail Wayland. [PR #332](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/332)
+
+Le [lot 3](BUREAU_WAYLAND.md#vérifier-la-simulation-à-partir-du-portail)
+relie les capacités au scénario de consentement simulé et publie la
+recette C06 dans la CI existante. C07 poursuit la consolidation de
+l'interface. La qualification sur le poste cible relève de C12.
 
 ### Programme restant
 
 | Chantier | Critère de clôture |
 | --- | --- |
-| C06 — Bureau Fedora | Préparer et simuler les contrats de consentement et de contrôle Wayland. Qualification sur la session cible en C12. |
 | C07 — Interface | Consolider le pilotage des missions, livrables et validations dans les espaces existants. |
 | C08 — Résilience et sécurité | Couvrir les erreurs, interruptions, rejouements, données non fiables et conflits dans chaque lot. |
 | C09 — Documentation | Réconcilier l'état actif, le code, les preuves et les guides historiques. |

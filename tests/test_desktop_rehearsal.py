@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import json
+import os
+from pathlib import Path
 
 import pytest
 
+from clawfedora import desktop_portal
 from clawfedora.cli import main
 from clawfedora.desktop_rehearsal import (
     DETAILS,
@@ -12,6 +15,7 @@ from clawfedora.desktop_rehearsal import (
     WINDOW,
     DesktopRehearsal,
 )
+from clawfedora.notion_write import _digest
 
 
 @pytest.mark.parametrize(("window", "mode", "accepted"), [
@@ -100,3 +104,64 @@ def test_cli_exposes_a_simulation_result(mode: str, capsys: pytest.CaptureFixtur
     assert result["before"]["details_open"] is False
     assert result["after"]["details_open"] is (mode == "pointer")
     assert result["events"][-1] == "REVOKED"
+
+
+def test_wayland_acceptance_binds_modes_and_invalidates_an_active_session(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
+) -> None:
+    def advertised(pointer: bool, version: int = 2) -> dict[str, object]:
+        def call(args: tuple[str, ...]) -> str:
+            if args[3] == "GetNameOwner":
+                return 's ":1.42"'
+            if args[-2] == desktop_portal.SOURCES:
+                return "v u 2"  # v2 and window bit.
+            if args[-1] == "version":
+                return f"v u {version}"
+            return "v u 2" if pointer else "v u 1"
+
+        return desktop_portal.probe("wayland", call=call)
+
+    def command(mode: str, pointer: bool) -> tuple[int, dict[str, object]]:
+        def read(_session: str | None) -> dict[str, object]:
+            return advertised(pointer)
+
+        with monkeypatch.context() as patch:
+            patch.setattr(desktop_portal, "probe", read)
+            returncode = main(["desktop-rehearsal", "--mode", mode, "--require-portal"])
+        return returncode, json.loads(capsys.readouterr().out)
+
+    status, observation = command("observe", pointer=False)
+    assert status == 0 and observation["scope"] == "SYNTHETIC_NO_COMPOSITOR"
+    assert observation["before"] == observation["after"]
+    status, refused = command("pointer", pointer=False)
+    assert status == 2 and refused["status"] == "REFUSED"
+    assert "pointer_advertised" in str(refused["reason"])
+    with pytest.raises(ValueError, match="eis_api_in_version"):
+        DesktopRehearsal("pointer", capabilities=advertised(pointer=True, version=1))
+    status, controlled = command("pointer", pointer=True)
+    events = controlled["events"]
+    assert status == 0 and isinstance(events, list) and "DETAILS_OPENED" in events
+
+    exercise = DesktopRehearsal("pointer", capabilities=advertised(pointer=True))
+    exercise.consent(window=WINDOW, mode="pointer", accepted=True)
+    before = exercise.observe(window=WINDOW)
+    exercise.portal_closed()
+    with pytest.raises(ValueError, match="session fermée"):
+        exercise.open_details(before, window=WINDOW, target=DETAILS, approved=True)
+    with pytest.raises(ValueError, match="session fermée"):
+        exercise.observe(window=WINDOW)
+    assert exercise.events == ["CONSENT_GRANTED", "OBSERVED", "PORTAL_CLOSED"]
+
+    output = os.environ.get("CLAWFEDORA_DESKTOP_ACCEPTANCE_EVIDENCE")
+    if output:
+        report = {
+            "scope": "SYNTHETIC_NO_COMPOSITOR",
+            "tested_commit": os.environ["GITHUB_SHA"],
+            "campaign_verdict": "CONFORME",
+            "cases": ["observe", "pointer_refused", "eis_unavailable",
+                      "pointer_approved", "portal_closed"],
+        }
+        Path(output).write_text(
+            json.dumps({**report, "report_sha256": _digest(report)}, indent=2) + "\n",
+            encoding="utf-8",
+        )

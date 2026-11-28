@@ -98,7 +98,11 @@ def add_portal_parser(subparsers: argparse._SubParsersAction[argparse.ArgumentPa
     subparsers.add_parser("desktop-portal", help="lire les capacités annoncées du portail Wayland")
 
 
+def session_type() -> str | None:
+    return os.environ.get("XDG_SESSION_TYPE")
+
+
 def run_portal_command() -> int:
-    result = probe(os.environ.get("XDG_SESSION_TYPE"))
+    result = probe(session_type())
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["status"] == "PROBED" else 2

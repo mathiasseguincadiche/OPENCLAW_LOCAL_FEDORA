@@ -5,9 +5,11 @@ from __future__ import annotations
 import argparse
 import json
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass
 from uuid import uuid4
+
+from clawfedora import desktop_portal
 
 WINDOW = "atlas-window"
 MODES = ("observe", "pointer")
@@ -27,9 +29,14 @@ class Observation:
 class DesktopRehearsal:
     """A deterministic session over built-in data, with no compositor adapter."""
 
-    def __init__(self, mode: str, *, clock: Callable[[], float] = time.monotonic) -> None:
+    def __init__(
+        self, mode: str, *, clock: Callable[[], float] = time.monotonic,
+        capabilities: Mapping[str, object] | None = None,
+    ) -> None:
         if mode not in MODES:
             raise ValueError("mode de recette inconnu")
+        if capabilities is not None:
+            _require_capabilities(mode, capabilities)
         self.mode = mode
         self.session = uuid4().hex
         self._clock = clock
@@ -58,6 +65,9 @@ class DesktopRehearsal:
 
     def revoke(self) -> None:
         self._close("REVOKED")
+
+    def portal_closed(self) -> None:
+        self._close("PORTAL_CLOSED")
 
     def _require_window(self, window: str) -> None:
         if self.closed:
@@ -95,8 +105,19 @@ class DesktopRehearsal:
         self.events.append("DETAILS_OPENED")
 
 
-def simulate(mode: str) -> dict[str, object]:
-    exercise = DesktopRehearsal(mode)
+def _require_capabilities(mode: str, capabilities: Mapping[str, object]) -> None:
+    required = ["window_advertised"]
+    if mode == "pointer":
+        required += ["pointer_advertised", "eis_api_in_version"]
+    missing = [key for key in required if capabilities.get(key) is not True]
+    if capabilities.get("status") not in ("PROBED", "INCOMPLETE") or missing:
+        raise ValueError("capacités du portail à confirmer : " + ", ".join(missing or required))
+
+
+def simulate(
+    mode: str, *, capabilities: Mapping[str, object] | None = None,
+) -> dict[str, object]:
+    exercise = DesktopRehearsal(mode, capabilities=capabilities)
     exercise.consent(window=WINDOW, mode=mode, accepted=True)
     initial = exercise.observe(window=WINDOW)
     final = initial
@@ -117,8 +138,18 @@ def simulate(mode: str) -> dict[str, object]:
 def add_desktop_parser(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
     command = subparsers.add_parser("desktop-rehearsal", help="simuler le consentement Wayland")
     command.add_argument("--mode", choices=MODES, default="observe")
+    command.add_argument("--require-portal", action="store_true",
+                         help="contrôler les capacités annoncées avant la simulation")
 
 
 def run_desktop_command(args: argparse.Namespace) -> int:
-    print(json.dumps(simulate(args.mode), ensure_ascii=False, indent=2))
+    capabilities = (
+        desktop_portal.probe(desktop_portal.session_type()) if args.require_portal else None
+    )
+    try:
+        result = simulate(args.mode, capabilities=capabilities)
+    except ValueError as exc:
+        print(json.dumps({"status": "REFUSED", "reason": str(exc)}, ensure_ascii=False))
+        return 2
+    print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
