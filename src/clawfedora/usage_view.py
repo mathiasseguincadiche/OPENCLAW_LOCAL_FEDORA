@@ -30,6 +30,8 @@ def activity(runtime: Path) -> dict[str, Any]:
         if active
         else "Le dernier traitement a été interrompu"
         if phase == "interrupted"
+        else "Le dernier état du worker est à vérifier"
+        if phase == "unverified"
         else "L’atelier est disponible"
     )
     elapsed: int | None = None
@@ -60,7 +62,7 @@ def activity(runtime: Path) -> dict[str, Any]:
         "hint": "Attendez la fin avant de lancer une autre génération."
         if active
         else "Consultez l’état du projet avant de reprendre."
-        if phase == "interrupted"
+        if phase in {"interrupted", "unverified"}
         else "Vous pouvez poser une question ou ouvrir un projet.",
     }
 
