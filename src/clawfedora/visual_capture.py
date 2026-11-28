@@ -227,7 +227,7 @@ def screenshot_positions(document_height: int, viewport_height: int) -> list[int
     return sorted({0, middle, last})[:MAX_SHOTS]
 
 
-def _private_destination(root: Path) -> Path:
+def _validate_private_directory(root: Path) -> None:
     if (not root.is_absolute() or not root.is_dir()
             or any(parent.is_symlink() for parent in (root, *root.parents))):
         raise CaptureError("dossier absolu existant, privé et non lié requis")
@@ -237,7 +237,11 @@ def _private_destination(root: Path) -> Path:
     for parent in (root, *root.parents):
         if (parent / ".git").exists():
             raise CaptureError("capture interdite dans un dépôt Git")
-    directory = root / ("capture-" + uuid.uuid4().hex)
+
+
+def _private_destination(root: Path, *, prefix: str = "capture-") -> Path:
+    _validate_private_directory(root)
+    directory = root / (prefix + uuid.uuid4().hex)
     directory.mkdir(mode=0o700)
     return directory
 
@@ -401,6 +405,16 @@ def _wait_for_panel(page: Any, kind: str, resources: dict[str, bytes]) -> None:
         raise CaptureError("ressources du panneau manquantes : " + ", ".join(missing))
 
 
+def _playwright_api() -> tuple[Any, Any]:
+    try:
+        api = import_module("playwright.sync_api").__dict__
+        return api["sync_playwright"], api["Error"]
+    except (ImportError, KeyError) as exc:
+        raise CaptureError(
+            "installer l'option visuelle épinglée puis Chromium Playwright",
+        ) from exc
+
+
 def capture(
     kind: str, url: str, output_root: Path, *,
     interactive: bool, allow_private: bool, premium: bool = False,
@@ -416,14 +430,7 @@ def capture(
         )
     if interactive and not sys.stdin.isatty():
         raise CaptureError("capture interactive exige un terminal")
-    try:
-        playwright_api = import_module("playwright.sync_api")
-        sync_playwright = playwright_api.__dict__["sync_playwright"]
-        playwright_error = playwright_api.__dict__["Error"]
-    except (ImportError, KeyError) as exc:
-        raise CaptureError(
-            "installer l'option visuelle épinglée puis Chromium Playwright",
-        ) from exc
+    sync_playwright, playwright_error = _playwright_api()
     document = _read_official_document(url) if kind == "official-docs" else None
     local_panel = kind in LOCAL_PANELS
     output = _private_destination(output_root)

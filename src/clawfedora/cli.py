@@ -7,6 +7,7 @@ from pathlib import Path
 
 from clawfedora.agents import deploy_workspaces, validate_agent_assets
 from clawfedora.audit import collect_audit
+from clawfedora.browser_rehearsal import add_browser_parser, run_browser_command
 from clawfedora.cloud_state import cloud_status
 from clawfedora.contracts import validate_repository
 from clawfedora.core_config import resolve_runtime_root
@@ -224,6 +225,7 @@ def build_parser() -> argparse.ArgumentParser:
     render.add_argument("--json", action="store_true")
 
     add_project_parser(subparsers)
+    add_browser_parser(subparsers)
     dashboard = subparsers.add_parser("dashboard", help="suivi local des projets et des ressources")
     dashboard.add_argument("--runtime-root")
     dashboard.add_argument("--serve", action="store_true")
@@ -255,6 +257,8 @@ def main(argv: list[str] | None = None) -> int:
         )
     if args.command == "project":
         return run_project_command(root, args)
+    if args.command == "browser-rehearsal":
+        return run_browser_command(args)
     if args.command == "dashboard":
         from clawfedora.dashboard import serve, snapshot
 
