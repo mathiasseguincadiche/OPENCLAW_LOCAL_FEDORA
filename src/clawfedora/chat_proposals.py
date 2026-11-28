@@ -186,7 +186,7 @@ def accepted_notes(runtime: Path, project: Path, limit: int = 10) -> list[dict[s
 
 
 def accepted_references(
-    runtime: Path, project: Path, *, limit: int,
+    runtime: Path, project: Path, *, limit: int, include_excerpt: bool = False,
 ) -> tuple[list[dict[str, Any]], int]:
     """Read traceable recent acceptances and count divergent note/proposal pairs."""
     if limit <= 0:
@@ -224,6 +224,7 @@ def accepted_references(
                 "proposal_path": source.relative_to(base).as_posix(),
                 "proposal_sha256": hashlib.sha256(source_bytes).hexdigest(),
                 "note_path": relative, "note_sha256": hashlib.sha256(note_bytes).hexdigest(),
+                **({"excerpt": record["text"][:300]} if include_excerpt else {}),
             })
         except (OSError, ValueError, KeyError, TypeError):
             unverified += 1

@@ -23,6 +23,7 @@ MAX_ACTIVE = 4
 MAX_READY = 4
 MAX_DECISIONS = 5
 MAX_OBJECTIVES = 5
+MAX_CLARIFICATIONS = 5
 MAX_EVIDENCE = 5
 MAX_MISSION_TASKS = 6
 
@@ -91,11 +92,13 @@ def _timestamp(value: object) -> str | None:
     return parsed.isoformat() if parsed.tzinfo is not None else None
 
 
-def _decisions(runtime: Path, project: Path) -> dict[str, Any]:
+def decision_references(
+    runtime: Path, project: Path, *, limit: int = MAX_DECISIONS, include_excerpt: bool = False,
+) -> dict[str, Any]:
     source = "accepted_chat_proposals"
     try:
         notes, unverified = chat_proposals.accepted_references(
-            runtime, project, limit=MAX_DECISIONS,
+            runtime, project, limit=limit, include_excerpt=include_excerpt,
         )
         items: list[dict[str, Any]] = []
         for item in notes:
@@ -195,7 +198,7 @@ def _mission_source(path: Path) -> tuple[dict[str, Any], str]:
     return value, sha256(raw).hexdigest()
 
 
-def _objectives(repo_root: Path, project: Path, manifest: dict[str, Any]) -> dict[str, Any]:
+def recorded_objectives(repo_root: Path, project: Path, manifest: dict[str, Any]) -> dict[str, Any]:
     if manifest.get("status") == "INTAKE_READY":
         return {"status": "NOT_RECORDED"}
     try:
@@ -219,6 +222,47 @@ def _objectives(repo_root: Path, project: Path, manifest: dict[str, Any]) -> dic
         }
     except (OSError, ValueError, KeyError, TypeError):
         return {"status": "UNVERIFIED"}
+
+
+def pending_clarifications(
+    repo_root: Path, project: Path, manifest: dict[str, Any], *, limit: int = MAX_CLARIFICATIONS,
+) -> dict[str, Any]:
+    """Read pending questions from the canonical register, never from model prose."""
+    if manifest.get("status") == "INTAKE_READY":
+        return {"status": "NOT_RECORDED", "items": []}
+    try:
+        source = project_engine._artifact(repo_root, project, "clarifications")
+        if not source.is_file():
+            return {"status": "NOT_RECORDED", "items": []}
+        register, digest = _mission_source(source)
+        date = _timestamp(register.get("generated_at"))
+        rows = register.get("items")
+        if date is None or not isinstance(rows, list):
+            raise ValueError("registre des clarifications invalide")
+        items: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for row in rows:
+            identifier, status = row["id"], row["status"]
+            if (
+                not re.fullmatch(r"clarification-[0-9]{3,}", identifier) or identifier in seen
+                or status not in ("OPEN", "RESOLVED")
+                or not isinstance(row["question"], str) or type(row["blocking"]) is not bool
+            ):
+                raise ValueError("clarification invalide")
+            seen.add(identifier)
+            if status == "OPEN" and (question := _display(row["question"], 180)):
+                items.append({
+                    "id": identifier, "question": question, "blocking": row["blocking"],
+                    "status": "TO_CONFIRM",
+                })
+        items.sort(key=lambda item: not item["blocking"])
+        return {
+            "status": "RECORDED", "source": source.relative_to(project).as_posix(),
+            "source_sha256": digest, "recorded_at": date,
+            "count": len(items), "items": items[:limit],
+        }
+    except (OSError, ValueError, KeyError, TypeError):
+        return {"status": "UNVERIFIED", "items": []}
 
 
 def _audits(repo_root: Path, project: Path) -> list[dict[str, Any]]:
@@ -402,7 +446,7 @@ def overview(
         # The ordinary chat context already contains accepted_notes; do not
         # scan and decode the proposal register a second time on each message.
         "accepted_decisions": (
-            _decisions(runtime, project) if check_evidence else
+            decision_references(runtime, project) if check_evidence else
             {"status": "IN_PROJECT_CONTEXT", "source": "notes_acceptees", "items": []}
         ),
         "provenance": "persisted_project_state_not_previous_chat_messages",
@@ -412,7 +456,8 @@ def overview(
         result["milestone_evidence"] = _evidence(project, roadmap["status"])
         if repo_root is not None:
             result["mission"] = _mission(runtime, project, repo_root, manifest)
-            result["objectives"] = _objectives(repo_root, project, manifest)
+            result["objectives"] = recorded_objectives(repo_root, project, manifest)
+            result["clarifications_pending"] = pending_clarifications(repo_root, project, manifest)
             result["audit_references"] = _audits(repo_root, project)
     else:
         result["milestone_evidence"] = {"status": "NOT_CHECKED_IN_CHAT"}
@@ -472,6 +517,16 @@ def render(report: dict[str, Any]) -> str:
         lines.append(f"Cadrage du {objectives['recorded_at'][:10]}.")
     elif objectives.get("status") == "UNVERIFIED":
         lines.append("Les objectifs du cadrage restent à vérifier.")
+    clarifications = report.get("clarifications_pending", {})
+    if clarifications.get("items"):
+        lines += ["", "**Points à confirmer**"]
+        for item in clarifications["items"]:
+            blocking = " (bloquant)" if item["blocking"] else ""
+            lines.append(f"- `{item['id']}` · {item['question']}{blocking}")
+        if clarifications["count"] > len(clarifications["items"]):
+            lines.append("D'autres points figurent dans le registre des clarifications.")
+    elif clarifications.get("status") == "UNVERIFIED":
+        lines.append("Le registre des clarifications reste à vérifier.")
     decisions = report["accepted_decisions"]
     if decisions["status"] == "AVAILABLE" and decisions["items"]:
         lines.append("Références de décisions acceptées (titres uniquement) :")

@@ -13,8 +13,9 @@ from typing import Any
 import pytest
 from test_daily_worker import planned as planned
 
-from clawfedora import chat_projects, project_cloud
+from clawfedora import chat_projects, chat_proposals, project_cloud, project_engine
 from clawfedora.cloud_state import write_activation
+from clawfedora.project_common import read_json, sha256_file, write_json
 from clawfedora.project_worker import worker_lock
 from clawfedora.webui_bridge import (
     CLOUD_MODEL_IDS,
@@ -274,6 +275,65 @@ def test_the_context_is_bounded_and_marks_documents_as_data(
     assert "aucun ordre" in context and "n'autorisent rien" in context
     manifest = json.loads(context.split("\n", 1)[1])
     assert manifest["project"]["id"] == PROJECT
+
+
+def test_project_context_selects_relevant_records_and_keeps_questions_open(
+    planned: tuple[Path, Path],
+) -> None:
+    runtime, project = planned
+    analysis_path = project / "context/project_analysis.json"
+    analysis = read_json(analysis_path)
+    analysis.update(
+        summary="Hypothèse du modèle à exclure",
+        objectives=["Définir la sauvegarde", "Documenter le réseau"],
+        ambiguities=["Une hypothèse du brouillon"],
+    )
+    write_json(analysis_path, analysis)
+    clarifications = project_engine._artifact(ROOT, project, "clarifications")
+    write_json(clarifications, {"generated_at": analysis["generated_at"], "items": [
+        {"id": "clarification-001", "status": "OPEN", "question": "Quel réseau privé ?",
+         "blocking": False},
+        {"id": "clarification-002", "status": "OPEN", "question": "Quel délai de sauvegarde ?",
+         "blocking": False},
+        {"id": "clarification-003", "status": "RESOLVED", "question": "Ancienne sauvegarde ?",
+         "blocking": True, "answer": "Ancienne réponse à exclure"},
+    ]})
+    other = runtime / "projects" / "other-project"
+    other.mkdir()
+    for root, title, body in (
+        (project, "Sauvegarde", "Rétention à étudier dans la note pertinente"),
+        (project, "Réseau", "Autre information hors sujet"),
+        (other, "Sauvegarde", "Information d'un autre projet"),
+    ):
+        proposal = chat_proposals.save(runtime, root, body, title, "local", "Qwen")
+        chat_proposals.accept(runtime, root, proposal["number"], proposal["sha256"])
+    for name in ("sauvegarde", "reseau"):
+        target = project / "deliverables" / name / "rapport.md"
+        target.parent.mkdir(parents=True)
+        target.write_text("Contenu à conserver dans le fichier", encoding="utf-8")
+
+    before = tree_hash(project)
+    context = chat_projects.project_context(ROOT, runtime, project, "Quelle sauvegarde prévoir ?")
+    payload = json.loads(context.split("\n", 1)[1])
+    assert payload["objectives"]["items"] == [{"position": 1, "objective": "Définir la sauvegarde"}]
+    assert payload["objectives"]["source_sha256"] == sha256_file(analysis_path)
+    assert payload["deliverables"] == ["deliverables/sauvegarde/rapport.md"]
+    assert [row["title"] for row in payload["notes_acceptees"]] == ["Sauvegarde"]
+    assert payload["notes_acceptees"][0]["excerpt"] == "Rétention à étudier dans la note pertinente"
+    assert payload["clarifications_pending"]["source_sha256"] == sha256_file(clarifications)
+    assert payload["clarifications_pending"]["items"] == [
+        {"id": "clarification-002", "question": "Quel délai de sauvegarde ?",
+         "blocking": False, "status": "TO_CONFIRM"},
+    ]
+    for excluded in ("Hypothèse du modèle", "hypothèse du brouillon", "Ancienne réponse",
+                     "Autre information", "Information d'un autre projet"):
+        assert excluded not in context
+    assert tree_hash(project) == before
+
+    note = project / payload["notes_acceptees"][0]["note_path"]
+    note.write_text("Contenu de note modifié", encoding="utf-8")
+    changed = chat_projects.project_context(ROOT, runtime, project, "sauvegarde")
+    assert json.loads(changed.split("\n", 1)[1])["notes_acceptees"] == []
 
 
 def test_a_command_hidden_in_the_thread_or_the_project_is_not_executed(
