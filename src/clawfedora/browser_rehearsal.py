@@ -1,4 +1,4 @@
-"""Single-action browser rehearsal for an operator, using a built-in offline fixture."""
+"""Operator-approved actions on built-in offline browser fixtures."""
 
 from __future__ import annotations
 
@@ -27,6 +27,16 @@ TIMEOUT_MS = 10000
 SESSION_NAME = re.compile(r"rehearsal-[a-f0-9]{32}\Z")
 APPROVAL_SHA = re.compile(r"[a-f0-9]{64}\Z")
 ACTION = "open-details"
+NAVIGATE = "open-report"
+SCENARIOS = {"details": ACTION, "navigation": NAVIGATE}
+NAV_HOME = "https://recette-clawfedora.invalid/"
+NAV_REPORT = NAV_HOME + "rapport"
+NAV_LINK = "#rehearsal-report-link"
+NAV_HEADINGS = {NAV_HOME: "Accueil de la recette", NAV_REPORT: "Rapport de la recette"}
+NAV_CSP = (
+    "default-src 'none'; style-src 'unsafe-inline'; form-action 'none'; "
+    "base-uri 'none'; frame-ancestors 'none'"
+)
 FIXTURE = """<!doctype html>
 <html lang="fr">
 <head>
@@ -51,18 +61,57 @@ summary { cursor: pointer; }
 </html>"""
 
 
-def _plan(directory: Path, issued_at: int) -> dict[str, Any]:
+def _navigation_fixture(heading: str, body: str) -> str:
+    return f"""<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<title>{heading} · ClawFedora</title>
+<style>
+body {{font: 18px system-ui, sans-serif; margin: 3rem; background: #f5f7fb; color: #152338}}
+main {{max-width: 46rem; margin: auto; padding: 2rem; background: white; border-radius: 1rem}}
+</style></head><body><main>
+<h1>{heading}</h1>
+{body}
+</main></body></html>"""
+
+
+NAV_PAGES = {
+    NAV_HOME: _navigation_fixture(
+        NAV_HEADINGS[NAV_HOME],
+        '<p>Environnement synthétique de l’atelier.</p>'
+        '<a id="rehearsal-report-link" href="/rapport">Lire le rapport</a>',
+    ),
+    NAV_REPORT: _navigation_fixture(
+        NAV_HEADINGS[NAV_REPORT],
+        '<p id="rehearsal-report-result">La destination attendue est affichée.</p>',
+    ),
+}
+
+
+def _plan(directory: Path, issued_at: int, action: str = ACTION) -> dict[str, Any]:
+    if action == NAVIGATE:
+        scenario = {
+            "description": "Ouvrir le rapport de recette par le lien autorisé.",
+            "fixture_sha256": hashlib.sha256(_encoded(NAV_PAGES)).hexdigest(),
+            "before": {"url": NAV_HOME, "heading": NAV_HEADINGS[NAV_HOME]},
+            "after": {"url": NAV_REPORT, "heading": NAV_HEADINGS[NAV_REPORT]},
+        }
+    elif action == ACTION:
+        scenario = {
+            "description": "Ouvrir les détails de la page de recette par un clic.",
+            "fixture_sha256": hashlib.sha256(FIXTURE.encode()).hexdigest(),
+            "before": {"details_open": False, "result_visible": False},
+            "after": {"details_open": True, "result_visible": True},
+        }
+    else:
+        raise CaptureError("scénario de recette non autorisé")
     return {
         "schema": 1,
         "scope": "SYNTHETIC_OFFLINE",
         "session": str(directory),
-        "action": ACTION,
-        "description": "Ouvrir les détails de la page de recette par un clic.",
-        "fixture_sha256": hashlib.sha256(FIXTURE.encode()).hexdigest(),
+        "action": action,
         "issued_at_unix": issued_at,
         "expires_at_unix": issued_at + TTL_SECONDS,
-        "before": {"details_open": False, "result_visible": False},
-        "after": {"details_open": True, "result_visible": True},
+        **scenario,
     }
 
 
@@ -89,10 +138,13 @@ def _read_plan(path: Path) -> bytes:
     return raw
 
 
-def preview(output_root: Path) -> dict[str, Any]:
+def preview(output_root: Path, *, scenario: str = "details") -> dict[str, Any]:
     """Prepare the exact action without starting Playwright."""
+    action = SCENARIOS.get(scenario)
+    if action is None:
+        raise CaptureError("scénario de recette non autorisé")
     directory = _private_destination(output_root, prefix="rehearsal-")
-    plan = _plan(directory, int(time.time()))
+    plan = _plan(directory, int(time.time()), action)
     raw = _encoded(plan)
     _write_exclusive(directory / "plan.json", raw)
     return {
@@ -114,8 +166,10 @@ def _approved_plan(directory: Path, approval: str) -> dict[str, Any]:
     plan = json.loads(raw)
     if not isinstance(plan, dict):
         raise CaptureError("plan de recette invalide")
-    issued_at = plan.get("issued_at_unix")
-    if type(issued_at) is not int or raw != _encoded(_plan(directory, issued_at)):
+    issued_at, action = plan.get("issued_at_unix"), plan.get("action")
+    if type(issued_at) is not int or not isinstance(action, str) or action not in SCENARIOS.values():
+        raise CaptureError("plan différent de l'action de recette autorisée")
+    if raw != _encoded(_plan(directory, issued_at, action)):
         raise CaptureError("plan différent de l'action de recette autorisée")
     now = int(time.time())
     if not issued_at <= now < issued_at + TTL_SECONDS:
@@ -143,6 +197,96 @@ def _screenshot(page: Any, directory: Path, name: str) -> dict[str, Any]:
     return _shot(path)
 
 
+class _NavigationFence:
+    """Admit each fixed document once and only in the main frame of the selected page."""
+
+    def __init__(self, page: Any, playwright_error: type[Exception]) -> None:
+        self.page = page
+        self.playwright_error = playwright_error
+        self.expected: str | None = NAV_HOME
+        self.served: list[str] = []
+        self.blocked_requests = 0
+
+    def authorize_report(self) -> None:
+        if self.expected is not None or self.served != [NAV_HOME]:
+            raise CaptureError("transition de recette déjà utilisée ou inattendue")
+        self.expected = NAV_REPORT
+
+    def handle(self, route: Any) -> None:
+        request = route.request
+        url = request.url
+        if (
+            url != self.expected or request.method != "GET"
+            or request.resource_type != "document" or not request.is_navigation_request()
+        ):
+            self.blocked_requests += 1
+            route.abort()
+            return
+        try:
+            selected_frame = request.frame == self.page.main_frame
+        except self.playwright_error:
+            selected_frame = False
+        if not selected_frame:
+            self.blocked_requests += 1
+            route.abort()
+            return
+        self.expected = None
+        self.served.append(url)
+        route.fulfill(status=200, body=NAV_PAGES[url], headers={
+            "Content-Type": "text/html; charset=utf-8",
+            "Content-Security-Policy": NAV_CSP,
+            "Referrer-Policy": "no-referrer",
+        })
+
+
+def _navigation_state(page: Any) -> dict[str, Any]:
+    heading = page.locator("main h1")
+    if heading.count() != 1 or not heading.is_visible():
+        raise CaptureError("titre visible de la page de recette requis")
+    return {"url": page.url, "heading": heading.inner_text(timeout=TIMEOUT_MS)}
+
+
+def _report_link(page: Any) -> Any:
+    link = page.locator(NAV_LINK)
+    if link.count() != 1 or not link.is_visible():
+        raise CaptureError("lien de recette visible et unique requis")
+    if (
+        link.get_attribute("href", timeout=TIMEOUT_MS) != "/rapport"
+        or any(link.get_attribute(attr, timeout=TIMEOUT_MS) is not None
+               for attr in ("target", "download", "ping"))
+    ):
+        raise CaptureError("destination du lien divergente, clic refusé")
+    return link
+
+
+def _exercise_navigation(
+    context: Any, page: Any, directory: Path, plan: dict[str, Any],
+    playwright_error: type[Exception],
+) -> dict[str, Any]:
+    fence = _NavigationFence(page, playwright_error)
+    context.route("**/*", fence.handle)
+    page.goto(NAV_HOME, wait_until="load", timeout=TIMEOUT_MS)
+    before = _navigation_state(page)
+    if before != plan["before"]:
+        raise CaptureError("état initial divergent, navigation refusée")
+    before_shot = _screenshot(page, directory, "before.png")
+    link = _report_link(page)
+    fence.authorize_report()
+    link.click(timeout=TIMEOUT_MS)
+    page.wait_for_url(NAV_REPORT, wait_until="load", timeout=TIMEOUT_MS)
+    after = _navigation_state(page)
+    if (
+        after != plan["after"] or fence.served != [NAV_HOME, NAV_REPORT]
+        or len(context.pages) != 1 or not page.locator("#rehearsal-report-result").is_visible()
+    ):
+        raise CaptureError("navigation ou état final divergent")
+    after_shot = _screenshot(page, directory, "after.png")
+    return {
+        "before": before, "after": after, "screenshots": [before_shot, after_shot],
+        "navigation": {"served": fence.served, "blocked_requests": fence.blocked_requests},
+    }
+
+
 def _exercise(directory: Path, plan: dict[str, Any]) -> dict[str, Any]:
     sync_playwright, playwright_error = _playwright_api()
     try:
@@ -154,9 +298,11 @@ def _exercise(directory: Path, plan: dict[str, Any]) -> dict[str, Any]:
                     accept_downloads=False, viewport={"width": 1000, "height": 640},
                 )
                 try:
-                    context.route("**/*", lambda route: route.abort())
                     context.route_web_socket("**/*", lambda route: route.close())
                     page = context.new_page()
+                    if plan["action"] == NAVIGATE:
+                        return _exercise_navigation(context, page, directory, plan, playwright_error)
+                    context.route("**/*", lambda route: route.abort())
                     page.set_content(FIXTURE, wait_until="load", timeout=TIMEOUT_MS)
                     before = _state(page)
                     if before != plan["before"]:
@@ -203,8 +349,9 @@ def apply(directory: Path, approval: str) -> dict[str, Any]:
 def add_browser_parser(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
     browser = subparsers.add_parser("browser-rehearsal", help="recette locale d'une action isolée")
     actions = browser.add_subparsers(dest="browser_command", required=True)
-    plan = actions.add_parser("preview", help="préparer le clic de recette")
+    plan = actions.add_parser("preview", help="préparer une interaction de recette")
     plan.add_argument("--output-dir", type=Path, required=True)
+    plan.add_argument("--scenario", choices=tuple(SCENARIOS), default="details")
     execute = actions.add_parser("apply", help="exécuter une préparation approuvée")
     execute.add_argument("--session", type=Path, required=True)
     execute.add_argument("--approve-sha256", required=True)
@@ -213,7 +360,7 @@ def add_browser_parser(subparsers: argparse._SubParsersAction[argparse.ArgumentP
 def run_browser_command(args: argparse.Namespace) -> int:
     try:
         if args.browser_command == "preview":
-            result = preview(args.output_dir)
+            result = preview(args.output_dir, scenario=args.scenario)
         else:
             result = apply(args.session, args.approve_sha256)
     except (OSError, ValueError) as exc:
