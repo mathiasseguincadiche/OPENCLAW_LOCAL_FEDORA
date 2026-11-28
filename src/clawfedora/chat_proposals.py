@@ -151,7 +151,7 @@ def _note_text(record: dict[str, Any]) -> str:
     return (
         f"<!-- Note acceptée par l'utilisateur depuis le chat. Texte écrit par un modèle "
         f"({record['route']}, {record['model']}), non vérifié. proposition {record['number']}, "
-        f"sha256 {record['sha256']} -->\n\n" + record["text"] + "\n"
+        f"sha256 {record['sha256']} -->\n\n{record['text']}\n"
     )
 
 
