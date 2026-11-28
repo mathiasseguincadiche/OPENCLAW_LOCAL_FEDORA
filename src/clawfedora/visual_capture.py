@@ -134,6 +134,7 @@ METRICS_JS = """() => {
     ).length,
     visible_text_length: (body.innerText || "").length,
     color_scheme_preference: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+    applied_color_scheme: root.dataset.theme || getComputedStyle(root).colorScheme,
     broken_loaded_images: [...body.querySelectorAll("img")].filter(
       img => img.complete && img.naturalWidth === 0 && !!img.currentSrc
     ).length
@@ -394,6 +395,12 @@ def _offline_document(context: Any, url: str, document: bytes) -> None:
     context.route("**/*", handle)
 
 
+def _wait_for_panel(page: Any, kind: str, resources: dict[str, bytes]) -> None:
+    page.wait_for_function(PANEL_READY_JS[kind], timeout=PANEL_TIMEOUT_MS)
+    if missing := sorted(_panel_scope(kind).keys() - resources.keys()):
+        raise CaptureError("ressources du panneau manquantes : " + ", ".join(missing))
+
+
 def capture(
     kind: str, url: str, output_root: Path, *,
     interactive: bool, allow_private: bool, premium: bool = False,
@@ -441,9 +448,7 @@ def capture(
                 page.goto(url, wait_until="load" if local_panel else "domcontentloaded",
                           timeout=PANEL_TIMEOUT_MS if local_panel else 30000)
                 if local_panel:
-                    page.wait_for_function(PANEL_READY_JS[kind], timeout=PANEL_TIMEOUT_MS)
-                    if missing := sorted(_panel_scope(kind).keys() - panel_resources.keys()):
-                        raise CaptureError("ressources du panneau manquantes : " + ", ".join(missing))
+                    _wait_for_panel(page, kind, panel_resources)
                 if interactive:
                     input(
                         "Examiner la page cible dans le navigateur temporaire ; "
@@ -474,9 +479,15 @@ def capture(
                         ],
                     }
                 sizes = PREMIUM_SIZES if premium else SIZES
+                previous_scheme = "light"
                 for category, (width, height, scheme) in sizes.items():
                     page.set_viewport_size({"width": width, "height": height})
                     page.emulate_media(color_scheme=scheme)
+                    if local_panel and not interactive and scheme != previous_scheme:
+                        # Workbench chooses the theme when its scripts initialize.
+                        page.reload(wait_until="load", timeout=PANEL_TIMEOUT_MS)
+                        _wait_for_panel(page, kind, panel_resources)
+                    previous_scheme = scheme
                     page.wait_for_timeout(600)
                     _validate_final_url(kind, url, page.url)
                     if premium:

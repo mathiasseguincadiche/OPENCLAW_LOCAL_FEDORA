@@ -12,6 +12,7 @@ import json
 import os
 import threading
 from collections.abc import Iterator
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -137,9 +138,12 @@ def test_read_only_capture_waits_for_dynamic_panel(
               for file in project.rglob("*") if file.is_file()}
     local = tmp_path / "observation"
     local.mkdir(mode=0o700)
-    report = visual_capture.capture(
-        kind, _url(local_server, path), local, interactive=False, allow_private=False,
-    )
+    # The shared Playwright fixture owns the test thread's event loop.
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        report = executor.submit(
+            visual_capture.capture,
+            kind, _url(local_server, path), local, interactive=False, allow_private=False,
+        ).result(timeout=60)
     assert report["observation"]["rendering"] == "LOOPBACK_READ_ONLY_PANEL"
     assert report["observation"]["panel_ready"] is True
     traces = {resource["path"]: resource for resource in report["observation"]["resources"]}
@@ -150,6 +154,10 @@ def test_read_only_capture_waits_for_dynamic_panel(
     else:
         assert not any(name.startswith("/api/") for name in traces)
     assert [item["view"] for item in report["screenshots"]] == list(visual_capture.SIZES)
+    dark = "light" if kind == "local-performance" else "dark"
+    assert [item["metrics"]["applied_color_scheme"] for item in report["screenshots"]] == [
+        "light", dark, "light",
+    ]
     output = Path(report["output_directory"])
     assert (output / "manifest.json").stat().st_mode & 0o077 == 0
     after = {file.relative_to(project): file.read_bytes()

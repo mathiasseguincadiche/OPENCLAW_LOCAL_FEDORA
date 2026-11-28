@@ -83,7 +83,9 @@ est lue une fois et réutilisée pour toutes les vues. Les requêtes d'écriture
 les destinations externes, les redirections, les WebSockets et les
 téléchargements sont bloqués. La capture attend la fin du chargement
 du panneau. Le manifeste attribue à chaque ressource locale son chemin
-et son empreinte SHA-256.
+et son empreinte SHA-256. Il indique la préférence de thème demandée et
+le thème réellement appliqué. Le panneau Performances utilise un thème
+clair dans les trois vues.
 
 En CI, Chromium exerce les quatre panneaux avec le véritable serveur
 ClawFedora et des données synthétiques. La qualification sur le poste
