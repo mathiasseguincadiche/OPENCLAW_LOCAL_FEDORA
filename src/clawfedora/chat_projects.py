@@ -638,7 +638,7 @@ HELP = """Commandes du pont (comprises par le programme, jamais par le modèle) 
 - `!projets` : liste vos projets, avec leur état
 - `!projet <id>` : sélectionne un projet (un morceau d'identifiant ou de titre suffit s'il est unique)
 - `!etat` : état du projet sélectionné (tâches, pause, cloud, traitement en cours)
-- `!continuer` : résumé de reprise en lecture seule (jalons, décisions, reçus et sources)
+- `!continuer` : état de la mission et de la feuille de route en lecture seule
 - `!sources` : liste en lecture seule les sources et leur état d'ingestion
 - `!modele [catégorie]` : conseille Qwen ou DeepSeek selon la tâche,
   sans transmettre de conversation à un modèle
@@ -830,7 +830,7 @@ def run_command(
             return bridge_reply(None, "Aucun projet sélectionné. Faites `!projets`.")
         return bridge_reply(
             current, project_resume.render(
-                project_resume.overview(runtime, project, check_evidence=True)
+                project_resume.overview(runtime, project, check_evidence=True, repo_root=repo_root)
             ),
         )
     if name == "quitter":

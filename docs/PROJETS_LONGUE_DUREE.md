@@ -61,12 +61,26 @@ extraits directement des fichiers canoniques du projet.
 Saisissez `!continuer` (ou `/continuer`) pour afficher, **sans lancer
 de modèle ni déclencher de tâche** :
 
+- la mission approuvée et l'état de ses tâches, dont les dépendances,
+  le retour guidé ou un arrêt après des corrections inchangées ;
+- une publication locale à terminer si un journal correspond à la
+  tentative du projet ;
 - les jalons déclarés en cours ou bloqués ;
 - les jalons planifiés dont toutes les dépendances sont déclarées réalisées ;
 - les références des dernières propositions acceptées, sans recopier leurs textes ;
 - un bilan des reçus de jalons et de ceux à requalifier, après contrôle des
   empreintes/sources existantes ;
 - l'état d'intégrité des sources du projet.
+
+Le rapport JSON est également disponible avec la commande suivante.
+
+~~~bash
+clawfedora project continuity --project-id mon-projet
+~~~
+
+Le rapport identifie la révision et les empreintes du plan et des
+assignations. Une divergence entre ces fichiers laisse l'état de la
+mission à vérifier. Le statut du projet indique si l’audit ou la livraison reste à faire.
 
 Le récapitulatif n'invente pas de décision issue de l'ancien fil. Un échange
 non conservé dans les ADR, les notes acceptées ou les autres fichiers du

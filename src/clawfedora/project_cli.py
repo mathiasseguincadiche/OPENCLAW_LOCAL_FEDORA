@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from clawfedora import project_cloud
+from clawfedora import project_cloud, project_resume
 from clawfedora.core_config import resolve_runtime_root
 from clawfedora.knowledge import build_index, search, store_note
 from clawfedora.learning import submit
@@ -89,6 +89,10 @@ def add_project_parser(
     status = commands.add_parser("status")
     status.add_argument("--runtime-root")
     status.add_argument("--project-id", required=True)
+
+    continuity = commands.add_parser("continuity", help="lire l’état canonique de la mission")
+    continuity.add_argument("--runtime-root")
+    continuity.add_argument("--project-id", required=True)
 
     roadmap = commands.add_parser("roadmap", help="voir les jalons de longue durée")
     roadmap.add_argument("--runtime-root")
@@ -427,6 +431,11 @@ def run_project_command(repo_root: Path, args: argparse.Namespace) -> int:
         elif command == "status":
             project_manifest = read_json(_project(args) / "project.json")
             print(json.dumps(project_manifest, indent=2, ensure_ascii=False))
+        elif command == "continuity":
+            report = project_resume.overview(
+                _runtime(args), _project(args), check_evidence=True, repo_root=repo_root,
+            )
+            print(json.dumps(report, ensure_ascii=False, indent=2))
         elif command == "roadmap":
             print(json.dumps(roadmap_load(_project(args)), ensure_ascii=False, indent=2))
         elif command == "roadmap-init":

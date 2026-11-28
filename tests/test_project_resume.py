@@ -1,15 +1,21 @@
 """Project continuation is read-only, per-project and grounded in canonical records."""
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 from typing import Any
 
 import pytest
+from test_daily_worker import planned as planned
 
-from clawfedora import atelier_chat, chat_projects, milestone_evidence, project_resume
+from clawfedora import atelier_chat, chat_projects, milestone_evidence, project_engine, project_resume
+from clawfedora.project_cli import add_project_parser, run_project_command
 from clawfedora.project_common import read_json, write_json
 from clawfedora.project_roadmap import change, initialize
+from clawfedora.project_worker import run_project_tasks
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def make_project(runtime: Path, name: str) -> Path:
@@ -160,3 +166,102 @@ def test_invalid_project_or_missing_project_is_not_resumed(tmp_path: Path) -> No
     assert "Aucun projet" in chat_projects.run_command(
         tmp_path, tmp_path, "continuer", "", None,
     )
+
+
+def _mission(runtime: Path, project: Path) -> dict[str, Any]:
+    report = project_resume.overview(runtime, project, check_evidence=True, repo_root=ROOT)
+    return report["mission"]
+
+
+def test_continuity_reads_the_approved_mission_in_a_new_discussion_and_cli(
+    planned: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
+) -> None:
+    runtime, project = planned
+    initial = _mission(runtime, project)
+    assert initial["next_action"] == "ASSIGNED"
+    assert initial["counts"] == {"READY": 1, "AWAITING_DEPENDENCIES": 1}
+    assert "mission" not in project_resume.overview(runtime, project, repo_root=ROOT)
+    project_engine.transition_project(
+        ROOT, project, "IN_PROGRESS", actor="chef-operations", reason="fixture",
+    )
+    before = {path.relative_to(project): path.read_bytes()
+              for path in project.rglob("*") if path.is_file()}
+    thread = atelier_chat.create(runtime, project.name, "chef-operations")
+
+    def no_model(*_args: Any) -> str:
+        pytest.fail("la lecture de la mission ne doit pas lancer de modèle")
+
+    monkeypatch.setattr(atelier_chat, "_policy_answer", no_model)
+    message = atelier_chat.send(ROOT, runtime, thread["id"], "!continuer")["messages"][-1]["content"]
+    assert "Mission courante" in message and "`design-choice`" in message
+    assert "dépendances en attente" in message
+    parser = argparse.ArgumentParser()
+    add_project_parser(parser.add_subparsers())
+    args = parser.parse_args([
+        "project", "continuity", "--runtime-root", str(runtime), "--project-id", project.name,
+    ])
+    monkeypatch.setattr("clawfedora.project_cli.require_storage", lambda *_args: None)
+    assert run_project_command(ROOT, args) == 0
+    mission = json.loads(capsys.readouterr().out)["mission"]
+    assert mission["next_action"] == "READY"
+    assert mission["tasks"][0]["objective"] == "Documenter"
+    assert len(mission["sources"]["assignments_sha256"]) == 64
+    assert {path.relative_to(project): path.read_bytes()
+            for path in project.rglob("*") if path.is_file()} == before
+
+
+def test_continuity_surfaces_its_own_interrupted_publication(
+    planned: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime, project = planned
+    normal = project_engine.write_json
+
+    def interrupt(path: Path, value: dict[str, Any]) -> None:
+        if path.name == "task_assignments.json":
+            raise KeyboardInterrupt
+        normal(path, value)
+
+    def produce(_role: str, prompt: str, _session: str) -> dict[str, Any]:
+        task = json.loads(prompt.split("\n", 1)[1])
+        return {"files": {task["expected_outputs"][0]: "Version privée de test"},
+                "summary": "Message producteur privé"}
+
+    with monkeypatch.context() as patch:
+        patch.setattr(project_engine, "write_json", interrupt)
+        with pytest.raises(KeyboardInterrupt):
+            run_project_tasks(ROOT, runtime, project, runner=produce)
+    journal_path = project / project_engine.TASK_PROMOTION_PATH
+    before = journal_path.read_bytes()
+    report = _mission(runtime, project)
+    assert report["next_action"] == "PUBLICATION_PENDING"
+    assert report["pending_publication"] == {"task_id": "design-choice", "attempt": 1}
+    text = json.dumps(report, ensure_ascii=False)
+    assert "Version privée" not in text and "Message producteur privé" not in text
+    assert journal_path.read_bytes() == before
+    second = make_project(runtime, "bankflow")
+    assert _mission(runtime, second)["status"] == "UNVERIFIED"
+    assert "design-choice" not in json.dumps(_mission(runtime, second))
+    invalid = read_json(journal_path)
+    invalid["project_id"] = "bankflow"
+    write_json(journal_path, invalid)
+    assert _mission(runtime, project)["status"] == "UNVERIFIED"
+
+
+def test_continuity_explains_a_stalled_task_and_checks_plan_assignment_agreement(
+    planned: tuple[Path, Path],
+) -> None:
+    runtime, project = planned
+    project_engine.transition_project(
+        ROOT, project, "IN_PROGRESS", actor="chef-operations", reason="fixture",
+    )
+    path = project / "context/task_assignments.json"
+    assignments = read_json(path)
+    assignments["tasks"][0].update(status="FAIL", attempts=1, failure_code="no_progress")
+    write_json(path, assignments)
+    assert project_engine.ready_tasks(ROOT, project) == []
+    mission = _mission(runtime, project)
+    assert mission["next_action"] == "BLOCKED"
+    assert mission["counts"] == {"STOPPED_NO_PROGRESS": 1, "AWAITING_DEPENDENCIES": 1}
+    assignments["tasks"][1]["depends_on"] = []
+    write_json(path, assignments)
+    assert _mission(runtime, project)["status"] == "UNVERIFIED"
