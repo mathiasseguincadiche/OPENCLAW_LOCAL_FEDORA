@@ -167,7 +167,7 @@ def _approved_plan(directory: Path, approval: str) -> dict[str, Any]:
     if not isinstance(plan, dict):
         raise CaptureError("plan de recette invalide")
     issued_at, action = plan.get("issued_at_unix"), plan.get("action")
-    if type(issued_at) is not int or action not in SCENARIOS.values():
+    if type(issued_at) is not int or not isinstance(action, str) or action not in SCENARIOS.values():
         raise CaptureError("plan différent de l'action de recette autorisée")
     if raw != _encoded(_plan(directory, issued_at, action)):
         raise CaptureError("plan différent de l'action de recette autorisée")
