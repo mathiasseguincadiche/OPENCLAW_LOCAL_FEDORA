@@ -152,6 +152,13 @@ Le [lot 6](NAVIGATEUR_ISOLE.md#rapport-de-recette-c05) clôt la recette
 logicielle C05 avec un rapport lié au commit testé. C06 porte sur les
 contrats de contrôle du bureau Fedora.
 
+### C06 — Bureau Fedora
+
+Le [lot 1](BUREAU_WAYLAND.md) simule le consentement par fenêtre et par
+mode, la révocation et la vérification d'une action locale. La recette
+en CI utilise une fenêtre fictive. Le prochain lot préparera le contrôle
+des capacités du portail.
+
 ### Programme restant
 
 | Chantier | Critère de clôture |
