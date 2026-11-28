@@ -29,3 +29,26 @@ feront partie de la qualification sur le poste Fedora dans C12.
 
 - [Portail ScreenCast](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.ScreenCast.html)
 - [Portail RemoteDesktop](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.RemoteDesktop.html)
+
+
+## Lire les capacités du portail
+
+Dans une session Wayland, exécutez la sonde depuis un terminal de cette
+même session.
+
+~~~bash
+clawfedora desktop-portal
+~~~
+
+La sonde interroge le propriétaire D-Bus déjà actif du portail sur le bus
+utilisateur. Elle lit les versions de ScreenCast et RemoteDesktop, les
+sources annoncées pour la capture de fenêtres et les périphériques
+annoncés pour le pointeur. Elle désactive l'activation automatique et
+l'autorisation interactive sur ses appels de lecture.
+
+`PROBED` indique que les deux interfaces ont répondu. Un champ de capacité
+à `null` indique une donnée indisponible ou non vérifiable. Le champ
+`eis_api_in_version` indique si la version annoncée de RemoteDesktop
+comprend l'API EIS. Le résultat conserve `qualification: PENDING`.
+La recette CI utilise des réponses D-Bus simulées. La fenêtre réelle, le
+dialogue de consentement et le flux PipeWire feront partie de C12.

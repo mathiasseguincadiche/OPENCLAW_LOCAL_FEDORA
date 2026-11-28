@@ -12,6 +12,7 @@ from clawfedora.cloud_state import cloud_status
 from clawfedora.contracts import validate_repository
 from clawfedora.core_config import resolve_runtime_root
 from clawfedora.core_contracts import validate_core_contracts
+from clawfedora.desktop_portal import add_portal_parser, run_portal_command
 from clawfedora.desktop_rehearsal import add_desktop_parser, run_desktop_command
 from clawfedora.hardware_gate import collect_hardware_gate, write_hardware_evidence
 from clawfedora.openclaw_config import build_openclaw_patch, write_openclaw_patch
@@ -228,6 +229,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_project_parser(subparsers)
     add_browser_parser(subparsers)
     add_desktop_parser(subparsers)
+    add_portal_parser(subparsers)
     dashboard = subparsers.add_parser("dashboard", help="suivi local des projets et des ressources")
     dashboard.add_argument("--runtime-root")
     dashboard.add_argument("--serve", action="store_true")
@@ -263,6 +265,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_browser_command(args)
     if args.command == "desktop-rehearsal":
         return run_desktop_command(args)
+    if args.command == "desktop-portal":
+        return run_portal_command()
     if args.command == "dashboard":
         from clawfedora.dashboard import serve, snapshot
 
