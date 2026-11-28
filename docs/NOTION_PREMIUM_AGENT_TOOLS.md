@@ -171,14 +171,17 @@ l'interface. La qualification sur le poste cible relève de C12. [PR #333](https
 Le lot 1 rassemble la mission et les contrôles dans le dossier d'un projet.
 La vue reprend l'état des tâches de la commande `!continuer`, renvoie aux
 rapports et indique quand un verdict doit être renouvelé après une modification.
-Le lot suivant portera sur les indicateurs de périmètre et d'autorisation
-du navigateur et du bureau.
+[PR #334](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/334)
+
+Le lot 2 affiche les autorisations visuelles dans le tableau de bord.
+Il décrit la portée des recettes Chromium et du bureau, et permet de
+lire les capacités annoncées du portail Wayland à la demande. Le parcours
+est vérifié dans Chromium sur mobile. C08 poursuit la recette de résilience.
 
 ### Programme restant
 
 | Chantier | Critère de clôture |
 | --- | --- |
-| C07 — Interface | Consolider le pilotage des missions, livrables et validations dans les espaces existants. |
 | C08 — Résilience et sécurité | Couvrir les erreurs, interruptions, rejouements, données non fiables et conflits dans chaque lot. |
 | C09 — Documentation | Réconcilier l'état actif, le code, les preuves et les guides historiques. |
 | C10 — Recette logicielle | Exécuter la [recette globale](RECETTE_GLOBALE.md) avec des données synthétiques avant installation. |
