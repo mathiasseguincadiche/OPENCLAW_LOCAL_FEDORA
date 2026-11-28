@@ -17,6 +17,7 @@ from clawfedora import (
     atelier_chat,
     atelier_chat_stream,
     chat_github,
+    desktop_portal,
     github_pr,
     github_quality,
     github_remote,
@@ -314,6 +315,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     self.server.runtime, query["id"][0], query["receipt"][0], query["format"][0],
                 )
                 self._send(200, raw, "application/octet-stream", attachment=name)
+            elif url.path == "/api/desktop-portal":
+                if url.query:
+                    raise ValueError("la lecture du portail ne prend aucun paramètre")
+                self._send(200, desktop_portal.probe(desktop_portal.session_type()))
             elif url.path == "/api/performance":
                 self._send(200, performance_reports.view(self.server.runtime))
             elif url.path == "/api/status":

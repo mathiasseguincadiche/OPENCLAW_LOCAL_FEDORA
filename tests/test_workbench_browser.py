@@ -582,3 +582,44 @@ def test_project_overview_shows_mission_and_requalifies_a_stale_audit(
         assert writes == []
     finally:
         context.close()
+
+
+def test_visual_permissions_only_probe_the_portal_on_request(
+    browser: Any, local_server: DashboardServer, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    probes = []
+    replies = iter([
+        {"status": "PROBED", "window_advertised": True, "pointer_advertised": False,
+         "eis_api_in_version": True},
+        {"status": "PORTAL_UNAVAILABLE"},
+    ])
+
+    def probe(session: str | None) -> dict[str, object]:
+        probes.append(session)
+        return next(replies)
+
+    monkeypatch.setattr(dashboard.desktop_portal, "probe", probe)
+    context = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme="dark")
+    page = context.new_page()
+    methods: list[str] = []
+    page.on("request", lambda req: methods.append(req.method))
+    try:
+        page.goto(_url(local_server, "/"), wait_until="domcontentloaded")
+        panel = page.get_by_role("region", name="Autorisations visuelles")
+        status = panel.get_by_role("status")
+        pw.expect(panel).to_contain_text("approbation opérateur à usage unique")
+        pw.expect(status).to_have_text("Capacités du portail à vérifier.")
+        assert probes == []
+
+        button = panel.get_by_role("button", name="Vérifier le portail Wayland")
+        button.click()
+        pw.expect(status).to_contain_text("Capture de fenêtre annoncée")
+        pw.expect(status).to_contain_text("Pointeur absent")
+        pw.expect(status).to_contain_text("qualification en attente")
+
+        button.click()
+        pw.expect(status).to_have_text("Portail Wayland indisponible.")
+        assert len(probes) == 2
+        assert set(methods) == {"GET"}
+    finally:
+        context.close()

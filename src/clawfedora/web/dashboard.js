@@ -59,6 +59,37 @@ async function action(path, data) {
     return null;
   }
 }
+$("check-desktop-portal").addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  const status = $("desktop-portal-status");
+  button.disabled = true;
+  status.textContent = "Lecture du portail Wayland…";
+  try {
+    const portal = await api("/api/desktop-portal");
+    const labels = {
+      PROBED: "Capacités annoncées par le portail, qualification en attente.",
+      INCOMPLETE: "Réponse partielle du portail.",
+      NOT_WAYLAND: "Session Wayland requise.",
+      SESSION_UNKNOWN: "Type de session à vérifier.",
+      PORTAL_UNAVAILABLE: "Portail Wayland indisponible.",
+    };
+    status.textContent = labels[portal.status] || "État du portail à vérifier.";
+    if (["PROBED", "INCOMPLETE"].includes(portal.status)) {
+      const advertised = (value, suffix = "") =>
+        value === true ? "annoncé" + suffix : value === false ? "absent" + suffix : "à vérifier";
+      status.textContent += " " + [
+        `Capture de fenêtre ${advertised(portal.window_advertised, "e")}`,
+        `Pointeur ${advertised(portal.pointer_advertised)}`,
+        `API EIS ${advertised(portal.eis_api_in_version, "e")}`,
+      ].join(" · ") + ".";
+    }
+  } catch {
+    status.textContent = "Lecture du portail interrompue. Réessayez depuis la session locale.";
+  } finally {
+    button.disabled = false;
+  }
+});
+
 let refreshSequence = 0;
 async function refresh() {
   if (document.hidden) return;
