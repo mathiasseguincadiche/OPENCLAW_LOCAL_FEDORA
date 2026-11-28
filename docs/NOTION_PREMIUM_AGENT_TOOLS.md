@@ -146,16 +146,16 @@ destination, d'onglet et de rejeu de navigation. [PR #328](https://github.com/ma
 
 Le [lot 5](NAVIGATEUR_ISOLE.md#reprendre-la-proposition-dun-rôle) donne
 aux rôles DevOps et audit qualité un outil de proposition de recette.
-L'opérateur vérifie le scénario et approuve sa propre session d'exécution.
+L'opérateur vérifie le scénario et approuve sa propre session d'exécution. [PR #329](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/329)
 
-Le lot suivant rassemblera la recette logicielle C05 et ses preuves
-dans un rapport de CI associé au commit testé.
+Le [lot 6](NAVIGATEUR_ISOLE.md#rapport-de-recette-c05) clôt la recette
+logicielle C05 avec un rapport lié au commit testé. C06 porte sur les
+contrats de contrôle du bureau Fedora.
 
 ### Programme restant
 
 | Chantier | Critère de clôture |
 | --- | --- |
-| C05 — Navigateur | Tester l'observation dans une session isolée, puis des interactions bornées et approuvées. |
 | C06 — Bureau Fedora | Préparer et simuler les contrats de consentement et de contrôle Wayland. Qualification sur la session cible en C12. |
 | C07 — Interface | Consolider le pilotage des missions, livrables et validations dans les espaces existants. |
 | C08 — Résilience et sécurité | Couvrir les erreurs, interruptions, rejouements, données non fiables et conflits dans chaque lot. |

@@ -176,3 +176,16 @@ autorise une exécution unique dans la session et expire après 15 minutes.
 Les tests du registre natif OpenClaw vérifient l'accès par rôle. Le job
 Chromium exerce la préparation vérifiée et l'exécution opérateur sur
 les deux scénarios synthétiques.
+
+## Rapport de recette C05
+
+Le job Chromium publie l'artefact `browser-c05-synthetic` avec un rapport
+lié au SHA Git testé et les résultats JUnit utilisés pour le vérifier. Les
+six contrôles couvrent le document officiel simulé, les quatre panneaux
+dynamiques, les limites réseau, les actions approuvées, les refus de
+navigation et la remise de la proposition à l'opérateur.
+
+Le rapport contient les empreintes des captures disponibles dans l'artefact
+`workbench-browser-synthetic-screenshots` du même job. Le registre natif
+OpenClaw est contrôlé dans le job dédié de la même CI. La qualification sur
+le poste Fedora relève de C12.

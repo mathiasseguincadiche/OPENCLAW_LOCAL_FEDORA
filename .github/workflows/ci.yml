@@ -126,15 +126,29 @@ jobs:
       - name: Browser smoke of the real loopback panels (synthetic data only)
         env:
           WORKBENCH_BROWSER_EVIDENCE: ${{ runner.temp }}/workbench-browser-evidence
-        run: pytest -q -s tests/test_workbench_browser.py
+        run: pytest -q -s tests/test_workbench_browser.py --junitxml="${{ runner.temp }}/workbench-browser-evidence/panels.xml"
       - name: Exercise isolated documentation observation in Chromium
         env:
           CLAWFEDORA_REQUIRE_OFFICIAL_DOCS_BROWSER: "1"
-        run: pytest -q tests/test_visual_capture.py
+        run: pytest -q tests/test_visual_capture.py --junitxml="${{ runner.temp }}/workbench-browser-evidence/observation.xml"
       - name: Exercise approved browser interaction on a synthetic fixture
         env:
           CLAWFEDORA_REQUIRE_BROWSER_REHEARSAL: "1"
-        run: pytest -q tests/test_browser_rehearsal.py
+        run: >-
+          pytest -q tests/test_browser_rehearsal.py
+          tests/test_agent_tools.py::test_browser_proposals_are_read_only_and_restricted_by_role_and_scenario
+          --junitxml="${{ runner.temp }}/workbench-browser-evidence/rehearsal.xml"
+      - name: Verify synthetic C05 browser acceptance
+        run: python scripts/validation/report_browser_acceptance.py "${{ runner.temp }}/workbench-browser-evidence" "$GITHUB_SHA"
+      - name: Publish synthetic C05 browser acceptance
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: browser-c05-synthetic
+          path: |
+            ${{ runner.temp }}/workbench-browser-evidence/report.json
+            ${{ runner.temp }}/workbench-browser-evidence/*.xml
+          if-no-files-found: error
+          retention-days: 7
       - name: Save synthetic browser screenshots (not a native Fedora certification)
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
