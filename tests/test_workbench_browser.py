@@ -12,13 +12,14 @@ import json
 import os
 import threading
 from collections.abc import Iterator
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
 import pytest
 from test_daily_worker import planned as planned
 
-from clawfedora import dashboard
+from clawfedora import dashboard, visual_capture
 from clawfedora.dashboard import DashboardServer, make_server
 
 pw = pytest.importorskip("playwright.sync_api")
@@ -120,6 +121,48 @@ def test_real_chromium_renders_workspaces_without_document_overflow(
         _screen(page, f"{label}-{width}-{scheme}", tmp_path)
     finally:
         context.close()
+
+
+@pytest.mark.parametrize(("kind", "path", "api"), [
+    ("local-dashboard", "/", "/api/status"),
+    ("local-performance", "/performance.html", "/api/performance"),
+    ("local-github", "/github.html", "/api/status"),
+    ("local-notion", "/notion.html", None),
+])
+def test_read_only_capture_waits_for_dynamic_panel(
+    local_server: DashboardServer, tmp_path: Path, kind: str, path: str, api: str | None,
+    planned: tuple[Path, Path],
+) -> None:
+    _runtime, project = planned
+    before = {file.relative_to(project): file.read_bytes()
+              for file in project.rglob("*") if file.is_file()}
+    local = tmp_path / "observation"
+    local.mkdir(mode=0o700)
+    # The shared Playwright fixture owns the test thread's event loop.
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        report = executor.submit(
+            visual_capture.capture,
+            kind, _url(local_server, path), local, interactive=False, allow_private=False,
+        ).result(timeout=60)
+    assert report["observation"]["rendering"] == "LOOPBACK_READ_ONLY_PANEL"
+    assert report["observation"]["panel_ready"] is True
+    traces = {resource["path"]: resource for resource in report["observation"]["resources"]}
+    assert traces.keys() == visual_capture._panel_scope(kind).keys()
+    assert all(len(resource["sha256"]) == 64 for resource in traces.values())
+    if api is not None:
+        assert traces[api]["bytes"] > 0
+    else:
+        assert not any(name.startswith("/api/") for name in traces)
+    assert [item["view"] for item in report["screenshots"]] == list(visual_capture.SIZES)
+    dark = "light" if kind == "local-performance" else "dark"
+    assert [item["metrics"]["applied_color_scheme"] for item in report["screenshots"]] == [
+        "light", dark, "light",
+    ]
+    output = Path(report["output_directory"])
+    assert (output / "manifest.json").stat().st_mode & 0o077 == 0
+    after = {file.relative_to(project): file.read_bytes()
+             for file in project.rglob("*") if file.is_file()}
+    assert after == before
 
 
 @pytest.mark.parametrize(

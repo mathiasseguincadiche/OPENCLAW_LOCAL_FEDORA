@@ -22,6 +22,8 @@ from clawfedora import visual_capture as visual
     [
         ("local-notion", "http://127.0.0.1:18890/notion.html"),
         ("local-github", "http://127.0.0.1:18890/github.html"),
+        ("local-dashboard", "http://127.0.0.1:18890/"),
+        ("local-performance", "http://127.0.0.1:18890/performance.html"),
         ("github-readme", "https://github.com/example/infraops"),
         ("github-readme", "https://github.com/example/infraops/blob/main/README.md"),
         ("notion-page", "https://app.notion.com/p/" + "a" * 32),
@@ -38,6 +40,10 @@ def test_allowed_exact_visual_targets(kind: str, url: str) -> None:
     [
         ("local-notion", "http://localhost:18890/notion.html"),
         ("local-github", "http://127.0.0.1:18890/"),
+        ("local-dashboard", "http://127.0.0.1:0/"),
+        ("local-dashboard", "http://127.0.0.1:18890/api/status"),
+        ("local-performance", "http://127.0.0.1:18890/performance.html?project=atlas"),
+        ("local-performance", "http://127.0.0.2:18890/performance.html"),
         ("local-github", "http://127.0.0.1:18890/notion.html"),
         ("local-github", "http://127.0.0.1:18890/github.html?token=secret"),
         ("local-notion", "http://127.0.0.1:18890@evil.org/notion.html"),
@@ -281,3 +287,90 @@ def test_official_document_real_chromium_observation(
             photo = destination / picture["filename"]
             assert photo.stat().st_mode & 0o077 == 0
             assert hashlib.sha256(photo.read_bytes()).hexdigest() == picture["sha256"]
+
+
+def test_panel_scope_blocks_unlisted_requests_and_freezes_local_reads(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    origin = "http://127.0.0.1:18890"
+    routes: dict[str, Any] = {}
+    calls: list[tuple[int, str, str]] = []
+
+    def fake_asset(port: int, path: str, media: str, _deadline: float) -> bytes:
+        calls.append((port, path, media))
+        return path.encode()
+
+    monkeypatch.setattr(visual, "_read_panel_asset", fake_asset)
+    context = SimpleNamespace(
+        route=lambda _pattern, handler: routes.update(http=handler),
+        route_web_socket=lambda _pattern, handler: routes.update(socket=handler),
+    )
+    captured = visual._offline_panel(context, "local-performance", origin + "/performance.html")
+    results: list[str] = []
+
+    def request(url: str, method: str, resource: str) -> None:
+        routes["http"](SimpleNamespace(
+            request=SimpleNamespace(url=url, method=method, resource_type=resource),
+            abort=lambda: results.append("blocked"),
+            fulfill=lambda **response: results.append(response["body"].decode()),
+        ))
+
+    request(origin + "/performance.html", "GET", "document")
+    request(origin + "/api/performance", "GET", "fetch")
+    request(origin + "/api/performance", "GET", "fetch")
+    request(origin + "/api/performance", "POST", "fetch")
+    request(origin + "/api/status", "GET", "fetch")
+    request(origin + "/api/performance?project=atlas", "GET", "fetch")
+    request("http://127.0.0.1:19890/api/performance", "GET", "fetch")
+    request("https://outside.example/performance.js", "GET", "script")
+    request(origin + "/discussions.js", "GET", "script")
+    request(origin + "/performance.html", "GET", "fetch")
+    routes["socket"](SimpleNamespace(close=lambda: results.append("blocked")))
+    assert results == ["/performance.html", "/api/performance", "/api/performance"] + ["blocked"] * 8
+    assert calls == [(18890, "/performance.html", "text/html"),
+                     (18890, "/api/performance", "application/json")]
+    assert captured == {"/performance.html": b"/performance.html",
+                        "/api/performance": b"/api/performance"}
+
+
+@pytest.mark.parametrize(("status", "attachment", "error"), [
+    (302, False, "réponse inattendue"),
+    (200, True, "téléchargement refusé"),
+])
+def test_panel_transport_refuses_redirects_and_attachments(
+    monkeypatch: pytest.MonkeyPatch, status: int, attachment: bool, error: str,
+) -> None:
+    class Response(BytesIO):
+        def __init__(self) -> None:
+            super().__init__(b"{}")
+            self.status = status
+            self.headers = Message()
+            self.headers["Content-Type"] = "application/json"
+            self.headers["Location"] = "http://127.0.0.1:18891/other"
+            if attachment:
+                self.headers["Content-Disposition"] = "attachment; filename=Other.json"
+
+        def getheader(self, name: str, default: str | None = None) -> str | None:
+            return self.headers.get(name, default)
+
+    calls: list[tuple[str, str]] = []
+
+    class Connection:
+        def __init__(self, host: str, port: int, *, timeout: float) -> None:
+            assert host == "127.0.0.1" and port == 18890 and timeout > 0
+
+        def request(self, method: str, path: str, *, headers: dict[str, str]) -> None:
+            calls.append((method, path))
+            assert "Cookie" not in headers and "Authorization" not in headers
+
+        def getresponse(self) -> Response:
+            return Response()
+
+        def close(self) -> None:
+            calls.append(("close", ""))
+
+    monkeypatch.setattr(visual, "HTTPConnection", Connection)
+    with pytest.raises(visual.CaptureError, match=error):
+        visual._read_panel_asset(18890, "/api/performance", "application/json",
+                                 visual.monotonic() + 10)
+    assert calls == [("GET", "/api/performance"), ("close", "")]

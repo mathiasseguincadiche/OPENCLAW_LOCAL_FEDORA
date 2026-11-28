@@ -16,7 +16,7 @@ import stat
 import sys
 import uuid
 from datetime import UTC, datetime
-from http.client import HTTPException, HTTPSConnection
+from http.client import HTTPConnection, HTTPException, HTTPResponse, HTTPSConnection
 from importlib import import_module
 from pathlib import Path
 from time import monotonic
@@ -25,7 +25,40 @@ from urllib.parse import urlsplit
 
 from PIL import Image
 
-KINDS = ("local-notion", "local-github", "github-readme", "notion-page", "official-docs")
+LOCAL_PANELS = {
+    "local-dashboard": "/",
+    "local-performance": "/performance.html",
+    "local-github": "/github.html",
+    "local-notion": "/notion.html",
+}
+KINDS = (*LOCAL_PANELS, "github-readme", "notion-page", "official-docs")
+PANEL_ASSETS = {
+    "local-dashboard": ("dashboard.js", "workbench.js", "workbench.css"),
+    "local-performance": ("performance.js", "performance.css"),
+    "local-github": ("github.js", "github.css", "workbench.js", "workbench.css"),
+    "local-notion": (
+        "notion.js", "notion.css", "notion-rich.js", "notion-media.js",
+        "github.css", "workbench.js", "workbench.css",
+    ),
+}
+PANEL_DATA = {
+    "local-dashboard": "/api/status",
+    "local-performance": "/api/performance",
+    "local-github": "/api/status",
+}
+PANEL_READY_JS = {
+    "local-dashboard": "() => document.querySelector('#create-panel')?.dataset.initialized"
+                       " === 'true'",
+    "local-performance": "() => Boolean(document.querySelector('#perf-models .perf-model'))",
+    "local-github": "() => document.querySelector('#draft-project option')?.textContent"
+                    " === 'Choisir un projet terminé…'",
+    "local-notion": "() => document.body.classList.contains('workbench--notion')",
+}
+PANEL_CSP = (
+    "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+    "img-src data:; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'"
+)
+PANEL_TIMEOUT_MS = 15000
 OFFICIAL_DOCS_HOSTS = frozenset({
     "developer.hashicorp.com",
     "docs.ansible.com",
@@ -101,6 +134,7 @@ METRICS_JS = """() => {
     ).length,
     visible_text_length: (body.innerText || "").length,
     color_scheme_preference: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+    applied_color_scheme: root.dataset.theme || getComputedStyle(root).colorScheme,
     broken_loaded_images: [...body.querySelectorAll("img")].filter(
       img => img.complete && img.naturalWidth === 0 && !!img.currentSrc
     ).length
@@ -130,12 +164,12 @@ def validate_url(kind: str, url: str) -> str:
         ):
             raise CaptureError("URL HTTPS canonique d'une documentation autorisée requise")
         return url if parts.path else url + "/"
-    if kind.startswith("local-"):
-        desired = "/notion.html" if kind == "local-notion" else "/github.html"
+    if kind in LOCAL_PANELS:
         if (
             parts.scheme != "http" or parts.hostname != "127.0.0.1"
-            or parts.path != desired or parts.port is None
-            or not 1 <= parts.port <= 65535
+            or parts.path != LOCAL_PANELS[kind] or parts.port is None or parts.port == 0
+            or parts.netloc != f"127.0.0.1:{parts.port}"
+            or url != parts.geturl() or any(ord(char) < 33 for char in url)
         ):
             raise CaptureError("adresse loopback exacte du panneau requise")
     elif kind == "github-readme":
@@ -161,7 +195,7 @@ def _validate_final_url(kind: str, start: str, current: str) -> None:
         if current != start:
             raise CaptureError("navigation hors du document autorisé")
         return
-    if kind.startswith("local-"):
+    if kind in LOCAL_PANELS:
         if current != start:
             raise CaptureError("redirection hors du panneau local refusée")
         return
@@ -226,12 +260,33 @@ def _shot(path: Path) -> dict[str, Any]:
     }
 
 
+def _bounded_utf8(response: HTTPResponse, deadline: float) -> bytes:
+    if response.getheader("Content-Encoding", "identity") != "identity":
+        raise CaptureError("encodage de transport non pris en charge")
+    if response.headers.get_content_charset() not in {None, "utf-8", "utf8"}:
+        raise CaptureError("réponse UTF-8 requise")
+    payload = bytearray()
+    while len(payload) <= MAX_DOC_BYTES:
+        if monotonic() >= deadline:
+            raise CaptureError("délai de lecture dépassé")
+        chunk = response.read1(min(65536, MAX_DOC_BYTES + 1 - len(payload)))
+        if not chunk:
+            break
+        payload.extend(chunk)
+    if not payload or len(payload) > MAX_DOC_BYTES:
+        raise CaptureError("réponse vide ou supérieure à 2 Mo")
+    try:
+        payload.decode("utf-8-sig")
+    except UnicodeError as exc:
+        raise CaptureError("réponse UTF-8 requise") from exc
+    return bytes(payload)
+
+
 def _read_official_document(url: str) -> bytes:
     """Read a bounded UTF-8 HTML response over one direct, authenticated HTTPS request."""
     target = urlsplit(validate_url("official-docs", url))
     connection = HTTPSConnection(target.netloc, timeout=DOC_TIMEOUT)
     deadline = monotonic() + DOC_TIMEOUT
-    payload = bytearray()
     try:
         connection.request("GET", target.path, headers={
             "Accept": "text/html", "Accept-Encoding": "identity",
@@ -242,29 +297,80 @@ def _read_official_document(url: str) -> bytes:
                 raise CaptureError("redirection refusée, fournir l'adresse finale")
             if response.status != 200 or response.headers.get_content_type() != "text/html":
                 raise CaptureError("document HTML public indisponible")
-            if response.getheader("Content-Encoding", "identity") != "identity":
-                raise CaptureError("encodage de transport non pris en charge")
-            charset = response.headers.get_content_charset() or "utf-8"
-            if charset not in {"utf-8", "utf8"}:
-                raise CaptureError("document HTML UTF-8 requis")
-            while len(payload) <= MAX_DOC_BYTES:
-                if monotonic() >= deadline:
-                    raise CaptureError("délai de lecture du document dépassé")
-                chunk = response.read1(min(65536, MAX_DOC_BYTES + 1 - len(payload)))
-                if not chunk:
-                    break
-                payload.extend(chunk)
+            return _bounded_utf8(response, deadline)
     except (OSError, HTTPException) as exc:
         raise CaptureError("lecture HTTPS de la documentation interrompue") from exc
     finally:
         connection.close()
-    if not payload or len(payload) > MAX_DOC_BYTES:
-        raise CaptureError("document vide ou supérieur à 2 Mo")
+
+
+def _read_panel_asset(port: int, path: str, media: str, deadline: float) -> bytes:
+    remaining = deadline - monotonic()
+    if remaining <= 0:
+        raise CaptureError("délai global de chargement du panneau dépassé")
+    connection = HTTPConnection("127.0.0.1", port, timeout=min(DOC_TIMEOUT, remaining))
     try:
-        payload.decode("utf-8-sig")
-    except UnicodeError as exc:
-        raise CaptureError("document HTML UTF-8 requis") from exc
-    return bytes(payload)
+        connection.request("GET", path, headers={"Accept": media, "Accept-Encoding": "identity"})
+        with connection.getresponse() as response:
+            if response.status != 200 or response.headers.get_content_type() != media:
+                raise CaptureError(f"réponse inattendue pour {path}")
+            if response.getheader("Content-Disposition"):
+                raise CaptureError(f"téléchargement refusé pour {path}")
+            return _bounded_utf8(response, deadline)
+    finally:
+        connection.close()
+
+
+def _panel_scope(kind: str) -> dict[str, tuple[str, str]]:
+    scope = {LOCAL_PANELS[kind]: ("document", "text/html")}
+    for asset in ("dashboard.css", *PANEL_ASSETS[kind]):
+        scope[f"/{asset}"] = (
+            ("stylesheet", "text/css") if asset.endswith(".css") else ("script", "text/javascript")
+        )
+    if read_path := PANEL_DATA.get(kind):
+        scope[read_path] = ("fetch", "application/json")
+    return scope
+
+
+def _offline_panel(context: Any, kind: str, url: str) -> dict[str, bytes]:
+    """Allow Chromium to see only the chosen panel and a frozen set of loopback GETs."""
+    target = urlsplit(validate_url(kind, url))
+    port = target.port
+    if port is None:
+        raise CaptureError("port du panneau requis")
+    origin = f"http://127.0.0.1:{port}"
+    approved = {
+        origin + path: (path, resource, media)
+        for path, (resource, media) in _panel_scope(kind).items()
+    }
+
+    captured: dict[str, bytes] = {}
+    failures: set[str] = set()
+    deadline = monotonic() + PANEL_TIMEOUT_MS / 1000
+
+    def handle(route: Any) -> None:
+        request = route.request
+        scope = approved.get(request.url)
+        if scope is None or request.method != "GET" or request.resource_type != scope[1]:
+            route.abort()
+            return
+        path, _resource, media = scope
+        if path not in captured and path not in failures:
+            try:
+                captured[path] = _read_panel_asset(port, path, media, deadline)
+            except (CaptureError, OSError, HTTPException):
+                failures.add(path)
+        if path in failures:
+            route.abort()
+            return
+        route.fulfill(status=200, body=captured[path], headers={
+            "Content-Type": f"{media}; charset=utf-8", "Content-Security-Policy": PANEL_CSP,
+            "Referrer-Policy": "no-referrer", "X-Content-Type-Options": "nosniff",
+        })
+
+    context.route("**/*", handle)
+    context.route_web_socket("**/*", lambda route: route.close())
+    return captured
 
 
 def _offline_document(context: Any, url: str, document: bytes) -> None:
@@ -287,6 +393,12 @@ def _offline_document(context: Any, url: str, document: bytes) -> None:
         })
 
     context.route("**/*", handle)
+
+
+def _wait_for_panel(page: Any, kind: str, resources: dict[str, bytes]) -> None:
+    page.wait_for_function(PANEL_READY_JS[kind], timeout=PANEL_TIMEOUT_MS)
+    if missing := sorted(_panel_scope(kind).keys() - resources.keys()):
+        raise CaptureError("ressources du panneau manquantes : " + ", ".join(missing))
 
 
 def capture(
@@ -313,6 +425,7 @@ def capture(
             "installer l'option visuelle épinglée puis Chromium Playwright",
         ) from exc
     document = _read_official_document(url) if kind == "official-docs" else None
+    local_panel = kind in LOCAL_PANELS
     output = _private_destination(output_root)
     previous_umask = os.umask(0o077)
     items: list[dict[str, Any]] = []
@@ -324,14 +437,18 @@ def capture(
                 viewport={"width": 1440, "height": 900},
                 color_scheme="light",
                 device_scale_factor=1, accept_downloads=False,
-                **({"offline": True, "java_script_enabled": False, "service_workers": "block"}
-                   if document is not None else {}),
+                **({"offline": True, "java_script_enabled": local_panel,
+                    "service_workers": "block"} if local_panel or document is not None else {}),
             )
             try:
+                panel_resources = _offline_panel(context, kind, url) if local_panel else {}
                 if document is not None:
                     _offline_document(context, url, document)
                 page = context.new_page()
-                page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                page.goto(url, wait_until="load" if local_panel else "domcontentloaded",
+                          timeout=PANEL_TIMEOUT_MS if local_panel else 30000)
+                if local_panel:
+                    _wait_for_panel(page, kind, panel_resources)
                 if interactive:
                     input(
                         "Examiner la page cible dans le navigateur temporaire ; "
@@ -350,10 +467,27 @@ def capture(
                         "content_trust": "UNTRUSTED_WEB_CONTENT",
                         "dom": data,
                     }
+                if local_panel:
+                    observation = {
+                        "rendering": "LOOPBACK_READ_ONLY_PANEL",
+                        "content_trust": "UNTRUSTED_LOCAL_CONTENT",
+                        "panel_ready": True,
+                        "resources": [
+                            {"path": path, "bytes": len(raw),
+                             "sha256": hashlib.sha256(raw).hexdigest()}
+                            for path, raw in sorted(panel_resources.items())
+                        ],
+                    }
                 sizes = PREMIUM_SIZES if premium else SIZES
+                previous_scheme = "light"
                 for category, (width, height, scheme) in sizes.items():
                     page.set_viewport_size({"width": width, "height": height})
                     page.emulate_media(color_scheme=scheme)
+                    if local_panel and not interactive and scheme != previous_scheme:
+                        # Workbench chooses the theme when its scripts initialize.
+                        page.reload(wait_until="load", timeout=PANEL_TIMEOUT_MS)
+                        _wait_for_panel(page, kind, panel_resources)
+                    previous_scheme = scheme
                     page.wait_for_timeout(600)
                     _validate_final_url(kind, url, page.url)
                     if premium:
