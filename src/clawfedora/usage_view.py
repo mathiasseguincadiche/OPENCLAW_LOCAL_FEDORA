@@ -32,6 +32,8 @@ def activity(runtime: Path) -> dict[str, Any]:
         if phase == "interrupted"
         else "Le dernier état du worker est à vérifier"
         if phase == "unverified"
+        else "L’index documentaire est indisponible"
+        if phase == "index_failed"
         else "L’atelier est disponible"
     )
     elapsed: int | None = None
@@ -63,6 +65,8 @@ def activity(runtime: Path) -> dict[str, Any]:
         if active
         else "Consultez l’état du projet avant de reprendre."
         if phase in {"interrupted", "unverified"}
+        else "Vérifiez les sources et l’index local avant de reprendre le projet."
+        if phase == "index_failed"
         else "Vous pouvez poser une question ou ouvrir un projet.",
     }
 

@@ -183,7 +183,11 @@ est vérifié dans Chromium sur mobile. [PR #335](https://github.com/mathiassegu
 Le lot 1 protège la consultation de l'atelier lorsque le journal
 d'activité du worker est illisible. Le verrou indique toujours si une
 session est active. Une nouvelle mise à jour réelle rétablit l'affichage
-par remplacement atomique du journal.
+par remplacement atomique du journal. [PR #336](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/336)
+
+Le lot 2 distingue une erreur d'index documentaire d'une interruption
+du worker. La tâche garde son budget de tentatives jusqu'à la reprise
+après correction de l'index.
 
 ### Programme restant
 

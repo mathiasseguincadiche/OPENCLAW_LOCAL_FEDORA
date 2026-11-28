@@ -9,6 +9,7 @@ import json
 import os
 import re
 import shutil
+import sqlite3
 import stat
 import subprocess
 import tempfile
@@ -877,6 +878,19 @@ def _write_task_failure(
                    task=task_id, role=result["agent"], session=session)
 
 
+@contextmanager
+def _document_index(runtime: Path, project: Path) -> Iterator[None]:
+    """Record an index failure before any attempt is created or charged."""
+    try:
+        yield
+    except sqlite3.Error as exc:
+        write_progress(runtime, project, "index_failed")
+        raise ValueError("index documentaire indisponible : vérifier l’index puis reprendre") from exc
+    except (OSError, ValueError):
+        write_progress(runtime, project, "index_failed")
+        raise
+
+
 def run_project_tasks(
     repo_root: Path,
     runtime: Path,
@@ -962,7 +976,8 @@ def run_project_tasks(
                 )
         invoke = runner or project_runner(repo_root, runtime, project)
         write_progress(runtime, project, "preparing")
-        build_index(repo_root, project)
+        with _document_index(runtime, project):
+            build_index(repo_root, project)
         while tasks := ready_tasks(repo_root, project, prefer_model=previous_model):
             if is_paused(runtime, project):
                 break
@@ -975,7 +990,8 @@ def run_project_tasks(
             handoff = prepare_task_inputs(repo_root, project, task, session=session)
             if assignment.get("revision_reason"):
                 task = {**task, "approved_revision": assignment["revision_reason"]}
-            retrieval = search(repo_root, project, f"{task['title']} {task['objective']}")
+            with _document_index(runtime, project):
+                retrieval = search(repo_root, project, f"{task['title']} {task['objective']}")
             write_json(
                 project / "context/retrieval" / f"{task_id}.json",
                 {
