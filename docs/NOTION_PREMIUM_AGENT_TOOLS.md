@@ -96,8 +96,16 @@ est intégré à
 [`main@6f2338f`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/6f2338f1a69fbd4b9992e4ee3921a69421f0c815).
 La [recette synthétique Atlas](validation/ORCHESTRATION_ACCEPTANCE.md)
 clôt le périmètre logiciel C03. La CI vérifie l'enchaînement des quatre
-lots et publie le rapport lié au commit testé. Le chantier C04 reprend
-la continuité des projets et des missions.
+lots et publie le rapport lié au commit testé. La recette est intégrée à
+[`main@6f8e284`](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/commit/6f8e28446a0da4f5fe0aa03fcc8c7dc812cdb3ea).
+
+### C04 — Continuité des projets et des missions
+
+Le [lot 1](PROJETS_LONGUE_DUREE.md#reprendre-dans-une-nouvelle-discussion)
+présente l'état de la mission approuvée dans `!continuer` et en CLI.
+Il rattache les tâches et la publication à reprendre au projet et aux
+fichiers canoniques. Après intégration, reprendre la traçabilité des
+objectifs, des décisions et des preuves.
 
 
 ### Programme restant

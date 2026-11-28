@@ -437,6 +437,28 @@ def create_assignments(repo_root: Path, project: Path) -> Path:
     return path
 
 
+def task_readiness(
+    task: dict[str, Any], by_id: dict[str, dict[str, Any]], maximum: int,
+) -> str:
+    dependencies = task.get("depends_on", [])
+    if not isinstance(dependencies, list):
+        raise ValueError("assignments: depends_on invalide")
+    status = task.get("status")
+    if status == "PASS":
+        return "COLLECTED"
+    if task.get("failure_code") == "no_progress":
+        return "STOPPED_NO_PROGRESS"
+    if status == "AWAITING_PRACTICE":
+        return "AWAITING_PRACTICE"
+    if status == "AWAITING_FEEDBACK":
+        return "AWAITING_FEEDBACK"
+    if int(task.get("attempts", 0)) - int(task.get("revision_attempt_base", 0)) >= maximum:
+        return "ATTEMPTS_EXHAUSTED"
+    if any(by_id.get(str(dep), {}).get("status") != "PASS" for dep in dependencies):
+        return "AWAITING_DEPENDENCIES"
+    return "READY"
+
+
 def ready_tasks(
     repo_root: Path, project: Path, *, prefer_model: str | None = None
 ) -> list[dict[str, Any]]:
@@ -447,26 +469,12 @@ def ready_tasks(
     if not isinstance(tasks, list):
         raise ValueError("assignments: tasks invalide")
     by_id = {str(item.get("task_id")): item for item in tasks if isinstance(item, dict)}
-    maximum = int(dict(_policy(repo_root)["execution"])["max_task_attempts"])
-    ready: list[dict[str, Any]] = []
-    for item in tasks:
-        if not isinstance(item, dict):
-            continue
-        dependencies = item.get("depends_on", [])
-        if not isinstance(dependencies, list):
-            raise ValueError("assignments: depends_on invalide")
-        if (
-            item.get("status") != "PASS"
-            and item.get("failure_code") != "no_progress"
-            and item.get("status") != "AWAITING_PRACTICE"
-            and item.get("status") != "AWAITING_FEEDBACK"
-            and int(item.get("attempts", 0)) - int(item.get("revision_attempt_base", 0)) < maximum
-            and all(
-                by_id.get(str(dependency), {}).get("status") == "PASS" for dependency in dependencies
-            )
-        ):
-            ready.append(item)
     execution = dict(_policy(repo_root)["execution"])
+    maximum = int(execution["max_task_attempts"])
+    ready = [
+        item for item in tasks
+        if isinstance(item, dict) and task_readiness(item, by_id, maximum) == "READY"
+    ]
     if execution.get("model_affinity_for_independent_tasks") is True and prefer_model:
         # Stable order among equal-model tasks. Only already-ready tasks are reordered;
         # dependency constraints and the single-worker concurrency limit remain intact.
@@ -474,9 +482,7 @@ def ready_tasks(
         ready.sort(
             key=lambda item: routes[str(item["role"])]["local_primary"] != prefer_model
         )
-    limit = int(execution["max_parallel_tasks"])
-    return ready[:limit]
-
+    return ready[:int(execution["max_parallel_tasks"])]
 
 def _outputs_are_namespaced(task_id: str, outputs: list[str]) -> None:
     for relative in outputs:
