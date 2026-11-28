@@ -14,7 +14,7 @@ from clawfedora.agent_tools import invoke
 from clawfedora.agents import deploy_workspaces
 from clawfedora.openclaw_config import build_openclaw_patch
 from clawfedora.project_common import read_json, sha256_file, write_json
-from clawfedora.project_control import request_pause
+from clawfedora.project_control import progress, request_pause
 from clawfedora.project_engine import (
     create_assignments,
     create_clarifications,
@@ -25,6 +25,7 @@ from clawfedora.project_engine import (
 )
 from clawfedora.project_intake import create_project
 from clawfedora.project_worker import _collect, review_project, run_project_tasks, worker_lock
+from clawfedora.usage_view import activity
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -317,6 +318,35 @@ def test_failed_model_output_is_recorded_without_promoting_files(planned: tuple[
     assert results[0]["outputs"] == []
     assert not (project / "deliverables/other-task/escape.md").exists()
     assert len(ready_tasks(ROOT, project)) == 1
+
+
+def test_bad_document_index_is_reported_and_can_resume_without_spending_attempts(
+    planned: tuple[Path, Path],
+) -> None:
+    runtime, project = planned
+    index = project / "context/knowledge/search.sqlite"
+    index.parent.mkdir(parents=True, exist_ok=True)
+    index.write_bytes(b"index endommage")
+    assignment_path = project / "context/task_assignments.json"
+    assignments_before = sha256_file(assignment_path)
+    with pytest.raises(ValueError, match="index documentaire indisponible"):
+        run_project_tasks(ROOT, runtime, project, runner=lambda *_args: pytest.fail("model called"))
+
+    assert sha256_file(assignment_path) == assignments_before
+    assert progress(runtime)["phase"] == "index_failed"
+    view = activity(runtime)
+    assert not view["active"] and "index documentaire" in view["label"]
+
+    index.rename(index.with_suffix(".invalid"))
+
+    def produce(_role: str, prompt: str, _session: str) -> dict[str, Any]:
+        task = json.loads(prompt.split("\n", 1)[1])
+        return {"files": {task["expected_outputs"][0]: "Compte rendu"}, "summary": "Collecté"}
+
+    results = run_project_tasks(ROOT, runtime, project, runner=produce, resume=True)
+    assert index.is_file()
+    assert [(item["status"], item["attempt"]) for item in results] == [("PASS", 1), ("PASS", 1)]
+    assert progress(runtime)["phase"] == "awaiting_validation"
 
 
 def test_guard_rejects_protected_snapshot_modification(planned: tuple[Path, Path]) -> None:
