@@ -142,10 +142,14 @@ avant et après le clic et enregistre les captures associées. [PR #327](https:/
 Le [lot 4](NAVIGATEUR_ISOLE.md#vérifier-une-navigation-autorisée) ajoute
 la navigation entre deux pages de recette approuvées. Elle est admise
 une fois par adresse dans l'onglet choisi. La CI exerce les refus de
-destination, d'onglet et de rejeu de navigation.
+destination, d'onglet et de rejeu de navigation. [PR #328](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/328)
 
-Le lot suivant préparera l'accès à la recette pour les rôles autorisés
-et la remise de la décision d'exécution à l'opérateur.
+Le [lot 5](NAVIGATEUR_ISOLE.md#reprendre-la-proposition-dun-rôle) donne
+aux rôles DevOps et audit qualité un outil de proposition de recette.
+L'opérateur vérifie le scénario et approuve sa propre session d'exécution.
+
+Le lot suivant rassemblera la recette logicielle C05 et ses preuves
+dans un rapport de CI associé au commit testé.
 
 ### Programme restant
 

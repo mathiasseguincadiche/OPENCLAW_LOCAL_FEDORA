@@ -130,10 +130,14 @@ def test_real_chromium_applies_one_rehearsal_and_records_dom_and_screenshots(
 ) -> None:
     if os.getenv("CLAWFEDORA_REQUIRE_BROWSER_REHEARSAL") != "1":
         pytest.skip("Exécuté dans le job Chromium de la CI")
+    proposal = rehearsal.propose(scenario)
     assert main([
         "browser-rehearsal", "preview", "--output-dir", str(output), "--scenario", scenario,
+        "--proposal-sha256", proposal["proposal_sha256"],
     ]) == 0
     plan = json.loads(capsys.readouterr().out)
+    assert plan["proposal_sha256"] == proposal["proposal_sha256"]
+    assert plan["approval_sha256"] != proposal["proposal_sha256"]
     args = [
         "browser-rehearsal", "apply", "--session", plan["session"],
         "--approve-sha256", plan["approval_sha256"],
@@ -261,3 +265,25 @@ def test_real_chromium_refuses_another_destination_and_another_tab() -> None:
                 context.close()
         finally:
             browser.close()
+
+
+def test_role_proposal_fingerprint_binds_the_scenario_but_cannot_approve_it(
+    output: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(rehearsal, "_playwright_api", _no_browser)
+    proposal = rehearsal.propose("navigation")
+    digest = proposal["proposal_sha256"]
+    assert main([
+        "browser-rehearsal", "preview", "--output-dir", str(output),
+        "--scenario", "details", "--proposal-sha256", digest,
+    ]) == 2
+    assert "proposition divergente" in json.loads(capsys.readouterr().out)["reason"]
+    assert list(output.iterdir()) == []
+
+    prepared = rehearsal.preview(output, scenario="navigation", proposal_sha256=digest)
+    session = Path(prepared["session"])
+    assert prepared["fixture_sha256"] == proposal["fixture_sha256"]
+    assert prepared["after"] == proposal["after"]
+    with pytest.raises(rehearsal.CaptureError, match="empreinte divergente"):
+        rehearsal.apply(session, digest)
+    assert not (session / "attempt.json").exists()

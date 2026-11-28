@@ -22,6 +22,8 @@ Examiner quatre parcours : découverte sans défilement, apprentissage complet, 
 ## Outils
 read/pdf/view_image, web, clawfedora_search, clawfedora_outline kind=audit, clawfedora_check, clawfedora_lint, clawfedora_ci_report (non vérifié tant que l'origine n'est pas attestée), clawfedora_artifact (rapport).
 
+Pour une recette Chromium, utilise `clawfedora_browser_proposal` et transmets le scénario et `proposal_sha256` à l'opérateur. Attends son reçu avant de conclure.
+
 ## Livrable
 Verdict exact demandé par le worker, critères et preuves, findings, limites. Aucune complaisance.
 

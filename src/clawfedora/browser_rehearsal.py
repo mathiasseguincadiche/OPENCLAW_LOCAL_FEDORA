@@ -29,6 +29,8 @@ APPROVAL_SHA = re.compile(r"[a-f0-9]{64}\Z")
 ACTION = "open-details"
 NAVIGATE = "open-report"
 SCENARIOS = {"details": ACTION, "navigation": NAVIGATE}
+PROPOSAL_TOOL = "clawfedora_browser_proposal"
+PROPOSAL_ROLES = ("ingenieur-devops", "auditeur-qualite")
 NAV_HOME = "https://recette-clawfedora.invalid/"
 NAV_REPORT = NAV_HOME + "rapport"
 NAV_LINK = "#rehearsal-report-link"
@@ -87,23 +89,40 @@ NAV_PAGES = {
 }
 
 
-def _plan(directory: Path, issued_at: int, action: str = ACTION) -> dict[str, Any]:
+def _scenario_details(action: str) -> dict[str, Any]:
     if action == NAVIGATE:
-        scenario = {
+        return {
             "description": "Ouvrir le rapport de recette par le lien autorisé.",
             "fixture_sha256": hashlib.sha256(_encoded(NAV_PAGES)).hexdigest(),
             "before": {"url": NAV_HOME, "heading": NAV_HEADINGS[NAV_HOME]},
             "after": {"url": NAV_REPORT, "heading": NAV_HEADINGS[NAV_REPORT]},
         }
-    elif action == ACTION:
-        scenario = {
+    if action == ACTION:
+        return {
             "description": "Ouvrir les détails de la page de recette par un clic.",
             "fixture_sha256": hashlib.sha256(FIXTURE.encode()).hexdigest(),
             "before": {"details_open": False, "result_visible": False},
             "after": {"details_open": True, "result_visible": True},
         }
-    else:
+    raise CaptureError("scénario de recette non autorisé")
+
+
+def propose(scenario: str) -> dict[str, Any]:
+    """Describe one built-in scenario without allocating a session or approving execution."""
+    action = SCENARIOS.get(scenario)
+    if action is None:
         raise CaptureError("scénario de recette non autorisé")
+    spec = {
+        "schema": 1, "scope": "SYNTHETIC_OFFLINE", "scenario": scenario, "action": action,
+        **_scenario_details(action),
+    }
+    return {
+        **spec, "status": "PROPOSED", "operator_approval_required": True,
+        "proposal_sha256": hashlib.sha256(_encoded(spec)).hexdigest(),
+    }
+
+
+def _plan(directory: Path, issued_at: int, action: str = ACTION) -> dict[str, Any]:
     return {
         "schema": 1,
         "scope": "SYNTHETIC_OFFLINE",
@@ -111,7 +130,7 @@ def _plan(directory: Path, issued_at: int, action: str = ACTION) -> dict[str, An
         "action": action,
         "issued_at_unix": issued_at,
         "expires_at_unix": issued_at + TTL_SECONDS,
-        **scenario,
+        **_scenario_details(action),
     }
 
 
@@ -138,18 +157,24 @@ def _read_plan(path: Path) -> bytes:
     return raw
 
 
-def preview(output_root: Path, *, scenario: str = "details") -> dict[str, Any]:
-    """Prepare the exact action without starting Playwright."""
-    action = SCENARIOS.get(scenario)
-    if action is None:
-        raise CaptureError("scénario de recette non autorisé")
+def preview(
+    output_root: Path, *, scenario: str = "details", proposal_sha256: str | None = None,
+) -> dict[str, Any]:
+    """Prepare locally, optionally verifying the exact scenario proposed by a role."""
+    proposal = propose(scenario)
+    if proposal_sha256 is not None and (
+        APPROVAL_SHA.fullmatch(proposal_sha256) is None
+        or not compare_digest(proposal_sha256, proposal["proposal_sha256"])
+    ):
+        raise CaptureError("empreinte de proposition divergente, vérifier le scénario")
     directory = _private_destination(output_root, prefix="rehearsal-")
-    plan = _plan(directory, int(time.time()), action)
+    plan = _plan(directory, int(time.time()), SCENARIOS[scenario])
     raw = _encoded(plan)
     _write_exclusive(directory / "plan.json", raw)
     return {
         "status": "PREVIEW",
         "approval_sha256": hashlib.sha256(raw).hexdigest(),
+        **({"proposal_sha256": proposal_sha256} if proposal_sha256 is not None else {}),
         **plan,
     }
 
@@ -352,6 +377,7 @@ def add_browser_parser(subparsers: argparse._SubParsersAction[argparse.ArgumentP
     plan = actions.add_parser("preview", help="préparer une interaction de recette")
     plan.add_argument("--output-dir", type=Path, required=True)
     plan.add_argument("--scenario", choices=tuple(SCENARIOS), default="details")
+    plan.add_argument("--proposal-sha256", help="vérifier l'empreinte remise par le rôle")
     execute = actions.add_parser("apply", help="exécuter une préparation approuvée")
     execute.add_argument("--session", type=Path, required=True)
     execute.add_argument("--approve-sha256", required=True)
@@ -360,7 +386,9 @@ def add_browser_parser(subparsers: argparse._SubParsersAction[argparse.ArgumentP
 def run_browser_command(args: argparse.Namespace) -> int:
     try:
         if args.browser_command == "preview":
-            result = preview(args.output_dir, scenario=args.scenario)
+            result = preview(
+                args.output_dir, scenario=args.scenario, proposal_sha256=args.proposal_sha256,
+            )
         else:
             result = apply(args.session, args.approve_sha256)
     except (OSError, ValueError) as exc:

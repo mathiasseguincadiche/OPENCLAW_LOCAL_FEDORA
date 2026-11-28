@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from clawfedora import browser_rehearsal
 from clawfedora.agent_tools import OUTLINES, TOOL_ROLES, check, diagram, invoke
 from clawfedora.agents import deploy_workspaces, effective_instructions, validate_agent_assets
 from clawfedora.core_config import AGENT_IDS, core_contract, daily_limits
@@ -147,3 +148,36 @@ def test_tool_cli_reports_errors_without_command_execution() -> None:
         check=False,
     )
     assert result.returncode == 2 and "error" in json.loads(result.stdout)
+
+
+def test_browser_proposals_are_read_only_and_restricted_by_role_and_scenario(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    deploy_workspaces(ROOT, tmp_path)
+
+    def no_browser(*_args: object, **_kwargs: object) -> None:
+        pytest.fail("Le rôle ne peut pas démarrer une recette")
+
+    monkeypatch.setattr(browser_rehearsal, "_playwright_api", no_browser)
+    monkeypatch.setattr(browser_rehearsal, "preview", no_browser)
+    monkeypatch.setattr(browser_rehearsal, "apply", no_browser)
+    before = {path.relative_to(tmp_path) for path in tmp_path.rglob("*")}
+    tool = browser_rehearsal.PROPOSAL_TOOL
+    for role in AGENT_IDS:
+        workspace = tmp_path / "workspaces" / role
+        if role not in browser_rehearsal.PROPOSAL_ROLES:
+            with pytest.raises(ValueError, match="outil interdit"):
+                invoke(tmp_path, role, workspace, tool, {"scenario": "navigation"})
+            continue
+        data = invoke(tmp_path, role, workspace, tool, {"scenario": "navigation"})
+        assert data == browser_rehearsal.propose("navigation")
+        assert data["status"] == "PROPOSED" and data["operator_approval_required"] is True
+        assert not {"session", "approval_sha256", "receipt"} & data.keys()
+        for rejected in (
+            {"scenario": "apply"},
+            {"scenario": "navigation", "url": "https://outside.invalid/"},
+            {"scenario": "details", "approve_sha256": "0" * 64},
+        ):
+            with pytest.raises(ValueError):
+                invoke(tmp_path, role, workspace, tool, rejected)
+    assert {path.relative_to(tmp_path) for path in tmp_path.rglob("*")} == before

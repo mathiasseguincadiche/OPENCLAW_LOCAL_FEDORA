@@ -13,7 +13,7 @@ from xml.etree import ElementTree as ET
 
 import yaml
 
-from clawfedora import notion_worker_audit
+from clawfedora import browser_rehearsal, notion_worker_audit
 from clawfedora.ci_reports import summarize
 from clawfedora.core_config import AGENT_IDS
 from clawfedora.diagram_layouts import style_and_arrange
@@ -36,6 +36,7 @@ TOOL_ROLES = {
     "clawfedora_outline": set(AGENT_IDS),
     "clawfedora_diagram": {"architecte-solutions"},
     "clawfedora_lab_request": {"ingenieur-devops"},
+    browser_rehearsal.PROPOSAL_TOOL: set(browser_rehearsal.PROPOSAL_ROLES),
     "clawfedora_sandbox_validate": {"ingenieur-devops"},
     "clawfedora_sandbox_iterate": {"ingenieur-devops"},
     "clawfedora_doc_links": {"redacteur-pedagogique", "auditeur-qualite"},
@@ -416,6 +417,11 @@ def invoke(
         return iterate(
             runtime, root, scope, operation, revision, validator, files, validators=validators,
         )
+    if tool == browser_rehearsal.PROPOSAL_TOOL:
+        scenario = data.get("scenario")
+        if set(data) != {"scenario"} or not isinstance(scenario, str):
+            raise ValueError("seul le nom du scénario de recette est accepté")
+        return browser_rehearsal.propose(scenario)
     if tool == "clawfedora_lab_request":
         from clawfedora.project_proofs import lab_request
 
