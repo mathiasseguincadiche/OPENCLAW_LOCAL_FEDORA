@@ -176,7 +176,14 @@ rapports et indique quand un verdict doit être renouvelé après une modificati
 Le lot 2 affiche les autorisations visuelles dans le tableau de bord.
 Il décrit la portée des recettes Chromium et du bureau, et permet de
 lire les capacités annoncées du portail Wayland à la demande. Le parcours
-est vérifié dans Chromium sur mobile. C08 poursuit la recette de résilience.
+est vérifié dans Chromium sur mobile. [PR #335](https://github.com/mathiasseguincadiche/OPENCLAW_LOCAL_FEDORA/pull/335)
+
+### C08 — Résilience et sécurité
+
+Le lot 1 protège la consultation de l'atelier lorsque le journal
+d'activité du worker est illisible. Le verrou indique toujours si une
+session est active. Une nouvelle mise à jour réelle rétablit l'affichage
+par remplacement atomique du journal.
 
 ### Programme restant
 

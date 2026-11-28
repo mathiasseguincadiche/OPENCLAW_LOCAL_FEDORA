@@ -363,3 +363,42 @@ def test_project_removed_while_menu_is_open_is_not_selected(monkeypatch: pytest.
             )
         )
     assert body["messages"][0]["content"] == "Réponse"
+
+
+@pytest.mark.parametrize("raw", [b'{', b'{"phase": []}', b'x' * 8193, b'[' * 4000])
+def test_corrupt_worker_status_respects_lock_and_recovers_on_next_real_update(
+    chat: Any, raw: bytes,
+) -> None:
+    server, runner, runtime, project = chat
+    path = runtime / "state/worker-status.json"
+    with worker_lock(runtime):
+        path.write_bytes(raw)
+        code, overview = get(server, "?project=" + project.name)
+        assert code == 200 and overview["selected"]["id"] == project.name
+        view = overview["activity"]
+        assert view["active"] and not view["project_id"] and view["elapsed_seconds"] is None
+        assert runner.calls == []
+
+    view = activity(runtime)
+    assert not view["active"] and "à vérifier" in view["label"]
+    assert path.read_bytes() == raw
+
+    with worker_lock(runtime):
+        write_progress(runtime, project, "running", role="ingenieur-devops", session="reprise")
+        view = activity(runtime)
+        assert view["active"] and view["project_id"] == project.name
+        assert view["role"] == "ingenieur-devops"
+        assert path.stat().st_mode & 0o777 == 0o600
+
+
+def test_worker_progress_refuses_linked_status(chat: Any, tmp_path: Path) -> None:
+    _, _, runtime, project = chat
+    path = runtime / "state/worker-status.json"
+    other = tmp_path / "private.json"
+    other.write_text('{"phase":"running","project_id":"private-project"}', encoding="utf-8")
+    path.unlink(missing_ok=True)
+    path.symlink_to(other)
+    assert "à vérifier" in activity(runtime)["label"]
+    with worker_lock(runtime), pytest.raises(ValueError, match="progression liée"):
+        write_progress(runtime, project, "running")
+    assert "private-project" in other.read_text(encoding="utf-8")
