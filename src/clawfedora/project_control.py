@@ -132,7 +132,9 @@ def worker_active(runtime: Path) -> bool:
 
 def progress(runtime: Path) -> dict[str, Any]:
     path = runtime / "state/worker-status.json"
-    value = {"phase": "unverified"} if path.parent.is_symlink() else _read_worker_status(path)
+    value: dict[str, Any] = (
+        {"phase": "unverified"} if path.parent.is_symlink() else _read_worker_status(path)
+    )
     value["active"] = worker_active(runtime)
     if not value["active"] and value.get("phase") in {"running", "reviewing", "preparing", "chat"}:
         value["phase"] = "interrupted"
